@@ -7,11 +7,11 @@
     "yarn": "^1.22.11"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudfront": "3.45.0",
+    "@aws-sdk/client-cloudfront": "3.316.0",
     "@gnosis.pm/safe-apps-react-sdk": "4.3.1",
     "@gnosis.pm/safe-apps-sdk": "7.3.0",
-    "@hop-protocol/core": "0.0.1-beta.139",
-    "@hop-protocol/sdk": "0.0.1-beta.469",
+    "@hop-protocol/core": "0.0.1-beta.149",
+    "@hop-protocol/sdk": "0.0.1-beta.492",
     "@material-ui/core": "4.12.4",
     "@material-ui/icons": "4.11.3",
     "@material-ui/lab": "4.0.0-alpha.60",
@@ -95,7 +95,7 @@
     ]
   },
   "devDependencies": {
-    "@aws-sdk/client-route-53": "3.4.1",
+    "@aws-sdk/client-route-53": "^3.316.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",

@@ -14,7 +14,8 @@ describe.skip('GasBoostSigner', () => {
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider)
+    const wallet = new Wallet(privateKey, provider)
+    const signer = new GasBoostSigner(wallet)
     expect(await signer.getAddress()).toBeTruthy()
   })
   it.skip('sendTransaction - gnosis', async () => {
@@ -22,7 +23,8 @@ describe.skip('GasBoostSigner', () => {
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider, store, {
+    const wallet = new Wallet(privateKey, provider)
+    const signer = new GasBoostSigner(wallet, store, {
       timeTilBoostMs: 10 * 1000
       // compareMarketGasPrice: false
     })
@@ -58,7 +60,8 @@ describe.skip('GasBoostSigner', () => {
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider, store, {
+    const wallet = new Wallet(privateKey, provider)
+    const signer = new GasBoostSigner(wallet, store, {
       timeTilBoostMs: 10 * 1000
       // compareMarketGasPrice: false
     })
@@ -96,7 +99,8 @@ describe.skip('GasBoostSigner', () => {
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider, store, {
+    const wallet = new Wallet(privateKey, provider)
+    const signer = new GasBoostSigner(wallet, store, {
       timeTilBoostMs: 5 * 1000,
       compareMarketGasPrice: false,
       maxGasPriceGwei: 0.22,
@@ -136,7 +140,8 @@ describe.skip('GasBoostSigner', () => {
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider, store, {
+    const wallet = new Wallet(privateKey, provider)
+    const signer = new GasBoostSigner(wallet, store, {
       timeTilBoostMs: 5 * 1000
     })
     const recipient = await signer.getAddress()
@@ -163,7 +168,8 @@ describe.skip('GasBoostSigner', () => {
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider, store, {
+    const wallet = new Wallet(privateKey, provider)
+    const signer = new GasBoostSigner(wallet, store, {
       timeTilBoostMs: 5 * 1000,
       reorgWaitConfirmations: 2
     })
@@ -282,7 +288,8 @@ describe.skip('GasBoostTransaction', () => {
   const provider = getRpcProvider('polygon')
   expectDefined(provider)
   expectDefined(privateKey)
-  const signer = new GasBoostSigner(privateKey, provider)
+  const wallet = new Wallet(privateKey, provider)
+  const signer = new GasBoostSigner(wallet)
 
   it('should use type 0', async () => {
     const recipient = await signer.getAddress()

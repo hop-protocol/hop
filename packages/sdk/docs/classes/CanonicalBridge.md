@@ -23,6 +23,7 @@ CanonicalBridge
 - [addresses](CanonicalBridge.md#addresses)
 - [baseConfigUrl](CanonicalBridge.md#baseconfigurl)
 - [baseExplorerUrl](CanonicalBridge.md#baseexplorerurl)
+- [blocklist](CanonicalBridge.md#blocklist)
 - [bonders](CanonicalBridge.md#bonders)
 - [chain](CanonicalBridge.md#chain)
 - [chainProviders](CanonicalBridge.md#chainproviders)
@@ -54,6 +55,7 @@ CanonicalBridge
 - [\_getMessengerWrapperAddress](CanonicalBridge.md#_getmessengerwrapperaddress)
 - [approveDeposit](CanonicalBridge.md#approvedeposit)
 - [approveWithdraw](CanonicalBridge.md#approvewithdraw)
+- [checkBlocklist](CanonicalBridge.md#checkblocklist)
 - [connect](CanonicalBridge.md#connect)
 - [deposit](CanonicalBridge.md#deposit)
 - [estimateOptimismL1FeeFromData](CanonicalBridge.md#estimateoptimisml1feefromdata)
@@ -85,6 +87,7 @@ CanonicalBridge
 - [getIpfsBaseConfigUrl](CanonicalBridge.md#getipfsbaseconfigurl)
 - [getL1AmbBridgeAddress](CanonicalBridge.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](CanonicalBridge.md#getl1bridgeaddress)
+- [getL1BridgeWrapperAddress](CanonicalBridge.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridge](CanonicalBridge.md#getl1canonicalbridge)
 - [getL1CanonicalBridgeAddress](CanonicalBridge.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](CanonicalBridge.md#getl1canonicaltokenaddress)
@@ -113,7 +116,6 @@ CanonicalBridge
 - [getTransferStatus](CanonicalBridge.md#gettransferstatus)
 - [getWaitConfirmations](CanonicalBridge.md#getwaitconfirmations)
 - [getWithdrawApprovalAddress](CanonicalBridge.md#getwithdrawapprovaladdress)
-- [init](CanonicalBridge.md#init)
 - [isValidChain](CanonicalBridge.md#isvalidchain)
 - [isValidNetwork](CanonicalBridge.md#isvalidnetwork)
 - [resolveDnslink](CanonicalBridge.md#resolvednslink)
@@ -198,6 +200,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[baseExplorerUrl](Base.md#baseexplorerurl)
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
 
 ___
 
@@ -544,6 +556,20 @@ Will only send approval transaction if necessary.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 
@@ -1129,6 +1155,28 @@ ___
 
 ___
 
+### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
+
+▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
+
+___
+
 ### <a id="getl1canonicalbridge" name="getl1canonicalbridge"></a> getL1CanonicalBridge
 
 ▸ **getL1CanonicalBridge**(): `Promise`<`any`\>
@@ -1655,20 +1703,6 @@ ___
 #### Returns
 
 `string`
-
-___
-
-### <a id="init" name="init"></a> init
-
-▸ **init**(): `Promise`<`void`\>
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Inherited from
-
-[Base](Base.md).[init](Base.md#init)
 
 ___
 

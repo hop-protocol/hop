@@ -9,7 +9,7 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
-import { getEnabledNetworks, relayTransactionBatchSize } from 'src/config'
+import { getEnabledNetworks, config as globalConfig, relayTransactionBatchSize } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
@@ -192,8 +192,8 @@ class RelayWatcher extends BaseWatcher {
       }
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayWatcher`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayWatcher`)
       return
     }
 
@@ -316,8 +316,8 @@ class RelayWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping bondTransferRoot`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondTransferRoot`)
       return
     }
 

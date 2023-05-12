@@ -31,6 +31,7 @@ Base
 - [addresses](Base.md#addresses)
 - [baseConfigUrl](Base.md#baseconfigurl)
 - [baseExplorerUrl](Base.md#baseexplorerurl)
+- [blocklist](Base.md#blocklist)
 - [bonders](Base.md#bonders)
 - [chainProviders](Base.md#chainproviders)
 - [chains](Base.md#chains)
@@ -57,6 +58,7 @@ Base
 
 - [\_getBonderAddress](Base.md#_getbonderaddress)
 - [\_getMessengerWrapperAddress](Base.md#_getmessengerwrapperaddress)
+- [checkBlocklist](Base.md#checkblocklist)
 - [estimateOptimismL1FeeFromData](Base.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](Base.md#fetchbonderavailableliquiditydata)
 - [fetchBonderAvailableLiquidityDataWithIpfsFallback](Base.md#fetchbonderavailableliquiditydatawithipfsfallback)
@@ -82,6 +84,7 @@ Base
 - [getIpfsBaseConfigUrl](Base.md#getipfsbaseconfigurl)
 - [getL1AmbBridgeAddress](Base.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](Base.md#getl1bridgeaddress)
+- [getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridgeAddress](Base.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](Base.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](Base.md#getl1poserc20predicateaddress)
@@ -105,7 +108,6 @@ Base
 - [getSupportedTokens](Base.md#getsupportedtokens)
 - [getTransferStatus](Base.md#gettransferstatus)
 - [getWaitConfirmations](Base.md#getwaitconfirmations)
-- [init](Base.md#init)
 - [isValidChain](Base.md#isvalidchain)
 - [isValidNetwork](Base.md#isvalidnetwork)
 - [resolveDnslink](Base.md#resolvednslink)
@@ -159,6 +161,12 @@ ___
 ### <a id="baseexplorerurl" name="baseexplorerurl"></a> baseExplorerUrl
 
 • **baseExplorerUrl**: `string` = `'https://explorer.hop.exchange'`
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
 
 ___
 
@@ -346,6 +354,16 @@ ___
 #### Returns
 
 `Promise`<`string`\>
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
 
 ___
 
@@ -706,6 +724,24 @@ ___
 | :------ | :------ |
 | `token` | [`TToken`](../modules.md#ttoken) |
 | `chain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+___
+
+### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
+
+▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 
@@ -1085,16 +1121,6 @@ ___
 #### Returns
 
 `number`
-
-___
-
-### <a id="init" name="init"></a> init
-
-▸ **init**(): `Promise`<`void`\>
-
-#### Returns
-
-`Promise`<`void`\>
 
 ___
 

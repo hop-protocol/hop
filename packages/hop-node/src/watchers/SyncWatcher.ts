@@ -447,7 +447,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling TransferSent event')
 
     try {
-      const { transactionHash, transactionIndex } = event
+      const { transactionHash } = event
       const transferSentIndex: number = index.toNumber()
       const blockNumber: number = event.blockNumber
       const l2Bridge = this.bridge as L2Bridge

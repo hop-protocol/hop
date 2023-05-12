@@ -9,6 +9,7 @@
 - [HOP](CanonicalToken.md#hop)
 - [MATIC](CanonicalToken.md#matic)
 - [SNX](CanonicalToken.md#snx)
+- [UNI](CanonicalToken.md#uni)
 - [USDC](CanonicalToken.md#usdc)
 - [USDT](CanonicalToken.md#usdt)
 - [WBTC](CanonicalToken.md#wbtc)
@@ -47,6 +48,12 @@ ___
 ### <a id="snx" name="snx"></a> SNX
 
 • **SNX** = ``"SNX"``
+
+___
+
+### <a id="uni" name="uni"></a> UNI
+
+• **UNI** = ``"UNI"``
 
 ___
 

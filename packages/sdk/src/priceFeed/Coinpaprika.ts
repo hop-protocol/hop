@@ -14,7 +14,8 @@ export class Coinpaprika {
     SUSD: 'susd-susd',
     TUSD: 'tusd-trueusd',
     USDC: 'usdc-usd-coin',
-    USDT: 'usdt-tether'
+    USDT: 'usdt-tether',
+    UNI: 'uni-uniswap'
   }
 
   public getPriceByTokenSymbol = async (symbol: string, base: string = 'USD'): Promise<number> => {

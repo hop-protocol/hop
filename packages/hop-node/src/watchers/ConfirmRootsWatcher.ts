@@ -1,7 +1,6 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
-import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
@@ -20,6 +19,7 @@ import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { PreTransactionValidationError } from 'src/types/error'
 import { getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
@@ -37,7 +37,7 @@ export type ConfirmRootsData = {
   rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -75,14 +75,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
     if (this.chainSlug === Chain.Optimism && enabledNetworks.includes(Chain.Optimism)) {
       this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
-    if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
-      this.watchers[Chain.Base] = new BaseZkBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,
@@ -232,8 +224,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, skipping confirmRootsViaWrapper`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
       return
     }
 
@@ -242,16 +234,25 @@ class ConfirmRootsWatcher extends BaseWatcher {
     })
 
     logger.debug(`handling confirmable transfer root ${transferRootHash}, destination ${destinationChainId}, amount ${totalAmount.toString()}, committedAt ${committedAt}`)
-    await this.confirmRootsViaWrapper({
-      rootHashes: [transferRootHash],
-      destinationChainIds: [destinationChainId],
-      totalAmounts: [totalAmount],
-      rootCommittedAts: [committedAt]
-    })
+    try {
+      await this.confirmRootsViaWrapper({
+        rootHashes: [transferRootHash],
+        destinationChainIds: [destinationChainId],
+        totalAmounts: [totalAmount],
+        rootCommittedAts: [committedAt]
+      })
+    } catch (err) {
+      logger.error('confirmRootsViaWrapper error:', err.message)
+      throw err
+    }
   }
 
   async confirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
-    await this.validateConfirmRootsViaWrapper(rootData)
+    // NOTE: Since root confirmations via a wrapper can only happen after the challenge period expires, it is not
+    // possible for a reorg to occur. Therefore, we do not need to check for a reorg here.
+    // Additionally, the validation relies on TheGraph, which is not guaranteed to be available during an emergency.
+    // Because of this, we do not enable global emergencyDryMode for this watcher.
+    await this.preTransactionValidation(rootData)
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
     await this.l1MessengerWrapper.confirmRoots(
       rootHashes,
@@ -261,7 +262,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     )
   }
 
-  async validateConfirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+  async preTransactionValidation (rootData: ConfirmRootsData): Promise<void> {
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
 
     // Data validation
@@ -270,7 +271,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       rootHashes.length !== totalAmounts.length ||
       rootHashes.length !== rootCommittedAts.length
     ) {
-      throw new Error('Root data arrays must be the same length')
+      throw new PreTransactionValidationError('Root data arrays must be the same length')
     }
 
     for (const [index, value] of rootHashes.entries()) {
@@ -281,12 +282,13 @@ class ConfirmRootsWatcher extends BaseWatcher {
 
       // Verify that the DB has the root and associated data
       const calculatedTransferRootId = getTransferRootId(rootHash, totalAmount)
+      const logger = this.logger.create({ root: calculatedTransferRootId })
+
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
       if (!dbTransferRoot) {
-        throw new Error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+        throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
       }
 
-      const logger = this.logger.create({ root: calculatedTransferRootId })
       logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
 
       // Verify that the data in the DB matches the data passed in
@@ -296,16 +298,16 @@ class ConfirmRootsWatcher extends BaseWatcher {
         totalAmount.toString() !== dbTransferRoot?.totalAmount?.toString() ||
         rootCommittedAt !== dbTransferRoot?.committedAt
       ) {
-        throw new Error(`DB data does not match passed in data for rootHash ${rootHash}`)
+        throw new PreTransactionValidationError(`DB data does not match passed in data for rootHash ${rootHash}`)
       }
 
       // Verify that the watcher is on the correct chain
       if (this.bridge.chainId !== dbTransferRoot.sourceChainId) {
-        throw new Error(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
+        throw new PreTransactionValidationError(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
       }
 
       if (this.bridge.chainId === destinationChainId) {
-        throw new Error(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
+        throw new PreTransactionValidationError(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
       }
 
       // Verify that the transfer root ID is not confirmed for any chain
@@ -323,7 +325,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
           calculatedTransferRootId
         )
         if (isTransferRootIdConfirmed) {
-          throw new Error(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
+          throw new PreTransactionValidationError(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
         }
       }
 
@@ -335,7 +337,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
         totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
         rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
       ) {
-        throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+        throw new PreTransactionValidationError(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
       }
 
       // Verify that the wrapper being used is correct
@@ -344,13 +346,13 @@ class ConfirmRootsWatcher extends BaseWatcher {
         Number(wrapperL2ChainId) !== dbTransferRoot?.sourceChainId ||
         Number(wrapperL2ChainId) !== this.bridge.chainId
       ) {
-        throw new Error(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
+        throw new PreTransactionValidationError(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
       }
 
       // Verify that the root can be confirmed
       const { createdAt, challengeStartTime } = await this.l1Bridge.getTransferBond(calculatedTransferRootId)
       if (!createdAt || !challengeStartTime) {
-        throw new Error('Transfer bond not found')
+        throw new PreTransactionValidationError('Transfer bond not found')
       }
       const createdAtMs = Number(createdAt) * 1000
       const timeSinceBondCreation = Date.now() - createdAtMs
@@ -359,7 +361,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
           challengeStartTime.toString() !== '0' ||
           timeSinceBondCreation <= ChallengePeriodMs
       ) {
-        throw new Error('Transfer root is not confirmable')
+        throw new PreTransactionValidationError('Transfer root is not confirmable')
       }
     }
   }

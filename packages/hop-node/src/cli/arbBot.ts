@@ -10,14 +10,14 @@ root
     parseBool
   )
   .option(
-    '--arb-bot-config <path>',
+    '--arb-bot-conf <path>',
     'Arb bot(s) config JSON file',
     parseString
   )
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { dry: dryMode, arbBotConfig } = source
+  const { dry: dryMode, arbBotConf: arbBotConfig } = source
 
   try {
     await startArbBots({ dryMode, configFilePath: arbBotConfig })

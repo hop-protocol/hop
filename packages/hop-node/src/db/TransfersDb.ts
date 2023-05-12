@@ -82,6 +82,7 @@ export type UnbondedSentTransfer = {
   bonderFee: BigNumber
   transferNonce: string
   deadline: BigNumber
+  transferSentIndex: number
 }
 
 export type UnrelayedSentTransfer = {

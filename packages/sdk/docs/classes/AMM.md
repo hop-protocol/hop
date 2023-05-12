@@ -23,6 +23,7 @@ AMM
 - [addresses](AMM.md#addresses)
 - [baseConfigUrl](AMM.md#baseconfigurl)
 - [baseExplorerUrl](AMM.md#baseexplorerurl)
+- [blocklist](AMM.md#blocklist)
 - [bonders](AMM.md#bonders)
 - [calculateSwap](AMM.md#calculateswap)
 - [chain](AMM.md#chain)
@@ -63,6 +64,7 @@ AMM
 - [calculateRemoveLiquidityOneToken](AMM.md#calculateremoveliquidityonetoken)
 - [calculateToHToken](AMM.md#calculatetohtoken)
 - [calculateTotalAmountForLpToken](AMM.md#calculatetotalamountforlptoken)
+- [checkBlocklist](AMM.md#checkblocklist)
 - [connect](AMM.md#connect)
 - [estimateOptimismL1FeeFromData](AMM.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](AMM.md#fetchbonderavailableliquiditydata)
@@ -94,6 +96,7 @@ AMM
 - [getIpfsBaseConfigUrl](AMM.md#getipfsbaseconfigurl)
 - [getL1AmbBridgeAddress](AMM.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](AMM.md#getl1bridgeaddress)
+- [getL1BridgeWrapperAddress](AMM.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridgeAddress](AMM.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](AMM.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](AMM.md#getl1poserc20predicateaddress)
@@ -126,7 +129,6 @@ AMM
 - [getWaitConfirmations](AMM.md#getwaitconfirmations)
 - [getYieldData](AMM.md#getyielddata)
 - [getYieldStatsForDay](AMM.md#getyieldstatsforday)
-- [init](AMM.md#init)
 - [isHighPriceImpact](AMM.md#ishighpriceimpact)
 - [isValidChain](AMM.md#isvalidchain)
 - [isValidNetwork](AMM.md#isvalidnetwork)
@@ -216,6 +218,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[baseExplorerUrl](Base.md#baseexplorerurl)
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
 
 ___
 
@@ -719,6 +731,20 @@ ___
 #### Returns
 
 `Promise`<`BigNumber`\>
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 
@@ -1290,6 +1316,28 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getL1BridgeAddress](Base.md#getl1bridgeaddress)
+
+___
+
+### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
+
+▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
 
 ___
 
@@ -1880,20 +1928,6 @@ ___
 #### Returns
 
 `Promise`<`any`\>
-
-___
-
-### <a id="init" name="init"></a> init
-
-▸ **init**(): `Promise`<`void`\>
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Inherited from
-
-[Base](Base.md).[init](Base.md#init)
 
 ___
 

@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.469",
+  "version": "0.0.1-beta.492",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -38,15 +38,17 @@
   "license": "MIT",
   "dependencies": {
     "@eth-optimism/contracts": "0.5.2",
-    "@hop-protocol/core": "0.0.1-beta.139",
+    "@hop-protocol/core": "0.0.1-beta.149",
     "@maticnetwork/maticjs": "3.4.0-beta.0",
     "dotenv": "8.6.0",
     "ethereum-block-by-date": "^1.4.6",
+    "ethereumjs-util": "7.1.5",
     "ethers": "5.7.1",
     "eventemitter3": "4.0.7",
     "fast-memoize": "2.5.2",
     "isomorphic-fetch": "3.0.0",
     "luxon": "2.5.0",
+    "merkletreejs": "0.2.32",
     "web3": "1.7.5"
   },
   "devDependencies": {

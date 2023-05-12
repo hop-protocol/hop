@@ -32,6 +32,7 @@ export default async function getTransferSentToL2 (
         relayer
         relayerFee
         token
+        from
       }
     }
   `

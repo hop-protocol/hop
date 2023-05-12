@@ -1,6 +1,6 @@
 {
   "linea": {
-    "enabled": true,
+    "enabled": false,
     "dryMode": false,
     "network": "goerli",
     "l1ChainSlug": "ethereum",
@@ -13,7 +13,7 @@
     "waitConfirmations": 4
   },
   "base": {
-    "enabled": true,
+    "enabled": false,
     "dryMode": false,
     "network": "goerli",
     "l1ChainSlug": "ethereum",
@@ -24,5 +24,18 @@
     "pollIntervalSeconds": 600,
     "ammDepositThresholdAmount": 50,
     "waitConfirmations": 4
+  },
+  "test": {
+    "enabled": false,
+    "dryMode": false,
+    "network": "goerli",
+    "l1ChainSlug": "ethereum",
+    "l2ChainSlug": "polygon",
+    "tokenSymbol": "ETH",
+    "amount": 0.001,
+    "slippageTolerance": 5,
+    "pollIntervalSeconds": 600,
+    "ammDepositThresholdAmount": 1,
+    "waitConfirmations": 0
   }
 }

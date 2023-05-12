@@ -6,7 +6,11 @@ import path from 'path'
 import {
   BlocklistConfig,
   Bonders,
-  CommitTransfersConfig, Fees, Routes, Vault,
+  CommitTransfersConfig,
+  Fees,
+  Routes,
+  SignerConfig,
+  Vault,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,
@@ -20,8 +24,10 @@ import {
   setFeesConfig,
   setMetricsConfig,
   setNetworkMaxGasPrice,
+  setNetworkRedundantRpcUrls,
   setNetworkRpcUrl,
   setRoutesConfig,
+  setSignerConfig,
   setSyncConfig,
   setVaultConfig
 } from './config'
@@ -88,6 +94,7 @@ export type FileConfig = {
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
+  signer?: SignerConfig
   settleBondedWithdrawals?: any
   commitTransfers?: CommitTransfersConfig
   addresses?: Addresses
@@ -141,6 +148,21 @@ export async function setGlobalConfigFromConfigFile (
     const privateKey = await recoverKeystore(keystore, passphrase)
     setBonderPrivateKey(privateKey)
   }
+  if (config.signer) {
+    if (!config.signer.type) {
+      throw new Error('config for signer type is required')
+    }
+    if (!config.signer.keyId) {
+      throw new Error('config for signer keyId is required')
+    }
+    if (!config.signer.awsRegion) {
+      throw new Error('config for signer awsRegion is required')
+    }
+    if (!config.signer.lambdaFunctionName) {
+      throw new Error('config for signer lambdaFunctionName is required')
+    }
+    setSignerConfig(config.signer)
+  }
   const network = config.network
   if (!network) {
     throw new Error('config for network is required')
@@ -155,12 +177,15 @@ export async function setGlobalConfigFromConfigFile (
   for (const k in config.chains) {
     const v = config.chains[k]
     if (v instanceof Object) {
-      const { rpcUrl, maxGasPrice } = v
+      const { rpcUrl, maxGasPrice, redundantRpcUrls } = v
       if (rpcUrl) {
         setNetworkRpcUrl(k, rpcUrl)
       }
       if (maxGasPrice) {
         setNetworkMaxGasPrice(k, maxGasPrice)
+      }
+      if (redundantRpcUrls && redundantRpcUrls.length > 0) {
+        setNetworkRedundantRpcUrls(k, redundantRpcUrls)
       }
     }
   }

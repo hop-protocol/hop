@@ -8,7 +8,7 @@ import { Chain } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Wallet, constants, providers } from 'ethers'
+import { Signer, constants, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { config as globalConfig } from 'src/config'
 import { setProofApi, use } from '@maticnetwork/maticjs'
@@ -24,8 +24,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
   ready: boolean = false
   l1Provider: any
   l2Provider: any
-  l1Wallet: Wallet
-  l2Wallet: Wallet
+  l1Wallet: Signer
+  l2Wallet: Signer
   chainId: number
   apiUrl: string
   polygonMainnetChainId: number = 137
@@ -122,8 +122,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
       `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
     )
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
       return
     }
     await this.db.transferRoots.update(transferRootId, {

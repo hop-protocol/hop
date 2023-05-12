@@ -1,12 +1,12 @@
-import { formatEther, parseEther } from 'ethers/lib/utils'
 import { KmsSigner } from 'src/aws/KmsSigner'
 import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { actionHandler, parseBool, root } from './shared'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { formatEther, parseEther } from 'ethers/lib/utils'
 import {
-  config as globalConfig,
-  getEnabledNetworks
+  getEnabledNetworks,
+  config as globalConfig
 } from 'src/config'
+import { getRpcProvider } from 'src/utils/getRpcProvider'
 
 root
   .command('verify-aws-signer')
@@ -74,7 +74,7 @@ async function main (source: any) {
         continue
       }
 
-      const tx = await signer.connect(provider!).sendTransaction(transaction)
+      const tx = await signer.connect(provider).sendTransaction(transaction)
       const receipt = await tx.wait()
       console.log(`Transaction sent: ${tx.hash}`)
       if (receipt.from !== address) {

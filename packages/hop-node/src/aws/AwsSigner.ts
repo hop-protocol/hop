@@ -88,7 +88,7 @@ export abstract class AwsSigner extends Signer {
     return checksumAddress(address)
   }
 
-  normalizeTransaction (transaction: providers.TransactionRequest):  providers.TransactionRequest {
+  normalizeTransaction (transaction: providers.TransactionRequest): providers.TransactionRequest {
     // Ethers will not serialize a transaction with a from address
     if (transaction?.from) {
       delete transaction.from

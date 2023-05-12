@@ -369,6 +369,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
+    // Perform this check as late as possible before the transaction is sent
     await this.validateDbExistence(txParams)
     await this.validateTransferSentIndex(txParams)
     await this.validateUniqueness(txParams)
@@ -379,7 +380,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     // Validate DB existence with calculated transferId
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     if (calculatedDbTransfer.transferId !== txParams.transferId) {
-      throw new PreTransactionValidationError(`Calculated transferId (${calculatedDbTransfer.transferId}) does not match transferId in db`)
+      throw new PreTransactionValidationError(`Calculated transferId (${calculatedDbTransfer?.transferId}) does not match transferId in db`)
     }
   }
 
@@ -449,7 +450,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = txParams
 
     const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
-    return await this.db.transfers.getByTransferId(calculatedTransferId)
+    return this.db.transfers.getByTransferId(calculatedTransferId)
   }
 }
 

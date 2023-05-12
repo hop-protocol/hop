@@ -19,6 +19,14 @@ type Config = {
   dryMode?: boolean
 }
 
+export type SendBondTransferRootTxParams = {
+  transferRootId: string
+  transferRootHash: string
+  destinationChainId: number
+  totalAmount: BigNumber,
+  transferIds: string[]
+}
+
 class BondTransferRootWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
 
@@ -169,9 +177,11 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     try {
       const tx = await this.sendBondTransferRoot(
+        transferRootId,
         transferRootHash,
         destinationChainId,
-        totalAmount
+        totalAmount,
+        transferIds
       )
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
@@ -188,14 +198,18 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async sendBondTransferRoot (
+    transferRootId: string,
     transferRootHash: string,
     destinationChainId: number,
-    totalAmount: BigNumber
+    totalAmount: BigNumber,
+    transferIds: string[]
   ): Promise<providers.TransactionResponse> {
     await this.preTransactionValidation({
+      transferRootId,
       transferRootHash,
       destinationChainId,
-      totalAmount
+      totalAmount,
+      transferIds
   })
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
@@ -238,45 +252,50 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
   }
 
-  async preTransactionValidation (params: any): Promise<void> {
+  async preTransactionValidation (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Perform this check as late as possible before the transaction is sent
-    const {
-      transferRootHash,
-      destinationChainId,
-      totalAmount
-    } = params
+    await this.validateDbExistence(txParams)
+    await this.validateDestinationChainId(txParams)
+    await this.validateUniqueness(txParams)
+  }
 
+  async validateDbExistence (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Validate DB existence with calculated transferRootId
-    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
-    const logger = this.logger.create({ root: calculatedTransferRootId })
-    const calculatedDbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
-    if (calculatedDbTransferRoot?.transferRootId !== calculatedTransferRootId) {
-      throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+    if (calculatedDbTransferRoot?.transferRootId !== txParams.transferRootId) {
+      throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedDbTransferRoot?.transferRootId}) does not match transferRootId in db`)
     }
+  }
 
+  async validateDestinationChainId (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Validate that the destination chain id matches the db entry
-    if (calculatedDbTransferRoot?.destinationChainId !== destinationChainId) {
-      throw new PreTransactionValidationError(`Calculated destinationChainId (${destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot?.destinationChainId})`)
+    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+    if (calculatedDbTransferRoot?.destinationChainId !== txParams.destinationChainId) {
+      throw new PreTransactionValidationError(`Calculated destinationChainId (${txParams.destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot?.destinationChainId})`)
     }
+  }
 
+  async validateUniqueness (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
-    const transferIds: string[] = calculatedDbTransferRoot.transferIds!.map(x => x.toLowerCase())
-    const dbTransferIds: string[] = []
-    const dbTransferRoots: TransferRoot[] = await this.db.transferRoots.getTransferRootsFromTwoWeeks()
-    for (const dbTransferRoot of dbTransferRoots) {
-      if (dbTransferRoot.sourceChainId !== this.bridge.chainId) continue
-      for (const transferId of dbTransferRoot.transferIds!) {
-        dbTransferIds.push(transferId.toLowerCase())
+    const transferIds = txParams.transferIds.map((x: string) => x.toLowerCase())
+
+    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromTwoWeeks())
+      .filter(dbTransferRoot => dbTransferRoot.transferRootId !== txParams.transferRootId)
+      .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
+    const dbTransferIds: string[] = dbTransferRoots.flatMap(dbTransferRoot => dbTransferRoot.transferIds!)
+
+    for (const transferId of transferIds) {
+      const transferIdCount: string[] = dbTransferIds.filter((dbTransferId: string) => dbTransferId.toLowerCase() === transferId)
+      if (transferIdCount.length > 0) {
+        throw new PreTransactionValidationError(`transferId (${transferId}) exists in multiple transferRoots in db`)
       }
     }
+  }
 
-    const areTransferIdsUnique = transferIds.every(transferId => {
-      const numOccurrences = dbTransferIds.filter(dbTransferId => dbTransferId === transferId).length
-      return numOccurrences === 1
-    })
-    if (!areTransferIdsUnique) {
-      throw new PreTransactionValidationError(`transferIds (${transferIds}) are either not unique and exist in multiple transferRoots or do not exist in any root`)
-    }
+  async getCalculatedDbTransferRoot (txParams: SendBondTransferRootTxParams): Promise<TransferRoot> {
+    const { transferRootHash, totalAmount } = txParams
+    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
+    return this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
   }
 }
 

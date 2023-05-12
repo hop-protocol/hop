@@ -1,6 +1,7 @@
 import {
   getBondTransferRootWatcher
 } from 'src/watchers/watchers'
+import { SendBondTransferRootTxParams } from 'src/watchers/BondTransferRootWatcher'
 
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 
@@ -45,6 +46,14 @@ async function main (source: any) {
       throw new Error('TransferRoot does not exist in the DB')
     }
 
-    await watcher.sendBondTransferRoot(rootHash, dbTransferRoot.destinationChainId, dbTransferRoot.totalAmount)
+    const txParams: SendBondTransferRootTxParams = {
+      transferRootId: dbTransferRoot.transferRootId!,
+      transferRootHash: rootHash,
+      destinationChainId: dbTransferRoot.destinationChainId!,
+      totalAmount: dbTransferRoot.totalAmount!,
+      transferIds: dbTransferRoot.transferIds!
+    }
+
+    await watcher.sendBondTransferRoot(txParams)
   }
 }

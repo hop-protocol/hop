@@ -5,7 +5,7 @@ import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
-import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
+import { AvgBlockTimeSeconds, Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
@@ -412,6 +412,13 @@ export enum Watchers {
 
 export function enableEmergencyMode () {
   config.emergencyDryMode = true
+}
+
+export function getFinalityTimeSeconds (chainSlug: string) {
+  // The default of 1 for these values imply a trusted sequencer or an unimplemented network
+  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds[chainSlug] ?? 1
+  const waitConfirmations: number = networks[chainSlug].waitConfirmations ?? 1
+  return avgBlockTimeSeconds * waitConfirmations
 }
 
 export { Bonders }

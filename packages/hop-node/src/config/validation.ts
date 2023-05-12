@@ -343,7 +343,6 @@ export async function validateConfigValues (config?: Config) {
         }
         try {
           const parsed = new URL(redundantRpcUrl)
-          console.log('parsed', parsed)
           if (!parsed.protocol || !parsed.host || !['http:', 'https:'].includes(parsed.protocol)) {
             throw new URIError()
           }

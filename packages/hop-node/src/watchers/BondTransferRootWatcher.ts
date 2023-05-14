@@ -302,6 +302,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
       .filter(dbTransferRoot => dbTransferRoot?.transferIds?.length)
     const dbTransferIds: string[] = dbTransferRoots.flatMap(dbTransferRoot => dbTransferRoot.transferIds!)
+    if (dbTransferIds.length === 0) {
+      this.logger.debug('The first root for a token route will have any any other transferIds in the db, so this check can be ignored')
+      return
+    }
 
     for (const transferId of transferIds) {
       const transferIdCount: string[] = dbTransferIds.filter((dbTransferId: string) => dbTransferId.toLowerCase() === transferId)

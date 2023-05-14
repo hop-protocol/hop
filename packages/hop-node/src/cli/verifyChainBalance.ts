@@ -24,6 +24,7 @@ import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
 interface MetaBlockData {
   blockTag: providers.BlockTag
   blockTimestamp: number
+  subgraphSyncTimestamp: number
 }
 
 type TokenAdjustmentData = {
@@ -113,31 +114,39 @@ export async function main (source: any) {
     l2ChainsForToken.push(chain as Chain)
   }
 
-  const metaBlockData: Record<string, MetaBlockData> = {}
+  let metaBlockData: Record<string, MetaBlockData> = {}
   const l1Provider = getRpcProvider(Chain.Ethereum)!
   const l1Block = await l1Provider.getBlock('latest')
+  const l1SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(Chain.Ethereum, l1Provider)
+
   metaBlockData[Chain.Ethereum] = {
     blockTag: l1Block.number,
-    blockTimestamp: l1Block.timestamp
+    blockTimestamp: l1Block.timestamp,
+    subgraphSyncTimestamp: l1SubgraphSyncTimestamp
   }
   const l2Providers: Record<string, providers.Provider> = {}
   for (const l2ChainForToken of l2ChainsForToken) {
     const l2Provider = getRpcProvider(l2ChainForToken)!
     l2Providers[l2ChainForToken] = l2Provider
     const l2Block = await l2Provider.getBlock('latest')
+  const l2SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(l2ChainForToken, l2Provider)
     metaBlockData[l2ChainForToken] = {
       blockTag: l2Block.number,
-      blockTimestamp: l2Block.timestamp
+      blockTimestamp: l2Block.timestamp,
+      subgraphSyncTimestamp: l2SubgraphSyncTimestamp
     }
   }
 
-  // Subgraphs may be out of sync. If they are too far out of sync, we need to wait until they
-  // are back in sync, as they are a sole source of truth for some pieces of data
-  const isSubgraphSynced = await getIsSubgraphSynced(metaBlockData, l1Provider, l2Providers)
-  if (!isSubgraphSynced) {
-    return {
-      tokenChainBalanceDiff: BigNumber.from(0),
-      chainBalanceHTokenDiff: BigNumber.from(0)
+  for (const chain in metaBlockData) {
+    if (metaBlockData[chain].subgraphSyncTimestamp === 0) continue
+    const syncDiff = metaBlockData[chain].blockTimestamp - metaBlockData[chain].subgraphSyncTimestamp
+    const oneMinuteSeconds = 60
+    if (syncDiff > oneMinuteSeconds) {
+      console.log(`Subgraphs unsynced. MetaBlockData: ${JSON.stringify(metaBlockData)}`)
+      return {
+        tokenChainBalanceDiff: BigNumber.from(0),
+        chainBalanceHTokenDiff: BigNumber.from(0)
+      }
     }
   }
 
@@ -633,35 +642,22 @@ function logValues (
   }
 }
 
-async function getIsSubgraphSynced (
-  metaBlockData: any,
-  l1Provider: providers.Provider,
-  l2Providers: Record<string, providers.Provider>
-): Promise<boolean> {
-  for (const chain in metaBlockData) {
-    if (chain === Chain.Nova) {
-      // Nova does not have a sync subgraph
-      continue
-    }
-
-    const provider = chain === Chain.Ethereum ? l1Provider : l2Providers[chain]
-
-    // Use timestamp since ORUs have inconsistent block lengths
-    const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
-    const syncedBlock = await provider.getBlock(syncedBlockNumber)
-    if (!syncedBlock) {
-      console.log(`Unable to get synced block for ${chain}, block number ${syncedBlockNumber}`)
-      return false
-    }
-
-    const syncedTimestamp = syncedBlock.timestamp
-    const syncDiff = metaBlockData[chain].blockTimestamp - syncedTimestamp
-
-    const oneMinuteSeconds = 60
-    if (syncDiff > oneMinuteSeconds) {
-      console.log(chain, 'Subgraph is out of sync by', syncDiff, 'seconds. Please wait for the subgraph to sync before trying again.')
-      return false
-    }
+async function getSubgraphSyncTimestamp (
+  chain: string,
+  provider : providers.Provider
+): Promise<number> {
+  if (chain === Chain.Nova) {
+    // Nova does not have a sync subgraph
+    return 0
   }
-  return true
+
+  // Use timestamp since ORUs have inconsistent block lengths
+  const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
+  const syncedBlock = await provider.getBlock(syncedBlockNumber)
+  if (!syncedBlock) {
+    console.log(`Unable to get synced block for ${chain}, block number ${syncedBlockNumber}`)
+    return 0
+  }
+
+  return syncedBlock.timestamp
 }

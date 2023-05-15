@@ -1,5 +1,6 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
+import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
 import {
   Chain,
@@ -7,7 +8,8 @@ import {
   OneHourMs,
   OneWeekMs,
   RelayableChains,
-  RootSetSettleDelayMs
+  RootSetSettleDelayMs,
+  TxError
 } from 'src/constants'
 import {
   TxRetryDelayMs,
@@ -48,6 +50,8 @@ interface BaseTransferRoot {
   transferIds?: string[]
   transferRootHash?: string
   withdrawalBondSettleTxSentAt?: number
+  rootBondTxError?: TxError
+  rootBondBackoffIndex?: number
 }
 
 export interface TransferRoot extends BaseTransferRoot {
@@ -482,8 +486,15 @@ class TransferRootsDb extends BaseDb {
 
       let timestampOk = true
       if (item.sentBondTxAt) {
-        timestampOk =
-          item.sentBondTxAt + TxRetryDelayMs < Date.now()
+        if (item?.rootBondTxError === TxError.RedundantRpcOutOfSync) {
+          const delayMs = getExponentialBackoffDelayMs(item.rootBondBackoffIndex!)
+          if (delayMs > OneWeekMs * 2) {
+            return false
+          }
+          timestampOk = item.sentBondTxAt + delayMs < Date.now()
+        } else {
+          timestampOk = item.sentBondTxAt + TxRetryDelayMs < Date.now()
+        }
       }
 
       return (

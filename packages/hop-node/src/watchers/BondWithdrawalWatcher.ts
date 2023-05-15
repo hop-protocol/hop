@@ -286,9 +286,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       if (err instanceof RedundantProviderOutOfSync) {
         logger.error('redundant provider out of sync. trying again.')
+        let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
+        if (!withdrawalBondBackoffIndex) {
+          withdrawalBondBackoffIndex = 0
+        }
+        withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
-          bondWithdrawalAttemptedAt: 0
+          withdrawalBondTxError: TxError.RedundantRpcOutOfSync,
+          withdrawalBondBackoffIndex
         })
+        return
       }
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
@@ -485,7 +492,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = txParams
 
     const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
-    const dbTransfer = this.db.transfers.getByTransferId(calculatedTransferId)
+    const dbTransfer = await this.db.transfers.getByTransferId(calculatedTransferId)
     if (!dbTransfer) {
       throw new PreTransactionValidationError(`dbTransfer not found for transferId ${calculatedTransferId}`)
     }

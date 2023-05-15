@@ -9,7 +9,12 @@ import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
-import { BonderFeeTooLowError, NonceTooLowError, PreTransactionValidationError } from 'src/types/error'
+import {
+  BonderFeeTooLowError,
+  NonceTooLowError,
+  PreTransactionValidationError,
+  RedundantProviderOutOfSync
+} from 'src/types/error'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -279,6 +284,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
           bondWithdrawalAttemptedAt: 0
         })
       }
+      if (err instanceof RedundantProviderOutOfSync) {
+        logger.error('redundant provider out of sync. trying again.')
+        await this.db.transfers.update(transferId, {
+          bondWithdrawalAttemptedAt: 0
+        })
+      }
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
         enableEmergencyMode()
@@ -427,6 +438,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
       const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
+
+      // If the redundant provider is not up to date to the block number, skip the check and try again later
+      const redundantBlockNumber = await redundantProvider.getBlockNumber()
+      if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
+        throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
+      }
 
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
       const filter = l2Bridge.filters.TransferSent(

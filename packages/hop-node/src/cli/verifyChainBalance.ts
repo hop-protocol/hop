@@ -114,7 +114,7 @@ export async function main (source: any) {
     l2ChainsForToken.push(chain as Chain)
   }
 
-  let metaBlockData: Record<string, MetaBlockData> = {}
+  const metaBlockData: Record<string, MetaBlockData> = {}
   const l1Provider = getRpcProvider(Chain.Ethereum)!
   const l1Block = await l1Provider.getBlock('latest')
   const l1SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(Chain.Ethereum, l1Provider)
@@ -129,7 +129,7 @@ export async function main (source: any) {
     const l2Provider = getRpcProvider(l2ChainForToken)!
     l2Providers[l2ChainForToken] = l2Provider
     const l2Block = await l2Provider.getBlock('latest')
-  const l2SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(l2ChainForToken, l2Provider)
+    const l2SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(l2ChainForToken, l2Provider)
     metaBlockData[l2ChainForToken] = {
       blockTag: l2Block.number,
       blockTimestamp: l2Block.timestamp,
@@ -644,7 +644,7 @@ function logValues (
 
 async function getSubgraphSyncTimestamp (
   chain: string,
-  provider : providers.Provider
+  provider: providers.Provider
 ): Promise<number> {
   if (chain === Chain.Nova) {
     // Nova does not have a sync subgraph

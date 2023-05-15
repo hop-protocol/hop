@@ -110,7 +110,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
 
     if (modifiedLiquidityRoutes?.length > 0) {
-      let shouldDisableRoute = this.shouldDisableRoute(modifiedLiquidityRoutes, destinationChain)
+      const shouldDisableRoute = this.shouldDisableRoute(modifiedLiquidityRoutes, destinationChain)
       this.logger.debug(`modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
       if (shouldDisableRoute) {
         availableCredit = BigNumber.from('0')
@@ -412,7 +412,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
   }
 
-  private shouldDisableRoute(modifiedLiquidityRoutes: string[], destinationChain: string): boolean {
+  private shouldDisableRoute (modifiedLiquidityRoutes: string[], destinationChain: string): boolean {
     for (const modifiedLiquidityRoute of modifiedLiquidityRoutes) {
       const [source, destination, tokenSymbol] = modifiedLiquidityRoute.split(':')
       if (!source || !destination || !tokenSymbol) {

@@ -484,14 +484,11 @@ class TransfersDb extends BaseDb {
       let timestampOk = true
       if (item.relayAttemptedAt) {
         if (TxError.RelayerFeeTooLow === item.relayTxError) {
-          const delay = TxRetryDelayMs + ((1 << item.relayBackoffIndex!) * 60 * 1000) // eslint-disable-line
-          // TODO: use `sentTransferTimestamp` once it's added to db
-
-          // don't attempt to relay after a week
-          if (delay > OneWeekMs) {
+          const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
+          if (delayMs > OneWeekMs) {
             return false
           }
-          timestampOk = item.relayAttemptedAt + delay < Date.now()
+          timestampOk = item.relayAttemptedAt + delayMs < Date.now()
         } else {
           timestampOk = item.relayAttemptedAt + TxRetryDelayMs < Date.now()
         }

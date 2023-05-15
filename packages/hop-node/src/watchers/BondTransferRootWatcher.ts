@@ -8,7 +8,7 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
-import { BondTransferRootDelayBufferSeconds, Chain } from 'src/constants'
+import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PreTransactionValidationError, RedundantProviderOutOfSync } from 'src/types/error'
@@ -199,9 +199,16 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.error('sendBondTransferRoot error:', err.message)
       if (err instanceof RedundantProviderOutOfSync) {
         logger.error('redundant provider out of sync. trying again.')
+        let { rootBondBackoffIndex } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+        if (!rootBondBackoffIndex) {
+          rootBondBackoffIndex = 0
+        }
+        rootBondBackoffIndex++
         await this.db.transferRoots.update(transferRootId, {
-          sentBondTxAt: 0
+          rootBondTxError: TxError.RedundantRpcOutOfSync,
+          rootBondBackoffIndex
         })
+        return
       }
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
@@ -365,7 +372,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   async getCalculatedDbTransferRoot (txParams: SendBondTransferRootTxParams): Promise<TransferRoot> {
     const { transferRootHash, totalAmount } = txParams
     const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
-    const dbTransferRoot = this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
     if (!dbTransferRoot) {
       throw new PreTransactionValidationError(`Calculated dbTransferRoot (${calculatedTransferRootId}) not found in db`)
     }

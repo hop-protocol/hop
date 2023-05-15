@@ -91,6 +91,7 @@ export enum TxError {
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW',
   RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
+  RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95

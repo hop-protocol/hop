@@ -475,6 +475,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         maxFeePerGas = currentBaseFeePerGas.mul(2)
       }
       maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
+      this.logger.debug(`getBumpedGasFeeData, maxFeePerGas: ${maxFeePerGas.toString()}, (min of maxFeePerGas: ${maxFeePerGas?.toString()} and maxGasPrice: ${maxGasPrice?.toString()}`)
+      this.logger.debug(`getBumpedGasFeeData, maxPriorityFeePerGas: ${maxPriorityFeePerGas.toString()}`)
 
       return {
         gasPrice: undefined,
@@ -483,25 +485,33 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
     }
 
+    const gasPrice = await this.getBumpedGasPrice(multiplier)
+    this.logger.debug(`getBumpedGasFeeData, gasPrice: ${gasPrice.toString()}`)
     return {
-      gasPrice: await this.getBumpedGasPrice(multiplier),
+      gasPrice,
       maxFeePerGas: undefined,
       maxPriorityFeePerGas: undefined
     }
   }
 
   clampMaxGasFeeData (gasFeeData: Partial<GasFeeData>): Partial<GasFeeData> {
+    const maxGasPrice = this.getMaxGasPrice()
     if (gasFeeData.gasPrice != null) {
-      const maxGasPrice = this.getMaxGasPrice()
+      const gasPrice = BNMin(gasFeeData.gasPrice, maxGasPrice)
+      this.logger.debug(`clampMaxGasFeeData, gasPrice: ${gasPrice.toString()}, (min of gasFeeData.gasPrice: ${gasFeeData.gasPrice?.toString()} and maxGasPrice: ${maxGasPrice?.toString()}`)
       return {
-        gasPrice: BNMin(gasFeeData.gasPrice, maxGasPrice)
+        gasPrice
       }
     }
 
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
+    const maxFeePerGas = BNMin(gasFeeData.maxFeePerGas!, maxGasPrice)
+    const maxPriorityFeePerGas = BNMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
+    this.logger.debug(`clampMaxGasFeeData, maxFeePerGas: ${maxFeePerGas.toString()}, (min of gasFeeData.maxFeePerGas: ${gasFeeData.maxFeePerGas?.toString()} and this.getMaxGasPrice(): ${maxGasPrice?.toString()}`)
+    this.logger.debug(`clampMaxGasFeeData, maxPriorityFeePerGas: ${maxPriorityFeePerGas.toString()}, (min of gasFeeData.maxPriorityFeePerGas: ${gasFeeData.maxPriorityFeePerGas?.toString()} and priorityFeePerGasCap: ${priorityFeePerGasCap?.toString()}`)
     return {
-      maxFeePerGas: BNMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
-      maxPriorityFeePerGas: BNMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
+      maxFeePerGas,
+      maxPriorityFeePerGas
     }
   }
 
@@ -698,7 +708,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isMaxFeePerGasReached = gasFeeData.maxFeePerGas?.gt(maxGasPrice)
     const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
     let isMaxReached = isGasPriceMaxReached ?? isMaxFeePerGasReached
-    this.logger.debug(`isGasPriceMaxReached: ${isGasPriceMaxReached}, isMaxFeePerGasReached: ${isMaxFeePerGasReached}, isMaxPriorityFeePerGasReached: ${isMaxPriorityFeePerGasReached}`)
+
+    this.logger.debug(`isGasPriceMaxReached: ${isGasPriceMaxReached}, gasFeeData.gasPrice: ${gasFeeData?.gasPrice}, maxGasPrice: ${maxGasPrice}`)
+    this.logger.debug(`isMaxFeePerGasReached: ${isMaxFeePerGasReached}, gasFeeData.maxFeePerGas: ${gasFeeData?.maxFeePerGas}, maxGasPrice: ${maxGasPrice}`)
+    this.logger.debug(`isMaxPriorityFeePerGasReached: ${isMaxPriorityFeePerGasReached}, gasFeeData.maxPriorityFeePerGas: ${gasFeeData?.maxPriorityFeePerGas}, priorityFeePerGasCap: ${priorityFeePerGasCap}`)
+    this.logger.debug(`isMaxReached: ${isMaxReached}`)
 
     // clamp maxPriorityFeePerGas to max allowed if it exceeds max and
     // gasPrice or maxFeePerGas are still under max
@@ -760,6 +774,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
         }
 
+        this.logger.debug(`tx index ${i}: payload: ${JSON.stringify(payload)}`)
         if (i === 1) {
           const timeLimitMs = 60 * 1000
           let shouldCheck = true

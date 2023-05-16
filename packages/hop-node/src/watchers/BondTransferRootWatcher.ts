@@ -343,6 +343,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
       // If the redundant provider is not up to date to the block number, skip the check and try again later
       const redundantBlockNumber = await redundantProvider.getBlockNumber()
+      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, redundantBlockNumber: ${redundantBlockNumber}`)
       if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
         throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
       }
@@ -352,6 +353,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         txParams.destinationChainId,
         txParams.transferRootHash
       )
+      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
       const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
       const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
       if (!eventParams) {

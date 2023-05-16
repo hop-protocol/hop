@@ -126,3 +126,4 @@ export const ChainHasFinalizationTag: Record<string, boolean> = {
 
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
 export const BondTransferRootDelayBufferSeconds = 5 * 60
+export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 minutes

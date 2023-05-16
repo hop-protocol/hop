@@ -342,7 +342,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async send () {
-    const _timeId = `GasBoostTransaction send getBumpedGasFeeData elapsed ${this.logId} `
+    const _timeId = `GasBoostTransaction send getBumpedGasFeeData elapsed ${this.logId} ${Date.now()}`
     console.time(_timeId)
     let gasFeeData = await this.getBumpedGasFeeData(this.initialTxGasPriceMultiplier)
     console.timeEnd(_timeId)
@@ -768,7 +768,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           }
           if (shouldCheck) {
             this.logger.debug(`tx index ${i}: checking for enough funds`)
-            const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} `
+            const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} (${Date.now()})`
             console.time(_timeId)
             enoughFundsCheckCache[this.chainSlug] = Date.now()
             await this.checkHasEnoughFunds(payload, gasFeeData)
@@ -778,7 +778,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         this.logger.debug(`tx index ${i}: sending transaction`)
 
-        const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} `
+        const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} (${Date.now()})`
         // await here is intentional to catch error below
         console.time(_timeId)
         const tx = await this.signer.sendTransaction(payload)
@@ -822,7 +822,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     let gasLimit
     let ethBalance
 
-    const _timeId1 = `GasBoostTransaction checkHasEnoughFunds estimateGas elapsed ${this.logId} `
+    const _timeId1 = `GasBoostTransaction checkHasEnoughFunds estimateGas elapsed ${this.logId} (${Date.now()})`
     console.time(_timeId1)
     try {
       gasLimit = await this.signer.estimateGas(payload)
@@ -831,7 +831,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     console.timeEnd(_timeId1)
 
-    const _timeId2 = `GasBoostTransaction checkHasEnoughFunds getBalance elapsed ${this.logId} `
+    const _timeId2 = `GasBoostTransaction checkHasEnoughFunds getBalance elapsed ${this.logId} (${Date.now()})`
     console.time(_timeId2)
     try {
       ethBalance = await this.signer.getBalance()

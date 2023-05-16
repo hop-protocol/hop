@@ -461,6 +461,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
       this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
       const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
+      this.logger.debug(`events found: ${JSON.stringify(events)}`)
       const eventParams = events.find((x: any) => x.args.transferId === txParams.transferId)
       if (!eventParams) {
         throw new PreTransactionValidationError(`TransferSent event not found for transferId ${txParams.transferId} at block ${blockNumber}`)

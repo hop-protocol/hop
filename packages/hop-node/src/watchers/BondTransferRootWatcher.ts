@@ -330,6 +330,8 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async validateLogsWithRedundantRpcs (txParams: SendBondTransferRootTxParams): Promise<void> {
+    const logger = this.logger.create({ root: txParams.transferRootId })
+
     // Validate logs with redundant RPC endpoint, if it exists
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     const blockNumber = calculatedDbTransferRoot?.commitTxBlockNumber
@@ -343,7 +345,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
       // If the redundant provider is not up to date to the block number, skip the check and try again later
       const redundantBlockNumber = await redundantProvider.getBlockNumber()
-      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
+      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
       if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
         throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
       }
@@ -353,9 +355,9 @@ class BondTransferRootWatcher extends BaseWatcher {
         txParams.destinationChainId,
         txParams.transferRootHash
       )
-      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
+      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
       const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
-      this.logger.debug(`events found: ${JSON.stringify(events)}`)
+      logger.debug(`events found: ${JSON.stringify(events)}`)
       const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
       if (!eventParams) {
         throw new PreTransactionValidationError(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}`)

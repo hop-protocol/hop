@@ -336,7 +336,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     const blockNumber = calculatedDbTransferRoot?.commitTxBlockNumber
     if (!blockNumber) {
-        // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error
+      // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error
       throw new Error(`Calculated commitTxBlockNumber (${blockNumber}) is missing`)
     }
 

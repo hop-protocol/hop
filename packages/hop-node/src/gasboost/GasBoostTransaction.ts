@@ -703,10 +703,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const maxGasPrice = this.getMaxGasPrice()
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
 
-    // don't boost if suggested gas is over max
-    const isGasPriceMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice)
-    const isMaxFeePerGasReached = gasFeeData.maxFeePerGas?.gt(maxGasPrice)
-    const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
+    // don't boost if suggested gas is equal to or over max
+    const isGasPriceMaxReached = gasFeeData.gasPrice?.gte(maxGasPrice)
+    const isMaxFeePerGasReached = gasFeeData.maxFeePerGas?.gte(maxGasPrice)
+    const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas?.gte(priorityFeePerGasCap)
     let isMaxReached = isGasPriceMaxReached ?? isMaxFeePerGasReached
 
     this.logger.debug(`isGasPriceMaxReached: ${isGasPriceMaxReached}, gasFeeData.gasPrice: ${gasFeeData?.gasPrice}, maxGasPrice: ${maxGasPrice}`)

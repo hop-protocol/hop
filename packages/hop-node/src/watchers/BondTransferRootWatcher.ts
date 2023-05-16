@@ -343,7 +343,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
       // If the redundant provider is not up to date to the block number, skip the check and try again later
       const redundantBlockNumber = await redundantProvider.getBlockNumber()
-      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, redundantBlockNumber: ${redundantBlockNumber}`)
+      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
       if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
         throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
       }

@@ -435,6 +435,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async validateLogsWithRedundantRpcs (txParams: SendBondWithdrawalTxParams): Promise<void> {
+    const logger = this.logger.create({ id: txParams.transferId })
+
     // Validate logs with redundant RPC endpoint, if it exists
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     const blockNumber = calculatedDbTransfer?.transferSentBlockNumber
@@ -448,7 +450,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       // If the redundant provider is not up to date to the block number, skip the check and try again later
       const redundantBlockNumber = await redundantProvider.getBlockNumber()
-      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
+      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
       if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
         throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
       }
@@ -459,9 +461,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         txParams.destinationChainId,
         txParams.recipient
       )
-      this.logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
+      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
       const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
-      this.logger.debug(`events found: ${JSON.stringify(events)}`)
+      logger.debug(`events found: ${JSON.stringify(events)}`)
       const eventParams = events.find((x: any) => x.args.transferId === txParams.transferId)
       if (!eventParams) {
         throw new PreTransactionValidationError(`TransferSent event not found for transferId ${txParams.transferId} at block ${blockNumber}`)

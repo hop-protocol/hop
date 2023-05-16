@@ -97,6 +97,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
   maxRebroadcastIndex: number = 10
   maxRebroadcastIndexReached: boolean = false
+  maxRetryIndex: number = 10
+  maxRetryIndexReached: boolean = false
   minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
   priorityFeePerGasCap: number = PriorityFeePerGasCap // this the max we'll keep bumping maxPriorityFeePerGas to in type 2 txs. Since maxPriorityFeePerGas is already a type 2 argument, it uses the term cap instead
   maxPriorityFeeConfidenceLevel: number = MaxPriorityFeeConfidenceLevel
@@ -633,6 +635,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.logger.error(errMsg)
   }
 
+  private async handleMaxRetryIndexReached () {
+    this.maxRetryIndexReached = true
+    this.clearInflightTxs()
+    this.emit(State.Error)
+    const errMsg = 'max retry index reached. cannot retry.'
+    this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
+    this.logger.error(errMsg)
+  }
+
   private async getReceipt (txHash: string) {
     return await this.signer.provider!.waitForTransaction(txHash) // eslint-disable-line
   }
@@ -643,8 +654,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.started = true
     while (true) {
-      if (this.confirmations || this.maxRebroadcastIndexReached) {
-        this.logger.debug(`ending poller. confirmations: ${this.confirmations}, maxRebroadcastIndexReached: ${this.maxRebroadcastIndexReached}`)
+      if (
+        this.confirmations ||
+        this.maxRebroadcastIndexReached ||
+        this.maxRetryIndexReached
+      ) {
+        this.logger.debug(`ending poller. confirmations: ${this.confirmations}, maxRebroadcastIndexReached: ${this.maxRebroadcastIndexReached}, maxRetryIndexReached: ${this.maxRetryIndexReached}`)
         break
       }
       try {
@@ -746,7 +761,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<providers.TransactionResponse> {
-    const maxRetries = 10
     let i = 0
     while (true) {
       i++
@@ -821,9 +835,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           throw new EstimateGasError('EstimateGasError')
         }
 
-        const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
-        if (shouldRetry) {
-          continue
+        const isRetryableError = (isAlreadyKnown || isFeeTooLow || serverError)
+        if (isRetryableError) {
+          if (i < this.maxRetryIndex) {
+            continue
+          }
+          await this.handleMaxRetryIndexReached()
         }
         if (estimateGasFailed) {
           throw new EstimateGasError('EstimateGasError')

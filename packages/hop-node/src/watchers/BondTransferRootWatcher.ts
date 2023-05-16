@@ -8,10 +8,10 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
-import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
+import { BondTransferRootDelayBufferSeconds, Chain, MaxReorgCheckBackoffIndex, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { PreTransactionValidationError, RedundantProviderOutOfSync } from 'src/types/error'
+import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { enableEmergencyMode, getFinalityTimeSeconds, config as globalConfig } from 'src/config'
 
@@ -210,8 +210,8 @@ class BondTransferRootWatcher extends BaseWatcher {
         })
         return
       }
-      if (err instanceof PreTransactionValidationError) {
-        logger.error('pre transaction validation error. turning off writes.')
+      if (err instanceof PossibleReorgDetected) {
+        logger.error('possible reorg detected. turning off writes.')
         enableEmergencyMode()
       }
       throw err
@@ -287,10 +287,10 @@ class BondTransferRootWatcher extends BaseWatcher {
     // Validate DB existence with calculated transferRootId
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     if (!calculatedDbTransferRoot?.transferRootId || !txParams?.transferRootId) {
-      throw new PreTransactionValidationError(`Calculated transferRootId (${calculatedDbTransferRoot?.transferRootId}) or transferIds (${txParams?.transferRootId}) is missing`)
+      throw new PossibleReorgDetected(`Calculated transferRootId (${calculatedDbTransferRoot?.transferRootId}) or transferIds (${txParams?.transferRootId}) is missing`)
     }
     if (calculatedDbTransferRoot.transferRootId !== txParams.transferRootId) {
-      throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedDbTransferRoot.transferRootId}) does not match transferRootId in db`)
+      throw new PossibleReorgDetected(`Calculated calculatedTransferRootId (${calculatedDbTransferRoot.transferRootId}) does not match transferRootId in db`)
     }
   }
 
@@ -298,10 +298,10 @@ class BondTransferRootWatcher extends BaseWatcher {
     // Validate that the destination chain id matches the db entry
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     if (!calculatedDbTransferRoot?.destinationChainId || !txParams?.destinationChainId) {
-      throw new PreTransactionValidationError(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${txParams?.destinationChainId}) is missing`)
+      throw new PossibleReorgDetected(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${txParams?.destinationChainId}) is missing`)
     }
     if (calculatedDbTransferRoot.destinationChainId !== txParams.destinationChainId) {
-      throw new PreTransactionValidationError(`Calculated destinationChainId (${txParams.destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot.destinationChainId})`)
+      throw new PossibleReorgDetected(`Calculated destinationChainId (${txParams.destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot.destinationChainId})`)
     }
   }
 
@@ -324,7 +324,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       const transferIdCount: string[] = dbTransferIds.filter((dbTransferId: string) => dbTransferId.toLowerCase() === transferId)
       if (transferIdCount.length > 0) {
         const duplicateRoot = dbTransferRoots.find(dbTransferRoot => dbTransferRoot.transferIds?.includes(transferId))
-        throw new PreTransactionValidationError(`transferId (${transferId}) exists in multiple transferRoots in db with the duplicateRootId: ${duplicateRoot?.transferRootId}`)
+        throw new PossibleReorgDetected(`transferId (${transferId}) exists in multiple transferRoots in db with the duplicateRootId: ${duplicateRoot?.transferRootId}`)
       }
     }
   }
@@ -336,7 +336,8 @@ class BondTransferRootWatcher extends BaseWatcher {
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     const blockNumber = calculatedDbTransferRoot?.commitTxBlockNumber
     if (!blockNumber) {
-      throw new PreTransactionValidationError(`Calculated commitTxBlockNumber (${blockNumber}) is missing`)
+      // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error
+      throw new Error(`Calculated commitTxBlockNumber (${blockNumber}) is missing`)
     }
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
@@ -360,7 +361,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.debug(`events found: ${JSON.stringify(events)}`)
       const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
       if (!eventParams) {
-        throw new PreTransactionValidationError(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}`)
+        // Some providers have an up-to-date head but their logs don't reflect this yet. Try again to give provider time to catch up. If they don't catch up, this is a reorg
+        if (!calculatedDbTransferRoot?.rootBondBackoffIndex || calculatedDbTransferRoot.rootBondBackoffIndex <= MaxReorgCheckBackoffIndex) {
+          throw new RedundantProviderOutOfSync(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.rootBondBackoffIndex: ${calculatedDbTransferRoot?.rootBondBackoffIndex}`)
+        }
+        throw new PossibleReorgDetected(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.rootBondBackoffIndex: ${calculatedDbTransferRoot?.rootBondBackoffIndex}`)
       }
 
       if (
@@ -369,7 +374,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         (eventParams.args.totalAmount.toString() !== txParams.totalAmount.toString()) ||
         (eventParams.args.rootCommittedAt.toString() !== txParams.rootCommittedAt.toString())
       ) {
-        throw new PreTransactionValidationError(`TransfersCommitted event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransferRoot)}`)
+        throw new PossibleReorgDetected(`TransfersCommitted event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransferRoot)}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.rootBondBackoffIndex: ${calculatedDbTransferRoot?.rootBondBackoffIndex}`)
       }
     }
   }
@@ -379,7 +384,8 @@ class BondTransferRootWatcher extends BaseWatcher {
     const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
     if (!dbTransferRoot) {
-      throw new PreTransactionValidationError(`Calculated dbTransferRoot (${calculatedTransferRootId}) not found in db`)
+      // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error
+      throw new Error(`Calculated dbTransferRoot (${calculatedTransferRootId}) not found in db`)
     }
     return dbTransferRoot
   }

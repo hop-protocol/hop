@@ -835,7 +835,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           throw new EstimateGasError('EstimateGasError')
         }
 
-        const isRetryableError = (isAlreadyKnown || isFeeTooLow || serverError)
+        const isRetryableError = isAlreadyKnown || isFeeTooLow || serverError
         if (isRetryableError) {
           if (i < this.maxRetryIndex) {
             continue

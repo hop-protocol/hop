@@ -443,9 +443,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async getBumpedGasPrice (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketGasPrice = await this.getMarketGasPrice()
-    if (!this.isChainGasFeeBumpable()) {
-      return marketGasPrice
-    }
     const prevGasPrice = this.gasPrice ?? marketGasPrice
     const bumpedGasPrice = getBumpedGasPrice(prevGasPrice, multiplier)
     if (!this.compareMarketGasPrice) {
@@ -456,9 +453,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketMaxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
-    if (!this.isChainGasFeeBumpable()) {
-      return marketMaxPriorityFeePerGas
-    }
     const prevMaxPriorityFeePerGas = this.maxPriorityFeePerGas ?? marketMaxPriorityFeePerGas
     const minPriorityFeePerGas = this.getMinPriorityFeePerGas()
     this.logger.debug(`getting bumped maxPriorityFeePerGas. this.maxPriorityFeePerGas: ${this.maxPriorityFeePerGas?.toString()}, marketMaxPriorityFeePerGas: ${marketMaxPriorityFeePerGas.toString()}`)
@@ -944,15 +938,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const format = (value?: BigNumber) => (value != null) ? this.formatGwei(value) : null
     const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = gasFeeData
     return `gasPrice: ${format(gasPrice)}, maxFeePerGas: ${format(maxFeePerGas)}, maxPriorityFeePerGas: ${format(maxPriorityFeePerGas)}`
-  }
-
-  isChainGasFeeBumpable () {
-    // Optimism gasPrice must be constant; shouldn't be bumped
-    if (this.chainSlug === Chain.Optimism) {
-      return false
-    }
-
-    return true
   }
 
   // explainer: https://stackoverflow.com/q/35185749/1439168

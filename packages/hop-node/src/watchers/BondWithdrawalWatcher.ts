@@ -319,6 +319,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
 
+    logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation(params)
 
     if (attemptSwap) {
@@ -390,10 +391,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
+    const logger = this.logger.create({ id: txParams.transferId })
+
     // Perform this check as late as possible before the transaction is sent
+    logger.debug('validating db existence')
     await this.validateDbExistence(txParams)
+    logger.debug('validating transferSent index')
     await this.validateTransferSentIndex(txParams)
+    logger.debug('validating uniqueness')
     await this.validateUniqueness(txParams)
+    logger.debug('validating logs with redundant rpcs')
     await this.validateLogsWithRedundantRpcs(txParams)
   }
 

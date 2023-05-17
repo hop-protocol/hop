@@ -226,6 +226,9 @@ class BondTransferRootWatcher extends BaseWatcher {
     transferIds: string[],
     rootCommittedAt: number
   ): Promise<providers.TransactionResponse> {
+    const logger = this.logger.create({ root: transferRootId })
+
+    logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation({
       transferRootId,
       transferRootHash,
@@ -276,10 +279,16 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondTransferRootTxParams): Promise<void> {
+    const logger = this.logger.create({ root: txParams.transferRootId })
+
     // Perform this check as late as possible before the transaction is sent
+    logger.debug('validating db existence')
     await this.validateDbExistence(txParams)
+    logger.debug('validating destination chain id')
     await this.validateDestinationChainId(txParams)
+    logger.debug('validating uniqueness')
     await this.validateUniqueness(txParams)
+    logger.debug('validating logs with redundant rpcs')
     await this.validateLogsWithRedundantRpcs(txParams)
   }
 

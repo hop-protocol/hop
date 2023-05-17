@@ -116,9 +116,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   createdAt: number
   txHash?: string
   receipt?: providers.TransactionReceipt
-  private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
   logId: string
+  is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
+  shouldUseBlocknative: boolean
 
   reorgWaitConfirmations: number = 1
   originalTxParams: providers.TransactionRequest
@@ -171,6 +172,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.notifier = new Notifier(
       `GasBoost, label: ${prefix}, host: ${hostname}`
     )
+    this.init()
+      .catch((err: Error) => this.logger.error('init error:', err))
+  }
+
+  private async init () {
+    const { maxFeePerGas, maxPriorityFeePerGas } = await this.getGasFeeData()
+    const isSupported = !!((maxFeePerGas != null) && (maxPriorityFeePerGas != null))
+    this.is1559Supported = isSupported
+    this.shouldUseBlocknative = this.is1559Supported && this.chainSlug === Chain.Ethereum
   }
 
   private generateId (): string {
@@ -396,8 +406,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
-    if (isMainnet) {
+    if (this.shouldUseBlocknative) {
       try {
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
@@ -462,7 +471,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
-    const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
+    const use1559 = this.is1559Supported && !this.gasPrice && this.type !== 0
 
     if (use1559) {
       let [maxFeePerGas, maxPriorityFeePerGas, currentBaseFeePerGas] = await Promise.all([
@@ -935,16 +944,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const format = (value?: BigNumber) => (value != null) ? this.formatGwei(value) : null
     const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = gasFeeData
     return `gasPrice: ${format(gasPrice)}, maxFeePerGas: ${format(maxFeePerGas)}, maxPriorityFeePerGas: ${format(maxPriorityFeePerGas)}`
-  }
-
-  async is1559Supported (): Promise<boolean> {
-    if (typeof this._is1559Supported === 'boolean') {
-      return this._is1559Supported
-    }
-    const { maxFeePerGas, maxPriorityFeePerGas } = await this.getGasFeeData()
-    const isSupported = !!((maxFeePerGas != null) && (maxPriorityFeePerGas != null))
-    this._is1559Supported = isSupported
-    return isSupported
   }
 
   isChainGasFeeBumpable () {

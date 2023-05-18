@@ -1140,7 +1140,11 @@ export class ArbBot {
     const items = await getTransfersCommitted(this.l2ChainSlug, this.tokenSymbol, this.l1ChainId, startTimestamp)
 
     for (const item of items) {
-      if (item.transactionHash === l2CommitTxHash) {
+      if (
+        item?.transactionHash === l2CommitTxHash &&
+        item?.totalAmount &&
+        item?.rootHash
+      ) {
         return {
           totalAmount: item.totalAmount,
           transferRootHash: item.rootHash

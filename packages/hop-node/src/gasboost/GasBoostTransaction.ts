@@ -20,7 +20,7 @@ import {
 } from 'src/constants'
 import { EventEmitter } from 'events'
 
-import { EstimateGasError, NonceTooLowError, UnexpectedSendTransactionError } from 'src/types/error'
+import { EstimateGasError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import {
   blocknativeApiKey,
@@ -634,16 +634,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.started = true
     while (true) {
       if (this.confirmations || this.maxRebroadcastIndexReached) {
-        this.logger.debug(`ending poller. breaking. confirmations: ${this.confirmations}, maxRebroadcastIndexReached: ${this.maxRebroadcastIndexReached}`)
+        this.logger.debug(`ending poller. confirmations: ${this.confirmations}, maxRebroadcastIndexReached: ${this.maxRebroadcastIndexReached}`)
         break
       }
       try {
         await this.poll()
       } catch (err) {
         this._emitError(err)
-        this.logger.error(`poller error. ${err.message}`)
-        if (err instanceof NonceTooLowError || err instanceof EstimateGasError || err instanceof UnexpectedSendTransactionError) {
-          this.logger.error('ending poller. breaking. NonceTooLowError or EstimateGasError or UnexpectedSendTransactionError')
+        this.logger.error(`ending poller. ${err.message}`)
+        if (err instanceof NonceTooLowError || err instanceof EstimateGasError) {
+          this.logger.error('ending poller. breaking.')
           break
         }
       }
@@ -806,17 +806,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           throw new EstimateGasError('EstimateGasError')
         }
 
-        const isRetryableError = isAlreadyKnown || isFeeTooLow || serverError
-        if (isRetryableError && i < maxRetries) {
+        const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
+        if (shouldRetry) {
           continue
-        } else if (isRetryableError && i >= maxRetries) {
-          throw err
         }
         if (estimateGasFailed) {
           throw new EstimateGasError('EstimateGasError')
         }
-
-        throw new UnexpectedSendTransactionError(err.message)
+        throw err
       }
     }
   }

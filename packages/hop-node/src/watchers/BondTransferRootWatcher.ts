@@ -5,10 +5,9 @@ import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
-import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
-import { BondTransferRootDelayBufferSeconds, Chain, MaxReorgCheckBackoffIndex, TxError } from 'src/constants'
+import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
@@ -226,6 +225,9 @@ class BondTransferRootWatcher extends BaseWatcher {
     transferIds: string[],
     rootCommittedAt: number
   ): Promise<providers.TransactionResponse> {
+    const logger = this.logger.create({ root: transferRootId })
+
+    logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation({
       transferRootId,
       transferRootHash,
@@ -276,10 +278,16 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondTransferRootTxParams): Promise<void> {
+    const logger = this.logger.create({ root: txParams.transferRootId })
+
     // Perform this check as late as possible before the transaction is sent
+    logger.debug('validating db existence')
     await this.validateDbExistence(txParams)
+    logger.debug('validating destination chain id')
     await this.validateDestinationChainId(txParams)
+    logger.debug('validating uniqueness')
     await this.validateUniqueness(txParams)
+    logger.debug('validating logs with redundant rpcs')
     await this.validateLogsWithRedundantRpcs(txParams)
   }
 
@@ -342,32 +350,23 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
-      const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
-
-      // If the redundant provider is not up to date to the block number, skip the check and try again later
-      const redundantBlockNumber = await redundantProvider.getBlockNumber()
-      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
-      if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
-        throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
-      }
-
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
       const filter = l2Bridge.filters.TransfersCommitted(
         txParams.destinationChainId,
         txParams.transferRootHash
       )
-      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
-      const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
-      logger.debug(`events found: ${JSON.stringify(events)}`)
-      const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
+      const eventParams = await this.getRedundantRpcEventParams(
+        logger,
+        blockNumber,
+        redundantRpcUrl,
+        txParams.transferRootHash,
+        l2Bridge,
+        filter,
+        calculatedDbTransferRoot?.rootBondBackoffIndex
+      )
       if (!eventParams) {
-        // Some providers have an up-to-date head but their logs don't reflect this yet. Try again to give provider time to catch up. If they don't catch up, this is a reorg
-        if (!calculatedDbTransferRoot?.rootBondBackoffIndex || calculatedDbTransferRoot.rootBondBackoffIndex <= MaxReorgCheckBackoffIndex) {
-          throw new RedundantProviderOutOfSync(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.rootBondBackoffIndex: ${calculatedDbTransferRoot?.rootBondBackoffIndex}`)
-        }
-        throw new PossibleReorgDetected(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.rootBondBackoffIndex: ${calculatedDbTransferRoot?.rootBondBackoffIndex}`)
+        continue
       }
-
       if (
         (Number(eventParams.args.destinationChainId) !== txParams.destinationChainId) ||
         (eventParams.args.rootHash !== txParams.transferRootHash) ||

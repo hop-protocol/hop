@@ -4,7 +4,6 @@ import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
-import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
@@ -15,7 +14,7 @@ import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
 } from 'src/types/error'
-import { GasCostTransactionType, MaxReorgCheckBackoffIndex, TxError } from 'src/constants'
+import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
@@ -319,6 +318,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
 
+    logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation(params)
 
     if (attemptSwap) {
@@ -390,10 +390,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
+    const logger = this.logger.create({ id: txParams.transferId })
+
     // Perform this check as late as possible before the transaction is sent
+    logger.debug('validating db existence')
     await this.validateDbExistence(txParams)
+    logger.debug('validating transferSent index')
     await this.validateTransferSentIndex(txParams)
+    logger.debug('validating uniqueness')
     await this.validateUniqueness(txParams)
+    logger.debug('validating logs with redundant rpcs')
     await this.validateLogsWithRedundantRpcs(txParams)
   }
 
@@ -447,33 +453,24 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
-      const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
-
-      // If the redundant provider is not up to date to the block number, skip the check and try again later
-      const redundantBlockNumber = await redundantProvider.getBlockNumber()
-      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
-      if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
-        throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
-      }
-
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
       const filter = l2Bridge.filters.TransferSent(
         txParams.transferId,
         txParams.destinationChainId,
         txParams.recipient
       )
-      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
-      const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
-      logger.debug(`events found: ${JSON.stringify(events)}`)
-      const eventParams = events.find((x: any) => x.args.transferId === txParams.transferId)
+      const eventParams = await this.getRedundantRpcEventParams(
+        logger,
+        blockNumber,
+        redundantRpcUrl,
+        txParams.transferId,
+        l2Bridge,
+        filter,
+        calculatedDbTransfer?.withdrawalBondBackoffIndex
+      )
       if (!eventParams) {
-        // Some providers have an up-to-date head but their logs don't reflect this yet. Try again to give provider time to catch up. If they don't catch up, this is a reorg
-        if (!calculatedDbTransfer?.withdrawalBondBackoffIndex || calculatedDbTransfer.withdrawalBondBackoffIndex <= MaxReorgCheckBackoffIndex) {
-          throw new RedundantProviderOutOfSync(`TransferSent event not found for transferId ${txParams.transferId} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.withdrawalBondBackoffIndex: ${calculatedDbTransfer?.withdrawalBondBackoffIndex}`)
-        }
-        throw new PossibleReorgDetected(`TransferSent event not found for transferId ${txParams.transferId} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.withdrawalBondBackoffIndex: ${calculatedDbTransfer?.withdrawalBondBackoffIndex}`)
+        continue
       }
-
       if (
         (eventParams.args.transferId !== txParams.transferId) ||
         (Number(eventParams.args.chainId) !== txParams.destinationChainId) ||

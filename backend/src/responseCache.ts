@@ -1,11 +1,12 @@
 import mcache from 'memory-cache'
 
-const durationMs = 20 * 1000
+const cache = new mcache.Cache()
+const cacheDurationMs = 20 * 1000
 
 export function responseCache (req: any, res: any, next: any) {
   const urlKey = req.originalUrl || req.url
   const key = `__express__${urlKey}`
-  const cachedBody = mcache.get(key)
+  const cachedBody = cache.get(key)
   const refreshFlag = req.query?.refresh
   if (cachedBody && !refreshFlag) {
     res.send(cachedBody)
@@ -14,7 +15,7 @@ export function responseCache (req: any, res: any, next: any) {
 
   res.sendResponse = res.send
   res.send = (body: any) => {
-    mcache.put(key, body, durationMs)
+    cache.put(key, body, cacheDurationMs)
     res.sendResponse(body)
   }
 

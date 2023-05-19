@@ -26,6 +26,10 @@ import {
 } from './theGraph'
 import { getPreRegenesisBondEvent, bridgeAbi } from './preregenesis'
 import { populateData } from './populateData'
+import mcache from 'memory-cache'
+
+const cache = new mcache.Cache()
+const cacheDurationMs = isGoerli ? 2 * 60 * 60 * 1000 : 6 * 60 * 60 * 1000
 
 console.log('rpcUrls:', rpcUrls)
 
@@ -34,8 +38,6 @@ type Options = {
   offsetDays?: number
 }
 
-const transactionReceipts: any = {}
-
 export class TransferStats {
   db : Db = getInstance()
   regenesis = false
@@ -43,7 +45,6 @@ export class TransferStats {
   days = 0
   offsetDays = 0
   ready = false
-  cache: any = {}
   shouldCheckIntegrationPartner = true
   shouldCheckReceivedHTokens = true
 
@@ -232,7 +233,7 @@ export class TransferStats {
       return false
     }
     const cacheKey = `receivedHTokens:${item.transferId}`
-    const cached = this.cache[cacheKey]
+    const cached = cache.get(cacheKey)
     try {
       if (typeof cached === 'boolean') {
         return cached
@@ -247,7 +248,7 @@ export class TransferStats {
         return false
       }
       if (typeof receivedHTokens === 'boolean') {
-        this.cache[cacheKey] = receivedHTokens
+        cache.put(cacheKey, receivedHTokens, cacheDurationMs)
         return receivedHTokens
       }
       const rpcUrl = rpcUrls[destinationChainSlug]
@@ -265,22 +266,22 @@ export class TransferStats {
             const hTokenAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
             if (hTokenAddress?.toLowerCase() === log.address?.toLowerCase() && item.recipientAddress) {
               if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
-                this.cache[cacheKey] = true
+                cache.put(cacheKey, true, cacheDurationMs)
                 return true
               }
             }
           }
         }
-        this.cache[cacheKey] = false
+        cache.put(cacheKey, false, cacheDurationMs)
         return false
       } else {
         const receivedHTokens = receipt.logs.length === 8
-        this.cache[cacheKey] = receivedHTokens
+        cache.put(cacheKey, receivedHTokens, cacheDurationMs)
         return receivedHTokens
       }
     } catch (err) {
       console.error(err)
-      this.cache[cacheKey] = false
+      cache.put(cacheKey, false, cacheDurationMs)
       return false
     }
   }
@@ -484,7 +485,7 @@ export class TransferStats {
       this.checkForReorgs(),
       // this.trackReceivedAmountStatus(), // needs to be fixed
       this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 }),
-      this.trackRecentTransfers({ lookbackHours: 4, pollIntervalMs: 60 * 60 * 1000 }),
+      this.trackRecentTransfers({ lookbackHours: isGoerli ? 2 : 4, pollIntervalMs: 60 * 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
       this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
@@ -1224,7 +1225,7 @@ export class TransferStats {
       return item
     }
     const cacheKey = `integrationPartner:${item.transferId}`
-    const cached = this.cache[cacheKey]
+    const cached = cache.get(cacheKey)
     if (cached) {
       return cached
     }
@@ -1256,7 +1257,7 @@ export class TransferStats {
         integrationPartner: '',
         originContractAddress: item?.originContractAddress
       }
-      this.cache[cacheKey] = result
+      cache.put(cacheKey, result, cacheDurationMs)
       return result
     }
     const rpcUrl = rpcUrls[sourceChainSlug]
@@ -1274,7 +1275,7 @@ export class TransferStats {
               integrationPartnerContractAddress: contractAddress,
               originContractAddress: item?.originContractAddress
             }
-            this.cache[cacheKey] = result
+            cache.put(cacheKey, result, cacheDurationMs)
             return result
           }
           const logs = receipt.logs
@@ -1287,7 +1288,7 @@ export class TransferStats {
                 integrationPartnerContractAddress: address,
                 originContractAddress: item?.originContractAddress
               }
-              this.cache[cacheKey] = result
+              cache.put(cacheKey, result, cacheDurationMs)
               return result
             }
           }
@@ -1295,7 +1296,7 @@ export class TransferStats {
             integrationPartner: '',
             originContractAddress: item?.originContractAddress
           }
-          this.cache[cacheKey] = result
+          cache.put(cacheKey, result, cacheDurationMs)
           return result
         }
       } catch (err: any) {
@@ -1306,7 +1307,7 @@ export class TransferStats {
       integrationPartner: '',
       originContractAddress: item?.originContractAddress
     }
-    this.cache[cacheKey] = result
+    cache.put(cacheKey, result, cacheDurationMs)
     return result
   }
 
@@ -1396,14 +1397,15 @@ export class TransferStats {
   }
 
   static async getTransactionReceipt (provider: any, transactionHash: string) {
-    const cached = transactionReceipts[transactionHash]
+    const key = `receipt:${transactionHash}`
+    const cached = cache.get(key)
     if (cached) {
       return cached
     }
 
     const receipt = await provider.getTransactionReceipt(transactionHash)
     if (receipt) {
-      transactionReceipts[transactionHash] = receipt
+      cache.put(key, receipt, cacheDurationMs)
     }
 
     return receipt

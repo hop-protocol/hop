@@ -101,3 +101,19 @@ export const transferTimes = {
     gnosis: 1
   }
 }
+
+// note: keep the addresses lowercased
+export const integrations : Record<string, string> = {
+  '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket', // socket registry
+  '0x8b14984de0ddd2e080d8679febe2f5c94b975af8': 'socket', // socket registry
+  '0xc9b6f5eeabb099bbbfb130b78249e81f70efc946': 'socket', // socket registry
+  '0x3a23f943181408eac424116af7b7790c94cb97a5': 'socket', // socket gateway
+  '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
+  '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae': 'lifi',
+  '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask',
+  '0xf26055894aeaae23d136defaa355a041a43d7dfd': 'chainhop',
+  '0xf762c3fc745948ff49a3da00ccdc6b755e44305e': 'chainhop',
+  '0xf80dd9cef747710b0bb6a113405eb6bc394ce050': 'chainhop',
+  '0x696c91cdc3e79a74785c2cdd07ccc1bf0bc7b788': 'chainhop',
+  '0x777777773491ff5cef6bb758f3baa9d70886909c': 'viaprotocol' // via protocol
+}

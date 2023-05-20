@@ -3,7 +3,8 @@ const names = {
   socket: 'Socket',
   lifi: 'LI.FI',
   metamask: 'MetaMask',
-  chainhop: 'ChainHop'
+  chainhop: 'ChainHop',
+  viaprotocol: 'ViaProtocol'
 }
 
 export function integrationPartnerName (slug: string) {

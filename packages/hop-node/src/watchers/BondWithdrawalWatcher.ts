@@ -436,7 +436,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       throw new PossibleReorgDetected(`transferNonce (${txTransferNonce}) exists in multiple transfers in db. Other transferIds: ${transfersWithExpectedTransferNonce.map(dbTransfer => dbTransfer.transferId)}`)
     }
     if (transfersWithExpectedTransferNonce.length === 0) {
-      throw new PossibleReorgDetected(`transferNonce (${txTransferNonce}) does not exist in db`)
+      // If a transfer is marked as notFound because the event is missed, it will never get a transferSent timestamp. In
+      // this case, there will be no subDbTimestamps for the item since that relies on the transferSentTimestamp and
+      // therefore the item will not exist in getTransfersFromWeek(). In this case, check the item exists in the DB
+      // and validate that the transferNonce exists.
+      const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+      if (!calculatedDbTransfer?.transferNonce || calculatedDbTransfer.transferNonce !== txTransferNonce) {
+        throw new PossibleReorgDetected(`transferNonce (${txTransferNonce}) does not exist in db`)
+      }
     }
   }
 

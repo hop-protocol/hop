@@ -85,6 +85,8 @@ const Send: FC = () => {
   const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
   const [feeRefundEnabled] = useState<boolean>(showRewards)
+  const [slippageToleranceTooLowWarning, setSlippageToleranceTooLowWarning] = useState(false)
+  const isGoerli = reactAppNetwork === 'goerli'
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -316,6 +318,20 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
+    const a = Number(fromTokenAmount) || 0
+    const b = Number(toTokenAmount) || 0
+    const threshold = 0.3
+    let isLow = false
+    if (a && b && isGoerli) {
+      const diff =  (a - b) / ((a + b) / 2)
+      if (diff > threshold) {
+        isLow = diff > (Number(slippageTolerance) / 100)
+      }
+    }
+    setSlippageToleranceTooLowWarning(isLow)
+  }, [sdk, slippageTolerance, toTokenAmount, fromTokenAmount])
+
+  useEffect(() => {
     try {
       let message = noLiquidityWarning || minimumSendWarning
 
@@ -337,6 +353,8 @@ const Send: FC = () => {
         message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
       } else if (bonderFeeMajority) {
         message = 'Warning: More than 50% of amount will go towards bonder fee'
+      } else if (slippageToleranceTooLowWarning) {
+        message = `Warning: Swap at destination might fail due to slippage tolerance used (${slippageTolerance}%). Try increasing slippage if you don't want to receive h${sourceToken?.symbol}.`
       }
 
       setWarning(message)
@@ -357,7 +375,9 @@ const Send: FC = () => {
     totalFee,
     toNetwork,
     relayFeeEth,
-    fromBalance
+    fromBalance,
+    slippageToleranceTooLowWarning,
+    slippageTolerance
   ])
 
   useEffect(() => {
@@ -472,7 +492,7 @@ const Send: FC = () => {
           }
 
           const query = new URLSearchParams(payload).toString()
-          const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+          const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
           // const apiBaseUrl = 'http://localhost:8000'
           const url = `${apiBaseUrl}/v1/refund-amount?${query}`
           const res = await fetch(url)

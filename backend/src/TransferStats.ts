@@ -141,6 +141,47 @@ export class TransferStats {
     this.prices = prices
   }
 
+  async trackTransfers () {
+    await this.tilReady()
+    console.log('upserting prices')
+    for (const token in this.prices) {
+      for (const data of this.prices[token]) {
+        const price = data[1]
+        const timestamp = data[0]
+        try {
+          await this.db.upsertPrice(token, price, timestamp)
+        } catch (err) {
+          if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
+            throw err
+          }
+        }
+      }
+    }
+
+    console.log('done upserting prices')
+    let promises: any[] = []
+
+    if (isGoerli) {
+      promises = [
+        this.trackRecentTransfers({ lookbackMinutes: 30, pollIntervalMs: 2 * 60 * 1000 }),
+        this.trackRecentTransferBonds({ lookbackMinutes: 10, pollIntervalMs: 3 * 60 * 1000 })
+      ]
+    } else {
+      promises = [
+        this.trackReceivedHTokenStatus(),
+        this.checkForReorgs(),
+        // this.trackReceivedAmountStatus(), // needs to be fixed
+        this.trackRecentTransfers({ lookbackMinutes: 60, pollIntervalMs: 60 * 1000 }),
+        this.trackRecentTransfers({ lookbackMinutes: 4 * 60, pollIntervalMs: 60 * 60 * 1000 }),
+        this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
+        this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
+        this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
+      ]
+    }
+
+    await Promise.all(promises)
+  }
+
   async checkForReorgs () {
     while (true) {
       try {
@@ -168,7 +209,7 @@ export class TransferStats {
           novaTransfers,
           lineaTransfers,
           baseTransfers,
-          mainnetTransfers
+          ethereumTransfers
         ] = await Promise.all([
           enabledChains.includes('gnosis') ? fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
           enabledChains.includes('polygon') ? fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
@@ -188,7 +229,7 @@ export class TransferStats {
           ...novaTransfers,
           ...lineaTransfers,
           ...baseTransfers,
-          ...mainnetTransfers
+          ...ethereumTransfers
         ]
 
         const found = {}
@@ -464,49 +505,18 @@ export class TransferStats {
     }
   }
 
-  async trackTransfers () {
-    await this.tilReady()
-    console.log('upserting prices')
-    for (const token in this.prices) {
-      for (const data of this.prices[token]) {
-        const price = data[1]
-        const timestamp = data[0]
-        try {
-          await this.db.upsertPrice(token, price, timestamp)
-        } catch (err) {
-          if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
-            throw err
-          }
-        }
-      }
-    }
-
-    console.log('done upserting prices')
-    const promises = [
-      this.trackReceivedHTokenStatus(),
-      this.checkForReorgs(),
-      // this.trackReceivedAmountStatus(), // needs to be fixed
-      this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 }),
-      this.trackRecentTransfers({ lookbackHours: isGoerli ? 2 : 4, pollIntervalMs: 60 * 60 * 1000 }),
-      this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
-      this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
-      this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
-    ]
-    await Promise.all(promises)
-  }
-
-  async trackRecentTransfers ({ lookbackHours, pollIntervalMs }: { lookbackHours: number, pollIntervalMs: number }) {
+  async trackRecentTransfers ({ lookbackMinutes, pollIntervalMs }: { lookbackMinutes: number, pollIntervalMs: number }) {
     await this.tilReady()
     while (true) {
       try {
-        console.log('tracking recent transfers, hours: ', lookbackHours)
+        console.log('tracking recent transfers, minutes: ', lookbackMinutes)
         const now = DateTime.now().toUTC()
-        const startTime = Math.floor(now.minus({ hour: lookbackHours }).toSeconds())
+        const startTime = Math.floor(now.minus({ minute: lookbackMinutes }).toSeconds())
         const endTime = Math.floor(now.toSeconds())
 
         console.log('fetching all transfers data for hour', startTime)
         const items = await this.getTransfersBetweenDates(startTime, endTime)
-        console.log('recentTransfers items:', items.length, 'hours:', lookbackHours)
+        console.log('recentTransfers items:', items.length, 'minutes:', lookbackMinutes)
         for (const item of items) {
           let retries = 0
           while (retries < 5) {
@@ -522,7 +532,7 @@ export class TransferStats {
           }
         }
 
-        console.log('done fetching transfers data for hours:', lookbackHours)
+        console.log('done fetching transfers data for minutes:', lookbackMinutes)
       } catch (err) {
         console.error(err)
       }
@@ -615,7 +625,7 @@ export class TransferStats {
       novaTransfers,
       lineaTransfers,
       baseTransfers,
-      mainnetTransfers
+      ethereumTransfers
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? fetchTransfersForTransferId('gnosis', transferId) : Promise.resolve([]),
       enabledChains.includes('polygon') ? fetchTransfersForTransferId('polygon', transferId) : Promise.resolve([]),
@@ -635,7 +645,7 @@ export class TransferStats {
       novaTransfers,
       lineaTransfers,
       baseTransfers,
-      mainnetTransfers
+      ethereumTransfers
     }
   }
 
@@ -785,7 +795,7 @@ export class TransferStats {
       novaTransfers,
       lineaTransfers,
       baseTransfers,
-      mainnetTransfers
+      ethereumTransfers
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? fetchTransfers('gnosis', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('polygon') ? fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
@@ -805,7 +815,7 @@ export class TransferStats {
       novaTransfers,
       lineaTransfers,
       baseTransfers,
-      mainnetTransfers
+      ethereumTransfers
     }
   }
 
@@ -818,7 +828,7 @@ export class TransferStats {
       novaBonds,
       lineaBonds,
       baseBonds,
-      mainnetBonds
+      ethereumBonds
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? fetchBondTransferIdEvents('gnosis', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('polygon') ? fetchBondTransferIdEvents('polygon', startTime, endTime) : Promise.resolve([]),
@@ -838,7 +848,7 @@ export class TransferStats {
       novaBonds,
       lineaBonds,
       baseBonds,
-      mainnetBonds
+      ethereumBonds
     }
   }
 
@@ -851,7 +861,7 @@ export class TransferStats {
       novaTransfers,
       lineaTransfers,
       baseTransfers,
-      mainnetTransfers
+      ethereumTransfers
     } = events
     const data :any[] = []
 
@@ -974,7 +984,7 @@ export class TransferStats {
         originContractAddress: x?.transaction?.to?.toLowerCase()
       })
     }
-    for (const x of mainnetTransfers) {
+    for (const x of ethereumTransfers) {
       data.push({
         sourceChain: getSourceChainId('ethereum'),
         destinationChain: x.destinationChainId,
@@ -1015,6 +1025,105 @@ export class TransferStats {
     const transferIds = data.map(x => x.transferId)
     const filterTransferIds = transferIds
 
+    const single = data?.length === 1 ? data[0] : null
+
+    let fetchGnosisBondedWithdrawals = enabledChains.includes('gnosis')
+    let fetchPolygonBondedWithdrawals = enabledChains.includes('polygon')
+    let fetchOptimismBondedWithdrawals = enabledChains.includes('optimism')
+    let fetchArbitrumBondedWithdrawals = enabledChains.includes('arbitrum')
+    let fetchNovaBondedWithdrawals = enabledChains.includes('nova')
+    let fetchLineaBondedWithdrawals = enabledChains.includes('linea')
+    let fetchBaseBondedWithdrawals = enabledChains.includes('base')
+    let fetchEthereumBondedWithdrawals = enabledChains.includes('ethereum')
+
+    let fetchGnosisWithdrews = enabledChains.includes('gnosis')
+    let fetchPolygonWithdrews = enabledChains.includes('polygon')
+    let fetchOptimismWithdrews = enabledChains.includes('optimism')
+    let fetchArbitrumWithdrews = enabledChains.includes('arbitrum')
+    let fetchNovaWithdrews = enabledChains.includes('nova')
+    let fetchLineaWithdrews = enabledChains.includes('linea')
+    let fetchBaseWithdrews = enabledChains.includes('base')
+    let fetchEthereumWithdrews = enabledChains.includes('ethereum')
+
+    let fetchGnosisFromL1Completeds = enabledChains.includes('gnosis')
+    let fetchPolygonFromL1Completeds = enabledChains.includes('polygon')
+    let fetchOptimismFromL1Completeds = enabledChains.includes('optimism')
+    let fetchArbitrumFromL1Completeds = enabledChains.includes('arbitrum')
+    let fetchNovaFromL1Completeds = enabledChains.includes('nova')
+    let fetchLineaFromL1Completeds = enabledChains.includes('linea')
+    let fetchBaseFromL1Completeds = enabledChains.includes('base')
+
+    if (single) {
+      const sourceChainSlug = chainIdToSlug(single.sourceChain)
+      const destinationChainSlug = chainIdToSlug(single.destinationChain)
+
+      fetchGnosisBondedWithdrawals = false
+      fetchPolygonBondedWithdrawals = false
+      fetchOptimismBondedWithdrawals = false
+      fetchArbitrumBondedWithdrawals = false
+      fetchNovaBondedWithdrawals = false
+      fetchLineaBondedWithdrawals = false
+      fetchBaseBondedWithdrawals = false
+      fetchEthereumBondedWithdrawals = false
+
+      fetchGnosisWithdrews = false
+      fetchPolygonWithdrews = false
+      fetchOptimismWithdrews = false
+      fetchArbitrumWithdrews = false
+      fetchNovaWithdrews = false
+      fetchLineaWithdrews = false
+      fetchBaseWithdrews = false
+      fetchEthereumWithdrews = false
+
+      fetchGnosisFromL1Completeds = false
+      fetchPolygonFromL1Completeds = false
+      fetchOptimismFromL1Completeds = false
+      fetchArbitrumFromL1Completeds = false
+      fetchNovaFromL1Completeds = false
+      fetchLineaFromL1Completeds = false
+      fetchBaseFromL1Completeds = false
+
+      if (destinationChainSlug === 'gnosis') {
+        fetchGnosisBondedWithdrawals = true
+        fetchGnosisWithdrews = true
+        fetchGnosisFromL1Completeds = sourceChainSlug === 'ethereum'
+      }
+      if (destinationChainSlug === 'polygon') {
+        fetchPolygonBondedWithdrawals = true
+        fetchPolygonWithdrews = true
+        fetchPolygonFromL1Completeds = sourceChainSlug === 'ethereum'
+      }
+      if (destinationChainSlug === 'optimism') {
+        fetchOptimismBondedWithdrawals = true
+        fetchOptimismWithdrews = true
+        fetchOptimismFromL1Completeds = sourceChainSlug === 'ethereum'
+      }
+      if (destinationChainSlug === 'arbitrum') {
+        fetchArbitrumBondedWithdrawals = true
+        fetchArbitrumWithdrews = true
+        fetchArbitrumFromL1Completeds = sourceChainSlug === 'ethereum'
+      }
+      if (destinationChainSlug === 'nova') {
+        fetchNovaBondedWithdrawals = true
+        fetchNovaWithdrews = true
+        fetchNovaFromL1Completeds = sourceChainSlug === 'ethereum'
+      }
+      if (destinationChainSlug === 'linea') {
+        fetchLineaBondedWithdrawals = true
+        fetchLineaWithdrews = true
+        fetchLineaFromL1Completeds = sourceChainSlug === 'ethereum'
+      }
+      if (destinationChainSlug === 'base') {
+        fetchBaseBondedWithdrawals = true
+        fetchBaseWithdrews = true
+        fetchBaseFromL1Completeds = sourceChainSlug === 'ethereum'
+      }
+      if (destinationChainSlug === 'ethereum') {
+        fetchEthereumBondedWithdrawals = true
+        fetchEthereumWithdrews = true
+      }
+    }
+
     console.log('querying fetchTransferBonds')
     const [
       gnosisBondedWithdrawals,
@@ -1024,16 +1133,16 @@ export class TransferStats {
       novaBondedWithdrawals,
       lineaBondedWithdrawals,
       baseBondedWithdrawals,
-      mainnetBondedWithdrawals
+      ethereumBondedWithdrawals
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchTransferBonds('gnosis', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchTransferBonds('polygon', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchTransferBonds('optimism', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchTransferBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('nova') ? fetchTransferBonds('nova', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('linea') ? fetchTransferBonds('linea', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('base') ? fetchTransferBonds('base', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchTransferBonds('ethereum', filterTransferIds) : Promise.resolve([])
+      fetchGnosisBondedWithdrawals ? fetchTransferBonds('gnosis', filterTransferIds) : Promise.resolve([]),
+      fetchPolygonBondedWithdrawals ? fetchTransferBonds('polygon', filterTransferIds) : Promise.resolve([]),
+      fetchOptimismBondedWithdrawals ? fetchTransferBonds('optimism', filterTransferIds) : Promise.resolve([]),
+      fetchArbitrumBondedWithdrawals ? fetchTransferBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
+      fetchNovaBondedWithdrawals ? fetchTransferBonds('nova', filterTransferIds) : Promise.resolve([]),
+      fetchLineaBondedWithdrawals ? fetchTransferBonds('linea', filterTransferIds) : Promise.resolve([]),
+      fetchBaseBondedWithdrawals ? fetchTransferBonds('base', filterTransferIds) : Promise.resolve([]),
+      fetchEthereumBondedWithdrawals ? fetchTransferBonds('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
     console.log('querying fetchWithdrews')
@@ -1045,16 +1154,16 @@ export class TransferStats {
       novaWithdrews,
       lineaWithdrews,
       baseWithdrews,
-      mainnetWithdrews
+      ethereumWithdrews
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchWithdrews('gnosis', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('nova') ? fetchWithdrews('nova', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('linea') ? fetchWithdrews('linea', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('base') ? fetchWithdrews('base', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
+      fetchGnosisWithdrews ? fetchWithdrews('gnosis', filterTransferIds) : Promise.resolve([]),
+      fetchPolygonWithdrews ? fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
+      fetchOptimismWithdrews ? fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
+      fetchArbitrumWithdrews ? fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
+      fetchNovaWithdrews ? fetchWithdrews('nova', filterTransferIds) : Promise.resolve([]),
+      fetchLineaWithdrews ? fetchWithdrews('linea', filterTransferIds) : Promise.resolve([]),
+      fetchBaseWithdrews ? fetchWithdrews('base', filterTransferIds) : Promise.resolve([]),
+      fetchEthereumWithdrews ? fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
     console.log('querying fetchTransferFromL1Completeds')
@@ -1067,13 +1176,13 @@ export class TransferStats {
       lineaFromL1Completeds,
       baseFromL1Completeds
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchTransferFromL1Completeds('gnosis', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchTransferFromL1Completeds('polygon', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchTransferFromL1Completeds('optimism', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('nova') ? fetchTransferFromL1Completeds('nova', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('linea') ? fetchTransferFromL1Completeds('linea', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('base') ? fetchTransferFromL1Completeds('base', startTime, endTime, undefined) : Promise.resolve([])
+      fetchGnosisFromL1Completeds ? fetchTransferFromL1Completeds('gnosis', startTime, endTime, undefined) : Promise.resolve([]),
+      fetchPolygonFromL1Completeds ? fetchTransferFromL1Completeds('polygon', startTime, endTime, undefined) : Promise.resolve([]),
+      fetchOptimismFromL1Completeds ? fetchTransferFromL1Completeds('optimism', startTime, endTime, undefined) : Promise.resolve([]),
+      fetchArbitrumFromL1Completeds ? fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([]),
+      fetchNovaFromL1Completeds ? fetchTransferFromL1Completeds('nova', startTime, endTime, undefined) : Promise.resolve([]),
+      fetchLineaFromL1Completeds ? fetchTransferFromL1Completeds('linea', startTime, endTime, undefined) : Promise.resolve([]),
+      fetchBaseFromL1Completeds ? fetchTransferFromL1Completeds('base', startTime, endTime, undefined) : Promise.resolve([])
     ])
 
     const gnosisBonds = [...gnosisBondedWithdrawals, ...gnosisWithdrews]
@@ -1083,7 +1192,7 @@ export class TransferStats {
     const novaBonds = [...novaBondedWithdrawals, ...novaWithdrews]
     const lineaBonds = [...lineaBondedWithdrawals, ...lineaWithdrews]
     const baseBonds = [...baseBondedWithdrawals, ...baseWithdrews]
-    const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
+    const ethereumBonds = [...ethereumBondedWithdrawals, ...ethereumWithdrews]
 
     const bondsMap: any = {
       gnosis: gnosisBonds,
@@ -1093,7 +1202,7 @@ export class TransferStats {
       nova: novaBonds,
       linea: lineaBonds,
       base: baseBonds,
-      ethereum: mainnetBonds
+      ethereum: ethereumBonds
     }
 
     const l1CompletedsMap: any = {
@@ -1318,7 +1427,7 @@ export class TransferStats {
       novaBonds,
       lineaBonds,
       baseBonds,
-      mainnetBonds
+      ethereumBonds
     } = await this.getBondTransferIdEventsBetweenDates(startTime, endTime)
 
     const allIds : string[] = []
@@ -1343,7 +1452,7 @@ export class TransferStats {
     for (const item of baseBonds) {
       allIds.push(item.transferId)
     }
-    for (const item of mainnetBonds) {
+    for (const item of ethereumBonds) {
       allIds.push(item.transferId)
     }
 
@@ -1355,7 +1464,7 @@ export class TransferStats {
       novaTransfers,
       lineaTransfers,
       baseTransfers,
-      mainnetTransfers
+      ethereumTransfers
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
       enabledChains.includes('polygon') ? fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
@@ -1375,7 +1484,7 @@ export class TransferStats {
       novaTransfers,
       lineaTransfers,
       baseTransfers,
-      mainnetTransfers
+      ethereumTransfers
     }
 
     const data = await this.normalizeTransferEvents(events)

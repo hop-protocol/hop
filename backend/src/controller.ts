@@ -5,6 +5,7 @@ import { TransferStats } from './TransferStats'
 import { formatCurrency } from './utils/formatCurrency'
 import { populateData } from './populateData'
 import { cache } from './cache'
+import { isGoerli } from './config'
 
 type Transfer = {
   accountAddress: string
@@ -247,7 +248,7 @@ export class Controller {
       })
     }
 
-    if ((accountAddress || transferId) && data?.length > 0) {
+    if ((accountAddress || transferId) && data?.length > 0 && !isGoerli) {
       // refetch recent transfers by account or single transferId
       const checkItems = data.slice(0, 5)
       for (const item of checkItems) {
@@ -266,7 +267,7 @@ export class Controller {
       }
     }
 
-    if (transferIdNotFound) {
+    if (transferIdNotFound && isGoerli) {
       // fetch transfer that may not be indexed
       this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
 

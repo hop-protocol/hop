@@ -1,10 +1,10 @@
-import mcache from 'memory-cache'
 import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
 import { TransferStats } from './TransferStats'
 import { formatCurrency } from './utils/formatCurrency'
 import { populateData } from './populateData'
+import { cache } from './cache'
 
 type Transfer = {
   accountAddress: string
@@ -252,10 +252,11 @@ export class Controller {
       const checkItems = data.slice(0, 5)
       for (const item of checkItems) {
         const { transferId } = item
-        const key = `__worker__checking__${transferId}`
-        const alreadyChecking = mcache.get(key)
+        const cacheKey = `__worker__checking__${transferId}`
+        const cacheDurationMs = 60 * 1000
+        const alreadyChecking = cache.get(cacheKey)
         if (!alreadyChecking) {
-          mcache.put(key, true, 60 * 1000)
+          cache.put(cacheKey, true, cacheDurationMs)
           const { timestamp, bonded, bondTransactionHash } = item
           const shouldCheck = refreshFlag || (timestamp && !bonded) || (bonded && !bondTransactionHash)
           if (shouldCheck) {

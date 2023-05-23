@@ -1,4 +1,5 @@
 import TransferStats from './TransferStats'
+import { OsStats } from './OsStats'
 import wait from 'wait'
 
 type Options = {
@@ -9,6 +10,7 @@ type Options = {
 
 class Worker {
   transferStats: TransferStats
+  osStats: OsStats
   pollIntervalMs: number = 60 * 60 * 1000
 
   constructor (options: Options = {}) {
@@ -20,6 +22,8 @@ class Worker {
     if (transfers) {
       this.transferStats = new TransferStats({ days, offsetDays })
     }
+
+    this.osStats = new OsStats()
   }
 
   async start () {
@@ -28,6 +32,9 @@ class Worker {
     const promises: Promise<any>[] = []
     if (this.transferStats) {
       promises.push(this.transferStatsPoll())
+    }
+    if (this.osStats) {
+      promises.push(this.osStats.start())
     }
     if (!promises.length) {
       throw new Error('at least one option is required')

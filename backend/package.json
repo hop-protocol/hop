@@ -7,7 +7,7 @@
     "dev": "tsc -w",
     "start": "PORT=8000 ts-node src/index.ts",
     "start:worker": "ts-node src/cli.ts --transfers",
-    "start:dist": "node dist/index.js",
+    "start:dist": "node --max_old_space_size=4096 dist/index.js",
     "start:local": "PORT=8000 npx ts-node src/index.ts --worker --transfers --days=1",
     "dev:local": "npm run start:local",
     "lint": "npx eslint --ext .ts --fix src/*.ts",
@@ -40,6 +40,7 @@
   "dependencies": {
     "@hop-protocol/core": "^0.0.1-beta.145",
     "@types/memory-cache": "^0.2.2",
+    "@types/pidusage": "^2.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "ethers": "^5.6.4",
@@ -51,6 +52,7 @@
     "memory-cache": "^0.2.0",
     "minimist": "^1.2.6",
     "pg-promise": "^10.11.1",
+    "pidusage": "^3.0.2",
     "to-hex": "0.0.18",
     "uuid": "^8.3.2",
     "wait": "^0.4.2"

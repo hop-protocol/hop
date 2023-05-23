@@ -26,10 +26,9 @@ import {
 } from './theGraph'
 import { getPreRegenesisBondEvent, bridgeAbi } from './preregenesis'
 import { populateData } from './populateData'
-import mcache from 'memory-cache'
+import { cache } from './cache'
 
-const cache = new mcache.Cache()
-const cacheDurationMs = isGoerli ? 2 * 60 * 60 * 1000 : 6 * 60 * 60 * 1000
+const cacheDurationMs = isGoerli ? 60 * 1000 : 6 * 60 * 60 * 1000
 
 console.log('rpcUrls:', rpcUrls)
 
@@ -341,6 +340,9 @@ export class TransferStats {
   }
 
   async getReceivedAmount (item: any) {
+    if (isGoerli) {
+      return null
+    }
     try {
       const { bondTransactionHash, token, destinationChainSlug } = item
       if (item.amountReceived && item.amountReceivedFormatted) {
@@ -1401,6 +1403,9 @@ export class TransferStats {
 
   // gets on-chain origin transfer data
   static async getTransferStatusForTxHash (transactionHash: string) {
+    if (isGoerli) {
+      return null
+    }
     for (const chainSlug in rpcUrls) {
       const rpcUrl = rpcUrls[chainSlug]
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)

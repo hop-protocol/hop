@@ -1,12 +1,12 @@
-import mcache from 'memory-cache'
+import { cache } from './cache'
+import { isGoerli } from './config'
 
-const cache = new mcache.Cache()
-const cacheDurationMs = 20 * 1000
+const cacheDurationMs = isGoerli ? 5 * 1000 : 20 * 1000
 
 export function responseCache (req: any, res: any, next: any) {
   const urlKey = req.originalUrl || req.url
-  const key = `__express__${urlKey}`
-  const cachedBody = cache.get(key)
+  const cacheKey = `__express__${urlKey}`
+  const cachedBody = cache.get(cacheKey)
   const refreshFlag = req.query?.refresh
   if (cachedBody && !refreshFlag) {
     res.send(cachedBody)
@@ -15,7 +15,7 @@ export function responseCache (req: any, res: any, next: any) {
 
   res.sendResponse = res.send
   res.send = (body: any) => {
-    cache.put(key, body, cacheDurationMs)
+    cache.put(cacheKey, body, cacheDurationMs)
     res.sendResponse(body)
   }
 

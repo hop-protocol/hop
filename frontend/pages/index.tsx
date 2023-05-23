@@ -300,7 +300,7 @@ function useData () {
   const [chartAmountSize, setChartAmountSize] = useState(false)
   const [chartSelection, setChartSelection] = useState('')
   const [transfers, setTransfers] = useState<any>([])
-  const [showBanner, setShowBanner] = useState<boolean>(false)
+  const [showSubgraphBanner, setShowSubgraphBanner] = useState<boolean>(false)
   const [unsyncedSubgraphUrl, setUnsyncedSubgraphUrl] = useState<string>('')
   const [accountCumulativeVolumeUsd, setAccountCumulativeVolumeUsd] = useState<string>('')
   const [page, setPage] = useState(Number(queryParams.page || 1))
@@ -359,7 +359,7 @@ function useData () {
         }
         const subgraphUrl = `https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-${chain}?version=pending`
         setUnsyncedSubgraphUrl(subgraphUrl)
-        setShowBanner(true)
+        setShowSubgraphBanner(true)
       }
     }
     update().catch(console.error)
@@ -790,7 +790,7 @@ function useData () {
     loadingData,
     resetFilters,
     handleRefreshClick,
-    showBanner,
+    showSubgraphBanner,
     unsyncedSubgraphUrl,
     accountCumulativeVolumeUsd
   }
@@ -866,7 +866,7 @@ const Index: NextPage = (props: any) => {
     loadingData,
     resetFilters,
     handleRefreshClick,
-    showBanner,
+    showSubgraphBanner,
     unsyncedSubgraphUrl,
     accountCumulativeVolumeUsd
   } = useData()
@@ -927,10 +927,17 @@ const Index: NextPage = (props: any) => {
         transition: 'background 0.15s ease-out',
         minHeight: '100vh'
       }}>
-      {showBanner && (
+      {showSubgraphBanner && (
         <div id="banner">
           <div>
             <span>⚠️</span> The <Link href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</Link> is currently experiencing some issues so the table might not reflect the latest state.
+          </div>
+        </div>
+      )}
+      {isGoerli && (
+        <div id="banner">
+          <div>
+            <span>⚠️</span> The Linea network is experiencing RPC issues at this time. If your Linea transaction has not arrived, please check again in a few hours.
           </div>
         </div>
       )}

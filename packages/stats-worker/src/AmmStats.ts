@@ -169,6 +169,8 @@ export class AmmStats {
     }
     console.log('done upserting prices')
 
+    let totalFeesUsd = 0
+
     for (let i = 0; i < this.days; i++) {
       const promises: any[] = []
       const now = DateTime.utc()
@@ -246,6 +248,8 @@ export class AmmStats {
                   feesFormattedUsd
                 )
 
+                totalFeesUsd += feesFormattedUsd
+
                 try {
                   console.log('upserting amm stat', chain, token, i)
                   this.db.upsertAmmStat(
@@ -274,7 +278,10 @@ export class AmmStats {
           )
         }
       }
+
       await Promise.all(promises)
     }
+
+    console.log('totalFeesUsd', totalFeesUsd)
   }
 }

@@ -91,7 +91,7 @@ const Settings: FC = () => {
     }
 
     const num = Number(value)
-    if (num >= 50 || num < 0) {
+    if (num >= 100 || num < 0) {
       return
     }
     setSlippageTolerance(value)

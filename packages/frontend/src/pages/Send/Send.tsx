@@ -355,6 +355,8 @@ const Send: FC = () => {
         message = 'Warning: More than 50% of amount will go towards bonder fee'
       } else if (slippageToleranceTooLowWarning) {
         message = `Warning: Swap at destination might fail due to slippage tolerance used (${slippageTolerance}%). Try increasing slippage if you don't want to receive h${sourceToken?.symbol}.`
+      } else if (isGoerli && fromNetwork?.isL1 && toNetwork?.slug === 'linea') {
+        message = `Warning: Linea is experiencing RPC issues and deposits will be highly delayed.`
       }
 
       setWarning(message)

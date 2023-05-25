@@ -1,11 +1,11 @@
+import Logger from 'src/logger'
+import pify from 'pify'
 import {
   CloudWatchLogsClient,
   DescribeLogGroupsCommand,
   DescribeLogStreamsCommand,
   FilterLogEventsCommand
 } from '@aws-sdk/client-cloudwatch-logs'
-import Logger from 'src/logger'
-import pify from 'pify'
 import { awsRegion } from 'src/config'
 
 const logger = new Logger('CloudWatch')

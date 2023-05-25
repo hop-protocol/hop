@@ -1,3 +1,4 @@
+import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
@@ -66,10 +67,14 @@ async function sendTokensToL2 (
   }
 
   logger.debug('Sending tokens to L2')
+  const options: CanonicalTokenConvertOptions = {
+    shouldSkipNearestCheck: true
+  }
   tx = await bridge.convertCanonicalTokenToHopToken(
     chainSlugToId(chain),
     parsedAmount,
-    recipient
+    recipient,
+    options
   )
   await tx.wait()
 }

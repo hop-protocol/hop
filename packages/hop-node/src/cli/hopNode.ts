@@ -10,6 +10,7 @@ import {
 } from 'src/config'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
+import { computeAddress } from 'ethers/lib/utils'
 import { printHopArt } from './shared/art'
 import { startArbBots } from 'src/arbBot'
 import {
@@ -106,13 +107,26 @@ async function main (source: any) {
     logger.debug(`slack notifications enabled. channel #${slackChannel}`)
   }
   for (const k in globalConfig.networks) {
+    if (!Object.keys(enabledNetworks).includes(k)) continue
     const { waitConfirmations, rpcUrl, redundantRpcUrls } = globalConfig.networks[k]
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
     logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
   }
   if (globalConfig.bonders) {
-    logger.info(`config bonders: ${JSON.stringify(globalConfig.bonders)}`)
+    const bonders: any = globalConfig.bonders
+    for (const token of tokens) {
+      logger.info(`config bonders for ${token}: ${JSON.stringify(bonders?.[token])}`)
+    }
+  }
+
+  if (globalConfig.bonderPrivateKey) {
+    let privateKey = globalConfig.bonderPrivateKey
+    if (!globalConfig.bonderPrivateKey.startsWith('0x')) {
+      privateKey = '0x' + privateKey
+    }
+    const bonderPublicAddress = computeAddress(privateKey)
+    logger.info('Bonder public address:', bonderPublicAddress)
   }
   const { starts } = await startWatchers({
     enabledWatchers: Object.keys(config.watchers).filter(

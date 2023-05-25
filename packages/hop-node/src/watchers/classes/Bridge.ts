@@ -24,6 +24,10 @@ export type EventsBatchOptions = {
   endBlockNumber: number
 }
 
+export type CanonicalTokenConvertOptions = {
+  shouldSkipNearestCheck?: boolean
+}
+
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 type BridgeContract = L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
 

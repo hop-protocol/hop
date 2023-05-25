@@ -110,55 +110,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
 
     if (modifiedLiquidityRoutes?.length > 0) {
-      let shouldDisableRoute = false
-      for (const modifiedLiquidityRoute of modifiedLiquidityRoutes) {
-        const [source, destination, tokenSymbol] = modifiedLiquidityRoute.split(':')
-
-        if (source === 'all') {
-          if (destination === 'all') {
-            if (tokenSymbol) {
-              if (tokenSymbol === this.tokenSymbol) {
-                shouldDisableRoute = true
-                break
-              }
-            } else {
-              shouldDisableRoute = true
-              break
-            }
-          } else {
-            if (tokenSymbol && tokenSymbol !== this.tokenSymbol) {
-              break
-            }
-            if (destination === destinationChain) {
-              shouldDisableRoute = true
-              break
-            }
-          }
-        } else {
-          if (source === this.chainSlug) {
-            if (destination === 'all') {
-              if (tokenSymbol) {
-                if (tokenSymbol === this.tokenSymbol) {
-                  shouldDisableRoute = true
-                  break
-                }
-              } else {
-                shouldDisableRoute = true
-                break
-              }
-            } else {
-              if (tokenSymbol && tokenSymbol !== this.tokenSymbol) {
-                break
-              }
-              if (destination === destinationChain) {
-                shouldDisableRoute = true
-                break
-              }
-            }
-          }
-        }
-      }
-
+      const shouldDisableRoute = this.shouldDisableRoute(modifiedLiquidityRoutes, destinationChain)
       this.logger.debug(`modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
       if (shouldDisableRoute) {
         availableCredit = BigNumber.from('0')
@@ -458,6 +410,23 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       await this.s3Upload.upload(s3JsonData)
       this.logger.debug(`s3 uploaded data: ${JSON.stringify(s3JsonData)}`)
     }
+  }
+
+  private shouldDisableRoute (modifiedLiquidityRoutes: string[], destinationChain: string): boolean {
+    for (const modifiedLiquidityRoute of modifiedLiquidityRoutes) {
+      const [source, destination, tokenSymbol] = modifiedLiquidityRoute.split(':')
+      if (!source || !destination || !tokenSymbol) {
+        continue
+      }
+
+      const isSource = source === 'all' || source === this.chainSlug
+      const isDestination = destination === 'all' || destination === destinationChain
+      const isTokenSymbol = tokenSymbol === 'all' || tokenSymbol === this.tokenSymbol
+      if (isSource && isDestination && isTokenSymbol) {
+        return true
+      }
+    }
+    return false
   }
 }
 

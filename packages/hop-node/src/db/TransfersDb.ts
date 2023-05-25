@@ -1,5 +1,6 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
+import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
@@ -404,7 +405,6 @@ class TransfersDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<UnbondedSentTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
-    const isEthToken = this.prefix?.startsWith('ETH')
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false
@@ -420,15 +420,15 @@ class TransfersDb extends BaseDb {
 
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
-        if (TxError.BonderFeeTooLow === item.withdrawalBondTxError) {
-          const delay = TxRetryDelayMs + ((1 << item.withdrawalBondBackoffIndex!) * 60 * 1000) // eslint-disable-line
-          // TODO: use `sentTransferTimestamp` once it's added to db
-
-          // don't attempt to bond withdrawals after a week
-          if (delay > OneWeekMs) {
+        if (
+          item.withdrawalBondTxError === TxError.BonderFeeTooLow ||
+          item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync
+        ) {
+          const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
+          if (delayMs > OneWeekMs) {
             return false
           }
-          timestampOk = item.bondWithdrawalAttemptedAt + delay < Date.now()
+          timestampOk = item.bondWithdrawalAttemptedAt + delayMs < Date.now()
         } else {
           timestampOk = item.bondWithdrawalAttemptedAt + TxRetryDelayMs < Date.now()
         }
@@ -484,14 +484,11 @@ class TransfersDb extends BaseDb {
       let timestampOk = true
       if (item.relayAttemptedAt) {
         if (TxError.RelayerFeeTooLow === item.relayTxError) {
-          const delay = TxRetryDelayMs + ((1 << item.relayBackoffIndex!) * 60 * 1000) // eslint-disable-line
-          // TODO: use `sentTransferTimestamp` once it's added to db
-
-          // don't attempt to relay after a week
-          if (delay > OneWeekMs) {
+          const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
+          if (delayMs > OneWeekMs) {
             return false
           }
-          timestampOk = item.relayAttemptedAt + delay < Date.now()
+          timestampOk = item.relayAttemptedAt + delayMs < Date.now()
         } else {
           timestampOk = item.relayAttemptedAt + TxRetryDelayMs < Date.now()
         }

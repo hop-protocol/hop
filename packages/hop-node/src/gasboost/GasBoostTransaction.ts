@@ -20,7 +20,7 @@ import {
 } from 'src/constants'
 import { EventEmitter } from 'events'
 
-import { EstimateGasError, NonceTooLowError } from 'src/types/error'
+import { EstimateGasError, KmsSignerError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import {
   blocknativeApiKey,
@@ -642,7 +642,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       } catch (err) {
         this._emitError(err)
         this.logger.error(`ending poller. ${err.message}`)
-        if (err instanceof NonceTooLowError || err instanceof EstimateGasError) {
+        if (err instanceof NonceTooLowError || err instanceof EstimateGasError || err instanceof KmsSignerError) {
           this.logger.error('ending poller. breaking.')
           break
         }
@@ -794,7 +794,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           estimateGasFailed,
           isAlreadyKnown,
           isFeeTooLow,
-          serverError
+          serverError,
+          kmsSignerError
         } = this.parseErrorString(err.message)
 
         // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
@@ -804,6 +805,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         } else if (estimateGasFailed && !serverError) {
           this.logger.error('estimateGas failed')
           throw new EstimateGasError('EstimateGasError')
+        }
+
+        if (kmsSignerError) {
+          throw new KmsSignerError('KmsSignerError')
         }
 
         const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
@@ -937,12 +942,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isAlreadyKnown = /(AlreadyKnown|already known)/i.test(errMessage) // tx is already in mempool
     const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
     const serverError = /SERVER_ERROR/g.test(errMessage)
+    const kmsSignerError = /Error signing message/g.test(errMessage)
     return {
       nonceTooLow,
       estimateGasFailed,
       isAlreadyKnown,
       isFeeTooLow,
-      serverError
+      serverError,
+      kmsSignerError
     }
   }
 

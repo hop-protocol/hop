@@ -9,7 +9,7 @@ import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { Signer, providers } from 'ethers'
 import { defineReadOnly } from 'ethers/lib/utils'
-import { hostname } from 'src/config'
+import { hostname, setLatestNonceOnStart } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
 class GasBoostSigner extends Signer {
@@ -79,6 +79,7 @@ class GasBoostSigner extends Signer {
   }
 
   private async init () {
+    // prevent additional bonder instances from overriding db nonce (ie when running separate cli commands)
     const shouldUpdate = await this.shouldSetLatestNonce()
     if (shouldUpdate) {
       await this.setLatestNonce()
@@ -86,6 +87,9 @@ class GasBoostSigner extends Signer {
   }
 
   private async shouldSetLatestNonce () {
+    if (setLatestNonceOnStart) {
+      return true
+    }
     const item = await this.store.getItem('nonce')
     const timeWindowMs = 5 * 60 * 1000
     if (item?.updatedAt && Number(item.updatedAt) + timeWindowMs < Date.now()) {

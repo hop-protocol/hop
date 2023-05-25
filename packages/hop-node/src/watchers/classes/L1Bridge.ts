@@ -1,4 +1,4 @@
-import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
+import Bridge, { CanonicalTokenConvertOptions, EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
@@ -214,7 +214,8 @@ export default class L1Bridge extends Bridge {
   convertCanonicalTokenToHopToken = async (
     destinationChainId: number,
     amount: BigNumber,
-    recipient: string
+    recipient: string,
+    options?: Partial<CanonicalTokenConvertOptions>
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
@@ -223,7 +224,7 @@ export default class L1Bridge extends Bridge {
 
     let nearestItemToTransferSent
     const destinationChain = chainIdToSlug(destinationChainId)
-    if (RelayableChains.includes(destinationChain)) {
+    if (RelayableChains.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
       nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
@@ -260,7 +261,8 @@ export default class L1Bridge extends Bridge {
   sendCanonicalTokensToL2 = async (
     destinationChainId: number,
     amount: BigNumber,
-    recipient: string
+    recipient: string,
+    options?: Partial<CanonicalTokenConvertOptions>
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
@@ -269,7 +271,7 @@ export default class L1Bridge extends Bridge {
 
     let nearestItemToTransferSent
     const destinationChain = chainIdToSlug(destinationChainId)
-    if (RelayableChains.includes(destinationChain)) {
+    if (RelayableChains.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
       nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)

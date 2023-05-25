@@ -22,7 +22,7 @@ async function main () {
   const transferId = '0xce4381be76ea9d93ffc1cee83ac32989b654e8fcccedb8afeaf26c7f67fccbdd'
   const rootHash = '0xd1c22b202118b9dd27d17f294c174bb2d9017dcb98b23a95ae12c62edb906a4c'
 
-  const configFilePath = '~/.hop-node/mainnet/config.json'
+  const configFilePath = '~/.hop/mainnet/config.json'
   const config = await parseConfigFile(configFilePath)
   await setGlobalConfigFromConfigFile(config)
 

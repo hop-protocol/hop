@@ -10,9 +10,9 @@ import {
 } from 'src/config'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
+import { computeAddress } from 'ethers/lib/utils'
 import { printHopArt } from './shared/art'
 import { startArbBots } from 'src/arbBot'
-import { computeAddress } from 'ethers/lib/utils'
 import {
   startWatchers
 } from 'src/watchers/watchers'

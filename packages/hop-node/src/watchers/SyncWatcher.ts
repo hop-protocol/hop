@@ -228,7 +228,7 @@ class SyncWatcher extends BaseWatcher {
 
     const getOptions = (keyName: string) => {
       return {
-        cacheKey: this.cacheKey(keyName),
+        syncCacheKey: this.syncCacheKey(keyName),
         startBlockNumber
       }
     }

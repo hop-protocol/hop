@@ -204,7 +204,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     return this.bridge.chainSlugToId(chainSlug)
   }
 
-  cacheKey (key: string) {
+  syncCacheKey (key: string) {
     return `${this.tag}:${key}`
   }
 

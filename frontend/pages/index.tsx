@@ -43,8 +43,10 @@ import { styled } from '@mui/material/styles'
 
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
+let appBaseUrl = 'https://app.hop.exchange'
 if (isGoerli) {
   apiBaseUrl = 'https://goerli-explorer-api.hop.exchange'
+  appBaseUrl = 'https://goerli.hop.exchange'
 }
 if (process.env.NEXT_PUBLIC_LOCAL) {
   apiBaseUrl = 'http://localhost:8000'
@@ -1410,23 +1412,23 @@ const Index: NextPage = (props: any) => {
                           )}
                           {(x.unbondable && !x.bonded) ?
                             <span className="unbondable">
-                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />Your funds are safe.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.<br /><br />Parameters used:<br /><small>Deadline: {x.deadline}<br />AmountOutMin: {x.amountOutMinFormatted || x.amountOutMin}</small>{x.destinationChainSlug === 'ethereum' ? <><br /><br /><small>These parameters should be 0 when sending to Ethereum, otherwise transfer will be invalid.</small></> : ''}</Box>}>
+                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />Your funds are safe.<br />This transfer can be manually withdrawn at the destination on the <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.<br /><br />Parameters used:<br /><small>Deadline: {x.deadline}<br />AmountOutMin: {x.amountOutMinFormatted || x.amountOutMin}</small>{x.destinationChainSlug === 'ethereum' ? <><br /><br /><small>These parameters should be 0 when sending to Ethereum, otherwise transfer will be invalid.</small></> : ''}</Box>}>
                                 <span>⚠️ Unbondable</span>
                               </Tooltip>
                               {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
                                 <Box ml={2}>
-                                <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
                                 </Box>
                               )}
                             </span>
                           : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
-                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>Your funds are safe. If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.</Box>}</Box>}>
+                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>Your funds are safe. If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.</Box>}</Box>}>
                               <span className="no">
                                 <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                                 <span>Pending</span>
                                 {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
                                   <Box ml={2}>
-                                  <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw ↗</Link>
+                                  <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw ↗</Link>
                                   </Box>
                                 )}
                               </span>

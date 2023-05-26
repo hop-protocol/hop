@@ -40,7 +40,7 @@ export function getUrl(chain: Slug | string) {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
     if (chain === 'base') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      return 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
     }
 
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`

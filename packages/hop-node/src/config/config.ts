@@ -2,7 +2,6 @@ import buildInfo from 'src/.build-info.json'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
-import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
 import { AvgBlockTimeSeconds, Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
@@ -15,7 +14,11 @@ import * as mainnetConfig from './mainnet'
 import * as stagingConfig from './staging'
 import * as testConfig from './test'
 require('./loadEnvFile')
-const defaultDbPath = path.resolve(__dirname, '../../../db_data')
+
+export const defaultDataDir = `${os.homedir()}/.hop`
+export const defaultDbDir = `${defaultDataDir}/db`
+export const defaultConfigFilePath = `${defaultDataDir}/eth.goerli.config.json`
+export const defaultKeystoreFilePath = `${defaultDataDir}/keystore.json`
 
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const hostname = process.env.HOSTNAME ?? os.hostname()
@@ -54,9 +57,6 @@ const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
-export const defaultConfigDir = `${os.homedir()}/.hop`
-export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
-export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
@@ -199,7 +199,7 @@ export const config: Config = {
   fees: {},
   routes: {},
   db: {
-    path: defaultDbPath
+    path: defaultDbDir
   },
   sync: {
     [Chain.Ethereum]: {

@@ -7,6 +7,7 @@ import { Command } from 'commander'
 import {
   getAllChains,
   config as globalConfig,
+  defaultConfigFilePath,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
   validateConfigFileStructure,
@@ -27,7 +28,7 @@ export const root = program
 export function actionHandler (fn: Function) {
   return async (source: any = {}) => {
     try {
-      const configFilePath = source.config || source?.parent?.config
+      const configFilePath = source.config || source?.parent?.config || defaultConfigFilePath
       if (configFilePath) {
         const config = await parseConfigFile(configFilePath)
         await setGlobalConfigFromConfigFile(config, source.passwordFile)

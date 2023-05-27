@@ -1,7 +1,9 @@
+import fs from 'fs'
 import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
   bondWithdrawalBatchSize,
+  defaultConfigFilePath,
   gitRev,
   config as globalConfig,
   slackAuthToken,
@@ -52,9 +54,12 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs, arbBot: runArbBot, arbBotConfig } = source
+  let { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs, arbBot: runArbBot, arbBotConfig } = source
   if (!config) {
-    throw new Error('config file is required')
+    if (!fs.existsSync(defaultConfigFilePath)) {
+      throw new Error(`config file not set and config file does not exist at default path ${defaultConfigFilePath}`)
+    }
+    config = JSON.parse(fs.readFileSync(defaultConfigFilePath, 'utf8'))
   }
 
   logger.warn(`dry mode: ${!!dryMode}`)

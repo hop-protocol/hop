@@ -15,6 +15,7 @@ RUN npm run build
 
 FROM node:14-alpine
 WORKDIR /usr/src/app
+USER node
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY --from=build /usr/src/app/dist /usr/src/app/dist
 COPY --from=build /usr/src/app/bin /usr/src/app/bin

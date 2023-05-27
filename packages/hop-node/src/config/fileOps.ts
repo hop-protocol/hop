@@ -13,6 +13,8 @@ import {
   Vault,
   Watchers,
   defaultConfigFilePath,
+  defaultDbDir,
+  defaultKeystoreFilePath,
   setBlocklistConfig,
   setBonderPrivateKey,
   setCommitTransfersConfig,
@@ -111,7 +113,7 @@ export async function setGlobalConfigFromConfigFile (
   passwordFile: string = ''
 ) {
   if (config.db) {
-    const dbPath = config.db.location
+    const dbPath = config.db?.location ?? defaultDbDir
     if (dbPath) {
       setDbPath(dbPath)
     }
@@ -122,11 +124,15 @@ export async function setGlobalConfigFromConfigFile (
     setLogLevel(logLevel)
   }
   if (config.keystore) {
-    if (!config.keystore.location) {
-      throw new Error('config for keystore location is required')
+    let keystoreLocation = config.keystore?.location
+    if (!keystoreLocation) {
+      if (!fs.existsSync(defaultKeystoreFilePath)) {
+        throw new Error(`config file does not exist at path ${defaultKeystoreFilePath}`)
+      }
+      keystoreLocation = JSON.parse(fs.readFileSync(defaultKeystoreFilePath, 'utf8'))
     }
     const filepath = path.resolve(
-      config.keystore.location.replace('~', os.homedir())
+      keystoreLocation.replace('~', os.homedir())
     )
     const keystore = JSON.parse(fs.readFileSync(path.resolve(filepath), 'utf8'))
     let passphrase = process.env.KEYSTORE_PASS ?? config.keystore.pass
@@ -267,6 +273,7 @@ export async function setGlobalConfigFromConfigFile (
         const res = await fetch(config.blocklist.path)
         data = await res.text()
       } else {
+        // NOTE: Since there is no default blocklist, a specified path is required
         const filepath = path.resolve(config.blocklist.path)
         if (!fs.existsSync(filepath)) {
           throw new Error(`blocklist filepath "${filepath}" does not exist`)

@@ -17,7 +17,7 @@ require('./loadEnvFile')
 
 export const defaultDataDir = `${os.homedir()}/.hop`
 export const defaultDbDir = `${defaultDataDir}/db`
-export const defaultConfigFilePath = `${defaultDataDir}/eth.goerli.config.json`
+export const defaultConfigFilePath = `${defaultDataDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultDataDir}/keystore.json`
 
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'

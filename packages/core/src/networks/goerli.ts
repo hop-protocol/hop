@@ -55,7 +55,7 @@ export const networks: Networks = {
     name: chains.linea.name,
     image: chains.linea.image,
     networkId: 59140,
-    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480',
+    publicRpcUrl: 'https://linea-goerli.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',

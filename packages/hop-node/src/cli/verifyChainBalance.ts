@@ -317,14 +317,16 @@ async function getTokenAdjustments (
     startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
     endTimestamp: blockTimestamp
   })
-  const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][Chain.Ethereum]
+  const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token]?.[Chain.Ethereum] ?? '0'
   const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive!)
 
   // Invalid roots
-  const l1RootsInvalid = BigNumber.from(ChainBalanceArchiveData.L1InvalidRoot[token]!)
+  const l1RootsInvalidArchive = ChainBalanceArchiveData.L1InvalidRoot?.[token] ?? '0'
+  const l1RootsInvalid = BigNumber.from(l1RootsInvalidArchive)
 
   // Tokens sent directly to the L1 bridge address
-  const l1TokensSentDirectlyToBridge = BigNumber.from(ChainBalanceArchiveData.L1TokensSentDirectlyToBridge[token]!)
+  const l1TokensSentDirectlyToBridgeArchive = ChainBalanceArchiveData.L1TokensSentDirectlyToBridge?.[token] ?? '0'
+  const l1TokensSentDirectlyToBridge = BigNumber.from(l1TokensSentDirectlyToBridgeArchive)
 
   return {
     l1TokensInContract,
@@ -389,8 +391,8 @@ async function getHTokenAdjustments (
     startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
     blockTag
   })
-  const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][chain]
-  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive!)
+  const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[chain] ?? '0'
+  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive)
 
   // Pending outgoing tokens
   let l2TransfersPendingOutbound: BigNumber = BigNumber.from('0')
@@ -413,8 +415,8 @@ async function getHTokenAdjustments (
     l1BlockTimestamp,
     l2BlockTimestamp
   )
-  const l2TransfersInFlightFromL1ToL2Archive = ChainBalanceArchiveData.InFlightL1ToL2Transfers[token][chain]
-  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New.add(l2TransfersInFlightFromL1ToL2Archive!)
+  const l2TransfersInFlightFromL1ToL2Archive = ChainBalanceArchiveData.InFlightL1ToL2Transfers?.[token]?.[chain] ?? '0'
+  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New.add(l2TransfersInFlightFromL1ToL2Archive)
 
   const {
     allRootsCommitted,

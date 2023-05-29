@@ -1121,7 +1121,6 @@ export class HealthCheckWatcher {
     this.logger.debug('checking for an invalid chainBalance')
     const invalidChainBalances: InvalidChainBalance[] = []
     for (const token of this.tokens) {
-      if (token === 'rETH' || token === 'sUSD' || token === 'SNX') continue
       this.logger.debug(`checking ${token} for invalid chainBalance`)
       const {
         tokenChainBalanceDiff,

@@ -114,18 +114,11 @@ export const stakingRewardTokens = {
     optimism: {
       '0x09992dd7b32f7b35d347de9bdaf1919a57d38e82': 'OP',
       '0x25fb92e505f752f730cad0bd4fa17ece4a384266': 'OP',
-      '0x266e2dc3c4c59e42aa07afee5b09e964cffe6778': 'rETH',
+      '0xc81d1f0eb955b0c020e5d5b264e1ff72c14d1401': 'RPL',
     },
     arbitrum: {
-      '0x3d4cad734b464ed6edcf6254c2a3e5fa5d449b32': 'rETH'
+      '0xb766039cc6db368759c1e56b79affe831d0cc507': 'RPL'
     }
-  }
-}
-
-const rewardTokenAddresses = {
-  mainnet: {
-    WMATIC: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
-    GNO: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb',
   }
 }
 
@@ -185,7 +178,6 @@ export {
   isMainnet,
   blocknativeDappid,
   stakingRewardsContracts,
-  rewardTokenAddresses,
   hopStakingRewardsContracts,
   enabledChains
 }

@@ -206,16 +206,16 @@ export const addresses: Addresses = {
     },
     rETH: {
       ethereum: {
-        optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+        optimism: '0xD38B96277df34F1f7ac5965F86016E7d02c4Ca94',
+        arbitrum: '0xD38B96277df34F1f7ac5965F86016E7d02c4Ca94'
       },
       optimism: {
-        ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+        ethereum: '0xD38B96277df34F1f7ac5965F86016E7d02c4Ca94',
+        arbitrum: '0xD38B96277df34F1f7ac5965F86016E7d02c4Ca94'
       },
       arbitrum: {
-        ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+        ethereum: '0xD38B96277df34F1f7ac5965F86016E7d02c4Ca94',
+        optimism: '0xD38B96277df34F1f7ac5965F86016E7d02c4Ca94'
       }
     }
   },

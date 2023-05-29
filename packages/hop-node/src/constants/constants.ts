@@ -45,10 +45,10 @@ for (const chain in chains) {
 
 export { nativeChainTokens }
 
-export const AvgBlockTimeSeconds = {
-  Ethereum: 12,
-  Polygon: 2,
-  Gnosis: 5
+export const AvgBlockTimeSeconds: Record<string, number> = {
+  [Chain.Ethereum]: 12,
+  [Chain.Polygon]: 2,
+  [Chain.Gnosis]: 5
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -76,9 +76,9 @@ export const OneWeekSeconds = 7 * 24 * 60 * 60
 export const OneWeekMs = OneWeekSeconds * 1000
 
 export const TotalBlocks = {
-  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Ethereum),
-  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Polygon),
-  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Gnosis)
+  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Ethereum]),
+  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Polygon]),
+  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Gnosis])
 }
 
 export const RootSetSettleDelayMs = 5 * 60 * 1000
@@ -91,6 +91,7 @@ export enum TxError {
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW',
   RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
+  RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
@@ -124,3 +125,5 @@ export const ChainHasFinalizationTag: Record<string, boolean> = {
 }
 
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
+export const BondTransferRootDelayBufferSeconds = 5 * 60
+export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 minutes

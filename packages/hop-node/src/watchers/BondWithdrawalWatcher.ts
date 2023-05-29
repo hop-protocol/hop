@@ -4,12 +4,16 @@ import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
-import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
-import { BonderFeeTooLowError, NonceTooLowError, PreTransactionValidationError } from 'src/types/error'
+import {
+  BonderFeeTooLowError,
+  NonceTooLowError,
+  PossibleReorgDetected,
+  RedundantProviderOutOfSync
+} from 'src/types/error'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -279,8 +283,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
           bondWithdrawalAttemptedAt: 0
         })
       }
-      if (err instanceof PreTransactionValidationError) {
-        logger.error('pre transaction validation error. turning off writes.')
+      if (err instanceof RedundantProviderOutOfSync) {
+        logger.error('redundant provider out of sync. trying again.')
+        let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
+        if (!withdrawalBondBackoffIndex) {
+          withdrawalBondBackoffIndex = 0
+        }
+        withdrawalBondBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: TxError.RedundantRpcOutOfSync,
+          withdrawalBondBackoffIndex
+        })
+        return
+      }
+      if (err instanceof PossibleReorgDetected) {
+        logger.error('possible reorg detected. turning off writes.')
         enableEmergencyMode()
       }
       throw err
@@ -301,6 +318,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
 
+    logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation(params)
 
     if (attemptSwap) {
@@ -372,10 +390,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
+    const logger = this.logger.create({ id: txParams.transferId })
+
     // Perform this check as late as possible before the transaction is sent
+    logger.debug('validating db existence')
     await this.validateDbExistence(txParams)
+    logger.debug('validating transferSent index')
     await this.validateTransferSentIndex(txParams)
+    logger.debug('validating uniqueness')
     await this.validateUniqueness(txParams)
+    logger.debug('validating logs with redundant rpcs')
     await this.validateLogsWithRedundantRpcs(txParams)
   }
 
@@ -383,10 +407,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     // Validate DB existence with calculated transferId
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     if (!calculatedDbTransfer?.transferId || !txParams?.transferId) {
-      throw new PreTransactionValidationError(`Calculated transferId (${calculatedDbTransfer?.transferId}) or transferId in txParams (${txParams?.transferId}) is falsy`)
+      throw new PossibleReorgDetected(`Calculated transferId (${calculatedDbTransfer?.transferId}) or transferId in txParams (${txParams?.transferId}) is falsy`)
     }
     if (calculatedDbTransfer.transferId !== txParams.transferId) {
-      throw new PreTransactionValidationError(`Calculated transferId (${calculatedDbTransfer.transferId}) does not match transferId in db`)
+      throw new PossibleReorgDetected(`Calculated transferId (${calculatedDbTransfer.transferId}) does not match transferId in db`)
     }
   }
 
@@ -395,10 +419,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     // Check for undefined since these values can be 0
     if (!calculatedDbTransfer?.transferSentIndex === undefined || !txParams?.transferSentIndex === undefined) {
-      throw new PreTransactionValidationError(`Calculated transferSentIndex (${calculatedDbTransfer?.transferSentIndex}) or transferSentIndex in txParams (${txParams?.transferSentIndex}) is falsy`)
+      throw new PossibleReorgDetected(`Calculated transferSentIndex (${calculatedDbTransfer?.transferSentIndex}) or transferSentIndex in txParams (${txParams?.transferSentIndex}) is falsy`)
     }
     if (calculatedDbTransfer.transferSentIndex !== txParams.transferSentIndex) {
-      throw new PreTransactionValidationError(`transferSentIndex (${txParams.transferSentIndex}) does not match transferSentIndex in db (${calculatedDbTransfer.transferSentIndex})`)
+      throw new PossibleReorgDetected(`transferSentIndex (${txParams.transferSentIndex}) does not match transferSentIndex in db (${calculatedDbTransfer.transferSentIndex})`)
     }
   }
 
@@ -409,37 +433,51 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const dbTransfersFromSource: Transfer[] = dbTransfers.filter(dbTransfer => dbTransfer.sourceChainId === this.bridge.chainId)
     const transfersWithExpectedTransferNonce: Transfer[] = dbTransfersFromSource.filter(dbTransfer => dbTransfer.transferNonce === txTransferNonce)
     if (transfersWithExpectedTransferNonce.length > 1) {
-      throw new PreTransactionValidationError(`transferNonce (${txTransferNonce}) exists in multiple transfers in db. Other transferIds: ${transfersWithExpectedTransferNonce.map(dbTransfer => dbTransfer.transferId)}`)
+      throw new PossibleReorgDetected(`transferNonce (${txTransferNonce}) exists in multiple transfers in db. Other transferIds: ${transfersWithExpectedTransferNonce.map(dbTransfer => dbTransfer.transferId)}`)
     }
     if (transfersWithExpectedTransferNonce.length === 0) {
-      throw new PreTransactionValidationError(`transferNonce (${txTransferNonce}) does not exist in db`)
+      // If a transfer is marked as notFound because the event is missed, it will never get a transferSent timestamp. In
+      // this case, there will be no subDbTimestamps for the item since that relies on the transferSentTimestamp and
+      // therefore the item will not exist in getTransfersFromWeek(). In this case, check the item exists in the DB
+      // and validate that the transferNonce exists.
+      const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+      if (!calculatedDbTransfer?.transferNonce || calculatedDbTransfer.transferNonce !== txTransferNonce) {
+        throw new PossibleReorgDetected(`transferNonce (${txTransferNonce}) does not exist in db`)
+      }
     }
   }
 
   async validateLogsWithRedundantRpcs (txParams: SendBondWithdrawalTxParams): Promise<void> {
+    const logger = this.logger.create({ id: txParams.transferId })
+
     // Validate logs with redundant RPC endpoint, if it exists
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     const blockNumber = calculatedDbTransfer?.transferSentBlockNumber
     if (!blockNumber) {
-      throw new PreTransactionValidationError(`Calculated transferSentBlockNumber (${blockNumber}) is missing`)
+      // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error
+      throw new Error(`Calculated transferSentBlockNumber (${blockNumber}) is missing`)
     }
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
-      const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
-
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
       const filter = l2Bridge.filters.TransferSent(
         txParams.transferId,
         txParams.destinationChainId,
         txParams.recipient
       )
-      const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
-      const eventParams = events.find((x: any) => x.args.transferId === txParams.transferId)
+      const eventParams = await this.getRedundantRpcEventParams(
+        logger,
+        blockNumber,
+        redundantRpcUrl,
+        txParams.transferId,
+        l2Bridge,
+        filter,
+        calculatedDbTransfer?.withdrawalBondBackoffIndex
+      )
       if (!eventParams) {
-        throw new PreTransactionValidationError(`TransferSent event not found for transferId ${txParams.transferId} at block ${blockNumber}`)
+        continue
       }
-
       if (
         (eventParams.args.transferId !== txParams.transferId) ||
         (Number(eventParams.args.chainId) !== txParams.destinationChainId) ||
@@ -451,7 +489,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         (eventParams.args.deadline.toString() !== txParams.deadline.toString()) ||
         (eventParams.args.index.toString() !== txParams.transferSentIndex.toString())
       ) {
-        throw new PreTransactionValidationError(`TransferSent event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransfer)}`)
+        throw new PossibleReorgDetected(`TransferSent event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransfer)}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, calculatedDbTransfer.withdrawalBondBackoffIndex: ${calculatedDbTransfer?.withdrawalBondBackoffIndex}`)
       }
     }
   }
@@ -468,9 +506,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = txParams
 
     const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
-    const dbTransfer = this.db.transfers.getByTransferId(calculatedTransferId)
+    const dbTransfer = await this.db.transfers.getByTransferId(calculatedTransferId)
     if (!dbTransfer) {
-      throw new PreTransactionValidationError(`dbTransfer not found for transferId ${calculatedTransferId}`)
+      // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error
+      throw new Error(`dbTransfer not found for transferId ${calculatedTransferId}`)
     }
     return dbTransfer
   }

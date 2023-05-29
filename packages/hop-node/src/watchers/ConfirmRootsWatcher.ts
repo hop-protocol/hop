@@ -19,7 +19,6 @@ import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { PreTransactionValidationError } from 'src/types/error'
 import { getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
@@ -271,7 +270,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       rootHashes.length !== totalAmounts.length ||
       rootHashes.length !== rootCommittedAts.length
     ) {
-      throw new PreTransactionValidationError('Root data arrays must be the same length')
+      throw new Error('Root data arrays must be the same length')
     }
 
     for (const [index, value] of rootHashes.entries()) {
@@ -286,7 +285,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
 
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
       if (!dbTransferRoot) {
-        throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+        throw new Error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
       }
 
       logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
@@ -298,16 +297,16 @@ class ConfirmRootsWatcher extends BaseWatcher {
         totalAmount.toString() !== dbTransferRoot?.totalAmount?.toString() ||
         rootCommittedAt !== dbTransferRoot?.committedAt
       ) {
-        throw new PreTransactionValidationError(`DB data does not match passed in data for rootHash ${rootHash}`)
+        throw new Error(`DB data does not match passed in data for rootHash ${rootHash}`)
       }
 
       // Verify that the watcher is on the correct chain
       if (this.bridge.chainId !== dbTransferRoot.sourceChainId) {
-        throw new PreTransactionValidationError(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
+        throw new Error(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
       }
 
       if (this.bridge.chainId === destinationChainId) {
-        throw new PreTransactionValidationError(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
+        throw new Error(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
       }
 
       // Verify that the transfer root ID is not confirmed for any chain
@@ -325,7 +324,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
           calculatedTransferRootId
         )
         if (isTransferRootIdConfirmed) {
-          throw new PreTransactionValidationError(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
+          throw new Error(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
         }
       }
 
@@ -337,7 +336,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
         totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
         rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
       ) {
-        throw new PreTransactionValidationError(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+        throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
       }
 
       // Verify that the wrapper being used is correct
@@ -346,13 +345,13 @@ class ConfirmRootsWatcher extends BaseWatcher {
         Number(wrapperL2ChainId) !== dbTransferRoot?.sourceChainId ||
         Number(wrapperL2ChainId) !== this.bridge.chainId
       ) {
-        throw new PreTransactionValidationError(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
+        throw new Error(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
       }
 
       // Verify that the root can be confirmed
       const { createdAt, challengeStartTime } = await this.l1Bridge.getTransferBond(calculatedTransferRootId)
       if (!createdAt || !challengeStartTime) {
-        throw new PreTransactionValidationError('Transfer bond not found')
+        throw new Error('Transfer bond not found')
       }
       const createdAtMs = Number(createdAt) * 1000
       const timeSinceBondCreation = Date.now() - createdAtMs
@@ -361,7 +360,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
           challengeStartTime.toString() !== '0' ||
           timeSinceBondCreation <= ChallengePeriodMs
       ) {
-        throw new PreTransactionValidationError('Transfer root is not confirmable')
+        throw new Error('Transfer root is not confirmable')
       }
     }
   }

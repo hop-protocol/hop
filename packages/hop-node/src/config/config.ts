@@ -4,8 +4,8 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
+import { AvgBlockTimeSeconds, Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
-import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
@@ -54,7 +54,7 @@ const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
-export const defaultConfigDir = `${os.homedir()}/.hop-node`
+export const defaultConfigDir = `${os.homedir()}/.hop`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
@@ -346,7 +346,7 @@ export const getEnabledTokens = (): string[] => {
 
 export const getEnabledNetworks = (): string[] => {
   const networks: {[network: string]: boolean} = {}
-  for (const token in config.addresses) {
+  for (const token in config.tokens) {
     for (const network in config.addresses[token]) {
       networks[network] = true
     }
@@ -412,6 +412,13 @@ export enum Watchers {
 
 export function enableEmergencyMode () {
   config.emergencyDryMode = true
+}
+
+export function getFinalityTimeSeconds (chainSlug: string) {
+  // The default of 1 for these values imply a trusted sequencer or an unimplemented network
+  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds[chainSlug] ?? 1
+  const waitConfirmations: number = networks[chainSlug].waitConfirmations ?? 1
+  return avgBlockTimeSeconds * waitConfirmations
 }
 
 export { Bonders }

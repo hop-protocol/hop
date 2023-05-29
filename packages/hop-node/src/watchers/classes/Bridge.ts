@@ -19,9 +19,13 @@ import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
-  cacheKey: string
+  syncCacheKey: string
   startBlockNumber: number
   endBlockNumber: number
+}
+
+export type CanonicalTokenConvertOptions = {
+  shouldSkipNearestCheck?: boolean
 }
 
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
@@ -554,15 +558,16 @@ export default class Bridge extends ContractBase {
   ) {
     this.validateEventsBatchInput(options)
 
-    let cacheKey = ''
+    // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
+    let syncCacheKey = ''
     let state: State | undefined
-    if (options.cacheKey) {
-      cacheKey = this.getCacheKeyFromKey(
+    if (options.syncCacheKey) {
+      syncCacheKey = this.getSyncCacheKeyFromKey(
         this.chainId,
         this.address,
-        options.cacheKey
+        options.syncCacheKey
       )
-      state = await this.db.syncState.getByKey(cacheKey)
+      state = await this.db.syncState.getByKey(syncCacheKey)
     }
 
     const blockValues = await this.getBlockValues(options, state)
@@ -574,7 +579,7 @@ export default class Bridge extends ContractBase {
       latestBlockInBatch
     } = blockValues
 
-    this.logger.debug(`eventsBatch cacheKey: ${cacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
+    this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -596,12 +601,13 @@ export default class Bridge extends ContractBase {
       i++
     }
 
-    // Only store latest block if a full sync is successful.
-    // Sync is complete when the start block is reached since
+    // Only store latest block if a sync is successful. Sync is complete when the start block is reached since
     // it traverses backwards from head.
-    if (cacheKey && start === earliestBlockInBatch) {
-      this.logger.debug(`eventsBatch cacheKey: ${cacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
-      await this.db.syncState.update(cacheKey, {
+    // NOTE: The syncCacheKey here enforces that the syncState is only updated during a sync and not when this
+    // is called for other purposes, such as looking onchain for transferIds in a root.
+    if (syncCacheKey && start === earliestBlockInBatch) {
+      this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
+      await this.db.syncState.update(syncCacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
       })
@@ -669,7 +675,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  public getCacheKeyFromKey = (
+  public getSyncCacheKeyFromKey = (
     chainId: number,
     address: string,
     key: string
@@ -687,7 +693,7 @@ export default class Bridge extends ContractBase {
   private readonly validateEventsBatchInput = (
     options: Partial<EventsBatchOptions> = {}
   ) => {
-    const { cacheKey, startBlockNumber, endBlockNumber } = options
+    const { syncCacheKey, startBlockNumber, endBlockNumber } = options
 
     const isStartAndEndBlock = startBlockNumber && endBlockNumber
     if (isStartAndEndBlock) {
@@ -703,7 +709,7 @@ export default class Bridge extends ContractBase {
         )
       }
 
-      if (cacheKey) {
+      if (syncCacheKey) {
         throw new Error(
           'A key cannot exist when a start and end block are explicitly defined'
         )

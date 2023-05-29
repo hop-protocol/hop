@@ -30,7 +30,7 @@ async function main (source: any) {
     transferIdsFile: transferIdsFileList
   } = source
   if (!chain) {
-    throw new Error('chain is required in order to apply correct reorg redundant protection')
+    throw new Error('source chain is required in order to apply correct reorg redundant protection')
   }
   if (transferIdsFileList && !transferIds) {
     transferIds = transferIdsFileList

@@ -15,7 +15,8 @@ export class PriceStats {
     'RPL',
     'GNO',
     'GNO',
-    'OP'
+    'OP',
+    'MAGIC'
   ]
 
   priceFeed: PriceFeed

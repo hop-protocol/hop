@@ -1,3 +1,4 @@
+import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
@@ -226,10 +227,14 @@ async function sendTokens (
         recipient
       )
     } else {
+      const options: CanonicalTokenConvertOptions = {
+        shouldSkipNearestCheck: true
+      }
       tx = await (bridge as L1Bridge).sendCanonicalTokensToL2(
         destinationChainId,
         parsedAmount,
-        recipient
+        recipient,
+        options
       )
     }
   } else {

@@ -218,26 +218,19 @@ class SyncWatcher extends BaseWatcher {
 
   async syncHandler (): Promise<any> {
     const promises: Array<Promise<any>> = []
-    let startBlockNumber = this.bridge.bridgeDeployedBlockNumber
-    let useCacheKey = true
 
-    // if it is first sync upon start and
-    // custom start block was specified,
-    // then use that as initial start block
+    // Use a custom start block number on the initial sync if it is defined
+    let startBlockNumber: number = this.bridge.bridgeDeployedBlockNumber
     if (!this.isInitialSyncCompleted() && this.customStartBlockNumber) {
-      useCacheKey = false
       startBlockNumber = this.customStartBlockNumber
+
     }
 
     const getOptions = (keyName: string) => {
-      const options = {
-        cacheKey: useCacheKey ? this.cacheKey(keyName) : undefined,
+      return {
+        syncCacheKey: this.syncCacheKey(keyName),
         startBlockNumber
       }
-      if (this.syncIndex === 0) {
-        this.logger.debug(`syncing with options: ${JSON.stringify(options)}. Note: startBlockNumber is only used if latestBlockSynced for cacheKey is not set.`)
-      }
-      return options
     }
 
     const transferRootInitialEventPromises: Array<Promise<any>> = []

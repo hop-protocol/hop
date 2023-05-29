@@ -54,7 +54,7 @@ const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
-export const defaultConfigDir = `${os.homedir()}/.hop-node`
+export const defaultConfigDir = `${os.homedir()}/.hop`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
@@ -346,7 +346,7 @@ export const getEnabledTokens = (): string[] => {
 
 export const getEnabledNetworks = (): string[] => {
   const networks: {[network: string]: boolean} = {}
-  for (const token in config.addresses) {
+  for (const token in config.tokens) {
     for (const network in config.addresses[token]) {
       networks[network] = true
     }

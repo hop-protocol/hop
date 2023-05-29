@@ -49,14 +49,13 @@ export const Withdraw: FC = () => {
   const { checkConnectedNetworkId } = useWeb3Context()
   const { queryParams } = useQueryParams()
   const [transferIdOrTxHash, setTransferIdOrTxHash] = useState<string>(() => {
-    return localStorage.getItem('withdrawTransferIdOrTxHash') || queryParams?.transferId as string || ''
+    return queryParams?.transferId as string || ''
   })
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
     try {
-      localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
       updateQueryParams({
         transferId: transferIdOrTxHash || ''
       })

@@ -70,7 +70,7 @@ describe.skip('events batch - Happy Path', () => {
         }
         count++
       },
-      { cacheKey: key }
+      { syncCacheKey: key }
     )
 
     expect(count).toBe(expectedCount)
@@ -80,8 +80,8 @@ describe.skip('events batch - Happy Path', () => {
     const key: string = 'testingKey'
     const chainId = await bridge.getChainId()
     const address = bridge.getAddress()
-    const cacheKey = bridge.getCacheKeyFromKey(chainId, address, key)
-    let state = await bridge.db.syncState.getByKey(cacheKey)
+    const syncCacheKey = bridge.getSyncCacheKeyFromKey(chainId, address, key)
+    let state = await bridge.db.syncState.getByKey(syncCacheKey)
 
     // Create entry for key if it does not exist
     if (!state) {
@@ -92,11 +92,11 @@ describe.skip('events batch - Happy Path', () => {
           expect(end).toBe(start + batchBlocks)
           count++
         },
-        { cacheKey: key }
+        { syncCacheKey: key }
       )
     }
 
-    state = await bridge.db.syncState.getByKey(cacheKey)
+    state = await bridge.db.syncState.getByKey(syncCacheKey)
     expect(state.latestBlockSynced).toBeDefined()
     expect(state.timestamp).toBeDefined()
 
@@ -109,10 +109,10 @@ describe.skip('events batch - Happy Path', () => {
         expect(index).toBe(count)
         count++
       },
-      { cacheKey: key }
+      { syncCacheKey: key }
     )
 
-    state = await bridge.db.syncState.getByKey(cacheKey)
+    state = await bridge.db.syncState.getByKey(syncCacheKey)
     expect(state.latestBlockSynced).toBeGreaterThan(latestBlockSynced)
     expect(state.timestamp).toBeGreaterThan(timestamp)
     expect(count).toBe(1)
@@ -228,7 +228,7 @@ describe.skip('events batch - Non-Happy Path', () => {
     try {
       await bridge.eventsBatch(
         async (start: number, end: number, index: number) => {},
-        { startBlockNumber, endBlockNumber, cacheKey: key }
+        { startBlockNumber, endBlockNumber, syncCacheKey: key }
       )
     } catch (err) {
       expect(err.message).toBe(

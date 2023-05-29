@@ -74,7 +74,7 @@ async function main (source: any) {
       const depth = objectDepth(oldConfig.commitTransfers)
       const isV1ConfigType = depth < 3
       const isV2ConfigType = depth < 4
-      const allChains = getEnabledNetworks()
+      const enabledChains = getEnabledNetworks()
 
       // convert old config type to new config type
       if (isV1ConfigType || isV2ConfigType) {
@@ -87,7 +87,7 @@ async function main (source: any) {
               if (!isValidToken(_token)) {
                 continue
               }
-              for (const _destinationChain of allChains) {
+              for (const _destinationChain of enabledChains) {
                 if (!newConfig.commitTransfers.minThresholdAmount[_token]) {
                   newConfig.commitTransfers.minThresholdAmount[_token] = {}
                 }
@@ -117,7 +117,7 @@ async function main (source: any) {
         }
       }
 
-      const destinationChains = destinationChain ? [destinationChain] : allChains
+      const destinationChains = destinationChain ? [destinationChain] : enabledChains
       for (const _destinationChain of destinationChains) {
         newConfig.commitTransfers.minThresholdAmount[token][chain][_destinationChain] = commitTransfersMinThresholdAmount
         logger.debug(`updating commitTransfers.minThresholdAmount ${token} ${chain}→${_destinationChain} ${commitTransfersMinThresholdAmount}`)

@@ -1,5 +1,6 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
+import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
@@ -114,9 +115,15 @@ export async function main (source: any) {
     l2ChainsForToken.push(chain as Chain)
   }
 
+  // Use a timestamp that should be greater than time-to-finalize on all chains in order to ensure stable data
+  const maxFinalizationTimeSec = 30 * 60
+  const currentTimestamp = Math.floor(Date.now() / 1000)
+  const timestamp = currentTimestamp - maxFinalizationTimeSec
+
   const metaBlockData: Record<string, MetaBlockData> = {}
   const l1Provider = getRpcProvider(Chain.Ethereum)!
-  const l1Block = await l1Provider.getBlock('latest')
+  const l1BlockNumber = getBlockNumberFromDate(Chain.Ethereum, timestamp)
+  const l1Block = await l1Provider.getBlock(l1BlockNumber)
   const l1SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(Chain.Ethereum, l1Provider)
 
   metaBlockData[Chain.Ethereum] = {
@@ -128,7 +135,8 @@ export async function main (source: any) {
   for (const l2ChainForToken of l2ChainsForToken) {
     const l2Provider = getRpcProvider(l2ChainForToken)!
     l2Providers[l2ChainForToken] = l2Provider
-    const l2Block = await l2Provider.getBlock('latest')
+    const l2BlockNumber = getBlockNumberFromDate(l2ChainForToken, timestamp)
+    const l2Block = await l2Provider.getBlock(l2BlockNumber)
     const l2SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(l2ChainForToken, l2Provider)
     metaBlockData[l2ChainForToken] = {
       blockTag: l2Block.number,

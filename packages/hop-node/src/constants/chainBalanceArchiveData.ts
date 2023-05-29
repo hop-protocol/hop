@@ -25,7 +25,7 @@ type IL1InvalidRoot = {
   [key in Token]: string
 }
 
-const archiveDataTimestamp: number = 1680764400
+const archiveDataTimestamp: number = 1684998000
 
 // These include Optimism pre-regenesis data
 const UnwithdrawnTransfers: IUnwithdrawnTransfers = {
@@ -51,11 +51,11 @@ const UnwithdrawnTransfers: IUnwithdrawnTransfers = {
     [Chain.Arbitrum]: '1997714748344663351'
   },
   [Token.ETH]: {
-    [Chain.Ethereum]: '40920460366015056002',
+    [Chain.Ethereum]: '41269069749959505879',
     [Chain.Gnosis]: '0',
-    [Chain.Polygon]: '999134604',
+    [Chain.Polygon]: '9989532547999286',
     [Chain.Optimism]: '368535750741417793',
-    [Chain.Arbitrum]: '3317026780741394158',
+    [Chain.Arbitrum]: '3316888138646683962',
     [Chain.Nova]: '0'
   },
   [Token.MATIC]: {

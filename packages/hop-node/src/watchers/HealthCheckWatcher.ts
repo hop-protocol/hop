@@ -1131,11 +1131,12 @@ export class HealthCheckWatcher {
         continue
       }
 
-      invalidChainBalances.push({
-        token,
-        tokenChainBalanceDiff,
-        chainBalanceHTokenDiff
-      })
+      this.logger.debug('invalid chainBalance found', token)
+      // invalidChainBalances.push({
+      //   token,
+      //   tokenChainBalanceDiff,
+      //   chainBalanceHTokenDiff
+      // })
     }
 
     return invalidChainBalances

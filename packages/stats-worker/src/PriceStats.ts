@@ -11,7 +11,11 @@ export class PriceStats {
     'HOP',
     'SNX',
     'sUSD',
-    'rETH'
+    'rETH',
+    'RPL',
+    'GNO',
+    'GNO',
+    'OP'
   ]
 
   priceFeed: PriceFeed

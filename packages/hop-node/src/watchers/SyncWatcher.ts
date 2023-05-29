@@ -223,7 +223,6 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber: number = this.bridge.bridgeDeployedBlockNumber
     if (!this.isInitialSyncCompleted() && this.customStartBlockNumber) {
       startBlockNumber = this.customStartBlockNumber
-
     }
 
     const getOptions = (keyName: string) => {

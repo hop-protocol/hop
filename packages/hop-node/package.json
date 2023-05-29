@@ -50,7 +50,7 @@
     "@eth-optimism/contracts": "^0.5.40",
     "@eth-optimism/core-utils": "^0.5.2",
     "@eth-optimism/message-relayer": "^0.2.4",
-    "@eth-optimism/sdk": "^1.10.1",
+    "@eth-optimism/sdk": "2.0.2",
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/hdnode": "5.0.9",
     "@fxportal/maticjs-fxportal": "1.1.1",

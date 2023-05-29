@@ -326,7 +326,7 @@ async function getTokenAdjustments (
     endTimestamp: blockTimestamp
   })
   const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token]?.[Chain.Ethereum] ?? '0'
-  const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive!)
+  const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive)
 
   // Invalid roots
   const l1RootsInvalidArchive = ChainBalanceArchiveData.L1InvalidRoot?.[token] ?? '0'

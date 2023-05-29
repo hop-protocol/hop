@@ -1,5 +1,6 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
+import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
@@ -114,9 +115,15 @@ export async function main (source: any) {
     l2ChainsForToken.push(chain as Chain)
   }
 
+  // Use a timestamp that should be greater than time-to-finalize on all chains in order to ensure stable data
+  const maxFinalizationTimeSec = 30 * 60
+  const currentTimestamp = Math.floor(Date.now() / 1000)
+  const timestamp = currentTimestamp - maxFinalizationTimeSec
+
   const metaBlockData: Record<string, MetaBlockData> = {}
   const l1Provider = getRpcProvider(Chain.Ethereum)!
-  const l1Block = await l1Provider.getBlock('latest')
+  const l1BlockNumber = getBlockNumberFromDate(Chain.Ethereum, timestamp)
+  const l1Block = await l1Provider.getBlock(l1BlockNumber)
   const l1SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(Chain.Ethereum, l1Provider)
 
   metaBlockData[Chain.Ethereum] = {
@@ -128,7 +135,8 @@ export async function main (source: any) {
   for (const l2ChainForToken of l2ChainsForToken) {
     const l2Provider = getRpcProvider(l2ChainForToken)!
     l2Providers[l2ChainForToken] = l2Provider
-    const l2Block = await l2Provider.getBlock('latest')
+    const l2BlockNumber = getBlockNumberFromDate(l2ChainForToken, timestamp)
+    const l2Block = await l2Provider.getBlock(l2BlockNumber)
     const l2SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(l2ChainForToken, l2Provider)
     metaBlockData[l2ChainForToken] = {
       blockTag: l2Block.number,
@@ -317,14 +325,16 @@ async function getTokenAdjustments (
     startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
     endTimestamp: blockTimestamp
   })
-  const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][Chain.Ethereum]
+  const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token]?.[Chain.Ethereum] ?? '0'
   const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive!)
 
   // Invalid roots
-  const l1RootsInvalid = BigNumber.from(ChainBalanceArchiveData.L1InvalidRoot[token]!)
+  const l1RootsInvalidArchive = ChainBalanceArchiveData.L1InvalidRoot?.[token] ?? '0'
+  const l1RootsInvalid = BigNumber.from(l1RootsInvalidArchive)
 
   // Tokens sent directly to the L1 bridge address
-  const l1TokensSentDirectlyToBridge = BigNumber.from(ChainBalanceArchiveData.L1TokensSentDirectlyToBridge[token]!)
+  const l1TokensSentDirectlyToBridgeArchive = ChainBalanceArchiveData.L1TokensSentDirectlyToBridge?.[token] ?? '0'
+  const l1TokensSentDirectlyToBridge = BigNumber.from(l1TokensSentDirectlyToBridgeArchive)
 
   return {
     l1TokensInContract,
@@ -389,8 +399,8 @@ async function getHTokenAdjustments (
     startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
     blockTag
   })
-  const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][chain]
-  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive!)
+  const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[chain] ?? '0'
+  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive)
 
   // Pending outgoing tokens
   let l2TransfersPendingOutbound: BigNumber = BigNumber.from('0')
@@ -413,8 +423,8 @@ async function getHTokenAdjustments (
     l1BlockTimestamp,
     l2BlockTimestamp
   )
-  const l2TransfersInFlightFromL1ToL2Archive = ChainBalanceArchiveData.InFlightL1ToL2Transfers[token][chain]
-  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New.add(l2TransfersInFlightFromL1ToL2Archive!)
+  const l2TransfersInFlightFromL1ToL2Archive = ChainBalanceArchiveData.InFlightL1ToL2Transfers?.[token]?.[chain] ?? '0'
+  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New.add(l2TransfersInFlightFromL1ToL2Archive)
 
   const {
     allRootsCommitted,

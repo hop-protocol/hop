@@ -73,6 +73,14 @@ const UnwithdrawnTransfers: IUnwithdrawnTransfers = {
   [Token.SNX]: {
     [Chain.Ethereum]: '0',
     [Chain.Optimism]: '0'
+  },
+  [Token.sUSD]: {
+    [Chain.Ethereum]: '0',
+    [Chain.Optimism]: '0'
+  },
+  [Token.rETH]: {
+    [Chain.Ethereum]: '0',
+    [Chain.Optimism]: '0'
   }
 }
 
@@ -120,6 +128,13 @@ const InFlightL1ToL2Transfers: IInFlightL1ToL2Transfers = {
   },
   [Token.SNX]: {
     [Chain.Optimism]: '0'
+  },
+  [Token.sUSD]: {
+    [Chain.Optimism]: '0'
+  },
+  [Token.rETH]: {
+    [Chain.Optimism]: '0',
+    [Chain.Arbitrum]: '0'
   }
 }
 
@@ -132,7 +147,9 @@ const L1TokensSentDirectlyToBridge: IL1TokensSentDirectlyToBridge = {
   [Token.ETH]: '0',
   [Token.MATIC]: '0',
   [Token.HOP]: '0',
-  [Token.SNX]: '0'
+  [Token.SNX]: '0',
+  [Token.sUSD]: '0',
+  [Token.rETH]: '0'
 }
 
 const L1InvalidRoot: IL1InvalidRoot = {
@@ -142,7 +159,9 @@ const L1InvalidRoot: IL1InvalidRoot = {
   [Token.ETH]: '38497139540773520376',
   [Token.MATIC]: '0',
   [Token.HOP]: '0',
-  [Token.SNX]: '0'
+  [Token.SNX]: '0',
+  [Token.sUSD]: '0',
+  [Token.rETH]: '0'
 }
 
 type IChainBalanceArchiveData = {

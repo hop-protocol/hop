@@ -146,8 +146,9 @@ export function usePools () {
             pool.tvl = _poolStats.tvl
             pool.tvlFormatted = _poolStats.tvlUsdFormatted
             const stakingRewardTokens = _poolStats.stakingRewardTokens
+
             // TODO: Replace with automated LSD data in stats-worker
-            if (pool.token.symbol === 'rETH') {
+            if (pool.token.symbol === 'rETH' && stakingRewardTokens.length === 1) {
               const rETHApr: number = 0.0398
               stakingRewardTokens.unshift({
                 tokenSymbol: 'ETH',

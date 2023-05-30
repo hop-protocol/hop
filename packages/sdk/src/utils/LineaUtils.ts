@@ -18,7 +18,7 @@ export class LineaUtils {
     const l1Rpc = 'https://rpc.ankr.com/eth_goerli'
     this.l1Provider = new ethers.providers.StaticJsonRpcProvider(l1Rpc)
 
-    const l2Rpc = 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480'
+    const l2Rpc = 'https://linea-goerli.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480'
     this.l2Provider = new ethers.providers.StaticJsonRpcProvider(l2Rpc)
   }
 

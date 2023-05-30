@@ -223,7 +223,6 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber: number = this.bridge.bridgeDeployedBlockNumber
     if (!this.isInitialSyncCompleted() && this.customStartBlockNumber) {
       startBlockNumber = this.customStartBlockNumber
-
     }
 
     const getOptions = (keyName: string) => {
@@ -1515,7 +1514,8 @@ class SyncWatcher extends BaseWatcher {
         logger.debug('pollGasCost got populateTransaction for bondWithdrawal')
         const estimates = [{ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal }]
 
-        if (this._isL2BridgeContract(bridgeContract) && bridgeContract.bondWithdrawalAndDistribute) {
+        if (!this.isL1) {
+        const l2BridgeContract = bridgeContract as L2BridgeContract
           const payload = [
             recipient,
             amount,
@@ -1527,9 +1527,9 @@ class SyncWatcher extends BaseWatcher {
               from: bonder
             }
           ] as const
-          const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+          const gasLimit = await l2BridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           logger.debug('pollGasCost got estimateGas for bondWithdrawalAndDistribute')
-          const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
+          const tx = await l2BridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
           logger.debug('pollGasCost got populateTransaction for bondWithdrawalAndDistribute')
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }
@@ -1578,10 +1578,6 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('pollGasCost poll end')
       await wait(this.gasCostPollMs)
     }
-  }
-
-  private _isL2BridgeContract (bridgeContract: L1BridgeContract | L2BridgeContract): bridgeContract is L2BridgeContract {
-    return !this.isL1
   }
 }
 

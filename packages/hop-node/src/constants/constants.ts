@@ -30,6 +30,8 @@ export enum Token {
   MATIC = 'MATIC',
   HOP = 'HOP',
   SNX = 'SNX',
+  sUSD = 'sUSD',
+  rETH = 'rETH'
 }
 
 export enum NativeChainToken {

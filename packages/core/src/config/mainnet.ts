@@ -64,9 +64,9 @@ export const config : Config = {
       ethereum: 20
     },
     rETH: {
-      ethereum: 20,
-      optimism: 20,
-      arbitrum: 20
+      ethereum: 15,
+      optimism: 15,
+      arbitrum: 15
     }
   },
   destinationFeeGasPriceMultiplier: 1.2,

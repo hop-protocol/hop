@@ -93,7 +93,8 @@ class Hop extends Base {
       baseConfigUrl: this.baseConfigUrl,
       configFileFetchEnabled: this.configFileFetchEnabled,
       customCoreConfigJsonUrl: this.customCoreConfigJsonUrl,
-      customAvailableLiquidityJsonUrl: this.customAvailableLiquidityJsonUrl
+      customAvailableLiquidityJsonUrl: this.customAvailableLiquidityJsonUrl,
+      blocklist: this.blocklist
     })
     // port over exiting properties
     if (this.priceFeedApiKeys) {
@@ -125,7 +126,8 @@ class Hop extends Base {
       chain,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -151,7 +153,8 @@ class Hop extends Base {
       signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 

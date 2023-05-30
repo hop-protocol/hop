@@ -223,7 +223,8 @@ export class HealthCheckWatcher {
   days: number = 1 // days back to check for
   offsetDays: number = 0
   pollIntervalSeconds: number = 30 * 60
-  healthCheckFinalityTimeHours: number = 1
+  // The absolute minimum this value can be is must be longer than the max time it takes for the slowest chain to reach finality
+  healthCheckFinalityTimeMinutes: number = 30
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day
@@ -664,7 +665,6 @@ export class HealthCheckWatcher {
   private async getUnbondedTransfers (): Promise<UnbondedTransfer[]> {
     this.logger.debug('checking for unbonded transfers')
 
-    const timestamp = DateTime.now().toUTC().toSeconds()
     let result = await getUnbondedTransfers(this.days, this.offsetDays)
     result = result.map(item => {
       return {
@@ -682,7 +682,12 @@ export class HealthCheckWatcher {
         amountOutMin: item.amountOutMin
       }
     })
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
+
+    // Only show transfers that are older than finality time * 2. Add a buffer so that we ignore transfers that retry in exactly 2x the finality time.
+    const timestamp = DateTime.now().toUTC().toSeconds()
+    const bufferMinutes = 5
+    const earliestTimestamp = timestamp - (((this.healthCheckFinalityTimeMinutes * 2) + bufferMinutes) * 60)
+    result = result.filter((x: any) => earliestTimestamp > Number(x.timestamp))
     result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
 
     // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
@@ -855,7 +860,9 @@ export class HealthCheckWatcher {
 
   async getUnsyncedSubgraphs (): Promise<UnsyncedSubgraph[]> {
     const now = DateTime.now().toUTC()
-    const outOfSyncTimestamp = Math.floor(now.minus({ hours: this.healthCheckFinalityTimeHours }).toSeconds())
+    // This value always needs to match healthCheckFinalityTimeMinutes exactly. If it does not, we may see false readings
+    // because we are unaware that the subgraph is out of sync.
+    const outOfSyncTimestamp = Math.floor(now.minus({ minutes: this.healthCheckFinalityTimeMinutes }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
 
     // Note: Nova is unsupported here since there is no index-node subgraph for nova
@@ -887,7 +894,7 @@ export class HealthCheckWatcher {
     const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova]
     const tokens = getEnabledTokens()
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
+    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes })
     const startDate = endDate.minus({ days: this.days })
     const filters = {
       startDate: startDate.toISO(),
@@ -940,7 +947,7 @@ export class HealthCheckWatcher {
 
   async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours * 2 })
+    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes })
     const startDate = endDate.minus({ days: this.days })
     const items = await getInvalidBondWithdrawals(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {
@@ -957,7 +964,7 @@ export class HealthCheckWatcher {
 
   async getUnrelayedTransfers (): Promise<UnrelayedTransfer[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
+    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes })
     const startDate = endDate.minus({ days: this.days })
     const endDateSeconds = Math.floor(endDate.toSeconds())
     const startDateSeconds = Math.floor(startDate.toSeconds())
@@ -1017,7 +1024,7 @@ export class HealthCheckWatcher {
 
   async getUnsetTransferRoots (): Promise<UnsetTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
+    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes })
     const startDate = endDate.minus({ days: this.days })
     const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {
@@ -1112,25 +1119,26 @@ export class HealthCheckWatcher {
 
   async getInvalidChainBalance (): Promise<InvalidChainBalance[]> {
     this.logger.debug('checking for an invalid chainBalance')
-    const invalidChainBalance: InvalidChainBalance[] = []
+    const invalidChainBalances: InvalidChainBalance[] = []
     for (const token of this.tokens) {
       this.logger.debug(`checking ${token} for invalid chainBalance`)
       const {
         tokenChainBalanceDiff,
         chainBalanceHTokenDiff
-      } = await verifyChainBalance({ token })
+      } = await verifyChainBalance({ token, allowRoundingError: true })
 
       if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
         continue
       }
 
-      invalidChainBalance.push({
-        token,
-        tokenChainBalanceDiff,
-        chainBalanceHTokenDiff
-      })
+      this.logger.debug('invalid chainBalance found', token)
+      // invalidChainBalances.push({
+      //   token,
+      //   tokenChainBalanceDiff,
+      //   chainBalanceHTokenDiff
+      // })
     }
 
-    return []
+    return invalidChainBalances
   }
 }

@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import Alert from 'src/components/alert/Alert'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 type Props = {
   children: any
 }
 
 function Banner(props: Props) {
+  const { isDarkMode } = useThemeMode()
   const [show, setShow] = useState<boolean>(true)
   const handleClose = () => {
     setShow(false)
@@ -14,7 +16,7 @@ function Banner(props: Props) {
   return (
     <>
       {show && <div style={{
-        backgroundColor: 'rgb(255, 244, 229)',
+        backgroundColor: isDarkMode ? 'rgb(25, 15, 0)' : 'rgb(255, 244, 229)',
         display: 'flex',
         justifyContent: 'center'
       }}><Alert style={{

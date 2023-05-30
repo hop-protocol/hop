@@ -13,6 +13,7 @@ import { formatError } from 'src/utils/format'
 import { l1Network } from 'src/config/networks'
 import { addresses } from 'src/config'
 import { getTokenDecimals } from 'src/utils/tokens'
+import { toTokenDisplay } from 'src/utils'
 
 type FaucetContextProps = {
   mintToken: (tokenSymbol: string) => void
@@ -100,7 +101,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       const contract = new Contract(address, erc20Abi, signer)
 
       const txOptions: any = {}
-      if (tokenSymbol === 'USDT' || tokenSymbol === 'DAI' || tokenSymbol === 'UNI' || tokenSymbol === 'HOP') {
+      if (['USDT', 'DAI', 'UNI', 'HOP'].includes(tokenSymbol)) {
         const oneEth = parseEther('1')
         const tokenRates = {
           USDT: BigNumber.from('2000000000'),
@@ -110,6 +111,11 @@ const FaucetContextProvider: FC = ({ children }) => {
         }
         const msgValue = parsedAmount.mul(oneEth).div(tokenRates[tokenSymbol])
         txOptions.value = msgValue
+
+        const balance = await signer.getBalance()
+        if (balance.lt(msgValue)) {
+          throw new Error(`Insufficient balance: ${toTokenDisplay(balance, 18, 'ETH', 4)}. Need ${toTokenDisplay(msgValue, 18, 'ETH', 4)} to mint ${tokenSymbol}`)
+        }
       }
       const tx = await contract?.mint(recipient, parsedAmount, txOptions)
       logger.debug('mint:', tx?.hash)

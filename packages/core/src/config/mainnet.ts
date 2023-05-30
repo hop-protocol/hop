@@ -51,11 +51,11 @@ export const config : Config = {
       arbitrum: 23
     },
     HOP: {
-      ethereum: 20,
-      polygon: 20,
-      gnosis: 20,
-      optimism: 20,
-      arbitrum: 20
+      ethereum: 50,
+      polygon: 50,
+      gnosis: 50,
+      optimism: 50,
+      arbitrum: 50
     },
     SNX: {
       ethereum: 20
@@ -64,9 +64,9 @@ export const config : Config = {
       ethereum: 20
     },
     rETH: {
-      ethereum: 10,
-      optimism: 10,
-      arbitrum: 10
+      ethereum: 20,
+      optimism: 20,
+      arbitrum: 20
     }
   },
   destinationFeeGasPriceMultiplier: 1.2,

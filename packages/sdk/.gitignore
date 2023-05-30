@@ -11,3 +11,4 @@ src/package.json
 !docs/README.md
 /hop.js
 .prettierrc
+test/_*

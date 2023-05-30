@@ -1,10 +1,11 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
-import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
+import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
+import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import {
@@ -24,6 +25,7 @@ import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
 interface MetaBlockData {
   blockTag: providers.BlockTag
   blockTimestamp: number
+  subgraphSyncTimestamp: number
 }
 
 type TokenAdjustmentData = {
@@ -66,6 +68,9 @@ const inactiveBonders = [
  * chainBalance, and (2) the chainBalance against the hToken total supply. If the system is unhealthy, then these
  * values would not match.
  *
+ * In order to regenerate archive data, run the generate-chain-balance-archive-data CLI command. When running it,
+ * ensure that the timestamp you use is
+ *
  * Definitions:
  * Adjusted Token - The amount of token after everything that can be directly withdrawn on L1 is withdrawn
  * Adjusted ChainBalance - The maximum number of hTokens that can still leave the L2.
@@ -74,10 +79,18 @@ const inactiveBonders = [
  * An important note for the above definitions, roots that have been committed but not yet seen on L1 are counted as
  * an increased hToken balance on the source chain (the chain the root was committed on).
  *
+ * Known issues:
+ *   - The (chainBalance - hToken) sometimes reports a tiny, consistent, negative number. The number is on the
+ *     order of -10^-14 for 18 decimal tokens. It is consistent, but unclear why it exists. This can be considered
+ *     a rounding error and is ignored in the return data, if desired.
+ *
  * Possible reasons for discrepancies:
- *   - An archive transfer from L1 to L2 that was never relayed has recently been relayed
- *   - Tokens have been sent directly to the L1 bridge contract
- *   - Other archive data
+ *   - Uncategorized
+ *     - An archive transfer from L1 to L2 that was never relayed has recently been relayed
+ *     - Tokens have been sent directly to the L1 bridge contract
+ *     - Other archive data
+ *   - Negative (token - ChainBalance)
+ *     - Someone withdraw tokens that existed in the UnwithdrawnTransfers archive data
  */
 
 root
@@ -85,10 +98,11 @@ root
   .description('Verify chain balance')
   .option('--token <symbol>', 'Token', parseString)
   .option('--log-output [boolean]', 'Log values', parseBool)
+  .option('--allow-rounding-error [boolean]', 'Ignore outputs under the rounding error', parseBool)
   .action(actionHandler(main))
 
 export async function main (source: any) {
-  const { token, logOutput } = source
+  const { token, logOutput, allowRoundingError } = source
 
   if (!token) {
     throw new Error('token is required')
@@ -101,31 +115,46 @@ export async function main (source: any) {
     l2ChainsForToken.push(chain as Chain)
   }
 
+  // Use a timestamp that should be greater than time-to-finalize on all chains in order to ensure stable data
+  const maxFinalizationTimeSec = 30 * 60
+  const currentTimestamp = Math.floor(Date.now() / 1000)
+  const timestamp = currentTimestamp - maxFinalizationTimeSec
+
   const metaBlockData: Record<string, MetaBlockData> = {}
   const l1Provider = getRpcProvider(Chain.Ethereum)!
-  const l1Block = await l1Provider.getBlock('latest')
+  const l1BlockNumber = getBlockNumberFromDate(Chain.Ethereum, timestamp)
+  const l1Block = await l1Provider.getBlock(l1BlockNumber)
+  const l1SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(Chain.Ethereum, l1Provider)
+
   metaBlockData[Chain.Ethereum] = {
     blockTag: l1Block.number,
-    blockTimestamp: l1Block.timestamp
+    blockTimestamp: l1Block.timestamp,
+    subgraphSyncTimestamp: l1SubgraphSyncTimestamp
   }
   const l2Providers: Record<string, providers.Provider> = {}
   for (const l2ChainForToken of l2ChainsForToken) {
     const l2Provider = getRpcProvider(l2ChainForToken)!
     l2Providers[l2ChainForToken] = l2Provider
-    const l2Block = await l2Provider.getBlock('latest')
+    const l2BlockNumber = getBlockNumberFromDate(l2ChainForToken, timestamp)
+    const l2Block = await l2Provider.getBlock(l2BlockNumber)
+    const l2SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(l2ChainForToken, l2Provider)
     metaBlockData[l2ChainForToken] = {
       blockTag: l2Block.number,
-      blockTimestamp: l2Block.timestamp
+      blockTimestamp: l2Block.timestamp,
+      subgraphSyncTimestamp: l2SubgraphSyncTimestamp
     }
   }
 
-  // Subgraphs may be out of sync. If they are too far out of sync, we need to wait until they
-  // are back in sync, as they are a sole source of truth for some pieces of data
-  const isSubgraphSynced = await getIsSubgraphSynced(metaBlockData, l1Provider, l2Providers)
-  if (!isSubgraphSynced) {
-    return {
-      tokenChainBalanceDiff: BigNumber.from(0),
-      chainBalanceHTokenDiff: BigNumber.from(0)
+  for (const chain in metaBlockData) {
+    if (metaBlockData[chain].subgraphSyncTimestamp === 0) continue
+    const syncDiff = metaBlockData[chain].blockTimestamp - metaBlockData[chain].subgraphSyncTimestamp
+    const oneMinuteSeconds = 60
+    if (syncDiff > oneMinuteSeconds) {
+      console.log(`Subgraphs unsynced. MetaBlockData: ${JSON.stringify(metaBlockData)}`)
+      return {
+        tokenChainBalanceDiff: BigNumber.from(0),
+        chainBalanceHTokenDiff: BigNumber.from(0)
+      }
     }
   }
 
@@ -154,7 +183,15 @@ export async function main (source: any) {
   }
 
   const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
-  const chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  let chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
+
+  if (allowRoundingError) {
+    const decimals: number = getTokenDecimals(token)
+    const roundingError = ethersUtils.parseUnits('0.0001', decimals).mul(-1)
+    if (chainBalanceHTokenDiff.isNegative() && chainBalanceHTokenDiff.gte(roundingError)) {
+      chainBalanceHTokenDiff = BigNumber.from(0)
+    }
+  }
 
   // Log data if explicitly requested or if there is a discrepancy
   const isOutputExpected = tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)
@@ -162,7 +199,7 @@ export async function main (source: any) {
     if (!isOutputExpected) {
       console.log(`Unexpected output for token ${token}`)
     }
-    logValues(token, tokenAdjustments, chainBalanceAdjustments, hTokenAdjustments)
+    logValues(token, tokenAdjustments, chainBalanceAdjustments, hTokenAdjustments, metaBlockData)
   }
   return {
     tokenChainBalanceDiff,
@@ -288,14 +325,16 @@ async function getTokenAdjustments (
     startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
     endTimestamp: blockTimestamp
   })
-  const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][Chain.Ethereum]
-  const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive!)
+  const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token]?.[Chain.Ethereum] ?? '0'
+  const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive)
 
   // Invalid roots
-  const l1RootsInvalid = BigNumber.from(ChainBalanceArchiveData.L1InvalidRoot[token]!)
+  const l1RootsInvalidArchive = ChainBalanceArchiveData.L1InvalidRoot?.[token] ?? '0'
+  const l1RootsInvalid = BigNumber.from(l1RootsInvalidArchive)
 
   // Tokens sent directly to the L1 bridge address
-  const l1TokensSentDirectlyToBridge = BigNumber.from(ChainBalanceArchiveData.L1TokensSentDirectlyToBridge[token]!)
+  const l1TokensSentDirectlyToBridgeArchive = ChainBalanceArchiveData.L1TokensSentDirectlyToBridge?.[token] ?? '0'
+  const l1TokensSentDirectlyToBridge = BigNumber.from(l1TokensSentDirectlyToBridgeArchive)
 
   return {
     l1TokensInContract,
@@ -357,10 +396,11 @@ async function getHTokenAdjustments (
   const l2UnwithdrawnTransfersNew = await getUnwithdrawnTransfers({
     token,
     chain,
-    startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp
+    startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
+    blockTag
   })
-  const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][chain]
-  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive!)
+  const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[chain] ?? '0'
+  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive)
 
   // Pending outgoing tokens
   let l2TransfersPendingOutbound: BigNumber = BigNumber.from('0')
@@ -383,18 +423,18 @@ async function getHTokenAdjustments (
     l1BlockTimestamp,
     l2BlockTimestamp
   )
-  const l2TransfersInFlightFromL1ToL2Archive = ChainBalanceArchiveData.InFlightL1ToL2Transfers[token][chain]
-  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New.add(l2TransfersInFlightFromL1ToL2Archive!)
+  const l2TransfersInFlightFromL1ToL2Archive = ChainBalanceArchiveData.InFlightL1ToL2Transfers?.[token]?.[chain] ?? '0'
+  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New.add(l2TransfersInFlightFromL1ToL2Archive)
 
   const {
     allRootsCommitted,
     rootHashesSeenOnL1,
-    rootHashesSettledOnL2
+    rootHashesSetOnL2
   } = await getAllPossibleInFlightRoots(
     token,
     chain,
     l2ChainsForToken,
-    l2BlockTimestamp
+    metaBlockData
   )
 
   // In flight outbound roots
@@ -409,13 +449,15 @@ async function getHTokenAdjustments (
   }
 
   // In flight inbound roots
+  // NOTE: When a root is set, the amount is converted from l2RootsInFlightInbound to l2TransfersUnwithdrawn. That
+  // is why we check for set instead of settled.
   let l2RootsInFlightInbound: BigNumber = BigNumber.from('0')
   for (const rootHash in allRootsCommitted) {
     const root = allRootsCommitted[rootHash]
 
     if (root.destinationChainId !== chainId) continue
     if (!rootHashesSeenOnL1.includes(rootHash)) continue
-    if (rootHashesSettledOnL2.includes(rootHash)) continue
+    if (rootHashesSetOnL2.includes(rootHash)) continue
 
     l2RootsInFlightInbound = l2RootsInFlightInbound.add(root.totalAmount)
   }
@@ -471,30 +513,36 @@ async function getAllPossibleInFlightRoots (
   token: string,
   chain: string,
   l2ChainsForToken: string[],
-  endTimestamp: providers.BlockTag
+  metaBlockData: Record<string, MetaBlockData>
 ) {
-  endTimestamp = Number(endTimestamp)
+  // We need to ensure we use the correct timestamp for each chain
+  let { blockTimestamp: l1BlockTimestamp } = metaBlockData[Chain.Ethereum]
+  let { blockTimestamp: l2BlockTimestampForChain } = metaBlockData[chain]
+  l1BlockTimestamp = Number(l1BlockTimestamp)
+  l2BlockTimestampForChain = Number(l2BlockTimestampForChain)
+
   const archiveDataTimestamp: number = ChainBalanceArchiveData.ArchiveDataTimestamp
 
   // Get all roots seen on L1
-  const l1RootsConfirmed = await getTransferRootConfirmed(Chain.Ethereum, token, archiveDataTimestamp, endTimestamp)
-  const l1RootsBonded = await getTransferRootBonded(Chain.Ethereum, token, archiveDataTimestamp, endTimestamp)
+  const l1RootsConfirmed = await getTransferRootConfirmed(Chain.Ethereum, token, archiveDataTimestamp, l1BlockTimestamp)
+  const l1RootsBonded = await getTransferRootBonded(Chain.Ethereum, token, archiveDataTimestamp, l1BlockTimestamp)
   const l1RootHashesConfirmed = l1RootsConfirmed.map((l1RootConfirmed: any) => l1RootConfirmed.rootHash)
   const l1RootHashesBonded = l1RootsBonded.map((l1RootBonded: any) => l1RootBonded.root)
   const rootHashesSeenOnL1 = l1RootHashesConfirmed.concat(l1RootHashesBonded)
 
   // Get all roots settled on L2
-  const l2RootsSettled = await getMultipleWithdrawalsSettled(chain, token, archiveDataTimestamp, endTimestamp)
-  const rootHashesSettledOnL2 = l2RootsSettled.map((root: any) => root.rootHash)
+  const l2RootsSet = await getTransferRootSet(chain, token, archiveDataTimestamp, l2BlockTimestampForChain)
+  const rootHashesSetOnL2 = l2RootsSet.map((root: any) => root.rootHash)
 
   // Get all roots committed on L2 in the given time. Add the sourceChainId to the object for convenience
   const allRootsCommitted: Record<string, any> = {}
   for (const l2SourceChain of l2ChainsForToken) {
     const sourceChainId = chainSlugToId(l2SourceChain)
+    const sourceChainTimestamp = Number(metaBlockData[l2SourceChain].blockTimestamp)
 
     // This represents all destination chainIds
     const destinationChainId = 0
-    const rootsCommitted = await getTransfersCommitted(l2SourceChain, token, destinationChainId, archiveDataTimestamp, endTimestamp)
+    const rootsCommitted = await getTransfersCommitted(l2SourceChain, token, destinationChainId, archiveDataTimestamp, sourceChainTimestamp)
     for (const rootCommitted of rootsCommitted) {
       allRootsCommitted[rootCommitted.rootHash] = rootCommitted
       allRootsCommitted[rootCommitted.rootHash].sourceChainId = sourceChainId
@@ -504,7 +552,7 @@ async function getAllPossibleInFlightRoots (
   return {
     allRootsCommitted,
     rootHashesSeenOnL1,
-    rootHashesSettledOnL2
+    rootHashesSetOnL2
   }
 }
 
@@ -512,9 +560,13 @@ function logValues (
   token: Token,
   tokenAdjustments: TokenAdjustmentData,
   chainBalanceAdjustments: ChainBalanceAdjustmentData[],
-  hTokenAdjustments: HTokenAdjustmentData[]
+  hTokenAdjustments: HTokenAdjustmentData[],
+  metaBlockData: Record<string, MetaBlockData>
 ): void {
   const decimals: number = getTokenDecimals(token)
+
+  console.log(`\n\n${token} Logs`)
+  console.log(`MetaBlockData: ${JSON.stringify(metaBlockData)}`)
 
   const {
     l1TokensInContract,
@@ -600,35 +652,22 @@ function logValues (
   }
 }
 
-async function getIsSubgraphSynced (
-  metaBlockData: any,
-  l1Provider: providers.Provider,
-  l2Providers: Record<string, providers.Provider>
-): Promise<boolean> {
-  for (const chain in metaBlockData) {
-    if (chain === Chain.Nova) {
-      // Nova does not have a sync subgraph
-      continue
-    }
-
-    const provider = chain === Chain.Ethereum ? l1Provider : l2Providers[chain]
-
-    // Use timestamp since ORUs have inconsistent block lengths
-    const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
-    const syncedBlock = await provider.getBlock(syncedBlockNumber)
-    if (!syncedBlock) {
-      console.log(`Unable to get synced block for ${chain}, block number ${syncedBlockNumber}`)
-      return false
-    }
-
-    const syncedTimestamp = syncedBlock.timestamp
-    const syncDiff = metaBlockData[chain].blockTimestamp - syncedTimestamp
-
-    const oneMinuteSeconds = 60
-    if (syncDiff > oneMinuteSeconds) {
-      console.log(chain, 'Subgraph is out of sync by', syncDiff, 'seconds. Please wait for the subgraph to sync before trying again.')
-      return false
-    }
+async function getSubgraphSyncTimestamp (
+  chain: string,
+  provider: providers.Provider
+): Promise<number> {
+  if (chain === Chain.Nova) {
+    // Nova does not have a sync subgraph
+    return 0
   }
-  return true
+
+  // Use timestamp since ORUs have inconsistent block lengths
+  const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
+  const syncedBlock = await provider.getBlock(syncedBlockNumber)
+  if (!syncedBlock) {
+    console.log(`Unable to get synced block for ${chain}, block number ${syncedBlockNumber}`)
+    return 0
+  }
+
+  return syncedBlock.timestamp
 }

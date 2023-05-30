@@ -102,7 +102,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   for (const key in config.chains) {
     const chain = config.chains[key]
-    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice']
+    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls']
     const chainKeys = Object.keys(chain)
     validateKeys(validChainConfigKeys, chainKeys)
   }
@@ -112,6 +112,10 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   const watcherKeys = Object.keys(config.watchers)
   validateKeys(validWatcherKeys, watcherKeys)
+
+  if (config?.keystore && config?.signer) {
+    throw new Error('You cannot have both a keystore and a signer')
+  }
 
   if (config.db) {
     const validDbKeys = ['location']
@@ -140,6 +144,17 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     ]
     const keystoreProps = Object.keys(config.keystore)
     validateKeys(validKeystoreProps, keystoreProps)
+  }
+
+  if (config.signer) {
+    const validSignerProps = [
+      'type',
+      'keyId',
+      'awsRegion',
+      'lambdaFunctionName'
+    ]
+    const signerProps = Object.keys(config.signer)
+    validateKeys(validSignerProps, signerProps)
   }
 
   if (config.metrics) {
@@ -287,7 +302,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, waitConfirmations } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -316,6 +331,24 @@ export async function validateConfigValues (config?: Config) {
       }
       if (maxGasPrice <= 0) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
+      }
+    }
+    if (redundantRpcUrls && redundantRpcUrls.length > 0) {
+      if (!Array.isArray(redundantRpcUrls)) {
+        throw new Error(`redundantRpcUrls for chain "${chainSlug}" must be an array`)
+      }
+      for (const redundantRpcUrl of redundantRpcUrls) {
+        if (typeof redundantRpcUrl !== 'string') {
+          throw new Error(`redundantRpcUrl for chain "${chainSlug}" must be a string`)
+        }
+        try {
+          const parsed = new URL(redundantRpcUrl)
+          if (!parsed.protocol || !parsed.host || !['http:', 'https:'].includes(parsed.protocol)) {
+            throw new URIError()
+          }
+        } catch (err) {
+          throw new Error(`redundantRpcUrl "${redundantRpcUrl}" is invalid`)
+        }
       }
     }
   }

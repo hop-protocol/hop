@@ -223,8 +223,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, skipping confirmRootsViaWrapper`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
       return
     }
 
@@ -233,16 +233,25 @@ class ConfirmRootsWatcher extends BaseWatcher {
     })
 
     logger.debug(`handling confirmable transfer root ${transferRootHash}, destination ${destinationChainId}, amount ${totalAmount.toString()}, committedAt ${committedAt}`)
-    await this.confirmRootsViaWrapper({
-      rootHashes: [transferRootHash],
-      destinationChainIds: [destinationChainId],
-      totalAmounts: [totalAmount],
-      rootCommittedAts: [committedAt]
-    })
+    try {
+      await this.confirmRootsViaWrapper({
+        rootHashes: [transferRootHash],
+        destinationChainIds: [destinationChainId],
+        totalAmounts: [totalAmount],
+        rootCommittedAts: [committedAt]
+      })
+    } catch (err) {
+      logger.error('confirmRootsViaWrapper error:', err.message)
+      throw err
+    }
   }
 
   async confirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
-    await this.validateConfirmRootsViaWrapper(rootData)
+    // NOTE: Since root confirmations via a wrapper can only happen after the challenge period expires, it is not
+    // possible for a reorg to occur. Therefore, we do not need to check for a reorg here.
+    // Additionally, the validation relies on TheGraph, which is not guaranteed to be available during an emergency.
+    // Because of this, we do not enable global emergencyDryMode for this watcher.
+    await this.preTransactionValidation(rootData)
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
     await this.l1MessengerWrapper.confirmRoots(
       rootHashes,
@@ -252,7 +261,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     )
   }
 
-  async validateConfirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+  async preTransactionValidation (rootData: ConfirmRootsData): Promise<void> {
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
 
     // Data validation
@@ -272,12 +281,13 @@ class ConfirmRootsWatcher extends BaseWatcher {
 
       // Verify that the DB has the root and associated data
       const calculatedTransferRootId = getTransferRootId(rootHash, totalAmount)
+      const logger = this.logger.create({ root: calculatedTransferRootId })
+
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
       if (!dbTransferRoot) {
         throw new Error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
       }
 
-      const logger = this.logger.create({ root: calculatedTransferRootId })
       logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
 
       // Verify that the data in the DB matches the data passed in

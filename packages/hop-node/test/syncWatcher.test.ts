@@ -1047,7 +1047,7 @@ const transferRootHashes = [
 
 async function main () {
   const token = 'ETH'
-  const configFilePath = '~/.hop-node/mainnet/config.json'
+  const configFilePath = '~/.hop/mainnet/config.json'
   const config = await parseConfigFile(configFilePath)
   await setGlobalConfigFromConfigFile(config)
   const watcher = await getSyncWatcher({ token, dryMode: true })

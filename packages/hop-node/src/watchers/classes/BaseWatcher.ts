@@ -6,11 +6,12 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber, constants } from 'ethers'
-import { Chain, GasCostTransactionType } from 'src/constants'
+import { Chain, GasCostTransactionType, MaxReorgCheckBackoffIndex } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
@@ -18,6 +19,10 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
+import {
+  PossibleReorgDetected,
+  RedundantProviderOutOfSync
+} from 'src/types/error'
 import { Strategy, Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
@@ -199,7 +204,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     return this.bridge.chainSlugToId(chainSlug)
   }
 
-  cacheKey (key: string) {
+  syncCacheKey (key: string) {
     return `${this.tag}:${key}`
   }
 
@@ -417,6 +422,52 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       logger.warn(msg)
       this.notifier.warn(msg)
     }
+  }
+
+  async getRedundantRpcEventParams (
+    logger: Logger,
+    blockNumber: number,
+    redundantRpcUrl: string,
+    transferOrRootId: string,
+    l2Bridge: L2BridgeContract,
+    filter: any,
+    backoffIndex: number = 0
+  ): Promise<any> {
+    const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
+
+    // If the redundant RPC provider is completely down (e.g. due to a network outage or an account hitting the daily limit),
+    // then ignore it, since is the same as the bonder not providing a redundant provider in the first place
+    let redundantBlockNumber
+    try {
+      redundantBlockNumber = await redundantProvider.getBlockNumber()
+    } catch (err) {
+      logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, error getting block number: ${err.message}`)
+      return
+    }
+
+    // If the redundant provider is not up to date to the block number, skip the check and try again later
+    logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
+    if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
+      throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
+    }
+
+    logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)
+    const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
+    logger.debug(`events found: ${JSON.stringify(events)}`)
+    const eventParams = events.find((x: any) => (x?.args?.transferId ?? x?.args?.rootHash) === transferOrRootId)
+    if (!eventParams) {
+      // Some providers have an up-to-date head but their logs don't reflect this yet. Try again to give provider time to catch up. If they don't catch up, this is a reorg
+      if (backoffIndex <= MaxReorgCheckBackoffIndex) {
+        throw new RedundantProviderOutOfSync(`out of sync. redundant event not found for transferOrRootId ${transferOrRootId} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, backoffIndex: ${backoffIndex}`)
+      }
+      throw new PossibleReorgDetected(`possible reorg. redundant event not found for transferOrRootId ${transferOrRootId} at block ${blockNumber}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, backoffIndex: ${backoffIndex}`)
+    }
+
+    if (!eventParams?.args) {
+      throw new RedundantProviderOutOfSync(`eventParams.args not found for transferOrRootId ${transferOrRootId}, eventParams: ${JSON.stringify(eventParams)}, redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}, backoffIndex: ${backoffIndex}`)
+    }
+
+    return eventParams
   }
 }
 

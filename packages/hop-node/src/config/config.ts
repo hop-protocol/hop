@@ -4,8 +4,8 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
+import { AvgBlockTimeSeconds, Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
-import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
@@ -54,7 +54,7 @@ const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
-export const defaultConfigDir = `${os.homedir()}/.hop-node`
+export const defaultConfigDir = `${os.homedir()}/.hop`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
@@ -62,10 +62,7 @@ export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PEN
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const shouldExitOrus = process.env.SHOULD_EXIT_ORUS ?? false
-export const modifiedLiquidityTokens = process.env.MODIFIED_LIQUIDITY_TOKENS?.split(',') ?? []
-export const modifiedLiquiditySourceChains = process.env.MODIFIED_LIQUIDITY_SOURCE_CHAINS?.split(',') ?? []
-export const modifiedLiquidityDestChains = process.env.MODIFIED_LIQUIDITY_DEST_CHAINS?.split(',') ?? []
-export const modifiedLiquidityDecrease = process.env.MODIFIED_LIQUIDITY_DECREASE ?? '0'
+export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
@@ -153,6 +150,7 @@ export type Config = {
   signerConfig: SignerConfig
   vault: Vault
   blocklist: BlocklistConfig
+  emergencyDryMode: boolean
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -258,7 +256,8 @@ export const config: Config = {
   blocklist: {
     path: '',
     addresses: {}
-  }
+  },
+  emergencyDryMode: false
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -297,6 +296,13 @@ export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
+  }
+}
+
+export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
+  network = normalizeNetwork(network)
+  if (config.networks[network]) {
+    config.networks[network].redundantRpcUrls = redundantRpcUrls
   }
 }
 
@@ -340,7 +346,7 @@ export const getEnabledTokens = (): string[] => {
 
 export const getEnabledNetworks = (): string[] => {
   const networks: {[network: string]: boolean} = {}
-  for (const token in config.addresses) {
+  for (const token in config.tokens) {
     for (const network in config.addresses[token]) {
       networks[network] = true
     }
@@ -402,6 +408,17 @@ export enum Watchers {
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   ConfirmRoots = 'confirmRoots',
   L1ToL2Relay = 'L1ToL2Relay',
+}
+
+export function enableEmergencyMode () {
+  config.emergencyDryMode = true
+}
+
+export function getFinalityTimeSeconds (chainSlug: string) {
+  // The default of 1 for these values imply a trusted sequencer or an unimplemented network
+  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds[chainSlug] ?? 1
+  const waitConfirmations: number = networks[chainSlug].waitConfirmations ?? 1
+  return avgBlockTimeSeconds * waitConfirmations
 }
 
 export { Bonders }

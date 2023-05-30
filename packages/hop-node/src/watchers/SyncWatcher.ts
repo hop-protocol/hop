@@ -1514,8 +1514,8 @@ class SyncWatcher extends BaseWatcher {
         logger.debug('pollGasCost got populateTransaction for bondWithdrawal')
         const estimates = [{ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal }]
 
-        const isL2 = !this.isL1
-        if (isL2 && bridgeContract.bondWithdrawalAndDistribute) {
+        if (!this.isL1) {
+        const l2BridgeContract = bridgeContract as L2BridgeContract
           const payload = [
             recipient,
             amount,
@@ -1527,9 +1527,9 @@ class SyncWatcher extends BaseWatcher {
               from: bonder
             }
           ] as const
-          const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+          const gasLimit = await l2BridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           logger.debug('pollGasCost got estimateGas for bondWithdrawalAndDistribute')
-          const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
+          const tx = await l2BridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
           logger.debug('pollGasCost got populateTransaction for bondWithdrawalAndDistribute')
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }

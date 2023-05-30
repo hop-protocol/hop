@@ -131,7 +131,7 @@ const injected = injectedModule()
 const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
 const gnosis = gnosisModule()
 const walletConnect = walletConnectModule({
-  // version: 2, // NOTE: keep commented out until version v1 is sunset since MetaMask currently only supports v1
+  version: 2, // NOTE: version v1 will be sunset but MetaMask currently only supports v1
   bridge: 'https://bridge.walletconnect.org',
   qrcodeModalOptions: {
     mobileLinks: ['metamask', 'argent', 'trust']

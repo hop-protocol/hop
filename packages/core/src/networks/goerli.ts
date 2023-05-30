@@ -25,7 +25,7 @@ export const networks: Networks = {
     name: chains.optimism.name,
     image: chains.optimism.image,
     networkId: 420,
-    publicRpcUrl: 'https://rpc.ankr.com/optimism_testnet',
+    publicRpcUrl: 'https://goerli.optimism.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io/'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',

@@ -292,7 +292,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xb0CabFE930642AD3E7DECdc741884d8C3F7EbC70',
+        l1MessengerWrapper: '0x7120a385c847f3b9995b8aB2BD112d70A50102d1',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xcb5ddfb8d0038247dc0beeecaa7f3457befcb77c',
         l2Bridge: '0xb276BC046DFf5024D20A3947475eA20C9F08eB1F',
@@ -304,7 +304,7 @@ export const addresses: Addresses = {
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8',
+        l1MessengerWrapper: '0x561285168e77f703C9B897d097D1B66a70D45687',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0xDc38c5aF436B9652225f92c370A011C673FA7Ba5',
         l2Bridge: '0x2708E5C7087d4C6D295c8B58b2D452c360D505C7',

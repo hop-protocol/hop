@@ -8,6 +8,7 @@ import { PoolRow } from './PoolRow'
 import { StakingRewardsClaim } from '../PoolDetails/StakingRewardsClaim'
 import { makeStyles } from '@material-ui/core/styles'
 import { usePools } from './usePools'
+import SearchPools from 'src/components/SearchPools/SearchPools'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -92,7 +93,7 @@ function Chip(props: any) {
 
 export function PoolsOverview () {
   const styles = useStyles()
-  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
+  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, setSearchPools, noSearchResults, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
     return (event: ChangeEvent<{}>) => {
@@ -121,6 +122,10 @@ export function PoolsOverview () {
         <Typography variant="h4">
           Add liquidity to earn trading fees and rewards.
         </Typography>
+      </Box>
+
+      <Box display="flex" alignItems="center" flexDirection="row-reverse" mb={2}>
+        <SearchPools handleChange={setSearchPools} />
       </Box>
 
       {(userPools.length > 0 || isAccountLoading) && (
@@ -353,7 +358,7 @@ export function PoolsOverview () {
                 <PoolRow key={i} data={data} isAllPools />
               )
             })}
-            {!pools.length && (
+            {!pools.length && !noSearchResults && (
               <>
               <tr>
                 <td colSpan={2}>
@@ -367,6 +372,11 @@ export function PoolsOverview () {
               </tr>
               </>
             )}
+            {noSearchResults &&
+              <Typography variant="h6">
+                No related pools were found.
+              </Typography>
+            }
             </tbody>
           </table>
           <Typography variant="body2" color="secondary" title="Tokens in pool">

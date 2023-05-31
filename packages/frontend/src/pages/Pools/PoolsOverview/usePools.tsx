@@ -28,6 +28,12 @@ try {
 } catch (err) {
 }
 
+function capitalInsensitiveSearch(subject: string, ref: string) {
+  return subject
+    .toLowerCase()
+    .search(ref.toLowerCase())
+}
+
 export function usePools () {
   const { sdk } = useApp()
   const { queryParams } = useQueryParams()
@@ -35,6 +41,7 @@ export function usePools () {
   const { poolStats, getPoolStats } = usePoolStats()
   const [filterTokens, setFilterTokens] = useState<any[]>([])
   const [filterChains, setFilterChains] = useState<any[]>([])
+  const [searchPools, setSearchPools] = useState<string>('')
   const [columnSort, setColumnSort] = useState<string>('')
   const [columnSortDesc, setColumnSortDesc] = useState(true)
   const [isFetching, setIsFetching] = useState(false)
@@ -449,6 +456,9 @@ export function usePools () {
         return false
       }
     }
+    if (capitalInsensitiveSearch(x.poolName, searchPools) === -1) {
+      return false
+    }
     return true
   }) : []
 
@@ -466,17 +476,21 @@ export function usePools () {
     return b.userBalanceTotalUsd - a.userBalanceTotalUsd
   }) : []
 
+  const noSearchResults = Boolean(searchPools.length) && !filteredPools?.length
+
   const isAccountLoading = !!accountAddress && !hasFetchedAccount && !filteredUserPools?.length
 
   return {
     columnSort,
     filterChains,
     filterTokens,
+    noSearchResults,
     isAccountLoading,
     pools: filteredPools,
     toggleColumnSort,
     toggleFilterChain,
     toggleFilterToken,
+    setSearchPools,
     userPools: filteredUserPools,
   }
 }

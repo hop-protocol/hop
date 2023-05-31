@@ -190,6 +190,8 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasLimit = 5_000_000
       } else if (this.chainSlug === Chain.Polygon) {
         txOptions.gasLimit = 5_000_000
+      } else if (this.chainSlug === Chain.Linea) {
+        txOptions.gasLimit = 5_000_000
       }
     }
 

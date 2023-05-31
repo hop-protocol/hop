@@ -129,3 +129,13 @@ export const ChainHasFinalizationTag: Record<string, boolean> = {
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
 export const BondTransferRootDelayBufferSeconds = 5 * 60
 export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 minutes
+
+// Optimism: time for relayer to publish state root
+//           https://community.optimism.io/docs/developers/bedrock/bedrock/#two-phase-withdrawals
+// Arbitrum: arbitrary buffer required
+//           https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
+const validatorExitBufferMs = OneHourMs * 10
+export const OruExitTimeMs: Record<string, number> = {
+  [Chain.Optimism]: OneHourMs,
+  [Chain.Arbitrum]: OneWeekMs + validatorExitBufferMs
+}

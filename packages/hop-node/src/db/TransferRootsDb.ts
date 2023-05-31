@@ -7,6 +7,7 @@ import {
   ChallengePeriodMs,
   OneHourMs,
   OneWeekMs,
+  OruExitTimeMs,
   RelayableChains,
   RootSetSettleDelayMs,
   TxError
@@ -542,12 +543,11 @@ class TransferRootsDb extends BaseDb {
       const isSourceOru = oruChains.has(sourceChain)
       if (isSourceOru && item.committedAt) {
         const committedAtMs = item.committedAt * 1000
-        // Add a buffer to allow validators to actually make the assertion transactions
-        // https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
-        const validatorBufferMs = OneHourMs * 10
-        const oruExitTimeMs = OneWeekMs + validatorBufferMs
-        oruTimestampOk =
-          committedAtMs + oruExitTimeMs < Date.now()
+        const exitTimeMs = OruExitTimeMs?.[sourceChain]
+        if (!exitTimeMs) {
+          return false
+        }
+        oruTimestampOk = committedAtMs + exitTimeMs < Date.now()
       }
 
       // Do not exit ORU if there is no risk of challenge and the config is not set otherwise

@@ -13,7 +13,7 @@ import Button from 'src/components/buttons/Button'
 import InfoTooltip from 'src/components/InfoTooltip'
 import useQueryParams from 'src/hooks/useQueryParams'
 import { updateQueryParams } from 'src/utils/updateQueryParams'
-import { reactAppNetwork } from 'src/config'
+import { isGoerli } from 'src/config'
 import { WithdrawalProof } from '@hop-protocol/sdk'
 
 const useStyles = makeStyles((theme: any) => ({
@@ -72,7 +72,7 @@ export const Withdraw: FC = () => {
       let wp: WithdrawalProof
       await new Promise(async (resolve, reject) => {
         try {
-          wp = new WithdrawalProof(reactAppNetwork === 'goerli' ? 'goerli' : 'mainnet', transferIdOrTxHash)
+          wp = new WithdrawalProof(isGoerli ? 'goerli' : 'mainnet', transferIdOrTxHash)
           await wp.generateProof()
           const { sourceChain } = wp.transfer
           await txConfirm?.show({

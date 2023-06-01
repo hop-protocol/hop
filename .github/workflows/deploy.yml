@@ -103,11 +103,8 @@ jobs:
           node-version: 14
           registry-url: https://registry.npmjs.org
 
-      - name: Setup yarn
-        run: npm install -g yarn
-
       - name: Install node dependencies
-        run: yarn install
+        run: npm install
 
       - name: Build the frontend app
         env:
@@ -124,7 +121,7 @@ jobs:
           REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
           REACT_APP_SHOW_BANNER_MESSAGE: ${{ secrets.REACT_APP_SHOW_BANNER_MESSAGE }}
           REACT_APP_BLOCKLIST_ENABLED: ${{ secrets.REACT_APP_BLOCKLIST_ENABLED }}
-        run: yarn build
+        run: npm build
 
       - name: Write commit file
         uses: "DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c"

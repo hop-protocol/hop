@@ -108,6 +108,7 @@ class VolumeStats {
       WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
       HOP: await this.priceFeed.getPriceHistory('HOP', daysN),
       SNX: await this.priceFeed.getPriceHistory('SNX', daysN),
+      sUSD: await this.priceFeed.getPriceHistory('sUSD', daysN),
       rETH: await this.priceFeed.getPriceHistory('rETH', daysN)
     }
 

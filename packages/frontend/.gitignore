@@ -18,3 +18,5 @@
 .prettierignore
 
 _archive
+
+yarn.lock

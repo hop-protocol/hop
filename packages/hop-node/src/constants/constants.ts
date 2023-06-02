@@ -123,7 +123,10 @@ export const RelayableChains: string[] = [
 export const MaxDeadline: number = 9999999999
 
 export const ChainHasFinalizationTag: Record<string, boolean> = {
-  ethereum: true
+  [Chain.Ethereum]: true,
+  [Chain.Optimism]: true,
+  [Chain.Arbitrum]: true,
+  [Chain.Nova]: true
 }
 
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])

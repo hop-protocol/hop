@@ -5,11 +5,11 @@ import { BigNumber } from 'ethers'
 import {
   Chain,
   ChallengePeriodMs,
-  OneHourMs,
   OneWeekMs,
   OruExitTimeMs,
   RelayableChains,
   RootSetSettleDelayMs,
+  TenMinutesMs,
   TxError
 } from 'src/constants'
 import {
@@ -485,16 +485,26 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-      let timestampOk = true
+      // Since bonding of transferRoots is not time sensitive, wait an arbitrary amount of time for
+      // finality before attempting to bond. This prevents repetitive RPC calls, since that is the
+      // only true way to know finality for ORUs. The arbitrary time should represent roughly how long
+      // the longest chain should wait for finality.
+      let finalityTimestampOk = false
+      if (item?.committedAt) {
+        const longestTimeToFinalityMs = 2 * TenMinutesMs
+        finalityTimestampOk = item.committedAt + longestTimeToFinalityMs < Date.now()
+      }
+
+      let sentBondTxAtTimestampOk = true
       if (item.sentBondTxAt) {
         if (item?.rootBondTxError === TxError.RedundantRpcOutOfSync) {
           const delayMs = getExponentialBackoffDelayMs(item.rootBondBackoffIndex!)
           if (delayMs > OneWeekMs * 2) {
             return false
           }
-          timestampOk = item.sentBondTxAt + delayMs < Date.now()
+          sentBondTxAtTimestampOk = item.sentBondTxAt + delayMs < Date.now()
         } else {
-          timestampOk = item.sentBondTxAt + TxRetryDelayMs < Date.now()
+          sentBondTxAtTimestampOk = item.sentBondTxAt + TxRetryDelayMs < Date.now()
         }
       }
 
@@ -511,7 +521,8 @@ class TransferRootsDb extends BaseDb {
         item.sourceChainId &&
         item.shouldBondTransferRoot &&
         item.totalAmount &&
-        timestampOk
+        finalityTimestampOk &&
+        sentBondTxAtTimestampOk
       )
     })
 

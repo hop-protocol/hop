@@ -4,7 +4,15 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { AvgBlockTimeSeconds, Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
+import {
+  AvgBlockTimeSeconds,
+  Chain,
+  ChainHasFinalizationTag,
+  DefaultBatchBlocks,
+  Network,
+  OneHourMs,
+  TotalBlocks
+} from 'src/constants'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
@@ -415,9 +423,15 @@ export function enableEmergencyMode () {
 }
 
 export function getFinalityTimeSeconds (chainSlug: string) {
-  // The default of 1 for these values imply a trusted sequencer or an unimplemented network
-  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds[chainSlug] ?? 1
-  const waitConfirmations: number = networks[chainSlug].waitConfirmations ?? 1
+  if (ChainHasFinalizationTag[chainSlug]) {
+    throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
+  }
+  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
+  const waitConfirmations: number = networks?.[chainSlug]?.waitConfirmations
+
+  if (!avgBlockTimeSeconds || !waitConfirmations) {
+    throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
+  }
   return avgBlockTimeSeconds * waitConfirmations
 }
 

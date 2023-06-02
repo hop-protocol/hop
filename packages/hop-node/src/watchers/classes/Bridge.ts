@@ -623,7 +623,7 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
     let currentBlockNumberWithFinality: number
     if (ChainHasFinalizationTag[this.chainSlug]) {
-      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+      currentBlockNumberWithFinality = await this.getSafeBlockNumber()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
       currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations

@@ -75,16 +75,12 @@ export default class ContractBase extends EventEmitter {
   }
 
   getFinalizedBlockNumber = async (): Promise<number> => {
-    // TODO: Use this.contract.provider when ethers.js is updated
-    const provider = getRpcProvider(this.chainSlug)!
-    const block = await provider.getBlock('finalized')
+    const block = await this.contract.provider.getBlock('finalized')
     return Number(block.number)
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    // TODO: Use this.contract.provider when ethers.js is updated
-    const provider = getRpcProvider(this.chainSlug)!
-    const block = await provider.getBlock('safe')
+    const block = await this.contract.provider.getBlock('safe')
     return Number(block.number)
   }
 

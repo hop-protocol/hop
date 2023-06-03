@@ -69,7 +69,6 @@ export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
-export const shouldExitOrus = process.env.SHOULD_EXIT_ORUS ?? false
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95

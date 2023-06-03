@@ -14,8 +14,7 @@ import {
 } from 'src/constants'
 import {
   TxRetryDelayMs,
-  oruChains,
-  shouldExitOrus
+  oruChains
 } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -561,16 +560,12 @@ class TransferRootsDb extends BaseDb {
         oruTimestampOk = committedAtMs + exitTimeMs < Date.now()
       }
 
-      // Do not exit ORU if there is no risk of challenge and the config is not set otherwise
-      let oruShouldExit = true
-      if (!shouldExitOrus) {
-        const isChallenged = item?.challenged === true
-        if (isSourceOru && item?.bondedAt && !isChallenged) {
-          const bondedAtMs: number = item.bondedAt * 1000
-          const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
-          if (isChallengePeriodOver) {
-            oruShouldExit = false
-          }
+      let oruShouldExit = false
+      if (item?.challenged === true && item?.bondedAt) {
+        const bondedAtMs: number = item.bondedAt * 1000
+        const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
+        if (isChallengePeriodOver) {
+          oruShouldExit = true
         }
       }
 

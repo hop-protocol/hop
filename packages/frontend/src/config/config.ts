@@ -11,6 +11,7 @@ export { showRewards }
 
 export const orusThatRelyOnL1ConfirmationsForFinality: string[] = [
   'optimism',
+  'base',
   'arbitrum',
   'nova',
 ]

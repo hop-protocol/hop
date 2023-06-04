@@ -1,5 +1,6 @@
 data
 *.log
+yarn.lock
 build
 dist
 !third_party/*.tgz

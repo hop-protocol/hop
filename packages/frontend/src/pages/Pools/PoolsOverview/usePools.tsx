@@ -145,7 +145,21 @@ export function usePools () {
             pool.totalAprFormatted = _poolStats.totalAprFormatted
             pool.tvl = _poolStats.tvl
             pool.tvlFormatted = _poolStats.tvlUsdFormatted
-            for (const item of _poolStats.stakingRewardTokens) {
+            const stakingRewardTokens = _poolStats.stakingRewardTokens
+
+            // TODO: Replace with automated LSD data in stats-worker
+            if (pool.token.symbol === 'rETH' && stakingRewardTokens.length === 1) {
+              const rETHApr: number = 0.0398
+              stakingRewardTokens.unshift({
+                tokenSymbol: 'ETH',
+                imageUrl: getTokenImage('ETH'),
+                aprFormatted: toPercentDisplay(rETHApr)
+              })
+
+              pool.totalApr += rETHApr
+              pool.totalAprFormatted = toPercentDisplay(pool.totalApr)
+            }
+            for (const item of stakingRewardTokens) {
               stakingRewards.push({
                 tokenSymbol: item.tokenSymbol,
                 imageUrl: getTokenImage(item.tokenSymbol),

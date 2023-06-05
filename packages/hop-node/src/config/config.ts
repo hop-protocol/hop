@@ -424,7 +424,7 @@ export function enableEmergencyMode () {
 }
 
 export function getFinalityTimeSeconds (chainSlug: string) {
-  if (ChainHasFinalizationTag[chainSlug]) {
+  if (ChainHasFinalizationTag[chainSlug] && isBedrockEnabled(chainSlug)) {
     throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
   }
   const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
@@ -434,6 +434,16 @@ export function getFinalityTimeSeconds (chainSlug: string) {
     throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
   }
   return avgBlockTimeSeconds * waitConfirmations
+}
+
+function isBedrockEnabled (chainSlug: string): boolean {
+  if (chainSlug === Chain.Optimism) {
+    const now = Math.floor(Date.now() / 1000)
+    if (now > bedrockUpgradeTimeSec) {
+      return true
+    }
+  }
+  return false
 }
 
 export { Bonders }

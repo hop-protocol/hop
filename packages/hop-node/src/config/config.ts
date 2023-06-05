@@ -74,6 +74,8 @@ export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.sp
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
 
+export const bedrockUpgradeTimeSec = normalizeEnvVarNumber(process.env.BEDROCK_UPGRADE_TIME) ?? 1686067200
+
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
   [Chain.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',

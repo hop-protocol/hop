@@ -4,7 +4,15 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { AvgBlockTimeSeconds, Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
+import {
+  AvgBlockTimeSeconds,
+  Chain,
+  ChainHasFinalizationTag,
+  DefaultBatchBlocks,
+  Network,
+  OneHourMs,
+  TotalBlocks
+} from 'src/constants'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
@@ -61,11 +69,12 @@ export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
-export const shouldExitOrus = process.env.SHOULD_EXIT_ORUS ?? false
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
+
+export const bedrockUpgradeTimeSec = normalizeEnvVarNumber(process.env.BEDROCK_UPGRADE_TIME) ?? 1686067200
 
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
@@ -415,9 +424,15 @@ export function enableEmergencyMode () {
 }
 
 export function getFinalityTimeSeconds (chainSlug: string) {
-  // The default of 1 for these values imply a trusted sequencer or an unimplemented network
-  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds[chainSlug] ?? 1
-  const waitConfirmations: number = networks[chainSlug].waitConfirmations ?? 1
+  if (ChainHasFinalizationTag[chainSlug]) {
+    throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
+  }
+  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
+  const waitConfirmations: number = networks?.[chainSlug]?.waitConfirmations
+
+  if (!avgBlockTimeSeconds || !waitConfirmations) {
+    throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
+  }
   return avgBlockTimeSeconds * waitConfirmations
 }
 

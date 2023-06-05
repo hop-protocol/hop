@@ -878,7 +878,7 @@ export default class Bridge extends ContractBase {
   }
 
   isBedrockEnabled (): boolean {
-    if (this.chainId === 420 || this.chainId === 10) {
+    if (this.chainSlug === Chain.Optimism) {
       const now = Math.floor(Date.now() / 1000)
       if (now > bedrockUpgradeTimeSec) {
         return true

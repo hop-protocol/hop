@@ -124,9 +124,7 @@ export const MaxDeadline: number = 9999999999
 
 export const ChainHasFinalizationTag: Record<string, boolean> = {
   [Chain.Ethereum]: true,
-  [Chain.Optimism]: true,
-  [Chain.Arbitrum]: true,
-  [Chain.Nova]: true
+  [Chain.Optimism]: true
 }
 
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])

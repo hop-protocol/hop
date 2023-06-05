@@ -1520,7 +1520,7 @@ class SyncWatcher extends BaseWatcher {
         const estimates = [{ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal }]
 
         if (!this.isL1) {
-        const l2BridgeContract = bridgeContract as L2BridgeContract
+          const l2BridgeContract = bridgeContract as L2BridgeContract
           const payload = [
             recipient,
             amount,

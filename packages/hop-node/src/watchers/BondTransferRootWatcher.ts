@@ -7,7 +7,7 @@ import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
-import { BondTransferRootDelayBufferSeconds, ChainHasFinalizationTag, Chain, TxError } from 'src/constants'
+import { BondTransferRootDelayBufferSeconds, Chain, ChainHasFinalizationTag, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
@@ -114,7 +114,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     // Check for finality of the commit tx. The sync watcher only waits for safe, but since
     // transfer root bonds are not time sensitive, we can wait for finality.
     const shouldUseFinality = ChainHasFinalizationTag[this.chainSlug] && (this.chainSlug !== Chain.Optimism || this.isBedrockEnabled())
-    if (shouldUseFinality) {
     if (shouldUseFinality) {
       const finalizedBlockNumber = await this.bridge.getFinalizedBlockNumber()
 

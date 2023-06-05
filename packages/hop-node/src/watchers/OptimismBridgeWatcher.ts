@@ -1,10 +1,9 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
+import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Signer, providers } from 'ethers'
@@ -52,13 +51,13 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
   // This function will only handle one stage at a time. Upon completion of a stage, the poller will re-call
   // this when the next stage is ready.
-  // It is expected that the poller re-calls this message every hour during the challenge period, if the 
+  // It is expected that the poller re-calls this message every hour during the challenge period, if the
   // transfer was challenged. The complexity of adding DB state to track successful/failed root prove txs
   // and challenges is not worth saving the additional RPC calls (2) per hour during the challenge period.
   async relayXDomainMessage (
     txHash: string
   ): Promise<providers.TransactionResponse | undefined> {
-    let messageStatus: MessageStatus = await this.csm.getMessageStatus(txHash)
+    const messageStatus: MessageStatus = await this.csm.getMessageStatus(txHash)
     if (
       messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE ||
       messageStatus === MessageStatus.FAILED_L1_TO_L2_MESSAGE ||
@@ -151,7 +150,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
   }
 
   // At this time, most aof these errors are only informational and not explicitly handled
-  getErrorType(errMessage: string) {
+  getErrorType (errMessage: string) {
     // Hop errors
     const unexpectedPollError =
       errMessage.includes('state root not published') ||
@@ -162,19 +161,19 @@ class OptimismBridgeWatcher extends BaseWatcher {
       errMessage.includes('state not handled for tx ')
 
     // Optimism SDK errors
-    const invalidMessageError = 
+    const invalidMessageError =
       errMessage.includes('unable to find transaction receipt for') ||
       errMessage.includes('message is undefined') ||
       errMessage.includes('could not find SentMessage event for message') ||
       errMessage.includes('expected 1 message, got')
 
     const onchainError = errMessage.includes('message has already been relayed')
-    
+
     // isEventLow() does not handle the case where `batchEvents` is null
     // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
     const cannotReadPropertyError = errMessage.includes('Cannot read property')
 
-    const preBedrockErrors = 
+    const preBedrockErrors =
       errMessage.includes('unable to find state root batch for tx') ||
       errMessage.includes('messagePairs not found') ||
       errMessage.includes('exit within challenge window')

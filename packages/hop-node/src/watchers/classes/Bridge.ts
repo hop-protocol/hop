@@ -14,9 +14,9 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
+import { bedrockUpgradeTimeSec, config as globalConfig } from 'src/config'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
-import { bedrockUpgradeTimeSec, config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -622,7 +622,7 @@ export default class Bridge extends ContractBase {
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
     let currentBlockNumberWithFinality: number
-    
+
     const shouldUseFinality = ChainHasFinalizationTag[this.chainSlug] && (this.chainSlug !== Chain.Optimism || this.isBedrockEnabled())
     if (shouldUseFinality) {
       currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()

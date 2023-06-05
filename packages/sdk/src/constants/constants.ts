@@ -106,7 +106,7 @@ export enum TokenIndex {
 
 export enum BondTransferGasLimit {
   Ethereum = '165000',
-  Optimism = '100000000',
+  Optimism = '350000',
   Arbitrum = '2500000',
   Nova = '2500000',
 }

@@ -29,7 +29,7 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io/'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
-    waitConfirmations: 1
+    waitConfirmations: 64
   },
   arbitrum: {
     name: chains.arbitrum.name,

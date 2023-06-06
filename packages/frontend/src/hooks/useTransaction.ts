@@ -25,6 +25,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { getTokenByAddress } from 'src/utils/tokens'
 import { TToken, TokenSymbol } from '@hop-protocol/sdk'
+import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 
 // TODO: use typechain
 export const methodToSigHashes = {
@@ -110,7 +111,8 @@ const useTransaction = (txHash?: string) => {
 
           let completed = false
           const waitConfirmations = getNetworkWaitConfirmations(networkName as string)
-          if (waitConfirmations && response.confirmations >= waitConfirmations) {
+          const isFinalized = await getIsTxFinalized(receipt?.blockNumber, networkName as string) 
+          if (isFinalized) {
             completed = true
           }
 

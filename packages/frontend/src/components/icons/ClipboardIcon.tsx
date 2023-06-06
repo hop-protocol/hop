@@ -13,7 +13,6 @@ export default function ClipboardIcon(props: Props) {
       />
       <mask
         id="mask0"
-        mask-type="alpha"
         maskUnits="userSpaceOnUse"
         x="0"
         y="0"

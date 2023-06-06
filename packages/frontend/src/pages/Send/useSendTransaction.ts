@@ -10,7 +10,7 @@ import { amountToBN, formatError } from 'src/utils/format'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { useTransactionReplacement } from 'src/hooks'
 import EventEmitter from 'eventemitter3'
-import { reactAppNetwork } from 'src/config'
+import { isGoerli } from 'src/config'
 
 export type TransactionHandled = {
   transaction: any
@@ -232,7 +232,7 @@ export function useSendTransaction (props: any) {
         }
 
         let relayerFeeWithId = getBonderFeeWithId(totalFee)
-        if (reactAppNetwork === 'goerli') {
+        if (isGoerli) {
           // Do not use an ID for a relayer fee on Goerli
           relayerFeeWithId = getBonderFeeWithId(totalFee, '')
         }

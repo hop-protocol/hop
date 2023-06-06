@@ -1,10 +1,9 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
+import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Signer, providers } from 'ethers'
@@ -50,65 +49,43 @@ class OptimismBridgeWatcher extends BaseWatcher {
     })
   }
 
-  // order: L2 Tx -> wait for state root to be published on L1 (240 seconds) -> proveMessage -> wait challenge period (7 days) -> finalizeMessage
+  // This function will only handle one stage at a time. Upon completion of a stage, the poller will re-call
+  // this when the next stage is ready.
+  // It is expected that the poller re-calls this message every hour during the challenge period, if the
+  // transfer was challenged. The complexity of adding DB state to track successful/failed root prove txs
+  // and challenges is not worth saving the additional RPC calls (2) per hour during the challenge period.
   async relayXDomainMessage (
     txHash: string
   ): Promise<providers.TransactionResponse | undefined> {
-    let messageStatus = await this.csm.getMessageStatus(txHash)
+    const messageStatus: MessageStatus = await this.csm.getMessageStatus(txHash)
+    if (
+      messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE ||
+      messageStatus === MessageStatus.FAILED_L1_TO_L2_MESSAGE ||
+      messageStatus === MessageStatus.RELAYED
+    ) {
+      throw new Error(`unexpected message status: ${messageStatus}, txHash: ${txHash}`)
+    }
+
     if (messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED) {
-      console.log('waiting for state root to be published')
-      // wait a max of 240 seconds for state root to be published on L1
-      await wait(240 * 1000)
+      throw new Error('state root not published')
     }
 
-    messageStatus = await this.csm.getMessageStatus(txHash)
     if (messageStatus === MessageStatus.READY_TO_PROVE) {
-      console.log('message ready to prove')
-      const resolved = await this.csm.toCrossChainMessage(txHash)
       console.log('sending proveMessage tx')
-      const tx = await this.csm.proveMessage(resolved)
-      console.log('proveMessage tx:', tx?.hash)
-      await tx.wait()
-      console.log('waiting challenge period')
-      const challengePeriod = await this.csm.getChallengePeriodSeconds()
-      await wait(challengePeriod * 1000)
-    }
-
-    messageStatus = await this.csm.getMessageStatus(txHash)
-    if (messageStatus === MessageStatus.IN_CHALLENGE_PERIOD) {
-      console.log('message is in challenge period')
-      // challenge period is a few seconds on goerli, 7 days in production
-      const challengePeriod = await this.csm.getChallengePeriodSeconds()
-      const latestBlock = await this.csm.l1Provider.getBlock('latest')
       const resolved = await this.csm.toCrossChainMessage(txHash)
-      const withdrawal = await this.csm.toLowLevelMessage(resolved)
-      const provenWithdrawal =
-        await this.csm.contracts.l1.OptimismPortal.provenWithdrawals(
-          hashLowLevelMessage(withdrawal)
-        )
-      const timestamp = Number(provenWithdrawal.timestamp.toString())
-      const bufferSeconds = 10
-      const secondsLeft = (timestamp + challengePeriod + bufferSeconds) - Number(latestBlock.timestamp.toString())
-      console.log('seconds left:', secondsLeft)
-      await wait(secondsLeft * 1000)
+      return this.csm.proveMessage(resolved)
     }
 
-    messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.IN_CHALLENGE_PERIOD) {
+      throw new Error('message in challenge period')
+    }
+
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
-      console.log('ready for relay')
       console.log('sending finalizeMessage tx')
-      const tx = await this.csm.finalizeMessage(txHash)
-      console.log('finalizeMessage tx:', tx.hash)
-      return tx
+      return this.csm.finalizeMessage(txHash)
     }
 
-    if (messageStatus === MessageStatus.RELAYED) {
-      console.log('message already relayed')
-      return
-    }
-
-    console.log(MessageStatus)
-    console.log(`not ready for relay. statusCode: ${messageStatus}`)
+    throw new Error(`state not handled for tx ${txHash}`)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
@@ -137,24 +114,77 @@ class OptimismBridgeWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err) {
       this.logger.error('relayXDomainMessage error:', err.message)
-      const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
-      const isProofNotFound = err.message.includes('messagePairs not found')
-      const isInsideFraudProofWindow = err.message.includes('exit within challenge window')
-      const notReadyForExit = isNotCheckpointedYet || isProofNotFound || isInsideFraudProofWindow
-      if (notReadyForExit) {
-        throw new Error('too early to exit')
+
+      const {
+        unexpectedPollError,
+        unexpectedRelayErrors,
+        invalidMessageError,
+        onchainError,
+        cannotReadPropertyError,
+        preBedrockErrors
+      } = this.getErrorType(err.message)
+
+      // This error occurs if a poll happened while a message was either not yet published or in the challenge period
+      if (unexpectedPollError) {
+        return
       }
-      const isAlreadyRelayed = err.message.includes('message has already been received')
-      if (isAlreadyRelayed) {
+
+      if (unexpectedRelayErrors) {
+        throw new Error('unexpected message status')
+      }
+      if (invalidMessageError) {
+        throw new Error('invalid message')
+      }
+      if (onchainError) {
         throw new Error('message has already been relayed')
       }
-      // isEventLow() does not handle the case where `batchEvents` is null
-      // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
-      const cannotReadProperty = err.message.includes('Cannot read property')
-      if (cannotReadProperty) {
+      if (cannotReadPropertyError) {
         throw new Error('event not found in optimism sdk')
       }
+      if (preBedrockErrors) {
+        throw new Error('unexpected Optimism SDK error')
+      }
+
       throw err
+    }
+  }
+
+  // At this time, most aof these errors are only informational and not explicitly handled
+  getErrorType (errMessage: string) {
+    // Hop errors
+    const unexpectedPollError =
+      errMessage.includes('state root not published') ||
+      errMessage.includes('message in challenge period')
+
+    const unexpectedRelayErrors =
+      errMessage.includes('unexpected message status') ||
+      errMessage.includes('state not handled for tx ')
+
+    // Optimism SDK errors
+    const invalidMessageError =
+      errMessage.includes('unable to find transaction receipt for') ||
+      errMessage.includes('message is undefined') ||
+      errMessage.includes('could not find SentMessage event for message') ||
+      errMessage.includes('expected 1 message, got')
+
+    const onchainError = errMessage.includes('message has already been relayed')
+
+    // isEventLow() does not handle the case where `batchEvents` is null
+    // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
+    const cannotReadPropertyError = errMessage.includes('Cannot read property')
+
+    const preBedrockErrors =
+      errMessage.includes('unable to find state root batch for tx') ||
+      errMessage.includes('messagePairs not found') ||
+      errMessage.includes('exit within challenge window')
+
+    return {
+      unexpectedPollError,
+      unexpectedRelayErrors,
+      invalidMessageError,
+      onchainError,
+      cannotReadPropertyError,
+      preBedrockErrors
     }
   }
 }

@@ -24,7 +24,7 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 20
+    waitConfirmations: 64
   },
   optimism: {
     name: chains.optimism.name,
@@ -37,7 +37,7 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
-    waitConfirmations: 1
+    waitConfirmations: 64
   },
   gnosis: {
     name: chains.gnosis.name,
@@ -72,7 +72,7 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://nova.arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 20
+    waitConfirmations: 64
   }
   /*
   zksync: {

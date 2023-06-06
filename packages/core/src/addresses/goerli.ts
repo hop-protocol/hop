@@ -292,7 +292,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x7120a385c847f3b9995b8aB2BD112d70A50102d1',
+        l1MessengerWrapper: '0x4a55e8e407609A3046804ca500BeF6F5ebaCb6F9',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xcb5ddfb8d0038247dc0beeecaa7f3457befcb77c',
         l2Bridge: '0xb276BC046DFf5024D20A3947475eA20C9F08eB1F',
@@ -356,7 +356,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x0000000000000000000000000000000000000000',
         l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
         bridgeDeployedBlockNumber: 571167
-      },
+      }
     },
     USDC: {
       ethereum: {
@@ -375,7 +375,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x723194C6Cfed24883b598931Ee802ab80952C001',
         l2SaddleLpToken: '0xcb7609827c7B28317BBCFb4B79276a54834F0848',
         bridgeDeployedBlockNumber: 571505
-      },
+      }
     },
     USDT: {
       ethereum: {
@@ -394,7 +394,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x0000000000000000000000000000000000000000',
         l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
         bridgeDeployedBlockNumber: 559320
-      },
+      }
     },
     DAI: {
       ethereum: {
@@ -413,7 +413,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x0000000000000000000000000000000000000000',
         l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
         bridgeDeployedBlockNumber: 559381
-      },
+      }
     },
     UNI: {
       ethereum: {
@@ -432,7 +432,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x0000000000000000000000000000000000000000',
         l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
         bridgeDeployedBlockNumber: 559429
-      },
-    },
+      }
+    }
   }
 }

@@ -160,9 +160,14 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async incompleteTransfersPollSync () {
+    // During an initial sync, old transactions might be labeled as notFound here. This is because
+    // a chain that finishes event syncing quickly will start this poller prior to the other chain completing
+    // the event syncing. When this happens, the DB might not have the counterpart transaction yet. For example,
+    // if a bondWithdrawal is seen and gets here, the transferSent tx from the other chain might not yet
+    // be in the DB and will be labeled as notFound. This is a rare case. One possible issue this leads to
+    // is a transferRoot with all transfers notFound. In this case, the root will not be settled.
     try {
       const concurrency = 30
-      const chunkSize = 30
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
@@ -1515,7 +1520,7 @@ class SyncWatcher extends BaseWatcher {
         const estimates = [{ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal }]
 
         if (!this.isL1) {
-        const l2BridgeContract = bridgeContract as L2BridgeContract
+          const l2BridgeContract = bridgeContract as L2BridgeContract
           const payload = [
             recipient,
             amount,

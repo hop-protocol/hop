@@ -50,11 +50,7 @@ export { nativeChainTokens }
 export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Ethereum]: 12,
   [Chain.Polygon]: 2,
-  [Chain.Gnosis]: 5,
-  [Chain.Optimism]: 5, // TODO: temp, remove
-  [Chain.Base]: 5, // TODO: temp, remove
-  [Chain.Arbitrum]:  2, // TODO: temp, remove
-  [Chain.Nova]:  2, // TODO: temp, remove
+  [Chain.Gnosis]: 5
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {

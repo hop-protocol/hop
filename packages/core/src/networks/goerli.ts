@@ -9,7 +9,8 @@ export const networks: Networks = {
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
-    waitConfirmations: 1
+    waitConfirmations: 1,
+    hasFinalizationBlockTag: true
   },
   polygon: {
     name: chains.polygon.name,
@@ -19,7 +20,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   optimism: {
     name: chains.optimism.name,
@@ -29,7 +31,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io/'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
-    waitConfirmations: 64
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -39,7 +42,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-rollup-explorer.arbitrum.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   zksync: {
     name: chains.zksync.name,
@@ -49,7 +53,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
     nativeBridgeUrl: '',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   linea: {
     name: chains.linea.name,
@@ -59,7 +64,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -69,7 +75,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
     nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   base: {
     name: chains.base.name,
@@ -79,6 +86,7 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   }
 }

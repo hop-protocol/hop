@@ -11,7 +11,8 @@ export const networks: Networks = {
       'https://rpc.ankr.com/eth'
     ],
     explorerUrls: ['https://etherscan.io'],
-    waitConfirmations: 64
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -24,7 +25,8 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 64
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   optimism: {
     name: chains.optimism.name,
@@ -37,7 +39,8 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
-    waitConfirmations: 64
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   gnosis: {
     name: chains.gnosis.name,
@@ -50,7 +53,8 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://gnosisscan.io/'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',
-    waitConfirmations: 12
+    waitConfirmations: 20,
+    hasFinalizationBlockTag: true
   },
   polygon: {
     name: chains.polygon.name,
@@ -62,7 +66,8 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
-    waitConfirmations: 512
+    waitConfirmations: 512,
+    hasFinalizationBlockTag: false
   },
   nova: {
     name: chains.nova.name,
@@ -72,7 +77,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://nova.arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 64
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   }
   /*
   zksync: {
@@ -83,7 +89,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.zksync.io/'],
     nativeBridgeUrl: '',
-    waitConfirmations: 1
+    waitConfirmations: 1,
+    hasFinalizationBlockTag: false
   }
   linea: {
     name: chains.linea.name,
@@ -93,7 +100,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: [''],
     nativeBridgeUrl: '',
-    waitConfirmations: 1
+    waitConfirmations: 1,
+    hasFinalizationBlockTag: false
   }
   */
 }

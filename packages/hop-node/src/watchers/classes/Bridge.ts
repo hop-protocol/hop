@@ -5,7 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, ChainHasFinalizationTag, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -16,7 +16,7 @@ import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
-import { config as globalConfig } from 'src/config'
+import { getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -623,7 +623,7 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
     let currentBlockNumberWithFinality: number
 
-    if (ChainHasFinalizationTag[this.chainSlug]) {
+    if (getHasFinalizationBlockTag(this.chainSlug)) {
       currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
     } else {
       const currentBlockNumber = await this.getBlockNumber()

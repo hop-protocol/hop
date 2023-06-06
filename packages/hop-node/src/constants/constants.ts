@@ -50,7 +50,7 @@ export { nativeChainTokens }
 export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Ethereum]: 12,
   [Chain.Polygon]: 2,
-  [Chain.Gnosis]: 5
+  [Chain.Gnosis]: 6
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -121,11 +121,6 @@ export const RelayableChains: string[] = [
 ]
 
 export const MaxDeadline: number = 9999999999
-
-export const ChainHasFinalizationTag: Record<string, boolean> = {
-  [Chain.Ethereum]: true,
-  [Chain.Optimism]: true
-}
 
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
 export const BondTransferRootDelayBufferSeconds = 5 * 60

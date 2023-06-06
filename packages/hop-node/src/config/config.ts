@@ -7,7 +7,6 @@ import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
 import {
   AvgBlockTimeSeconds,
   Chain,
-  ChainHasFinalizationTag,
   DefaultBatchBlocks,
   Network,
   OneHourMs,
@@ -422,7 +421,7 @@ export function enableEmergencyMode () {
 }
 
 export function getFinalityTimeSeconds (chainSlug: string) {
-  if (ChainHasFinalizationTag[chainSlug]) {
+  if (getHasFinalizationBlockTag(chainSlug)) {
     throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
   }
   const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
@@ -432,6 +431,10 @@ export function getFinalityTimeSeconds (chainSlug: string) {
     throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
   }
   return avgBlockTimeSeconds * waitConfirmations
+}
+
+export function getHasFinalizationBlockTag (chainSlug: string) {
+  return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
 }
 
 export { Bonders }

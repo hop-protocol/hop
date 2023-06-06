@@ -38,5 +38,6 @@ export type Networks = {
     explorerUrl: string
     nativeBridgeUrl?: string
     waitConfirmations?: number
+    hasFinalizationBlockTag: boolean
   }
 }

@@ -12,7 +12,7 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { bedrockUpgradeTimeSec, enableEmergencyMode, getFinalityTimeSeconds, config as globalConfig } from 'src/config'
+import { enableEmergencyMode, getFinalityTimeSeconds, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -113,8 +113,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     // Check for finality of the commit tx. The sync watcher only waits for safe, but since
     // transfer root bonds are not time sensitive, we can wait for finality.
-    const shouldUseFinality = ChainHasFinalizationTag[this.chainSlug] && (this.chainSlug !== Chain.Optimism || this.isBedrockEnabled())
-    if (shouldUseFinality) {
+    if (ChainHasFinalizationTag[this.chainSlug]) {
       const finalizedBlockNumber = await this.bridge.getFinalizedBlockNumber()
 
       if (finalizedBlockNumber < commitTxBlockNumber) {
@@ -127,7 +126,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     // In practice, non-ORUs should not be bonded. This check is needed for the edge-case in which non-ORU roots are bonded.
     const minTransferRootBondDelaySeconds = await l1Bridge.getMinTransferRootBondDelaySeconds()
     let chainFinalityTimeSec: number = 0
-    if (!shouldUseFinality) {
+    if (!ChainHasFinalizationTag[this.chainSlug]) {
       chainFinalityTimeSec = getFinalityTimeSeconds(this.chainSlug)
     }
     const delaySeconds = Math.max(minTransferRootBondDelaySeconds, chainFinalityTimeSec) + BondTransferRootDelayBufferSeconds
@@ -406,16 +405,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       throw new Error(`Calculated dbTransferRoot (${calculatedTransferRootId}) not found in db`)
     }
     return dbTransferRoot
-  }
-
-  isBedrockEnabled (): boolean {
-    if (this.chainSlug === Chain.Optimism) {
-      const now = Math.floor(Date.now() / 1000)
-      if (now > bedrockUpgradeTimeSec) {
-        return true
-      }
-    }
-    return false
   }
 }
 

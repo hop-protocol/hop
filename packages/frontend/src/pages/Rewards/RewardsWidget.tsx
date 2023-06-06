@@ -57,7 +57,7 @@ export function RewardsWidget(props: Props) {
         <Box>
           <Box mb={4} display="flex" justifyContent="space-between" alignItems="center">
             <Box flexDirection="column" textAlign="left">
-              <Typography variant="h5" component="div">{title} <InfoTooltip title={<><div>{description}</div><br /><div>Merkle rewards info</div><div>Published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>Latest root total: {latestRootTotalDisplay}</div><div>Github repo: {repoUrl}</div></>} /></Typography>
+              <Typography variant="h5" component="div">{title} <InfoTooltip title={<Box maxWidth="400px"><div>{description}</div><br /><div>Merkle rewards info</div><div>Published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>Latest root total: {latestRootTotalDisplay}</div><div>Github repo: {repoUrl}</div></Box>} /></Typography>
             </Box>
             {!showAddressChangeForm && (
               <Typography variant="body2" color="secondary" onClick={(event: any) => {

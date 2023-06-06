@@ -7,6 +7,19 @@ export const useNetworkSelectorStyles = makeStyles((theme: any) => ({
     alignItems: 'center',
     transition: 'all 0.15s ease-out'
   },
+  selectNetworkText: {
+    fontSize: '1.4rem',
+    fontWeight: 700,
+    // color: '#fff',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    marginLeft: '0.4rem',
+    textAlign: 'center',
+    transition: 'all 0.15s ease-out',
+    [theme.breakpoints.down('xs')]: {
+      fontSize: '1rem',
+    },
+  },
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',

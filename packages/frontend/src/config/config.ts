@@ -11,9 +11,7 @@ export { showRewards }
 
 export const orusThatRelyOnL1ConfirmationsForFinality: string[] = [
   'optimism',
-  'base',
-  'arbitrum',
-  'nova',
+  'base'
 ]
 
 export const transferTimes = {
@@ -32,11 +30,11 @@ export const transferTimes = {
     nova: 17
   },
   arbitrum: {
-    ethereum: 17,
-    optimism: 17,
-    polygon: 17,
-    gnosis: 17,
-    nova: 17
+    ethereum: 1,
+    optimism: 1,
+    polygon: 1,
+    gnosis: 1,
+    nova: 1
   },
   polygon: {
     ethereum: 20,
@@ -53,10 +51,10 @@ export const transferTimes = {
     nova: 5
   },
   nova: {
-    ethereum: 17,
-    optimism: 17,
-    arbitrum: 17,
-    polygon: 17,
-    gnosis: 17
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 1,
+    gnosis: 1
   }
 }

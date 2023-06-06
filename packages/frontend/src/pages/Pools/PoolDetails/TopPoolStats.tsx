@@ -61,7 +61,7 @@ export function TopPoolStats (props: Props) {
             <Box mb={2}>
               <Typography variant="subtitle1" color="secondary" component="div">
                 <Box display="flex" alignItems="center" component="div">
-                  Total APR <InfoTooltip title={`Annual Percentage Rate (APR) from earning fees (${aprFormatted}) and staking LP tokens, based on 24hr trading volume`} />
+                  Total APR <InfoTooltip title={`Annual Percentage Rate (APR) from earning fees (based on 24hr trading volume), staking LP tokens, and earning ETH staking rewards (in the case of liquid staking tokens)`} />
                 </Box>
               </Typography>
             </Box>

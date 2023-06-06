@@ -5,8 +5,6 @@ import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
-import { parseUnits } from 'ethers/lib/utils'
-import { reactAppNetwork } from 'src/config'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',

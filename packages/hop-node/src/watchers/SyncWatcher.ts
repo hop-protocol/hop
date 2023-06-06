@@ -160,9 +160,14 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async incompleteTransfersPollSync () {
+    // During an initial sync, old transactions might be labeled as notFound here. This is because
+    // a chain that finishes event syncing quickly will start this poller prior to the other chain completing
+    // the event syncing. When this happens, the DB might not have the counterpart transaction yet. For example,
+    // if a bondWithdrawal is seen and gets here, the transferSent tx from the other chain might not yet
+    // be in the DB and will be labeled as notFound. This is a rare case. One possible issue this leads to
+    // is a transferRoot with all transfers notFound. In this case, the root will not be settled.
     try {
       const concurrency = 30
-      const chunkSize = 30
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
@@ -223,7 +228,6 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber: number = this.bridge.bridgeDeployedBlockNumber
     if (!this.isInitialSyncCompleted() && this.customStartBlockNumber) {
       startBlockNumber = this.customStartBlockNumber
-
     }
 
     const getOptions = (keyName: string) => {
@@ -1515,7 +1519,8 @@ class SyncWatcher extends BaseWatcher {
         logger.debug('pollGasCost got populateTransaction for bondWithdrawal')
         const estimates = [{ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal }]
 
-        if (this._isL2BridgeContract(bridgeContract) && bridgeContract.bondWithdrawalAndDistribute) {
+        if (!this.isL1) {
+          const l2BridgeContract = bridgeContract as L2BridgeContract
           const payload = [
             recipient,
             amount,
@@ -1527,9 +1532,9 @@ class SyncWatcher extends BaseWatcher {
               from: bonder
             }
           ] as const
-          const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
+          const gasLimit = await l2BridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           logger.debug('pollGasCost got estimateGas for bondWithdrawalAndDistribute')
-          const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
+          const tx = await l2BridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
           logger.debug('pollGasCost got populateTransaction for bondWithdrawalAndDistribute')
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }
@@ -1578,10 +1583,6 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('pollGasCost poll end')
       await wait(this.gasCostPollMs)
     }
-  }
-
-  private _isL2BridgeContract (bridgeContract: L1BridgeContract | L2BridgeContract): bridgeContract is L2BridgeContract {
-    return !this.isL1
   }
 }
 

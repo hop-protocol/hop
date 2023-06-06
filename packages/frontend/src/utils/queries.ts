@@ -1,7 +1,7 @@
 import { Slug } from '@hop-protocol/sdk'
 import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
-import { reactAppNetwork } from 'src/config'
+import { isGoerli } from 'src/config'
 
 export function getUrl(chain: Slug | string) {
   if (chain === Slug.gnosis) {
@@ -12,7 +12,7 @@ export function getUrl(chain: Slug | string) {
     chain = 'mainnet'
   }
 
-  if (reactAppNetwork === 'goerli') {
+  if (isGoerli) {
     if (chain === 'mainnet') {
       chain = 'goerli'
     }

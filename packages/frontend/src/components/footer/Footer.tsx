@@ -25,22 +25,22 @@ import { makeStyles } from '@material-ui/core/styles'
 const useStyles = makeStyles((theme: any) => ({
   container: {
     '& > div': {
-      [theme.breakpoints.down('xs')]: {
+      '@media (max-width: 720px)': {
         marginBottom: '2rem'
       }
     },
     '& > div a': {
-      [theme.breakpoints.down('xs')]: {
+      '@media (max-width: 720px)': {
         marginLeft: '1rem'
       }
     },
     '& > div a:first-child': {
-      [theme.breakpoints.down('xs')]: {
+      '@media (max-width: 720px)': {
         marginLeft: '0'
       }
     },
-    [theme.breakpoints.down('xs')]: {
-      flexDirection: 'column'
+    '@media (max-width: 720px)': {
+      flexDirection: 'column',
     }
   }
 }))
@@ -70,14 +70,15 @@ const Footer = () => {
     >
       <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
         {iconLinks.map((il, i) => (
-          <StyledLink
-            key={il.url}
-            href={il.url}
-            mr={i === iconLinks.length - 1 ? 0 : '1rem'}
-            opacity={0.4}
-          >
-            <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={il.image} />
-          </StyledLink>
+          <Box mr={'1.6rem'} key={il.url}>
+            <StyledLink
+              key={il.url}
+              href={il.url}
+              opacity={0.4}
+            >
+              <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={il.image} />
+            </StyledLink>
+          </Box>
         ))}
       </Flex>
 
@@ -95,7 +96,7 @@ const Footer = () => {
               backgroundColor: 'rgb(118, 209, 145)',
               transition: 'background-color 250ms ease 0s'
             }}></Box>
-            <a href={`https://etherscan.io/block/${blockNumber}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+            <a href={`https://etherscan.io/block/${blockNumber}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'inline-flex' }}>
               <Typography variant="body2" color="secondary">
                 {blockNumber}
               </Typography>
@@ -103,8 +104,8 @@ const Footer = () => {
           </Box>
         )}
         {!!gitRevision && (
-          <Box title="Build git revision number">
-            <a href={`https://github.com/hop-protocol/hop/releases/tag/${gitRevision}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+          <Box title="Build git revision number" display="flex">
+            <a href={`https://github.com/hop-protocol/hop/releases/tag/${gitRevision}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'inline-flex' }}>
               <Typography variant="body2" color="secondary" component="span">
               rev:{gitRevision}
               </Typography>
@@ -114,18 +115,26 @@ const Footer = () => {
       </Box>
 
       <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
-        <StyledLink href={faqUrl} ml={['1.6rem']} opacity={0.6}>
-          <Typography variant="subtitle2">FAQ</Typography>
-        </StyledLink>
-        <StyledLink href={docsUrl} ml={['1.6rem']} opacity={0.6}>
-          <Typography variant="subtitle2">Docs</Typography>
-        </StyledLink>
-        <StyledLink href={forumUrl} ml={['1.6rem']} opacity={0.6}>
-          <Typography variant="subtitle2">Forum</Typography>
-        </StyledLink>
-        <StyledLink href={careersUrl} ml={['1.6rem']} opacity={0.6}>
-          <Typography variant="subtitle2">Careers</Typography>
-        </StyledLink>
+        <Box ml={'1.6rem'}>
+          <StyledLink href={faqUrl} opacity={0.6}>
+            <Typography variant="subtitle2">FAQ</Typography>
+          </StyledLink>
+        </Box>
+        <Box ml={'1.6rem'}>
+          <StyledLink href={docsUrl} opacity={0.6}>
+            <Typography variant="subtitle2">Docs</Typography>
+          </StyledLink>
+        </Box>
+        <Box ml={'1.6rem'}>
+          <StyledLink href={forumUrl} opacity={0.6}>
+            <Typography variant="subtitle2">Forum</Typography>
+          </StyledLink>
+        </Box>
+        <Box ml={'1.6rem'}>
+          <StyledLink href={careersUrl} opacity={0.6}>
+            <Typography variant="subtitle2">Careers</Typography>
+          </StyledLink>
+        </Box>
       </Flex>
     </Box>
   )

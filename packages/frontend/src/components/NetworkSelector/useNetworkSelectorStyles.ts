@@ -15,10 +15,7 @@ export const useNetworkSelectorStyles = makeStyles((theme: any) => ({
     overflow: 'hidden',
     marginLeft: '0.4rem',
     textAlign: 'center',
-    transition: 'all 0.15s ease-out',
-    [theme.breakpoints.down('xs')]: {
-      fontSize: '1rem',
-    },
+    transition: 'all 0.15s ease-out'
   },
   networkLabel: {
     display: 'flex',

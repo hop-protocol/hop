@@ -132,11 +132,11 @@ const SendAmountSelectorCard: FC<Props> = props => {
         ) : null}
       </Flex>
 
-      <Flex fullWidth justifyBetween alignCenter>
-        <Box width="45%" overflow="hidden">
+      <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" className={styles.mobileFlexColumn}>
+        <Box width="45%" overflow="hidden" className={styles.mobileFlexColumn}>
           <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
         </Box>
-        <Box width="55%">
+        <Box width="55%" className={styles.mobileFlexColumn}>
           <LargeTextField
             value={value}
             onChange={handleInputChange}
@@ -146,7 +146,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
             loadingValue={loadingValue}
           />
         </Box>
-      </Flex>
+      </Box>
     </Card>
   )
 }

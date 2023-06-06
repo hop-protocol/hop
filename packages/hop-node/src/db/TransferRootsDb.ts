@@ -538,6 +538,10 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
+      if (!item.bondedAt) {
+        return false
+      }
+
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -560,10 +564,11 @@ class TransferRootsDb extends BaseDb {
         oruTimestampOk = committedAtMs + exitTimeMs < Date.now()
       }
 
-      let oruShouldExit = false
-      if (item?.challenged === true && item?.bondedAt) {
-        oruShouldExit = true
+      let shouldExitOru = true
+      if (isSourceOru && item?.challenged !== true) {
+        shouldExitOru = false
       }
+
       return (
         item.commitTxHash &&
         !item.confirmed &&
@@ -575,7 +580,7 @@ class TransferRootsDb extends BaseDb {
         item.committedAt &&
         timestampOk &&
         oruTimestampOk &&
-        oruShouldExit
+        shouldExitOru
       )
     })
 

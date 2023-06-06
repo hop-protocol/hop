@@ -562,13 +562,8 @@ class TransferRootsDb extends BaseDb {
 
       let oruShouldExit = false
       if (item?.challenged === true && item?.bondedAt) {
-        const bondedAtMs: number = item.bondedAt * 1000
-        const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
-        if (isChallengePeriodOver) {
-          oruShouldExit = true
-        }
+        oruShouldExit = true
       }
-
       return (
         item.commitTxHash &&
         !item.confirmed &&

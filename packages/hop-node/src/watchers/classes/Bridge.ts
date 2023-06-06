@@ -14,9 +14,9 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
-import { config as globalConfig } from 'src/config'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string

@@ -74,8 +74,6 @@ export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.sp
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
 
-export const bedrockUpgradeTimeSec = normalizeEnvVarNumber(process.env.BEDROCK_UPGRADE_TIME) ?? 1686067200
-
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
   [Chain.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',
@@ -221,7 +219,7 @@ export const config: Config = {
     },
     [Chain.Optimism]: {
       totalBlocks: 100_000,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
@@ -424,7 +422,7 @@ export function enableEmergencyMode () {
 }
 
 export function getFinalityTimeSeconds (chainSlug: string) {
-  if (ChainHasFinalizationTag[chainSlug] && isBedrockEnabled(chainSlug)) {
+  if (ChainHasFinalizationTag[chainSlug]) {
     throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
   }
   const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
@@ -434,16 +432,6 @@ export function getFinalityTimeSeconds (chainSlug: string) {
     throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
   }
   return avgBlockTimeSeconds * waitConfirmations
-}
-
-function isBedrockEnabled (chainSlug: string): boolean {
-  if (chainSlug === Chain.Optimism) {
-    const now = Math.floor(Date.now() / 1000)
-    if (now > bedrockUpgradeTimeSec) {
-      return true
-    }
-  }
-  return false
 }
 
 export { Bonders }

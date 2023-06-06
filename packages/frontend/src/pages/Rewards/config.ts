@@ -1,9 +1,9 @@
-import { reactAppNetwork } from 'src/config'
+import { isGoerli } from 'src/config'
 import { getQueryParam } from 'src/utils/getQueryParam'
 
 let configs :any[] = []
 
-if (reactAppNetwork === 'goerli') {
+if (isGoerli) {
   configs = [{
     chainId: 420,
     rewardsContractAddress: '0x5D13179c5fa40b87D53Ff67ca26245D3D5B2F872',

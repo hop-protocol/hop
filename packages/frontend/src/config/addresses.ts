@@ -12,6 +12,7 @@ if (reactAppNetwork === Slug.staging) {
 let addresses: any = kovanAddresses
 let networks = kovanNetworks
 const isMainnet = hopAppNetwork === Slug.mainnet
+const isGoerli = hopAppNetwork === Slug.goerli
 
 if (isMainnet) {
   addresses = mainnetAddresses
@@ -174,6 +175,7 @@ export {
   hopAppNetwork,
   networks,
   isMainnet,
+  isGoerli,
   blocknativeDappid,
   stakingRewardsContracts,
   hopStakingRewardsContracts,

@@ -217,7 +217,7 @@ export function PoolsOverview () {
         </Box>
       )}
       <Box className={styles.box} p={4}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} overflow="auto">
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} overflow="auto" className={styles.header}>
           <Box p={1} textAlign="left">
             <Typography variant="h5">
               <Box display="flex" alignItems="center">

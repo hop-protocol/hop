@@ -37,13 +37,7 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
     <FlatSelect value={network?.slug || 'default'} onChange={selectNetwork}>
       <MenuItem value="default">
         <Flex alignCenter height="3.8rem" pl="1.2rem">
-          <Text
-            fontSize="1.6rem"
-            fontWeight={700}
-            ml=".4rem"
-            overflow="hidden"
-            textOverflow="ellipsis"
-          >
+          <Text className={styles.selectNetworkText}>
             Select Network
           </Text>
         </Flex>

@@ -224,7 +224,7 @@ export class HealthCheckWatcher {
   offsetDays: number = 0
   pollIntervalSeconds: number = 30 * 60
   // The absolute minimum this value can be is must be longer than the max time it takes for the slowest chain to reach finality
-  healthCheckFinalityTimeMinutes: number = 30
+  healthCheckFinalityTimeMinutes: number = 45
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day

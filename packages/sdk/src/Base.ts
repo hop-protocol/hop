@@ -605,7 +605,7 @@ export class Base {
   }
 
   // Transaction overrides options
-  public async txOverrides (chain: Chain): Promise<any> {
+  public async txOverrides (sourceChain: Chain, destinationChain?: Chain): Promise<any> {
     const txOptions: any = {}
     if (this.gasPriceMultiplier > 0) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
@@ -616,19 +616,25 @@ export class Base {
 
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    if (chain.equals(Chain.Polygon)) {
+    if (sourceChain.equals(Chain.Polygon)) {
       if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
       txOptions.gasLimit = MinPolygonGasLimit
     }
 
-    if (chain.equals(Chain.Linea)) {
+    if (sourceChain.equals(Chain.Linea)) {
       const gasPriceMultiplier = 2
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.signer,
         gasPriceMultiplier
       )
+    }
+
+    // Post-bedrock L1 to L2 message transactions don't estimate correctly
+    // TODO: Remove this when estimation is fixed
+    if (sourceChain.equals(Chain.Ethereum) && destinationChain.equals(Chain.Optimism)) {
+      txOptions.gasLimit = 250000
     }
 
     if (this.network === NetworkSlug.Goerli) {

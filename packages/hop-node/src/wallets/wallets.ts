@@ -10,7 +10,6 @@ import {
   config as globalConfig,
   initialTxGasPriceMultiplier,
   maxPriorityFeeConfidenceLevel,
-  minPriorityFeePerGas,
   priorityFeePerGasCap,
   timeTilBoostMs
 } from 'src/config'
@@ -43,7 +42,6 @@ export const constructSigner = memoize((network: string, privateKey: string): Si
     gasPriceMultiplier,
     initialTxGasPriceMultiplier,
     maxGasPriceGwei,
-    minPriorityFeePerGas,
     priorityFeePerGasCap,
     timeTilBoostMs,
     reorgWaitConfirmations,

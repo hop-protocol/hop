@@ -477,7 +477,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         this.getBumpedMaxPriorityFeePerGas(multiplier),
         this.getCurrentBaseFeePerGas()
       ])
-      console.log('shane 000', maxPriorityFeePerGas.toString())
       maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
       const maxGasPrice = this.getMaxGasPrice()
@@ -486,7 +485,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
       maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
 
-      console.log('shane 111', maxPriorityFeePerGas.toString())
       return {
         gasPrice: undefined,
         maxFeePerGas,

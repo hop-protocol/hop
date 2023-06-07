@@ -23,11 +23,11 @@ export const transferTimes = {
     nova: 12
   },
   optimism: {
-    ethereum: 3,
-    arbitrum: 3,
-    polygon: 3,
-    gnosis: 3,
-    nova: 3
+    ethereum: 17,
+    arbitrum: 17,
+    polygon: 17,
+    gnosis: 17,
+    nova: 17
   },
   arbitrum: {
     ethereum: 1,

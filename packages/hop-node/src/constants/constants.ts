@@ -51,10 +51,8 @@ export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Ethereum]: 12,
   [Chain.Polygon]: 2,
   [Chain.Gnosis]: 5,
-  [Chain.Optimism]: 5, // TODO: temp, remove
-  [Chain.Base]: 5, // TODO: temp, remove
-  [Chain.Arbitrum]:  2, // TODO: temp, remove
-  [Chain.Nova]:  2, // TODO: temp, remove
+  [Chain.Optimism]: 2, // TODO: temp remove
+  [Chain.Arbitrum]: 2 // TODO: temp remove
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -127,8 +125,7 @@ export const RelayableChains: string[] = [
 export const MaxDeadline: number = 9999999999
 
 export const ChainHasFinalizationTag: Record<string, boolean> = {
-  [Chain.Ethereum]: true,
-  [Chain.Optimism]: true
+  [Chain.Ethereum]: true
 }
 
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])

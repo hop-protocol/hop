@@ -63,7 +63,8 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
       display: 'flex',
       alignItems: 'flex-end',
       flexDirection: 'column',
-      width: '100%'
+      width: '100%',
+      marginBottom: '1rem'
     }
   }
 }))

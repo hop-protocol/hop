@@ -383,7 +383,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
-    let { maxFeePerGas } = await this.getGasFeeData()
+    const { maxFeePerGas } = await this.getGasFeeData()
     return maxFeePerGas! // eslint-disable-line
   }
 
@@ -461,7 +461,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const marketMaxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
     const prevMaxPriorityFeePerGas = this.maxPriorityFeePerGas ?? marketMaxPriorityFeePerGas
     this.logger.debug(`getting bumped maxPriorityFeePerGas. this.maxPriorityFeePerGas: ${this.maxPriorityFeePerGas?.toString()}, marketMaxPriorityFeePerGas: ${marketMaxPriorityFeePerGas.toString()}`)
-    let bumpedMaxPriorityFeePerGas = getBumpedBN(prevMaxPriorityFeePerGas, multiplier)
+    const bumpedMaxPriorityFeePerGas = getBumpedBN(prevMaxPriorityFeePerGas, multiplier)
     if (!this.compareMarketGasPrice) {
       return bumpedMaxPriorityFeePerGas
     }

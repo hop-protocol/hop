@@ -26,7 +26,7 @@ export const networks: Networks = {
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: false
+    hasFinalizationBlockTag: true
   },
   optimism: {
     name: chains.optimism.name,
@@ -78,7 +78,7 @@ export const networks: Networks = {
     explorerUrls: ['https://nova.arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: false
+    hasFinalizationBlockTag: true
   }
   /*
   zksync: {

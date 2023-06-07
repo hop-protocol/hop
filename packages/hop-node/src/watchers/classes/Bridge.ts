@@ -621,13 +621,13 @@ export default class Bridge extends ContractBase {
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    let currentBlockNumberWithFinality: number
+    let blockNumberWithAcceptableFinality: number
 
     if (getHasFinalizationBlockTag(this.chainSlug)) {
-      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+      blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
-      currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+      blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
     }
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
@@ -639,13 +639,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync) {
-      end = Math.max(currentBlockNumberWithFinality, state?.latestBlockSynced ?? 0)
+      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = totalBlocks!
     }
 

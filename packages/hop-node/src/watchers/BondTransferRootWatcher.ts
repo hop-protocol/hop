@@ -114,10 +114,9 @@ class BondTransferRootWatcher extends BaseWatcher {
     // Check for finality of the commit tx. The sync watcher only waits for safe, but since
     // transfer root bonds are not time sensitive, we can wait for finality.
     if (getHasFinalizationBlockTag(this.chainSlug)) {
-      const finalizedBlockNumber = await this.bridge.getFinalizedBlockNumber()
-
-      if (finalizedBlockNumber < commitTxBlockNumber) {
-        logger.debug(`chain has not yet reached finality. final block number: ${finalizedBlockNumber}, commit block number: ${commitTxBlockNumber}`)
+      const blockNumberWithAcceptableFinality = await this.bridge.getBlockNumberWithAcceptableFinality()
+      if (blockNumberWithAcceptableFinality < commitTxBlockNumber) {
+        logger.debug(`chain has not yet reached finality. final block number: ${blockNumberWithAcceptableFinality}, commit block number: ${commitTxBlockNumber}`)
         return
       }
     }

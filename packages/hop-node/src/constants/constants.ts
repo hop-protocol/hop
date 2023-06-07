@@ -50,8 +50,7 @@ export { nativeChainTokens }
 export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Ethereum]: 12,
   [Chain.Polygon]: 2,
-  [Chain.Gnosis]: 6,
-  [Chain.Arbitrum]: 2 // TODO: temp remove after full finality support for arbitrum
+  [Chain.Gnosis]: 6
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -131,8 +130,22 @@ export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 
 //           https://community.optimism.io/docs/developers/bedrock/bedrock/#two-phase-withdrawals
 // Arbitrum: arbitrary buffer required
 //           https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
-const validatorExitBufferMs = OneHourMs * 10
+const ValidatorExitBufferMs = OneHourMs * 10
 export const OruExitTimeMs: Record<string, number> = {
   [Chain.Optimism]: OneHourMs,
-  [Chain.Arbitrum]: OneWeekMs + validatorExitBufferMs
+  [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs
+}
+
+export const FinalityTag: Record<string, string> = {
+  Safe: 'safe',
+  Finalized: 'finalized'
+}
+
+export const FinalityTagForChain: Record<string, string> = {
+  [Chain.Ethereum]: FinalityTag.Safe,
+  [Chain.Optimism]: FinalityTag.Finalized,
+  [Chain.Arbitrum]: FinalityTag.Safe,
+  [Chain.Gnosis]: FinalityTag.Finalized,
+  [Chain.Base]: FinalityTag.Finalized,
+  [Chain.Nova]: FinalityTag.Safe
 }

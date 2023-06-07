@@ -43,7 +43,7 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli-rollup-explorer.arbitrum.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: false
+    hasFinalizationBlockTag: true
   },
   zksync: {
     name: chains.zksync.name,

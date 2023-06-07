@@ -2,8 +2,10 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
+import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
-import { Chain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
+import { Chain, FinalityTag, FinalityTagForChain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
@@ -74,13 +76,33 @@ export default class ContractBase extends EventEmitter {
   }
 
   getFinalizedBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock('finalized')
+    const block = await this.contract.provider.getBlock(FinalityTag.Finalized)
     return Number(block.number)
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock('safe')
+    let provider = this.contract.provider 
+    let block = await provider.getBlock(FinalityTag.Safe)
+
+    // TODO: Remove this when Alchemy adds support for Arbitrum Finality
+    if (this.chainSlug === Chain.Arbitrum) {
+      const safeFinalityRpcUrl = getRedundantRpcUrls(this.chainSlug)[0]
+      try {
+        provider = getRpcProviderFromUrl(safeFinalityRpcUrl)
+        block = await provider.getBlock(FinalityTag.Safe)
+      } catch (err) {}
+    }
     return Number(block.number)
+  }
+
+  getBlockNumberWithAcceptableFinality = async (): Promise<number> => {
+    if (FinalityTagForChain[this.chainSlug] === FinalityTag.Finalized) {
+      return await this.getFinalizedBlockNumber()
+    } else if (FinalityTagForChain[this.chainSlug] === FinalityTag.Safe) {
+      return await this.getSafeBlockNumber()
+    } else {
+      throw new Error(`unknown finality tag for chain ${this.chainSlug}`)
+    }
   }
 
   getTransactionBlockNumber = async (txHash: string): Promise<number> => {

@@ -391,15 +391,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
     let { maxFeePerGas } = await this.getGasFeeData()
-
-    // TODO: remove this once optimism supports maxFeePerGas
-    if (this.chainSlug === Chain.Optimism) {
-      try {
-        maxFeePerGas = await this.getOptimismMaxFeePerGas()
-      } catch (e) {
-        this.logger.error('error getting optimism max fee per gas',)
-      }
-    }
     return maxFeePerGas! // eslint-disable-line
   }
 
@@ -439,6 +430,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         return this.parseGwei(maxPriorityFeePerGas)
       } catch (err) {
         this.logger.error(`blocknative priority fee call failed: ${err}`)
+      }
+    }
+
+    // TODO: remove this once optimism supports maxFeePerGas
+    if (this.chainSlug === Chain.Optimism) {
+      try {
+        return await this.getOptimismMaxFeePerGas()
+      } catch (err) {
+        this.logger.error(`optimism max fee per gas call failed: ${err}`)
       }
     }
 
@@ -490,6 +490,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         this.getBumpedMaxPriorityFeePerGas(multiplier),
         this.getCurrentBaseFeePerGas()
       ])
+      console.log('shane 000', maxPriorityFeePerGas.toString())
       maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
       const maxGasPrice = this.getMaxGasPrice()
@@ -498,6 +499,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
       maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
 
+      console.log('shane 111', maxPriorityFeePerGas.toString())
       return {
         gasPrice: undefined,
         maxFeePerGas,

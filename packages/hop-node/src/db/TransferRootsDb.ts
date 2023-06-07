@@ -487,10 +487,11 @@ class TransferRootsDb extends BaseDb {
       // Since bonding of transferRoots is not time sensitive, wait an arbitrary amount of time for
       // finality before attempting to bond. This prevents repetitive RPC calls, since that is the
       // only true way to know finality for ORUs. The arbitrary time should represent roughly how long
-      // the longest chain should wait for finality.
+      // the longest chain should wait for finality. Waiting longer also allows extra time to observe
+      // reorgs deeper than finality.
       let finalityTimestampOk = false
       if (item?.committedAt) {
-        const longestTimeToFinalityMs = 2 * TenMinutesMs
+        const longestTimeToFinalityMs = 3 * TenMinutesMs
         finalityTimestampOk = item.committedAt + longestTimeToFinalityMs < Date.now()
       }
 
@@ -520,6 +521,7 @@ class TransferRootsDb extends BaseDb {
         item.sourceChainId &&
         item.shouldBondTransferRoot &&
         item.totalAmount &&
+        item.transferIds &&
         finalityTimestampOk &&
         sentBondTxAtTimestampOk
       )
@@ -535,10 +537,6 @@ class TransferRootsDb extends BaseDb {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
-        return false
-      }
-
-      if (!item.bondedAt) {
         return false
       }
 
@@ -565,7 +563,7 @@ class TransferRootsDb extends BaseDb {
       }
 
       let shouldExitOru = true
-      if (isSourceOru && item?.challenged !== true) {
+      if (isSourceOru && item?.challenged !== true && item?.bondedAt) {
         shouldExitOru = false
       }
 

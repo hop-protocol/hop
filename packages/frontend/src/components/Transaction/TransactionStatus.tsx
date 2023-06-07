@@ -31,7 +31,7 @@ function TransactionStatus(props) {
     }
 
     if (showConfirmations) {
-      // If the chain relies on L1 finality, do not show a confirmation number, since that is L2 confirmations.
+      // If the chain relies on L1 finality, do not show a confirmation number since that is L2 confirmations.
       // The modal will still show the accurate time to finality.
       if (!confirmations || getHasFinalizationBlockTag(networkName)) {
         return setText(`• / ${networkWaitConfirmations} L1 Confirmations`)

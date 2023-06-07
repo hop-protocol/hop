@@ -2108,7 +2108,7 @@ class HopBridge extends Base {
       relayer,
       relayerFee || BigNumber.from(0),
       {
-        ...(await this.txOverrides(Chain.Ethereum)),
+        ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
         value
       }
     ] as const

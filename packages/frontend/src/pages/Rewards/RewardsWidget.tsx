@@ -19,15 +19,22 @@ interface Props {
 }
 
 export const useStyles = makeStyles(theme => ({
+  root: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column',
+      alignItems: 'center'
+    },
+  },
   box: {
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
     minHeight: '200px',
   },
-  root: {
+  header: {
     [theme.breakpoints.down('xs')]: {
-      flexDirection: 'column',
-      alignItems: 'center'
+      maxWidth: '450',
+      display: 'flex',
+      flexDirection: 'column'
     },
   }
 }))
@@ -55,7 +62,7 @@ export function RewardsWidget(props: Props) {
       )}
       {!!claimRecipient && (
         <Box>
-          <Box mb={4} display="flex" justifyContent="space-between" alignItems="center">
+          <Box mb={4} display="flex" justifyContent="space-between" alignItems="center" className={styles.header}>
             <Box flexDirection="column" textAlign="left">
               <Typography variant="h5" component="div">{title} <InfoTooltip title={<Box maxWidth="400px"><div>{description}</div><br /><div>Merkle rewards info</div><div>Published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>Latest root total: {latestRootTotalDisplay}</div><div>Github repo: {repoUrl}</div></Box>} /></Typography>
             </Box>

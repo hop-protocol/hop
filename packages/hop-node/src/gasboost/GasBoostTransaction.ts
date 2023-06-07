@@ -7,6 +7,7 @@ import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
@@ -389,8 +390,35 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
-    const { maxFeePerGas } = await this.getGasFeeData()
+    let { maxFeePerGas } = await this.getGasFeeData()
+
+    // TODO: remove this once optimism supports maxFeePerGas
+    if (this.chainSlug === Chain.Optimism) {
+      try {
+        maxFeePerGas = await this.getOptimismMaxFeePerGas()
+      } catch (e) {
+        this.logger.error('error getting optimism max fee per gas',)
+      }
+    }
     return maxFeePerGas! // eslint-disable-line
+  }
+
+  // TODO: remove this once optimism supports maxFeePerGas
+  async getOptimismMaxFeePerGas (): Promise<BigNumber> {
+    const res = await fetch(getRpcUrl(Chain.Optimism)!, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_maxPriorityFeePerGas',
+        params: [],
+        id: 1
+      })
+    })
+    const gasData = await res.json()
+    return BigNumber.from(gasData.result)
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {

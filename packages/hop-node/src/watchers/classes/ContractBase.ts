@@ -81,19 +81,20 @@ export default class ContractBase extends EventEmitter {
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    let provider = this.contract.provider
-    let block = await provider.getBlock(FinalityTag.Safe)
-
     // TODO: Remove this when Alchemy adds support for Arbitrum Finality
     if (this.chainSlug === Chain.Arbitrum && globalConfig.isMainnet) {
       try {
         const safeFinalityRpcUrls = getRedundantRpcUrls(this.chainSlug)
         if (safeFinalityRpcUrls) {
-          provider = getRpcProviderFromUrl(safeFinalityRpcUrls[0])
-          block = await provider.getBlock(FinalityTag.Safe)
+          const provider = getRpcProviderFromUrl(safeFinalityRpcUrls[0])
+          const block = await provider.getBlock(FinalityTag.Safe)
+          return Number(block.number)
         }
       } catch (err) {}
     }
+
+    const provider = this.contract.provider
+    const block = await provider.getBlock(FinalityTag.Safe)
     return Number(block.number)
   }
 

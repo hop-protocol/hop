@@ -448,7 +448,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     // If the redundant provider is not up to date to the block number, skip the check and try again later
     logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, blockNumber: ${blockNumber}, redundantBlockNumber: ${redundantBlockNumber}`)
     if (!redundantBlockNumber || redundantBlockNumber < blockNumber) {
-      throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}.`)
+      throw new RedundantProviderOutOfSync(`redundantRpcUrl ${redundantRpcUrl} is not synced to block ${blockNumber}. It is only synced to ${redundantBlockNumber}`)
     }
 
     logger.debug(`redundantRpcUrl: ${redundantRpcUrl}, query filter: ${JSON.stringify(filter)}`)

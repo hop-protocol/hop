@@ -488,7 +488,7 @@ class TransferRootsDb extends BaseDb {
       // finality before attempting to bond. This prevents repetitive RPC calls, since that is the
       // only true way to know finality for ORUs. The arbitrary time should represent roughly how long
       // the longest chain should wait for finality. Waiting longer also allows extra time to observe
-      // deep reorgs.
+      // reorgs deeper than finality.
       let finalityTimestampOk = false
       if (item?.committedAt) {
         const longestTimeToFinalityMs = 3 * TenMinutesMs

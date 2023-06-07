@@ -37,7 +37,7 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
-    waitConfirmations: 640
+    waitConfirmations: 64
   },
   gnosis: {
     name: chains.gnosis.name,

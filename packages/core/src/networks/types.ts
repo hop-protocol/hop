@@ -9,6 +9,7 @@ export type Network = {
   explorerUrls: string[]
   nativeBridgeUrl?: string
   waitConfirmations: number
+  hasFinalizationBlockTag: boolean
 }
 
 export type Networks = Partial<{

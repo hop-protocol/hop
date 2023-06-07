@@ -540,10 +540,6 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-      if (!item.bondedAt) {
-        return false
-      }
-
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -567,7 +563,7 @@ class TransferRootsDb extends BaseDb {
       }
 
       let shouldExitOru = true
-      if (isSourceOru && item?.challenged !== true) {
+      if (isSourceOru && item?.challenged !== true && item?.bondedAt) {
         shouldExitOru = false
       }
 

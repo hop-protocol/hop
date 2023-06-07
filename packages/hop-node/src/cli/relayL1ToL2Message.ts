@@ -1,7 +1,7 @@
+import chainSlugToId from 'src/utils/chainSlugToId'
 import {
   getL1ToL2RelayWatcher
 } from 'src/watchers/watchers'
-import chainSlugToId from 'src/utils/chainSlugToId'
 
 import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared'
 

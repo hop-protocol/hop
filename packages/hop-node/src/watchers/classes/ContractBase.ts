@@ -81,7 +81,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    let provider = this.contract.provider 
+    let provider = this.contract.provider
     let block = await provider.getBlock(FinalityTag.Safe)
 
     // TODO: Remove this when Alchemy adds support for Arbitrum Finality

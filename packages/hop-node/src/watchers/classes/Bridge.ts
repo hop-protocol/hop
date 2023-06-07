@@ -5,7 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, ChainHasFinalizationTag, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -16,7 +16,7 @@ import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
-import { config as globalConfig } from 'src/config'
+import { getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -621,13 +621,13 @@ export default class Bridge extends ContractBase {
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    let currentBlockNumberWithFinality: number
+    let blockNumberWithAcceptableFinality: number
 
-    if (ChainHasFinalizationTag[this.chainSlug]) {
-      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+    if (getHasFinalizationBlockTag(this.chainSlug)) {
+      blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
-      currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+      blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
     }
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
@@ -639,13 +639,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync) {
-      end = Math.max(currentBlockNumberWithFinality, state?.latestBlockSynced ?? 0)
+      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = totalBlocks!
     }
 

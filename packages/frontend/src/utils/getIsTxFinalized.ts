@@ -1,4 +1,4 @@
-import { orusThatRelyOnL1ConfirmationsForFinality } from 'src/config'
+import { getHasFinalizationBlockTag } from 'src/utils'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
@@ -9,7 +9,7 @@ export async function getIsTxFinalized (
   if (!txBlockNumber) return false
 
   const provider = getProviderByNetworkName(chainSlug)
-  if (orusThatRelyOnL1ConfirmationsForFinality.includes(chainSlug)) {
+  if (getHasFinalizationBlockTag(chainSlug)) {
     const finalizedBlock = await provider.getBlock('safe')
     return txBlockNumber < finalizedBlock.number
   } else {

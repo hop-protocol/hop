@@ -17,6 +17,7 @@ export type NetworkProps = {
   nativeBridgeUrl?: string
   waitConfirmations?: number
   explorerUrl: string
+  hasFinalizationBlockTag: boolean
 }
 
 class Network {
@@ -34,6 +35,7 @@ class Network {
   readonly nativeBridgeUrl: string | undefined
   readonly waitConfirmations?: number
   readonly explorerUrl: string
+  readonly hasFinalizationBlockTag: boolean
 
   constructor(props: NetworkProps) {
     this.name = props.name
@@ -51,6 +53,7 @@ class Network {
     this.nativeBridgeUrl = props.nativeBridgeUrl
     this.waitConfirmations = props.waitConfirmations
     this.explorerUrl = props.explorerUrl
+    this.hasFinalizationBlockTag = props.hasFinalizationBlockTag
   }
 
   toString() {

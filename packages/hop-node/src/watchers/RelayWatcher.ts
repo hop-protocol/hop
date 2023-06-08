@@ -1,8 +1,8 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
-import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import isNativeToken from 'src/utils/isNativeToken'
 import { Chain, GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -167,7 +167,6 @@ class RelayWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    
     // TODO: Modularize this for multiple chains
     const relayWatcher = this.relayWatchers[destinationChainId] as ArbitrumBridgeWatcher
     const l1ToL2Messages = await relayWatcher.getL1ToL2Messages(transferSentTxHash)

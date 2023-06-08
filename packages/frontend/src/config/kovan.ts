@@ -25,7 +25,8 @@ for (const chainSlug in _networks) {
     fallbackRpcUrls: _networks[chainSlug].fallbackPublicRpcUrls,
     explorerUrl: _networks[chainSlug].explorerUrls[0],
     nativeBridgeUrl: _networks[chainSlug].nativeBridgeUrl,
-    waitConfirmations: _networks[chainSlug].waitConfirmations
+    waitConfirmations: _networks[chainSlug].waitConfirmations,
+    hasFinalizationBlockTag: _networks[chainSlug].hasFinalizationBlockTag
   }
 }
 

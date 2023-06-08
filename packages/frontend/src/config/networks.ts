@@ -25,6 +25,7 @@ export const allNetworks = Object.keys(networks).map(key => {
     nativeBridgeUrl: net.nativeBridgeUrl,
     waitConfirmations: net.waitConfirmations,
     explorerUrl: net.explorerUrl,
+    hasFinalizationBlockTag: net.hasFinalizationBlockTag
   })
 })
 

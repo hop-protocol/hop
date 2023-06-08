@@ -328,17 +328,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
         }
       }
 
-      // Verify that the data in the TheGraph matches the data passed in
-      const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
-      if (
-        rootHash !== transferCommitted?.rootHash ||
-        destinationChainId !== transferCommitted?.destinationChainId ||
-        totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
-        rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
-      ) {
-        throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
-      }
-
       // Verify that the wrapper being used is correct
       const wrapperL2ChainId = await this.l1MessengerWrapper.l2ChainId()
       if (
@@ -361,6 +350,20 @@ class ConfirmRootsWatcher extends BaseWatcher {
           timeSinceBondCreation <= ChallengePeriodMs
       ) {
         throw new Error('Transfer root is not confirmable')
+      }
+
+      // Verify that the data in the TheGraph matches the data passed in
+      // TheGraph support is not consistent on testnet, so skip this check on testnet
+      if (globalConfig.isMainnet) {
+        const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
+        if (
+          rootHash !== transferCommitted?.rootHash ||
+          destinationChainId !== transferCommitted?.destinationChainId ||
+          totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
+          rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
+        ) {
+          throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+        }
       }
     }
   }

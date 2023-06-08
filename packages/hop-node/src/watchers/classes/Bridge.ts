@@ -806,7 +806,7 @@ export default class Bridge extends ContractBase {
           to,
           data
         }
-        const l1FeeInWei = await estimateL1GasCost(this.chainSlug, tx)
+        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(Chain.Optimism)!, tx)
         gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)

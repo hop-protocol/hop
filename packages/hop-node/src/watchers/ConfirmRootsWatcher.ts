@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
+import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
@@ -114,6 +115,14 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
     if (this.chainSlug === Chain.ScrollZk && enabledNetworks.includes(Chain.ScrollZk)) {
       this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
+      this.watchers[Chain.Base] = new BaseZkBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

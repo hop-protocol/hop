@@ -25,7 +25,6 @@ import wait from 'src/utils/wait'
 import { BigNumber, Contract, Wallet, ethers, providers } from 'ethers'
 import { Chain, Token } from 'src/constants'
 import { HDNode } from '@ethersproject/hdnode'
-import { Watcher } from '@eth-optimism/watcher'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 import * as hopMetadata from '@hop-protocol/core/metadata'
@@ -1135,23 +1134,6 @@ export class User {
       governance = await bridge.l1Governance()
     }
     return governance === address
-  }
-
-  async waitForL2Tx (l1TxHash: string) {
-    const watcher = new Watcher({
-      l1: {
-        provider: this.getProvider(Chain.Ethereum),
-        messengerAddress: '0xb89065D5eB05Cac554FDB11fC764C679b4202322'
-      },
-      l2: {
-        provider: this.getProvider(Chain.Optimism),
-        messengerAddress: '0x4200000000000000000000000000000000000007'
-      }
-    })
-
-    const [messageHash] = await watcher.getMessageHashesFromL1Tx(l1TxHash)
-    const l2TxReceipt = await watcher.getL2TransactionReceipt(messageHash)
-    return l2TxReceipt
   }
 
   protected async getBumpedGasPrice (

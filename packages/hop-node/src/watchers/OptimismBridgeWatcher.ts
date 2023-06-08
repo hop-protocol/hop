@@ -43,7 +43,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
     this.csm = new CrossChainMessenger({
       bedrock: true,
-      l1ChainId: this.chainId === 420 ? 5 : 1,
+      l1ChainId: globalConfig.isMainnet ? 1 : 5,
       l2ChainId: this.chainId,
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet

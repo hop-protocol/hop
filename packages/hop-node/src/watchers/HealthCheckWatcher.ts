@@ -235,8 +235,8 @@ export class HealthCheckWatcher {
   }
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
-    USDC: parseUnits('4271000', 6),
-    USDT: parseUnits('750000', 6),
+    USDC: parseUnits('2951000', 6),
+    USDT: parseUnits('699805', 6),
     DAI: parseUnits('1500000', 18),
     ETH: parseUnits('7949', 18),
     MATIC: parseUnits('766730', 18),

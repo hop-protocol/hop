@@ -149,6 +149,7 @@ export function populateTransfer (x: any, prices?: any) {
     const diffObj = diff.toObject()
     x.bondWithinTimestamp = (((diff.days * 24 * 60) + (diff.hours * 60) + (diff as any).values.minutes) * 60)
     let hours = Number(diffObj.hours.toFixed(0))
+    let days = Number(diffObj.days.toFixed(0))
     let minutes = Number(diffObj.minutes.toFixed(0))
     if (hours < 0) {
       hours = 0
@@ -156,8 +157,11 @@ export function populateTransfer (x: any, prices?: any) {
     if (minutes < 1) {
       minutes = 1
     }
+    if (days < 1) {
+      days = 0
+    }
     if (hours || minutes) {
-      x.bondWithinTimestampRelative = `${hours ? `${hours} hour${hours > 1 ? 's' : ''} ` : ''}${minutes ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`
+      x.bondWithinTimestampRelative = `${days ? `${days} day${days > 1 ? 's' : ''} ` : ''}${hours ? `${hours} hour${hours > 1 ? 's' : ''} ` : ''}${minutes ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`
     }
   }
 

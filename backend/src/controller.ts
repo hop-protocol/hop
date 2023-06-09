@@ -267,7 +267,7 @@ export class Controller {
       }
     }
 
-    if (transferIdNotFound && isGoerli) {
+    if (transferIdNotFound && !isGoerli) {
       // fetch transfer that may not be indexed
       this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
 

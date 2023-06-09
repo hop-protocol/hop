@@ -633,7 +633,7 @@ export class Base {
 
     // Post-bedrock L1 to L2 message transactions don't estimate correctly
     // TODO: Remove this when estimation is fixed
-    if (sourceChain.equals(Chain.Ethereum) && destinationChain.equals(Chain.Optimism)) {
+    if (sourceChain.equals(Chain.Ethereum) && destinationChain?.equals(Chain.Optimism)) {
       txOptions.gasLimit = 250000
     }
 

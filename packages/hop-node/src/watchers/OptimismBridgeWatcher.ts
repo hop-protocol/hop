@@ -42,8 +42,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
     this.chainId = chainSlugToId(config.chainSlug)
 
     this.csm = new CrossChainMessenger({
-      bedrock: this.chainId === 420,
-      l1ChainId: this.chainId === 420 ? 5 : 1,
+      bedrock: true,
+      l1ChainId: globalConfig.isMainnet ? 1 : 5,
       l2ChainId: this.chainId,
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet

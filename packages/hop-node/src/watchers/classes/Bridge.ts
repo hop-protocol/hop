@@ -14,8 +14,8 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
-import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { estimateL1GasCost } from '@eth-optimism/sdk'
+import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
@@ -799,16 +799,14 @@ export default class Bridge extends ContractBase {
 
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
-        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!)
-        const serializedTx = serializeTransaction({
+        const tx = {
           value: parseEther('0'),
           gasPrice,
           gasLimit,
           to,
           data
-        })
-        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        }
+        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(Chain.Optimism)!, tx)
         gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)

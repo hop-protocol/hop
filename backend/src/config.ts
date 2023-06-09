@@ -80,18 +80,18 @@ export const transferTimes = {
     gnosis: 12
   },
   linea: {
-    ethereum: 1,
-    optimism: 1,
-    arbitrum: 1,
-    polygon: 1,
-    gnosis: 1
+    ethereum: 15,
+    optimism: 15,
+    arbitrum: 15,
+    polygon: 15,
+    gnosis: 15
   },
   base: {
-    ethereum: 1,
-    optimism: 1,
-    arbitrum: 1,
-    polygon: 1,
-    gnosis: 1
+    ethereum: 25,
+    optimism: 25,
+    arbitrum: 25,
+    polygon: 25,
+    gnosis: 25
   },
   scroll: {
     ethereum: 1,

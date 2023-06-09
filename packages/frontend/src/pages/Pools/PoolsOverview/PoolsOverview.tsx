@@ -209,10 +209,15 @@ export function PoolsOverview () {
                 </tbody>
             </table>
           </Box>
+          <Typography variant="body2" color="secondary">
+            <Box display="flex" alignItems="left" justifyContent="left" marginTop="20px">
+              * All APRs for ETH staking derivative pools include the underlying ETH staking APR.
+            </Box>
+          </Typography>
         </Box>
       )}
       <Box className={styles.box} p={4}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} overflow="auto">
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} overflow="auto" className={styles.header}>
           <Box p={1} textAlign="left">
             <Typography variant="h5">
               <Box display="flex" alignItems="center">
@@ -364,6 +369,11 @@ export function PoolsOverview () {
             )}
             </tbody>
           </table>
+          <Typography variant="body2" color="secondary" title="Tokens in pool">
+            <Box display="flex" alignItems="left" justifyContent="left" marginTop="20px">
+              * All APRs for ETH staking derivative pools include the underlying ETH staking APR.
+            </Box>
+          </Typography>
         </Box>
       </Box>
     </Box>

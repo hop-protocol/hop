@@ -12,6 +12,7 @@ if (reactAppNetwork === Slug.staging) {
 let addresses: any = kovanAddresses
 let networks = kovanNetworks
 const isMainnet = hopAppNetwork === Slug.mainnet
+const isGoerli = hopAppNetwork === Slug.goerli
 
 if (isMainnet) {
   addresses = mainnetAddresses
@@ -114,18 +115,11 @@ export const stakingRewardTokens = {
     optimism: {
       '0x09992dd7b32f7b35d347de9bdaf1919a57d38e82': 'OP',
       '0x25fb92e505f752f730cad0bd4fa17ece4a384266': 'OP',
-      '0x266e2dc3c4c59e42aa07afee5b09e964cffe6778': 'rETH',
+      '0x266e2dc3c4c59e42aa07afee5b09e964cffe6778': 'RPL',
     },
     arbitrum: {
-      '0x3d4cad734b464ed6edcf6254c2a3e5fa5d449b32': 'rETH'
+      '0x3d4cad734b464ed6edcf6254c2a3e5fa5d449b32': 'RPL'
     }
-  }
-}
-
-const rewardTokenAddresses = {
-  mainnet: {
-    WMATIC: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
-    GNO: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb',
   }
 }
 
@@ -148,8 +142,7 @@ const hopStakingRewardsContracts = {
       ETH: '0x755569159598f3702bdD7DFF6233A317C156d3Dd',
       USDC: '0xb0CabFE930642AD3E7DECdc741884d8C3F7EbC70',
       DAI: '0xd4D28588ac1D9EF272aa29d4424e3E2A03789D1E',
-      USDT: '0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8',
-      rETH: '0x3D4cAD734B464Ed6EdCF6254C2A3e5fA5D449b32',
+      USDT: '0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8'
     },
     optimism: {
       ETH: '0x95d6A95BECfd98a7032Ed0c7d950ff6e0Fa8d697',
@@ -157,8 +150,7 @@ const hopStakingRewardsContracts = {
       DAI: '0x392B9780cFD362bD6951edFA9eBc31e68748b190',
       USDT: '0xAeB1b49921E0D2D96FcDBe0D486190B2907B3e0B',
       SNX: '0x25a5A48C35e75BD2EFf53D94f0BB60d5A00E36ea',
-      sUSD: '0x2935008ee9943f859c4fbb863c5402ffc06f462e',
-      rETH: '0x266e2dc3C4c59E42AA07afeE5B09E964cFFe6778',
+      sUSD: '0x2935008ee9943f859c4fbb863c5402ffc06f462e'
     }
   },
   goerli: {
@@ -183,9 +175,9 @@ export {
   hopAppNetwork,
   networks,
   isMainnet,
+  isGoerli,
   blocknativeDappid,
   stakingRewardsContracts,
-  rewardTokenAddresses,
   hopStakingRewardsContracts,
   enabledChains
 }

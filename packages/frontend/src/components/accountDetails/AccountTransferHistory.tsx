@@ -10,7 +10,7 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore'
 import { useQuery } from 'react-query'
 import useQueryParams from 'src/hooks/useQueryParams'
 import InfoTooltip from 'src/components/InfoTooltip'
-import { reactAppNetwork } from 'src/config'
+import { isGoerli } from 'src/config'
 
 type Item = {
   transferId: string
@@ -56,7 +56,7 @@ function useData(props: any) {
       if (!address) {
         return []
       }
-      const baseUrl = reactAppNetwork === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
+      const baseUrl = isGoerli ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
       // const baseUrl = 'http://localhost:8000'
       const url = `${baseUrl}/v1/transfers?account=${address}&perPage=${perPage}&page=${page}`
       const res = await fetch(url)
@@ -80,7 +80,7 @@ function useData(props: any) {
       if (!address) {
         return []
       }
-      const baseUrl = reactAppNetwork === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
+      const baseUrl = isGoerli ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
       // const baseUrl = 'http://localhost:8000'
       const url = `${baseUrl}/v1/accounts?account=${address}`
       const res = await fetch(url)
@@ -150,7 +150,7 @@ export function AccountTransferHistory (props: Props) {
     )
   }
 
-  const baseUrl = reactAppNetwork === 'goerli' ? 'https://goerli.explorer.hop.exchange' : 'https://explorer.hop.exchange'
+  const baseUrl = isGoerli ? 'https://goerli.explorer.hop.exchange' : 'https://explorer.hop.exchange'
   const explorerLink = `${baseUrl}/?account=${address}`
 
   return (

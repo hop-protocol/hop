@@ -17,7 +17,7 @@ import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, t
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
-import { hopAppNetwork, reactAppNetwork, showRewards } from 'src/config'
+import { hopAppNetwork, isGoerli, showRewards } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -85,6 +85,7 @@ const Send: FC = () => {
   const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
   const [feeRefundEnabled] = useState<boolean>(showRewards)
+  const [slippageToleranceTooLowWarning, setSlippageToleranceTooLowWarning] = useState(false)
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -316,27 +317,52 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
+    const a = Number(fromTokenAmount) || 0
+    const b = Number(toTokenAmount) || 0
+    const threshold = 0.3
+    let isLow = false
+    if (a && b && isGoerli) {
+      const diff =  (a - b) / ((a + b) / 2)
+      if (diff > threshold) {
+        isLow = diff > (Number(slippageTolerance) / 100)
+      }
+    }
+    setSlippageToleranceTooLowWarning(isLow)
+  }, [sdk, slippageTolerance, toTokenAmount, fromTokenAmount])
+
+  useEffect(() => {
     try {
-      let message = noLiquidityWarning || minimumSendWarning
+      let message = ''
 
       const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
       const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
       const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
       const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
       const insufficientRelayFeeFunds = sourceToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN.gt(fromBalance.sub(relayFeeEth))
+      const notEnoughBonderFee = estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)
+      const estimatedReceivedLow = estimatedReceived?.lte(0)
+      const lineaWarning = isGoerli && fromNetwork?.isL1 && toNetwork?.slug === 'linea'
 
-      if (sufficientBalanceWarning) {
+      if (noLiquidityWarning) {
+        message = noLiquidityWarning
+      } else if (minimumSendWarning) {
+        message = minimumSendWarning
+      } else if (notEnoughBonderFee) {
+        message = 'Bonder fee greater than estimated received. A higher amount is needed to cover fees.'
+      } else if (sufficientBalanceWarning) {
         message = sufficientBalanceWarning
-      } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
-        message = 'Bonder fee greater than estimated received'
       } else if (insufficientRelayFeeFunds) {
         message = `Insufficient balance to cover the cost of tx. Please add ${sourceToken.nativeTokenSymbol} to pay for tx fees.`
-      } else if (estimatedReceived?.lte(0)) {
+      } else if (estimatedReceivedLow) {
         message = 'Estimated received too low. Send a higher amount to cover the fees.'
       } else if (showPriceImpactWarning) {
         message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
       } else if (bonderFeeMajority) {
         message = 'Warning: More than 50% of amount will go towards bonder fee'
+      } else if (slippageToleranceTooLowWarning) {
+        message = `Warning: Swap at destination might fail due to slippage tolerance used (${slippageTolerance}%). Try increasing slippage if you don't want to receive h${sourceToken?.symbol}.`
+      } else if (lineaWarning) {
+        message = `Warning: Linea is experiencing RPC issues and deposits will be highly delayed.`
       }
 
       setWarning(message)
@@ -357,7 +383,9 @@ const Send: FC = () => {
     totalFee,
     toNetwork,
     relayFeeEth,
-    fromBalance
+    fromBalance,
+    slippageToleranceTooLowWarning,
+    slippageTolerance
   ])
 
   useEffect(() => {
@@ -472,7 +500,7 @@ const Send: FC = () => {
           }
 
           const query = new URLSearchParams(payload).toString()
-          const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+          const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
           // const apiBaseUrl = 'http://localhost:8000'
           const url = `${apiBaseUrl}/v1/refund-amount?${query}`
           const res = await fetch(url)

@@ -30,6 +30,8 @@ export enum Token {
   MATIC = 'MATIC',
   HOP = 'HOP',
   SNX = 'SNX',
+  sUSD = 'sUSD',
+  rETH = 'rETH'
 }
 
 export enum NativeChainToken {
@@ -45,10 +47,10 @@ for (const chain in chains) {
 
 export { nativeChainTokens }
 
-export const AvgBlockTimeSeconds = {
-  Ethereum: 12,
-  Polygon: 2,
-  Gnosis: 5
+export const AvgBlockTimeSeconds: Record<string, number> = {
+  [Chain.Ethereum]: 12,
+  [Chain.Polygon]: 2,
+  [Chain.Gnosis]: 6
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -76,9 +78,9 @@ export const OneWeekSeconds = 7 * 24 * 60 * 60
 export const OneWeekMs = OneWeekSeconds * 1000
 
 export const TotalBlocks = {
-  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Ethereum),
-  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Polygon),
-  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Gnosis)
+  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Ethereum]),
+  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Polygon]),
+  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Gnosis])
 }
 
 export const RootSetSettleDelayMs = 5 * 60 * 1000
@@ -91,6 +93,7 @@ export enum TxError {
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW',
   RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
+  RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
@@ -119,8 +122,30 @@ export const RelayableChains: string[] = [
 
 export const MaxDeadline: number = 9999999999
 
-export const ChainHasFinalizationTag: Record<string, boolean> = {
-  ethereum: true
+export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
+export const BondTransferRootDelayBufferSeconds = 5 * 60
+export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 minutes
+
+// Optimism: time for relayer to publish state root
+//           https://community.optimism.io/docs/developers/bedrock/bedrock/#two-phase-withdrawals
+// Arbitrum: arbitrary buffer required
+//           https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
+const ValidatorExitBufferMs = OneHourMs * 10
+export const OruExitTimeMs: Record<string, number> = {
+  [Chain.Optimism]: OneHourMs,
+  [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs
 }
 
-export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
+export const FinalityTag: Record<string, string> = {
+  Safe: 'safe',
+  Finalized: 'finalized'
+}
+
+export const FinalityTagForChain: Record<string, string> = {
+  [Chain.Ethereum]: FinalityTag.Safe,
+  [Chain.Optimism]: FinalityTag.Finalized,
+  [Chain.Arbitrum]: FinalityTag.Safe,
+  [Chain.Gnosis]: FinalityTag.Finalized,
+  [Chain.Base]: FinalityTag.Finalized,
+  [Chain.Nova]: FinalityTag.Safe
+}

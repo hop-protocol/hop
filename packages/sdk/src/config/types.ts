@@ -5,6 +5,7 @@ interface Chain {
   fallbackRpcUrls?: string[]
   explorerUrl: string
   waitConfirmations: number
+  hasFinalizationBlockTag: boolean
 }
 
 export interface Chains {

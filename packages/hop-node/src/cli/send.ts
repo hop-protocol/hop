@@ -4,6 +4,7 @@ import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import wallets from 'src/wallets'
+import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
@@ -26,6 +27,9 @@ async function main (source: any) {
   const isSameChain = (fromChain && toChain) && (fromChain === toChain)
   if (isHToken && isNativeSend) {
     throw new Error('Cannot use --htoken and --native flag together')
+  }
+  if (isNativeSend && (toChain || token)) {
+    throw new Error('Cannot use --native flag with --to-chain or --token')
   }
 
   if (isSameChain) {
@@ -223,10 +227,14 @@ async function sendTokens (
         recipient
       )
     } else {
+      const options: CanonicalTokenConvertOptions = {
+        shouldSkipNearestCheck: true
+      }
       tx = await (bridge as L1Bridge).sendCanonicalTokensToL2(
         destinationChainId,
         parsedAmount,
-        recipient
+        recipient,
+        options
       )
     }
   } else {

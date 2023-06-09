@@ -16,12 +16,12 @@ import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Logger } from 'src/logger'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { chainSlugToId } from 'src/utils/chainSlugToId'
-import { defaultAbiCoder, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { use } from '@maticnetwork/maticjs'
 import { wait } from 'src/utils/wait'
 
@@ -236,9 +236,9 @@ export class ArbBot {
 
       const shouldBondRoot = true
       if (shouldBondRoot && tx3?.hash) {
-        const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
-        this.logger.info('l1 bond transfer root tx:', tx4?.hash)
-        await tx4?.wait(this.waitConfirmations)
+        // const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
+        // this.logger.info('l1 bond transfer root tx:', tx4?.hash)
+        // await tx4?.wait(this.waitConfirmations)
       } else {
         if (!this.dryMode) {
           await wait(24 * 60 * 60 * 1000) // wait for transferRoot to be bonded
@@ -266,7 +266,7 @@ export class ArbBot {
     this.logger.log('pollAmmDeposit()')
     const arrived = await this.checkCanonicalBridgeTokensArriveOnL2()
 
-    let token = this.bridge.connect(this.ammSigner.connect(this.l2ChainProvider)).getCanonicalToken(this.l2ChainSlug)
+    const token = this.bridge.connect(this.ammSigner.connect(this.l2ChainProvider)).getCanonicalToken(this.l2ChainSlug)
     if (arrived && token.isNativeToken) {
       const tx7 = await this.wrapEthToWethOnL2()
       this.logger.info('l2 wrap eth tx:', tx7?.hash)
@@ -337,7 +337,7 @@ export class ArbBot {
   async withdrawAmmHTokens () {
     this.logger.log('withdrawAmmHTokens()')
     // LP decimals will always be 18
-    let amountFmt = this.bridge.formatUnits(this.amount)
+    const amountFmt = this.bridge.formatUnits(this.amount)
     let amount = this.bridge.parseUnits(amountFmt, 18)
 
     const recipient = await this.ammSigner.getAddress()
@@ -682,7 +682,7 @@ export class ArbBot {
       }
 
       const messenger = new Contract(l1TokenBridgeAddress, lineaErc20Abi, this.ammSigner.connect(this.l1ChainProvider))
-      const { data }= await messenger.populateTransaction.deposit(amount)
+      const { data } = await messenger.populateTransaction.deposit(amount)
       const txOptions = await this.txOverrides(this.l1ChainSlug)
 
       const spender = l1TokenBridgeAddress
@@ -1140,7 +1140,11 @@ export class ArbBot {
     const items = await getTransfersCommitted(this.l2ChainSlug, this.tokenSymbol, this.l1ChainId, startTimestamp)
 
     for (const item of items) {
-      if (item.transactionHash === l2CommitTxHash) {
+      if (
+        item?.transactionHash === l2CommitTxHash &&
+        item?.totalAmount &&
+        item?.rootHash
+      ) {
         return {
           totalAmount: item.totalAmount,
           transferRootHash: item.rootHash

@@ -77,7 +77,7 @@ describe.skip('eventsBatch', () => {
   )
 
   it(
-    'eventsBatch with cacheKey',
+    'eventsBatch with syncCacheKey',
     async () => {
       const { l2Bridge } = contracts.get(Token.USDC, Chain.Gnosis)
       const bridge = new Bridge(l2Bridge)
@@ -88,7 +88,7 @@ describe.skip('eventsBatch', () => {
       const maxIterations = Math.floor(totalBlocks / batchBlocks)
       const remainder = totalBlocks % batchBlocks
       const halfway = Math.floor(maxIterations / 2)
-      const cacheKey = `${Date.now()}`
+      const syncCacheKey = `${Date.now()}`
       let iterations = 0
 
       expect(batchBlocks).toBe(1000)
@@ -114,7 +114,7 @@ describe.skip('eventsBatch', () => {
           }
           return true
         },
-        { cacheKey }
+        { syncCacheKey }
       )
 
       expect(iterations).toBe(halfway)
@@ -128,7 +128,7 @@ describe.skip('eventsBatch', () => {
           }
           iterations++
         },
-        { cacheKey }
+        { syncCacheKey }
       )
 
       expect(iterations).toBeGreaterThanOrEqual(halfway + maxIterations)

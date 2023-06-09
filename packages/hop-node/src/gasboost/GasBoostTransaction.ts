@@ -7,6 +7,7 @@ import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
@@ -15,12 +16,11 @@ import {
   InitialTxGasPriceMultiplier,
   MaxGasPriceMultiplier,
   MaxPriorityFeeConfidenceLevel,
-  MinPriorityFeePerGas,
   PriorityFeePerGasCap
 } from 'src/constants'
 import { EventEmitter } from 'events'
 
-import { EstimateGasError, NonceTooLowError } from 'src/types/error'
+import { EstimateGasError, KmsSignerError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import {
   blocknativeApiKey,
@@ -67,7 +67,6 @@ export type Options = {
   gasPriceMultiplier: number
   initialTxGasPriceMultiplier: number
   maxGasPriceGwei: number
-  minPriorityFeePerGas: number
   priorityFeePerGasCap: number
   compareMarketGasPrice: boolean
   reorgWaitConfirmations: number
@@ -97,7 +96,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
   maxRebroadcastIndex: number = 10
   maxRebroadcastIndexReached: boolean = false
-  minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
   priorityFeePerGasCap: number = PriorityFeePerGasCap // this the max we'll keep bumping maxPriorityFeePerGas to in type 2 txs. Since maxPriorityFeePerGas is already a type 2 argument, it uses the term cap instead
   maxPriorityFeeConfidenceLevel: number = MaxPriorityFeeConfidenceLevel
   compareMarketGasPrice: boolean = true
@@ -270,10 +268,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.maxGasPriceGwei = maxGasPriceGwei
   }
 
-  setMinPriorityFeePerGas (minPriorityFeePerGas: number) {
-    this.minPriorityFeePerGas = minPriorityFeePerGas
-  }
-
   setPriorityFeePerGasCap (priorityFeePerGasCap: number) {
     this.priorityFeePerGasCap = priorityFeePerGasCap
   }
@@ -393,6 +387,24 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return maxFeePerGas! // eslint-disable-line
   }
 
+  // TODO: remove this once optimism supports maxFeePerGas
+  async getOptimismMaxFeePerGas (): Promise<BigNumber> {
+    const res = await fetch(getRpcUrl(Chain.Optimism)!, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_maxPriorityFeePerGas',
+        params: [],
+        id: 1
+      })
+    })
+    const gasData = await res.json()
+    return BigNumber.from(gasData.result)
+  }
+
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
     const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
     if (isMainnet) {
@@ -414,6 +426,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
     }
 
+    // TODO: remove this once optimism supports maxFeePerGas
+    if (this.chainSlug === Chain.Optimism) {
+      try {
+        return await this.getOptimismMaxFeePerGas()
+      } catch (err) {
+        this.logger.error(`optimism max fee per gas call failed: ${err}`)
+      }
+    }
+
     const { maxPriorityFeePerGas } = await this.getGasFeeData()
     return maxPriorityFeePerGas! // eslint-disable-line
   }
@@ -422,19 +443,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.parseGwei(this.maxGasPriceGwei)
   }
 
-  getMinPriorityFeePerGas () {
-    return this.parseGwei(this.minPriorityFeePerGas)
-  }
-
   getPriorityFeePerGasCap () {
     return this.parseGwei(this.priorityFeePerGasCap)
   }
 
   async getBumpedGasPrice (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketGasPrice = await this.getMarketGasPrice()
-    if (!this.isChainGasFeeBumpable()) {
-      return marketGasPrice
-    }
     const prevGasPrice = this.gasPrice ?? marketGasPrice
     const bumpedGasPrice = getBumpedGasPrice(prevGasPrice, multiplier)
     if (!this.compareMarketGasPrice) {
@@ -445,14 +459,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
     const marketMaxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
-    if (!this.isChainGasFeeBumpable()) {
-      return marketMaxPriorityFeePerGas
-    }
     const prevMaxPriorityFeePerGas = this.maxPriorityFeePerGas ?? marketMaxPriorityFeePerGas
-    const minPriorityFeePerGas = this.getMinPriorityFeePerGas()
     this.logger.debug(`getting bumped maxPriorityFeePerGas. this.maxPriorityFeePerGas: ${this.maxPriorityFeePerGas?.toString()}, marketMaxPriorityFeePerGas: ${marketMaxPriorityFeePerGas.toString()}`)
-    let bumpedMaxPriorityFeePerGas = getBumpedBN(prevMaxPriorityFeePerGas, multiplier)
-    bumpedMaxPriorityFeePerGas = BNMax(minPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
+    const bumpedMaxPriorityFeePerGas = getBumpedBN(prevMaxPriorityFeePerGas, multiplier)
     if (!this.compareMarketGasPrice) {
       return bumpedMaxPriorityFeePerGas
     }
@@ -540,9 +549,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     if (options.maxGasPriceGwei) {
       this.maxGasPriceGwei = options.maxGasPriceGwei
-    }
-    if (options.minPriorityFeePerGas) {
-      this.minPriorityFeePerGas = options.minPriorityFeePerGas
     }
     if (options.priorityFeePerGasCap) {
       this.priorityFeePerGasCap = options.priorityFeePerGasCap
@@ -642,7 +648,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       } catch (err) {
         this._emitError(err)
         this.logger.error(`ending poller. ${err.message}`)
-        if (err instanceof NonceTooLowError || err instanceof EstimateGasError) {
+        if (err instanceof NonceTooLowError || err instanceof EstimateGasError || err instanceof KmsSignerError) {
           this.logger.error('ending poller. breaking.')
           break
         }
@@ -794,7 +800,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           estimateGasFailed,
           isAlreadyKnown,
           isFeeTooLow,
-          serverError
+          serverError,
+          kmsSignerError
         } = this.parseErrorString(err.message)
 
         // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
@@ -804,6 +811,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         } else if (estimateGasFailed && !serverError) {
           this.logger.error('estimateGas failed')
           throw new EstimateGasError('EstimateGasError')
+        }
+
+        if (kmsSignerError) {
+          throw new KmsSignerError('KmsSignerError')
         }
 
         const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
@@ -915,15 +926,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return isSupported
   }
 
-  isChainGasFeeBumpable () {
-    // Optimism gasPrice must be constant; shouldn't be bumped
-    if (this.chainSlug === Chain.Optimism) {
-      return false
-    }
-
-    return true
-  }
-
   // explainer: https://stackoverflow.com/q/35185749/1439168
   private _emitError (err: Error) {
     if (this.listeners(State.Error).length > 0) {
@@ -937,12 +939,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isAlreadyKnown = /(AlreadyKnown|already known)/i.test(errMessage) // tx is already in mempool
     const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
     const serverError = /SERVER_ERROR/g.test(errMessage)
+    const kmsSignerError = /Error signing message/g.test(errMessage)
     return {
       nonceTooLow,
       estimateGasFailed,
       isAlreadyKnown,
       isFeeTooLow,
-      serverError
+      serverError,
+      kmsSignerError
     }
   }
 

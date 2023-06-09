@@ -1,20 +1,17 @@
-import AWS from 'aws-sdk'
+import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm'
 import { awsRegion } from 'src/config'
 
-AWS.config.update({
-  region: awsRegion
-})
-
 export async function getParameter (name: string, region?: string): Promise<string> {
-  const ssm = new AWS.SSM({
-    region
+  const ssm = new SSMClient({
+    region: region ?? awsRegion
   })
   const params = {
     Name: name,
     WithDecryption: true
   }
+  const command = new GetParameterCommand(params)
   return await new Promise((resolve, reject) => {
-    ssm.getParameter(params, function (err: Error, data: any) {
+    ssm.send(command, function (err: Error, data: any) {
       if (err) {
         return reject(err)
       }

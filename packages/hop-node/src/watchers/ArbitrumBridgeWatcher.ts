@@ -7,6 +7,7 @@ import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2Tran
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Signer, providers } from 'ethers'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -69,8 +70,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     logger.debug(
       `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
     )
-    if (this.dryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayXDomainMessage`)
       return
     }
 
@@ -88,7 +89,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.notifier.info(msg)
   }
 
-  async redeemArbitrumTransaction (l1TxHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
     const status = await this.getMessageStatus(l1TxHash, messageIndex)
     if (status !== L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2) {
       this.logger.error(`Transaction not redeemable. Status: ${L1ToL2MessageStatus[status]}`)

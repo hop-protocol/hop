@@ -67,11 +67,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         (dbTransfer: Transfer) => dbTransfer.withdrawalBonded
       )
       if (!hasBondedWithdrawals) {
+        this.logger.debug(`no bonded withdrawals found for root id ${transferRootId}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
         continue
       }
 
       const allBondableTransfersSettled = this.syncWatcher.getIsDbTransfersAllSettled(dbTransfers)
       if (allBondableTransfersSettled) {
+        this.logger.debug(`all bondable transfers for root id ${transferRootId} are settled. Marking transfer root as settled`)
         await this.db.transferRoots.update(transferRootId, {
           allSettled: true
         })
@@ -85,6 +87,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         const isAlreadySettled = dbTransfer?.withdrawalBondSettled
         const shouldSkip = !hasWithdrawalBonder || isAlreadySettled
         if (shouldSkip) {
+          this.logger.debug(`skipping db transfer ${dbTransfer?.transferId} for root id ${transferRootId}. withdrawalBonder: ${hasWithdrawalBonder}, withdrawalBondSettled: ${isAlreadySettled}`)
           continue
         }
 
@@ -199,8 +202,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping settleBondedWithdrawals`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping settleBondedWithdrawals`)
       return
     }
 

@@ -1,7 +1,7 @@
 import { Slug } from '@hop-protocol/sdk'
 import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
-import { reactAppNetwork } from 'src/config'
+import { isGoerli } from 'src/config'
 
 export function getUrl(chain: Slug | string) {
   if (chain === Slug.gnosis) {
@@ -11,7 +11,7 @@ export function getUrl(chain: Slug | string) {
     chain = 'mainnet'
   }
 
-  if (reactAppNetwork === 'goerli') {
+  if (isGoerli) {
     if (chain === 'mainnet') {
       chain = 'goerli'
     }
@@ -40,7 +40,7 @@ export function getUrl(chain: Slug | string) {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
     if (chain === 'base') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      return 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
     }
 
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`

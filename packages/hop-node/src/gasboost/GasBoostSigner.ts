@@ -216,12 +216,6 @@ class GasBoostSigner extends Signer {
     })
   }
 
-  setMinPriorityFeePerGas (minPriorityFeePerGas: number) {
-    this.setOptions({
-      minPriorityFeePerGas
-    })
-  }
-
   setPriorityFeePerGasCap (priorityFeePerGasCap: number) {
     this.setOptions({
       priorityFeePerGasCap

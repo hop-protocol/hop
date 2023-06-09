@@ -42,6 +42,9 @@ export const useStyles = makeStyles(theme => ({
       marginLeft: 0,
       width: '90%'
     },
+    '@media (min-width:600px) and (max-width:700px)': {
+      flexDirection: 'column',
+    },
   },
   topBoxes: {
     [theme.breakpoints.down('xs')]: {
@@ -108,7 +111,10 @@ export const useStyles = makeStyles(theme => ({
     background: 'rgba(179, 46, 255, 0.1)',
     borderRadius: '0.5rem',
     maxWidth: '100px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    '@media (min-width:600px) and (max-width:700px)': {
+      marginLeft: '0',
+    },
   },
   notStakedMessageColor: {
     color: '#B32EFF'

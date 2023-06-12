@@ -199,14 +199,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
 
     try {
-      const tx = await this.sendBondTransferRoot(
+      const tx = await this.sendBondTransferRoot({
         transferRootId,
         transferRootHash,
         destinationChainId,
         totalAmount,
         transferIds,
-        committedAt
-      )
+        rootCommittedAt: committedAt
+      })
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
@@ -234,25 +234,18 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async sendBondTransferRoot (
-    transferRootId: string,
-    transferRootHash: string,
-    destinationChainId: number,
-    totalAmount: BigNumber,
-    transferIds: string[],
-    rootCommittedAt: number
-  ): Promise<providers.TransactionResponse> {
-    const logger = this.logger.create({ root: transferRootId })
-
-    logger.debug('performing preTransactionValidation')
-    await this.preTransactionValidation({
+  async sendBondTransferRoot (params: SendBondTransferRootTxParams): Promise<providers.TransactionResponse> {
+    const {
       transferRootId,
       transferRootHash,
       destinationChainId,
       totalAmount,
-      transferIds,
-      rootCommittedAt
-    })
+    } = params
+
+    const logger = this.logger.create({ root: transferRootId })
+
+    logger.debug('performing preTransactionValidation')
+    await this.preTransactionValidation(params)
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(

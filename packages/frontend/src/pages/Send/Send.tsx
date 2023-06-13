@@ -332,21 +332,28 @@ const Send: FC = () => {
 
   useEffect(() => {
     try {
-      let message = noLiquidityWarning || minimumSendWarning
+      let message = ''
 
       const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
       const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
       const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
       const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
       const insufficientRelayFeeFunds = sourceToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN.gt(fromBalance.sub(relayFeeEth))
+      const notEnoughBonderFee = estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)
+      const estimatedReceivedLow = estimatedReceived?.lte(0)
+      const lineaWarning = isGoerli && fromNetwork?.isL1 && toNetwork?.slug === 'linea'
 
-      if (sufficientBalanceWarning) {
+      if (noLiquidityWarning) {
+        message = noLiquidityWarning
+      } else if (minimumSendWarning) {
+        message = minimumSendWarning
+      } else if (notEnoughBonderFee) {
+        message = 'Bonder fee greater than estimated received. A higher amount is needed to cover fees.'
+      } else if (sufficientBalanceWarning) {
         message = sufficientBalanceWarning
-      } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
-        message = 'Bonder fee greater than estimated received'
       } else if (insufficientRelayFeeFunds) {
         message = `Insufficient balance to cover the cost of tx. Please add ${sourceToken.nativeTokenSymbol} to pay for tx fees.`
-      } else if (estimatedReceived?.lte(0)) {
+      } else if (estimatedReceivedLow) {
         message = 'Estimated received too low. Send a higher amount to cover the fees.'
       } else if (showPriceImpactWarning) {
         message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
@@ -354,7 +361,7 @@ const Send: FC = () => {
         message = 'Warning: More than 50% of amount will go towards bonder fee'
       } else if (slippageToleranceTooLowWarning) {
         message = `Warning: Swap at destination might fail due to slippage tolerance used (${slippageTolerance}%). Try increasing slippage if you don't want to receive h${sourceToken?.symbol}.`
-      } else if (isGoerli && fromNetwork?.isL1 && toNetwork?.slug === 'linea') {
+      } else if (lineaWarning) {
         message = `Warning: Linea is experiencing RPC issues and deposits will be highly delayed.`
       }
 

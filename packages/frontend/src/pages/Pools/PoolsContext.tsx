@@ -749,7 +749,9 @@ const PoolsProvider: FC = ({ children }) => {
       })
     } catch (err: any) {
       console.error(err)
-      setError(formatError(err))
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err))
+      }
     }
     setIsDepositing(false)
   }
@@ -948,8 +950,11 @@ const PoolsProvider: FC = ({ children }) => {
         }
       })
 
-    } catch (err) {
-      setError(formatError(err))
+    } catch (err: any) {
+      console.error(err)
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err))
+      }
     }
     setIsWithdrawing(false)
   }

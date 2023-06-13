@@ -2,6 +2,7 @@ import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import isNativeToken from 'src/utils/isNativeToken'
 import { Chain, GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -21,7 +22,9 @@ type Config = {
   dryMode?: boolean
 }
 
-type RelayWatchers = ArbitrumBridgeWatcher
+type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher
+
+// TODO: Modularize this for multiple chains
 
 class RelayWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: RelayWatcher }
@@ -37,6 +40,16 @@ class RelayWatcher extends BaseWatcher {
     })
 
     const enabledNetworks = getEnabledNetworks()
+
+    if (enabledNetworks.includes(Chain.Optimism)) {
+      const optimismChainId = this.chainSlugToId(Chain.Optimism)
+      this.relayWatchers[optimismChainId] = new OptimismBridgeWatcher({
+        chainSlug: Chain.Optimism,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
 
     if (enabledNetworks.includes(Chain.Arbitrum)) {
       const arbitrumChainId = this.chainSlugToId(Chain.Arbitrum)
@@ -154,7 +167,9 @@ class RelayWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    const l1ToL2Messages = await this.relayWatchers[destinationChainId].getL1ToL2Messages(transferSentTxHash)
+    // TODO: Modularize this for multiple chains
+    const relayWatcher = this.relayWatchers[destinationChainId] as ArbitrumBridgeWatcher
+    const l1ToL2Messages = await relayWatcher.getL1ToL2Messages(transferSentTxHash)
     let messageIndex = 0
     if (l1ToL2Messages.length > 1) {
       messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
@@ -162,7 +177,7 @@ class RelayWatcher extends BaseWatcher {
     }
 
     logger.debug('processing transfer relay. checking isRelayComplete')
-    const isRelayComplete = await this.relayWatchers[destinationChainId].isTransactionRedeemed(transferSentTxHash)
+    const isRelayComplete = await relayWatcher.isTransactionRedeemed(transferSentTxHash)
     logger.debug(`processing transfer relay. isRelayComplete: ${isRelayComplete?.toString()}`)
     if (isRelayComplete) {
       logger.warn('checkTransferSentToL2 already complete. marking item not found')
@@ -369,7 +384,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
-    return await this.relayWatchers[destinationChainId].redeemArbitrumTransaction(txHash, messageIndex)
+    return await this.relayWatchers[destinationChainId].relayL1ToL2Message(txHash, messageIndex)
   }
 
   async getMessageIndex (transferId: string, transferSentTxHash: string, transferSentTimestamp: number): Promise<number> {

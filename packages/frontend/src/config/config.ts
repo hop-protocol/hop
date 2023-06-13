@@ -9,34 +9,27 @@ if (process.env.REACT_APP_NETWORK === 'goerli') {
 
 export { showRewards }
 
-export const orusThatRelyOnL1ConfirmationsForFinality: string[] = [
-  'optimism',
-  'base',
-  'arbitrum',
-  'nova',
-]
-
 export const transferTimes = {
   ethereum: {
     optimism: 2,
-    arbitrum: 12,
-    polygon: 30,
+    arbitrum: 10,
+    polygon: 20,
     gnosis: 5,
-    nova: 12
+    nova: 10
   },
   optimism: {
-    ethereum: 17,
-    arbitrum: 17,
-    polygon: 17,
-    gnosis: 17,
-    nova: 17
+    ethereum: 25,
+    arbitrum: 25,
+    polygon: 25,
+    gnosis: 25,
+    nova: 25
   },
   arbitrum: {
-    ethereum: 17,
-    optimism: 17,
-    polygon: 17,
-    gnosis: 17,
-    nova: 17
+    ethereum: 12,
+    optimism: 12,
+    polygon: 12,
+    gnosis: 12,
+    nova: 12
   },
   polygon: {
     ethereum: 20,
@@ -46,17 +39,17 @@ export const transferTimes = {
     nova: 20
   },
   gnosis: {
-    ethereum: 5,
-    optimism: 5,
-    arbitrum: 5,
-    polygon: 5,
-    nova: 5
+    ethereum: 4,
+    optimism: 4,
+    arbitrum: 4,
+    polygon: 4,
+    nova: 4
   },
   nova: {
-    ethereum: 17,
-    optimism: 17,
-    arbitrum: 17,
-    polygon: 17,
-    gnosis: 17
+    ethereum: 12,
+    optimism: 12,
+    arbitrum: 12,
+    polygon: 12,
+    gnosis: 12
   }
 }

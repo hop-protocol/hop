@@ -7,7 +7,6 @@ import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
 import {
   AvgBlockTimeSeconds,
   Chain,
-  ChainHasFinalizationTag,
   DefaultBatchBlocks,
   Network,
   OneHourMs,
@@ -40,7 +39,6 @@ export const gasBoostErrorSlackChannel = process.env.GAS_BOOST_ERROR_SLACK_CHANN
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
 export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
 export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
-export const minPriorityFeePerGas = normalizeEnvVarNumber(process.env.MIN_PRIORITY_FEE_PER_GAS)
 export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
 export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
 export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
@@ -73,8 +71,6 @@ export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.sp
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
-
-export const bedrockUpgradeTimeSec = normalizeEnvVarNumber(process.env.BEDROCK_UPGRADE_TIME) ?? 1686067200
 
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
@@ -221,7 +217,7 @@ export const config: Config = {
     },
     [Chain.Optimism]: {
       totalBlocks: 100_000,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
@@ -424,7 +420,7 @@ export function enableEmergencyMode () {
 }
 
 export function getFinalityTimeSeconds (chainSlug: string) {
-  if (ChainHasFinalizationTag[chainSlug]) {
+  if (getHasFinalizationBlockTag(chainSlug)) {
     throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
   }
   const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
@@ -434,6 +430,10 @@ export function getFinalityTimeSeconds (chainSlug: string) {
     throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
   }
   return avgBlockTimeSeconds * waitConfirmations
+}
+
+export function getHasFinalizationBlockTag (chainSlug: string) {
+  return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
 }
 
 export { Bonders }

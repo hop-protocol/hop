@@ -5,7 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, ChainHasFinalizationTag, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -14,9 +14,9 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
-import { bedrockUpgradeTimeSec, config as globalConfig } from 'src/config'
-import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { estimateL1GasCost } from '@eth-optimism/sdk'
+import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -621,14 +621,13 @@ export default class Bridge extends ContractBase {
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    let currentBlockNumberWithFinality: number
+    let blockNumberWithAcceptableFinality: number
 
-    const shouldUseFinality = ChainHasFinalizationTag[this.chainSlug] && (this.chainSlug !== Chain.Optimism || this.isBedrockEnabled())
-    if (shouldUseFinality) {
-      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+    if (getHasFinalizationBlockTag(this.chainSlug)) {
+      blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
-      currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+      blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
     }
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
@@ -640,13 +639,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync) {
-      end = Math.max(currentBlockNumberWithFinality, state?.latestBlockSynced ?? 0)
+      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = totalBlocks!
     }
 
@@ -800,16 +799,14 @@ export default class Bridge extends ContractBase {
 
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
-        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!)
-        const serializedTx = serializeTransaction({
+        const tx = {
           value: parseEther('0'),
           gasPrice,
           gasLimit,
           to,
           data
-        })
-        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        }
+        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(Chain.Optimism)!, tx)
         gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)
@@ -875,15 +872,5 @@ export default class Bridge extends ContractBase {
     }
     const createdAt = Number(transferRootStruct.createdAt?.toString())
     return createdAt > 0
-  }
-
-  isBedrockEnabled (): boolean {
-    if (this.chainSlug === Chain.Optimism) {
-      const now = Math.floor(Date.now() / 1000)
-      if (now > bedrockUpgradeTimeSec) {
-        return true
-      }
-    }
-    return false
   }
 }

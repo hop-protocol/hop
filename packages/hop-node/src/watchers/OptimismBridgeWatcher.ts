@@ -4,6 +4,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
+import { Interface } from 'ethers/lib/utils'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Signer, providers } from 'ethers'
@@ -41,8 +42,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
     this.chainId = chainSlugToId(config.chainSlug)
 
     this.csm = new CrossChainMessenger({
-      bedrock: this.chainId === 420,
-      l1ChainId: this.chainId === 420 ? 5 : 1,
+      bedrock: true,
+      l1ChainId: globalConfig.isMainnet ? 1 : 5,
       l2ChainId: this.chainId,
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet
@@ -185,6 +186,37 @@ class OptimismBridgeWatcher extends BaseWatcher {
       onchainError,
       cannotReadPropertyError,
       preBedrockErrors
+    }
+  }
+
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    try {
+      // TODO: Rip all this out and use this.csm.relayTx(l1TxHash) function once the Optimism SDK supports it
+      const message = await this.csm.toCrossChainMessage(l1TxHash)
+      // Use a custom gasLimit that is high enough for all transactions. This is because the original relay
+      // failed due to too low of an estimation, so we need to manually set it
+      const gasLimit = 1000000
+      const l2CrossDomainMessengerAddress = '0x4200000000000000000000000000000000000007'
+      const abi = ['function relayMessage(uint256,address,address,uint256,uint256,bytes calldata) external payable']
+      const ethersInterface = new Interface(abi)
+      const data = ethersInterface.encodeFunctionData(
+        'relayMessage', [
+          message.messageNonce,
+          message.sender,
+          message.target,
+          message.value,
+          message.minGasLimit,
+          message.message
+        ]
+      )
+      const tx: providers.TransactionRequest = {
+        to: l2CrossDomainMessengerAddress,
+        gasLimit,
+        data
+      }
+      return this.l2Wallet.sendTransaction(tx)
+    } catch (err) {
+      throw new Error(`relayL1ToL2Message error: ${err.message}`)
     }
   }
 }

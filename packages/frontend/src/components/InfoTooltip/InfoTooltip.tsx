@@ -1,4 +1,4 @@
-import React, { FC, ReactFragment } from 'react'
+import React, { FC, ReactFragment, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 import HelpIcon from '@material-ui/icons/Help'
@@ -8,18 +8,27 @@ type Props = {
   children?: any
 } & Partial<TooltipProps>
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   tooltip: {
     maxWidth: '100rem',
   },
+  icon: {
+    [theme.breakpoints.down('xs')]: {
+      fontSize: '2rem !important',
+    },
+  },
 }))
 
-const InfoTooltip: FC<Props> = props => {
+const InfoTooltip: FC<Props> = (props: any) => {
+  const [tooltipIsOpen, setTooltipIsOpen] = useState(false);
   const styles = useStyles()
   const children = props.children
 
   return (
     <Tooltip
+      open={tooltipIsOpen}
+      onOpen={() => setTooltipIsOpen(true)}
+      onClose={() => setTooltipIsOpen(false)}
       title={props.title}
       style={children ? ({}) : {
         opacity: 0.5,
@@ -33,8 +42,9 @@ const InfoTooltip: FC<Props> = props => {
       }}
       placement={props.placement || 'top'}
       arrow={true}
+      onClick={() => setTooltipIsOpen(!tooltipIsOpen)}
     >
-      {children || <HelpIcon color="secondary" />}
+      {children || <HelpIcon color="secondary" className={styles.icon} />}
     </Tooltip>
   )
 }

@@ -7,12 +7,12 @@ import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
-import { BondTransferRootDelayBufferSeconds, Chain, ChainHasFinalizationTag, TxError } from 'src/constants'
+import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { bedrockUpgradeTimeSec, enableEmergencyMode, getFinalityTimeSeconds, config as globalConfig } from 'src/config'
+import { enableEmergencyMode, getFinalityTimeSeconds, getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -113,12 +113,10 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     // Check for finality of the commit tx. The sync watcher only waits for safe, but since
     // transfer root bonds are not time sensitive, we can wait for finality.
-    const shouldUseFinality = ChainHasFinalizationTag[this.chainSlug] && (this.chainSlug !== Chain.Optimism || this.isBedrockEnabled())
-    if (shouldUseFinality) {
-      const finalizedBlockNumber = await this.bridge.getFinalizedBlockNumber()
-
-      if (finalizedBlockNumber < commitTxBlockNumber) {
-        logger.debug(`chain has not yet reached finality. final block number: ${finalizedBlockNumber}, commit block number: ${commitTxBlockNumber}`)
+    if (getHasFinalizationBlockTag(this.chainSlug)) {
+      const blockNumberWithAcceptableFinality = await this.bridge.getBlockNumberWithAcceptableFinality()
+      if (blockNumberWithAcceptableFinality < commitTxBlockNumber) {
+        logger.debug(`chain has not yet reached finality. final block number: ${blockNumberWithAcceptableFinality}, commit block number: ${commitTxBlockNumber}`)
         return
       }
     }
@@ -127,7 +125,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     // In practice, non-ORUs should not be bonded. This check is needed for the edge-case in which non-ORU roots are bonded.
     const minTransferRootBondDelaySeconds = await l1Bridge.getMinTransferRootBondDelaySeconds()
     let chainFinalityTimeSec: number = 0
-    if (!shouldUseFinality) {
+    if (!getHasFinalizationBlockTag(this.chainSlug)) {
       chainFinalityTimeSec = getFinalityTimeSeconds(this.chainSlug)
     }
     const delaySeconds = Math.max(minTransferRootBondDelaySeconds, chainFinalityTimeSec) + BondTransferRootDelayBufferSeconds
@@ -201,14 +199,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
 
     try {
-      const tx = await this.sendBondTransferRoot(
+      const tx = await this.sendBondTransferRoot({
         transferRootId,
         transferRootHash,
         destinationChainId,
         totalAmount,
         transferIds,
-        committedAt
-      )
+        rootCommittedAt: committedAt
+      })
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
@@ -236,25 +234,18 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async sendBondTransferRoot (
-    transferRootId: string,
-    transferRootHash: string,
-    destinationChainId: number,
-    totalAmount: BigNumber,
-    transferIds: string[],
-    rootCommittedAt: number
-  ): Promise<providers.TransactionResponse> {
-    const logger = this.logger.create({ root: transferRootId })
-
-    logger.debug('performing preTransactionValidation')
-    await this.preTransactionValidation({
+  async sendBondTransferRoot (params: SendBondTransferRootTxParams): Promise<providers.TransactionResponse> {
+    const {
       transferRootId,
       transferRootHash,
       destinationChainId,
       totalAmount,
-      transferIds,
-      rootCommittedAt
-    })
+    } = params
+
+    const logger = this.logger.create({ root: transferRootId })
+
+    logger.debug('performing preTransactionValidation')
+    await this.preTransactionValidation(params)
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
@@ -406,16 +397,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       throw new Error(`Calculated dbTransferRoot (${calculatedTransferRootId}) not found in db`)
     }
     return dbTransferRoot
-  }
-
-  isBedrockEnabled (): boolean {
-    if (this.chainSlug === Chain.Optimism) {
-      const now = Math.floor(Date.now() / 1000)
-      if (now > bedrockUpgradeTimeSec) {
-        return true
-      }
-    }
-    return false
   }
 }
 

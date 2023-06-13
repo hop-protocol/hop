@@ -224,7 +224,7 @@ export class HealthCheckWatcher {
   offsetDays: number = 0
   pollIntervalSeconds: number = 30 * 60
   // The absolute minimum this value can be is must be longer than the max time it takes for the slowest chain to reach finality
-  healthCheckFinalityTimeMinutes: number = 30
+  healthCheckFinalityTimeMinutes: number = 45
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day
@@ -235,8 +235,8 @@ export class HealthCheckWatcher {
   }
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
-    USDC: parseUnits('4271000', 6),
-    USDT: parseUnits('750000', 6),
+    USDC: parseUnits('2951000', 6),
+    USDT: parseUnits('699805', 6),
     DAI: parseUnits('1500000', 18),
     ETH: parseUnits('7949', 18),
     MATIC: parseUnits('766730', 18),

@@ -2,6 +2,7 @@ import React from 'react'
 import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
 import LargeTextField from 'src/components/LargeTextField'
+import InfoTooltip from 'src/components/InfoTooltip'
 
 function CustomRecipientDropdown(props: any) {
   const { styles, customRecipient, handleCustomRecipientInput, isOpen = false } = props
@@ -22,6 +23,7 @@ function CustomRecipientDropdown(props: any) {
       <Card className={styles.customRecipient}>
         <Typography variant="body1" className={styles.customRecipientLabel}>
           Custom recipient
+          <InfoTooltip title={`Set a different address to receive the funds at the destination. Make sure the recipient is able to receive to receive funds at the destination chain. If it's an exchange address, make sure the exchange supports internal transactions otherwise it may result in loss of funds.`} />
         </Typography>
         <LargeTextField
           leftAlign

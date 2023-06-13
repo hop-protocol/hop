@@ -108,10 +108,11 @@ async function main (source: any) {
   }
   for (const k in globalConfig.networks) {
     if (!Object.keys(enabledNetworks).includes(k)) continue
-    const { waitConfirmations, rpcUrl, redundantRpcUrls } = globalConfig.networks[k]
+    const { waitConfirmations, rpcUrl, redundantRpcUrls, hasFinalizationBlockTag } = globalConfig.networks[k]
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
     logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
+    logger.info(`${k} hasFinalizationBlockTag: ${hasFinalizationBlockTag}`)
   }
   if (globalConfig.bonders) {
     const bonders: any = globalConfig.bonders

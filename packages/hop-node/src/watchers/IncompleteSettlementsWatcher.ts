@@ -124,6 +124,10 @@ class IncompleteSettlementsWatcher {
         if (nonREthChains.includes(chain) && token === 'rETH') {
           continue
         }
+        const nonMagicChains = ['polygon', 'gnosis', 'optimism']
+        if (nonMagicChains.includes(chain) && token === 'MAGIC') {
+          continue
+        }
         if (chain === Chain.Nova && token !== 'ETH') {
           continue
         }

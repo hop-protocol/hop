@@ -31,7 +31,8 @@ export enum Token {
   HOP = 'HOP',
   SNX = 'SNX',
   sUSD = 'sUSD',
-  rETH = 'rETH'
+  rETH = 'rETH',
+  MAGIC = 'MAGIC'
 }
 
 export enum NativeChainToken {

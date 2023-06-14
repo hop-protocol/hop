@@ -135,6 +135,10 @@ const InFlightL1ToL2Transfers: IInFlightL1ToL2Transfers = {
   [Token.rETH]: {
     [Chain.Optimism]: '0',
     [Chain.Arbitrum]: '0'
+  },
+  [Token.MAGIC]: {
+    [Chain.Arbitrum]: '0',
+    [Chain.Nova]: '0'
   }
 }
 
@@ -149,7 +153,8 @@ const L1TokensSentDirectlyToBridge: IL1TokensSentDirectlyToBridge = {
   [Token.HOP]: '0',
   [Token.SNX]: '0',
   [Token.sUSD]: '0',
-  [Token.rETH]: '0'
+  [Token.rETH]: '0',
+  [Token.MAGIC]: '0'
 }
 
 const L1InvalidRoot: IL1InvalidRoot = {
@@ -161,7 +166,8 @@ const L1InvalidRoot: IL1InvalidRoot = {
   [Token.HOP]: '0',
   [Token.SNX]: '0',
   [Token.sUSD]: '0',
-  [Token.rETH]: '0'
+  [Token.rETH]: '0',
+  [Token.MAGIC]: '0'
 }
 
 type IChainBalanceArchiveData = {

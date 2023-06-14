@@ -23,7 +23,8 @@ export class PriceFeed {
     HOP: 'hop-protocol',
     SNX: 'havven',
     SUSD: 'nusd',
-    RETH: 'rocket-pool-eth'
+    RETH: 'rocket-pool-eth',
+    MAGIC: 'magic'
   }
 
   instance: PriceFeedSdk

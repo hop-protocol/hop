@@ -77,7 +77,8 @@ export enum CanonicalToken {
   SNX = 'SNX',
   sUSD = 'sUSD',
   rETH = 'rETH',
-  UNI = 'UNI'
+  UNI = 'UNI',
+  MAGIC = 'MAGIC'
 }
 
 export enum WrappedToken {
@@ -95,6 +96,7 @@ export enum HToken {
   hHop = 'hHOP',
   hrETH = 'hrETH',
   hUNI = 'hUNI',
+  hMAGIC = 'hMAGIC'
 }
 
 export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string

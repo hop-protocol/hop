@@ -21,7 +21,7 @@ export class AmmStats {
   days: number = 1
   offsetDays: number = 0
   priceFeed: PriceFeed
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX', 'rETH']
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX', 'rETH', 'MAGIC']
   chains: string[] = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'nova']
 
   constructor (options: Options = {}) {
@@ -149,7 +149,8 @@ export class AmmStats {
       WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
       HOP: await this.priceFeed.getPriceHistory('HOP', daysN),
       SNX: await this.priceFeed.getPriceHistory('SNX', daysN),
-      rETH: await this.priceFeed.getPriceHistory('rETH', daysN)
+      rETH: await this.priceFeed.getPriceHistory('rETH', daysN),
+      MAGIC: await this.priceFeed.getPriceHistory('MAGIC', daysN),
     }
 
     console.log('done fetching prices')
@@ -189,10 +190,13 @@ export class AmmStats {
           if (token === 'SNX' && !['optimism'].includes(chain)) {
             continue
           }
-          if (chain === 'nova' && !['ETH'].includes(token)) {
+          if (chain === 'nova' && !['ETH', 'MAGIC'].includes(token)) {
             continue
           }
           if (token === 'rETH' && !['optimism', 'arbitrum'].includes(chain)) {
+            continue
+          }
+          if (token === 'MAGIC' && !['arbitrum', 'nova'].includes(chain)) {
             continue
           }
           promises.push(

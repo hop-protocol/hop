@@ -248,7 +248,7 @@ export class Controller {
       })
     }
 
-    if ((accountAddress || transferId) && data?.length > 0 && !isGoerli) {
+    if ((accountAddress || transferId) && data?.length > 0 && (!isGoerli || (isGoerli && refreshFlag))) {
       // refetch recent transfers by account or single transferId
       const checkItems = data.slice(0, 5)
       for (const item of checkItems) {
@@ -267,7 +267,7 @@ export class Controller {
       }
     }
 
-    if (transferIdNotFound && isGoerli) {
+    if (transferIdNotFound && (!isGoerli || (isGoerli && refreshFlag))) {
       // fetch transfer that may not be indexed
       this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
 

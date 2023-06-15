@@ -1512,9 +1512,6 @@ export class TransferStats {
 
   // gets on-chain origin transfer data
   static async getTransferStatusForTxHash (transactionHash: string) {
-    if (isGoerli) {
-      return null
-    }
     for (const chainSlug in rpcUrls) {
       const rpcUrl = rpcUrls[chainSlug]
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)

@@ -59,11 +59,11 @@ export const transferTimes = {
     nova: 12
   },
   polygon: {
-    ethereum: 20,
-    optimism: 20,
-    arbitrum: 20,
-    gnosis: 20,
-    nova: 20
+    ethereum: 60,
+    optimism: 60,
+    arbitrum: 60,
+    gnosis: 60,
+    nova: 60
   },
   gnosis: {
     ethereum: 4,

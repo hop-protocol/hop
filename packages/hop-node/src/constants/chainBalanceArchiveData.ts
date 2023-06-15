@@ -80,7 +80,13 @@ const UnwithdrawnTransfers: IUnwithdrawnTransfers = {
   },
   [Token.rETH]: {
     [Chain.Ethereum]: '0',
-    [Chain.Optimism]: '0'
+    [Chain.Optimism]: '0',
+    [Chain.Arbitrum]: '0',
+  },
+  [Token.MAGIC]: {
+    [Chain.Ethereum]: '0',
+    [Chain.Arbitrum]: '0',
+    [Chain.Nova]: '0',
   }
 }
 

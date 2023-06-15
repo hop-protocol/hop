@@ -236,9 +236,9 @@ export class ArbBot {
 
       const shouldBondRoot = true
       if (shouldBondRoot && tx3?.hash) {
-        const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
-        this.logger.info('l1 bond transfer root tx:', tx4?.hash)
-        await tx4?.wait(this.waitConfirmations)
+        // const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
+        // this.logger.info('l1 bond transfer root tx:', tx4?.hash)
+        // await tx4?.wait(this.waitConfirmations)
       } else {
         if (!this.dryMode) {
           await wait(24 * 60 * 60 * 1000) // wait for transferRoot to be bonded

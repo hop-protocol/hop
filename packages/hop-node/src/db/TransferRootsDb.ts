@@ -562,6 +562,9 @@ class TransferRootsDb extends BaseDb {
         oruTimestampOk = committedAtMs + exitTimeMs < Date.now()
       }
 
+      // This will exit if the root for an ORU was never bonded. This is intentional. A case where this
+      // might occur is if someone fills a root with a giant transfer that is greater than the bonder's entire
+      // liquidity.
       let shouldExitOru = true
       if (isSourceOru && item?.challenged !== true && item?.bondedAt) {
         shouldExitOru = false

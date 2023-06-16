@@ -119,12 +119,10 @@ class PolygonBridgeWatcher extends BaseWatcher {
 
     // Generate tx and send
     const rootTunnel = globalConfig.addresses[this.tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
-    const tx = await this.l1Wallet.sendTransaction({
+    return this.l1Wallet.sendTransaction({
       to: rootTunnel,
       data
     })
-
-    return tx
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

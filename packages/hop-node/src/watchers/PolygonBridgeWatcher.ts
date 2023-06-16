@@ -8,7 +8,7 @@ import { Chain } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Signer, constants, providers } from 'ethers'
+import { Signer, providers, utils } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { config as globalConfig } from 'src/config'
 import { setProofApi, use } from '@maticnetwork/maticjs'
@@ -83,7 +83,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
         rootTunnel
       }
     })
-
     this.ready = true
   }
 
@@ -106,8 +105,26 @@ class PolygonBridgeWatcher extends BaseWatcher {
   async relayXDomainMessage (txHash: string): Promise<providers.TransactionResponse> {
     await this.tilReady()
 
-    const tx = await this.maticClient.erc20(constants.AddressZero, true).withdrawExitFaster(txHash)
-    return tx.promise
+    // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
+    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
+
+    // Generate payload
+    const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
+    const payload = await this.maticClient.exitUtil.buildPayloadForExit(txHash, logEventSig, true)
+
+    // Create tx data
+    const abi = ['function receiveMessage(bytes)']
+    const iface = new utils.Interface(abi)
+    const data = iface.encodeFunctionData('receiveMessage', [payload])
+
+    // Generate tx and send
+    const rootTunnel = globalConfig.addresses[this.tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
+    const tx = await this.l1Wallet.sendTransaction({
+      to: rootTunnel,
+      data
+    })
+
+    return tx
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

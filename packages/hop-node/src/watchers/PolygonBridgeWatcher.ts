@@ -51,7 +51,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     }/block-included`
 
     use(Web3ClientPlugin)
-    setProofApi('https://apis.matic.network')
+    setProofApi('https://proof-generator.polygon.technology/')
 
     this.maticClient = new FxPortalClient()
 

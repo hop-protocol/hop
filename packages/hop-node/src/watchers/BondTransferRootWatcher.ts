@@ -239,7 +239,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootId,
       transferRootHash,
       destinationChainId,
-      totalAmount,
+      totalAmount
     } = params
 
     const logger = this.logger.create({ root: transferRootId })

@@ -280,23 +280,29 @@ class TransfersDb extends BaseDb {
   }
 
   private normalizeItem (item: Transfer) {
-    if (!item) {
+    try {
+      if (!item) {
+        return null
+      }
+
+      if (item.destinationChainId) {
+        item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
+      }
+      if (item.sourceChainId) {
+        item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
+      }
+      if (item.deadline !== undefined) {
+        // convert number to BigNumber for backward compatibility reasons
+        if (typeof item.deadline === 'number') {
+          item.deadline = BigNumber.from((item.deadline as number).toString())
+        }
+      }
+      return normalizeDbItem(item)
+    } catch (err: any) {
+      const logger = this.logger.create({ id: item?.transferId })
+      logger.error('normalizeItem error:', err)
       return null
     }
-
-    if (item.destinationChainId) {
-      item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
-    }
-    if (item.sourceChainId) {
-      item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
-    }
-    if (item.deadline !== undefined) {
-      // convert number to BigNumber for backward compatibility reasons
-      if (typeof item.deadline === 'number') {
-        item.deadline = BigNumber.from((item.deadline as number).toString())
-      }
-    }
-    return normalizeDbItem(item)
   }
 
   private readonly filterValueTransferId = (x: any) => {
@@ -352,7 +358,7 @@ class TransfersDb extends BaseDb {
   async getMultipleTransfersByTransferIds (transferIds: string[]) {
     const batchedItems = await this.batchGetByIds(transferIds)
     const transfers = batchedItems.map(this.normalizeItem)
-    const items = transfers.sort(this.sortItems)
+    const items = transfers.filter(Boolean).sort(this.sortItems)
     this.logger.info(`items length: ${items.length}`)
 
     return items
@@ -523,6 +529,10 @@ class TransfersDb extends BaseDb {
     const transfers = batchedItems.map(this.normalizeItem)
 
     return transfers.filter((item: any) => {
+      if (!item) {
+        return false
+      }
+
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false

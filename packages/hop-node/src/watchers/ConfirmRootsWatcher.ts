@@ -58,11 +58,11 @@ class ConfirmRootsWatcher extends BaseWatcher {
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     const watcherParams = {
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        l1BridgeContract: config.l1BridgeContract,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
+      chainSlug: config.chainSlug,
+      tokenSymbol: this.tokenSymbol,
+      l1BridgeContract: config.l1BridgeContract,
+      bridgeContract: config.bridgeContract,
+      dryMode: config.dryMode
     }
 
     if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {

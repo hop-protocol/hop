@@ -1,14 +1,15 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
-import fetch from 'node-fetch'
-import polygonZkEvmBridgeAbi from './PolygonZkEvmBridge.json'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract } from 'ethers'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { Signer, providers, utils } from 'ethers'
+import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
+import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
 import { config as globalConfig } from 'src/config'
-import { solidityKeccak256 } from 'ethers/lib/utils'
 
 type Config = {
   chainSlug: string
@@ -18,6 +19,17 @@ type Config = {
 }
 
 class PolygonZkBridgeWatcher extends BaseWatcher {
+  ready: boolean = false
+  l1Provider: any
+  l2Provider: any
+  l1Wallet: Signer
+  l2Wallet: Signer
+  chainId: number
+  apiUrl: string
+  polygonzkMainnetChainId: number = 1101
+  zkEvmClient: ZkEvmClient
+  messengerAddress: string
+
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
@@ -26,76 +38,68 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
+
+    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l2Wallet = wallets.get(Chain.PolygonZk)
+    this.l1Provider = this.l1Wallet.provider
+    this.l2Provider = this.l2Wallet.provider
+
+    this.chainId = chainSlugToId(config.chainSlug)
+    this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${
+      this.chainId === this.polygonzkMainnetChainId ? 'matic' : 'mumbai'
+    }/block-included`
+
+    use(Web3ClientPlugin)
+    setProofApi('https://proof-generator.polygon.technology/')
+
+    this.zkEvmClient = new ZkEvmClient()
+    this.messengerAddress = this.chainId === this.polygonzkMainnetChainId ? '0x2a3DD3EB832aF982ec71669E178424b10Dca2EDe' : '0xF6BEEeBB578e214CA9E23B0e9683454Ff88Ed2A7'
+
+    this.init()
+      .catch((err: any) => {
+        this.logger.error('zkEvmClient initialize error:', err)
+      })
+  }
+
+  async init () {
+    const from = await this.l1Wallet.getAddress()
+    await this.zkEvmClient.init({
+      network: this.chainId === this.polygonzkMainnetChainId ? 'mainnet' : 'testnet',
+      version: this.chainId === this.polygonzkMainnetChainId ? 'v1' : 'blueberry',
+      parent: {
+        provider: this.l1Wallet,
+        defaultConfig: {
+          from
+        }
+      },
+      child: {
+        provider: this.l2Wallet,
+        defaultConfig: {
+          from
+        }
+      }
+    })
+    this.ready = true
+  }
+
+  protected async tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return await this.tilReady()
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
-    return this.relayXDomainMessage(commitTxHash, transferRootId, logger)
-  }
+    await this.tilReady()
 
-  async relayXDomainMessage (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
-    const l1BridgeAddress = globalConfig.addresses[this.tokenSymbol].ethereum.l1Bridge
-    const l2BridgeAddress = globalConfig.addresses[this.tokenSymbol][this.chainSlug].l2Bridge
-    const l1PolygonBridgeAddress = '0xF6BEEeBB578e214CA9E23B0e9683454Ff88Ed2A7'
-    const l1Wallet = wallets.get(Chain.Ethereum)
-    const polygonZkEvmBridge = new Contract(l1PolygonBridgeAddress, polygonZkEvmBridgeAbi, l1Wallet)
-
-    const leafType = 1
-    const originNetwork = 1 // 1 = L2
-    const originAddress = l2BridgeAddress
-    const amount = '0'
-    const destinationNetwork = 0 // 0 = L1
-    const destinationAddress = l1BridgeAddress
-    let metadata = '0x'
-    let index = 0
-
-    const url = `https://bridge-api.public.zkevm-test.net/bridges/${l1BridgeAddress}?limit=25&offset=0`
-    const res = await fetch(url)
-    const json = await res.json()
-    for (const item of json.deposits) {
-      if (item.tx_hash === commitTxHash) {
-        if (item.ready_for_claim) {
-          index = item.deposit_cnt
-          metadata = item.metadata
-          break
-        }
-      }
-    }
-
-    if (!index) {
-      this.logger.warn('expected deposit count index. Possibly not ready for claim yet')
-      return
-    }
-
-    const metadataHash = solidityKeccak256(['bytes'], [metadata])
-    const leafValue = await polygonZkEvmBridge.getLeafValue(
-      leafType,
-      originNetwork,
-      originAddress,
-      destinationNetwork,
-      destinationAddress,
-      amount,
-      metadataHash
+    logger.debug(
+      `attempting to send relay message on polygonzk for commit tx hash ${commitTxHash}`
     )
 
-    const proofUrl = `https://bridge-api.public.zkevm-test.net/merkle-proof?net_id=1&deposit_cnt=${index}`
-    const proofRes = await fetch(proofUrl)
-    const proofJson = await proofRes.json()
-    const { merkle_proof: merkleProof, main_exit_root: mainExitRoot, rollup_exit_root: rollupExitRoot } = proofJson.proof
-    const verified = await polygonZkEvmBridge.verifyMerkleProof(
-      leafValue,
-      merkleProof,
-      index,
-      rollupExitRoot
-    )
-
-    console.log('verified:', verified)
-
-    if (!verified) {
-      throw new Error('expected proof to be verified')
-    }
-
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
       return
     }
 
@@ -103,21 +107,95 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
       sentConfirmTxAt: Date.now()
     })
 
-    const tx = await polygonZkEvmBridge.claimMessage(
-      merkleProof,
-      index,
-      mainExitRoot,
-      rollupExitRoot,
-      originNetwork,
-      originAddress,
-      destinationNetwork,
-      destinationAddress,
-      amount,
-      metadata
-    )
+    try {
+      const networkId = 1
+      const signer = this.l1Wallet
+      const tx = await this._relayXDomainMessage(commitTxHash, networkId, signer)
+      if (!tx) {
+        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+        return
+      }
 
-    return tx
+      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      this.logger.error('relayXDomainMessage error:', err.message)
+
+      const {
+        unrelayableErrors
+      } = this.getErrorType(err.message)
+
+      // This error occurs if a poll happened while a message was not yet published
+      if (unrelayableErrors) {
+        throw new Error('unrelayable, try again later')
+      }
+
+      throw err
+    }
+  }
+
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    await this.tilReady()
+
+    try {
+      const networkId = 0
+      const signer = this.l2Wallet
+      return await this._relayXDomainMessage(l1TxHash, networkId, signer)
+    } catch (err) {
+      throw new Error(`relayL1ToL2Message error: ${err.message}`)
+    }
+  }
+
+  async relayXDomainMessage (commitTxHash: string): Promise<providers.TransactionResponse> {
+    await this.tilReady()
+
+    return this._relayXDomainMessage(commitTxHash)
+  }
+
+  async _relayXDomainMessage (commitTxHash: string, networkId: number = 1, wallet: Signer = this.l2Wallet): Promise<providers.TransactionResponse> {
+    let isRelayable
+    if (networkId === 0) {
+      isRelayable = await this.zkEvmClient.isDepositClaimable(commitTxHash)
+    } else {
+      isRelayable = await this.zkEvmClient.isWithdrawExitable(commitTxHash)
+    }
+    if (!isRelayable) {
+      throw new Error('expected deposit to be claimable')
+    }
+
+    // As of Jun 2023, the SDK does not provide a claimMessage convenience function.
+    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
+    const isParent = networkId === 0
+    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(commitTxHash, isParent, networkId)
+
+    const abi = ['function claimMessage(bytes32[32],uint32,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)']
+    const iface = new utils.Interface(abi)
+    const data = iface.encodeFunctionData('claimMessage', [
+      claimPayload.smtProof,
+      claimPayload.index,
+      claimPayload.mainnetExitRoot,
+      claimPayload.rollupExitRoot,
+      claimPayload.originNetwork,
+      claimPayload.originTokenAddress,
+      claimPayload.destinationNetwork,
+      claimPayload.destinationAddress,
+      claimPayload.amount,
+      claimPayload.metadata
+    ])
+
+    return wallet.sendTransaction({
+      to: this.messengerAddress,
+      data
+    })
+  }
+
+  getErrorType (errMessage: string) {
+    const unrelayableErrors = errMessage.includes('expected deposit to be claimable')
+
+    return {
+      unrelayableErrors
+    }
   }
 }
-
 export default PolygonZkBridgeWatcher

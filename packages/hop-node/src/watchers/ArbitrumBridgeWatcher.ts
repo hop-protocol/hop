@@ -90,13 +90,16 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
   }
 
   async relayL1ToL2Message (l1TxHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
+    this.logger.debug(`attempting to relay L1 to L2 message for l1TxHashash: ${l1TxHash} messageIndex: ${messageIndex}`)
     const status = await this.getMessageStatus(l1TxHash, messageIndex)
     if (status !== L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2) {
-      this.logger.error(`Transaction not redeemable. Status: ${L1ToL2MessageStatus[status]}`)
+      this.logger.error(`Transaction not redeemable. Status: ${L1ToL2MessageStatus[status]}, l1TxHash: ${l1TxHash}`)
       throw new Error('Transaction unredeemable')
     }
 
+    this.logger.debug(`getL1ToL2Message for l1TxHashash: ${l1TxHash} messageIndex: ${messageIndex}`)
     const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
+    this.logger.debug(`attempting l1ToL2Message.redeem() for l1TxHashash: ${l1TxHash} messageIndex: ${messageIndex}`)
     return await l1ToL2Message.redeem()
   }
 

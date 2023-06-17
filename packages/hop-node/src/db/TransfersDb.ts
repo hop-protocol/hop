@@ -357,7 +357,7 @@ class TransfersDb extends BaseDb {
 
   async getMultipleTransfersByTransferIds (transferIds: string[]) {
     const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map(this.normalizeItem)
+    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
     const items = transfers.filter(Boolean).sort(this.sortItems)
     this.logger.info(`items length: ${items.length}`)
 
@@ -526,7 +526,7 @@ class TransfersDb extends BaseDb {
       return []
     }
     const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map(this.normalizeItem)
+    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
 
     return transfers.filter((item: any) => {
       if (!item) {

@@ -5,15 +5,17 @@ import { Chain } from 'src/constants'
 export default async function makeRequest (
   chain: string,
   query: string,
-  params: any = {}
+  params: any = {},
+  isGoerli: boolean = false
 ) {
-  return await rateLimitRetry(_makeRequest)(chain, query, params)
+  return await rateLimitRetry(_makeRequest)(chain, query, params, isGoerli)
 }
 
 async function _makeRequest (
   chain: string,
   query: string,
-  params: any = {}
+  params: any = {},
+  isGoerli: boolean = false
 ) {
   if (chain === 'gnosis') {
     chain = 'xdai'
@@ -26,10 +28,14 @@ async function _makeRequest (
     url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
   }
   if (chain === Chain.Ethereum) {
-    // In order to use the decentralized service, please ensure the decentralized subgraph is pushed and published. This
-    // is a different process than the centralized subgraph.
-    url = `${url}-mainnet`
-    // url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
+    if (isGoerli) {
+      url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
+    } else {
+      // In order to use the decentralized service, please ensure the decentralized subgraph is pushed and published. This
+      // is a different process than the centralized subgraph.
+      url = `${url}-mainnet`
+      // url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
+    }
   } else {
     url = `${url}-${chain}`
   }
@@ -38,7 +44,7 @@ async function _makeRequest (
     // TODO: read from config
     const isGoerli = true
     if (isGoerli) {
-      url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+      url = 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
     } else {
       throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
     }

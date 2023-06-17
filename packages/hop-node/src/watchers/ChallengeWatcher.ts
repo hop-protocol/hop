@@ -98,6 +98,7 @@ class ChallengeWatcher extends BaseWatcher {
       return
     }
 
+    // Do not set emergencyDryMode here. This tx should always be fired off if needed.
     if (this.dryMode) {
       logger.warn(`dry: ${this.dryMode}, skipping challengeTransferRootBond`)
       return

@@ -5,7 +5,6 @@ import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
-import { formatUnits } from 'ethers/lib/utils'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -103,6 +102,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         if (fromNetwork.slug === ChainSlug.Ethereum) {
           relayerFee = BigNumber.from('1')
         }
+
 
         let estimatedGasLimit : BigNumber
         try {

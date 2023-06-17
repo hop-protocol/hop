@@ -10,7 +10,7 @@ export default async function getBondedWithdrawals (
   bonder = bonder.toLowerCase()
   const filters = getFilters(bonder)
   const query = `
-    query WithdrawalBonded($token: String, $bonder: String $lastId: ID) {
+    query WithdrawalBonded($token: String, $bonder: String, $lastId: ID) {
       withdrawalBondeds(
         where: {
           ${filters}

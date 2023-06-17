@@ -7,6 +7,7 @@ console.debug('flags:', argv)
 function main () {
   const worker = new Worker({
     yields: argv.yields,
+    prices: argv.prices,
     tvl: argv.tvl,
     amm: argv.amm,
     ammDays: argv.ammDays,
@@ -25,7 +26,8 @@ function main () {
     bonderDays: argv.bonderDays,
     bonderStartDate: argv.bonderStartDate,
     bonderEndDate: argv.bonderEndDate,
-    pollIntervalSeconds: argv.pollIntervalSeconds
+    pollIntervalSeconds: argv.pollIntervalSeconds,
+    pricesPollIntervalSeconds: argv.pricesPollIntervalSeconds
   })
 
   worker.start()

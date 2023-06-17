@@ -1,5 +1,6 @@
 data
 *.log
+yarn.lock
 dist
 !third_party/*.tgz
 src/package.json

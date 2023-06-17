@@ -9,7 +9,8 @@ export const networks: Networks = {
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
-    waitConfirmations: 1
+    waitConfirmations: 1,
+    hasFinalizationBlockTag: true
   },
   polygon: {
     name: chains.polygon.name,
@@ -19,17 +20,19 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   optimism: {
     name: chains.optimism.name,
     image: chains.optimism.image,
     networkId: 420,
-    publicRpcUrl: 'https://rpc.ankr.com/optimism_testnet',
+    publicRpcUrl: 'https://goerli.optimism.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io/'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -39,7 +42,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-rollup-explorer.arbitrum.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   zksync: {
     name: chains.zksync.name,
@@ -49,17 +53,19 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
     nativeBridgeUrl: '',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   linea: {
     name: chains.linea.name,
     image: chains.linea.image,
     networkId: 59140,
-    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480',
+    publicRpcUrl: 'https://linea-goerli.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: false
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -69,7 +75,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
     nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   base: {
     name: chains.base.name,
@@ -79,7 +86,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   },
   polygonzk: {
     name: chains.polygonzk.name,
@@ -89,6 +97,7 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
     nativeBridgeUrl: 'https://public.zkevm-test.net',
-    waitConfirmations: 1
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   }
 }

@@ -57,86 +57,43 @@ class ConfirmRootsWatcher extends BaseWatcher {
     this.logger.debug('starting watcher')
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {
-      this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher({
+    const watcherParams = {
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         l1BridgeContract: config.l1BridgeContract,
         bridgeContract: config.bridgeContract,
         dryMode: config.dryMode
-      })
+    }
+
+    if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {
+      this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Polygon && enabledNetworks.includes(Chain.Polygon)) {
-      this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Polygon] = new PolygonBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Optimism && enabledNetworks.includes(Chain.Optimism)) {
-      this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
-    if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
-      this.watchers[Chain.Base] = new BaseZkBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Optimism] = new OptimismBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Arbitrum && enabledNetworks.includes(Chain.Arbitrum)) {
-      this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Nova && enabledNetworks.includes(Chain.Nova)) {
-      this.watchers[Chain.Nova] = new NovaBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Nova] = new NovaBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.ZkSync && enabledNetworks.includes(Chain.ZkSync)) {
-      this.watchers[Chain.ZkSync] = new ZkSyncBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.ZkSync] = new ZkSyncBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Linea && enabledNetworks.includes(Chain.Linea)) {
-      this.watchers[Chain.Linea] = new LineaBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Linea] = new LineaBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.ScrollZk && enabledNetworks.includes(Chain.ScrollZk)) {
-      this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher(watcherParams)
+    }
+    if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
+      this.watchers[Chain.Base] = new BaseZkBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.PolygonZk && enabledNetworks.includes(Chain.PolygonZk)) {
-      this.watchers[Chain.PolygonZk] = new PolygonZkBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.PolygonZk] = new PolygonZkBridgeWatcher(watcherParams)
     }
 
     const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.l1MessengerWrapper
@@ -241,8 +198,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, skipping confirmRootsViaWrapper`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
       return
     }
 
@@ -251,16 +208,25 @@ class ConfirmRootsWatcher extends BaseWatcher {
     })
 
     logger.debug(`handling confirmable transfer root ${transferRootHash}, destination ${destinationChainId}, amount ${totalAmount.toString()}, committedAt ${committedAt}`)
-    await this.confirmRootsViaWrapper({
-      rootHashes: [transferRootHash],
-      destinationChainIds: [destinationChainId],
-      totalAmounts: [totalAmount],
-      rootCommittedAts: [committedAt]
-    })
+    try {
+      await this.confirmRootsViaWrapper({
+        rootHashes: [transferRootHash],
+        destinationChainIds: [destinationChainId],
+        totalAmounts: [totalAmount],
+        rootCommittedAts: [committedAt]
+      })
+    } catch (err) {
+      logger.error('confirmRootsViaWrapper error:', err.message)
+      throw err
+    }
   }
 
   async confirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
-    await this.validateConfirmRootsViaWrapper(rootData)
+    // NOTE: Since root confirmations via a wrapper can only happen after the challenge period expires, it is not
+    // possible for a reorg to occur. Therefore, we do not need to check for a reorg here.
+    // Additionally, the validation relies on TheGraph, which is not guaranteed to be available during an emergency.
+    // Because of this, we do not enable global emergencyDryMode for this watcher.
+    await this.preTransactionValidation(rootData)
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
     await this.l1MessengerWrapper.confirmRoots(
       rootHashes,
@@ -270,7 +236,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     )
   }
 
-  async validateConfirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+  async preTransactionValidation (rootData: ConfirmRootsData): Promise<void> {
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
 
     // Data validation
@@ -290,12 +256,13 @@ class ConfirmRootsWatcher extends BaseWatcher {
 
       // Verify that the DB has the root and associated data
       const calculatedTransferRootId = getTransferRootId(rootHash, totalAmount)
+      const logger = this.logger.create({ root: calculatedTransferRootId })
+
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
       if (!dbTransferRoot) {
         throw new Error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
       }
 
-      const logger = this.logger.create({ root: calculatedTransferRootId })
       logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
 
       // Verify that the data in the DB matches the data passed in
@@ -336,17 +303,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
         }
       }
 
-      // Verify that the data in the TheGraph matches the data passed in
-      const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
-      if (
-        rootHash !== transferCommitted?.rootHash ||
-        destinationChainId !== transferCommitted?.destinationChainId ||
-        totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
-        rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
-      ) {
-        throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
-      }
-
       // Verify that the wrapper being used is correct
       const wrapperL2ChainId = await this.l1MessengerWrapper.l2ChainId()
       if (
@@ -369,6 +325,20 @@ class ConfirmRootsWatcher extends BaseWatcher {
           timeSinceBondCreation <= ChallengePeriodMs
       ) {
         throw new Error('Transfer root is not confirmable')
+      }
+
+      // Verify that the data in the TheGraph matches the data passed in
+      // TheGraph support is not consistent on testnet, so skip this check on testnet
+      if (globalConfig.isMainnet) {
+        const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
+        if (
+          rootHash !== transferCommitted?.rootHash ||
+          destinationChainId !== transferCommitted?.destinationChainId ||
+          totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
+          rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
+        ) {
+          throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+        }
       }
     }
   }

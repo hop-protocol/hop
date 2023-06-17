@@ -48,56 +48,222 @@ export const addresses: Addresses = {
     },
     USDC: {
       ethereum: {
-        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       },
       polygon: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       },
       optimism: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       },
       arbitrum: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       },
       linea: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      base: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       }
     },
     HOP: {
       ethereum: {
-        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       },
       polygon: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       },
       optimism: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       },
       arbitrum: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      linea: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      base: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      }
+    },
+    USDT: {
+      ethereum: {
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      polygon: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      optimism: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      arbitrum: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      linea: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      base: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      }
+    },
+    DAI: {
+      ethereum: {
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      polygon: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      optimism: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      arbitrum: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      linea: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      base: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      }
+    },
+    UNI: {
+      ethereum: {
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      polygon: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      optimism: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      arbitrum: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      linea: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        base: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
+      },
+      base: {
+        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        polygon: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        arbitrum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28',
+        linea: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       }
     }
   },
@@ -126,7 +292,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xb0CabFE930642AD3E7DECdc741884d8C3F7EbC70',
+        l1MessengerWrapper: '0x4a55e8e407609A3046804ca500BeF6F5ebaCb6F9',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xcb5ddfb8d0038247dc0beeecaa7f3457befcb77c',
         l2Bridge: '0xb276BC046DFf5024D20A3947475eA20C9F08eB1F',
@@ -138,7 +304,7 @@ export const addresses: Addresses = {
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8',
+        l1MessengerWrapper: '0x561285168e77f703C9B897d097D1B66a70D45687',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0xDc38c5aF436B9652225f92c370A011C673FA7Ba5',
         l2Bridge: '0x2708E5C7087d4C6D295c8B58b2D452c360D505C7',
@@ -150,7 +316,7 @@ export const addresses: Addresses = {
       },
       linea: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xBB9D66F7a7744C11550079045A177090E0015364',
+        l1MessengerWrapper: '0x7BFCB4e58cEbC43fd7278cB59ee96AC83c352C0d',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x2C1b868d6596a18e32E61B901E4060C872647b6C',
         l2Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6',
@@ -162,7 +328,7 @@ export const addresses: Addresses = {
       },
       base: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x36443fC70E073fe9D50425f82a3eE19feF697d62',
+        l1MessengerWrapper: '0xD8534e61A609B885B84eFBF607271c782c1D1660',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0x4200000000000000000000000000000000000006',
         l2Bridge: '0xCB4cEeFce514B2d910d3ac529076D18e3aDD3775',
@@ -173,110 +339,99 @@ export const addresses: Addresses = {
         bridgeDeployedBlockNumber: 1551608
       }
     },
-    USDC: {
+    HOP: {
       ethereum: {
-        l1CanonicalToken: '0x98339D8C260052B7ad81c28c16C0b98420f2B46a',
-        l1Bridge: '0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F',
-        bridgeDeployedBlockNumber: 7398216
-      },
-      polygon: {
-        l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1MessengerWrapper: '0x19B2162CA4C2C6F08C6942bFB846ce5C396aCB75',
-        l2CanonicalBridge: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
-        l2CanonicalToken: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
-        l2Bridge: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',
-        l2HopBridgeToken: '0x5C32143C8B198F392d01f8446b754c181224ac26',
-        l2AmmWrapper: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
-        l2SaddleSwap: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',
-        l2SaddleLpToken: '0x4a1a092BFFA8514E7F07ea3980C0be12139EFfFb',
-        l1FxBaseRootTunnel: '0x19B2162CA4C2C6F08C6942bFB846ce5C396aCB75',
-        l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
-        l2MessengerProxy: '0x1990BC6dfe2ef605Bfc08f5A23564dB75642Ad73',
-        bridgeDeployedBlockNumber: 27606309
-      },
-      arbitrum: {
-        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xFe35EF98a4A18f70589d32f81c3C27f1222302b7',
-        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l2CanonicalToken: '0x17078F231AA8dc256557b49a8f2F72814A71f633',
-        l2Bridge: '0x86cA30bEF97fB651b8d866D45503684b90cb3312',
-        l2HopBridgeToken: '0x30E344C8F517becAEEd04245ceD2e7301f06f21b',
-        l2AmmWrapper: '0x32219766597DFbb10297127238D921E7CCF5D920',
-        l2SaddleSwap: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E',
-        l2SaddleLpToken: '0xaD884FacB295EBfF185e215b52346909C7C3198E',
-        bridgeDeployedBlockNumber: 97011
-      },
-      optimism: {
-        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x588Bae9C85a605a7F14E551d144279984469423B',
-        l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
-        l2CanonicalToken: '0xCB4cEeFce514B2d910d3ac529076D18e3aDD3775',
-        l2Bridge: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',
-        l2HopBridgeToken: '0x72209Fe68386b37A40d6bCA04f78356fd342491f',
-        l2AmmWrapper: '0xfF21e82a4Bc305BCE591530A68628192b5b6B6FD',
-        l2SaddleSwap: '0xE4757dD81AFbecF61E51824AB9238df6691c3D0e',
-        l2SaddleLpToken: '0xac1621E4C005D2dE18cD0CB226c60a4d94aE474E',
-        bridgeDeployedBlockNumber: 407913
+        l1CanonicalToken: '0x38aF6928BF1Fd6B3c768752e716C49eb8206e20c',
+        l1Bridge: '0xC7C736deFBfF0aD1CB63dB82f55f053D331B4d7C',
+        bridgeDeployedBlockNumber: 8901515
       },
       linea: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x2e929203D8F2Fcf88C4Ff7b7362d08169b6F661c',
+        l1MessengerWrapper: '0x8B4fed24266195C4263Da54AbEC01C9388a3F21c',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l2CanonicalToken: '0x964FF70695da981027c81020B1c58d833D49A640',
-        l2Bridge: '0xB5d7924CB4FE74203c09E0D6D9800D2a1525585f',
-        l2HopBridgeToken: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E',
-        l2AmmWrapper: '0x8b3708d4797f71F0510202b9C2d7CE84b1c7a019',
-        l2SaddleSwap: '0xe13A2d5eb0e3E34022556ddF44a1Ff1a5A930ba3',
-        l2SaddleLpToken: '0x6fbf1d9034ea804eba3076fb76187b47fe6729da',
-        bridgeDeployedBlockNumber: 160808
+        l2CanonicalToken: '0x6F03052743CD99ce1b29265E377e320CD24Eb632',
+        l2Bridge: '0x2E9bB44C9CB774939462eF874Fc854D8df524F13',
+        l2HopBridgeToken: '0x6F03052743CD99ce1b29265E377e320CD24Eb632',
+        l2AmmWrapper: '0x0000000000000000000000000000000000000000',
+        l2SaddleSwap: '0x0000000000000000000000000000000000000000',
+        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
+        bridgeDeployedBlockNumber: 571167
       }
     },
-    HOP: {
+    USDC: {
       ethereum: {
-        l1CanonicalToken: '0x7191061D5d4C60f598214cC6913502184BAddf18',
-        l1Bridge: '0x13B7F51BD865410c3AcC4d56083C5B56aB38D203',
-        bridgeDeployedBlockNumber: 7670481
+        l1CanonicalToken: '0x07865c6e87b9f70255377e024ace6630c1eaa37f',
+        l1Bridge: '0x0AA3256364e6fBb277cCf7bd90F8b512CE39eFFA',
+        bridgeDeployedBlockNumber: 8901770
       },
-      polygon: {
-        l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1MessengerWrapper: '0x0Ded0d521AC7B0d312871D18EA4FDE79f03Ee7CA',
-        l2CanonicalBridge: '0x3F9880B2dF19aE17AdbdcD6a91a16fCd4a1A9D3D',
-        l2CanonicalToken: '0x3F9880B2dF19aE17AdbdcD6a91a16fCd4a1A9D3D',
-        l2Bridge: '0x86cA30bEF97fB651b8d866D45503684b90cb3312',
-        l2HopBridgeToken: '0x3F9880B2dF19aE17AdbdcD6a91a16fCd4a1A9D3D',
-        l2AmmWrapper: '0x0000000000000000000000000000000000000000',
-        l2SaddleSwap: '0x0000000000000000000000000000000000000000',
-        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
-        l1FxBaseRootTunnel: '0x0Ded0d521AC7B0d312871D18EA4FDE79f03Ee7CA',
-        l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
-        l2MessengerProxy: '0xf11EBB94EC986EA891Aec29cfF151345C83b33Ec',
-        bridgeDeployedBlockNumber: 28327302
-      },
-      arbitrum: {
+      linea: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xb98454270065A31D71Bf635F6F7Ee6A518dFb849',
+        l1MessengerWrapper: '0xeaC0DA6196536B573Feb10eaBa759F9089549642',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l2CanonicalToken: '0xB1ea9FeD58a317F81eEEFC18715Dd323FDEf45c4',
-        l2Bridge: '0x3215D2691cc6c95D51DfEc76524B8FA39A55118c',
-        l2HopBridgeToken: '0xB1ea9FeD58a317F81eEEFC18715Dd323FDEf45c4',
-        l2AmmWrapper: '0x0000000000000000000000000000000000000000',
-        l2SaddleSwap: '0x0000000000000000000000000000000000000000',
-        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
-        bridgeDeployedBlockNumber: 422017
+        l2CanonicalToken: '0xf56dc6695cF1f5c364eDEbC7Dc7077ac9B586068',
+        l2Bridge: '0x884d1Aa15F9957E1aEAA86a82a72e49Bc2bfCbe3',
+        l2HopBridgeToken: '0x636A7ee78faCd079DaBC8f81EDA1D09AA9D440A7',
+        l2AmmWrapper: '0x50d7d8B850e0e880295800790551928F4546BfE2',
+        l2SaddleSwap: '0x723194C6Cfed24883b598931Ee802ab80952C001',
+        l2SaddleLpToken: '0xcb7609827c7B28317BBCFb4B79276a54834F0848',
+        bridgeDeployedBlockNumber: 571505
+      }
+    },
+    USDT: {
+      ethereum: {
+        l1CanonicalToken: '0xfad6367E97217cC51b4cd838Cc086831f81d38C2',
+        l1Bridge: '0x4A26dE45BD65ef6e5535846b92a8575E0A0e5CEd',
+        bridgeDeployedBlockNumber: 8892201
       },
-      optimism: {
+      linea: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x16e08C02e4B78B0a5b3A917FF5FeaeDd349a5a95',
-        l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
-        l2CanonicalToken: '0xa5A33aB9063395A90CCbEa2D86a62EcCf27B5742',
-        l2Bridge: '0x4AD8db323F6EBEC4DEb53140FfC7dDb22DE5f607',
-        l2HopBridgeToken: '0xa5A33aB9063395A90CCbEa2D86a62EcCf27B5742',
+        l1MessengerWrapper: '0xe5b6bD410caaBC232c8fAb45002d5F2912A51426',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0x1990BC6dfe2ef605Bfc08f5A23564dB75642Ad73',
+        l2Bridge: '0xdb16fbF595C02EeF7D9233d38C232495734F3D85',
+        l2HopBridgeToken: '0x1990BC6dfe2ef605Bfc08f5A23564dB75642Ad73',
         l2AmmWrapper: '0x0000000000000000000000000000000000000000',
         l2SaddleSwap: '0x0000000000000000000000000000000000000000',
         l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
-        bridgeDeployedBlockNumber: 1499282
+        bridgeDeployedBlockNumber: 559320
+      }
+    },
+    DAI: {
+      ethereum: {
+        l1CanonicalToken: '0xb93cba7013f4557cDFB590fD152d24Ef4063485f',
+        l1Bridge: '0x2d6fd82C7f531328BCaCA96EF985325C0894dB62',
+        bridgeDeployedBlockNumber: 8892249
+      },
+      linea: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0xbA628d84A797E114da3D3310A6235931E569c368',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0x8741Ba6225A6BF91f9D73531A98A89807857a2B3',
+        l2Bridge: '0xf11EBB94EC986EA891Aec29cfF151345C83b33Ec',
+        l2HopBridgeToken: '0x8741Ba6225A6BF91f9D73531A98A89807857a2B3',
+        l2AmmWrapper: '0x0000000000000000000000000000000000000000',
+        l2SaddleSwap: '0x0000000000000000000000000000000000000000',
+        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
+        bridgeDeployedBlockNumber: 559381
+      }
+    },
+    UNI: {
+      ethereum: {
+        l1CanonicalToken: '0x41E5E6045f91B61AACC99edca0967D518fB44CFB',
+        l1Bridge: '0x4Ef4C1208F7374d0252767E3992546d61dCf9848',
+        bridgeDeployedBlockNumber: 8892277
+      },
+      linea: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0xf413e2E00c83d00018a86AFd4e68Ce6A89b02f6C',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0x7823E8DCC8bfc23EA3AC899EB86921f90e80F499',
+        l2Bridge: '0xb07c6505e1E41112494123e40330c5Ac09817CFB',
+        l2HopBridgeToken: '0x7823E8DCC8bfc23EA3AC899EB86921f90e80F499',
+        l2AmmWrapper: '0x0000000000000000000000000000000000000000',
+        l2SaddleSwap: '0x0000000000000000000000000000000000000000',
+        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
+        bridgeDeployedBlockNumber: 559429
       }
     }
   }

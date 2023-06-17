@@ -6,11 +6,11 @@
 
 - [arbitrum](Slug.md#arbitrum)
 - [base](Slug.md#base)
-- [consensyszk](Slug.md#consensyszk)
 - [ethereum](Slug.md#ethereum)
 - [gnosis](Slug.md#gnosis)
 - [goerli](Slug.md#goerli)
 - [kovan](Slug.md#kovan)
+- [linea](Slug.md#linea)
 - [mainnet](Slug.md#mainnet)
 - [nova](Slug.md#nova)
 - [optimism](Slug.md#optimism)
@@ -30,12 +30,6 @@ ___
 ### <a id="base" name="base"></a> base
 
 • **base** = ``"base"``
-
-___
-
-### <a id="consensyszk" name="consensyszk"></a> consensyszk
-
-• **consensyszk** = ``"consensyszk"``
 
 ___
 
@@ -60,6 +54,12 @@ ___
 ### <a id="kovan" name="kovan"></a> kovan
 
 • **kovan** = ``"kovan"``
+
+___
+
+### <a id="linea" name="linea"></a> linea
+
+• **linea** = ``"linea"``
 
 ___
 

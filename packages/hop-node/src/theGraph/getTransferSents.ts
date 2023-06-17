@@ -41,6 +41,7 @@ export default async function getTransferSents (chain: string, token: string) {
         },
         orderBy: timestamp,
         orderDirection: desc
+        first: 1000
       ) {
         id
         transferId

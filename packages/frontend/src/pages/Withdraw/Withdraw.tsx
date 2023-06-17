@@ -1,6 +1,5 @@
 import React, { FC, ChangeEvent, useEffect, useState } from 'react'
 import Card from '@material-ui/core/Card'
-import { WithdrawalProof } from './WithdrawalProof'
 import { makeStyles } from '@material-ui/core/styles'
 import LargeTextField from 'src/components/LargeTextField'
 import Typography from '@material-ui/core/Typography'
@@ -14,6 +13,8 @@ import Button from 'src/components/buttons/Button'
 import InfoTooltip from 'src/components/InfoTooltip'
 import useQueryParams from 'src/hooks/useQueryParams'
 import { updateQueryParams } from 'src/utils/updateQueryParams'
+import { isGoerli } from 'src/config'
+import { WithdrawalProof } from '@hop-protocol/sdk'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {
@@ -48,14 +49,13 @@ export const Withdraw: FC = () => {
   const { checkConnectedNetworkId } = useWeb3Context()
   const { queryParams } = useQueryParams()
   const [transferIdOrTxHash, setTransferIdOrTxHash] = useState<string>(() => {
-    return localStorage.getItem('withdrawTransferIdOrTxHash') || queryParams?.transferId as string || ''
+    return queryParams?.transferId as string || ''
   })
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
     try {
-      localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
       updateQueryParams({
         transferId: transferIdOrTxHash || ''
       })
@@ -72,7 +72,7 @@ export const Withdraw: FC = () => {
       let wp: WithdrawalProof
       await new Promise(async (resolve, reject) => {
         try {
-          wp = new WithdrawalProof(transferIdOrTxHash)
+          wp = new WithdrawalProof(isGoerli ? 'goerli' : 'mainnet', transferIdOrTxHash)
           await wp.generateProof()
           const { sourceChain } = wp.transfer
           await txConfirm?.show({

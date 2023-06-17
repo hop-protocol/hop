@@ -21,7 +21,7 @@ export class AmmStats {
   days: number = 1
   offsetDays: number = 0
   priceFeed: PriceFeed
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX']
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX', 'rETH']
   chains: string[] = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'nova']
 
   constructor (options: Options = {}) {
@@ -148,7 +148,8 @@ export class AmmStats {
       MATIC: await this.priceFeed.getPriceHistory('MATIC', daysN),
       WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
       HOP: await this.priceFeed.getPriceHistory('HOP', daysN),
-      SNX: await this.priceFeed.getPriceHistory('SNX', daysN)
+      SNX: await this.priceFeed.getPriceHistory('SNX', daysN),
+      rETH: await this.priceFeed.getPriceHistory('rETH', daysN)
     }
 
     console.log('done fetching prices')
@@ -169,6 +170,8 @@ export class AmmStats {
     }
     console.log('done upserting prices')
 
+    let totalFeesUsd = 0
+
     for (let i = 0; i < this.days; i++) {
       const promises: any[] = []
       const now = DateTime.utc()
@@ -179,6 +182,7 @@ export class AmmStats {
 
       for (const token of this.tokens) {
         for (const chain of this.chains) {
+          // TODO: read from core config
           if (token === 'MATIC' && !['polygon', 'gnosis'].includes(chain)) {
             continue
           }
@@ -186,6 +190,9 @@ export class AmmStats {
             continue
           }
           if (chain === 'nova' && !['ETH'].includes(token)) {
+            continue
+          }
+          if (token === 'rETH' && !['optimism', 'arbitrum'].includes(chain)) {
             continue
           }
           promises.push(
@@ -246,6 +253,8 @@ export class AmmStats {
                   feesFormattedUsd
                 )
 
+                totalFeesUsd += feesFormattedUsd
+
                 try {
                   console.log('upserting amm stat', chain, token, i)
                   this.db.upsertAmmStat(
@@ -274,7 +283,10 @@ export class AmmStats {
           )
         }
       }
+
       await Promise.all(promises)
     }
+
+    console.log('totalFeesUsd', totalFeesUsd)
   }
 }

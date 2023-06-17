@@ -4,9 +4,12 @@ import {
   ETHImage,
   GNOImage,
   HOPImage,
+  MAGICImage,
   MATICImage,
   OPImage,
+  RPLImage,
   SNXImage,
+  UNIImage,
   USDCImage,
   USDTImage,
   WBTCImage,
@@ -114,5 +117,23 @@ export const tokens: Tokens = {
     name: 'Rocket Pool ETH',
     decimals: 18,
     image: rETHImage
+  },
+  UNI: {
+    symbol: 'UNI',
+    name: 'Uniswap',
+    decimals: 18,
+    image: UNIImage
+  },
+  RPL: {
+    symbol: 'RPL',
+    name: 'Rocket Pool Protocol',
+    decimals: 18,
+    image: RPLImage
+  },
+  MAGIC: {
+    symbol: 'MAGIC',
+    name: 'MAGIC',
+    decimals: 18,
+    image: MAGICImage
   }
 }

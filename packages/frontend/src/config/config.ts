@@ -11,45 +11,45 @@ export { showRewards }
 
 export const transferTimes = {
   ethereum: {
-    optimism: 10,
-    arbitrum: 20,
-    polygon: 30,
+    optimism: 2,
+    arbitrum: 10,
+    polygon: 20,
     gnosis: 5,
-    nova: 20
+    nova: 10
   },
   optimism: {
-    ethereum: 1,
-    arbitrum: 1,
-    polygon: 5,
-    gnosis: 1,
-    nova: 1
+    ethereum: 25,
+    arbitrum: 25,
+    polygon: 25,
+    gnosis: 25,
+    nova: 25
   },
   arbitrum: {
-    ethereum: 1,
-    optimism: 1,
-    polygon: 5,
-    gnosis: 1,
-    nova: 1
+    ethereum: 12,
+    optimism: 12,
+    polygon: 12,
+    gnosis: 12,
+    nova: 12
   },
   polygon: {
-    ethereum: 15,
-    optimism: 15,
-    arbitrum: 15,
-    gnosis: 15,
-    nova: 15
+    ethereum: 60,
+    optimism: 60,
+    arbitrum: 60,
+    gnosis: 60,
+    nova: 60
   },
   gnosis: {
-    ethereum: 5,
-    optimism: 5,
-    arbitrum: 5,
-    polygon: 5,
-    nova: 5
+    ethereum: 4,
+    optimism: 4,
+    arbitrum: 4,
+    polygon: 4,
+    nova: 4
   },
   nova: {
-    ethereum: 1,
-    optimism: 1,
-    arbitrum: 1,
-    polygon: 5,
-    gnosis: 1
+    ethereum: 12,
+    optimism: 12,
+    arbitrum: 12,
+    polygon: 12,
+    gnosis: 12
   }
 }

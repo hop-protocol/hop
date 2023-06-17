@@ -9,6 +9,7 @@ import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
 import { find } from 'lodash'
+import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { transactions, updateTransaction } = useTxHistory()
@@ -78,7 +79,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
     setConfirmations(txResponse?.confirmations)
 
-    if (waitConfirmations && txResponse?.confirmations >= waitConfirmations) {
+    const isFinalized = await getIsTxFinalized(txResponse?.blockNumber, chain as string)
+    if (isFinalized) {
       setCompleted(true)
       updateTransaction(transaction, { pending: false })
     }

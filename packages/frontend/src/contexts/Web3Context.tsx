@@ -10,7 +10,7 @@ import Onboard from 'bnc-onboard'
 import { ethers, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
 import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl, getRpcUrlOrThrow } from 'src/utils'
-import { blocknativeDappid, reactAppNetwork, enabledChains } from 'src/config'
+import { blocknativeDappid, isGoerli } from 'src/config'
 import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
 import logger from 'src/logger'
@@ -61,7 +61,7 @@ const networkNames: any = {
 }
 
 const getWalletConnectRpcUrls = (): Record<string, string> => {
-  if (reactAppNetwork === 'goerli') {
+  if (isGoerli) {
     return {
       5: getRpcUrl(ChainSlug.Ethereum),
       421613: getRpcUrl(ChainSlug.Arbitrum),

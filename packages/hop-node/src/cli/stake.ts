@@ -4,6 +4,7 @@ import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wait from 'src/utils/wait'
 import { BigNumber, constants } from 'ethers'
+import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
@@ -66,10 +67,14 @@ async function sendTokensToL2 (
   }
 
   logger.debug('Sending tokens to L2')
+  const options: CanonicalTokenConvertOptions = {
+    shouldSkipNearestCheck: true
+  }
   tx = await bridge.convertCanonicalTokenToHopToken(
     chainSlugToId(chain),
     parsedAmount,
-    recipient
+    recipient,
+    options
   )
   await tx.wait()
 }

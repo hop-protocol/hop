@@ -13,7 +13,7 @@ import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { DateTime } from 'luxon'
 import { getTokenImage } from 'src/utils/tokens'
-import { reactAppNetwork } from 'src/config'
+import { isGoerli } from 'src/config'
 
 interface Props {
   rewardsContractAddress: string
@@ -42,7 +42,7 @@ export const useRewards = (props: Props) => {
   const [claimRecipient, setClaimRecipient] = useState(queryParams.address as string ?? address?.address)
   const [countdown, setCountdown] = useState('')
   const [inputValue, setInputValue] = useState('')
-  const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+  const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
@@ -384,7 +384,7 @@ export const useRewards = (props: Props) => {
   }
 
   const hasRewards = !!(address && claimableAmount?.gt(0))
-  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=2022-09-23`
+  let txHistoryLink = `https://${isGoerli ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=2022-09-23`
   if (address) {
    txHistoryLink += `&account=${address}`
   }

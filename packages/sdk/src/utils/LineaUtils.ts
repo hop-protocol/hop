@@ -18,7 +18,7 @@ export class LineaUtils {
     const l1Rpc = 'https://rpc.ankr.com/eth_goerli'
     this.l1Provider = new ethers.providers.StaticJsonRpcProvider(l1Rpc)
 
-    const l2Rpc = 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480'
+    const l2Rpc = 'https://linea-goerli.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480'
     this.l2Provider = new ethers.providers.StaticJsonRpcProvider(l2Rpc)
   }
 
@@ -56,14 +56,22 @@ export class LineaUtils {
     const l2BlockNumber = await getBlockNumberFromDateUsingLib(this.l2Provider, l1BlockTimestamp)
     const l2Address = '0xA59477f7742Ba7d51bb1E487a8540aB339d6801d'
     const contract = new ethers.Contract(l2Address, abi, this.l2Provider)
-    const range = 1000
     const startBlockNumber = l2BlockNumber - 100
-    const endBlockNumber = l2BlockNumber + range
+    const endBlockNumber = startBlockNumber + 1000
 
-    const logs = await contract.queryFilter(contract.filters.MessageDelivered(),
-      startBlockNumber,
-      endBlockNumber
-    )
+    const batchSize = 250
+    const logs = []
+    let start = startBlockNumber
+    let end = Math.min(start + batchSize, endBlockNumber)
+    while (end <= endBlockNumber) {
+      const _logs = await contract.queryFilter(contract.filters.MessageDelivered(),
+        start,
+        end
+      )
+      logs.push(..._logs)
+      start = end
+      end = start + batchSize
+    }
 
     for (const log of logs) {
       if (log.data.includes(fromAddress.replace('0x', '').toLowerCase())) {

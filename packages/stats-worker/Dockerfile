@@ -1,4 +1,4 @@
-FROM node:16 AS build
+FROM node:14 AS build
 
 # Create the working directory and give node use permissions
 RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app

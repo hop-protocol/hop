@@ -46,7 +46,7 @@ export async function getBlockNumberFromDateUsingLib (provider: any, timestamp: 
       }
     } catch (err) {
       retryCount++
-      console.log(`getBlockNumberFromDate: retrying ${retryCount}`)
+      // console.warn(`getBlockNumberFromDate: retrying ${retryCount}`)
       if (retryCount < 5) continue
       break
     }

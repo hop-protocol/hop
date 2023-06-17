@@ -11,10 +11,7 @@ import {
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
-  modifiedLiquidityDecrease,
-  modifiedLiquidityDestChains,
-  modifiedLiquiditySourceChains,
-  modifiedLiquidityTokens,
+  modifiedLiquidityRoutes,
   oruChains
 } from 'src/config'
 
@@ -68,7 +65,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       })
     }
 
-    this.logModifications()
+    this.logger.debug('modified liquidity routes', modifiedLiquidityRoutes)
     this.logger.debug('syncing bonder credit')
   }
 
@@ -112,33 +109,26 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
     }
 
-    if (
-      modifiedLiquidityTokens.includes(this.tokenSymbol) &&
-      modifiedLiquiditySourceChains.includes(this.chainSlug) &&
-      modifiedLiquidityDestChains.includes(destinationChain)
-    ) {
-      this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
-
-      if (modifiedLiquidityDecrease !== '0') {
-        const decreaseAmount = this.bridge.parseUnits(modifiedLiquidityDecrease)
-        availableCredit = availableCredit.sub(decreaseAmount)
-        baseAvailableCredit = baseAvailableCredit.sub(decreaseAmount)
-        baseAvailableCreditIncludingVault = baseAvailableCreditIncludingVault.sub(decreaseAmount)
-      } else {
+    if (modifiedLiquidityRoutes?.length > 0) {
+      const shouldDisableRoute = this.shouldDisableRoute(modifiedLiquidityRoutes, destinationChain)
+      this.logger.debug(`modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
+      if (shouldDisableRoute) {
         availableCredit = BigNumber.from('0')
         baseAvailableCredit = BigNumber.from('0')
         baseAvailableCreditIncludingVault = BigNumber.from('0')
       }
-
-      this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
     }
 
     if (availableCredit.lt(0)) {
       availableCredit = BigNumber.from(0)
+    }
+
+    if (baseAvailableCredit.lt(0)) {
+      baseAvailableCredit = BigNumber.from(0)
+    }
+
+    if (baseAvailableCreditIncludingVault.lt(0)) {
+      baseAvailableCreditIncludingVault = BigNumber.from(0)
     }
 
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }
@@ -422,18 +412,21 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
   }
 
-  private logModifications (): void {
-    if (
-      modifiedLiquidityDestChains.length > 0 ||
-      modifiedLiquiditySourceChains.length > 0 ||
-      modifiedLiquidityTokens.length > 0 ||
-      modifiedLiquidityDecrease !== '0'
-    ) {
-      this.logger.debug('modifiedLiquidityDestChains', modifiedLiquidityDestChains)
-      this.logger.debug('modifiedLiquiditySourceChains', modifiedLiquiditySourceChains)
-      this.logger.debug('modifiedLiquidityTokens', modifiedLiquidityTokens)
-      this.logger.debug('modifiedLiquidityDecrease', modifiedLiquidityDecrease)
+  private shouldDisableRoute (modifiedLiquidityRoutes: string[], destinationChain: string): boolean {
+    for (const modifiedLiquidityRoute of modifiedLiquidityRoutes) {
+      const [source, destination, tokenSymbol] = modifiedLiquidityRoute.split(':')
+      if (!source || !destination || !tokenSymbol) {
+        continue
+      }
+
+      const isSource = source === 'all' || source === this.chainSlug
+      const isDestination = destination === 'all' || destination === destinationChain
+      const isTokenSymbol = tokenSymbol === 'all' || tokenSymbol === this.tokenSymbol
+      if (isSource && isDestination && isTokenSymbol) {
+        return true
+      }
     }
+    return false
   }
 }
 

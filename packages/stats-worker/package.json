@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   },
   "scripts": {
     "start": "ts-node src/index.ts",
     "start:yields": "ts-node src/index.ts --yields",
+    "start:prices": "ts-node src/index.ts --prices",
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:amm": "ts-node src/index.ts --amm --ammDays=7",
@@ -23,9 +24,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-s3": "3.29.0",
-    "@hop-protocol/core": "0.0.1-beta.136",
-    "@hop-protocol/sdk": "0.0.1-beta.466",
+    "@aws-sdk/client-s3": "3.316.0",
+    "@hop-protocol/core": "0.0.1-beta.164",
+    "@hop-protocol/sdk": "0.0.1-beta.511",
     "@pinata/sdk": "1.1.26",
     "@types/isomorphic-fetch": "^0.0.36",
     "comment-json": "4.2.2",

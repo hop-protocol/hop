@@ -5,16 +5,17 @@ import Typography from '@material-ui/core/Typography'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { getTokenImage } from 'src/utils/tokens'
 
-export const useStyles = makeStyles(theme => ({
+export const useStyles = makeStyles((theme: any) => ({
   root: {
     width: '47rem',
-    background: 'white',
+    background: theme.palette.type === 'dark' ? '#211e29' : '#fff',
     padding: '1rem 2rem',
     marginBottom: '2rem',
     marginLeft: '-20px',
     borderRadius: '50px',
     [theme.breakpoints.down('xs')]: {
       width: '100%',
+      flexDirection: 'column',
     }
   }
 }))

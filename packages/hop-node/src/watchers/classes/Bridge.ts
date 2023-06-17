@@ -5,7 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, ChainHasFinalizationTag, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -14,14 +14,18 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
-import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
-import { config as globalConfig } from 'src/config'
+import { estimateL1GasCost } from '@eth-optimism/sdk'
+import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
-  cacheKey: string
+  syncCacheKey: string
   startBlockNumber: number
   endBlockNumber: number
+}
+
+export type CanonicalTokenConvertOptions = {
+  shouldSkipNearestCheck?: boolean
 }
 
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
@@ -554,15 +558,16 @@ export default class Bridge extends ContractBase {
   ) {
     this.validateEventsBatchInput(options)
 
-    let cacheKey = ''
+    // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
+    let syncCacheKey = ''
     let state: State | undefined
-    if (options.cacheKey) {
-      cacheKey = this.getCacheKeyFromKey(
+    if (options.syncCacheKey) {
+      syncCacheKey = this.getSyncCacheKeyFromKey(
         this.chainId,
         this.address,
-        options.cacheKey
+        options.syncCacheKey
       )
-      state = await this.db.syncState.getByKey(cacheKey)
+      state = await this.db.syncState.getByKey(syncCacheKey)
     }
 
     const blockValues = await this.getBlockValues(options, state)
@@ -574,7 +579,7 @@ export default class Bridge extends ContractBase {
       latestBlockInBatch
     } = blockValues
 
-    this.logger.debug(`eventsBatch cacheKey: ${cacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
+    this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -596,12 +601,13 @@ export default class Bridge extends ContractBase {
       i++
     }
 
-    // Only store latest block if a full sync is successful.
-    // Sync is complete when the start block is reached since
+    // Only store latest block if a sync is successful. Sync is complete when the start block is reached since
     // it traverses backwards from head.
-    if (cacheKey && start === earliestBlockInBatch) {
-      this.logger.debug(`eventsBatch cacheKey: ${cacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
-      await this.db.syncState.update(cacheKey, {
+    // NOTE: The syncCacheKey here enforces that the syncState is only updated during a sync and not when this
+    // is called for other purposes, such as looking onchain for transferIds in a root.
+    if (syncCacheKey && start === earliestBlockInBatch) {
+      this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
+      await this.db.syncState.update(syncCacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
       })
@@ -615,12 +621,13 @@ export default class Bridge extends ContractBase {
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    let currentBlockNumberWithFinality: number
-    if (ChainHasFinalizationTag[this.chainSlug]) {
-      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+    let blockNumberWithAcceptableFinality: number
+
+    if (getHasFinalizationBlockTag(this.chainSlug)) {
+      blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
-      currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+      blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
     }
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
@@ -632,13 +639,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync) {
-      end = Math.max(currentBlockNumberWithFinality, state?.latestBlockSynced ?? 0)
+      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = currentBlockNumberWithFinality
+      end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = totalBlocks!
     }
 
@@ -669,7 +676,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  public getCacheKeyFromKey = (
+  public getSyncCacheKeyFromKey = (
     chainId: number,
     address: string,
     key: string
@@ -687,7 +694,7 @@ export default class Bridge extends ContractBase {
   private readonly validateEventsBatchInput = (
     options: Partial<EventsBatchOptions> = {}
   ) => {
-    const { cacheKey, startBlockNumber, endBlockNumber } = options
+    const { syncCacheKey, startBlockNumber, endBlockNumber } = options
 
     const isStartAndEndBlock = startBlockNumber && endBlockNumber
     if (isStartAndEndBlock) {
@@ -703,7 +710,7 @@ export default class Bridge extends ContractBase {
         )
       }
 
-      if (cacheKey) {
+      if (syncCacheKey) {
         throw new Error(
           'A key cannot exist when a start and end block are explicitly defined'
         )
@@ -792,16 +799,14 @@ export default class Bridge extends ContractBase {
 
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
-        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!)
-        const serializedTx = serializeTransaction({
+        const tx = {
           value: parseEther('0'),
           gasPrice,
           gasLimit,
           to,
           data
-        })
-        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        }
+        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(Chain.Optimism)!, tx)
         gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)

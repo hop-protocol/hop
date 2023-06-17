@@ -79,7 +79,8 @@ export enum CanonicalToken {
   HOP = 'HOP',
   SNX = 'SNX',
   sUSD = 'sUSD',
-  rETH = 'rETH'
+  rETH = 'rETH',
+  UNI = 'UNI'
 }
 
 export enum WrappedToken {
@@ -96,6 +97,7 @@ export enum HToken {
   hDAI = 'hDAI',
   hHop = 'hHOP',
   hrETH = 'hrETH',
+  hUNI = 'hUNI',
 }
 
 export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string
@@ -107,7 +109,7 @@ export enum TokenIndex {
 
 export enum BondTransferGasLimit {
   Ethereum = '165000',
-  Optimism = '100000000',
+  Optimism = '350000',
   Arbitrum = '2500000',
   Nova = '2500000',
 }
@@ -144,9 +146,11 @@ export enum EventNames {
 
 export const MaxDeadline: number = 9999999999
 // Low liquidity or single-chain tokens should have a buffer of appx 10% of their L1 stake
-export const LowLiquidityTokens: string[] = ['HOP', 'SNX']
+export const LowLiquidityTokens: string[] = ['HOP', 'SNX', 'sUSD', 'rETH']
 export const LowLiquidityTokenBufferAmountsUsd: Record<string, string> = {
   HOP: '8000',
-  SNX: '40000'
+  SNX: '40000',
+  sUSD: '40000',
+  rETH: '50000'
 }
 export const SecondsInDay = 86400

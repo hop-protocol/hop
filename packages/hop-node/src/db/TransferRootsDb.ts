@@ -1,18 +1,20 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
+import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
 import {
   Chain,
   ChallengePeriodMs,
-  OneHourMs,
   OneWeekMs,
+  OruExitTimeMs,
   RelayableChains,
-  RootSetSettleDelayMs
+  RootSetSettleDelayMs,
+  TenMinutesMs,
+  TxError
 } from 'src/constants'
 import {
   TxRetryDelayMs,
-  oruChains,
-  shouldExitOrus
+  oruChains
 } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -48,6 +50,8 @@ interface BaseTransferRoot {
   transferIds?: string[]
   transferRootHash?: string
   withdrawalBondSettleTxSentAt?: number
+  rootBondTxError?: TxError
+  rootBondBackoffIndex?: number
 }
 
 export interface TransferRoot extends BaseTransferRoot {
@@ -480,10 +484,28 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-      let timestampOk = true
+      // Since bonding of transferRoots is not time sensitive, wait an arbitrary amount of time for
+      // finality before attempting to bond. This prevents repetitive RPC calls, since that is the
+      // only true way to know finality for ORUs. The arbitrary time should represent roughly how long
+      // the longest chain should wait for finality. Waiting longer also allows extra time to observe
+      // reorgs deeper than finality.
+      let finalityTimestampOk = false
+      if (item?.committedAt) {
+        const longestTimeToFinalityMs = 3 * TenMinutesMs
+        finalityTimestampOk = item.committedAt + longestTimeToFinalityMs < Date.now()
+      }
+
+      let sentBondTxAtTimestampOk = true
       if (item.sentBondTxAt) {
-        timestampOk =
-          item.sentBondTxAt + TxRetryDelayMs < Date.now()
+        if (item?.rootBondTxError === TxError.RedundantRpcOutOfSync) {
+          const delayMs = getExponentialBackoffDelayMs(item.rootBondBackoffIndex!)
+          if (delayMs > OneWeekMs * 2) {
+            return false
+          }
+          sentBondTxAtTimestampOk = item.sentBondTxAt + delayMs < Date.now()
+        } else {
+          sentBondTxAtTimestampOk = item.sentBondTxAt + TxRetryDelayMs < Date.now()
+        }
       }
 
       return (
@@ -499,7 +521,9 @@ class TransferRootsDb extends BaseDb {
         item.sourceChainId &&
         item.shouldBondTransferRoot &&
         item.totalAmount &&
-        timestampOk
+        item.transferIds &&
+        finalityTimestampOk &&
+        sentBondTxAtTimestampOk
       )
     })
 
@@ -531,25 +555,19 @@ class TransferRootsDb extends BaseDb {
       const isSourceOru = oruChains.has(sourceChain)
       if (isSourceOru && item.committedAt) {
         const committedAtMs = item.committedAt * 1000
-        // Add a buffer to allow validators to actually make the assertion transactions
-        // https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
-        const validatorBufferMs = OneHourMs * 10
-        const oruExitTimeMs = OneWeekMs + validatorBufferMs
-        oruTimestampOk =
-          committedAtMs + oruExitTimeMs < Date.now()
+        const exitTimeMs = OruExitTimeMs?.[sourceChain]
+        if (!exitTimeMs) {
+          return false
+        }
+        oruTimestampOk = committedAtMs + exitTimeMs < Date.now()
       }
 
-      // Do not exit ORU if there is no risk of challenge and the config is not set otherwise
-      let oruShouldExit = true
-      if (!shouldExitOrus) {
-        const isChallenged = item?.challenged === true
-        if (isSourceOru && item?.bondedAt && !isChallenged) {
-          const bondedAtMs: number = item.bondedAt * 1000
-          const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
-          if (isChallengePeriodOver) {
-            oruShouldExit = false
-          }
-        }
+      // This will exit if the root for an ORU was never bonded. This is intentional. A case where this
+      // might occur is if someone fills a root with a giant transfer that is greater than the bonder's entire
+      // liquidity.
+      let shouldExitOru = true
+      if (isSourceOru && item?.challenged !== true && item?.bondedAt) {
+        shouldExitOru = false
       }
 
       return (
@@ -563,7 +581,7 @@ class TransferRootsDb extends BaseDb {
         item.committedAt &&
         timestampOk &&
         oruTimestampOk &&
-        oruShouldExit
+        shouldExitOru
       )
     })
 

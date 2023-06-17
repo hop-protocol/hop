@@ -13,7 +13,7 @@ import {
 } from 'src/utils'
 import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
-import { getNetworkWaitConfirmations } from 'src/utils/networks'
+import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 import { sigHashes } from 'src/hooks/useTransaction'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
@@ -123,9 +123,9 @@ class Transaction extends EventEmitter {
         this.transferId = tsDetails.transferId
       }
 
+      const isFinalized = await getIsTxFinalized(receipt.blockNumber, this.networkName)
       this.status = !!receipt.status
-      const waitConfirmations = getNetworkWaitConfirmations(this.networkName)
-      if (waitConfirmations && receipt.status === 1 && receipt.confirmations > waitConfirmations) {
+      if (receipt.status === 1 && isFinalized) {
         this.pending = false
       }
       this.emit('pending', false, this)

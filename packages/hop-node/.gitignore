@@ -1,5 +1,6 @@
 build
 dist
+yarn.lock
 secret.json
 .env
 *.env

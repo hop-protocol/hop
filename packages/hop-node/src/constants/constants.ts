@@ -135,7 +135,8 @@ export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 
 const ValidatorExitBufferMs = OneHourMs * 10
 export const OruExitTimeMs: Record<string, number> = {
   [Chain.Optimism]: OneHourMs,
-  [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs
+  [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs,
+  [Chain.PolygonZk]: OneHourMs
 }
 
 export const FinalityTag: Record<string, string> = {

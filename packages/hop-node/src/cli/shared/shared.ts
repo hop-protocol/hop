@@ -135,7 +135,8 @@ export function getSourceChains (token: string, settlementChain: string | null =
       ) continue
     }
 
-    if (chain === Chain.Nova || chain === Chain.ZkSync || chain === Chain.Linea || chain === Chain.ScrollZk || chain === Chain.Base) {
+    // TODO: use util or read from core package
+    if (chain === Chain.Nova || chain === Chain.ZkSync || chain === Chain.Linea || chain === Chain.ScrollZk || chain === Chain.Base || chain === Chain.PolygonZk) {
       if (
         token !== 'ETH'
       ) continue

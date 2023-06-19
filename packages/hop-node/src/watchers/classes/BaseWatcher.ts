@@ -263,6 +263,12 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
+    // PolygonZk RPC does not allow eth_call with a from address of 0x0.
+    // TODO: More robust check for PolygonZk
+    if (destinationBridge.chainSlug === Chain.PolygonZk) {
+      return true
+    }
+
     // It has been verified that all chains have at least 1 wei at 0x0.
     const tx = {
       from: constants.AddressZero,

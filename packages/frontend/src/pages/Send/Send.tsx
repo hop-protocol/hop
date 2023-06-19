@@ -341,7 +341,7 @@ const Send: FC = () => {
       const insufficientRelayFeeFunds = sourceToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN.gt(fromBalance.sub(relayFeeEth))
       const notEnoughBonderFee = estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)
       const estimatedReceivedLow = estimatedReceived?.lte(0)
-      const lineaWarning = isGoerli && fromNetwork?.isL1 && toNetwork?.slug === 'linea'
+      const lineaWarning = isGoerli && toNetwork?.slug === 'linea'
 
       if (noLiquidityWarning) {
         message = noLiquidityWarning

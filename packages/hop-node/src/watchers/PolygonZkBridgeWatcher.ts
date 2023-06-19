@@ -153,7 +153,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
     return this._relayXDomainMessage(commitTxHash)
   }
 
-  async _relayXDomainMessage (commitTxHash: string, networkId: number = 1, wallet: Signer = this.l2Wallet): Promise<providers.TransactionResponse> {
+  async _relayXDomainMessage (commitTxHash: string, networkId: number = 1, wallet: Signer = this.l1Wallet): Promise<providers.TransactionResponse> {
     let isRelayable
     if (networkId === 0) {
       isRelayable = await this.zkEvmClient.isDepositClaimable(commitTxHash)

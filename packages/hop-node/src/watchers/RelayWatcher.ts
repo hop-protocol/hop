@@ -179,21 +179,23 @@ class RelayWatcher extends BaseWatcher {
       .bridge
 
     // TODO: Modularize this for multiple chains
-    const relayWatcher = this.relayWatchers[destinationChainId] as ArbitrumBridgeWatcher
-    const l1ToL2Messages = await relayWatcher.getL1ToL2Messages(transferSentTxHash)
     let messageIndex = 0
-    if (l1ToL2Messages.length > 1) {
-      messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
-      logger.debug(`messageIndex: ${messageIndex}`)
-    }
+    if (destinationChainId === this.chainSlugToId(Chain.Arbitrum) || destinationChainId === this.chainSlugToId(Chain.Nova)) {
+      const relayWatcher = this.relayWatchers[destinationChainId] as ArbitrumBridgeWatcher
+      const l1ToL2Messages = await relayWatcher.getL1ToL2Messages(transferSentTxHash)
+      if (l1ToL2Messages.length > 1) {
+        messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
+        logger.debug(`messageIndex: ${messageIndex}`)
+      }
 
-    logger.debug('processing transfer relay. checking isRelayComplete')
-    const isRelayComplete = await relayWatcher.isTransactionRedeemed(transferSentTxHash)
-    logger.debug(`processing transfer relay. isRelayComplete: ${isRelayComplete?.toString()}`)
-    if (isRelayComplete) {
-      logger.warn('checkTransferSentToL2 already complete. marking item not found')
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
+      logger.debug('processing transfer relay. checking isRelayComplete')
+      const isRelayComplete = await relayWatcher.isTransactionRedeemed(transferSentTxHash)
+      logger.debug(`processing transfer relay. isRelayComplete: ${isRelayComplete?.toString()}`)
+      if (isRelayComplete) {
+        logger.warn('checkTransferSentToL2 already complete. marking item not found')
+        await this.db.transfers.update(transferId, { isNotFound: true })
+        return
+      }
     }
 
     const bonderAddress = await destBridge.getBonderAddress()
@@ -246,7 +248,7 @@ class RelayWatcher extends BaseWatcher {
         transferId,
         destinationChainId,
         transferSentTxHash,
-        messageIndex
+        messageIndex: messageIndex
       })
 
       // This will not work as intended if the process restarts after the tx is sent but before this is executed.

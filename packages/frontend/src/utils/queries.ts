@@ -43,6 +43,9 @@ export function getUrl(chain: Slug | string) {
     if (chain === 'base') {
       return 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
     }
+    if (chain === 'polygonzk') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
 
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }

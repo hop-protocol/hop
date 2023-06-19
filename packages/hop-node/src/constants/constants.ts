@@ -118,7 +118,8 @@ export enum GasCostTransactionType {
 
 export const RelayableChains: string[] = [
   Chain.Arbitrum,
-  Chain.Nova
+  Chain.Nova,
+  Chain.PolygonZk
 ]
 
 export const MaxDeadline: number = 9999999999

@@ -64,7 +64,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   zksync: 10000, // TODO
   linea: 10000, // TODO
   scrollzk: 10000, // TODO
-  base: 10000 // TODO
+  base: 10000, // TODO
+  polygonzk: 10000 // TODO
 }
 
 export const DefaultBatchBlocks = 10000

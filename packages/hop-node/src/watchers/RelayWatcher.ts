@@ -180,7 +180,7 @@ class RelayWatcher extends BaseWatcher {
 
     // TODO: Modularize this for multiple chains
     let messageIndex = 0
-    if (destinationChainId === this.chainSlugToId(Chain.Arbitrum) || destinationChainId === this.chainSlugToId(Chain.Nova)) {
+    if (destinationChainId === this.chainSlugToId(Chain.Arbitrum)) {
       const relayWatcher = this.relayWatchers[destinationChainId] as ArbitrumBridgeWatcher
       const l1ToL2Messages = await relayWatcher.getL1ToL2Messages(transferSentTxHash)
       if (l1ToL2Messages.length > 1) {

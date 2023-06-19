@@ -148,5 +148,6 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.Arbitrum]: FinalityTag.Safe,
   [Chain.Gnosis]: FinalityTag.Finalized,
   [Chain.Base]: FinalityTag.Finalized,
-  [Chain.Nova]: FinalityTag.Safe
+  [Chain.Nova]: FinalityTag.Safe,
+  [Chain.PolygonZk]: FinalityTag.Safe
 }

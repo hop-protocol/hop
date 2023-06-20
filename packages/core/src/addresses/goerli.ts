@@ -330,15 +330,15 @@ export const addresses: Addresses = {
       },
       linea: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x7BFCB4e58cEbC43fd7278cB59ee96AC83c352C0d',
+        l1MessengerWrapper: '0x7bDAcb238F718C38F7dc8A5eA9A49BcA50a95359',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x2C1b868d6596a18e32E61B901E4060C872647b6C',
-        l2Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6',
-        l2HopBridgeToken: '0xA49600627D913B61714fF2a205Fb1096f1bceAb2',
-        l2AmmWrapper: '0xC08055b634D43F2176d721E26A3428D3b7E7DdB5',
-        l2SaddleSwap: '0x7191061D5d4C60f598214cC6913502184BAddf18',
-        l2SaddleLpToken: '0xa16768F69667e2ec8ebacdD4c9A9092ae2fFe2ca',
-        bridgeDeployedBlockNumber: 59449
+        l2Bridge: '0x59eA23a20a161468594bE9AE20Eb591582AcF278',
+        l2HopBridgeToken: 'TODO',
+        l2AmmWrapper: '0xaE6Dc7fED207FB7bF3F406Fc197f70607CeA618a',
+        l2SaddleSwap: '0x914f986a44AcB623A277d6Bd17368171FCbe4273',
+        l2SaddleLpToken: '0xE338e885ff9bf04fC8C8d82A36e55aEb11725435',
+        bridgeDeployedBlockNumber: 953712
       },
       base: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',

@@ -2,6 +2,7 @@ import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import LineaBridgeWatcher from './LineaBridgeWatcher'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
 import isNativeToken from 'src/utils/isNativeToken'
@@ -23,7 +24,7 @@ type Config = {
   dryMode?: boolean
 }
 
-type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher
+type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher | LineaBridgeWatcher
 
 // TODO: Modularize this for multiple chains
 
@@ -75,6 +76,16 @@ class RelayWatcher extends BaseWatcher {
     if (enabledNetworks.includes(Chain.PolygonZk)) {
       const polygonzkChainId = this.chainSlugToId(Chain.PolygonZk)
       this.relayWatchers[polygonzkChainId] = new PolygonZkBridgeWatcher({
+        chainSlug: Chain.PolygonZk,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+
+    if (enabledNetworks.includes(Chain.Linea)) {
+      const lineaChainId = this.chainSlugToId(Chain.Linea)
+      this.relayWatchers[lineaChainId] = new LineaBridgeWatcher({
         chainSlug: Chain.PolygonZk,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

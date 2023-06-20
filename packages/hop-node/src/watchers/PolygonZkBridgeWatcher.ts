@@ -153,12 +153,12 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
     return this._relayXDomainMessage(commitTxHash)
   }
 
-  async _relayXDomainMessage (commitTxHash: string, networkId: number = 1, wallet: Signer = this.l1Wallet): Promise<providers.TransactionResponse> {
+  async _relayXDomainMessage (txHash: string, networkId: number = 1, wallet: Signer = this.l1Wallet): Promise<providers.TransactionResponse> {
     let isRelayable
     if (networkId === 0) {
-      isRelayable = await this.zkEvmClient.isDepositClaimable(commitTxHash)
+      isRelayable = await this.zkEvmClient.isDepositClaimable(txHash)
     } else {
-      isRelayable = await this.zkEvmClient.isWithdrawExitable(commitTxHash)
+      isRelayable = await this.zkEvmClient.isWithdrawExitable(txHash)
     }
     if (!isRelayable) {
       throw new Error('expected deposit to be claimable')
@@ -167,7 +167,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
     // As of Jun 2023, the SDK does not provide a claimMessage convenience function.
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
     const isParent = networkId === 0
-    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(commitTxHash, isParent, networkId)
+    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isParent, networkId)
 
     const abi = ['function claimMessage(bytes32[32],uint32,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)']
     const iface = new utils.Interface(abi)

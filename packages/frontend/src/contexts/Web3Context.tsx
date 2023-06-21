@@ -83,6 +83,12 @@ function getOnboardChains(): any {
         token: 'ETH',
         label: 'Scroll zkEVM',
         rpcUrl: goerliChains.scrollzk.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(goerliChains.polygonzk.networkId),
+        token: 'ETH',
+        label: 'Polygon zkEVM (Goerli)',
+        rpcUrl: goerliChains.polygonzk.publicRpcUrl
       }
     ]
   } else {
@@ -137,7 +143,7 @@ const walletConnect = walletConnectModule({
   },
   connectFirstChainId: false,
   projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce',
-  requiredChains: getOnboardChains().map((chain: any) => Number(chain.id)),
+  requiredChains: [isGoerli ? 5 : 1]
 })
 
 const Web3Context = createContext<Props | undefined>(undefined)

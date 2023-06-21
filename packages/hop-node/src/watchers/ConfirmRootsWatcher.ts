@@ -9,6 +9,7 @@ import LineaBridgeWatcher from './LineaBridgeWatcher'
 import NovaBridgeWatcher from './NovaBridgeWatcher'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
 import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
 import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
@@ -37,7 +38,7 @@ export type ConfirmRootsData = {
   rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | PolygonZkBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -56,78 +57,43 @@ class ConfirmRootsWatcher extends BaseWatcher {
     this.logger.debug('starting watcher')
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+    const watcherParams = {
+      chainSlug: config.chainSlug,
+      tokenSymbol: this.tokenSymbol,
+      l1BridgeContract: config.l1BridgeContract,
+      bridgeContract: config.bridgeContract,
+      dryMode: config.dryMode
+    }
+
     if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {
-      this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        l1BridgeContract: config.l1BridgeContract,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Polygon && enabledNetworks.includes(Chain.Polygon)) {
-      this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Polygon] = new PolygonBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Optimism && enabledNetworks.includes(Chain.Optimism)) {
-      this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Optimism] = new OptimismBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Arbitrum && enabledNetworks.includes(Chain.Arbitrum)) {
-      this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Nova && enabledNetworks.includes(Chain.Nova)) {
-      this.watchers[Chain.Nova] = new NovaBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Nova] = new NovaBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.ZkSync && enabledNetworks.includes(Chain.ZkSync)) {
-      this.watchers[Chain.ZkSync] = new ZkSyncBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.ZkSync] = new ZkSyncBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Linea && enabledNetworks.includes(Chain.Linea)) {
-      this.watchers[Chain.Linea] = new LineaBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Linea] = new LineaBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.ScrollZk && enabledNetworks.includes(Chain.ScrollZk)) {
-      this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
-      this.watchers[Chain.Base] = new BaseZkBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
+      this.watchers[Chain.Base] = new BaseZkBridgeWatcher(watcherParams)
+    }
+    if (this.chainSlug === Chain.PolygonZk && enabledNetworks.includes(Chain.PolygonZk)) {
+      this.watchers[Chain.PolygonZk] = new PolygonZkBridgeWatcher(watcherParams)
     }
 
     const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.l1MessengerWrapper

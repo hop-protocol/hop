@@ -894,7 +894,7 @@ export class HealthCheckWatcher {
     const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova]
     const tokens = getEnabledTokens()
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes })
+    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
     const startDate = endDate.minus({ days: this.days })
     const filters = {
       startDate: startDate.toISO(),

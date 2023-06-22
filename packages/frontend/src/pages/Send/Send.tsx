@@ -649,10 +649,11 @@ const Send: FC = () => {
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   useEffect(() => {
-    // if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
-    //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
-    // }
-    // setManualError('')
+    // comment this out when warning not needed anymore
+    if (isGoerli && fromNetwork?.slug === ChainSlug.Ethereum && toNetwork?.slug === ChainSlug.Linea) {
+      return setManualError('Error: Transfers to Linea are currently disabled while Linea undergoes maintenance. Please check Linea discord for more updates.')
+    }
+    setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
   const transferTime = useMemo(() => {
@@ -844,7 +845,11 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
-      <Alert severity="error">{manualError}</Alert>
+      {!!manualError && (
+        <Box mt={2}>
+          <Alert severity="error">{manualError}</Alert>
+        </Box>
+      )}
 
       <ButtonsWrapper>
         {!sendButtonActive && (

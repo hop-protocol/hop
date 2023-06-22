@@ -106,5 +106,11 @@ export const metadata: Metadata = {
       image: chains.base.image,
       nativeTokenSymbol: chains.base.nativeTokenSymbol,
     },
+    polygonzk: {
+      name: chains.polygonzk.name,
+      isLayer1: false,
+      image: chains.polygonzk.image,
+      nativeTokenSymbol: chains.polygonzk.nativeTokenSymbol,
+    },
   },
 }

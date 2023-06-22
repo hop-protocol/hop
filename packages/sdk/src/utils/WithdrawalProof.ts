@@ -7,7 +7,7 @@ import { keccak256 } from 'ethereumjs-util'
 
 export const ChainsWithSubgraphs: Record<string, string[]> = {
   mainnet: ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova'],
-  goerli: ['polygon', 'optimism', 'linea', 'base']
+  goerli: ['arbitrum', 'polygon', 'optimism', 'linea', 'base']
 }
 
 class MerkleTree extends MerkleTreeLib {

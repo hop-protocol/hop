@@ -273,7 +273,8 @@ class Token extends Base {
         this.chain.equals(Chain.ZkSync) ||
         this.chain.equals(Chain.Linea) ||
         this.chain.equals(Chain.ScrollZk) ||
-        this.chain.equals(Chain.Base)
+        this.chain.equals(Chain.Base) ||
+        this.chain.equals(Chain.PolygonZk)
       )
     const isMatic =
       this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)

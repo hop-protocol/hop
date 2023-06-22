@@ -1,6 +1,7 @@
 import { ChainSlug, HopBridge } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useQuery } from 'react-query'
+import { isGoerli } from 'src/config'
 
 function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
   if (
@@ -28,6 +29,11 @@ const useAvailableLiquidity = (
   const { isLoading, data, error } = useQuery(
     [queryKey, tokenSymbol, sourceChain, destinationChain],
     async () => {
+      // disable deposits into Linea since Linea chain is undergoing maintenance.
+      if (isGoerli && sourceChain !== ChainSlug.Ethereum && destinationChain === ChainSlug.Linea) {
+        return BigNumber.from(0)
+      }
+
       if (sourceChain && destinationChain && tokenSymbol) {
         const liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
         const shouldDisableNativeAssetTransfers =

@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudfront": "3.316.0",
+    "@ethersproject/abi": "^5.7.0",
     "@gnosis.pm/safe-apps-react-sdk": "4.3.1",
     "@gnosis.pm/safe-apps-sdk": "7.3.0",
     "@hop-protocol/core": "0.0.1-beta.166",

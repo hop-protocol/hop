@@ -103,8 +103,8 @@ jobs:
           node-version: 14.17.6
           registry-url: https://registry.npmjs.org
 
-      - name: Print node/npm version
-        run: node -v; npm -v
+      - name: Update npm
+        run: npm install -g npm@latest; run: node -v; npm -v
 
       - name: Install node dependencies
         run: npm install

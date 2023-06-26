@@ -104,7 +104,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Update npm
-        run: npm install -g npm@latest; run: node -v; npm -v
+        run: npm install -g npm@latest
 
       - name: Install node dependencies
         run: npm install

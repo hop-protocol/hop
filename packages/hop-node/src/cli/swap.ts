@@ -296,7 +296,7 @@ const nativeToWrappedNative: Record<string, string> = {
 }
 
 const chainPerNativeToken: Record<string, string[]> = {
-  ETH: ['mainnet', 'optimism', 'arbitrum', 'nova', 'zksync', 'linea', 'scrollzk', 'base'],
+  ETH: ['mainnet', 'optimism', 'arbitrum', 'nova', 'zksync', 'linea', 'scrollzk', 'base', 'polygonzk'],
   MATIC: ['polygon'],
   XDAI: ['xdai']
 }

@@ -73,6 +73,7 @@ export function useSufficientBalance(
     // is not possible to know who of them will be the one who executes the TX.
     // We will trust on the wallet UI to handle this issue for now.
     if (isSmartContractWallet) {
+      setWarning('')
       setSufficientBalance(true)
     } else {
       checkEnoughBalance()

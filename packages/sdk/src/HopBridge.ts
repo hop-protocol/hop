@@ -1198,6 +1198,8 @@ class HopBridge extends Base {
           // TODO
         } else if (destinationChain.equals(Chain.Base)) {
           // TODO
+        } else if (destinationChain.equals(Chain.PolygonZk)) {
+          // TODO
         } else {
           await destinationChain.provider.estimateGas({
             value: BigNumber.from('1'),

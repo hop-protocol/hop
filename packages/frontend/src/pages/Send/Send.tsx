@@ -341,7 +341,7 @@ const Send: FC = () => {
       const insufficientRelayFeeFunds = sourceToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN.gt(fromBalance.sub(relayFeeEth))
       const notEnoughBonderFee = estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)
       const estimatedReceivedLow = estimatedReceived?.lte(0)
-      const lineaWarning = isGoerli && fromNetwork?.isL1 && toNetwork?.slug === 'linea'
+      const lineaWarning = isGoerli && toNetwork?.slug === 'linea'
 
       if (noLiquidityWarning) {
         message = noLiquidityWarning
@@ -649,10 +649,11 @@ const Send: FC = () => {
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   useEffect(() => {
-    // if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
-    //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
-    // }
-    // setManualError('')
+    // comment this out when warning not needed anymore
+    if (isGoerli && fromNetwork?.slug === ChainSlug.Ethereum && toNetwork?.slug === ChainSlug.Linea) {
+      return setManualError('Error: Transfers to Linea are currently disabled while Linea undergoes maintenance. Please check Linea discord for more updates.')
+    }
+    setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
   const transferTime = useMemo(() => {
@@ -704,6 +705,7 @@ const Send: FC = () => {
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
+  const showLineaFeeWarning = isGoerli && fromNetwork?.slug === ChainSlug.Ethereum && toNetwork?.slug === ChainSlug.Linea && relayFeeEth > 100
 
   return (
     <Flex column alignCenter>
@@ -834,10 +836,20 @@ const Send: FC = () => {
         </div>
       </div>
 
+      {showLineaFeeWarning && (
+        <Box mb={4}>
+          <Alert severity="warning" text="The Linea chain is undergoing maintenance and Linea has increased the message relay fee to a high value. Please see Linea Discord for updates." />
+        </Box>
+      )}
+
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
-      <Alert severity="error">{manualError}</Alert>
+      {!!manualError && (
+        <Box mt={2}>
+          <Alert severity="error">{manualError}</Alert>
+        </Box>
+      )}
 
       <ButtonsWrapper>
         {!sendButtonActive && (

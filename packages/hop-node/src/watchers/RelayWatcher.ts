@@ -3,6 +3,7 @@ import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
+import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
 import isNativeToken from 'src/utils/isNativeToken'
 import { Chain, GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -22,7 +23,7 @@ type Config = {
   dryMode?: boolean
 }
 
-type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher
+type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher
 
 // TODO: Modularize this for multiple chains
 
@@ -65,6 +66,16 @@ class RelayWatcher extends BaseWatcher {
       const novaChainId = this.chainSlugToId(Chain.Nova)
       this.relayWatchers[novaChainId] = new ArbitrumBridgeWatcher({
         chainSlug: Chain.Nova,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+
+    if (enabledNetworks.includes(Chain.PolygonZk)) {
+      const polygonzkChainId = this.chainSlugToId(Chain.PolygonZk)
+      this.relayWatchers[polygonzkChainId] = new PolygonZkBridgeWatcher({
+        chainSlug: Chain.PolygonZk,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,
         dryMode: config.dryMode
@@ -168,21 +179,23 @@ class RelayWatcher extends BaseWatcher {
       .bridge
 
     // TODO: Modularize this for multiple chains
-    const relayWatcher = this.relayWatchers[destinationChainId] as ArbitrumBridgeWatcher
-    const l1ToL2Messages = await relayWatcher.getL1ToL2Messages(transferSentTxHash)
     let messageIndex = 0
-    if (l1ToL2Messages.length > 1) {
-      messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
-      logger.debug(`messageIndex: ${messageIndex}`)
-    }
+    if (destinationChainId === this.chainSlugToId(Chain.Arbitrum)) {
+      const relayWatcher = this.relayWatchers[destinationChainId] as ArbitrumBridgeWatcher
+      const l1ToL2Messages = await relayWatcher.getL1ToL2Messages(transferSentTxHash)
+      if (l1ToL2Messages.length > 1) {
+        messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
+        logger.debug(`messageIndex: ${messageIndex}`)
+      }
 
-    logger.debug('processing transfer relay. checking isRelayComplete')
-    const isRelayComplete = await relayWatcher.isTransactionRedeemed(transferSentTxHash)
-    logger.debug(`processing transfer relay. isRelayComplete: ${isRelayComplete?.toString()}`)
-    if (isRelayComplete) {
-      logger.warn('checkTransferSentToL2 already complete. marking item not found')
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
+      logger.debug('processing transfer relay. checking isRelayComplete')
+      const isRelayComplete = await relayWatcher.isTransactionRedeemed(transferSentTxHash)
+      logger.debug(`processing transfer relay. isRelayComplete: ${isRelayComplete?.toString()}`)
+      if (isRelayComplete) {
+        logger.warn('checkTransferSentToL2 already complete. marking item not found')
+        await this.db.transfers.update(transferId, { isNotFound: true })
+        return
+      }
     }
 
     const bonderAddress = await destBridge.getBonderAddress()
@@ -235,7 +248,7 @@ class RelayWatcher extends BaseWatcher {
         transferId,
         destinationChainId,
         transferSentTxHash,
-        messageIndex
+        messageIndex: messageIndex
       })
 
       // This will not work as intended if the process restarts after the tx is sent but before this is executed.
@@ -369,7 +382,7 @@ class RelayWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferId })
 
     logger.debug(
-      `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex}`
+      `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex} l1TxHash: ${transferSentTxHash}`
     )
     logger.debug('checkTransferSentToL2 l2Bridge.distribute')
     return await this.sendRelayTx(destinationChainId, transferSentTxHash, messageIndex)
@@ -384,6 +397,11 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
+    if (!this.relayWatchers[destinationChainId]) {
+      throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
+    }
+
+    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHashash: ${txHash} messageIndex: ${messageIndex} destinationChainId: ${destinationChainId}`)
     return await this.relayWatchers[destinationChainId].relayL1ToL2Message(txHash, messageIndex)
   }
 

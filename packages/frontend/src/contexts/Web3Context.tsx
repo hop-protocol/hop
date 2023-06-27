@@ -6,155 +6,163 @@ import React, {
   useState,
   useEffect
 } from 'react'
-import Onboard from 'bnc-onboard'
-import { ethers, BigNumber } from 'ethers'
+import { ethers } from 'ethers'
 import Address from 'src/models/Address'
-import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl, getRpcUrlOrThrow } from 'src/utils'
+import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
 import { blocknativeDappid, isGoerli } from 'src/config'
+import { networkSlugToId } from 'src/utils'
 import { l1Network } from 'src/config/networks'
-import './onboardStyles.css'
 import logger from 'src/logger'
-import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
-import mmLogo from 'src/assets/logos/metamask.png'
-import { loadState, saveState } from 'src/utils/localStorage'
-import { ChainId, ChainSlug } from '@hop-protocol/sdk'
+import { chainIdToHex } from 'src/utils/chainIdToHex'
+import Onboard from '@web3-onboard/core'
+import injectedModule from '@web3-onboard/injected-wallets'
+import coinbaseWalletModule from '@web3-onboard/coinbase'
+import walletConnectModule from '@web3-onboard/walletconnect'
+import gnosisModule from '@web3-onboard/gnosis'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
-// TODO: modularize
-type Props = {
+const goerliChains = goerliNetworks as any
+const mainnetChains = mainnetNetworks as any
+
+export type Props = {
   onboard: any
   provider: ethers.providers.Web3Provider | undefined
   address: Address | undefined
-  balance?: BigNumber
   connectedNetworkId: number | undefined
-  validConnectedNetworkId: boolean
   requestWallet: () => void
   disconnectWallet: () => void
   walletConnected: boolean
   walletName: string
+  walletIcon: string
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
 }
 
 class NetworkSwitchError extends Error {}
 
-// TODO: modularize
-const networkNames: any = {
-  1: 'Mainnet',
-  3: 'Ropsten',
-  4: 'Rinkeby',
-  5: 'Goerli',
-  42: 'Kovan',
-  42161: 'Arbitrum',
-  421613: 'Arbitrum (Goerli)',
-  421611: 'Arbitrum (Rinkeby)',
-  42170: 'Nova',
-  10: 'Optimism',
-  69: 'Optimism (Kovan)',
-  420: 'Optimism (Goerli)',
-  77: 'Gnosis (Testnet)',
-  100: 'Gnosis',
-  80001: 'Polygon (Mumbai)',
-  137: 'Polygon',
-  59140: 'Linea (Goerli)',
-  84531: 'Base (Goerli)',
-  534354: 'Scroll zkEVM (Goerli)'
-}
-
-const getWalletConnectRpcUrls = (): Record<string, string> => {
+function getOnboardChains(): any {
   if (isGoerli) {
-    return {
-      5: getRpcUrl(ChainSlug.Ethereum),
-      421613: getRpcUrl(ChainSlug.Arbitrum),
-      420: getRpcUrl(ChainSlug.Optimism),
-      80001: getRpcUrl(ChainSlug.Polygon),
-      59140: getRpcUrl(ChainSlug.Linea),
-      534354: getRpcUrl(ChainSlug.ScrollZk),
-      84531: getRpcUrl(ChainSlug.Base)
-    }
+    return [
+      {
+        id: chainIdToHex(goerliChains.ethereum.networkId),
+        token: 'ETH',
+        label: 'Ethereum Goerli',
+        rpcUrl: goerliChains.ethereum.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(goerliChains.arbitrum.networkId),
+        token: 'ETH',
+        label: 'Arbitrum Goerli',
+        rpcUrl: goerliChains.arbitrum.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(goerliChains.optimism.networkId),
+        token: 'ETH',
+        label: 'Optimism Goerli',
+        rpcUrl: goerliChains.optimism.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(goerliChains.polygon.networkId),
+        token: 'MATIC',
+        label: 'Polygon Mumbai',
+        rpcUrl: goerliChains.polygon.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(goerliChains.zksync.networkId),
+        token: 'ETH',
+        label: 'zkSync Goerli',
+        rpcUrl: goerliChains.zksync.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(goerliChains.linea.networkId),
+        token: 'ETH',
+        label: 'Linea Goerli',
+        rpcUrl: 'https://rpc.goerli.linea.build' // NOTE: this rpc url has write access but it's more rate limitted
+      },
+      {
+        id: chainIdToHex(goerliChains.scrollzk.networkId),
+        token: 'ETH',
+        label: 'Scroll zkEVM',
+        rpcUrl: goerliChains.scrollzk.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(goerliChains.polygonzk.networkId),
+        token: 'ETH',
+        label: 'Polygon zkEVM (Goerli)',
+        rpcUrl: goerliChains.polygonzk.publicRpcUrl
+      }
+    ]
   } else {
-    return {
-      1: getRpcUrl(ChainSlug.Ethereum),
-      // 42: getRpcUrl(ChainSlug.Ethereum), // kovan
-      42161: getRpcUrl(ChainSlug.Arbitrum),
-      // 421611: getRpcUrl(ChainSlug.Arbitrum), // arbitrum rinkeby
-      42170: getRpcUrl(ChainSlug.Nova),
-      // 200: getRpcUrl(ChainSlug.Arbitrum), // arbitrum on xdai
-      10: getRpcUrl(ChainSlug.Optimism),
-      // 69: getRpcUrl(ChainSlug.Optimism), // optimism kovan
-      100: getRpcUrl(ChainSlug.Gnosis),
-      137: getRpcUrl(ChainSlug.Polygon),
-    }
+    return [
+      {
+        id: chainIdToHex(mainnetChains.ethereum.networkId),
+        token: 'ETH',
+        label: 'Ethereum Mainnet',
+        rpcUrl: mainnetChains.ethereum.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(mainnetChains.arbitrum.networkId),
+        token: 'ETH',
+        label: 'Arbitrum One',
+        rpcUrl: mainnetChains.arbitrum.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(mainnetChains.optimism.networkId),
+        token: 'ETH',
+        label: 'Optimism Mainnet',
+        rpcUrl: mainnetChains.optimism.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(mainnetChains.gnosis.networkId),
+        token: 'XDAI',
+        label: 'Gnosis Chain',
+        rpcUrl: mainnetChains.gnosis.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(mainnetChains.polygon.networkId),
+        token: 'MATIC',
+        label: 'Polygon Mainnet',
+        rpcUrl: mainnetChains.polygon.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(mainnetChains.nova.networkId),
+        token: 'ETH',
+        label: 'Nova Mainnet',
+        rpcUrl: mainnetChains.nova.publicRpcUrl
+      }
+    ]
   }
 }
+
+const injected = injectedModule()
+const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
+const gnosis = gnosisModule()
+const walletConnect = walletConnectModule({
+  version: 2, // NOTE: version v1 will be sunset but MetaMask currently only supports v1
+  qrcodeModalOptions: {
+    mobileLinks: ['metamask', 'argent', 'trust', 'rainbow', 'imtoken', 'pillar']
+  },
+  connectFirstChainId: false,
+  projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce'
+  // requiredChains: [isGoerli ? 5 : 1]
+})
 
 const Web3Context = createContext<Props | undefined>(undefined)
 
-// TODO: modularize
-const walletSelectOptions = (networkId: number): WalletSelectModuleOptions => {
-  return {
-    heading: 'Connect Wallet',
-    description: '',
-    // agreement: {
-    //   version: '0.0.1'
-    //   termsUrl: '', // optional
-    //   privacyUrl: '', // optional
-    // },
-    wallets: [
-      // preferred: shown at the top of the selection screen
-      // label: override name
-      // svg: string that overrides the icon
-      // iconSrc: alternative to svg string (url source)
-      // display: { desktop: true, mobile: true }
-      { walletName: 'metamask', preferred: true, iconSrc: mmLogo },
-      {
-        walletName: 'walletConnect',
-        label: 'Wallet Connect',
-        preferred: true,
-        rpc: getWalletConnectRpcUrls(),
-      },
-      {
-        walletName: 'gnosis',
-        preferred: true,
-      },
-      {
-        walletName: 'walletLink',
-        preferred: true,
-        rpcUrl: getRpcUrl(ChainSlug.Ethereum),
-        appName: 'Hop',
-      },
-      {
-        walletName: 'coinbase',
-        preferred: true,
-        rpcUrl: getRpcUrl(ChainSlug.Ethereum),
-        appName: 'Hop',
-      },
-    ],
-  }
-}
-
-// TODO: modularize
-const walletChecks: WalletCheckInit[] = [
-  { checkName: 'derivationPath' },
-  { checkName: 'accounts' },
-  { checkName: 'connect' },
-  { checkName: 'network' },
-  { checkName: 'balance' },
-]
-
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
+  const { isDarkMode } = useThemeMode()
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
   const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
-  const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
+  const [walletIcon, setWalletIcon] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
-  const [balance, setBalance] = useState<BigNumber>()
   const [onboardNetworkId] = useState<number>(() => {
     try {
       const parsedHash = new URLSearchParams(
         window.location.hash.substring(1)
       )
 
-      const slug = parsedHash.get("sourceNetwork")
+      const slug = parsedHash.get('sourceNetwork')
       if (slug) {
         const networkId = networkSlugToId(slug)
         if (networkId) {
@@ -162,168 +170,168 @@ const Web3ContextProvider: FC = ({ children }) => {
         }
       }
     } catch (err) {
-      console.error(err)
+      logger.error(err)
     }
     return l1Network.networkId
   })
-  // const { isDarkMode } = useThemeMode()
 
-  // walletSelect()
-  // Displays the wallet select modal:
-  // const walletSelected = await onboard.walletSelect()
-  // returns a Promise that:
-  // resolves with true if the user selected a wallet
-  // resolves with false if the user exited from the wallet select modal
+  const customTheme = {
+    '--w3o-background-color': isDarkMode ? '#272332' : '#fdf7f9',
+    '--w3o-foreground-color': isDarkMode ? '#1f1e23' : '#ffffff',
+    '--w3o-text-color': isDarkMode ? '#e3ddf1' : '#4a4a4a',
+    '--w3o-border-color': 'transparent',
+    '--w3o-border-radius': '2px'
+  }
 
-  // walletCheck()
-  // Once a wallet is selected, you will want to make sure that the user's wallet is prepared and ready to transact by calling the walletCheck function:
-  // const readyToTransact = await onboard.walletCheck()
-  // returns a Promise that:
-  // resolves with true if user is ready to transact
-  // resolves with false if user exited before completing all wallet checks
-
-  // walletReset()
-  // You may want to reset all of Onboard's internal wallet state and also disconnect from any active SDK instances when a user logs out of your app. You can call the walletReset function to do this easily.
-  // user wants to log out of session and the wallet state needs to be reset...
-  // onboard.walletReset()
-  // this method is synchronous and returns undefined
-
-  // getState()
-  // This function will give you the current state of the user:
-  // const currentState = onboard.getState()
-  // console.log(currentState)
-  // {
-  //    address: string
-  //    network: number
-  //    balance: string
-  //    wallet: Wallet
-  //    mobileDevice: boolean
-  //    appNetworkId: number
-  // }
-
-  // You can update some configuration parameters by passing a config object in to the config function:
-  // onboard.config({ darkMode: true, networkId: 4 })
-
-  const cacheKey = 'selectedWallet'
   const onboard = useMemo(() => {
     const instance = Onboard({
-      dappId: blocknativeDappid,
-      networkId: onboardNetworkId,
-      // darkMode: isDarkMode,
-      // blockPollingInterval: 4000,
-      hideBranding: true,
-      // Callback functions that get called whenever the corresponding value changes
-      subscriptions: {
-        address: (address: string) => {
-          logger.debug('wallet address:', address)
-          if (address) {
-            setAddress(Address.from(address))
-          }
-        },
-        // ens: (ens: any) => {
-        //   const { name, avatar, getText, contentHash } = ens
-        //   console.log(`ens:`, ens)
-        // },
-        network: (connectedNetworkId: number) => {
-          if (connectedNetworkId) {
-            setConnectedNetworkId(connectedNetworkId)
-          } else {
-            setConnectedNetworkId(undefined)
-          }
-        },
-        balance: bal => {
-          if (bal) {
-            setBalance(BigNumber.from(bal))
-          }
-        },
-        wallet: async (wallet: any) => {
-          try {
-            const { provider, name, instance, type, connect, dashboard, icons } = wallet
-            // provider - The JavaScript provider for interacting with the wallet
-            // name - The wallet display name
-            // instance - If the wallet type is 'sdk' then this is the initialized wallet instance
-            // type - The wallet type 'hardware' | 'injected' | 'sdk'
-            // connect - The function that initiates the wallet connection logic
-            // dashboard - Some SDK wallets allow for opening to wallet dashboard
-            // icons - [object] Image strings for the wallet icon { svg, src, srcset }
-
-            logger.debug('wallet name:', wallet.name)
-            if (provider) {
-              saveState(cacheKey, name)
-              const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
-              if (provider.enable && !provider.isMetaMask) {
-                // needed for WalletConnect and some wallets
-                await provider.enable()
-              } else {
-                // note: this method may not be supported by all wallets
-                try {
-                  await ethersProvider.send('eth_requestAccounts', [])
-                } catch (error) {
-                  console.error(error)
-                }
-              }
-              setProvider(ethersProvider)
-              setWalletName(name)
-            } else {
-              setWalletName('')
-              setProvider(undefined)
-              setAddress(undefined)
-            }
-          } catch (err) {
-            logger.error(err)
-            setProvider(undefined)
-            setAddress(undefined)
-          }
-        },
+      theme: customTheme,
+      appMetadata: {
+        name: 'Hop',
+        icon: 'https://assets.hop.exchange/logos/hop.svg',
+        description: 'Hop Protocol',
       },
-      // Defines how the wallet select screen will render
-      walletSelect: walletSelectOptions(onboardNetworkId),
-      // Used to check if the user is ready to transact
-      walletCheck: walletChecks,
+      apiKey: blocknativeDappid,
+      wallets: [injected, walletConnect, gnosis, coinbaseWallet],
+      chains: getOnboardChains(),
+      disableFontDownload: true,
+      connect: {
+        showSidebar: false,
+        disableClose: false,
+        autoConnectLastWallet: true,
+        autoConnectAllPreviousWallet: false,
+      },
+      accountCenter: {
+        desktop: {
+          enabled: false,
+        },
+        mobile: {
+          enabled: false,
+        }
+      },
+      notify: {
+        enabled: false
+      },
     })
 
     return instance
-  }, [setProvider, setConnectedNetworkId, onboardNetworkId])
+  }, [onboardNetworkId, isDarkMode])
 
-  useEffect(() => {
-    if (onboard) {
-      const cachedWallet = loadState(cacheKey)
-      if (cachedWallet != null) {
-        onboard.walletSelect(cachedWallet)
+  async function handleWalletChange(wallet: any) {
+    try {
+      logger.debug('handleWalletChange')
+      // logger.debug('handleWalletChange wallet', wallet)
+
+      const _address = wallet?.accounts?.[0]?.address
+      if (_address) {
+        setAddress(Address.from(_address))
+      } else {
+        setAddress(undefined)
       }
-    }
-  }, [onboard])
 
-  // TODO: cleanup
-  const requestWallet = () => {
-    const _requestWallet = async () => {
+      const connectedNetworkId = Number(wallet?.chains?.[0]?.id)
+      if (connectedNetworkId) {
+        setConnectedNetworkId(connectedNetworkId)
+      } else {
+        setConnectedNetworkId(undefined)
+      }
+
+      if (wallet?.provider) {
+        const { icon, label, provider } = wallet
+        const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
+        if (provider.enable && !provider.isMetaMask) {
+          // needed for WalletConnect and some wallets
+          await provider.enable()
+        } else {
+          // note: this method may not be supported by all wallets
+          try {
+            await ethersProvider.send('eth_requestAccounts', [])
+          } catch (error) {
+            logger.error(error)
+          }
+        }
+        setProvider(ethersProvider)
+        setWalletName(label)
+
+        try {
+          const svg = new Blob([icon], { type: 'image/svg+xml' })
+          const url = URL.createObjectURL(svg)
+          setWalletIcon(url)
+        } catch (err: any) {
+          setWalletIcon('')
+        }
+      } else {
+        setWalletName('')
+        setWalletIcon('')
+        setProvider(undefined)
+        setAddress(undefined)
+      }
+    } catch (err) {
+      logger.error(err)
+      setProvider(undefined)
+      setAddress(undefined)
+    }
+  }
+
+  function requestWallet() {
+    const update = async () => {
       try {
         localStorage.clear()
-        await onboard.walletReset()
-        await onboard.walletSelect()
+        const [primaryWallet] = onboard.state.get().wallets
+        if (primaryWallet) {
+          await onboard.disconnectWallet({ label: primaryWallet.label })
+        }
+        await onboard.connectWallet()
       } catch (err) {
         logger.error(err)
       }
     }
 
-    _requestWallet()
+    update().catch(logger.error)
   }
 
-  // TODO: cleanup
-  const disconnectWallet = () => {
-    try {
-      localStorage.clear()
-      onboard.walletReset()
-    } catch (error) {
-      logger.error(error)
+  function disconnectWallet() {
+    const update = async () => {
+      try {
+        localStorage.clear()
+        const [primaryWallet] = onboard.state.get().wallets
+        if (primaryWallet) {
+          await onboard.disconnectWallet({ label: primaryWallet.label })
+        }
+      } catch (error) {
+        logger.error(error)
+      }
     }
+
+    update().catch(logger.error)
   }
 
-  // TODO: cleanup
-  const walletConnected = !!address
+  useEffect(() => {
+    const state = onboard.state.select('wallets')
+    let lastUpdate = ''
+    const { unsubscribe } = state.subscribe((update) => {
+      let shouldUpdate = true
+      const _walletName = update?.[0]?.label
+      if (_walletName === 'WalletConnect') {
+        const str = JSON.stringify({ account: update?.[0]?.accounts, chains: update?.[0]?.chains })
+        shouldUpdate = lastUpdate !== str
+        if (shouldUpdate) {
+          lastUpdate = str
+        }
+      }
+      if (shouldUpdate) {
+        // logger.debug('onboard state update: ', update)
+        const [wallet] = update
+        handleWalletChange(wallet)
+      }
+    })
 
-  // TODO: cleanup
-  const checkConnectedNetworkId = async (networkId?: number, recheck: boolean = true): Promise<boolean> => {
+    return () => {
+      unsubscribe()
+    }
+  }, [onboard])
+
+  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
     if (!(networkId && provider)) return false
 
     const signerNetworkId = (await provider.getNetwork())?.chainId
@@ -338,57 +346,11 @@ const Web3ContextProvider: FC = ({ children }) => {
         return true
       }
 
-      let rpcUrl = getRpcUrlOrThrow(networkIdToSlug(networkId.toString()))
-      const lineaChainId = 59140
-      if (Number(networkId) === lineaChainId) {
-        rpcUrl = 'https://rpc.goerli.linea.build'
-      }
-
-      const state = onboard.getState()
-      if (state.address) {
-        onboard.config({ networkId })
-        const wantNetworkName = networkNames[networkId] || 'local'
-        const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
-          wantNetworkName
-        )
-
-        if (isL1) {
-          await provider?.send('wallet_switchEthereumChain', [
-            {
-              chainId: `0x${Number(networkId).toString(16)}`,
-            },
-          ])
-        } else {
-          let nativeCurrency: any = {
-            name: 'ETH',
-            symbol: 'ETH',
-            decimals: 18
-          }
-
-          if (networkId === ChainId.Gnosis) {
-            nativeCurrency = {
-              name: 'xDAI',
-              symbol: 'XDAI',
-              decimals: 18,
-            }
-          } else if (networkId === ChainId.Polygon) {
-            nativeCurrency = {
-              name: 'Matic',
-              symbol: 'MATIC',
-              decimals: 18,
-            }
-          }
-
-          const rpcObj = {
-            chainId: `0x${Number(networkId).toString(16)}`,
-            chainName: networkNames[networkId],
-            rpcUrls: [rpcUrl],
-            blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
-            nativeCurrency,
-          }
-
-          await provider?.send('wallet_addEthereumChain', [rpcObj])
-        }
+      const wallets = onboard.state.get().wallets
+      logger.debug('onboard wallets', wallets)
+      const _address = wallets?.[0].accounts?.[0]?.address
+      if (_address) {
+        await onboard.setChain({ chainId: networkId })
       }
     } catch (err: any) {
       logger.error('checkConnectedNetworkId error:', err)
@@ -403,13 +365,10 @@ const Web3ContextProvider: FC = ({ children }) => {
       return true
     }
 
-    await onboard.walletCheck()
-    if (recheck) {
-      return checkConnectedNetworkId(networkId, false)
-    }
-
     return false
   }
+
+  const walletConnected = !!address
 
   return (
     <Web3Context.Provider
@@ -417,13 +376,12 @@ const Web3ContextProvider: FC = ({ children }) => {
         onboard,
         provider,
         address,
-        balance,
         walletConnected,
         connectedNetworkId,
-        validConnectedNetworkId,
         requestWallet,
         disconnectWallet,
         walletName,
+        walletIcon,
         checkConnectedNetworkId,
       }}
     >

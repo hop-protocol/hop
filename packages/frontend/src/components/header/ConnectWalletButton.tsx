@@ -40,7 +40,7 @@ function ConnectWalletButton({ mode }) {
     if (!isDarkMode) {
       await wait(10)
 
-      setLightModeStyles()
+      // setLightModeStyles()
     }
   }
 

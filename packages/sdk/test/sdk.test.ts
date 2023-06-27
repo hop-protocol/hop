@@ -1029,6 +1029,7 @@ describe.skip('utils', () => {
     expect(getChainSlugFromName('Gnosis Chain')).toBe('gnosis')
     expect(getChainSlugFromName('Linea')).toBe('linea')
     expect(getChainSlugFromName('Base')).toBe('base')
+    expect(getChainSlugFromName('Polygon zkEVM')).toBe('polygonzk')
   })
 })
 

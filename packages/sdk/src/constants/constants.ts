@@ -29,7 +29,8 @@ export enum ChainName {
   ZkSync = 'zkSync',
   Linea = 'Linea',
   ScrollZk = 'Scroll zkEVM',
-  Base = 'Base'
+  Base = 'Base',
+  PolygonZk = 'Polgyon zkEVM',
 }
 
 // TODO: read from core package
@@ -43,7 +44,8 @@ export enum ChainSlug {
   ZkSync = 'zksync',
   Linea = 'linea',
   ScrollZk = 'scrollzk',
-  Base = 'base'
+  Base = 'base',
+  PolygonZk = 'polygonzk',
 }
 
 export enum Slug {
@@ -61,6 +63,7 @@ export enum Slug {
   linea = 'linea',
   scrollzk = 'scrollzk',
   base = 'base',
+  polygonzk = 'polygonzk'
 }
 
 export enum CanonicalToken {
@@ -121,7 +124,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   zksync: 10000, // TODO
   linea: 10000, // TODO
   scrollzk: 10000, // TODO
-  base: 10000 // TODO
+  base: 10000, // TODO
+  polygonzk: 10000 // TODO
 }
 
 export const LpFeeBps = 4

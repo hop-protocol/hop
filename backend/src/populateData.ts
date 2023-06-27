@@ -48,7 +48,10 @@ export function populateData (x: any, i: number) {
     x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
   }
   if (x.receiveStatusUnknown) {
-    // x.bonded = true
+    // these got relayed but db not updated
+    if (isGoerli && x.destinationChainSlug === 'arbitrum' && x.timestamp < 1686979675 && x.timestamp > 1686812400) {
+      // x.bonded = true
+    }
   }
   x.preregenesis = !!x.preregenesis
   x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''

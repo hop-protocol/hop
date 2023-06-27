@@ -12,6 +12,7 @@ import { getChainLogo } from './getChainLogo'
 import { nearestDate } from './nearestDate'
 import { getTokenLogo } from './getTokenLogo'
 import { formatCurrency } from './formatCurrency'
+import { isGoerli } from '../config'
 
 export function populateTransfer (x: any, prices?: any) {
   if (typeof x.timestamp !== 'number') {
@@ -134,7 +135,10 @@ export function populateTransfer (x: any, prices?: any) {
     x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
   }
   if (x.receiveStatusUnknown) {
-    // x.bonded = true
+    // these got relayed but db not updated
+    if (isGoerli && x.destinationChainSlug === 'arbitrum' && x.timestamp < 1686979675 && x.timestamp > 1686812400) {
+      // x.bonded = true
+    }
   }
 
   if (!x.bondTimestamp && x.bondedTimestamp) {

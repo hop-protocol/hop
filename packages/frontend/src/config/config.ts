@@ -15,41 +15,47 @@ export const transferTimes = {
     arbitrum: 10,
     polygon: 20,
     gnosis: 5,
-    nova: 10
+    nova: 10,
+    polygonzkevm: 20
   },
   optimism: {
     ethereum: 25,
     arbitrum: 25,
     polygon: 25,
     gnosis: 25,
-    nova: 25
+    nova: 25,
+    polygonzkevm: 20
   },
   arbitrum: {
     ethereum: 12,
     optimism: 12,
     polygon: 12,
     gnosis: 12,
-    nova: 12
+    nova: 12,
+    polygonzkevm: 20
   },
   polygon: {
     ethereum: 60,
     optimism: 60,
     arbitrum: 60,
     gnosis: 60,
-    nova: 60
+    nova: 60,
+    polygonzkevm: 20
   },
   gnosis: {
     ethereum: 4,
     optimism: 4,
     arbitrum: 4,
     polygon: 4,
-    nova: 4
+    nova: 4,
+    polygonzkevm: 20
   },
   nova: {
     ethereum: 12,
     optimism: 12,
     arbitrum: 12,
     polygon: 12,
-    gnosis: 12
+    gnosis: 12,
+    polygonzkevm: 20
   }
 }

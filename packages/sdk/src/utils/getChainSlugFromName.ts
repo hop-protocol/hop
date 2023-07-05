@@ -2,6 +2,9 @@ import { ChainSlug, NetworkSlug } from '../constants'
 
 export function getChainSlugFromName (name: string) {
   let slug = (name || '').trim().toLowerCase().split(' ')[0]
+  if ((name || '').trim().toLowerCase().startsWith('polygon zk')) {
+    slug = ChainSlug.PolygonZk
+  }
   if (slug.startsWith('consensys') || slug.startsWith('linea')) {
     slug = ChainSlug.Linea
   }
@@ -10,9 +13,6 @@ export function getChainSlugFromName (name: string) {
   }
   if (slug.startsWith('scroll')) {
     slug = ChainSlug.ScrollZk
-  }
-  if (slug.startsWith('polygon zk')) {
-    slug = ChainSlug.PolygonZk
   }
   if (
     slug === NetworkSlug.Kovan ||

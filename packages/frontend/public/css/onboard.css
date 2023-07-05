@@ -1,0 +1,268 @@
+@media all and (min-width: 0px) {
+  .container {
+    margin: 0 !important;
+    flex-flow: row !important;
+    height: var(--onboard-connect-content-height, 440px) !important;
+  }
+  .content {
+    width: var(--onboard-connect-content-width, 488px) !important;
+  }
+  .mobile-subheader {
+    display: none !important;
+  }
+  .icon-container {
+    display: none !important;
+  }
+}
+
+@media all and (min-width: 0px) {
+  .wallets-container {
+    display: grid !important;
+    grid-template-columns: repeat(var(--onboard-wallet-columns, 2), 1fr) !important;
+    padding: 1rem !important;
+    border: none !important;
+  }
+  .notice-container {
+    grid-column: span 2 !important;
+    margin: 0 !important;
+  }
+}
+
+@media screen and (min-width: 0px) {
+  button.wallet-button-styling {
+    transition: background-color 250ms ease-in-out !important;
+
+    background: var(--onboard-wallet-button-background, none) !important;
+    border: 1px solid transparent !important;
+    border-color: var(--onboard-wallet-button-border-color, var(--border-color)) !important;
+    border-radius: var(--onboard-wallet-button-border-radius, var(--border-radius-1)) !important;
+  }
+
+  button.wallet-button-styling:hover {
+    /*
+    background: var(--onboard-wallet-button-background-hover, var(--foreground-color)) !important;
+    color: var(--onboard-wallet-button-color-hover) !important;
+    */
+  }
+
+  .wallet-button-container-inner {
+    flex: 1 !important;
+    flex-flow: row nowrap !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+  }
+
+  button.connected {
+    border-color: var(--onboard-success-500, var(--success-500)) !important;
+  }
+
+  .name {
+    font-size: 1rem !important;
+    line-height: 1.25rem !important;
+    text-align: initial !important;
+    max-width: inherit !important;
+    max-height: 3rem !important;
+  }
+
+  .status-icon {
+    top: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    right: 1rem !important;
+    margin: auto !important;
+    height: 20px !important;
+  }
+}
+
+@media all and (min-width: 0px) {
+  .container {
+    max-width: 100% !important;
+  }
+}
+
+@media all and (min-width: 0px) {
+  .modal-styling {
+    border-radius: var(--border-radius) !important;
+  }
+  .modal-container-mobile {
+    bottom: unset !important;
+    margin: 1rem !important;
+  }
+  .width-100 {
+    width: unset !important;
+  }
+}
+
+.modal {
+}
+
+.modal-container-mobile {
+}
+
+.modal-container-mobile > div {
+  max-width: 400px !important;
+}
+
+.modal .container {
+  /*
+  background-color: #fdf7f9 !important;
+  color: #4a4a4a !important;
+  */
+  /*
+  background-color: #272332 !important;
+  color: #e3ddf1 !important;
+  */
+}
+
+.scroll-container .container {
+  height: auto !important;
+}
+
+.header {
+  border: none !important;
+  justify-content: center !important;
+}
+
+.header-heading {
+  font-size: 1.8rem !important;
+  padding: 1rem !important;
+  font-weight: bold !important;
+}
+
+.mobile-header {
+  border: none !important;
+  text-align: center !important;
+}
+
+.close-button {
+  top: 10px !important;
+  right: 10px !important;
+  line-height: 1 !important;
+}
+
+.notice-container {
+  display: none !important;
+}
+
+.wallets-container {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 4em !important;
+  max-width: 38rem !important;
+  margin: 0 auto !important;
+}
+
+button.wallet-button-styling {
+  border: none !important;
+}
+
+.wallet-button-container-inner {
+  margin-top: 5px;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 1rem;
+  height: 60px;
+  font-family: "Nunito";
+  width: 2rem !important;
+  min-width: auto !important;
+
+  background-color: var(--foreground-color) !important;
+
+  /*
+  background-color: #1f1e23;
+  color: #e3ddf1;
+  */
+
+  /*
+  background-color: #fffff;
+  color: rgb(15, 5, 36);
+  */
+}
+
+.wallet-button-container-inner:hover {
+  box-shadow: 0 2px 10px 0 rgb(0 0 0 / 10%);
+}
+
+.wallet-button-container-inner > div {
+  border: none !important;
+  padding: 0 !important;
+}
+
+.wallet-button-container-inner .name {
+  font-size: 2rem !important;
+  font-weight: bold !important;
+  font-family: "Nunito" !important;
+  line-height: 1 !important;
+}
+
+.connecting-container {
+  border: none !important;
+}
+
+.wallet-badges div {
+  border: none !important;
+}
+
+.connecting-container .text {
+  font-size: 1.8rem !important;
+}
+
+.connecting-container div {
+  border: none !important;
+}
+
+.connecting-wallet-info .text {
+  font-size: 1.8rem !important;
+}
+
+.connecting-wallet-info .subtext {
+  font-size: 1.5rem !important;
+}
+
+.text-rejected {
+  font-size: 1.8rem !important;
+}
+
+.rejected-cta.subtext {
+  font-size: 1.5rem !important;
+}
+
+.warning-container {
+  border: none !important;
+  max-width: 380px !important;
+  margin: 0 auto !important;
+  overflow: auto !important;
+}
+
+.warning-container .container {
+  font-size: 1em !important;
+  border: none !important;
+}
+
+.onboard-button-primary {
+  font-size: 1.8rem !important;
+  padding: 1rem 2rem !important;
+  border: none !important;
+  background-color: var(--foreground-color) !important;
+  color: var(--text-color) !important;
+}
+
+.onboard-button-primary:hover {
+  box-shadow: 0 2px 10px 0 rgb(0 0 0 / 10%);
+}
+
+.spinner-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-container {
+
+}
+
+.loading {
+
+}

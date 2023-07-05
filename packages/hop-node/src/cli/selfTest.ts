@@ -63,6 +63,11 @@ async function main (source: any) {
 
   const isBonder = await bridge.isBonder()
   if (isBonder) {
+    // Approve token
+    logger.debug(`approval: attempting to approve ${token} on Ethereum`)
+    await l1CanonicalTokenContract.approve(bridge.address, parsedStakeAmount)
+    logger.debug(`approval complete`)
+
     // Stake token
     logger.debug(`stake: attempting to stake ${formatEther(parsedStakeAmount)} on Ethereum`)
     await bridge.stake(parsedStakeAmount)
@@ -71,7 +76,7 @@ async function main (source: any) {
     // Unstake token
     logger.debug(`unstake: attempting to stake ${formatEther(parsedStakeAmount)} on Ethereum`)
     await bridge.unstake(parsedStakeAmount)
-    logger.debug('stake completed')
+    logger.debug('unstake completed')
   }
 
   // Log result

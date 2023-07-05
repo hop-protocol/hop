@@ -244,7 +244,7 @@ export class HealthCheckWatcher {
     SNX: parseUnits('200000', 18),
     sUSD: parseUnits('500000', 18),
     rETH: parseUnits('550', 18),
-    MAGIC: parseUnits('1000000', 18),
+    MAGIC: parseUnits('1000000', 18)
   }
 
   bonderLowLiquidityThreshold: number = 0.1

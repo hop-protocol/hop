@@ -12,7 +12,8 @@ const isNativeToken = (network: Chain, token: string) => {
   const isNova = token === 'ETH' && network === Chain.Nova
   const isMatic = token === 'MATIC' && network === Chain.Polygon
   const isGnosis = token === 'XDAI' && network === Chain.Gnosis
-  return isMainnet || isOptimism || isArbitrum || isMatic || isGnosis || isNova || isZkSync || isLinea || isScrollZk || isBase
+  const isPolygonZk = token === 'ETH' && network === Chain.PolygonZk
+  return isMainnet || isOptimism || isArbitrum || isMatic || isGnosis || isNova || isZkSync || isLinea || isScrollZk || isBase || isPolygonZk
 }
 
 export default isNativeToken

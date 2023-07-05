@@ -83,6 +83,7 @@ export const config : Config = {
     nova: false,
     zksync: false,
     linea: false,
-    scrollzk: false
+    scrollzk: false,
+    polygonzk: false
   }
 }

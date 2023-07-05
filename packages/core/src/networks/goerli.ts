@@ -88,5 +88,16 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.base.org',
     waitConfirmations: 64,
     hasFinalizationBlockTag: true
+  },
+  polygonzk: {
+    name: chains.polygonzk.name,
+    image: chains.polygonzk.image,
+    networkId: 1442,
+    publicRpcUrl: 'https://rpc.public.zkevm-test.net',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://explorer.public.zkevm-test.net'],
+    nativeBridgeUrl: 'https://public.zkevm-test.net',
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   }
 }

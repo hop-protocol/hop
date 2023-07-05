@@ -22,6 +22,7 @@ export class Chain {
   static Linea = newChain(ChainSlug.Linea, mainnet.linea?.networkId ?? goerli.linea?.networkId)
   static ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
   static Base = newChain(ChainSlug.Base, mainnet.base?.networkId ?? goerli.base?.networkId)
+  static PolygonZk = newChain(ChainSlug.PolygonZk, mainnet.polygonzk?.networkId ?? goerli.polygonzk?.networkId)
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {

@@ -8,7 +8,8 @@ export enum ChainSlug {
   zkSync = 'zksync',
   linea = 'linea',
   scrollzk = 'scrollzk',
-  base = 'base'
+  base = 'base',
+  polygonzk = 'polygonzk'
 }
 
 export enum AssetSymbol {

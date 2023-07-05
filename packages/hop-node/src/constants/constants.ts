@@ -18,7 +18,8 @@ export enum Chain {
   ZkSync = 'zksync',
   Linea = 'linea',
   ScrollZk = 'scrollzk',
-  Base = 'base'
+  Base = 'base',
+  PolygonZk = 'polygonzk',
 }
 
 // TODO: read from core
@@ -64,7 +65,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   zksync: 10000, // TODO
   linea: 10000, // TODO
   scrollzk: 10000, // TODO
-  base: 10000 // TODO
+  base: 10000, // TODO
+  polygonzk: 10000 // TODO
 }
 
 export const DefaultBatchBlocks = 10000
@@ -118,7 +120,8 @@ export enum GasCostTransactionType {
 
 export const RelayableChains: string[] = [
   Chain.Arbitrum,
-  Chain.Nova
+  Chain.Nova,
+  Chain.PolygonZk
 ]
 
 export const MaxDeadline: number = 9999999999
@@ -134,7 +137,8 @@ export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 
 const ValidatorExitBufferMs = OneHourMs * 10
 export const OruExitTimeMs: Record<string, number> = {
   [Chain.Optimism]: OneHourMs,
-  [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs
+  [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs,
+  [Chain.PolygonZk]: OneHourMs
 }
 
 export const FinalityTag: Record<string, string> = {
@@ -148,5 +152,6 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.Arbitrum]: FinalityTag.Safe,
   [Chain.Gnosis]: FinalityTag.Finalized,
   [Chain.Base]: FinalityTag.Finalized,
-  [Chain.Nova]: FinalityTag.Safe
+  [Chain.Nova]: FinalityTag.Safe,
+  [Chain.PolygonZk]: FinalityTag.Safe
 }

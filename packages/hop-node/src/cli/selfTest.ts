@@ -53,7 +53,7 @@ async function main (source: any) {
   const parsedEthSendAmount = parsedMinEthAmount.div(10)
   logger.debug(`sendNativeToken: attempting to send ${formatEther(parsedEthSendAmount)} to self on Ethereum`)
 
-  const tx = await wallet.sendTransaction({
+  let tx = await wallet.sendTransaction({
     value: parsedEthSendAmount,
     to: walletAddress
   })
@@ -65,17 +65,20 @@ async function main (source: any) {
   if (isBonder) {
     // Approve token
     logger.debug(`approval: attempting to approve ${token} on Ethereum`)
-    await l1CanonicalTokenContract.approve(bridge.address, parsedStakeAmount)
+    tx = await l1CanonicalTokenContract.approve(bridge.address, parsedStakeAmount)
+    await tx.wait()
     logger.debug(`approval complete`)
 
     // Stake token
     logger.debug(`stake: attempting to stake ${formatEther(parsedStakeAmount)} on Ethereum`)
-    await bridge.stake(parsedStakeAmount)
+    tx = await bridge.stake(parsedStakeAmount)
+    await tx.wait()
     logger.debug('stake completed')
 
     // Unstake token
     logger.debug(`unstake: attempting to stake ${formatEther(parsedStakeAmount)} on Ethereum`)
-    await bridge.unstake(parsedStakeAmount)
+    tx = await bridge.unstake(parsedStakeAmount)
+    await tx.wait()
     logger.debug('unstake completed')
   }
 

@@ -85,6 +85,6 @@ async function main (source: any) {
   // Log result
   logger.debug('\n\n *** SELF TEST COMPLETE ***\n')
   logger.debug(`Sent ${formatEther(parsedEthSendAmount)} ETH to self on Ethereum ✓`)
-  logger.debug(`Staked ${formatEther(parsedStakeAmount)} ${token} on Ethereum ${isBonder ? '✓' : '✗'}`)
-  logger.debug(`Unstaked ${formatEther(parsedStakeAmount)} ${token} on Ethereum ${isBonder ? '✓' : '✗'}`)
+  logger.debug(`Staked ${amount} ${token} on Ethereum ${isBonder ? '✓' : '✗'}`)
+  logger.debug(`Unstaked ${amount} ${token} on Ethereum ${isBonder ? '✓' : '✗'}`)
 }

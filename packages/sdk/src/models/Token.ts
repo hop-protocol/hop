@@ -27,6 +27,7 @@ export class Token {
   static sUSD = 'sUSD'
   static rETH = 'rETH'
   static UNI = 'UNI'
+  static MAGIC = 'MAGIC'
 
   constructor (
     chainId: number | string,

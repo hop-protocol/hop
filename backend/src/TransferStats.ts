@@ -120,7 +120,7 @@ export class TransferStats {
       await getPriceHistory('nusd', daysN),
       await getPriceHistory('uniswap', daysN),
       await getPriceHistory('rocket-pool-eth', daysN),
-      await getPriceHistory('magic', daysN),
+      await getPriceHistory('magic', daysN)
     ]
     console.log('done fetching prices')
 

@@ -69,9 +69,9 @@ export const config : Config = {
       arbitrum: 15
     },
     MAGIC: {
-      ethereum: 15,
-      optimism: 15,
-      arbitrum: 15
+      ethereum: 20,
+      optimism: 20,
+      arbitrum: 20
     }
   },
   destinationFeeGasPriceMultiplier: 1.2,

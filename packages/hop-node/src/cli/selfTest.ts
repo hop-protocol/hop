@@ -35,7 +35,7 @@ async function main (source: any) {
   const parsedMinEthAmount = parseEther(minEthAmount)
   const ethBalance = await wallet.getBalance()
   if (ethBalance.lt(parsedMinEthAmount)) {
-    throw new Error(`not enough ETH balance for test. need at least ${minEthAmount} ETH. you have ${formatEther(ethBalance)} in your address (${walletAddress})})`)
+    throw new Error(`not enough ETH balance for test. need at least ${minEthAmount} ETH. you have ${formatEther(ethBalance)} in your address (${walletAddress})`)
   }
 
   // NOTE: this only works with ERC20 tokens, not native tokens
@@ -45,7 +45,7 @@ async function main (source: any) {
     parsedStakeAmount = parseUnits(amount.toString(), await l1CanonicalTokenContract.decimals())
     const tokenBalance = await l1CanonicalTokenContract.balanceOf(walletAddress)
     if (tokenBalance.lt(parsedStakeAmount)) {
-      throw new Error(`not enough token balance for test. need at least ${amount} ${token}. you have ${formatEther(tokenBalance)} in your address (${walletAddress})})`)
+      throw new Error(`not enough token balance for test. need at least ${amount} ${token}. you have ${formatEther(tokenBalance)} in your address (${walletAddress})`)
     }
   }
 

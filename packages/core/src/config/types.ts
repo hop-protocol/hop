@@ -25,7 +25,8 @@ export enum AssetSymbol {
   sBTC = 'sBTC',
   sETH = 'sETH',
   rETH = 'rETH',
-  UNI = 'UNI'
+  UNI = 'UNI',
+  MAGIC = 'MAGIC',
 }
 
 export type Bps = {

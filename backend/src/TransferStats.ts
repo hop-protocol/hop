@@ -119,7 +119,8 @@ export class TransferStats {
       await getPriceHistory('havven', daysN),
       await getPriceHistory('nusd', daysN),
       await getPriceHistory('uniswap', daysN),
-      await getPriceHistory('rocket-pool-eth', daysN)
+      await getPriceHistory('rocket-pool-eth', daysN),
+      await getPriceHistory('magic', daysN),
     ]
     console.log('done fetching prices')
 
@@ -135,7 +136,8 @@ export class TransferStats {
       SNX: pricesArr[8],
       sUSD: pricesArr[9],
       UNI: pricesArr[10],
-      rETH: pricesArr[11]
+      rETH: pricesArr[11],
+      MAGIC: pricesArr[12]
     }
 
     this.prices = prices

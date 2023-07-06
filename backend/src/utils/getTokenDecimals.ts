@@ -11,7 +11,7 @@ const tokenDecimals: any = {
   SNX: 18,
   sUSD: 18,
   UNI: 18,
-  rETH: 18
+  MAGIC: 18
 }
 
 export function getTokenDecimals (tokenSymbol: string) {

@@ -218,16 +218,16 @@
     },
     "MAGIC": {
       "ethereum": {
-        "arbitrum": "0x2A6303e6b99d451Df3566068EBb110708335658f",
-        "nova": "0x2A6303e6b99d451Df3566068EBb110708335658f"
+        "arbitrum": "0xa251E7519cbCf76e33D4672d2218e3CbcCEB6d60",
+        "nova": "0xa251E7519cbCf76e33D4672d2218e3CbcCEB6d60"
       },
       "arbitrum": {
-        "ethereum": "0x2A6303e6b99d451Df3566068EBb110708335658f",
-        "nova": "0x2A6303e6b99d451Df3566068EBb110708335658f"
+        "ethereum": "0xa251E7519cbCf76e33D4672d2218e3CbcCEB6d60",
+        "nova": "0xa251E7519cbCf76e33D4672d2218e3CbcCEB6d60"
       },
       "nova": {
-        "ethereum": "0x2A6303e6b99d451Df3566068EBb110708335658f",
-        "arbitrum": "0x2A6303e6b99d451Df3566068EBb110708335658f"
+        "ethereum": "0xa251E7519cbCf76e33D4672d2218e3CbcCEB6d60",
+        "arbitrum": "0xa251E7519cbCf76e33D4672d2218e3CbcCEB6d60"
       }
     }
   },

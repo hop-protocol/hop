@@ -243,7 +243,8 @@ export class HealthCheckWatcher {
     HOP: parseUnits('3500000', 18),
     SNX: parseUnits('200000', 18),
     sUSD: parseUnits('500000', 18),
-    rETH: parseUnits('550', 18)
+    rETH: parseUnits('550', 18),
+    MAGIC: parseUnits('1000000', 18)
   }
 
   bonderLowLiquidityThreshold: number = 0.1
@@ -913,6 +914,10 @@ export class HealthCheckWatcher {
         }
         const nonREthChains = ['polygon', 'gnosis', 'nova']
         if (nonREthChains.includes(sourceChain) && token === 'rETH') {
+          continue
+        }
+        const nonMagicChains = ['polygon', 'gnosis', 'optimism']
+        if (nonMagicChains.includes(sourceChain) && token === 'MAGIC') {
           continue
         }
         if (sourceChain === Chain.Nova && token !== 'ETH') {

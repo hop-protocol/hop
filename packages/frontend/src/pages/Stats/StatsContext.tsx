@@ -543,7 +543,7 @@ const StatsProvider: FC = ({ children }) => {
 export function useStats() {
   const ctx = useContext(StatsContext)
   if (ctx === undefined) {
-    throw new Error('useStats must be used within StatsProvider')
+    throw new Error('useStats must be used within the StatsProvider')
   }
   return ctx
 }

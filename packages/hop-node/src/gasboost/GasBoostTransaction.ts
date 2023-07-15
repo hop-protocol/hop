@@ -387,9 +387,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return maxFeePerGas! // eslint-disable-line
   }
 
-  // TODO: remove this once optimism supports maxFeePerGas
-  async getOptimismMaxFeePerGas (): Promise<BigNumber> {
-    const res = await fetch(getRpcUrl(Chain.Optimism)!, {
+  // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
+  // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
+  async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
+    const res = await fetch(getRpcUrl(chainSlug)!, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -426,12 +427,19 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
     }
 
-    // TODO: remove this once optimism supports maxFeePerGas
-    if (this.chainSlug === Chain.Optimism) {
+    // TODO: remove this once ORUs support maxFeePerGas and the ethersjs version
+    // we support does not hardcode 1.5 gwei as the default maxPriorityFeePerGas
+    // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
+    if (
+      this.chainSlug === Chain.Optimism ||
+      this.chainSlug === Chain.Base ||
+      this.chainSlug === Chain.Arbitrum ||
+      this.chainSlug === Chain.Nova
+    ) {
       try {
-        return await this.getOptimismMaxFeePerGas()
+        return await this.getOruMaxFeePerGas(this.chainSlug)
       } catch (err) {
-        this.logger.error(`optimism max fee per gas call failed: ${err}`)
+        this.logger.error(`oru max fee per gas call failed: ${err}`)
       }
     }
 

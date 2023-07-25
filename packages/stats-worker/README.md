@@ -4,6 +4,14 @@
 
 ## Development
 
+Install dependencies
+
+```sh
+npm install
+```
+
+Build
+
 ```sh
 npm run build
 ```
@@ -12,7 +20,7 @@ npm run build
 
 ### Metabase
 
-Run metabase
+Run metabase with a sqlite3 local database.
 
 ```sh
 cd ../metabase
@@ -20,6 +28,8 @@ docker-compose up
 ```
 
 ### Workers
+
+Some examples on running workers.
 
 Run all bonder stats workers
 

@@ -314,8 +314,11 @@ export default class L2Bridge extends Bridge {
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000
-    if (this.chainSlug === Chain.Arbitrum || this.chainSlug === Chain.Nova) {
+    if (this.chainSlug === Chain.Arbitrum) {
       gasLimit = 10_000_000
+    }
+    if (this.chainSlug === Chain.Nova) {
+      gasLimit = 5_000_000
     }
     txOverrides.gasLimit = gasLimit
 

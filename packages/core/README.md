@@ -7,14 +7,13 @@
 ```js
 import * as addresses from '@hop-protocol/core/addresses'
 
-console.log(addresses.kovan.USDC.ethereum.l1Bridge)) // 0x123...
+console.log(addresses.goerli.USDC.ethereum.l1Bridge)) // 0x123...
 ```
 
 See the following files for list of available addresses
 
 - [./src/addresses/mainnet.ts](./src/addresses/mainnet.ts)
 - [./src/addresses/goerli.ts](./src/addresses/goerli.ts)
-- [./src/addresses/kovan.ts](./src/addresses/kovan.ts)
 
 ## Networks
 
@@ -28,7 +27,6 @@ See the following files for available configuration info
 
 - [./src/networks/mainnet.ts](./src/networks/mainnet.ts)
 - [./src/networks/goerli.ts](./src/networks/goerli.ts)
-- [./src/networks/kovan.ts](./src/networks/kovan.ts)
 
 ## ABIs
 
@@ -48,8 +46,28 @@ import * as metadata from '@hop-protocol/core/metadata'
 console.log(metadata.mainnet.tokens.USDC.decimals)) // 6
 ```
 
-- See [src/metadatatokens.ts](./src/metadata/tokens.ts) for available token metadata
+- See [src/metadata/tokens.ts](./src/metadata/tokens.ts) for available token metadata
 - See [src/metadata/chains.ts](./src/metadata/chains.ts) for available chain metadata
+
+## Development
+
+Install dependencies
+
+```sh
+npm install
+```
+
+Watch
+
+```sh
+npm run dev
+```
+
+Build
+
+```sh
+npm run build
+```
 
 ## License
 

@@ -135,7 +135,16 @@ function getOnboardChains(): any {
 
 const injected = injectedModule()
 const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
-const gnosis = gnosisModule()
+
+// https://github.com/blocknative/web3-onboard/pull/1834
+const gnosis = gnosisModule({
+  whitelistedDomains: [
+    /^https:\/\/gnosis-safe\.io$/,
+    /^https:\/\/app\.safe\.global$/,
+    /^https:\/\/safe\.global$/,
+    /^https:\/\/wallet\.ambire\.com$/
+  ]
+})
 const walletConnect = walletConnectModule({
   version: 2, // NOTE: version v1 will be sunset but MetaMask currently only supports v1
   qrcodeModalOptions: {

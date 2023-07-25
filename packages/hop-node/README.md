@@ -12,17 +12,25 @@ See [docs.hop.exchange/hop-node](https://docs.hop.exchange/hop-node)
 
 Install dependencies
 
-```bash
-yarn install
+```sh
+npm install
 ```
 
-Run node
+Build node
 
-```bash
-yarn start
+```sh
+npm run build
+```
+
+Run node; for complete instructions and required config, see [https://docs.hop.exchange/v/developer-docs/hop-node/running-a-hop-bonder](https://docs.hop.exchange/v/developer-docs/hop-node/running-a-hop-bonder).
+
+```sh
+npm start
 ```
 
 ## Deployments
+
+Docker images are built and pushed to [Docker Hub](https://hub.docker.com/r/hopprotocol/hop-node).
 
 | Branch              | Docker Image                   | Release  | Description                                 |
 | ------------        | -------------------------------| -------- | ------------------------------------------- |

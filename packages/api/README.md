@@ -20,21 +20,6 @@ docker build -t hop-api .
 docker run --rm --name hop-api -p 8000:8000 hop-api
 ```
 
-## Development
-
-```sh
-npm start
-```
-
-Available environment variables:
-
-```sh
-PORT=8000
-IP_RATE_LIMIT_REQ_PER_SEC=100
-IP_RATE_LIMIT_WINDOW_MS=1000
-RESPONSE_CACHE_DURATION_MS=10000
-```
-
 ## Endpoints
 
 ## GET /v1/quote
@@ -94,6 +79,35 @@ Example response
   "token": "USDC",
   "timestamp": 1661554612
 }
+```
+
+## Development
+
+Install dependencies
+
+```sh
+npm install
+```
+
+Start server
+
+```sh
+npm start
+```
+
+Build
+
+```sh
+npm run build
+```
+
+Available environment variables:
+
+```sh
+PORT=8000
+IP_RATE_LIMIT_REQ_PER_SEC=100
+IP_RATE_LIMIT_WINDOW_MS=1000
+RESPONSE_CACHE_DURATION_MS=10000
 ```
 
 ## License

@@ -36,7 +36,7 @@ export const chains: Chains = {
     isLayer1: false
   },
   arbitrum: {
-    name: 'Arbitrum',
+    name: 'Arbitrum One',
     slug: 'arbitrum',
     image: arbitrumImage,
     nativeTokenSymbol: 'ETH',
@@ -50,7 +50,7 @@ export const chains: Chains = {
     isLayer1: false
   },
   nova: {
-    name: 'Nova',
+    name: 'Arbitrum Nova',
     slug: 'nova',
     image: novaImage,
     nativeTokenSymbol: 'ETH',

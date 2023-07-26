@@ -354,15 +354,15 @@ export const addresses: Addresses = {
       },
       polygonzk: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x5f79190529Fee51fB0B889Df06EF05c6eFCb3A92',
+        l1MessengerWrapper: '0x4928e03EA425919FCCb2774da5353D13D91bC15E',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x0EEFEe679a77dC411579e520ef7535d526cED1d6',
-        l2Bridge: '0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283',
-        l2HopBridgeToken: '0x7a765834fB23c3f533eD3874E3275Ca14f73C4cc',
-        l2AmmWrapper: '0x5C32143C8B198F392d01f8446b754c181224ac26',
-        l2SaddleSwap: '0x9ec9551d4A1a1593b0ee8124D98590CC71b3B09D',
-        l2SaddleLpToken: '0xE338e885ff9bf04fC8C8d82A36e55aEb11725435',
-        bridgeDeployedBlockNumber: 1023191
+        l2Bridge: '0x3Aa637D6853f1d9A9354FE4301Ab852A88b237e7',
+        l2HopBridgeToken: '0x3749C4f034022c39ecafFaBA182555d4508caCCC',
+        l2AmmWrapper: '0x3bFd91538Abc560C0C6F42755FcE2C714d13fB1a',
+        l2SaddleSwap: '0x4b95e110178D51ef406C225462748A3F739d99Da',
+        l2SaddleLpToken: '0x9879ECbcda0b6856A1D8619B843dcC74C1844a30',
+        bridgeDeployedBlockNumber: 1497593
       }
     },
     HOP: {

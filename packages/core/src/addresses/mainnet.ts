@@ -597,7 +597,7 @@ export const addresses: Addresses = {
       },
       base: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x4928e03EA425919FCCb2774da5353D13D91bC15E',
+        l1MessengerWrapper: '0x17B5ACE1cD6b0d033431873826937F499Eec2C95',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x4200000000000000000000000000000000000006',
         l2Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',

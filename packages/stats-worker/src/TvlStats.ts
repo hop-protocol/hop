@@ -11,7 +11,8 @@ import {
   polygonRpc,
   optimismRpc,
   arbitrumRpc,
-  novaRpc
+  novaRpc,
+  baseRpc
 } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
@@ -23,7 +24,8 @@ const allProviders: any = {
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),
   arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc),
-  nova: new providers.StaticJsonRpcProvider(novaRpc)
+  nova: new providers.StaticJsonRpcProvider(novaRpc),
+  base: new providers.StaticJsonRpcProvider(baseRpc)
 }
 
 const allArchiveProviders: any = {
@@ -149,7 +151,8 @@ class TvlStats {
       'arbitrum',
       'optimism',
       'ethereum',
-      'nova'
+      'nova',
+      'base'
     ]
     if (this.regenesis) {
       chains = ['optimism']
@@ -187,7 +190,7 @@ class TvlStats {
                 const archiveProvider = allArchiveProviders[chain] || provider
                 if (
                   token === 'MATIC' &&
-                  ['optimism', 'arbitrum', 'nova'].includes(chain)
+                  ['optimism', 'arbitrum', 'nova', 'base'].includes(chain)
                 ) {
                   return
                 }

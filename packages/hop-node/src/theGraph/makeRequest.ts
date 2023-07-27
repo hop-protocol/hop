@@ -56,7 +56,7 @@ async function _makeRequest (
     if (isGoerli) {
       url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
     } else {
-      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+      return 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
     }
   }
 

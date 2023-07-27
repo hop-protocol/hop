@@ -89,7 +89,13 @@ function getOnboardChains(): any {
         token: 'ETH',
         label: 'Polygon zkEVM (Goerli)',
         rpcUrl: goerliChains.polygonzk.publicRpcUrl
-      }
+      },
+      {
+        id: chainIdToHex(goerliChains.base.networkId),
+        token: 'ETH',
+        label: 'Base Goerli',
+        rpcUrl: goerliChains.base.publicRpcUrl
+      },
     ]
   } else {
     return [
@@ -128,6 +134,12 @@ function getOnboardChains(): any {
         token: 'ETH',
         label: 'Nova Mainnet',
         rpcUrl: mainnetChains.nova.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(mainnetChains.base.networkId),
+        token: 'ETH',
+        label: 'Base Mainnet',
+        rpcUrl: mainnetChains.base.publicRpcUrl
       }
     ]
   }

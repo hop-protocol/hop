@@ -61,7 +61,7 @@ export function getUrl (chain: string) {
     if (isGoerli) {
       url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
     } else {
-      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+      url = 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
     }
   }
 

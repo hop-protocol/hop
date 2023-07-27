@@ -49,6 +49,8 @@ export function getGraphUrl (network: string, chain: string) {
     // return 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
   } else if (chain === 'nova') {
     return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+  } else if (chain === 'base') {
+    return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
   } else {
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }

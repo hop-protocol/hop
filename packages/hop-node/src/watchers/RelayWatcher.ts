@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
+import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
 import Logger from 'src/logger'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
@@ -23,7 +24,7 @@ type Config = {
   dryMode?: boolean
 }
 
-type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher
+type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher | BaseZkBridgeWatcher
 
 // TODO: Modularize this for multiple chains
 
@@ -76,6 +77,16 @@ class RelayWatcher extends BaseWatcher {
       const polygonzkChainId = this.chainSlugToId(Chain.PolygonZk)
       this.relayWatchers[polygonzkChainId] = new PolygonZkBridgeWatcher({
         chainSlug: Chain.PolygonZk,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+
+    if (enabledNetworks.includes(Chain.Base)) {
+      const baseChainId = this.chainSlugToId(Chain.Base)
+      this.relayWatchers[baseChainId] = new BaseZkBridgeWatcher({
+        chainSlug: Chain.Base,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,
         dryMode: config.dryMode
@@ -401,7 +412,7 @@ class RelayWatcher extends BaseWatcher {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
     }
 
-    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHashash: ${txHash} messageIndex: ${messageIndex} destinationChainId: ${destinationChainId}`)
+    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} messageIndex: ${messageIndex} destinationChainId: ${destinationChainId}`)
     return await this.relayWatchers[destinationChainId].relayL1ToL2Message(txHash, messageIndex)
   }
 

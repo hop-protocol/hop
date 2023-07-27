@@ -18,6 +18,7 @@ import {
   optimismRpc,
   arbitrumRpc,
   novaRpc,
+  baseRpc,
   etherscanApiKeys
 } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
@@ -44,7 +45,9 @@ const etherscanUrls: Record<string, string> = {
   polygon: 'https://api.polygonscan.com',
   optimism: 'https://api-optimistic.etherscan.io',
   arbitrum: 'https://api.arbiscan.io',
-  gnosis: 'https://blockscout.com/poa/' // TODO: update to gnosisscan
+  gnosis: 'https://api.gnosisscan.io',
+  nova: 'https://api-nova.arbiscan.io',
+  base: 'https://api.basescan.org'
 }
 
 const wait = (t: number) =>
@@ -56,7 +59,8 @@ const allProviders: Record<string, any> = {
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),
   arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc),
-  nova: new providers.StaticJsonRpcProvider(novaRpc)
+  nova: new providers.StaticJsonRpcProvider(novaRpc),
+  base: new providers.StaticJsonRpcProvider(baseRpc)
 }
 
 const allArchiveProviders: Record<string, any> = {
@@ -84,7 +88,7 @@ class BonderStats {
   startDate?: DateTime
   endDate?: DateTime
   tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC', 'HOP']
-  chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum', 'nova']
+  chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum', 'nova', 'base']
   trackOnlyProfit = false
   trackOnlyTxFees = false
   trackOnlyFees = false
@@ -221,6 +225,8 @@ class BonderStats {
         dbData.gnosisFeesAmount,
         dbData.arbitrumFeesAmount,
         dbData.optimismFeesAmount,
+        dbData.novaFeesAmount,
+        dbData.baseFeesAmount,
         dbData.ethereumFeesAmount,
         dbData.totalFeesAmount,
         startDate
@@ -305,6 +311,8 @@ class BonderStats {
       Number(dbData.gnosisTxFees || 0) * xdaiPrice +
       (Number(dbData.arbitrumTxFees || 0) +
         Number(dbData.optimismTxFees || 0) +
+        Number(dbData.novaTxFees || 0) +
+        Number(dbData.baseTxFees || 0) +
         Number(dbData.ethereumTxFees || 0)) *
         ethPrice
     console.log(dbData.totalFees)
@@ -316,6 +324,8 @@ class BonderStats {
         dbData.gnosisTxFees,
         dbData.arbitrumTxFees,
         dbData.optimismTxFees,
+        dbData.novaTxFees,
+        dbData.baseTxFees,
         dbData.ethereumTxFees,
         dbData.totalFees,
         dbData.ethPrice,
@@ -680,7 +690,11 @@ class BonderStats {
           dbData.novaBlockNumber,
           dbData.novaCanonicalAmount,
           dbData.novaHTokenAmount,
-          dbData.novaNativeAmount
+          dbData.novaNativeAmount,
+          dbData.baseBlockNumber,
+          dbData.baseCanonicalAmount,
+          dbData.baseHTokenAmount,
+          dbData.baseNativeAmount
         )
         console.log(
           day,
@@ -1226,6 +1240,8 @@ class BonderStats {
       dbData.optimismHTokenAmount +
       (dbData.novaCanonicalAmount || 0) +
       (dbData.novaHTokenAmount || 0) +
+      (dbData.baseCanonicalAmount || 0) +
+      (dbData.baseHTokenAmount || 0) +
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount) -
       dbData.initialCanonicalAmount -
@@ -1255,7 +1271,8 @@ class BonderStats {
         dbData.arbitrumNativeAmount +
         dbData.arbitrumAliasAmount +
         dbData.arbitrumMessengerWrapperAmount +
-        (dbData.novaNativeAmount || 0)) *
+        (dbData.novaNativeAmount || 0) *
+        (dbData.baseNativeAmount || 0)) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1268,7 +1285,8 @@ class BonderStats {
           dbData.arbitrumNativeAmount +
           dbData.arbitrumAliasAmount +
           dbData.arbitrumMessengerWrapperAmount +
-          (dbData.novaNativeAmount || 0))
+          (dbData.novaNativeAmount || 0) +
+          (dbData.baseNativeAmount || 0))
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
@@ -1319,6 +1337,8 @@ class BonderStats {
 
     if (chain === 'nova') {
       return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+    } else if (chain === 'base') {
+      return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
     } else {
       return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
     }

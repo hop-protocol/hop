@@ -61,14 +61,14 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
 
       if (estimatedGasLimit) {
         let gasCost = await estimateGasCost(network, estimatedGasLimit)
-        if (gasCost && network.slug === ChainSlug.Optimism) {
+        if (gasCost && (network.slug === ChainSlug.Optimism || network.slug === ChainSlug.Base)) {
           const tokenAmount = BigNumber.from(1)
           const { data, to } = await bridge.populateSendHTokensTx(
             tokenAmount,
             network.slug,
             destNetwork.slug
           )
-          const l1FeeInWei = await bridge.estimateOptimismL1FeeFromData(estimatedGasLimit, data, to)
+          const l1FeeInWei = await bridge.estimateOptimismL1FeeFromData(estimatedGasLimit, data, to, network.slug)
           gasCost = gasCost.add(l1FeeInWei)
         }
         return gasCost
@@ -131,7 +131,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             nova: token.symbol === 'ETH' ? 500000 : 700000,
             linea: token.symbol === 'ETH' ? 500000 : 700000,
             scrollzk: token.symbol === 'ETH' ? 500000 : 700000,
-            base: token.symbol === 'ETH' ? 500000 : 700000,
+            base: token.symbol === 'ETH' ? 225000 : 240000,
             polygonzk: token.symbol === 'ETH' ? 500000 : 700000
           }
           const defaultGasLimit = defaultSendGasLimits[fromNetwork.slug]
@@ -141,7 +141,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
 
         if (estimatedGasLimit) {
           let gasCost = await estimateGasCost(fromNetwork, estimatedGasLimit)
-          if (gasCost && fromNetwork.slug === ChainSlug.Optimism) {
+          if (gasCost && (fromNetwork.slug === ChainSlug.Optimism || fromNetwork.slug === ChainSlug.Base)) {
             const l1FeeInWei = await bridge.getOptimismL1Fee(fromNetwork.slug, toNetwork.slug)
             gasCost = gasCost.add(l1FeeInWei)
           }
@@ -167,7 +167,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
 
         if (BigNumber.isBigNumber(estimatedGasLimit)) {
           let gasCost = await estimateGasCost(network, estimatedGasLimit)
-          if (gasCost && network.slug === ChainSlug.Optimism) {
+          if (gasCost && (network.slug === ChainSlug.Optimism || network.slug === ChainSlug.Base)) {
             const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
             const l1FeeInWei = await token.estimateOptimismL1FeeFromData(gasLimit, data, to)
             gasCost = gasCost.add(l1FeeInWei)

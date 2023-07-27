@@ -6,7 +6,8 @@ import {
   polygonRpc,
   optimismRpc,
   arbitrumRpc,
-  novaRpc
+  novaRpc,
+  baseRpc
 } from './config'
 import { Hop } from '@hop-protocol/sdk'
 import {
@@ -129,7 +130,8 @@ class YieldStats {
       polygon: polygonRpc,
       optimism: optimismRpc,
       arbitrum: arbitrumRpc,
-      nova: novaRpc
+      nova: novaRpc,
+      base: baseRpc
     })
 
     this.sdk.setPriceFeedApiKeys({

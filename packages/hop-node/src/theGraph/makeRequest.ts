@@ -56,7 +56,7 @@ async function _makeRequest (
     if (isGoerli) {
       url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
     } else {
-      return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet`
+      return 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
     }
   }
 

@@ -6,7 +6,7 @@ import { getTokenDecimals } from './getTokenDecimals'
 import { keccak256 } from 'ethereumjs-util'
 
 export const ChainsWithSubgraphs: Record<string, string[]> = {
-  mainnet: ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova'],
+  mainnet: ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova', 'base'],
   goerli: ['arbitrum', 'polygon', 'optimism', 'linea', 'base']
 }
 

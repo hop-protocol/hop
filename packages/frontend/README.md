@@ -6,29 +6,51 @@
 
 Install dependencies:
 
-```bash
+```sh
 npm install
 ```
 
-Lerna link:
+Lerna link, to link hop core and sdk packages:
 
-```bash
+```sh
 npx lerna link
 ```
 
 Start app (uses `mainnet` network by default):
 
-```bash
+```sh
 npm run dev
 ```
 
 Start app using a different network (e.g. `mainnet`, `goerli`)
 
-```bash
+```sh
 REACT_APP_NETWORK=mainnet npm run dev
 ```
 
 Visit [https://localhost:3000/](https://localhost:3000/)
+
+Environment variables can be set in a `.env` file, for example:
+
+```sh
+PUBLIC_URL=.
+REACT_APP_IPFS_BUILD=true
+REACT_APP_ENABLED_CHAINS=ethereum,polygon,gnosis,optimism,arbitrum
+REACT_APP_ENABLED_TOKENS=ETH,USDC,USDT,DAI
+REACT_APP_NETWORK=goerli
+```
+
+To disable certain routes, use this environment variable, for example this disables gnosis→anyDestination anyToken route and optimism→arbitrum USDC route:
+
+```sh
+REACT_APP_DISABLED_ROUTES=gnosis:all:all,optimism:arbitrum:USDC
+```
+
+Build distribution build:
+
+```sh
+npm run build
+```
 
 ## Deployments
 

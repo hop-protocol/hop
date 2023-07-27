@@ -81,6 +81,7 @@ export const config : Config = {
     optimism: false,
     arbitrum: false,
     nova: false,
+    base: false,
     zksync: false,
     linea: false,
     scrollzk: false,

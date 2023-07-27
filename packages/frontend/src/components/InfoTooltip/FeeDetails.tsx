@@ -34,7 +34,7 @@ const FeeDetails: FC<Props> = props => {
         The total fee covers the bonder fee and the destination transaction cost paid by the Bonder.
       </Typography>
       <Typography variant="body1" className={styles.text}>
-        On Optimism, Arbitrum, and Nova the destination tx fee fluctuates with L1 gas price.
+        On Optimism, Base, Arbitrum, and Nova the destination tx fee fluctuates with L1 gas price.
       </Typography>
       <Typography variant="body1" className={styles.text}>
         LP fees are included in the swap price.

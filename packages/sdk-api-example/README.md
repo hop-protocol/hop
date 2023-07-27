@@ -83,6 +83,26 @@ Example response
 {"tx":{"data":"0x095ea7b30000000000000000000000002ad09850b0ca4c7c1b33f5acd6cbabcab5d6e79600000000000000000000000000000000000000000000000000000000000f4240","to":"0x7F5c764cBc14f9669B88837ca1490cCa17c31607"}}
 ```
 
+## Development
+
+Install dependencies
+
+```sh
+npm install
+```
+
+Start server
+
+```sh
+npm start
+```
+
+Build
+
+```sh
+npm run build
+```
+
 ## License
 
 [MIT](LICENSE)

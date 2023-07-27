@@ -43,6 +43,8 @@ export function getUrl (chain: string) {
   let url: string
   if (chain === 'nova') {
     url = `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+  } else if (chain === 'base') {
+    url = `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
   } else {
     url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }

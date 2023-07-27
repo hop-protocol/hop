@@ -41,6 +41,7 @@ export function getSourceChainId (chain: string) {
     if (isGoerli) {
       return 84531
     }
+    return 8453
   }
   if (chain === 'scroll') {
     if (isGoerli) {

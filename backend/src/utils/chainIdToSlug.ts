@@ -15,6 +15,7 @@ const chainIdToSlugMap: any = {
   421613: 'arbitrum',
   42170: 'nova',
   59140: 'linea',
+  8453: 'base',
   84531: 'base',
   534354: 'scroll'
 }

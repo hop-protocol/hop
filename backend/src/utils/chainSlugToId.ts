@@ -6,10 +6,11 @@ const chainSlugToIdMap: any = {
   polygon: 137,
   arbitrum: 42161,
   nova: 42170,
+  base: 8453,
 
   // goerli
   linea: 59140,
-  base: 84531,
+  // base: 84531,
   scroll: 534354
 }
 

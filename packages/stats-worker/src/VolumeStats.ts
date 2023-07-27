@@ -49,6 +49,8 @@ class VolumeStats {
 
     if (chain === 'nova') {
       return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+    } else if (chain === 'base') {
+      return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
     } else {
       return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
     }

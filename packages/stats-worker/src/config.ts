@@ -13,6 +13,7 @@ export const polygonRpc = process.env.POLYGON_RPC
 export const optimismRpc = process.env.OPTIMISM_RPC
 export const arbitrumRpc = process.env.ARBITRUM_RPC
 export const novaRpc = process.env.NOVA_RPC
+export const baseRpc = process.env.BASE_RPC
 export const dbPath = process.env.SQLITE3_DB || './sqlite3.db'
 export const etherscanApiKeys: Record<string, string> = {
   ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY,
@@ -20,7 +21,8 @@ export const etherscanApiKeys: Record<string, string> = {
   arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY,
   polygon: process.env.ETHERSCAN_POLYGON_API_KEY,
   gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY,
-  nova: process.env.ETHERSCAN_NOVA_API_KEY
+  nova: process.env.ETHERSCAN_NOVA_API_KEY,
+  base: process.env.ETHERSCAN_BASE_API_KEY
 }
 export const etherscanApiUrls: Record<string, string> = {
   ethereum: 'https://api.etherscan.io',
@@ -28,6 +30,7 @@ export const etherscanApiUrls: Record<string, string> = {
   optimism: 'https://api-optimistic.etherscan.io',
   arbitrum: 'https://api.arbiscan.io',
   gnosis: 'https://api.gnosisscan.io',
-  nova: 'https://api-nova.arbiscan.io'
+  nova: 'https://api-nova.arbiscan.io',
+  base: 'https://api.basescan.org'
 }
 export const coingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''

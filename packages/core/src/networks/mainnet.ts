@@ -79,6 +79,17 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 64,
     hasFinalizationBlockTag: true
+  },
+  base: {
+    name: chains.base.name,
+    image: chains.base.image,
+    networkId: 8453,
+    publicRpcUrl: 'https://developer-access-mainnet.base.org',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://basescan.org/'],
+    nativeBridgeUrl: 'https://bridge.base.org/deposit',
+    waitConfirmations: 64,
+    hasFinalizationBlockTag: true
   }
   /*
   zksync: {

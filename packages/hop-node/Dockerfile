@@ -1,4 +1,4 @@
-FROM node:14 AS build
+FROM node:16 AS build
 
 ARG GIT_REV
 ENV GIT_REV=${GIT_REV}

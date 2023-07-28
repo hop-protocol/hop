@@ -107,36 +107,15 @@ export class TransferStats {
 
   async initPrices (daysN = 365) {
     console.log('fetching prices')
-    const pricesArr = [
-      await getPriceHistory('usd-coin', daysN),
-      await getPriceHistory('tether', daysN),
-      await getPriceHistory('dai', daysN),
-      await getPriceHistory('ethereum', daysN),
-      await getPriceHistory('matic-network', daysN),
-      await getPriceHistory('wrapped-bitcoin', daysN),
-      await getPriceHistory('frax', daysN),
-      await getPriceHistory('hop-protocol', daysN),
-      await getPriceHistory('havven', daysN),
-      await getPriceHistory('nusd', daysN),
-      await getPriceHistory('uniswap', daysN),
-      await getPriceHistory('rocket-pool-eth', daysN)
-    ]
-    console.log('done fetching prices')
 
-    const prices: any = {
-      USDC: pricesArr[0],
-      USDT: pricesArr[1],
-      DAI: pricesArr[2],
-      ETH: pricesArr[3],
-      MATIC: pricesArr[4],
-      WBTC: pricesArr[5],
-      FRAX: pricesArr[6],
-      HOP: pricesArr[7],
-      SNX: pricesArr[8],
-      sUSD: pricesArr[9],
-      UNI: pricesArr[10],
-      rETH: pricesArr[11]
+    const prices: any = {}
+
+    for (const tokenSymbol of enabledTokens) {
+      console.log('fetching price', tokenSymbol)
+      prices[tokenSymbol] = await getPriceHistory(tokenSymbol, daysN)
     }
+
+    console.log('done fetching prices')
 
     this.prices = prices
   }

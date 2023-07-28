@@ -1,6 +1,16 @@
 import fetch from 'isomorphic-fetch'
+import { tokens } from '@hop-protocol/core/metadata'
 
-export async function getPriceHistory (coinId: string, days: number) {
+function getCoinId (tokenSymbol: string) {
+  return tokens[tokenSymbol]?.coingeckoId
+}
+
+export async function getPriceHistory (tokenSymbol: string, days: number) {
+  const coinId = getCoinId(tokenSymbol)
+  if (!coinId) {
+    throw new Error(`coingecko coin id not found for token "${tokenSymbol}"`)
+  }
+
   const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
   console.log(url)
   return Promise.race([fetch(url)

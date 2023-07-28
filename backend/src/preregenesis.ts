@@ -3,6 +3,8 @@ import { Contract, providers } from 'ethers'
 export async function getPreRegenesisBondEvent (transferId: string, token: string) {
   const rpcUrl = 'https://mainnet-replica-4.optimism.io'
   const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+
+  // these were the bridge addresses before the regenesis
   const bridgeAddresses: any = {
     USDC: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
     USDT: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',

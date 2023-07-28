@@ -27,6 +27,7 @@ export function explorerLink (chain: string) {
       base = 'https://explorer.goerli.linea.build'
     }
   } else if (chain === 'base') {
+    base = 'https://basescan.org'
     if (isGoerli) {
       base = 'https://goerli.basescan.org'
     }

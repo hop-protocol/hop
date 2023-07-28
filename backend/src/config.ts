@@ -1,3 +1,5 @@
+import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+
 require('dotenv').config()
 
 export const network = process.env.NETWORK || 'mainnet'
@@ -14,15 +16,33 @@ export const postgresConfig = {
   maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }
 
-let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX', 'sUSD', 'rETH']
-let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
+const tokenSet = new Set([])
+const chainSet = new Set([])
 
-if (isGoerli) {
-  enabledTokens = ['USDC', 'ETH', 'HOP', 'USDT', 'DAI', 'UNI']
-  enabledChains = ['ethereum', 'polygon', 'optimism', 'arbitrum', 'linea', 'base']
+const addresses = isGoerli ? goerliAddresses : mainnetAddresses
+for (const token in addresses.bridges) {
+  tokenSet.add(token)
+
+  for (const chain in addresses.bridges[token]) {
+    chainSet.add(chain)
+  }
+}
+
+let enabledTokens = Array.from(tokenSet)
+let enabledChains = Array.from(chainSet)
+
+if (process.env.ENABLED_TOKENS) {
+  enabledTokens = process.env.ENABLED_TOKENS.split(',').map((token: any) => token.trim()).filter(Boolean)
+}
+
+if (process.env.ENABLED_CHAINS) {
+  enabledChains = process.env.ENABLED_CHAINS.split(',').map((chain: any) => chain.trim()).filter(Boolean)
 }
 
 export { enabledTokens, enabledChains }
+
+console.log('enabledTokens:', enabledTokens)
+console.log('enabledChains:', enabledChains)
 
 export const rpcUrls = {
   gnosis: process.env.GNOSIS_RPC,
@@ -42,63 +62,65 @@ export const transferTimes = {
     arbitrum: 10,
     polygon: 20,
     gnosis: 5,
-    nova: 10
+    nova: 10,
+    base: 2
   },
   optimism: {
     ethereum: 25,
     arbitrum: 25,
     polygon: 25,
     gnosis: 25,
-    nova: 25
+    nova: 25,
+    base: 25
   },
   arbitrum: {
     ethereum: 12,
     optimism: 12,
     polygon: 12,
     gnosis: 12,
-    nova: 12
+    nova: 12,
+    base: 12
   },
   polygon: {
     ethereum: 60,
     optimism: 60,
     arbitrum: 60,
     gnosis: 60,
-    nova: 60
+    nova: 60,
+    base: 60
   },
   gnosis: {
     ethereum: 4,
     optimism: 4,
     arbitrum: 4,
     polygon: 4,
-    nova: 4
+    nova: 4,
+    base: 4
   },
   nova: {
     ethereum: 12,
     optimism: 12,
     arbitrum: 12,
     polygon: 12,
-    gnosis: 12
-  },
-  linea: {
-    ethereum: 15,
-    optimism: 15,
-    arbitrum: 15,
-    polygon: 15,
-    gnosis: 15
+    gnosis: 12,
+    base: 12
   },
   base: {
     ethereum: 25,
     optimism: 25,
     arbitrum: 25,
     polygon: 25,
-    gnosis: 25
+    gnosis: 25,
+    nova: 25
   },
   scroll: {
     ethereum: 1,
     optimism: 1,
     arbitrum: 1,
     polygon: 1,
-    gnosis: 1
+    gnosis: 1,
+    nova: 1,
+    base: 1
   }
 }
 

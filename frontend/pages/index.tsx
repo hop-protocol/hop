@@ -100,6 +100,7 @@ function getSourceChainId (chain: string) {
     if (isGoerli) {
       return 84531
     }
+    return 8453
   }
   if (chain === 'scroll') {
     if (isGoerli) {
@@ -136,7 +137,7 @@ function Spinner() {
 
 const poll = true
 const pollInterval = 15 * 1000
-let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
+let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova', 'base']
 if (isGoerli) {
   enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism', 'linea', 'base']
 }
@@ -1019,7 +1020,8 @@ const Index: NextPage = (props: any) => {
                         <MenuItem key="gnosis" value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>,
                         <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
                         <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
-                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>,
+                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
                       ]
                     }
                   </Select>
@@ -1044,7 +1046,8 @@ const Index: NextPage = (props: any) => {
                         <MenuItem key="gnosis" value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>,
                         <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
                         <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
-                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>,
+                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
                       ]
                     }
                   </Select>
@@ -1073,6 +1076,7 @@ const Index: NextPage = (props: any) => {
                         <MenuItem key="SNX" value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>,
                         <MenuItem key="sUSD" value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> sUSD</MenuItem>,
                         <MenuItem key="rETH" value="rETH"><MenuItemIcon src={tokens.rETH.image} /> rETH</MenuItem>,
+                        <MenuItem key="MAGIC" value="MAGIC"><MenuItemIcon src={tokens.MAGIC.image} /> MAGIC</MenuItem>,
                         <MenuItem key="WBTC" value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem>
                       ]
                     }

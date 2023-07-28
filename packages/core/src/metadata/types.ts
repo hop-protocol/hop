@@ -18,6 +18,7 @@ export interface Chain {
   image: string
   nativeTokenSymbol: string
   isLayer1: boolean
+  primaryColor: string
 }
 
 export type Chains = {

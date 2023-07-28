@@ -12,7 +12,7 @@
     "dev:local": "npm run start:local",
     "lint": "npx eslint --ext .ts --fix src/*.ts",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest test",
     "clean": "rimraf dist"
   },
   "author": "",
@@ -21,6 +21,7 @@
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.13",
     "@types/isomorphic-fetch": "^0.0.36",
+    "@types/jest": "^29.5.3",
     "@types/lodash": "^4.14.191",
     "@types/luxon": "^3.2.0",
     "@types/uuid": "^9.0.0",
@@ -33,12 +34,14 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
+    "jest": "^29.6.2",
     "rimraf": "^3.0.2",
+    "ts-jest": "^29.1.1",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "@hop-protocol/core": "^0.0.1-beta.172",
+    "@hop-protocol/core": "^0.0.1-beta.173",
     "@types/memory-cache": "^0.2.2",
     "@types/pidusage": "^2.0.2",
     "cors": "^2.8.5",

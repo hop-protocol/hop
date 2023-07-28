@@ -1,17 +1,13 @@
-// TODO: move to config
+import { chains } from '@hop-protocol/core/metadata'
+
 const colorsMap: any = {
-  ethereum: '#868dac',
-  gnosis: '#46a4a1',
-  polygon: '#8b57e1',
-  optimism: '#e64b5d',
-  arbitrum: '#289fef',
-  nova: '#ec772c',
-  linea: '#121212',
-  base: '#0052ff',
-  scroll: '#e5d1b8',
   bonded: '#81ff81',
   pending: '#ffc55a',
   fallback: '#9f9fa3'
+}
+
+for (const chain in chains) {
+  colorsMap[chain] = chains[chain].primaryColor
 }
 
 export function getColor (chain: string) {

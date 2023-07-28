@@ -1,19 +1,15 @@
-// TODO: move to config
-const chainSlugToIdMap: any = {
-  ethereum: 1,
-  optimism: 10,
-  gnosis: 100,
-  polygon: 137,
-  arbitrum: 42161,
-  nova: 42170,
-  base: 8453,
+import { networks } from '../config'
 
-  // goerli
-  linea: 59140,
-  // base: 84531,
-  scroll: 534354
+const chainSlugToIdMap :any = {}
+
+for (const chain in networks) {
+  chainSlugToIdMap[chain] = networks[chain].networkId
 }
 
 export function chainSlugToId (chainSlug: string) {
-  return chainSlugToIdMap[chainSlug]
+  const id = chainSlugToIdMap[chainSlug]
+  if (!id) {
+    throw new Error(`Unknown chain slug ${chainSlug}`)
+  }
+  return id
 }

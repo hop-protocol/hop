@@ -3,7 +3,7 @@ import { isGoerli, transferTimes } from './config'
 import { getColor } from './utils/getColor'
 import { truncateAddress } from './utils/truncateAddress'
 import { explorerLinkAddress } from './utils/explorerLinkAddress'
-import { getSourceChainId } from './utils/getSourceChainId'
+import { chainSlugToId } from './utils/chainSlugToId'
 import { integrationPartnerName } from './utils/integrationPartnerName'
 import { integrationPartnerImage } from './utils/integrationPartnerImage'
 import { getTokenDecimals } from './utils/getTokenDecimals'
@@ -45,7 +45,7 @@ export function populateData (x: any, i: number) {
   if (x.timestamp) {
     x.timestampRelative = DateTime.fromSeconds(x.timestamp).toRelative()
     const transferTime = DateTime.fromSeconds(x.timestamp)
-    x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+    x.receiveStatusUnknown = x.sourceChainId === chainSlugToId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
   }
   if (x.receiveStatusUnknown) {
     // these got relayed but db not updated

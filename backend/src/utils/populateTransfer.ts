@@ -7,7 +7,7 @@ import { explorerLinkAddress } from './explorerLinkAddress'
 import { explorerLinkTx } from './explorerLinkTx'
 import { chainIdToSlug } from './chainIdToSlug'
 import { chainSlugToName } from './chainSlugToName'
-import { getSourceChainId } from './getSourceChainId'
+import { chainSlugToId } from './chainSlugToId'
 import { getChainLogo } from './getChainLogo'
 import { nearestDate } from './nearestDate'
 import { getTokenLogo } from './getTokenLogo'
@@ -132,7 +132,7 @@ export function populateTransfer (x: any, prices?: any) {
   }
 
   if (!x.receiveStatusUnknown && transferTime) {
-    x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+    x.receiveStatusUnknown = x.sourceChainId === chainSlugToId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
   }
   if (x.receiveStatusUnknown) {
     // these got relayed but db not updated

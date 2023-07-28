@@ -12,7 +12,6 @@ import { getTokenDecimals } from './utils/getTokenDecimals'
 import { chainIdToSlug } from './utils/chainIdToSlug'
 import { chainSlugToName } from './utils/chainSlugToName'
 import { chainSlugToId } from './utils/chainSlugToId'
-import { getSourceChainId } from './utils/getSourceChainId'
 import { populateTransfer } from './utils/populateTransfer'
 import { getPriceHistory } from './price'
 import {
@@ -848,7 +847,7 @@ export class TransferStats {
 
     for (const x of gnosisTransfers) {
       data.push({
-        sourceChain: getSourceChainId('gnosis'),
+        sourceChain: chainSlugToId('gnosis'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -865,7 +864,7 @@ export class TransferStats {
     }
     for (const x of polygonTransfers) {
       data.push({
-        sourceChain: getSourceChainId('polygon'),
+        sourceChain: chainSlugToId('polygon'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -882,7 +881,7 @@ export class TransferStats {
     }
     for (const x of optimismTransfers) {
       data.push({
-        sourceChain: getSourceChainId('optimism'),
+        sourceChain: chainSlugToId('optimism'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -899,7 +898,7 @@ export class TransferStats {
     }
     for (const x of arbitrumTransfers) {
       data.push({
-        sourceChain: getSourceChainId('arbitrum'),
+        sourceChain: chainSlugToId('arbitrum'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -916,7 +915,7 @@ export class TransferStats {
     }
     for (const x of novaTransfers) {
       data.push({
-        sourceChain: getSourceChainId('nova'),
+        sourceChain: chainSlugToId('nova'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -933,7 +932,7 @@ export class TransferStats {
     }
     for (const x of lineaTransfers) {
       data.push({
-        sourceChain: getSourceChainId('linea'),
+        sourceChain: chainSlugToId('linea'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -950,7 +949,7 @@ export class TransferStats {
     }
     for (const x of baseTransfers) {
       data.push({
-        sourceChain: getSourceChainId('base'),
+        sourceChain: chainSlugToId('base'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -967,7 +966,7 @@ export class TransferStats {
     }
     for (const x of ethereumTransfers) {
       data.push({
-        sourceChain: getSourceChainId('ethereum'),
+        sourceChain: chainSlugToId('ethereum'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,

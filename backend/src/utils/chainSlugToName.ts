@@ -1,14 +1,9 @@
-// TODO: move to config
-const chainSlugToNameMap: any = {
-  ethereum: 'Ethereum',
-  gnosis: 'Gnosis',
-  polygon: 'Polygon',
-  arbitrum: 'Arbitrum',
-  optimism: 'Optimism',
-  nova: 'Nova',
-  linea: 'Linea',
-  base: 'Base',
-  scroll: 'Scroll'
+import { networks } from '../config'
+
+const chainSlugToNameMap :any = {}
+
+for (const chain in networks) {
+  chainSlugToNameMap[chain] = networks[chain].name
 }
 
 export function chainSlugToName (chainSlug: string) {

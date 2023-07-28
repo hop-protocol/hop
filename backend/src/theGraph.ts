@@ -1,72 +1,8 @@
 import { padHex } from './utils/padHex'
-import { isGoerli } from './config'
 import fetch from 'isomorphic-fetch'
 import { chunk } from 'lodash'
 import { promiseTimeout } from './utils/promiseTimeout'
-
-// TODO: move to config
-export function getUrl (chain: string) {
-  if (chain === 'gnosis') {
-    chain = 'xdai'
-  }
-
-  if (chain === 'ethereum') {
-    chain = 'mainnet'
-  }
-
-  const regenesis = false
-  if (regenesis) {
-    return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-
-  if (isGoerli) {
-    if (chain === 'mainnet') {
-      chain = 'goerli'
-    }
-    if (chain === 'polygon') {
-      chain = 'mumbai'
-    }
-    if (chain === 'optimism') {
-      chain = 'optimism-goerli'
-    }
-    if (chain === 'arbitrum') {
-      return 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
-    }
-    if (chain === 'nova') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-    if (chain === 'xdai') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-  }
-
-  let url: string
-  if (chain === 'nova') {
-    url = `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
-  } else if (chain === 'base') {
-    url = `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
-  } else {
-    url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-
-  if (chain === 'linea') {
-    if (isGoerli) {
-      url = 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
-    } else {
-      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
-    }
-  }
-
-  if (chain === 'base') {
-    if (isGoerli) {
-      url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
-    } else {
-      url = 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
-    }
-  }
-
-  return url
-}
+import { getSubgraphUrl } from './utils/getSubgraphUrl'
 
 export async function queryFetch (url: string, query: string, variables?: any) {
   return promiseTimeout(_queryFetch(url, query, variables), 60 * 1000)
@@ -156,7 +92,7 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
   `
   let url :string
   try {
-    url = getUrl(chain)
+    url = getSubgraphUrl(chain)
   } catch (err) {
     return []
   }
@@ -291,7 +227,7 @@ export async function fetchTransfersForTransferId (chain: string, transferId: st
   `
   let url :string
   try {
-    url = getUrl(chain)
+    url = getSubgraphUrl(chain)
   } catch (err) {
     return []
   }
@@ -339,7 +275,7 @@ export async function fetchBondTransferIdEvents (chain: string, startTime: numbe
 
   let url :string
   try {
-    url = getUrl(chain)
+    url = getSubgraphUrl(chain)
   } catch (err) {
     return []
   }
@@ -407,7 +343,7 @@ export async function fetchTransferBonds (chain: string, transferIds: string[]) 
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   let url :string
   try {
-    url = getUrl(chain)
+    url = getSubgraphUrl(chain)
   } catch (err) {
     return []
   }
@@ -448,7 +384,7 @@ export async function fetchWithdrews (chain: string, transferIds: string[]) {
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   let url :string
   try {
-    url = getUrl(chain)
+    url = getSubgraphUrl(chain)
   } catch (err) {
     return []
   }
@@ -493,7 +429,7 @@ export async function fetchTransferFromL1Completeds (chain: string, startTime: n
 
   let url :string
   try {
-    url = getUrl(chain)
+    url = getSubgraphUrl(chain)
   } catch (err) {
     return []
   }
@@ -553,7 +489,7 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   let url :string
   try {
-    url = getUrl(chain)
+    url = getSubgraphUrl(chain)
   } catch (err) {
     return []
   }

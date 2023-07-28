@@ -1,4 +1,5 @@
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
 
 require('dotenv').config()
 
@@ -15,6 +16,7 @@ export const postgresConfig = {
   port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432,
   maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }
+export const regenesisEnabled = process.env.REGENESIS_ENABLED === 'true'
 
 const tokenSet = new Set([])
 const chainSet = new Set([])
@@ -41,9 +43,6 @@ if (process.env.ENABLED_CHAINS) {
 
 export { enabledTokens, enabledChains }
 
-console.log('enabledTokens:', enabledTokens)
-console.log('enabledChains:', enabledChains)
-
 export const rpcUrls = {
   gnosis: process.env.GNOSIS_RPC,
   polygon: process.env.POLYGON_RPC,
@@ -55,6 +54,8 @@ export const rpcUrls = {
   base: process.env.BASE_RPC,
   scroll: process.env.SCROLL_RPC
 }
+
+export const networks = isGoerli ? goerliNetworks : mainnetNetworks
 
 export const transferTimes = {
   ethereum: {
@@ -139,3 +140,7 @@ export const integrations : Record<string, string> = {
   '0x696c91cdc3e79a74785c2cdd07ccc1bf0bc7b788': 'chainhop',
   '0x777777773491ff5cef6bb758f3baa9d70886909c': 'viaprotocol' // via protocol
 }
+
+console.log('network:', network)
+console.log('enabledTokens:', enabledTokens)
+console.log('enabledChains:', enabledChains)

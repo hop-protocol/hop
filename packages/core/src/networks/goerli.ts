@@ -10,7 +10,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
     waitConfirmations: 1,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
   },
   polygon: {
     name: chains.polygon.name,
@@ -21,7 +22,8 @@ export const networks: Networks = {
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: false
+    hasFinalizationBlockTag: false,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mumbai'
   },
   optimism: {
     name: chains.optimism.name,
@@ -32,7 +34,8 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli-optimism.etherscan.io/'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/optimism-goerli'
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -41,9 +44,10 @@ export const networks: Networks = {
     publicRpcUrl: 'https://goerli-rollup.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-rollup-explorer.arbitrum.io'],
-    nativeBridgeUrl: 'https://bridge.arbitrum.io/',
+    nativeBridgeUrl: 'https://bridge.arbitrum.io',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
   },
   zksync: {
     name: chains.zksync.name,
@@ -65,7 +69,8 @@ export const networks: Networks = {
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: false
+    hasFinalizationBlockTag: false,
+    subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -87,7 +92,8 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
   },
   polygonzk: {
     name: chains.polygonzk.name,

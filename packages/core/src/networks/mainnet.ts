@@ -12,7 +12,8 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://etherscan.io'],
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet'
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -26,7 +27,8 @@ export const networks: Networks = {
     explorerUrls: ['https://arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum'
   },
   optimism: {
     name: chains.optimism.name,
@@ -40,7 +42,8 @@ export const networks: Networks = {
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism'
   },
   gnosis: {
     name: chains.gnosis.name,
@@ -54,7 +57,8 @@ export const networks: Networks = {
     explorerUrls: ['https://gnosisscan.io/'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',
     waitConfirmations: 20,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-xdai'
   },
   polygon: {
     name: chains.polygon.name,
@@ -67,7 +71,8 @@ export const networks: Networks = {
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
     waitConfirmations: 1600,
-    hasFinalizationBlockTag: false
+    hasFinalizationBlockTag: false,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-polygon'
   },
   nova: {
     name: chains.nova.name,
@@ -78,7 +83,8 @@ export const networks: Networks = {
     explorerUrls: ['https://nova.arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-nova'
   },
   base: {
     name: chains.base.name,
@@ -89,7 +95,8 @@ export const networks: Networks = {
     explorerUrls: ['https://basescan.org/'],
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
   }
   /*
   zksync: {

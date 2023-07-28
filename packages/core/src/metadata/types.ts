@@ -5,6 +5,7 @@ export interface Token {
   name: string
   decimals: number
   image: string
+  coingeckoId?: string
 }
 
 export type Tokens = {

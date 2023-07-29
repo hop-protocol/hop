@@ -66,7 +66,8 @@ async function main (source: any) {
     throw new Error('TransferRoot already has transfer IDs')
   }
 
-  return watcher.bondTransferRoot(
+  const l1Bridge = watcher.bridge as L1Bridge
+  return l1Bridge.bondTransferRoot(
     transferRootHash,
     dbTransferRoot.destinationChainId,
     dbTransferRoot.totalAmount

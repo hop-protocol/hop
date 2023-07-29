@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { Chain } from 'src/constants'
+import { config as globalConfig } from 'src/config'
 
 export default async function makeRequest (
   chain: string,
@@ -41,9 +42,7 @@ async function _makeRequest (
   }
 
   if (chain === 'linea') {
-    // TODO: read from config
-    const isGoerli = true
-    if (isGoerli) {
+    if (!globalConfig.isMainnet) {
       url = 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
     } else {
       throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
@@ -51,12 +50,10 @@ async function _makeRequest (
   }
 
   if (chain === 'base') {
-    // TODO: read from config
-    const isGoerli = true
-    if (isGoerli) {
+    if (!globalConfig.isMainnet) {
       url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
     } else {
-      return 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
+      url = 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
     }
   }
 

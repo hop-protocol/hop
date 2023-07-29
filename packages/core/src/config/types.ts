@@ -27,6 +27,7 @@ export enum AssetSymbol {
   rETH = 'rETH',
   UNI = 'UNI',
   MAGIC = 'MAGIC',
+  FRAX = 'FRAX',
 }
 
 export type Bps = {

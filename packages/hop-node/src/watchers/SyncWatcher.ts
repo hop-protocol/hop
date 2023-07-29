@@ -9,6 +9,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import { Chain, GasCostTransactionType, OneWeekMs, RelayableChains } from 'src/constants'
+import { FirstRoots } from 'src/constants/firstRootsPerRoute'
 import { DateTime } from 'luxon'
 import {
   L1_Bridge as L1BridgeContract,
@@ -1308,11 +1309,14 @@ class SyncWatcher extends BaseWatcher {
       `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
     )
 
-    if (transferRootHash === '0xa4c2ae7969fa944bf1fb86c741b73c7ebad10016dea22ca3fee9c921fe4ae08e') {
-      logger.debug('transferRootHash is 0xa4c2ae7969fa944bf1fb86c741b73c7ebad10016dea22ca3fee9c921fe4ae08e')
+    // It is not trivial to know if a root is the first for a route. When a new chain is added to an old bridge
+    // the result is that the old bridge will look all the way back to when it is deployed before ignoring the root.
+    // This blocks the bonder process for many hours and uses excessive RPC calls. To avoid this, we will keep
+    // a mapping of initial roots and handle them during bridge/chain setup.
+    if (FirstRoots[transferRootHash]) {
+      logger.warn(`populateTransferRootTransferIds first root for a given route. Ignoring.`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
-
     }
 
     const { endEvent, transferIds } = await this.lookupTransferIds(sourceBridge, transferRootHash, destinationChainId, eventBlockNumber)

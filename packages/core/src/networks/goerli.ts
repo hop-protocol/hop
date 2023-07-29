@@ -35,7 +35,7 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
     waitConfirmations: 64,
     hasFinalizationBlockTag: true,
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/optimism-goerli'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli'
   },
   arbitrum: {
     name: chains.arbitrum.name,

@@ -887,6 +887,13 @@ const Index: NextPage = (props: any) => {
     )
   }
 
+  const tokenMenuItems: any[] = []
+  for (const tokenSymbol of enabledTokens) {
+    tokenMenuItems.push(
+      <MenuItem key={tokenSymbol} value={tokenSymbol}><MenuItemIcon src={(tokens as any)[tokenSymbol].image} /> {tokenSymbol}</MenuItem>
+    )
+  }
+
   return (
     <>
       <Script strategy="beforeInteractive" src="/lib/d3.v3.min.js" />
@@ -1002,30 +1009,7 @@ const Index: NextPage = (props: any) => {
                   <label><Typography variant="body1" color="secondary">Token</Typography></label>
                   <Select className="select" value={filterToken || 'all'} onChange={updateFilterToken}>
                     <MenuItem value="all">All</MenuItem>
-                    {isGoerli ?
-                      [
-                        <MenuItem key="ETH" value="ETH"><MenuItemIcon src={tokens.ETH.image} /> ETH</MenuItem>,
-                        <MenuItem key="USDC" value="USDC"><MenuItemIcon src={tokens.USDC.image} /> USDC</MenuItem>,
-                        <MenuItem key="USDT" value="USDT"><MenuItemIcon src={tokens.USDT.image} /> USDT</MenuItem>,
-                        <MenuItem key="DAI" value="DAI"><MenuItemIcon src={tokens.DAI.image} /> DAI</MenuItem>,
-                        <MenuItem key="HOP" value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>,
-                        <MenuItem key="UNI" value="UNI"><MenuItemIcon src={tokens.UNI.image} /> UNI</MenuItem>
-                      ]
-                    :
-                      [
-                        <MenuItem key="ETH" value="ETH"><MenuItemIcon src={tokens.ETH.image} /> ETH</MenuItem>,
-                        <MenuItem key="USDC" value="USDC"><MenuItemIcon src={tokens.USDC.image} /> USDC</MenuItem>,
-                        <MenuItem key="USDT" value="USDT"><MenuItemIcon src={tokens.USDT.image} /> USDT</MenuItem>,
-                        <MenuItem key="DAI" value="DAI"><MenuItemIcon src={tokens.DAI.image} /> DAI</MenuItem>,
-                        <MenuItem key="MATIC" value="MATIC"><MenuItemIcon src={tokens.MATIC.image} /> MATIC</MenuItem>,
-                        <MenuItem key="HOP" value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>,
-                        <MenuItem key="SNX" value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>,
-                        <MenuItem key="sUSD" value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> sUSD</MenuItem>,
-                        <MenuItem key="rETH" value="rETH"><MenuItemIcon src={tokens.rETH.image} /> rETH</MenuItem>,
-                        <MenuItem key="MAGIC" value="MAGIC"><MenuItemIcon src={tokens.MAGIC.image} /> MAGIC</MenuItem>,
-                        <MenuItem key="WBTC" value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem>
-                      ]
-                    }
+                    {tokenMenuItems}
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">

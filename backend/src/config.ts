@@ -144,3 +144,4 @@ export const integrations : Record<string, string> = {
 console.log('network:', network)
 console.log('enabledTokens:', enabledTokens)
 console.log('enabledChains:', enabledChains)
+console.log('rpcUrls:', rpcUrls)

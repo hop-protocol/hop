@@ -93,6 +93,7 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    console.log(chain, url)
   } catch (err) {
     return []
   }

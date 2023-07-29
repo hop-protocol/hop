@@ -29,8 +29,6 @@ import { cache } from './cache'
 
 const cacheDurationMs = isGoerli ? 60 * 1000 : 6 * 60 * 60 * 1000
 
-console.log('rpcUrls:', rpcUrls)
-
 type Options = {
   days?: number
   offsetDays?: number
@@ -181,36 +179,12 @@ export class TransferStats {
         const transfers = items.map(populateData)
 
         const allIds = transfers.filter((x: any) => x.sourceChainSlug !== 'ethereum').map((x: any) => x.transferId)
-        const [
-          gnosisTransfers,
-          polygonTransfers,
-          optimismTransfers,
-          arbitrumTransfers,
-          novaTransfers,
-          lineaTransfers,
-          baseTransfers,
-          ethereumTransfers
-        ] = await Promise.all([
-          enabledChains.includes('gnosis') ? fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
-          enabledChains.includes('polygon') ? fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
-          enabledChains.includes('optimism') ? fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
-          enabledChains.includes('arbitrum') ? fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
-          enabledChains.includes('nova') ? fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
-          enabledChains.includes('linea') ? fetchTransferEventsByTransferIds('linea', allIds) : Promise.resolve([]),
-          enabledChains.includes('base') ? fetchTransferEventsByTransferIds('base', allIds) : Promise.resolve([]),
-          enabledChains.includes('ethereum') ? fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
-        ])
 
-        const events = [
-          ...gnosisTransfers,
-          ...polygonTransfers,
-          ...optimismTransfers,
-          ...arbitrumTransfers,
-          ...novaTransfers,
-          ...lineaTransfers,
-          ...baseTransfers,
-          ...ethereumTransfers
-        ]
+        const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
+          return fetchTransferEventsByTransferIds(chain, allIds)
+        }))
+
+        const events = enabledChainTransfers.flat()
 
         const found = {}
         for (const transferId of allIds) {
@@ -597,36 +571,16 @@ export class TransferStats {
   }
 
   async getTransferIdEvents (transferId: string) {
-    const [
-      gnosisTransfers,
-      polygonTransfers,
-      optimismTransfers,
-      arbitrumTransfers,
-      novaTransfers,
-      lineaTransfers,
-      baseTransfers,
-      ethereumTransfers
-    ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchTransfersForTransferId('gnosis', transferId) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchTransfersForTransferId('polygon', transferId) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchTransfersForTransferId('optimism', transferId) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchTransfersForTransferId('arbitrum', transferId) : Promise.resolve([]),
-      enabledChains.includes('nova') ? fetchTransfersForTransferId('nova', transferId) : Promise.resolve([]),
-      enabledChains.includes('linea') ? fetchTransfersForTransferId('linea', transferId) : Promise.resolve([]),
-      enabledChains.includes('base') ? fetchTransfersForTransferId('base', transferId) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchTransfersForTransferId('ethereum', transferId) : Promise.resolve([])
-    ])
+    const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchTransfersForTransferId(chain, transferId)
+    }))
 
-    return {
-      gnosisTransfers,
-      polygonTransfers,
-      optimismTransfers,
-      arbitrumTransfers,
-      novaTransfers,
-      lineaTransfers,
-      baseTransfers,
-      ethereumTransfers
+    const events :any = {}
+    for (const i in enabledChains) {
+      events[`${enabledChains[i]}Transfers`] = enabledChainTransfers[i]
     }
+
+    return events
   }
 
   async updateTransferDataForTransferId (transferId: string) {
@@ -767,219 +721,54 @@ export class TransferStats {
 
   async getTransferEventsBetweenDates (startTime: number, endTime: number) {
     console.log('querying fetchTransfers')
-    const [
-      gnosisTransfers,
-      polygonTransfers,
-      optimismTransfers,
-      arbitrumTransfers,
-      novaTransfers,
-      lineaTransfers,
-      baseTransfers,
-      ethereumTransfers
-    ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchTransfers('gnosis', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('nova') ? fetchTransfers('nova', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('linea') ? fetchTransfers('linea', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('base') ? fetchTransfers('base', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchTransfers('ethereum', startTime, endTime) : Promise.resolve([])
-    ])
 
-    return {
-      gnosisTransfers,
-      polygonTransfers,
-      optimismTransfers,
-      arbitrumTransfers,
-      novaTransfers,
-      lineaTransfers,
-      baseTransfers,
-      ethereumTransfers
+    const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchTransfers(chain, startTime, endTime)
+    }))
+
+    const events :any = {}
+    for (const i in enabledChains) {
+      events[`${enabledChains[i]}Transfers`] = enabledChainTransfers[i]
     }
+
+    return events
   }
 
   async getBondTransferIdEventsBetweenDates (startTime: number, endTime: number) {
-    const [
-      gnosisBonds,
-      polygonBonds,
-      optimismBonds,
-      arbitrumBonds,
-      novaBonds,
-      lineaBonds,
-      baseBonds,
-      ethereumBonds
-    ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchBondTransferIdEvents('gnosis', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchBondTransferIdEvents('polygon', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchBondTransferIdEvents('optimism', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchBondTransferIdEvents('arbitrum', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('nova') ? fetchBondTransferIdEvents('nova', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('linea') ? fetchBondTransferIdEvents('linea', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('base') ? fetchBondTransferIdEvents('base', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchBondTransferIdEvents('ethereum', startTime, endTime) : Promise.resolve([])
-    ])
+    const enabledChainBonds = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchBondTransferIdEvents(chain, startTime, endTime)
+    }))
 
-    return {
-      gnosisBonds,
-      polygonBonds,
-      optimismBonds,
-      arbitrumBonds,
-      novaBonds,
-      lineaBonds,
-      baseBonds,
-      ethereumBonds
+    const events :any = {}
+    for (const i in enabledChains) {
+      events[`${enabledChains[i]}Bonds`] = enabledChainBonds[i]
     }
+
+    return events
   }
 
   async normalizeTransferEvents (events: any) {
-    const {
-      gnosisTransfers,
-      polygonTransfers,
-      optimismTransfers,
-      arbitrumTransfers,
-      novaTransfers,
-      lineaTransfers,
-      baseTransfers,
-      ethereumTransfers
-    } = events
     const data :any[] = []
 
-    for (const x of gnosisTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('gnosis'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        bonderFee: x.bonderFee,
-        recipient: x.recipient,
-        deadline: Number(x.deadline),
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
-    }
-    for (const x of polygonTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('polygon'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        bonderFee: x.bonderFee,
-        recipient: x.recipient,
-        deadline: Number(x.deadline),
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
-    }
-    for (const x of optimismTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('optimism'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        bonderFee: x.bonderFee,
-        recipient: x.recipient,
-        deadline: Number(x.deadline),
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
-    }
-    for (const x of arbitrumTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('arbitrum'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        bonderFee: x.bonderFee,
-        recipient: x.recipient,
-        deadline: Number(x.deadline),
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
-    }
-    for (const x of novaTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('nova'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        bonderFee: x.bonderFee,
-        recipient: x.recipient,
-        deadline: Number(x.deadline),
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
-    }
-    for (const x of lineaTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('linea'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        bonderFee: x.bonderFee,
-        recipient: x.recipient,
-        deadline: Number(x.deadline),
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
-    }
-    for (const x of baseTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('base'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        bonderFee: x.bonderFee,
-        recipient: x.recipient,
-        deadline: Number(x.deadline),
-        transferId: x.transferId,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
-    }
-    for (const x of ethereumTransfers) {
-      data.push({
-        sourceChain: chainSlugToId('ethereum'),
-        destinationChain: x.destinationChainId,
-        amount: x.amount,
-        amountOutMin: x.amountOutMin,
-        recipient: x.recipient,
-        bonderFee: x.relayerFee,
-        deadline: Number(x.deadline),
-        transferId: x.id,
-        transactionHash: x.transactionHash,
-        timestamp: Number(x.timestamp),
-        token: x.token,
-        from: x.from,
-        originContractAddress: x?.transaction?.to?.toLowerCase()
-      })
+    for (const key in events) {
+      for (const x of events[key]) {
+        const chain = key.replace('Transfers', '')
+        data.push({
+          sourceChain: chainSlugToId(chain),
+          destinationChain: x.destinationChainId,
+          amount: x.amount,
+          amountOutMin: x.amountOutMin,
+          recipient: x.recipient,
+          bonderFee: chain === 'ethereum' ? x.relayerFee : x.bonderFee,
+          deadline: Number(x.deadline),
+          transferId: chain === 'ethereum' ? x.id : x.transferId,
+          transactionHash: x.transactionHash,
+          timestamp: Number(x.timestamp),
+          token: x.token,
+          from: x.from,
+          originContractAddress: x?.transaction?.to?.toLowerCase()
+        })
+      }
     }
 
     return data
@@ -1007,192 +796,72 @@ export class TransferStats {
 
     const single = data?.length === 1 ? data[0] : null
 
-    let fetchGnosisBondedWithdrawals = enabledChains.includes('gnosis')
-    let fetchPolygonBondedWithdrawals = enabledChains.includes('polygon')
-    let fetchOptimismBondedWithdrawals = enabledChains.includes('optimism')
-    let fetchArbitrumBondedWithdrawals = enabledChains.includes('arbitrum')
-    let fetchNovaBondedWithdrawals = enabledChains.includes('nova')
-    let fetchLineaBondedWithdrawals = enabledChains.includes('linea')
-    let fetchBaseBondedWithdrawals = enabledChains.includes('base')
-    let fetchEthereumBondedWithdrawals = enabledChains.includes('ethereum')
+    const fetchBondedWithdrawalsMap : any = {}
+    const fetchWithdrewsMap : any = {}
+    const fetchFromL1CompletedsMap : any = {}
 
-    let fetchGnosisWithdrews = enabledChains.includes('gnosis')
-    let fetchPolygonWithdrews = enabledChains.includes('polygon')
-    let fetchOptimismWithdrews = enabledChains.includes('optimism')
-    let fetchArbitrumWithdrews = enabledChains.includes('arbitrum')
-    let fetchNovaWithdrews = enabledChains.includes('nova')
-    let fetchLineaWithdrews = enabledChains.includes('linea')
-    let fetchBaseWithdrews = enabledChains.includes('base')
-    let fetchEthereumWithdrews = enabledChains.includes('ethereum')
-
-    let fetchGnosisFromL1Completeds = enabledChains.includes('gnosis')
-    let fetchPolygonFromL1Completeds = enabledChains.includes('polygon')
-    let fetchOptimismFromL1Completeds = enabledChains.includes('optimism')
-    let fetchArbitrumFromL1Completeds = enabledChains.includes('arbitrum')
-    let fetchNovaFromL1Completeds = enabledChains.includes('nova')
-    let fetchLineaFromL1Completeds = enabledChains.includes('linea')
-    let fetchBaseFromL1Completeds = enabledChains.includes('base')
+    if (!single) {
+      for (const chain of enabledChains) {
+        fetchBondedWithdrawalsMap[chain] = true
+        fetchWithdrewsMap[chain] = true
+        fetchFromL1CompletedsMap[chain] = true
+      }
+    }
 
     if (single) {
       const sourceChainSlug = chainIdToSlug(single.sourceChain)
       const destinationChainSlug = chainIdToSlug(single.destinationChain)
 
-      fetchGnosisBondedWithdrawals = false
-      fetchPolygonBondedWithdrawals = false
-      fetchOptimismBondedWithdrawals = false
-      fetchArbitrumBondedWithdrawals = false
-      fetchNovaBondedWithdrawals = false
-      fetchLineaBondedWithdrawals = false
-      fetchBaseBondedWithdrawals = false
-      fetchEthereumBondedWithdrawals = false
-
-      fetchGnosisWithdrews = false
-      fetchPolygonWithdrews = false
-      fetchOptimismWithdrews = false
-      fetchArbitrumWithdrews = false
-      fetchNovaWithdrews = false
-      fetchLineaWithdrews = false
-      fetchBaseWithdrews = false
-      fetchEthereumWithdrews = false
-
-      fetchGnosisFromL1Completeds = false
-      fetchPolygonFromL1Completeds = false
-      fetchOptimismFromL1Completeds = false
-      fetchArbitrumFromL1Completeds = false
-      fetchNovaFromL1Completeds = false
-      fetchLineaFromL1Completeds = false
-      fetchBaseFromL1Completeds = false
-
-      if (destinationChainSlug === 'gnosis') {
-        fetchGnosisBondedWithdrawals = true
-        fetchGnosisWithdrews = true
-        fetchGnosisFromL1Completeds = sourceChainSlug === 'ethereum'
-      }
-      if (destinationChainSlug === 'polygon') {
-        fetchPolygonBondedWithdrawals = true
-        fetchPolygonWithdrews = true
-        fetchPolygonFromL1Completeds = sourceChainSlug === 'ethereum'
-      }
-      if (destinationChainSlug === 'optimism') {
-        fetchOptimismBondedWithdrawals = true
-        fetchOptimismWithdrews = true
-        fetchOptimismFromL1Completeds = sourceChainSlug === 'ethereum'
-      }
-      if (destinationChainSlug === 'arbitrum') {
-        fetchArbitrumBondedWithdrawals = true
-        fetchArbitrumWithdrews = true
-        fetchArbitrumFromL1Completeds = sourceChainSlug === 'ethereum'
-      }
-      if (destinationChainSlug === 'nova') {
-        fetchNovaBondedWithdrawals = true
-        fetchNovaWithdrews = true
-        fetchNovaFromL1Completeds = sourceChainSlug === 'ethereum'
-      }
-      if (destinationChainSlug === 'linea') {
-        fetchLineaBondedWithdrawals = true
-        fetchLineaWithdrews = true
-        fetchLineaFromL1Completeds = sourceChainSlug === 'ethereum'
-      }
-      if (destinationChainSlug === 'base') {
-        fetchBaseBondedWithdrawals = true
-        fetchBaseWithdrews = true
-        fetchBaseFromL1Completeds = sourceChainSlug === 'ethereum'
-      }
-      if (destinationChainSlug === 'ethereum') {
-        fetchEthereumBondedWithdrawals = true
-        fetchEthereumWithdrews = true
+      for (const chain of enabledChains) {
+        if (destinationChainSlug === chain) {
+          fetchBondedWithdrawalsMap[destinationChainSlug] = true
+          fetchWithdrewsMap[destinationChainSlug] = true
+          if (destinationChainSlug !== 'ethereum') {
+            fetchFromL1CompletedsMap[destinationChainSlug] = sourceChainSlug === 'ethereum'
+          }
+        }
       }
     }
 
     console.log('querying fetchTransferBonds')
-    const [
-      gnosisBondedWithdrawals,
-      polygonBondedWithdrawals,
-      optimismBondedWithdrawals,
-      arbitrumBondedWithdrawals,
-      novaBondedWithdrawals,
-      lineaBondedWithdrawals,
-      baseBondedWithdrawals,
-      ethereumBondedWithdrawals
-    ] = await Promise.all([
-      fetchGnosisBondedWithdrawals ? fetchTransferBonds('gnosis', filterTransferIds) : Promise.resolve([]),
-      fetchPolygonBondedWithdrawals ? fetchTransferBonds('polygon', filterTransferIds) : Promise.resolve([]),
-      fetchOptimismBondedWithdrawals ? fetchTransferBonds('optimism', filterTransferIds) : Promise.resolve([]),
-      fetchArbitrumBondedWithdrawals ? fetchTransferBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
-      fetchNovaBondedWithdrawals ? fetchTransferBonds('nova', filterTransferIds) : Promise.resolve([]),
-      fetchLineaBondedWithdrawals ? fetchTransferBonds('linea', filterTransferIds) : Promise.resolve([]),
-      fetchBaseBondedWithdrawals ? fetchTransferBonds('base', filterTransferIds) : Promise.resolve([]),
-      fetchEthereumBondedWithdrawals ? fetchTransferBonds('ethereum', filterTransferIds) : Promise.resolve([])
-    ])
 
-    console.log('querying fetchWithdrews')
-    const [
-      gnosisWithdrews,
-      polygonWithdrews,
-      optimismWithdrews,
-      arbitrumWithdrews,
-      novaWithdrews,
-      lineaWithdrews,
-      baseWithdrews,
-      ethereumWithdrews
-    ] = await Promise.all([
-      fetchGnosisWithdrews ? fetchWithdrews('gnosis', filterTransferIds) : Promise.resolve([]),
-      fetchPolygonWithdrews ? fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
-      fetchOptimismWithdrews ? fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
-      fetchArbitrumWithdrews ? fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
-      fetchNovaWithdrews ? fetchWithdrews('nova', filterTransferIds) : Promise.resolve([]),
-      fetchLineaWithdrews ? fetchWithdrews('linea', filterTransferIds) : Promise.resolve([]),
-      fetchBaseWithdrews ? fetchWithdrews('base', filterTransferIds) : Promise.resolve([]),
-      fetchEthereumWithdrews ? fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
-    ])
+    const fetchBondedWithdrawalsChains = Object.keys(fetchBondedWithdrawalsMap)
+    const enabledChainBondedWithdrawals = await Promise.all(fetchBondedWithdrawalsChains.map((chain: string) => {
+      return fetchTransferBonds(chain, filterTransferIds)
+    }))
 
-    console.log('querying fetchTransferFromL1Completeds')
-    const [
-      gnosisFromL1Completeds,
-      polygonFromL1Completeds,
-      optimismFromL1Completeds,
-      arbitrumFromL1Completeds,
-      novaFromL1Completeds,
-      lineaFromL1Completeds,
-      baseFromL1Completeds
-    ] = await Promise.all([
-      fetchGnosisFromL1Completeds ? fetchTransferFromL1Completeds('gnosis', startTime, endTime, undefined) : Promise.resolve([]),
-      fetchPolygonFromL1Completeds ? fetchTransferFromL1Completeds('polygon', startTime, endTime, undefined) : Promise.resolve([]),
-      fetchOptimismFromL1Completeds ? fetchTransferFromL1Completeds('optimism', startTime, endTime, undefined) : Promise.resolve([]),
-      fetchArbitrumFromL1Completeds ? fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([]),
-      fetchNovaFromL1Completeds ? fetchTransferFromL1Completeds('nova', startTime, endTime, undefined) : Promise.resolve([]),
-      fetchLineaFromL1Completeds ? fetchTransferFromL1Completeds('linea', startTime, endTime, undefined) : Promise.resolve([]),
-      fetchBaseFromL1Completeds ? fetchTransferFromL1Completeds('base', startTime, endTime, undefined) : Promise.resolve([])
-    ])
-
-    const gnosisBonds = [...gnosisBondedWithdrawals, ...gnosisWithdrews]
-    const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
-    const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
-    const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
-    const novaBonds = [...novaBondedWithdrawals, ...novaWithdrews]
-    const lineaBonds = [...lineaBondedWithdrawals, ...lineaWithdrews]
-    const baseBonds = [...baseBondedWithdrawals, ...baseWithdrews]
-    const ethereumBonds = [...ethereumBondedWithdrawals, ...ethereumWithdrews]
-
-    const bondsMap: any = {
-      gnosis: gnosisBonds,
-      polygon: polygonBonds,
-      optimism: optimismBonds,
-      arbitrum: arbitrumBonds,
-      nova: novaBonds,
-      linea: lineaBonds,
-      base: baseBonds,
-      ethereum: ethereumBonds
+    const bondedWithdrawals :any = {}
+    for (const i in fetchBondedWithdrawalsChains) {
+      bondedWithdrawals[fetchBondedWithdrawalsChains[i]] = enabledChainBondedWithdrawals[i]
     }
 
-    const l1CompletedsMap: any = {
-      gnosis: gnosisFromL1Completeds,
-      polygon: polygonFromL1Completeds,
-      optimism: optimismFromL1Completeds,
-      arbitrum: arbitrumFromL1Completeds,
-      nova: novaFromL1Completeds,
-      linea: lineaFromL1Completeds,
-      base: baseFromL1Completeds
+    console.log('querying fetchWithdrews')
+
+    const fetchWithdrewsChains = Object.keys(fetchWithdrewsMap)
+    const enabledChainWithdrews = await Promise.all(fetchWithdrewsChains.map((chain: string) => {
+      return fetchWithdrews(chain, filterTransferIds)
+    }))
+
+    const withdrews :any = {}
+    for (const i in fetchWithdrewsChains) {
+      withdrews[fetchWithdrewsChains[i]] = enabledChainWithdrews[i]
+    }
+
+    console.log('querying fetchTransferFromL1Completeds')
+
+    const fetchFromL1CompletedsChains = Object.keys(fetchFromL1CompletedsMap).filter((chain: string) => chain !== 'ethereum')
+    const enabledChainFromL1Completeds = await Promise.all(fetchFromL1CompletedsChains.map((chain: string) => {
+      return fetchTransferFromL1Completeds(chain, startTime, endTime, undefined)
+    }))
+
+    const fromL1CompletedsMap :any = {}
+    for (const i in fetchFromL1CompletedsChains) {
+      fromL1CompletedsMap[fetchFromL1CompletedsChains[i]] = enabledChainFromL1Completeds[i]
+    }
+
+    const bondsMap :any = {}
+    for (const key in bondedWithdrawals) {
+      bondsMap[key] = [...bondedWithdrawals[key], ...withdrews[key]]
     }
 
     for (const x of data) {
@@ -1215,7 +884,7 @@ export class TransferStats {
       if (sourceChain !== 'ethereum') {
         continue
       }
-      const events = l1CompletedsMap[chainIdToSlug(x.destinationChain)]
+      const events = fromL1CompletedsMap[chainIdToSlug(x.destinationChain)]
       if (events) {
         for (const event of events) {
           if (
@@ -1399,72 +1068,23 @@ export class TransferStats {
   }
 
   async getTransferBondsBetweenDates (startTime: number, endTime: number) {
-    const {
-      gnosisBonds,
-      polygonBonds,
-      optimismBonds,
-      arbitrumBonds,
-      novaBonds,
-      lineaBonds,
-      baseBonds,
-      ethereumBonds
-    } = await this.getBondTransferIdEventsBetweenDates(startTime, endTime)
+    const bondsObj = await this.getBondTransferIdEventsBetweenDates(startTime, endTime)
 
     const allIds : string[] = []
-    for (const item of gnosisBonds) {
-      allIds.push(item.transferId)
-    }
-    for (const item of polygonBonds) {
-      allIds.push(item.transferId)
-    }
-    for (const item of optimismBonds) {
-      allIds.push(item.transferId)
-    }
-    for (const item of arbitrumBonds) {
-      allIds.push(item.transferId)
-    }
-    for (const item of novaBonds) {
-      allIds.push(item.transferId)
-    }
-    for (const item of lineaBonds) {
-      allIds.push(item.transferId)
-    }
-    for (const item of baseBonds) {
-      allIds.push(item.transferId)
-    }
-    for (const item of ethereumBonds) {
-      allIds.push(item.transferId)
+
+    for (const key in bondsObj) {
+      for (const k in bondsObj[key]) {
+        allIds.push(bondsObj[key][k].transferId)
+      }
     }
 
-    const [
-      gnosisTransfers,
-      polygonTransfers,
-      optimismTransfers,
-      arbitrumTransfers,
-      novaTransfers,
-      lineaTransfers,
-      baseTransfers,
-      ethereumTransfers
-    ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
-      enabledChains.includes('nova') ? fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
-      enabledChains.includes('linea') ? fetchTransferEventsByTransferIds('linea', allIds) : Promise.resolve([]),
-      enabledChains.includes('base') ? fetchTransferEventsByTransferIds('base', allIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
-    ])
+    const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchTransferEventsByTransferIds(chain, allIds)
+    }))
 
-    const events = {
-      gnosisTransfers,
-      polygonTransfers,
-      optimismTransfers,
-      arbitrumTransfers,
-      novaTransfers,
-      lineaTransfers,
-      baseTransfers,
-      ethereumTransfers
+    const events :any = {}
+    for (const i in enabledChains) {
+      events[`${enabledChains[i]}Transfers`] = enabledChainTransfers[i]
     }
 
     const data = await this.normalizeTransferEvents(events)
@@ -1515,6 +1135,10 @@ export class TransferStats {
       let bondTransactionHash = ''
       if (receipt) {
         const block = await provider.getBlock(receipt.blockNumber)
+        if (!block) {
+          console.error('no block found for receipt', receipt)
+          continue
+        }
         timestamp = block.timestamp
         const logs = receipt.logs
         for (const log of logs) {

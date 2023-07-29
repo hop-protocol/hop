@@ -1308,6 +1308,13 @@ class SyncWatcher extends BaseWatcher {
       `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
     )
 
+    if (transferRootHash === '0xa4c2ae7969fa944bf1fb86c741b73c7ebad10016dea22ca3fee9c921fe4ae08e') {
+      logger.debug('transferRootHash is 0xa4c2ae7969fa944bf1fb86c741b73c7ebad10016dea22ca3fee9c921fe4ae08e')
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+
+    }
+
     const { endEvent, transferIds } = await this.lookupTransferIds(sourceBridge, transferRootHash, destinationChainId, eventBlockNumber)
 
     if (!transferIds) {

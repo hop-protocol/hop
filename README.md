@@ -11,18 +11,20 @@
 `backend/.env`
 
 ```sh
+# (required) db connection with default credentials
 POSTGRES_USER=postgres
 POSTGRES_PASS=password
 POSTGRES_DBNAME=postgres
 POSTGRES_HOST=localhost
 
-# fill in
+# (required) fill in rpc urls
 ETHEREUM_RPC=
 GNOSIS_RPC=
 POLYGON_RPC=
 OPTIMISM_RPC=
 ARBITRUM_RPC=
 NOVA_RPC=
+BASE_RPC=
 ```
 
 ```sh
@@ -35,6 +37,8 @@ cd backend && npm run dev:local
 # terminal 3
 cd frontend && npm run dev:local
 ```
+
+Visit [http://localhost:3000/](http://localhost:3000/)
 
 ## License
 

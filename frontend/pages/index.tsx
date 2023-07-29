@@ -38,6 +38,8 @@ import GitHubIcon from '@mui/icons-material/GitHub'
 import TwitterIcon from '@mui/icons-material/Twitter'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { chains, tokens } from '@hop-protocol/core/metadata'
+import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
 import MuiTooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip'
 import { styled } from '@mui/material/styles'
 
@@ -59,56 +61,6 @@ const Tooltip = styled(({ className, ...props }: TooltipProps) => (
     fontSize: '1em',
   },
 }))
-
-function getSourceChainId (chain: string) {
-  if (chain === 'ethereum') {
-    if (isGoerli) {
-      return 5
-    }
-    return 1
-  }
-  if (chain === 'gnosis') {
-    return 100
-  }
-  if (chain === 'polygon') {
-    if (isGoerli) {
-      return 80001
-    }
-    return 137
-  }
-  if (chain === 'optimism') {
-    if (isGoerli) {
-      return 420
-    }
-    return 10
-  }
-  if (chain === 'arbitrum') {
-    if (isGoerli) {
-      return 421613
-    }
-    return 42161
-  }
-  if (chain === 'nova') {
-    return 42170
-  }
-  if (chain === 'linea') {
-    if (isGoerli) {
-      return 59140
-    }
-  }
-  if (chain === 'base') {
-    if (isGoerli) {
-      return 84531
-    }
-    return 8453
-  }
-  if (chain === 'scroll') {
-    if (isGoerli) {
-      return 534354
-    }
-  }
-  throw new Error(`unsupported chain "${chain}"`)
-}
 
 function Spinner() {
   useEffect(() => {
@@ -137,9 +89,28 @@ function Spinner() {
 
 const poll = true
 const pollInterval = 15 * 1000
-let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova', 'base']
-if (isGoerli) {
-  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism', 'linea', 'base']
+
+const tokenSet = new Set([] as string[])
+const chainSet = new Set([] as string[])
+
+const addresses = isGoerli ? goerliAddresses : mainnetAddresses
+for (const token in addresses.bridges) {
+  tokenSet.add(token)
+
+  for (const chain in addresses.bridges[token]) {
+    chainSet.add(chain)
+  }
+}
+
+let enabledTokens: string[] = Array.from(tokenSet)
+let enabledChains: string[] = Array.from(chainSet)
+
+if (process.env.NEXT_PUBLIC_ENABLED_TOKENS) {
+  enabledTokens = process.env.NEXT_PUBLIC_ENABLED_TOKENS.split(',').map((token: any) => token.trim()).filter(Boolean)
+}
+
+if (process.env.NEXT_PUBLIC_ENABLED_CHAINS) {
+  enabledChains = process.env.NEXT_PUBLIC_ENABLED_CHAINS.split(',').map((chain: any) => chain.trim()).filter(Boolean)
 }
 
 let queryParams: any = {}
@@ -169,29 +140,35 @@ for (let i = 0; i < enabledChains.length; i++) {
   chainToIndexMapDestination[enabledChains[i]] = i + enabledChains.length
 }
 
-const chainSlugToNameMap: any = {
-  ethereum: 'Ethereum',
-  gnosis: 'Gnosis',
-  polygon: 'Polygon',
-  arbitrum: 'Arbitrum',
-  optimism: 'Optimism',
-  nova: 'Nova',
-  linea: 'Linea',
-  base: 'Base',
-  scroll: 'Scroll',
+const networks: any = isGoerli ? goerliNetworks : mainnetNetworks
+const chainSlugToNameMap :any = {}
+
+for (const chain in networks) {
+  chainSlugToNameMap[chain] = networks[chain].name
 }
 
 const colorsMap: any = {
-  ethereum: '#868dac',
-  gnosis: '#46a4a1',
-  polygon: '#8b57e1',
-  optimism: '#e64b5d',
-  arbitrum: '#289fef',
-  nova: '#ec772c',
-  linea: '#121212',
-  base: '#0052ff',
-  scroll: '#e5d1b8',
+  bonded: '#81ff81',
+  pending: '#ffc55a',
   fallback: '#9f9fa3'
+}
+
+for (const chain in chains) {
+  colorsMap[chain] = (chains as any)[chain].primaryColor
+}
+
+const chainSlugToIdMap :any = {}
+
+for (const chain in networks) {
+  chainSlugToIdMap[chain] = networks[chain].networkId
+}
+
+export function chainSlugToId (chainSlug: string) {
+  const id = chainSlugToIdMap[chainSlug]
+  if (!id) {
+    throw new Error(`Unknown chain slug ${chainSlug}`)
+  }
+  return id
 }
 
 function updateQueryParams (params: any) {
@@ -903,6 +880,13 @@ const Index: NextPage = (props: any) => {
     setShowMoreFilters(true)
   }, [])
 
+  const chainMenuItems: any[] = []
+  for (const chain of enabledChains) {
+    chainMenuItems.push(
+      <MenuItem key={chain} value={chain}><MenuItemIcon src={(chains as any)[chain].image} /> {chainSlugToNameMap[chain]}</MenuItem>,
+    )
+  }
+
   return (
     <>
       <Script strategy="beforeInteractive" src="/lib/d3.v3.min.js" />
@@ -1004,52 +988,14 @@ const Index: NextPage = (props: any) => {
                   <label><Typography variant="body1" color="secondary">Source</Typography></label>
                   <Select className="select" value={filterSource || 'all'} onChange={updateFilterSource}>
                     <MenuItem value="all">All</MenuItem>
-                    {isGoerli ?
-                      [
-                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
-                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
-                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
-                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
-                        <MenuItem key="linea" value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>,
-                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
-                      ]
-                    :
-                      [
-                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
-                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
-                        <MenuItem key="gnosis" value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>,
-                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
-                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
-                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>,
-                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
-                      ]
-                    }
+                    {chainMenuItems}
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
                   <label><Typography variant="body1" color="secondary">Destination</Typography></label>
                   <Select className="select" value={filterDestination || 'all'} onChange={updateFilterDestination}>
                     <MenuItem value="all">All</MenuItem>
-                    {isGoerli ?
-                      [
-                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
-                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
-                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
-                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
-                        <MenuItem key="linea" value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>,
-                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
-                      ]
-                    :
-                      [
-                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
-                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
-                        <MenuItem key="gnosis" value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>,
-                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
-                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
-                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>,
-                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
-                      ]
-                    }
+                    {chainMenuItems}
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
@@ -1354,14 +1300,14 @@ const Index: NextPage = (props: any) => {
                       </TableCell>
                       <TableCell className="bonderFee number">
                         <Typography variant="body1" color="secondary" component="div">
-                          {x.sourceChainId !== getSourceChainId('ethereum') && (
+                          {x.sourceChainId !== chainSlugToId('ethereum') && (
                             <Tooltip title={<Box>Bonder Fee: {x.bonderFeeDisplay} {x.token}<br />Raw: {x.bonderFee}</Box>}>
                               <span>
                                 { x.bonderFeeDisplay }
                               </span>
                             </Tooltip>
                           )}
-                          {x.sourceChainId === getSourceChainId('ethereum') && (
+                          {x.sourceChainId === chainSlugToId('ethereum') && (
                             <span className="na">
                               <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding and should arrive at the destination chain within an hour.">
                                 <abbr style={{ cursor: 'help' }}>N/A</abbr>
@@ -1372,14 +1318,14 @@ const Index: NextPage = (props: any) => {
                       </TableCell>
                       <TableCell className="bonderFee number">
                         <Typography variant="body1" color="secondary" mr={2} component="div">
-                          {x.sourceChainId !== getSourceChainId('ethereum') && (
+                          {x.sourceChainId !== chainSlugToId('ethereum') && (
                             <Tooltip title={<Box>Bonder Fee USD: {x.bonderFeeUsdDisplay}<br />{x.token} Price: {x.tokenPriceUsdDisplay}</Box>}>
                               <span>
                                 { x.bonderFeeUsdDisplay }
                               </span>
                             </Tooltip>
                           )}
-                          {x.sourceChainId === getSourceChainId('ethereum') && (
+                          {x.sourceChainId === chainSlugToId('ethereum') && (
                             <span className="na">
                               <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding">
                                 <abbr style={{ cursor: 'help' }}>N/A</abbr>
@@ -1393,14 +1339,14 @@ const Index: NextPage = (props: any) => {
                           {x.bonded && (
                           <Link className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener">
                               <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                              {x.sourceChainId !== getSourceChainId('ethereum') && (
+                              {x.sourceChainId !== chainSlugToId('ethereum') && (
                             <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Bond tx hash: {x.bondTransactionHash}</Box>}>
                                 <span>
                                   Bonded
                                 </span>
                             </Tooltip>
                               )}
-                              {x.sourceChainId === getSourceChainId('ethereum') && (
+                              {x.sourceChainId === chainSlugToId('ethereum') && (
                             <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Received tx hash: {x.bondTransactionHash}</Box>}>
                                 <span>
                                   Received

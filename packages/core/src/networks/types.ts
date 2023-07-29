@@ -10,6 +10,7 @@ export type Network = {
   nativeBridgeUrl?: string
   waitConfirmations: number
   hasFinalizationBlockTag: boolean
+  subgraphUrl?: string
 }
 
 export type Networks = Partial<{

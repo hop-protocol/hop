@@ -9,8 +9,8 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import { Chain, GasCostTransactionType, OneWeekMs, RelayableChains } from 'src/constants'
-import { FirstRoots } from 'src/constants/firstRootsPerRoute'
 import { DateTime } from 'luxon'
+import { FirstRoots } from 'src/constants/firstRootsPerRoute'
 import {
   L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
@@ -1314,7 +1314,7 @@ class SyncWatcher extends BaseWatcher {
     // This blocks the bonder process for many hours and uses excessive RPC calls. To avoid this, we will keep
     // a mapping of initial roots and handle them during bridge/chain setup.
     if (FirstRoots[transferRootHash]) {
-      logger.warn(`populateTransferRootTransferIds first root for a given route. Ignoring.`)
+      logger.warn('populateTransferRootTransferIds first root for a given route. Ignoring.')
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }

@@ -37,12 +37,12 @@ jobs:
           name: Push Hop Node Docker image to Docker Hub
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            export BRANCH=$(echo $CIRCLE_BRANCH | sed 's/\//-/g')
+            export BRANCH=$(echo $CIRCLE_BRANCH | sed 's/\//-/g' | sed 's/-backend//g')
             docker tag app $DOCKER_IMAGE:$CIRCLE_SHA1
             docker tag app $DOCKER_IMAGE:$BRANCH
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
-            test $BRANCH == "master" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
+            test $BRANCH == "production" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
 
 workflows:
   main:

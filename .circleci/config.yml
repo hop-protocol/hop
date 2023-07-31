@@ -52,4 +52,9 @@ workflows:
             branches:
               only:
                 - master
+                - develop
+                - production
+                - production-backend
+                - goerli
+                - goerli-backend
               ignore: /.*/

@@ -1,4 +1,5 @@
 export { default as ETHImage } from './ETH'
+export { default as FraxImage } from './FRAX'
 export { default as MATICImage } from './MATIC'
 export { default as MAGICImage } from './MAGIC'
 export { default as XDAIImage } from './XDAI'

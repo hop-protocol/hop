@@ -55,7 +55,9 @@ export const config : Config = {
       polygon: 50,
       gnosis: 50,
       optimism: 50,
-      arbitrum: 50
+      arbitrum: 50,
+      nova: 50,
+      base: 50
     },
     SNX: {
       ethereum: 20

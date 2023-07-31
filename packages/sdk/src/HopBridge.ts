@@ -786,7 +786,7 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
 
     const [hTokenAmount, lpFees, feeBps] = await Promise.all([
-      this.calcToHTokenAmount(amountIn, sourceChain),
+      this.calcToHTokenAmount(amountIn, sourceChain, isHTokenSend),
       this.getLpFees(amountIn, sourceChain, destinationChain),
       this.getFeeBps(this.tokenSymbol, destinationChain)
     ])
@@ -808,7 +808,8 @@ class HopBridge extends Base {
     const bonderFeeRelativePromise = this.getBonderFeeRelative(
       amountIn,
       sourceChain,
-      destinationChain
+      destinationChain,
+      isHTokenSend
     )
 
     const destinationTxFeeDataPromise = this.getDestinationTransactionFeeData(
@@ -2317,9 +2318,10 @@ class HopBridge extends Base {
 
   private async calcToHTokenAmount (
     amount: TAmount,
-    chain: Chain
+    chain: Chain,
+    isHTokenSend: boolean = false
   ): Promise<BigNumber> {
-    if (!this.doesUseAmm) {
+    if (!this.doesUseAmm || isHTokenSend) {
       return BigNumber.from(amount)
     }
     amount = BigNumber.from(amount.toString())
@@ -2370,7 +2372,8 @@ class HopBridge extends Base {
   private async getBonderFeeRelative (
     amountIn: TAmount,
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
   ) : Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -2382,7 +2385,8 @@ class HopBridge extends Base {
 
     const hTokenAmount = await this.calcToHTokenAmount(
       amountIn.toString(),
-      sourceChain
+      sourceChain,
+      isHTokenSend
     )
 
     const feeBps = await this.getFeeBps(this.tokenSymbol, destinationChain)

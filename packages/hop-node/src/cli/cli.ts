@@ -4,6 +4,7 @@ import packageJson from '../../package.json'
 import { program } from './shared'
 
 import './arbBot'
+import './bondFirstRootOfRoute'
 import './bondTransferRoot'
 import './bondWithdrawal'
 import './bondedUnconfirmedRoots'

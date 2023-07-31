@@ -12,7 +12,8 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://etherscan.io'],
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet'
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -23,10 +24,11 @@ export const networks: Networks = {
       'https://arbitrum-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
       'https://rpc.ankr.com/arbitrum'
     ],
-    explorerUrls: ['https://arbiscan.io/'],
-    nativeBridgeUrl: 'https://bridge.arbitrum.io/',
+    explorerUrls: ['https://arbiscan.io'],
+    nativeBridgeUrl: 'https://bridge.arbitrum.io',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum'
   },
   optimism: {
     name: chains.optimism.name,
@@ -40,7 +42,8 @@ export const networks: Networks = {
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism'
   },
   gnosis: {
     name: chains.gnosis.name,
@@ -51,10 +54,11 @@ export const networks: Networks = {
       'https://rpc.ankr.com/gnosis',
       'https://rpc.gnosischain.com'
     ],
-    explorerUrls: ['https://gnosisscan.io/'],
-    nativeBridgeUrl: 'https://omni.xdaichain.com/',
+    explorerUrls: ['https://gnosisscan.io'],
+    nativeBridgeUrl: 'https://omni.xdaichain.com',
     waitConfirmations: 20,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-xdai'
   },
   polygon: {
     name: chains.polygon.name,
@@ -65,9 +69,10 @@ export const networks: Networks = {
       'https://rpc.ankr.com/polygon'
     ],
     explorerUrls: ['https://polygonscan.com'],
-    nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
+    nativeBridgeUrl: 'https://wallet.matic.network/bridge',
     waitConfirmations: 1600,
-    hasFinalizationBlockTag: false
+    hasFinalizationBlockTag: false,
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-polygon'
   },
   nova: {
     name: chains.nova.name,
@@ -75,10 +80,11 @@ export const networks: Networks = {
     networkId: 42170,
     publicRpcUrl: 'https://nova.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
-    explorerUrls: ['https://nova.arbiscan.io/'],
-    nativeBridgeUrl: 'https://bridge.arbitrum.io/',
+    explorerUrls: ['https://nova.arbiscan.io'],
+    nativeBridgeUrl: 'https://bridge.arbitrum.io',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-nova'
   },
   base: {
     name: chains.base.name,
@@ -86,10 +92,11 @@ export const networks: Networks = {
     networkId: 8453,
     publicRpcUrl: 'https://developer-access-mainnet.base.org',
     fallbackPublicRpcUrls: [],
-    explorerUrls: ['https://basescan.org/'],
+    explorerUrls: ['https://basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     waitConfirmations: 64,
-    hasFinalizationBlockTag: true
+    hasFinalizationBlockTag: true,
+    subgraphUrl: 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
   }
   /*
   zksync: {
@@ -98,7 +105,7 @@ export const networks: Networks = {
     networkId: 324,
     publicRpcUrl: 'https://zksync2-mainnet.zksync.io',
     fallbackPublicRpcUrls: [],
-    explorerUrls: ['https://explorer.zksync.io/'],
+    explorerUrls: ['https://explorer.zksync.io'],
     nativeBridgeUrl: '',
     waitConfirmations: 1,
     hasFinalizationBlockTag: false

@@ -240,7 +240,7 @@ export class HealthCheckWatcher {
     DAI: parseUnits('1500000', 18),
     ETH: parseUnits('7949', 18),
     MATIC: parseUnits('766730', 18),
-    HOP: parseUnits('3500000', 18),
+    HOP: parseUnits('4500000', 18),
     SNX: parseUnits('200000', 18),
     sUSD: parseUnits('500000', 18),
     rETH: parseUnits('550', 18),

@@ -69,7 +69,9 @@ const UnwithdrawnTransfers: IUnwithdrawnTransfers = {
     [Chain.Gnosis]: '0',
     [Chain.Polygon]: '0',
     [Chain.Optimism]: '0',
-    [Chain.Arbitrum]: '0'
+    [Chain.Arbitrum]: '0',
+    [Chain.Nova]: '0',
+    [Chain.Base]: '0'
   },
   [Token.SNX]: {
     [Chain.Ethereum]: '0',
@@ -132,7 +134,9 @@ const InFlightL1ToL2Transfers: IInFlightL1ToL2Transfers = {
     [Chain.Gnosis]: '0',
     [Chain.Polygon]: '0',
     [Chain.Optimism]: '0',
-    [Chain.Arbitrum]: '0'
+    [Chain.Arbitrum]: '0',
+    [Chain.Nova]: '0',
+    [Chain.Base]: '0'
   },
   [Token.SNX]: {
     [Chain.Optimism]: '0'

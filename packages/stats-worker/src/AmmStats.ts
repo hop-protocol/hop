@@ -22,7 +22,7 @@ export class AmmStats {
   offsetDays: number = 0
   priceFeed: PriceFeed
   tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX', 'rETH', 'MAGIC']
-  chains: string[] = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'nova']
+  chains: string[] = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'nova', 'base']
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
@@ -129,8 +129,11 @@ export class AmmStats {
       return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
     }
 
+    // TODO: Need base subgraph
     if (chain === 'nova') {
       return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+    } else if (chain === 'base') {
+      return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
     } else {
       return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
     }

@@ -171,13 +171,24 @@ export default class L1Bridge extends Bridge {
     chainId: number,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.l1BridgeContract.bondTransferRoot(
+    const txOverrides = await this.txOverrides()
+
+    // Hardcode a gasLimit for chains that have variable gas costs in their messengers
+    if (
+      chainId === this.chainSlugToId(Chain.Optimism) ||
+      chainId === this.chainSlugToId(Chain.Base)
+    ) {
+      txOverrides.gasLimit = 1_000_000
+    }
+
+    const payload = [
       transferRootHash,
       chainId,
       totalAmount,
-      await this.txOverrides()
-    )
+      txOverrides
+    ] as const
 
+    const tx = await this.l1BridgeContract.bondTransferRoot(...payload)
     return tx
   }
 

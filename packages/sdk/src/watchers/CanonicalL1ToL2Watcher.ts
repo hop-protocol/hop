@@ -18,7 +18,7 @@ class L1ToL2Watcher extends BaseWatcher {
   public async pollFn (): Promise<any> {
     if (this.destinationChain.equals(Chain.Gnosis)) {
       return this.gnosisWatcher()
-    } else if (this.destinationChain.equals(Chain.Optimism)) {
+    } else if (this.destinationChain.equals(Chain.Optimism) || this.destinationChain.equals(Chain.Base)) {
       throw new Error('not implemented')
     } else if (this.destinationChain.equals(Chain.Polygon)) {
       return this.polygonWatcher()

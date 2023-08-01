@@ -21,6 +21,9 @@ export function getChainSlugFromName (name: string) {
   if (slug.startsWith('scroll')) {
     slug = ChainSlug.ScrollZk
   }
+  if (slug.startsWith('base')) {
+    slug = ChainSlug.Base
+  }
   if (
     slug === NetworkSlug.Kovan ||
     slug === NetworkSlug.Goerli ||

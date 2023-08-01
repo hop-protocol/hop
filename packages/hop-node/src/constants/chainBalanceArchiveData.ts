@@ -56,7 +56,8 @@ const UnwithdrawnTransfers: IUnwithdrawnTransfers = {
     [Chain.Polygon]: '9989532547999286',
     [Chain.Optimism]: '368535750741417793',
     [Chain.Arbitrum]: '3316888138646683962',
-    [Chain.Nova]: '0'
+    [Chain.Nova]: '0',
+    [Chain.Base]: '0'
   },
   [Token.MATIC]: {
     [Chain.Ethereum]: '9999612792838651812',
@@ -68,7 +69,9 @@ const UnwithdrawnTransfers: IUnwithdrawnTransfers = {
     [Chain.Gnosis]: '0',
     [Chain.Polygon]: '0',
     [Chain.Optimism]: '0',
-    [Chain.Arbitrum]: '0'
+    [Chain.Arbitrum]: '0',
+    [Chain.Nova]: '0',
+    [Chain.Base]: '0'
   },
   [Token.SNX]: {
     [Chain.Ethereum]: '0',
@@ -119,7 +122,8 @@ const InFlightL1ToL2Transfers: IInFlightL1ToL2Transfers = {
     // 0x29bd9e277ad5a9947de64b37a44677ca7f6ec795d1241589fd5a4a51056feafb, 1000000000000000
     // 0x72d13235de7ca9fba419c8662e14b0bec8fbe712f3a41d04172cf5b511d921ce, 50000000000000000
     [Chain.Arbitrum]: '51000000000000000',
-    [Chain.Nova]: '0'
+    [Chain.Nova]: '0',
+    [Chain.Base]: '0'
   },
   [Token.MATIC]: {
     [Chain.Gnosis]: '0',
@@ -130,7 +134,9 @@ const InFlightL1ToL2Transfers: IInFlightL1ToL2Transfers = {
     [Chain.Gnosis]: '0',
     [Chain.Polygon]: '0',
     [Chain.Optimism]: '0',
-    [Chain.Arbitrum]: '0'
+    [Chain.Arbitrum]: '0',
+    [Chain.Nova]: '0',
+    [Chain.Base]: '0'
   },
   [Token.SNX]: {
     [Chain.Optimism]: '0'

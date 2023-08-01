@@ -174,7 +174,10 @@ export default class L1Bridge extends Bridge {
     const txOverrides = await this.txOverrides()
 
     // Hardcode a gasLimit for chains that have variable gas costs in their messengers
-    if (this.chainSlug === Chain.Optimism || this.chainSlug === Chain.Base) {
+    if (
+      chainId === this.chainSlugToId(Chain.Optimism) ||
+      chainId === this.chainSlugToId(Chain.Base)
+    ) {
       txOverrides.gasLimit = 1_000_000
     }
 

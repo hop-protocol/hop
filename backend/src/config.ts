@@ -1,5 +1,6 @@
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
+import { getDefaultRpcUrl } from './utils/getDefaultRpcUrl'
 
 require('dotenv').config()
 
@@ -43,20 +44,15 @@ if (process.env.ENABLED_CHAINS) {
 
 export { enabledTokens, enabledChains }
 
-export const rpcUrls = {
-  gnosis: process.env.GNOSIS_RPC,
-  polygon: process.env.POLYGON_RPC,
-  arbitrum: process.env.ARBITRUM_RPC,
-  optimism: process.env.OPTIMISM_RPC,
-  ethereum: process.env.ETHEREUM_RPC,
-  nova: process.env.NOVA_RPC,
-  linea: process.env.LINEA_RPC,
-  base: process.env.BASE_RPC,
-  scroll: process.env.SCROLL_RPC
+export const rpcUrls : any = {}
+
+for (const chain of enabledChains) {
+  rpcUrls[chain] = process.env[`${chain.toUpperCase()}_RPC`] || getDefaultRpcUrl(network, chain)
 }
 
 export const networks = isGoerli ? goerliNetworks : mainnetNetworks
 
+// TODO: maybe move this to core config?
 export const transferTimes = {
   ethereum: {
     optimism: 2,

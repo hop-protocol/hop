@@ -222,7 +222,7 @@ export class TransferStats {
     }
   }
 
-  async getReceivedHtokens (item: any) {
+  async getReceivedHtokens (item: any, refetch = false) {
     if (isGoerli) {
       return false
     }
@@ -235,13 +235,17 @@ export class TransferStats {
       const { bondTransactionHash, token, sourceChainSlug, destinationChainSlug, receivedHTokens } = item
       if (
         !bondTransactionHash ||
-        !destinationChainSlug ||
+        !destinationChainSlug
+      ) {
+        return null
+      }
+      if (
         destinationChainSlug === 'ethereum' ||
         token === 'HOP'
       ) {
         return false
       }
-      if (typeof receivedHTokens === 'boolean') {
+      if (typeof receivedHTokens === 'boolean' && !refetch) {
         cache.put(cacheKey, receivedHTokens, cacheDurationMs)
         return receivedHTokens
       }
@@ -274,9 +278,8 @@ export class TransferStats {
         return receivedHTokens
       }
     } catch (err) {
-      console.error(err)
-      cache.put(cacheKey, false, cacheDurationMs)
-      return false
+      console.error('getReceivedHtokens error:', err)
+      return null
     }
   }
 
@@ -971,7 +974,7 @@ export class TransferStats {
 
       if (this.shouldCheckReceivedHTokens) {
         if (typeof x.receivedHTokens !== 'boolean' || refetch) {
-          x.receivedHTokens = await this.getReceivedHtokens(x)
+          x.receivedHTokens = await this.getReceivedHtokens(x, refetch)
         }
       }
     }

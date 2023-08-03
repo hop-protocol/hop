@@ -76,7 +76,7 @@ function getOnboardChains(): any {
         id: chainIdToHex(goerliChains.linea.networkId),
         token: 'ETH',
         label: 'Linea Goerli',
-        rpcUrl: 'https://rpc.goerli.linea.build' // NOTE: this rpc url has write access but it's more rate limitted
+        rpcUrl: 'https://rpc.goerli.linea.build' // NOTE: this rpc url has write access but it's more rate limited
       },
       {
         id: chainIdToHex(goerliChains.scrollzk.networkId),

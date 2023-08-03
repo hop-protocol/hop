@@ -114,6 +114,7 @@ class IncompleteSettlementsWatcher {
       const promises: Array<Promise<any>> = []
       for (const token of this.tokens) {
         this.logger.debug(`${chain} ${token} reading events`)
+        // TODO: better filtering
         if (['optimism', 'arbitrum', 'nova', 'base'].includes(chain) && token === 'MATIC') {
           continue
         }
@@ -129,7 +130,18 @@ class IncompleteSettlementsWatcher {
         if (nonMagicChains.includes(chain) && token === 'MAGIC') {
           continue
         }
-        if (chain === Chain.Nova && token !== 'ETH') {
+        if (chain === Chain.Nova) {
+          if (
+            token !== 'ETH' &&
+            token !== 'HOP'
+          )
+          continue
+        }
+        if (chain === Chain.Base) {
+          if (
+            token !== 'ETH' &&
+            token !== 'HOP'
+          )
           continue
         }
         if (chain === 'ethereum') {

@@ -891,63 +891,75 @@ export class HealthCheckWatcher {
   }
 
   async getMissedEvents (): Promise<MissedEvent[]> {
-    const missedEvents: MissedEvent[] = []
-    const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
-    const tokens = getEnabledTokens()
-    const now = DateTime.now().toUTC()
-    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
-    const startDate = endDate.minus({ days: this.days })
-    const filters = {
-      startDate: startDate.toISO(),
-      endDate: endDate.toISO()
-    }
-    const promises: Array<Promise<null>> = []
-    for (const sourceChain of sourceChains) {
-      for (const token of tokens) {
-        // TODO: Better filtering
-        if (['arbitrum', 'optimism', 'nova', 'base'].includes(sourceChain) && token === 'MATIC') {
-          continue
-        }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova', 'base']
-        if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
-          continue
-        }
-        const nonREthChains = ['polygon', 'gnosis', 'nova', 'base']
-        if (nonREthChains.includes(sourceChain) && token === 'rETH') {
-          continue
-        }
-        const nonMagicChains = ['polygon', 'gnosis', 'optimism', 'base']
-        if (nonMagicChains.includes(sourceChain) && token === 'MAGIC') {
-          continue
-        }
-        if (sourceChain === Chain.Nova && token !== 'ETH') {
-          continue
-        }
-        promises.push(new Promise(async (resolve, reject) => {
-          try {
-            const db = getDbSet(token)
-            this.logger.debug('fetching getTransferIds', sourceChain, token)
-            const transfers = await getTransferIds(sourceChain, token, filters)
-            this.logger.debug('checking', sourceChain, token, transfers.length)
-            for (const transfer of transfers) {
-              const { transferId, amount, bonderFee, timestamp } = transfer
-              const item = await db.transfers.getByTransferId(transferId)
-              if (!item?.transferSentTxHash && !item?.withdrawalBonded) {
-                missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
-              }
-            }
-            resolve(null)
-          } catch (err: any) {
-            reject(err)
-          }
-        }))
-      }
-    }
+    return []
+    // const missedEvents: MissedEvent[] = []
+    // const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+    // const tokens = getEnabledTokens()
+    // const now = DateTime.now().toUTC()
+    // const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
+    // const startDate = endDate.minus({ days: this.days })
+    // const filters = {
+    //   startDate: startDate.toISO(),
+    //   endDate: endDate.toISO()
+    // }
+    // const promises: Array<Promise<null>> = []
+    // for (const sourceChain of sourceChains) {
+    //   for (const token of tokens) {
+    //     // TODO: Better filtering
+    //     if (['arbitrum', 'optimism', 'nova', 'base'].includes(sourceChain) && token === 'MATIC') {
+    //       continue
+    //     }
+    //     const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova', 'base']
+    //     if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
+    //       continue
+    //     }
+    //     const nonREthChains = ['polygon', 'gnosis', 'nova', 'base']
+    //     if (nonREthChains.includes(sourceChain) && token === 'rETH') {
+    //       continue
+    //     }
+    //     const nonMagicChains = ['polygon', 'gnosis', 'optimism', 'base']
+    //     if (nonMagicChains.includes(sourceChain) && token === 'MAGIC') {
+    //       continue
+    //     }
+    //     if (sourceChain === Chain.Nova) {
+    //       if (
+    //         token !== 'ETH' &&
+    //         token !== 'HOP'
+    //       )
+    //       continue
+    //     }
+    //     if (sourceChain === Chain.Base) {
+    //       if (
+    //         token !== 'ETH' &&
+    //         token !== 'HOP'
+    //       )
+    //       continue
+    //     }
+    //     promises.push(new Promise(async (resolve, reject) => {
+    //       try {
+    //         const db = getDbSet(token)
+    //         this.logger.debug('fetching getTransferIds', sourceChain, token)
+    //         const transfers = await getTransferIds(sourceChain, token, filters)
+    //         this.logger.debug('checking', sourceChain, token, transfers.length)
+    //         for (const transfer of transfers) {
+    //           const { transferId, amount, bonderFee, timestamp } = transfer
+    //           const item = await db.transfers.getByTransferId(transferId)
+    //           if (!item?.transferSentTxHash && !item?.withdrawalBonded) {
+    //             missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
+    //           }
+    //         }
+    //         resolve(null)
+    //       } catch (err: any) {
+    //         reject(err)
+    //       }
+    //     }))
+    //   }
+    // }
 
-    await Promise.all(promises)
-    this.logger.debug('done fetching all getTransferIds')
+    // await Promise.all(promises)
+    // this.logger.debug('done fetching all getTransferIds')
 
-    return missedEvents
+    // return missedEvents
   }
 
   async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
@@ -980,6 +992,9 @@ export class HealthCheckWatcher {
 
     const missingTransfers: any[] = []
     for (const chain of RelayableChains) {
+      // TODO: Polygonzk is not yet deployed
+      if (chain === Chain.PolygonZk) continue
+
       // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
       const endDateWithBuffer = endDate.plus({ minutes: 30 })
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
@@ -1123,27 +1138,28 @@ export class HealthCheckWatcher {
   }
 
   async getInvalidChainBalance (): Promise<InvalidChainBalance[]> {
-    this.logger.debug('checking for an invalid chainBalance')
-    const invalidChainBalances: InvalidChainBalance[] = []
-    for (const token of this.tokens) {
-      this.logger.debug(`checking ${token} for invalid chainBalance`)
-      const {
-        tokenChainBalanceDiff,
-        chainBalanceHTokenDiff
-      } = await verifyChainBalance({ token, allowRoundingError: true })
+    return []
+    // this.logger.debug('checking for an invalid chainBalance')
+    // const invalidChainBalances: InvalidChainBalance[] = []
+    // for (const token of this.tokens) {
+    //   this.logger.debug(`checking ${token} for invalid chainBalance`)
+    //   const {
+    //     tokenChainBalanceDiff,
+    //     chainBalanceHTokenDiff
+    //   } = await verifyChainBalance({ token, allowRoundingError: true })
 
-      if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
-        continue
-      }
+    //   if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
+    //     continue
+    //   }
 
-      this.logger.debug('invalid chainBalance found', token)
-      // invalidChainBalances.push({
-      //   token,
-      //   tokenChainBalanceDiff,
-      //   chainBalanceHTokenDiff
-      // })
-    }
+    //   this.logger.debug('invalid chainBalance found', token)
+    //   // invalidChainBalances.push({
+    //   //   token,
+    //   //   tokenChainBalanceDiff,
+    //   //   chainBalanceHTokenDiff
+    //   // })
+    // }
 
-    return invalidChainBalances
+    // return invalidChainBalances
   }
 }

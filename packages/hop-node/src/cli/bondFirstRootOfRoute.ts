@@ -66,7 +66,7 @@ async function main (source: any) {
     throw new Error('TransferRoot already has transfer IDs')
   }
 
-  const l1Bridge = watcher.bridge as L1Bridge
+  const l1Bridge = await watcher.getSiblingWatcherByChainSlug(Chain.Ethereum)
   return l1Bridge.bondTransferRoot(
     transferRootHash,
     dbTransferRoot.destinationChainId,

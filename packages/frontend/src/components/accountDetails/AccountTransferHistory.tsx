@@ -57,7 +57,6 @@ function useData(props: any) {
         return []
       }
       const baseUrl = isGoerli ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
-      // const baseUrl = 'http://localhost:8000'
       const url = `${baseUrl}/v1/transfers?account=${address}&perPage=${perPage}&page=${page}`
       const res = await fetch(url)
       const json = await res.json()

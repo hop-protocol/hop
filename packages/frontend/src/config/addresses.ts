@@ -157,7 +157,8 @@ const hopStakingRewardsContracts = {
       MAGIC: '0xeB35Dac45077319042D62a735aa0f9eDD1F01Fa6'
     },
     base: {
-      ETH: '0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7'
+      ETH: '0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7',
+      USDC: '0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6'
     }
   },
   goerli: {

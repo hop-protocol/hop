@@ -129,7 +129,6 @@ export class AmmStats {
       return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
     }
 
-    // TODO: Need base subgraph
     if (chain === 'nova') {
       return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
     } else if (chain === 'base') {

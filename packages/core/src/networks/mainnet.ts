@@ -90,7 +90,7 @@ export const networks: Networks = {
     name: chains.base.name,
     image: chains.base.image,
     networkId: 8453,
-    publicRpcUrl: 'https://developer-access-mainnet.base.org',
+    publicRpcUrl: 'https://mainnet.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org/deposit',

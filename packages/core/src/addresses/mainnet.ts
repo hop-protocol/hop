@@ -7,31 +7,43 @@ export const addresses: Addresses = {
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       optimism: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       arbitrum: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       gnosis: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       polygon: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      base: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       }
     },
     USDT: {
@@ -284,7 +296,8 @@ export const addresses: Addresses = {
       gnosis: [
         '0x5D13179c5fa40b87D53Ff67ca26245D3D5B2F872',
         '0x636A7ee78faCd079DaBC8f81EDA1D09AA9D440A7'
-      ]
+      ],
+      base: ['0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6']
     },
     USDT: {
       arbitrum: ['0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8'],
@@ -407,6 +420,18 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
         l2SaddleLpToken: '0xB67c014FA700E69681a673876eb8BAFAA36BFf71',
         bridgeDeployedBlockNumber: 440027
+      },
+      base: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x4a55e8e407609A3046804ca500BeF6F5ebaCb6F9',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
+        l2Bridge: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
+        l2HopBridgeToken: '0x74fa978EaFFa312bC92e76dF40FcC1bFE7637Aeb',
+        l2AmmWrapper: '0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F',
+        l2SaddleSwap: '0x022C5cE6F1Add7423268D41e08Df521D5527C2A0',
+        l2SaddleLpToken: '0x3b507422EBe64440f03BCbE5EEe4bdF76517f320',
+        bridgeDeployedBlockNumber: 2077758
       }
     },
     USDT: {

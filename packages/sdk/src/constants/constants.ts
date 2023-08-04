@@ -16,7 +16,7 @@ export enum ChainId {
   Gnosis = 100,
   Nova = 42170,
   ZkSync = 324,
-  Base= 8453
+  Base = 8453
 }
 
 // TODO: read from core package
@@ -31,7 +31,7 @@ export enum ChainName {
   Linea = 'Linea',
   ScrollZk = 'Scroll zkEVM',
   Base = 'Base',
-  PolygonZk = 'Polgyon zkEVM',
+  PolygonZk = 'Polygon zkEVM',
 }
 
 // TODO: read from core package

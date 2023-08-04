@@ -134,15 +134,13 @@ class IncompleteSettlementsWatcher {
           if (
             token !== 'ETH' &&
             token !== 'HOP'
-          )
-          continue
+          ) { continue }
         }
         if (chain === Chain.Base) {
           if (
             token !== 'ETH' &&
             token !== 'HOP'
-          )
-          continue
+          ) { continue }
         }
         if (chain === 'ethereum') {
           promises.push(this.setTransferRootConfirmeds(chain, token))

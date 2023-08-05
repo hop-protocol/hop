@@ -691,7 +691,7 @@ class HopBridge extends Base {
         relayer,
         bonderFee,
         {
-          ...(await this.txOverrides(Chain.Ethereum)),
+          ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
           value
         }
       ] as const

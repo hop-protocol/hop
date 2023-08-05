@@ -1,8 +1,7 @@
 import {
-  ARBImage,
+  ARBmage,
   DAIImage,
   ETHImage,
-  FraxImage,
   GNOImage,
   HOPImage,
   MAGICImage,
@@ -16,9 +15,10 @@ import {
   WBTCImage,
   XDAIImage,
   rETHImage,
-  sBTCImage,
-  sETHImage,
   sUSDImage
+  // FraxImage,
+  // sBTCImage,
+  // sETHImage,
 } from './assets'
 import { Tokens } from './types'
 
@@ -55,9 +55,10 @@ export const tokens: Tokens = {
     symbol: 'ARB',
     name: 'Arbitrum',
     decimals: 18,
-    image: ARBImage,
+    image: ARBmage,
     coingeckoId: 'arbitrum'
   },
+  /*
   sETH: {
     symbol: 'sETH',
     name: 'Synth ETH',
@@ -72,6 +73,7 @@ export const tokens: Tokens = {
     image: sBTCImage,
     coingeckoId: 'sbtc'
   },
+  */
   USDC: {
     symbol: 'USDC',
     name: 'USD Coin',
@@ -155,7 +157,8 @@ export const tokens: Tokens = {
     decimals: 18,
     image: MAGICImage,
     coingeckoId: 'magic'
-  },
+  }
+  /*
   FRAX: {
     symbol: 'FRAX',
     name: 'Frax',
@@ -163,4 +166,5 @@ export const tokens: Tokens = {
     image: FraxImage,
     coingeckoId: 'frax'
   }
+  */
 }

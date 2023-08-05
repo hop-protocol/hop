@@ -22,12 +22,12 @@ export enum AssetSymbol {
   HOP = 'HOP',
   SNX = 'SNX',
   sUSD = 'sUSD',
-  sBTC = 'sBTC',
-  sETH = 'sETH',
   rETH = 'rETH',
   UNI = 'UNI',
   MAGIC = 'MAGIC',
-  FRAX = 'FRAX',
+  // sBTC = 'sBTC',
+  // sETH = 'sETH',
+  // FRAX = 'FRAX',
 }
 
 export type Bps = {

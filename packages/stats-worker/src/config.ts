@@ -1,3 +1,5 @@
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { getDefaultRpcUrl } from './utils/getDefaultRpcProvider'
 require('dotenv').config()
 
 export const pinataApiKey = process.env.PINATA_API_KEY
@@ -6,31 +8,41 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION
 export const awsProfile = process.env.AWS_PROFILE
-export const ethereumRpc = process.env.ETHEREUM_RPC
-export const gnosisRpc = process.env.XDAI_RPC
-export const gnosisArchiveRpc = process.env.XDAI_ARCHIVE_RPC
-export const polygonRpc = process.env.POLYGON_RPC
-export const optimismRpc = process.env.OPTIMISM_RPC
-export const arbitrumRpc = process.env.ARBITRUM_RPC
-export const novaRpc = process.env.NOVA_RPC
-export const baseRpc = process.env.BASE_RPC
 export const dbPath = process.env.SQLITE3_DB || './sqlite3.db'
-export const etherscanApiKeys: Record<string, string> = {
-  ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY,
-  optimism: process.env.ETHERSCAN_OPTIMISM_API_KEY,
-  arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY,
-  polygon: process.env.ETHERSCAN_POLYGON_API_KEY,
-  gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY,
-  nova: process.env.ETHERSCAN_NOVA_API_KEY,
-  base: process.env.ETHERSCAN_BASE_API_KEY
-}
-export const etherscanApiUrls: Record<string, string> = {
-  ethereum: 'https://api.etherscan.io',
-  polygon: 'https://api.polygonscan.com',
-  optimism: 'https://api-optimistic.etherscan.io',
-  arbitrum: 'https://api.arbiscan.io',
-  gnosis: 'https://api.gnosisscan.io',
-  nova: 'https://api-nova.arbiscan.io',
-  base: 'https://api.basescan.org'
-}
 export const coingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''
+
+const tokenSet = new Set([])
+const chainSet = new Set([])
+
+const addresses = mainnetAddresses
+for (const token in addresses.bridges) {
+  tokenSet.add(token)
+
+  for (const chain in addresses.bridges[token]) {
+    chainSet.add(chain)
+  }
+}
+
+export const enabledTokens = Array.from(tokenSet)
+export const enabledChains = Array.from(chainSet)
+
+export const etherscanApiKeys: Record<string, string> = {}
+export const archiveRpcUrls: Record<string, string> = {}
+export const rpcUrls: Record<string, string> = {}
+
+for (const chain of enabledChains) {
+  etherscanApiKeys[chain] =
+    process.env[`ETHERSCAN_${chain.toUpperCase()}_API_KEY`]
+}
+
+for (const chain of enabledChains) {
+  rpcUrls[chain] =
+    process.env[`${chain.toUpperCase()}_RPC`] || getDefaultRpcUrl(chain)
+}
+
+for (const chain of enabledChains) {
+  const url = process.env[`${chain.toUpperCase()}_ARCHIVE_RPC`]
+  if (url) {
+    archiveRpcUrls[chain] = url
+  }
+}

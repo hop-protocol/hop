@@ -11,6 +11,7 @@ export type Network = {
   waitConfirmations: number
   hasFinalizationBlockTag: boolean
   subgraphUrl?: string
+  etherscanApiUrl?: string
 }
 
 export type Networks = Partial<{

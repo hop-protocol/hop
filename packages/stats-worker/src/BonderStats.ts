@@ -10,23 +10,16 @@ import {
 } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
-import {
-  ethereumRpc,
-  gnosisRpc,
-  gnosisArchiveRpc,
-  polygonRpc,
-  optimismRpc,
-  arbitrumRpc,
-  novaRpc,
-  baseRpc,
-  etherscanApiKeys
-} from './config'
+import { enabledTokens, enabledChains, etherscanApiKeys, rpcUrls, archiveRpcUrls } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { createObjectCsvWriter } from 'csv-writer'
 import { chunk } from 'lodash'
 import { parse } from 'comment-json'
 import { PriceFeed } from './PriceFeed'
+import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { getSubgraphUrl } from './utils/getSubgraphUrl'
 
 const jsonData = parse(
   fs
@@ -40,34 +33,8 @@ const {
 } = require('./data/arbitrum_alises.json')
 const { wethAddresses } = require('./data/weth_addresses.json')
 
-const etherscanUrls: Record<string, string> = {
-  ethereum: 'https://api.etherscan.io',
-  polygon: 'https://api.polygonscan.com',
-  optimism: 'https://api-optimistic.etherscan.io',
-  arbitrum: 'https://api.arbiscan.io',
-  gnosis: 'https://api.gnosisscan.io',
-  nova: 'https://api-nova.arbiscan.io',
-  base: 'https://api.basescan.org'
-}
-
 const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
-
-const allProviders: Record<string, any> = {
-  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
-  gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
-  polygon: new providers.StaticJsonRpcProvider(polygonRpc),
-  optimism: new providers.StaticJsonRpcProvider(optimismRpc),
-  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc),
-  nova: new providers.StaticJsonRpcProvider(novaRpc),
-  base: new providers.StaticJsonRpcProvider(baseRpc)
-}
-
-const allArchiveProviders: Record<string, any> = {
-  gnosis: gnosisArchiveRpc
-    ? new providers.StaticJsonRpcProvider(gnosisArchiveRpc)
-    : undefined
-}
 
 type Options = {
   days?: number
@@ -87,23 +54,15 @@ class BonderStats {
   offsetDays: number = 0
   startDate?: DateTime
   endDate?: DateTime
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC', 'HOP']
-  chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum', 'nova', 'base']
+  tokens: string[] = enabledTokens
+  chains: string[] = enabledChains
   trackOnlyProfit = false
   trackOnlyTxFees = false
   trackOnlyFees = false
   writeCsv = false
   priceFeed: PriceFeed
-
-  tokenDecimals: Record<string, number> = {
-    USDC: 6,
-    USDT: 6,
-    DAI: 18,
-    MATIC: 18,
-    ETH: 18,
-    WBTC: 8,
-    HOP: 18
-  }
+  allProviders: Record<string, any> = {}
+  allArchiveProviders: Record<string, any> = {}
 
   constructor (options: Options = {}) {
     if (options.days) {
@@ -144,6 +103,18 @@ class BonderStats {
 
     if (options.writeCsv) {
       this.writeCsv = options.writeCsv
+    }
+
+    for (const chain in rpcUrls) {
+      this.allProviders[chain] = new providers.StaticJsonRpcProvider(
+        rpcUrls[chain]
+      )
+    }
+
+    for (const chain in archiveRpcUrls) {
+      this.allArchiveProviders[chain] = new providers.StaticJsonRpcProvider(
+        archiveRpcUrls[chain]
+      )
     }
 
     process.once('uncaughtException', async err => {
@@ -207,13 +178,13 @@ class BonderStats {
       }
       totalFees = totalFees.add(chainFees)
       const chainFeesFormatted = Number(
-        formatUnits(chainFees, this.tokenDecimals[token])
+        formatUnits(chainFees, getTokenDecimals(token))
       )
       dbData[`${chain}FeesAmount`] = chainFeesFormatted
       console.log(day, 'chain bonder fees', isoDate, chain, chainFeesFormatted)
     }
     const totalFeesFormatted = Number(
-      formatUnits(totalFees, this.tokenDecimals[token])
+      formatUnits(totalFees, getTokenDecimals(token))
     )
     dbData.totalFeesAmount = totalFeesFormatted
     console.log(day, 'total bonder fees', isoDate, totalFeesFormatted)
@@ -553,33 +524,33 @@ class BonderStats {
       })
 
       dbData.unstakedAmount = Number(
-        formatUnits(unstakedAmount, this.tokenDecimals[token])
+        formatUnits(unstakedAmount, getTokenDecimals(token))
       )
 
       dbData.unstakedEthAmount = Number(formatEther(unstakedEthAmount))
 
       dbData.restakedAmount = Number(
-        formatUnits(restakedAmount, this.tokenDecimals[token])
+        formatUnits(restakedAmount, getTokenDecimals(token))
       )
 
       dbData.restakedEthAmount = Number(
-        formatUnits(restakedEthAmount, this.tokenDecimals[token])
+        formatUnits(restakedEthAmount, getTokenDecimals(token))
       )
 
       dbData.depositAmount = Number(
-        formatUnits(depositAmount, this.tokenDecimals[token])
+        formatUnits(depositAmount, getTokenDecimals(token))
       )
 
       dbData.withdrawnAmount = Number(
-        formatUnits(withdrawnAmount, this.tokenDecimals[token])
+        formatUnits(withdrawnAmount, getTokenDecimals(token))
       )
 
       dbData.stakedAmount = Number(
-        formatUnits(stakedAmount, this.tokenDecimals[token])
+        formatUnits(stakedAmount, getTokenDecimals(token))
       )
 
       dbData.initialCanonicalAmount = Number(
-        formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
+        formatUnits(initialCanonicalAmount, getTokenDecimals(token))
       )
 
       dbData.bonderAddress = bonderAddress
@@ -630,13 +601,13 @@ class BonderStats {
 
       if (depositEvent) {
         depositEvent = Number(
-          formatUnits(depositEvent, this.tokenDecimals[token])
+          formatUnits(depositEvent, getTokenDecimals(token))
         )
       }
 
       if (withdrawEvent) {
         withdrawEvent = Number(
-          formatUnits(withdrawEvent, this.tokenDecimals[token])
+          formatUnits(withdrawEvent, getTokenDecimals(token))
         )
       }
 
@@ -784,8 +755,8 @@ class BonderStats {
             chainPromises.push(
               new Promise(async (resolve, reject) => {
                 try {
-                  let provider = allProviders[chain]
-                  const archiveProvider = allArchiveProviders[chain] || provider
+                  let provider = this.allProviders[chain]
+                  const archiveProvider = this.allArchiveProviders[chain] || provider
                   const bonder = bonderMap[sourceChain][
                     destinationChain
                   ].toLowerCase()
@@ -918,7 +889,7 @@ class BonderStats {
                     ? Number(
                         formatUnits(
                           balance.toString(),
-                          this.tokenDecimals[token]
+                          getTokenDecimals(token)
                         )
                       )
                     : 0
@@ -933,7 +904,7 @@ class BonderStats {
                       ? Number(
                           formatUnits(
                             hBalance.toString(),
-                            this.tokenDecimals[token]
+                            getTokenDecimals(token)
                           )
                         )
                       : 0
@@ -1100,9 +1071,9 @@ class BonderStats {
         priceMap[nativeSymbol].toString()
       )
       const tokenPriceUsdWei = parseEther(priceMap[token].toString())
-      const nativeTokenDecimals = this.tokenDecimals[nativeSymbol]
+      const nativeTokenDecimals = getTokenDecimals(nativeSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
-      const exponent = nativeTokenDecimals - this.tokenDecimals[token]
+      const exponent = nativeTokenDecimals - getTokenDecimals(token)
 
       const diff = nativeTokenDiffs[chain]
       const resultInTokenWei = diff.mul(rate).div(multiplier)
@@ -1124,7 +1095,7 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      formatUnits(result.toString(), this.tokenDecimals[token])
+      formatUnits(result.toString(), getTokenDecimals(token))
     )
 
     return {
@@ -1185,9 +1156,9 @@ class BonderStats {
         priceMap[nativeSymbol].toString()
       )
       const tokenPriceUsdWei = parseEther(priceMap[token].toString())
-      const nativeTokenDecimals = this.tokenDecimals[nativeSymbol]
+      const nativeTokenDecimals = getTokenDecimals(nativeSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
-      const exponent = nativeTokenDecimals - this.tokenDecimals[token]
+      const exponent = nativeTokenDecimals - getTokenDecimals(token)
 
       const diff = nativeTokenDiffs[chain]
       const resultInTokenWei = diff.mul(rate).div(multiplier)
@@ -1211,7 +1182,7 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      formatUnits(result.toString(), this.tokenDecimals[token])
+      formatUnits(result.toString(), getTokenDecimals(token))
     )
 
     const ethAmountsFormatted = Number(formatUnits(ethAmounts.toString(), 18))
@@ -1271,8 +1242,7 @@ class BonderStats {
         dbData.arbitrumNativeAmount +
         dbData.arbitrumAliasAmount +
         dbData.arbitrumMessengerWrapperAmount +
-        (dbData.novaNativeAmount || 0) *
-        (dbData.baseNativeAmount || 0)) *
+        (dbData.novaNativeAmount || 0) * (dbData.baseNativeAmount || 0)) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1330,20 +1300,6 @@ class BonderStats {
     return winner
   }
 
-  getGraphUrl (chain: string) {
-    if (chain == 'gnosis') {
-      chain = 'xdai'
-    }
-
-    if (chain === 'nova') {
-      return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
-    } else if (chain === 'base') {
-      return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
-    } else {
-      return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-    }
-  }
-
   async queryFetch (url: string, query: string, variables?: any) {
     const res = await fetch(url, {
       method: 'POST',
@@ -1387,7 +1343,7 @@ class BonderStats {
         }
       }
     `
-    const url = this.getGraphUrl(chain)
+    const url = getSubgraphUrl(chain)
     const data = await this.queryFetch(url, query, {
       token,
       startDate,
@@ -1408,7 +1364,7 @@ class BonderStats {
     endDate: number
   ) {
     const startTimestamp = startDate - 86400
-    const provider = allProviders[chain]
+    const provider = this.allProviders[chain]
     const startBlock = await getBlockNumberFromDate(
       chain,
       provider,
@@ -1492,7 +1448,7 @@ class BonderStats {
     startBlock: number,
     endBlock: number
   ) {
-    const baseUrl = etherscanUrls[chain]
+    const baseUrl = getEtherscanApiUrl(chain)
     const url = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKeys[
       chain
     ] || ''}`
@@ -1516,7 +1472,7 @@ class BonderStats {
     }
 
     return arr.map((value: string) =>
-      parseUnits(value, this.tokenDecimals[token])
+      parseUnits(value, getTokenDecimals(token))
     )
   }
 }

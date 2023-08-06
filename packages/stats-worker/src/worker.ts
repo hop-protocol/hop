@@ -22,8 +22,9 @@ type Options = {
   bonderFees?: boolean
   bonderTxFees?: boolean
   regenesis?: boolean
-  days?: number
-  offsetDays?: number
+  volumeDays?: number
+  tvlDays?: number
+  bonderOffsetDays?: number
   bonderDays?: number
   bonderStartDate?: string
   bonderEndDate?: string
@@ -61,8 +62,9 @@ class Worker {
       ammChains,
       volume,
       regenesis,
-      days,
-      offsetDays,
+      volumeDays,
+      tvlDays,
+      bonderOffsetDays,
       bonder,
       bonderProfit,
       bonderFees,
@@ -92,11 +94,12 @@ class Worker {
     this.yieldStats = new YieldStats()
     this.priceStats = new PriceStats()
     this.volumeStats = new VolumeStats({
-      regenesis
+      regenesis,
+      days: volumeDays
     })
     this.tvlStats = new TvlStats({
       regenesis,
-      days
+      days: tvlDays
     })
     this.ammStats = new AmmStats({
       regenesis,
@@ -107,7 +110,7 @@ class Worker {
     })
     this.bonderStats = new BonderStats({
       days: bonderDays,
-      offsetDays: offsetDays,
+      offsetDays: bonderOffsetDays,
       startDate: bonderStartDate,
       endDate: bonderEndDate,
       tokens: bonderTokens,

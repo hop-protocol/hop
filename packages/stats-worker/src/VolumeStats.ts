@@ -10,6 +10,7 @@ import { enabledTokens, enabledChains } from './config'
 
 type Options = {
   regenesis?: boolean
+  days?: number
 }
 
 class VolumeStats {

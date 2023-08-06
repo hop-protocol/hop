@@ -10,7 +10,13 @@ import {
 } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
-import { enabledTokens, enabledChains, etherscanApiKeys, rpcUrls, archiveRpcUrls } from './config'
+import {
+  enabledTokens,
+  enabledChains,
+  etherscanApiKeys,
+  rpcUrls,
+  archiveRpcUrls
+} from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { createObjectCsvWriter } from 'csv-writer'
@@ -756,7 +762,8 @@ class BonderStats {
               new Promise(async (resolve, reject) => {
                 try {
                   let provider = this.allProviders[chain]
-                  const archiveProvider = this.allArchiveProviders[chain] || provider
+                  const archiveProvider =
+                    this.allArchiveProviders[chain] || provider
                   const bonder = bonderMap[sourceChain][
                     destinationChain
                   ].toLowerCase()
@@ -887,10 +894,7 @@ class BonderStats {
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
                     ? Number(
-                        formatUnits(
-                          balance.toString(),
-                          getTokenDecimals(token)
-                        )
+                        formatUnits(balance.toString(), getTokenDecimals(token))
                       )
                     : 0
                   dbData[`${chain}NativeAmount`] = native

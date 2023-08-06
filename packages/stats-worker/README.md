@@ -49,16 +49,28 @@ Run yields worker
 ts-node src/index.ts --yields
 ```
 
-Run volume worker
+Run prices worker
 
 ```sh
-ts-node src/index.ts --volume --days=30
+ts-node src/index.ts --prices --pricesPollIntervalSeconds=10
 ```
 
-Run tvl worker
+Run volume stats worker
 
 ```sh
-ts-node src/index.ts --tvl --days=30
+ts-node src/index.ts --volume
+```
+
+Run tvl stats worker
+
+```sh
+ts-node src/index.ts --tvl --tvlDays=30
+```
+
+Run amm stats worker
+
+```sh
+ts-node src/index.ts --amm --ammDays=2
 ```
 
 ### Metabase charts

@@ -15,5 +15,11 @@ export const FirstRoots: Record<string, boolean> = {
   '0x73db84a60c8680f97f8c62498b7e5d95e16611e986e42de2a54bfedf070c971b': true, // Arbitrum One
   '0xbfd9ee9c6619745aa380c47d9badfe357dc40d5d58d7a9605302b3e9f5e54313': true, // Polygon
   '0xe7bc563eadee3b6c17630019fc41bd226cf5da3c5ca2b57ee69161228da1bc14': true, // Gnosis
-  '0x0696845db450b1c13ead67c62aad1f3a55b1091d05748343436e539e0ae9ecbb': true // Arbitrum Nova
+  '0x0696845db450b1c13ead67c62aad1f3a55b1091d05748343436e539e0ae9ecbb': true, // Arbitrum Nova
+
+  // Base - USDC
+  '0xa48ca1ade7ae622fb5c058e45a31ce602b553ef10aa5d92bda6a7a27788583b6': true, // Optimism
+  '0x294697f26f1139668c659478d85219c7b1fedfe32ffb7d5469bfc6cec41c1be9': true, // Arbitrum One
+  '0xab955d0167cfc4b0c328814e694e46a8f2e8cf962c06f34facf0f5076b898989': true, // Polygon
+  '0xdd12eaba7386d0e5423e42c6d8fdb276a308c48eca118a98fe4488c60e3174b3': true, // Gnosis
 }

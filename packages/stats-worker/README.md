@@ -27,6 +27,10 @@ cd ../metabase
 docker-compose up
 ```
 
+Visit http://localhost:3000
+
+Set the sqlite3 db path to `/sqlite3.db`
+
 ### Workers
 
 Some examples on running workers.

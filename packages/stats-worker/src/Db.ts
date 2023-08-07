@@ -99,7 +99,7 @@ class Db {
           nova_block_number INTEGER,
           nova_canonical_amount NUMERIC,
           nova_hToken_amount NUMERIC,
-          nova_native_amount NUMERIC
+          nova_native_amount NUMERIC,
           base_block_number INTEGER,
           base_canonical_amount NUMERIC,
           base_hToken_amount NUMERIC,
@@ -133,7 +133,6 @@ class Db {
           gnosis_tx_fees NUMERIC NOT NULL,
           arbitrum_tx_fees NUMERIC NOT NULL,
           optimism_tx_fees NUMERIC NOT NULL,
-          nova_tx_fees NUMERIC NOT NULL,
           nova_tx_fees NUMERIC NOT NULL,
           ethereum_tx_fees NUMERIC NOT NULL,
           total_tx_fees NUMERIC NOT NULL,
@@ -453,7 +452,7 @@ class Db {
     baseNativeAmount: number = 0
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),

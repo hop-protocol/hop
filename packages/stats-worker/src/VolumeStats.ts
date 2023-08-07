@@ -5,9 +5,12 @@ import { PriceFeed } from './PriceFeed'
 import { queryFetch } from './utils/queryFetch'
 import { nearestDate } from './utils/nearestDate'
 import { getTokenDecimals } from './utils/getTokenDecimals'
+import { getSubgraphUrl } from './utils/getSubgraphUrl'
+import { enabledTokens, enabledChains } from './config'
 
 type Options = {
   regenesis?: boolean
+  days?: number
 }
 
 class VolumeStats {
@@ -38,24 +41,6 @@ class VolumeStats {
     // this.db.close()
   }
 
-  getUrl (chain: string) {
-    if (chain == 'gnosis') {
-      chain = 'xdai'
-    }
-
-    if (this.regenesis) {
-      return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
-    }
-
-    if (chain === 'nova') {
-      return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
-    } else if (chain === 'base') {
-      return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
-    } else {
-      return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-    }
-  }
-
   async fetchDailyVolume (chain: string, startDate: number) {
     const query = `
       query DailyVolume($startDate: Int, $endDate: Int) {
@@ -74,7 +59,7 @@ class VolumeStats {
         }
       }
     `
-    const url = this.getUrl(chain)
+    const url = getSubgraphUrl(chain)
     const data = await queryFetch(url, query, {
       startDate
     })
@@ -101,18 +86,10 @@ class VolumeStats {
     const daysN = 365
     console.log('fetching prices')
 
-    const prices: any = {
-      USDC: await this.priceFeed.getPriceHistory('USDC', daysN),
-      USDT: await this.priceFeed.getPriceHistory('USDT', daysN),
-      DAI: await this.priceFeed.getPriceHistory('DAI', daysN),
-      ETH: await this.priceFeed.getPriceHistory('ETH', daysN),
-      MATIC: await this.priceFeed.getPriceHistory('MATIC', daysN),
-      WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
-      HOP: await this.priceFeed.getPriceHistory('HOP', daysN),
-      SNX: await this.priceFeed.getPriceHistory('SNX', daysN),
-      sUSD: await this.priceFeed.getPriceHistory('sUSD', daysN),
-      rETH: await this.priceFeed.getPriceHistory('rETH', daysN),
-      MAGIC: await this.priceFeed.getPriceHistory('MAGIC', daysN),
+    const prices: Record<string, any> = {}
+
+    for (const token of enabledTokens) {
+      prices[token] = await this.priceFeed.getPriceHistory(token, daysN)
     }
 
     console.log('done fetching prices')
@@ -133,7 +110,7 @@ class VolumeStats {
     }
     console.log('done upserting prices')
 
-    let chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'mainnet']
+    let chains = enabledChains
     if (this.regenesis) {
       chains = ['optimism']
     }
@@ -164,7 +141,7 @@ class VolumeStats {
           const usdAmount = price * formattedAmount
           try {
             this.db.upsertVolumeStat(
-              chain,
+              chain === 'ethereum' ? 'mainnet' : chain, // backwards compatibility name
               token,
               formattedAmount,
               usdAmount,

@@ -22,6 +22,9 @@ export async function getBlockNumberFromDateUsingEtherscan (chain: string, times
   }
 
   const baseUrl = etherscanApiUrls[chain]
+  if (!baseUrl) {
+    throw new Error(`etherscan base url not found for chain ${chain}`)
+  }
   const url = baseUrl + `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`
   const json = await fetchJsonOrThrow(url)
 

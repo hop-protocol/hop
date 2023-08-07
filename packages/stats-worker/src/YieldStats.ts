@@ -1,14 +1,6 @@
 import { BigNumber, FixedNumber, constants } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import {
-  ethereumRpc,
-  gnosisRpc,
-  polygonRpc,
-  optimismRpc,
-  arbitrumRpc,
-  novaRpc,
-  baseRpc
-} from './config'
+import { rpcUrls } from './config'
 import { Hop } from '@hop-protocol/sdk'
 import {
   mainnet as mainnetAddresses,
@@ -124,15 +116,7 @@ class YieldStats {
   stakingRewardsContracts: RewardsContracts
 
   constructor () {
-    this.sdk.setChainProviderUrls({
-      ethereum: ethereumRpc,
-      gnosis: gnosisRpc,
-      polygon: polygonRpc,
-      optimism: optimismRpc,
-      arbitrum: arbitrumRpc,
-      nova: novaRpc,
-      base: baseRpc
-    })
+    this.sdk.setChainProviderUrls(rpcUrls)
 
     this.sdk.setPriceFeedApiKeys({
       coingecko: coingeckoApiKey

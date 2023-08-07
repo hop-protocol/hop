@@ -1,6 +1,11 @@
 import fetch from 'isomorphic-fetch'
 import { PriceFeed as PriceFeedSdk } from '@hop-protocol/sdk'
 import { coingeckoApiKey } from './config'
+import { tokens } from '@hop-protocol/core/metadata'
+
+function getCoinId (tokenSymbol: string) {
+  return (tokens as any)[tokenSymbol]?.coingeckoId
+}
 
 const cache: {
   [tokenSymbol: string]: Promise<any>
@@ -13,20 +18,6 @@ const cacheTimestamps: {
 export class PriceFeed {
   cacheTimeMs = 5 * 60 * 1000
 
-  idMapping: Record<string, string> = {
-    USDC: 'usd-coin',
-    USDT: 'tether',
-    DAI: 'dai',
-    ETH: 'ethereum',
-    MATIC: 'matic-network',
-    WBTC: 'wrapped-bitcoin',
-    HOP: 'hop-protocol',
-    SNX: 'havven',
-    SUSD: 'nusd',
-    RETH: 'rocket-pool-eth',
-    MAGIC: 'magic'
-  }
-
   instance: PriceFeedSdk
 
   constructor () {
@@ -38,10 +29,6 @@ export class PriceFeed {
   async getPriceByTokenSymbol (tokenSymbol: string) {
     const price = await this.instance.getPriceByTokenSymbol(tokenSymbol)
     return price
-  }
-
-  private getCoinId (tokenSymbol: string) {
-    return this.idMapping[tokenSymbol?.toUpperCase()]
   }
 
   async getPriceHistory (tokenSymbol: string, days: number) {
@@ -59,7 +46,7 @@ export class PriceFeed {
   }
 
   async _getPriceHistory (tokenSymbol: string, days: number) {
-    const coinId = this.getCoinId(tokenSymbol)
+    const coinId = getCoinId(tokenSymbol)
     if (!coinId) {
       throw new Error(`coinId not found for token symbol "${tokenSymbol}"`)
     }

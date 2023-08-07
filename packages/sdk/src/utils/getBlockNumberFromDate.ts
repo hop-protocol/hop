@@ -1,8 +1,7 @@
 import BlockDater from 'ethereum-block-by-date'
 import { Chain } from '../models/Chain'
 import { DateTime } from 'luxon'
-import { etherscanApiKeys } from '../config'
-import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl'
+import { etherscanApiKeys, etherscanApiUrls } from '../config'
 import { fetchJsonOrThrow } from './fetchJsonOrThrow'
 
 export async function getBlockNumberFromDate (chain: Chain, timestamp: number): Promise<number> {
@@ -22,7 +21,7 @@ export async function getBlockNumberFromDateUsingEtherscan (chain: string, times
     throw new Error('Please add an etherscan api key for ' + chain)
   }
 
-  const baseUrl = getEtherscanApiUrl(chain)
+  const baseUrl = etherscanApiUrls[chain]
   if (!baseUrl) {
     throw new Error(`etherscan base url not found for chain ${chain}`)
   }

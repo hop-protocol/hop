@@ -44,7 +44,9 @@ if (process.env.XDAI_RPC) {
   throw new Error('XDAI_RPC is deprecated, use GNOSIS_RPC instead')
 }
 if (process.env.XDAI_ARCHIVE_RPC) {
-  throw new Error('XDAI_ARCHIVE_RPC is deprecated, use GNOSIS_ARCHIVE_RPC instead')
+  throw new Error(
+    'XDAI_ARCHIVE_RPC is deprecated, use GNOSIS_ARCHIVE_RPC instead'
+  )
 }
 
 for (const chain of enabledChains) {

@@ -751,16 +751,10 @@ class BonderStats {
           for (const destinationChain in bonderMap[sourceChain]) {
             const chain = destinationChain
 
-            // nova throws error when quering hTokenContract.balanceOf
-            // so disabling it here but it's something to look into it. I think
-            // we just need to make sure `timestamp` is greater than contract deployed at timestamp.
-            if (chain === 'nova') {
-              continue
-            }
-
             chainPromises.push(
               new Promise(async (resolve, reject) => {
                 try {
+                  // console.log('fetching', token, chain)
                   let provider = this.allProviders[chain]
                   const archiveProvider =
                     this.allArchiveProviders[chain] || provider
@@ -809,8 +803,16 @@ class BonderStats {
                     timestamp
                   )
 
+                  const isContractDeployed =
+                    blockTag >=
+                    (mainnetAddresses as any)?.bridges[token]?.[chain]
+                      ?.bridgeDeployedBlockNumber
+
                   const balancePromises: Promise<any>[] = []
-                  if (tokenAddress !== constants.AddressZero) {
+                  if (
+                    tokenAddress !== constants.AddressZero &&
+                    isContractDeployed
+                  ) {
                     balancePromises.push(
                       tokenContract
                         .balanceOf(bonder, {
@@ -818,7 +820,7 @@ class BonderStats {
                         })
                         .catch((err: any) => {
                           throw new Error(
-                            `tokenContract balanceOf ${token} ${chain} error: ${err.message}`
+                            `0 tokenContract balanceOf token: ${token} chain: ${chain} timestamp: ${timestamp} blockTag: ${blockTag} bonder: ${bonder} error: ${err.message}`
                           )
                         })
                     )
@@ -826,7 +828,7 @@ class BonderStats {
                     balancePromises.push(Promise.resolve(0))
                   }
 
-                  if (hTokenContract) {
+                  if (hTokenContract && isContractDeployed) {
                     balancePromises.push(
                       hTokenContract
                         .balanceOf(bonder, {
@@ -834,7 +836,7 @@ class BonderStats {
                         })
                         .catch((err: any) => {
                           throw new Error(
-                            `hTokenContract balanceOf ${token} ${chain} error: ${err.message}`
+                            `1 hTokenContract balanceOf token: ${token} chain: ${chain} timestamp: ${timestamp} blockTag: ${blockTag} bonder: ${bonder} hTokenAddress: ${hTokenAddress} error: ${err.message}`
                           )
                         })
                     )
@@ -999,11 +1001,12 @@ class BonderStats {
                   }
 
                   console.log(
-                    `done fetching daily bonder fee stat, chain: ${chain}`
+                    `done fetching daily bonder fee stat, chain: ${chain}, token: ${token}`
                   )
 
                   resolve(null)
                 } catch (err) {
+                  console.error(err)
                   reject(err)
                 }
               })

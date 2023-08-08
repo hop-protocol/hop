@@ -169,7 +169,9 @@ class TvlStats {
                     token,
                     startTimestamp
                   )
-                  if (isCached) continue
+                  if (isCached) {
+                    return
+                  }
 
                   console.log(
                     `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
@@ -241,6 +243,7 @@ class TvlStats {
         })
       )
     }
+    console.log('done fetching tvl')
   }
 
   isItemCached (

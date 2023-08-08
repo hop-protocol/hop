@@ -67,7 +67,7 @@ async function main (source: any) {
     logger.debug(`approval: attempting to approve ${token} on Ethereum`)
     tx = await l1CanonicalTokenContract.approve(bridge.address, parsedStakeAmount)
     await tx.wait()
-    logger.debug(`approval complete`)
+    logger.debug('approval complete')
 
     // Stake token
     logger.debug(`stake: attempting to stake ${formatEther(parsedStakeAmount)} on Ethereum`)

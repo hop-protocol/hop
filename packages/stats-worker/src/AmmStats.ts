@@ -6,6 +6,9 @@ import { PriceFeed } from './PriceFeed'
 import { queryFetch } from './utils/queryFetch'
 import { nearestDate } from './utils/nearestDate'
 import { getTokenDecimals } from './utils/getTokenDecimals'
+import { enabledChains, enabledTokens } from './config'
+import { getSubgraphUrl } from './utils/getSubgraphUrl'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 type Options = {
   regenesis?: boolean
@@ -21,8 +24,8 @@ export class AmmStats {
   days: number = 1
   offsetDays: number = 0
   priceFeed: PriceFeed
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX', 'rETH', 'MAGIC']
-  chains: string[] = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'nova']
+  tokens: string[] = enabledTokens
+  chains: string[] = enabledChains
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
@@ -86,7 +89,7 @@ export class AmmStats {
         }
       }
     `
-    const url = this.getUrl(chain)
+    const url = getSubgraphUrl(chain)
     const data = await queryFetch(url, query, {
       token,
       startDate,
@@ -120,37 +123,14 @@ export class AmmStats {
     return items
   }
 
-  getUrl (chain: string) {
-    if (chain == 'gnosis') {
-      chain = 'xdai'
-    }
-
-    if (this.regenesis) {
-      return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
-    }
-
-    if (chain === 'nova') {
-      return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
-    } else {
-      return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-    }
-  }
-
   async trackAmm () {
     const daysN = 365
     console.log('fetching prices')
 
-    const prices: any = {
-      USDC: await this.priceFeed.getPriceHistory('USDC', daysN),
-      USDT: await this.priceFeed.getPriceHistory('USDT', daysN),
-      DAI: await this.priceFeed.getPriceHistory('DAI', daysN),
-      ETH: await this.priceFeed.getPriceHistory('ETH', daysN),
-      MATIC: await this.priceFeed.getPriceHistory('MATIC', daysN),
-      WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
-      HOP: await this.priceFeed.getPriceHistory('HOP', daysN),
-      SNX: await this.priceFeed.getPriceHistory('SNX', daysN),
-      rETH: await this.priceFeed.getPriceHistory('rETH', daysN),
-      MAGIC: await this.priceFeed.getPriceHistory('MAGIC', daysN),
+    const prices: Record<string, any> = {}
+
+    for (const token of this.tokens) {
+      prices[token] = await this.priceFeed.getPriceHistory(token, daysN)
     }
 
     console.log('done fetching prices')
@@ -183,20 +163,8 @@ export class AmmStats {
 
       for (const token of this.tokens) {
         for (const chain of this.chains) {
-          // TODO: read from core config
-          if (token === 'MATIC' && !['polygon', 'gnosis'].includes(chain)) {
-            continue
-          }
-          if (token === 'SNX' && !['optimism'].includes(chain)) {
-            continue
-          }
-          if (chain === 'nova' && !['ETH', 'MAGIC'].includes(token)) {
-            continue
-          }
-          if (token === 'rETH' && !['optimism', 'arbitrum'].includes(chain)) {
-            continue
-          }
-          if (token === 'MAGIC' && !['arbitrum', 'nova'].includes(chain)) {
+          const config = (mainnetAddresses as any).bridges?.[token]?.[chain]
+          if (!config) {
             continue
           }
           promises.push(

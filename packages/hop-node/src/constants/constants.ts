@@ -62,10 +62,10 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   optimism: 8545,
   arbitrum: 19843,
   nova: 19843,
+  base: 8545,
   zksync: 10000, // TODO
   linea: 10000, // TODO
   scrollzk: 10000, // TODO
-  base: 10000, // TODO
   polygonzk: 10000 // TODO
 }
 
@@ -134,10 +134,14 @@ export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 
 //           https://community.optimism.io/docs/developers/bedrock/bedrock/#two-phase-withdrawals
 // Arbitrum: arbitrary buffer required
 //           https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
+// PolygonZk: typically around 30 minutes but up to a week in rare cases.
+//           https://zkevm.polygon.technology/docs/protocol/transaction-execution
 const ValidatorExitBufferMs = OneHourMs * 10
 export const OruExitTimeMs: Record<string, number> = {
   [Chain.Optimism]: OneHourMs,
+  [Chain.Base]: OneHourMs,
   [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs,
+  [Chain.Nova]: OneWeekMs + ValidatorExitBufferMs,
   [Chain.PolygonZk]: OneHourMs
 }
 

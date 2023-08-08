@@ -125,7 +125,8 @@ export function getSourceChains (token: string, settlementChain: string | null =
       if (
         chain === Chain.Arbitrum ||
         chain === Chain.Nova ||
-        chain === Chain.Optimism
+        chain === Chain.Optimism ||
+        chain === Chain.Base
       ) continue
     }
 

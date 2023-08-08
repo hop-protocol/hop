@@ -730,7 +730,7 @@ export default class Bridge extends ContractBase {
     }
 
     let minBonderFeeUsd = 0.25
-    if (destinationChain === Chain.Optimism) {
+    if (destinationChain === Chain.Optimism || destinationChain === Chain.Base) {
       minBonderFeeUsd = 0.10
     }
     const tokenDecimals = getTokenDecimals(tokenSymbol)
@@ -800,7 +800,11 @@ export default class Bridge extends ContractBase {
       gasCost = gasLimitWithSettlement.mul(gasPrice)
     }
 
-    if (this.chainSlug === Chain.Optimism && data && to) {
+    if (
+      (this.chainSlug === Chain.Optimism || this.chainSlug === Chain.Base) &&
+      data &&
+      to
+    ) {
       try {
         const tx = {
           value: parseEther('0'),
@@ -809,7 +813,7 @@ export default class Bridge extends ContractBase {
           to,
           data
         }
-        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(Chain.Optimism)!, tx)
+        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(this.chainSlug)!, tx)
         gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)

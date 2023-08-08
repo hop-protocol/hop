@@ -6,6 +6,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import getTransferSent from 'src/theGraph/getTransferSent'
+import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import wait from 'src/utils/wait'
@@ -35,7 +36,8 @@ class IncompleteSettlementsWatcher {
     Chain.Optimism,
     Chain.Gnosis,
     Chain.Polygon,
-    Chain.Nova
+    Chain.Nova,
+    Chain.Base
   ]
 
   tokens: string[] = getEnabledTokens()
@@ -113,22 +115,7 @@ class IncompleteSettlementsWatcher {
       const promises: Array<Promise<any>> = []
       for (const token of this.tokens) {
         this.logger.debug(`${chain} ${token} reading events`)
-        if (['optimism', 'arbitrum', 'nova'].includes(chain) && token === 'MATIC') {
-          continue
-        }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova']
-        if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
-          continue
-        }
-        const nonREthChains = ['polygon', 'gnosis', 'nova']
-        if (nonREthChains.includes(chain) && token === 'rETH') {
-          continue
-        }
-        const nonMagicChains = ['polygon', 'gnosis', 'optimism']
-        if (nonMagicChains.includes(chain) && token === 'MAGIC') {
-          continue
-        }
-        if (chain === Chain.Nova && token !== 'ETH') {
+        if (!isTokenSupportedForChain(token, chain)) {
           continue
         }
         if (chain === 'ethereum') {

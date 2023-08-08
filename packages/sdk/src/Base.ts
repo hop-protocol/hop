@@ -636,8 +636,8 @@ export class Base {
 
     // Post-bedrock L1 to L2 message transactions don't estimate correctly
     // TODO: Remove this when estimation is fixed
-    if (sourceChain.equals(Chain.Ethereum) && destinationChain?.equals(Chain.Optimism)) {
-      txOptions.gasLimit = 250000
+    if (sourceChain.equals(Chain.Ethereum) && (destinationChain?.equals(Chain.Optimism) || destinationChain?.equals(Chain.Base))) {
+      txOptions.gasLimit = 500000
     }
 
     if (this.network === NetworkSlug.Goerli) {
@@ -883,10 +883,11 @@ export class Base {
   async estimateOptimismL1FeeFromData (
     gasLimit : BigNumberish,
     data: string = '0x',
-    to: string = constants.AddressZero
+    to: string = constants.AddressZero,
+    destChain: Chain | string = Chain.Optimism
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
-    const chain = this.toChainModel(Chain.Optimism)
+    const chain = this.toChainModel(destChain)
     const gasPrice = await chain.provider.getGasPrice()
     const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
       .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)

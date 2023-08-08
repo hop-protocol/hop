@@ -99,7 +99,11 @@ class Db {
           nova_block_number INTEGER,
           nova_canonical_amount NUMERIC,
           nova_hToken_amount NUMERIC,
-          nova_native_amount NUMERIC
+          nova_native_amount NUMERIC,
+          base_block_number INTEGER,
+          base_canonical_amount NUMERIC,
+          base_hToken_amount NUMERIC,
+          base_native_amount NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -112,6 +116,8 @@ class Db {
           gnosis_fees_amount NUMERIC NOT NULL,
           arbitrum_fees_amount NUMERIC NOT NULL,
           optimism_fees_amount NUMERIC NOT NULL,
+          nova_fees_amount NUMERIC NOT NULL,
+          base_fees_amount NUMERIC NOT NULL,
           ethereum_fees_amount NUMERIC NOT NULL,
           total_fees_amount NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
@@ -127,6 +133,7 @@ class Db {
           gnosis_tx_fees NUMERIC NOT NULL,
           arbitrum_tx_fees NUMERIC NOT NULL,
           optimism_tx_fees NUMERIC NOT NULL,
+          nova_tx_fees NUMERIC NOT NULL,
           ethereum_tx_fees NUMERIC NOT NULL,
           total_tx_fees NUMERIC NOT NULL,
           eth_price_usd NUMERIC NOT NULL,
@@ -240,6 +247,20 @@ class Db {
           )
           this.db.run(
             'ALTER TABLE bonder_balances ADD COLUMN nova_native_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(20)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN base_block_number INTEGER;'
+          )
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN base_canonical_amount NUMERIC;'
+          )
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN base_hToken_amount NUMERIC;'
+          )
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN base_native_amount NUMERIC;'
           )
         }
 
@@ -424,10 +445,14 @@ class Db {
     novaBlockNumber: number,
     novaCanonicalAmount: number = 0,
     novaHTokenAmount: number = 0,
-    novaNativeAmount: number = 0
+    novaNativeAmount: number = 0,
+    baseBlockNumber: number,
+    baseCanonicalAmount: number = 0,
+    baseHTokenAmount: number = 0,
+    baseNativeAmount: number = 0
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -479,7 +504,11 @@ class Db {
       novaBlockNumber,
       novaCanonicalAmount,
       novaHTokenAmount,
-      novaNativeAmount
+      novaNativeAmount,
+      baseBlockNumber,
+      baseCanonicalAmount,
+      baseHTokenAmount,
+      baseNativeAmount
     )
     stmt.finalize()
   }
@@ -490,6 +519,8 @@ class Db {
     gnosisFees: number = 0,
     arbitrumFees: number = 0,
     optimismFees: number = 0,
+    novaFees: number = 0,
+    baseFees: number = 0,
     ethereumFees: number = 0,
     totalFees: number = 0,
     timestamp: number = 0
@@ -504,6 +535,8 @@ class Db {
       gnosisFees,
       arbitrumFees,
       optimismFees,
+      novaFees,
+      baseFees,
       ethereumFees,
       totalFees,
       timestamp
@@ -518,6 +551,8 @@ class Db {
     gnosisTxFees: number = 0,
     arbitrumTxFees: number = 0,
     optimismTxFees: number = 0,
+    novaTxFees: number = 0,
+    baseTxFees: number = 0,
     ethereumTxFees: number = 0,
     totalFees: number = 0,
     ethPriceUsd: number = 0,
@@ -535,6 +570,8 @@ class Db {
       gnosisTxFees,
       arbitrumTxFees,
       optimismTxFees,
+      novaTxFees,
+      baseTxFees,
       ethereumTxFees,
       totalFees,
       ethPriceUsd,

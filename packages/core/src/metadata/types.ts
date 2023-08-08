@@ -5,6 +5,7 @@ export interface Token {
   name: string
   decimals: number
   image: string
+  coingeckoId?: string
 }
 
 export type Tokens = {
@@ -17,6 +18,7 @@ export interface Chain {
   image: string
   nativeTokenSymbol: string
   isLayer1: boolean
+  primaryColor: string
 }
 
 export type Chains = {

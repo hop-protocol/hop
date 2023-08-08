@@ -45,6 +45,7 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
       Arbitrum: [CanonicalToken.HOP],
       Gnosis: [CanonicalToken.HOP],
       Nova: [CanonicalToken.HOP],
+      Base: [CanonicalToken.HOP]
     }
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
     for (const chain in assetsWithoutAmm) {

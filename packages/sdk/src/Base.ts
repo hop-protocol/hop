@@ -935,7 +935,7 @@ export class Base {
     const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
     const json = await fetchJsonOrThrow(url)
-    return json.data?.[0] ?? null
+    return json.data ?? null
   }
 
   getProviderRpcUrl (provider: any): string {

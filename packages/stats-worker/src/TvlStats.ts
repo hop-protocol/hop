@@ -176,8 +176,13 @@ class TvlStats {
                   )
 
                   const blockTag = this.blockTags[chain][endTimestamp]
-                  let balance: any
+                  let balance: BigNumber = BigNumber.from(0)
                   try {
+                    const isContractDeployed =
+                      blockTag >=
+                      (mainnetAddresses as any)?.bridges[token]?.[chain]
+                        ?.bridgeDeployedBlockNumber
+
                     if (
                       tokenAddress === constants.AddressZero &&
                       chain === 'ethereum'
@@ -187,12 +192,16 @@ class TvlStats {
                         blockTag
                       )
                     } else {
-                      balance = await tokenContract.balanceOf(spender, {
-                        blockTag
-                      })
+                      if (isContractDeployed) {
+                        balance = await tokenContract.balanceOf(spender, {
+                          blockTag
+                        })
+                      }
                     }
                   } catch (err) {
-                    console.error(`${chain} ${token} ${err.message}`)
+                    console.error(
+                      `tvl promise error ${chain} ${token} ${err.message}`
+                    )
                     throw err
                   }
 

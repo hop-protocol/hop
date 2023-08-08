@@ -5,6 +5,7 @@ import { getGraphUrl } from './getGraphUrl'
 import { getTokenDecimals } from './getTokenDecimals'
 import { keccak256 } from 'ethereumjs-util'
 
+// TODO: read from core
 export const ChainsWithSubgraphs: Record<string, string[]> = {
   mainnet: ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova', 'base'],
   goerli: ['arbitrum', 'polygon', 'optimism', 'linea', 'base']
@@ -142,7 +143,7 @@ export class WithdrawalProof {
 
     const transferRoot = await this.getTransferRootForTransferId(transfer)
     if (!transferRoot) {
-      throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet. Withdrawal can only occur after the transfer root has been set at the destination. This may take a few hours or days depending on the chain. Please try again later after the transfer root has been committed. Your funds are safe and will just take a little longer.')
+      throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet. Withdrawal can only occur after the transfer root has been set at the destination. This may take a few hours depending on the route. Please try again later after the transfer root has been committed. Your funds are safe and will just take a little longer.')
     }
     const { rootHash: transferRootHash, totalAmount: rootTotalAmount } = transferRoot
     const transferIds = transferRoot.transferIds.map((x:Transfer) => x.transferId)

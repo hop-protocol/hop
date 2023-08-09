@@ -13,15 +13,17 @@ commands:
           command: |
             [ -n "$WEBHOOK_URL_GOERLI" ] && curl "$WEBHOOK_URL_GOERLI" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
             [ -n "$WEBHOOK_URL_MAINNET" ] && curl "$WEBHOOK_URL_MAINNET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            exit 0
       - run:
           name: On fail
           when: on_fail
           command: |
             [ -n "$WEBHOOK_URL_GOERLI" ] && curl "$WEBHOOK_URL_GOERLI" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
             [ -n "$WEBHOOK_URL_MAINNET" ] && curl "$WEBHOOK_URL_MAINNET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            exit 0
 
 jobs:
-  build_hop_node:
+  build_backend:
     working_directory: /app
     docker:
       - image: docker:17.05.0-ce-git
@@ -65,7 +67,7 @@ jobs:
 workflows:
   main:
     jobs:
-      - build_hop_node:
+      - build_backend:
           filters:
             branches:
               only:

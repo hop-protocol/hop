@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   base: dmx-io/base@2.0.88
 
-jobs:
+commands:
   notify_job_status:
     description: Send webhook to server about job status
     steps:
@@ -20,6 +20,7 @@ jobs:
             curl "$WEBHOOK_URL_GOERLI" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
             curl "$WEBHOOK_URL_MAINNET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
 
+jobs:
   build_hop_node:
     working_directory: /app
     docker:

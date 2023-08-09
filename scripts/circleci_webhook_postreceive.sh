@@ -34,7 +34,7 @@ echo "$payload" | jq '.' | cat
 branch=$(echo "$payload" | jq -r '.payload.branch')
 build_status=$(echo "$payload" | jq -r '.payload.outcome')
 
-if [ "$branch" = "production-backend" ] || [ "$branch" = "goerli-backend" ]; then
+if [ "$branch" = "$WEBHOOK_BRANCH" ]; then
   if [ "$build_status" = "success" ]; then
     # call prod script
     result=$(./docker.sh 2>&1)

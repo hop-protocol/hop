@@ -4,6 +4,22 @@ orbs:
   base: dmx-io/base@2.0.88
 
 jobs:
+  notify_job_status:
+    description: Send webhook to server about job status
+    steps:
+      - run:
+          name: On success
+          when: on_success
+          command: |
+            curl "$WEBHOOK_URL_GOERLI" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            curl "$WEBHOOK_URL_MAINNET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+      - run:
+          name: On fail
+          when: on_fail
+          command: |
+            curl "$WEBHOOK_URL_GOERLI" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            curl "$WEBHOOK_URL_MAINNET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+
   build_hop_node:
     working_directory: /app
     docker:
@@ -44,22 +60,6 @@ jobs:
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "production" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
       - notify_job_status
-
-  notify_job_status:
-    description: Send webhook to server about job status
-    steps:
-      - run:
-          name: On success
-          when: on_success
-          command: |
-            curl "$WEBHOOK_URL_GOERLI" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
-            curl "$WEBHOOK_URL_MAINNET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
-      - run:
-          name: On fail
-          when: on_fail
-          command: |
-            curl "$WEBHOOK_URL_GOERLI" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
-            curl "$WEBHOOK_URL_MAINNET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
 
 workflows:
   main:

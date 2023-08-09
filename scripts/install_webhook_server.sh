@@ -6,7 +6,7 @@ set -e
 # produce failure return code if any command fails in pipe
 set -o pipefail
 
-release_url=$(curl -s https://api.github.com/repos/miguelmota/go-webhook-server/releases/latest | grep "browser_download_url.*Linux_x86_64.tar.gz" | cut -d : -f 2,3 | tr -d \")
+release_url=$(curl -s https://api.github.com/repos/hop-protocol/go-webhook-server/releases/latest | grep "browser_download_url.*linux_amd64.tar.gz" | cut -d : -f 2,3 | tr -d \")
 
 (
   cd /tmp

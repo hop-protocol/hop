@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
-import Db from './Db'
+import { db } from './Db'
 import { PriceFeed } from './PriceFeed'
 import { queryFetch } from './utils/queryFetch'
 import { nearestDate } from './utils/nearestDate'
@@ -19,7 +19,7 @@ type Options = {
 }
 
 export class AmmStats {
-  db = new Db()
+  db = db
   regenesis: boolean = false
   days: number = 1
   offsetDays: number = 0
@@ -45,21 +45,6 @@ export class AmmStats {
     }
 
     this.priceFeed = new PriceFeed()
-
-    process.once('uncaughtException', async err => {
-      console.error('uncaughtException:', err)
-      this.cleanUp()
-      process.exit(0)
-    })
-
-    process.once('SIGINT', () => {
-      this.cleanUp()
-    })
-  }
-
-  cleanUp () {
-    // console.log('closing db')
-    // this.db.close()
   }
 
   async fetchTokenSwaps (

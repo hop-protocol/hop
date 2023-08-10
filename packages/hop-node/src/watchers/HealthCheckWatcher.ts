@@ -14,6 +14,7 @@ import getTransferIds from 'src/theGraph/getTransferIds'
 import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
+import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
 import wait from 'src/utils/wait'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
 import { BigNumber, providers } from 'ethers'
@@ -29,6 +30,7 @@ import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { main as verifyChainBalance } from 'src/cli/verifyChainBalance'
+
 
 type LowBonderBalance = {
   bridge: string
@@ -905,34 +907,7 @@ export class HealthCheckWatcher {
     // const promises: Array<Promise<null>> = []
     // for (const sourceChain of sourceChains) {
     //   for (const token of tokens) {
-    //     // TODO: Better filtering
-    //     if (['arbitrum', 'optimism', 'nova', 'base'].includes(sourceChain) && token === 'MATIC') {
-    //       continue
-    //     }
-    //     const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova', 'base']
-    //     if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
-    //       continue
-    //     }
-    //     const nonREthChains = ['polygon', 'gnosis', 'nova', 'base']
-    //     if (nonREthChains.includes(sourceChain) && token === 'rETH') {
-    //       continue
-    //     }
-    //     const nonMagicChains = ['polygon', 'gnosis', 'optimism', 'base']
-    //     if (nonMagicChains.includes(sourceChain) && token === 'MAGIC') {
-    //       continue
-    //     }
-    //     if (sourceChain === Chain.Nova) {
-    //       if (
-    //         token !== 'ETH' &&
-    //         token !== 'HOP'
-    //       )
-    //       continue
-    //     }
-    //     if (sourceChain === Chain.Base) {
-    //       if (
-    //         token !== 'ETH' &&
-    //         token !== 'HOP'
-    //       )
+    //     if(!isTokenSupportedForChain(token, sourceChain)) {
     //       continue
     //     }
     //     promises.push(new Promise(async (resolve, reject) => {

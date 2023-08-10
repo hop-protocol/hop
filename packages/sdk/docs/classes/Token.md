@@ -78,6 +78,7 @@ Token
 - [fetchIpfsCoreConfigData](Token.md#fetchipfscoreconfigdata)
 - [geConfigChains](Token.md#geconfigchains)
 - [getArbChainAddress](Token.md#getarbchainaddress)
+- [getAvailableRoutes](Token.md#getavailableroutes)
 - [getBumpedGasPrice](Token.md#getbumpedgasprice)
 - [getChainId](Token.md#getchainid)
 - [getChainProvider](Token.md#getchainprovider)
@@ -737,7 +738,7 @@ ___
 
 ### <a id="estimateoptimisml1feefromdata" name="estimateoptimisml1feefromdata"></a> estimateOptimismL1FeeFromData
 
-▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`): `Promise`<`any`\>
+▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`, `destChain?`): `Promise`<`any`\>
 
 #### Parameters
 
@@ -746,6 +747,7 @@ ___
 | `gasLimit` | `BigNumberish` | `undefined` |
 | `data` | `string` | `'0x'` |
 | `to` | `string` | `constants.AddressZero` |
+| `destChain` | `string` \| [`Chain`](Chain.md) | `Chain.Optimism` |
 
 #### Returns
 
@@ -887,6 +889,20 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getArbChainAddress](Base.md#getarbchainaddress)
+
+___
+
+### <a id="getavailableroutes" name="getavailableroutes"></a> getAvailableRoutes
+
+▸ **getAvailableRoutes**(): `Promise`<`any`\>
+
+#### Returns
+
+`Promise`<`any`\>
+
+#### Inherited from
+
+[Base](Base.md).[getAvailableRoutes](Base.md#getavailableroutes)
 
 ___
 
@@ -2213,13 +2229,14 @@ ___
 
 ### <a id="txoverrides" name="txoverrides"></a> txOverrides
 
-▸ **txOverrides**(`chain`): `Promise`<`any`\>
+▸ **txOverrides**(`sourceChain`, `destinationChain?`): `Promise`<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chain` | [`Chain`](Chain.md) |
+| `sourceChain` | [`Chain`](Chain.md) |
+| `destinationChain?` | [`Chain`](Chain.md) |
 
 #### Returns
 

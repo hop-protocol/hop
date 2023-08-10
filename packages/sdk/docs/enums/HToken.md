@@ -7,6 +7,7 @@
 - [hDAI](HToken.md#hdai)
 - [hETH](HToken.md#heth)
 - [hHop](HToken.md#hhop)
+- [hMAGIC](HToken.md#hmagic)
 - [hMATIC](HToken.md#hmatic)
 - [hUNI](HToken.md#huni)
 - [hUSDC](HToken.md#husdc)
@@ -30,6 +31,12 @@ ___
 ### <a id="hhop" name="hhop"></a> hHop
 
 • **hHop** = ``"hHOP"``
+
+___
+
+### <a id="hmagic" name="hmagic"></a> hMAGIC
+
+• **hMAGIC** = ``"hMAGIC"``
 
 ___
 

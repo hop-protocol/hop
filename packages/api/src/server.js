@@ -79,8 +79,8 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
       destinationAmountOutMin: destinationAmountOutMin ? destinationAmountOutMin.toString() : null,
       bonderFee: totalFee ? totalFee.toString() : null,
       estimatedRecieved: estimatedReceived ? estimatedReceived.toString() : null,
-      deadline: deadline ? deadline : null,
-      destinationDeadline: destinationDeadline ? destinationDeadline : null
+      deadline: deadline || null,
+      destinationDeadline: destinationDeadline || null
     })
   } catch (err) {
     res.json({ error: err.message })
@@ -90,6 +90,32 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
 app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req, res) => {
   const { transferId, transactionHash } = req.query
   let { network } = req.query
+
+  function filterResult (json) {
+    return {
+      transferId: json.transferId,
+      transactionHash: json.transactionHash,
+      sourceChainId: json.sourceChainId,
+      sourceChainSlug: json.sourceChainSlug,
+      destinationChainId: json.destinationChainId,
+      destinationChainSlug: json.destinationChainSlug,
+      accountAddress: json.accountAddress,
+      amount: json.amount,
+      amountFormatted: json.amountFormatted,
+      amountUsd: json.amountUsd,
+      amountOutMin: json.amountOutMin,
+      deadline: json.deadline,
+      recipientAddress: json.recipientAddress,
+      bonderFee: json.bonderFee,
+      bonderFeeFormatted: json.bonderFeeFormatted,
+      bonderFeeUsd: json.bonderFeeUsd,
+      bonded: json.bonded,
+      bondTransactionHash: json.bondTransactionHash,
+      bonderAddress: json.bonderAddress,
+      token: json.token,
+      timestamp: json.timestamp
+    }
+  }
 
   try {
     if (!network) {
@@ -117,30 +143,22 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
 
     const hop = new Hop(network)
     const json = await hop.getTransferStatus(tId)
-    const result = {
-      transferId: json.transferId,
-      transactionHash: json.transactionHash,
-      sourceChainId: json.sourceChainId,
-      sourceChainSlug: json.sourceChainSlug,
-      destinationChainId: json.destinationChainId,
-      destinationChainSlug: json.destinationChainSlug,
-      accountAddress: json.accountAddress,
-      amount: json.amount,
-      amountFormatted: json.amountFormatted,
-      amountUsd: json.amountUsd,
-      amountOutMin: json.amountOutMin,
-      deadline: json.deadline,
-      recipientAddress: json.recipientAddress,
-      bonderFee: json.bonderFee,
-      bonderFeeFormatted: json.bonderFeeFormatted,
-      bonderFeeUsd: json.bonderFeeUsd,
-      bonded: json.bonded,
-      bondTransactionHash: json.bondTransactionHash,
-      bonderAddress: json.bonderAddress,
-      token: json.token,
-      timestamp: json.timestamp
-    }
+    const result = Array.isArray(json) ? json.map(filterResult) : filterResult(json)
     res.json(result)
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/available-routes', responseCache, ipRateLimitMiddleware, async (req, res) => {
+  try {
+    let { network } = req.query
+    if (!network) {
+      network = 'mainnet'
+    }
+    const hop = new Hop(network)
+    const json = await hop.getAvailableRoutes()
+    res.json(json)
   } catch (err) {
     res.json({ error: err.message })
   }

@@ -4,66 +4,12 @@ import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
 import { timestampPerBlockPerChain } from './constants'
-import {
-  ethereumRpc,
-  gnosisRpc,
-  gnosisArchiveRpc,
-  polygonRpc,
-  optimismRpc,
-  arbitrumRpc,
-  novaRpc,
-  baseRpc
-} from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { PriceFeed } from './PriceFeed'
-
-const allProviders: any = {
-  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
-  gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
-  polygon: new providers.StaticJsonRpcProvider(polygonRpc),
-  optimism: new providers.StaticJsonRpcProvider(optimismRpc),
-  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc),
-  nova: new providers.StaticJsonRpcProvider(novaRpc),
-  base: new providers.StaticJsonRpcProvider(baseRpc)
-}
-
-const allArchiveProviders: any = {
-  gnosis: gnosisArchiveRpc
-    ? new providers.StaticJsonRpcProvider(gnosisArchiveRpc)
-    : undefined
-}
-
-function nearestDate (dates: any[], target: any) {
-  if (!target) {
-    target = Date.now()
-  } else if (target instanceof Date) {
-    target = target.getTime()
-  }
-
-  var nearest = Infinity
-  var winner = -1
-
-  dates.forEach(function (date, index) {
-    if (date instanceof Date) date = date.getTime()
-    var distance = Math.abs(date - target)
-    if (distance < nearest) {
-      nearest = distance
-      winner = index
-    }
-  })
-
-  return winner
-}
-
-const tokenDecimals: any = {
-  USDC: 6,
-  USDT: 6,
-  DAI: 18,
-  MATIC: 18,
-  ETH: 18,
-  HOP: 18
-}
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { enabledTokens, enabledChains, rpcUrls, archiveRpcUrls } from './config'
+import { nearestDate } from './utils/nearestDate'
 
 function sumAmounts (items: any) {
   let sum = BigNumber.from(0)
@@ -85,6 +31,8 @@ class TvlStats {
   days: number = 365
   blockTags: Record<string, Record<number, number>> = {}
   priceFeed: PriceFeed
+  allProviders: Record<string, any> = {}
+  allArchiveProviders: Record<string, any> = {}
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
@@ -96,6 +44,18 @@ class TvlStats {
 
     this.blockTags = timestampPerBlockPerChain
     this.priceFeed = new PriceFeed()
+
+    for (const chain in rpcUrls) {
+      this.allProviders[chain] = new providers.StaticJsonRpcProvider(
+        rpcUrls[chain]
+      )
+    }
+
+    for (const chain in archiveRpcUrls) {
+      this.allArchiveProviders[chain] = new providers.StaticJsonRpcProvider(
+        archiveRpcUrls[chain]
+      )
+    }
 
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
@@ -117,15 +77,12 @@ class TvlStats {
     const daysN = this.days
     console.log('fetching prices')
 
-    const prices: any = {
-      USDC: await this.priceFeed.getPriceHistory('USDC', daysN),
-      USDT: await this.priceFeed.getPriceHistory('USDT', daysN),
-      DAI: await this.priceFeed.getPriceHistory('DAI', daysN),
-      ETH: await this.priceFeed.getPriceHistory('ETH', daysN),
-      MATIC: await this.priceFeed.getPriceHistory('MATIC', daysN),
-      WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
-      HOP: await this.priceFeed.getPriceHistory('HOP', daysN)
+    const prices: Record<string, any> = {}
+
+    for (const token of enabledTokens) {
+      prices[token] = await this.priceFeed.getPriceHistory(token, daysN)
     }
+
     console.log('done fetching prices')
 
     console.log('upserting prices')
@@ -144,16 +101,8 @@ class TvlStats {
     }
     console.log('done upserting prices')
 
-    let tokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'HOP']
-    let chains = [
-      'polygon',
-      'gnosis',
-      'arbitrum',
-      'optimism',
-      'ethereum',
-      'nova',
-      'base'
-    ]
+    let tokens = enabledTokens
+    let chains = enabledChains
     if (this.regenesis) {
       chains = ['optimism']
     }
@@ -167,7 +116,7 @@ class TvlStats {
         const endDate = day === 0 ? now : now.minus({ days: day }).endOf('day')
         const endTimestamp = Math.floor(endDate.toSeconds())
         if (this.blockTags?.[chain]?.[endTimestamp]) continue
-        const provider = allProviders[chain]
+        const provider = this.allProviders[chain]
         const blockTag = await getBlockNumberFromDate(
           chain,
           provider,
@@ -186,16 +135,12 @@ class TvlStats {
           await Promise.all(
             chains.map(async (chain: string) => {
               try {
-                const provider = allProviders[chain]
-                const archiveProvider = allArchiveProviders[chain] || provider
-                if (
-                  token === 'MATIC' &&
-                  ['optimism', 'arbitrum', 'nova', 'base'].includes(chain)
-                ) {
-                  return
-                }
-
-                const config = (mainnetAddresses as any).bridges[token][chain]
+                const provider = this.allProviders[chain]
+                const archiveProvider =
+                  this.allArchiveProviders[chain] || provider
+                const config = (mainnetAddresses as any).bridges?.[token]?.[
+                  chain
+                ]
                 if (!config) {
                   return
                 }
@@ -224,15 +169,22 @@ class TvlStats {
                     token,
                     startTimestamp
                   )
-                  if (isCached) continue
+                  if (isCached) {
+                    return
+                  }
 
                   console.log(
                     `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
                   )
 
                   const blockTag = this.blockTags[chain][endTimestamp]
-                  let balance: any
+                  let balance: BigNumber = BigNumber.from(0)
                   try {
+                    const isContractDeployed =
+                      blockTag >=
+                      (mainnetAddresses as any)?.bridges[token]?.[chain]
+                        ?.bridgeDeployedBlockNumber
+
                     if (
                       tokenAddress === constants.AddressZero &&
                       chain === 'ethereum'
@@ -242,17 +194,21 @@ class TvlStats {
                         blockTag
                       )
                     } else {
-                      balance = await tokenContract.balanceOf(spender, {
-                        blockTag
-                      })
+                      if (isContractDeployed) {
+                        balance = await tokenContract.balanceOf(spender, {
+                          blockTag
+                        })
+                      }
                     }
                   } catch (err) {
-                    console.error(`${chain} ${token} ${err.message}`)
+                    console.error(
+                      `tvl promise error ${chain} ${token} ${err.message}`
+                    )
                     throw err
                   }
 
                   console.log('balance', balance, blockTag)
-                  const decimals = tokenDecimals[token]
+                  const decimals = getTokenDecimals(token)
                   const formattedAmount = Number(
                     formatUnits(balance.toString(), decimals)
                   )
@@ -287,6 +243,7 @@ class TvlStats {
         })
       )
     }
+    console.log('done fetching tvl')
   }
 
   isItemCached (

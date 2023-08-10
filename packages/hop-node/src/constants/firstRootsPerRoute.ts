@@ -21,5 +21,5 @@ export const FirstRoots: Record<string, boolean> = {
   '0xa48ca1ade7ae622fb5c058e45a31ce602b553ef10aa5d92bda6a7a27788583b6': true, // Optimism
   '0x294697f26f1139668c659478d85219c7b1fedfe32ffb7d5469bfc6cec41c1be9': true, // Arbitrum One
   '0xab955d0167cfc4b0c328814e694e46a8f2e8cf962c06f34facf0f5076b898989': true, // Polygon
-  '0xdd12eaba7386d0e5423e42c6d8fdb276a308c48eca118a98fe4488c60e3174b3': true, // Gnosis
+  '0xdd12eaba7386d0e5423e42c6d8fdb276a308c48eca118a98fe4488c60e3174b3': true // Gnosis
 }

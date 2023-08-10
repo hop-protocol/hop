@@ -115,7 +115,6 @@ const AccountDetails = () => {
         )}
       </Box>
       <Div position="relative">
-        {/*<TransactionsList />*/}
         <AccountTransferHistory address={address?.address} />
       </Div>
     </Modal>

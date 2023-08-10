@@ -7,7 +7,6 @@ import { useApp } from 'src/contexts/AppContext'
 import Modal from 'src/components/modal/Modal'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import ClipboardCopyButton from 'src/components/buttons/ClipboardCopyButton'
-// import TransactionsList from '../Transaction/TransactionsList'
 import { AccountTransferHistory } from './AccountTransferHistory'
 import { Div } from '../ui'
 
@@ -116,7 +115,6 @@ const AccountDetails = () => {
         )}
       </Box>
       <Div position="relative">
-        {/*<TransactionsList />*/}
         <AccountTransferHistory address={address?.address} />
       </Div>
     </Modal>

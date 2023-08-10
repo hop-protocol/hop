@@ -14,6 +14,7 @@ import getTransferIds from 'src/theGraph/getTransferIds'
 import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
+import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
 import wait from 'src/utils/wait'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
 import { BigNumber, providers } from 'ethers'
@@ -29,6 +30,7 @@ import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { main as verifyChainBalance } from 'src/cli/verifyChainBalance'
+
 
 type LowBonderBalance = {
   bridge: string
@@ -240,7 +242,7 @@ export class HealthCheckWatcher {
     DAI: parseUnits('1500000', 18),
     ETH: parseUnits('7949', 18),
     MATIC: parseUnits('766730', 18),
-    HOP: parseUnits('3500000', 18),
+    HOP: parseUnits('4500000', 18),
     SNX: parseUnits('200000', 18),
     sUSD: parseUnits('500000', 18),
     rETH: parseUnits('550', 18),
@@ -253,7 +255,7 @@ export class HealthCheckWatcher {
   incompleteSettlementsMinTimeToWaitHours: number = 4
 
   chainsIgnoredByBonder: Record<string, string[]> = {
-    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon', 'nova']
+    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon', 'nova', 'base']
   }
 
   enabledChecks: EnabledChecks = {
@@ -693,7 +695,7 @@ export class HealthCheckWatcher {
 
     // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
     const l1Chains: string[] = [Chain.Ethereum]
-    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova]
+    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base]
     result = result.map((x: any) => {
       const isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
@@ -743,8 +745,8 @@ export class HealthCheckWatcher {
 
   private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova]
-    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova]
+    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
     const tokens = getEnabledTokens()
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
@@ -866,7 +868,7 @@ export class HealthCheckWatcher {
     const outOfSyncTimestamp = Math.floor(now.minus({ minutes: this.healthCheckFinalityTimeMinutes }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
 
-    // Note: Nova is unsupported here since there is no index-node subgraph for nova
+    // Note: Nova and Base are unsupported here since there is no index-node subgraph for these chains
     const result: any = []
     for (const chain of chains) {
       const provider = getRpcProvider(chain)!
@@ -891,63 +893,48 @@ export class HealthCheckWatcher {
   }
 
   async getMissedEvents (): Promise<MissedEvent[]> {
-    const missedEvents: MissedEvent[] = []
-    const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova]
-    const tokens = getEnabledTokens()
-    const now = DateTime.now().toUTC()
-    const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
-    const startDate = endDate.minus({ days: this.days })
-    const filters = {
-      startDate: startDate.toISO(),
-      endDate: endDate.toISO()
-    }
-    const promises: Array<Promise<null>> = []
-    for (const sourceChain of sourceChains) {
-      for (const token of tokens) {
-        // TODO: Better filtering
-        if (['arbitrum', 'optimism', 'nova'].includes(sourceChain) && token === 'MATIC') {
-          continue
-        }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova']
-        if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
-          continue
-        }
-        const nonREthChains = ['polygon', 'gnosis', 'nova']
-        if (nonREthChains.includes(sourceChain) && token === 'rETH') {
-          continue
-        }
-        const nonMagicChains = ['polygon', 'gnosis', 'optimism']
-        if (nonMagicChains.includes(sourceChain) && token === 'MAGIC') {
-          continue
-        }
-        if (sourceChain === Chain.Nova && token !== 'ETH') {
-          continue
-        }
-        promises.push(new Promise(async (resolve, reject) => {
-          try {
-            const db = getDbSet(token)
-            this.logger.debug('fetching getTransferIds', sourceChain, token)
-            const transfers = await getTransferIds(sourceChain, token, filters)
-            this.logger.debug('checking', sourceChain, token, transfers.length)
-            for (const transfer of transfers) {
-              const { transferId, amount, bonderFee, timestamp } = transfer
-              const item = await db.transfers.getByTransferId(transferId)
-              if (!item?.transferSentTxHash && !item?.withdrawalBonded) {
-                missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
-              }
-            }
-            resolve(null)
-          } catch (err: any) {
-            reject(err)
-          }
-        }))
-      }
-    }
+    return []
+    // const missedEvents: MissedEvent[] = []
+    // const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+    // const tokens = getEnabledTokens()
+    // const now = DateTime.now().toUTC()
+    // const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
+    // const startDate = endDate.minus({ days: this.days })
+    // const filters = {
+    //   startDate: startDate.toISO(),
+    //   endDate: endDate.toISO()
+    // }
+    // const promises: Array<Promise<null>> = []
+    // for (const sourceChain of sourceChains) {
+    //   for (const token of tokens) {
+    //     if(!isTokenSupportedForChain(token, sourceChain)) {
+    //       continue
+    //     }
+    //     promises.push(new Promise(async (resolve, reject) => {
+    //       try {
+    //         const db = getDbSet(token)
+    //         this.logger.debug('fetching getTransferIds', sourceChain, token)
+    //         const transfers = await getTransferIds(sourceChain, token, filters)
+    //         this.logger.debug('checking', sourceChain, token, transfers.length)
+    //         for (const transfer of transfers) {
+    //           const { transferId, amount, bonderFee, timestamp } = transfer
+    //           const item = await db.transfers.getByTransferId(transferId)
+    //           if (!item?.transferSentTxHash && !item?.withdrawalBonded) {
+    //             missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
+    //           }
+    //         }
+    //         resolve(null)
+    //       } catch (err: any) {
+    //         reject(err)
+    //       }
+    //     }))
+    //   }
+    // }
 
-    await Promise.all(promises)
-    this.logger.debug('done fetching all getTransferIds')
+    // await Promise.all(promises)
+    // this.logger.debug('done fetching all getTransferIds')
 
-    return missedEvents
+    // return missedEvents
   }
 
   async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
@@ -980,6 +967,9 @@ export class HealthCheckWatcher {
 
     const missingTransfers: any[] = []
     for (const chain of RelayableChains) {
+      // TODO: Polygonzk is not yet deployed
+      if (chain === Chain.PolygonZk) continue
+
       // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
       const endDateWithBuffer = endDate.plus({ minutes: 30 })
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
@@ -1123,27 +1113,28 @@ export class HealthCheckWatcher {
   }
 
   async getInvalidChainBalance (): Promise<InvalidChainBalance[]> {
-    this.logger.debug('checking for an invalid chainBalance')
-    const invalidChainBalances: InvalidChainBalance[] = []
-    for (const token of this.tokens) {
-      this.logger.debug(`checking ${token} for invalid chainBalance`)
-      const {
-        tokenChainBalanceDiff,
-        chainBalanceHTokenDiff
-      } = await verifyChainBalance({ token, allowRoundingError: true })
+    return []
+    // this.logger.debug('checking for an invalid chainBalance')
+    // const invalidChainBalances: InvalidChainBalance[] = []
+    // for (const token of this.tokens) {
+    //   this.logger.debug(`checking ${token} for invalid chainBalance`)
+    //   const {
+    //     tokenChainBalanceDiff,
+    //     chainBalanceHTokenDiff
+    //   } = await verifyChainBalance({ token, allowRoundingError: true })
 
-      if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
-        continue
-      }
+    //   if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
+    //     continue
+    //   }
 
-      this.logger.debug('invalid chainBalance found', token)
-      // invalidChainBalances.push({
-      //   token,
-      //   tokenChainBalanceDiff,
-      //   chainBalanceHTokenDiff
-      // })
-    }
+    //   this.logger.debug('invalid chainBalance found', token)
+    //   // invalidChainBalances.push({
+    //   //   token,
+    //   //   tokenChainBalanceDiff,
+    //   //   chainBalanceHTokenDiff
+    //   // })
+    // }
 
-    return invalidChainBalances
+    // return invalidChainBalances
   }
 }

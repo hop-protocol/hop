@@ -255,6 +255,23 @@ class CanonicalBridge extends Base {
         recipient,
         amount
       )
+    } else if ((chain as Chain).equals(Chain.Base)) {
+      const l2TokenAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
+      if (!l2TokenAddress) {
+        throw new Error(
+          `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
+      const bridge = await this.getContract(
+        L1_OptimismTokenBridge__factory,
+        bridgeAddress,
+        provider
+      )
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.deposit(tokenAddress, l2TokenAddress, recipient, amount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const bridgeAddress = this.getL1PosRootChainManagerAddress(
         this.tokenSymbol,
@@ -536,6 +553,8 @@ class CanonicalBridge extends Base {
       factory = ArbERC20__factory
     } else if (this.chain.equals(Chain.Optimism)) {
       factory = L2_OptimismTokenBridge__factory
+    } else if (this.chain.equals(Chain.Base)) {
+      factory = L2_OptimismTokenBridge__factory
     }
     return this.getContract(factory, address, provider)
   }
@@ -561,6 +580,8 @@ class CanonicalBridge extends Base {
     } else if (this.chain.equals(Chain.Nova)) {
       factory = ArbitrumGlobalInbox__factory
     } else if (this.chain.equals(Chain.Optimism)) {
+      factory = L1_OptimismTokenBridge__factory
+    } else if (this.chain.equals(Chain.Base)) {
       factory = L1_OptimismTokenBridge__factory
     }
     return this.getContract(factory, address, provider)

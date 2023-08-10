@@ -76,7 +76,7 @@ function getOnboardChains(): any {
         id: chainIdToHex(goerliChains.linea.networkId),
         token: 'ETH',
         label: 'Linea Goerli',
-        rpcUrl: 'https://rpc.goerli.linea.build' // NOTE: this rpc url has write access but it's more rate limitted
+        rpcUrl: 'https://rpc.goerli.linea.build' // NOTE: this rpc url has write access but it's more rate limited
       },
       {
         id: chainIdToHex(goerliChains.scrollzk.networkId),
@@ -89,7 +89,13 @@ function getOnboardChains(): any {
         token: 'ETH',
         label: 'Polygon zkEVM (Goerli)',
         rpcUrl: goerliChains.polygonzk.publicRpcUrl
-      }
+      },
+      {
+        id: chainIdToHex(goerliChains.base.networkId),
+        token: 'ETH',
+        label: 'Base Goerli',
+        rpcUrl: goerliChains.base.publicRpcUrl
+      },
     ]
   } else {
     return [
@@ -128,6 +134,12 @@ function getOnboardChains(): any {
         token: 'ETH',
         label: 'Nova Mainnet',
         rpcUrl: mainnetChains.nova.publicRpcUrl
+      },
+      {
+        id: chainIdToHex(mainnetChains.base.networkId),
+        token: 'ETH',
+        label: 'Base Mainnet',
+        rpcUrl: mainnetChains.base.publicRpcUrl
       }
     ]
   }

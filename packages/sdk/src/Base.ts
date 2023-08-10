@@ -636,8 +636,8 @@ export class Base {
 
     // Post-bedrock L1 to L2 message transactions don't estimate correctly
     // TODO: Remove this when estimation is fixed
-    if (sourceChain.equals(Chain.Ethereum) && destinationChain?.equals(Chain.Optimism)) {
-      txOptions.gasLimit = 250000
+    if (sourceChain.equals(Chain.Ethereum) && (destinationChain?.equals(Chain.Optimism) || destinationChain?.equals(Chain.Base))) {
+      txOptions.gasLimit = 500000
     }
 
     if (this.network === NetworkSlug.Goerli) {
@@ -880,13 +880,39 @@ export class Base {
     return supported[chain.slug]
   }
 
+  async getAvailableRoutes (): Promise<any> {
+    const routes : any[] = []
+
+    for (const token in this.addresses) {
+      for (const sourceChainSlug in this.addresses[token]) {
+        for (const destinationChainSlug in this.addresses[token]) {
+          if (sourceChainSlug === destinationChainSlug) {
+            continue
+          }
+          const sourceChainId = Number(this.chains[sourceChainSlug]?.chainId)
+          const destinationChainId = Number(this.chains[destinationChainSlug]?.chainId)
+          routes.push({
+            token,
+            sourceChainSlug,
+            sourceChainId,
+            destinationChainSlug,
+            destinationChainId
+          })
+        }
+      }
+    }
+
+    return routes
+  }
+
   async estimateOptimismL1FeeFromData (
     gasLimit : BigNumberish,
     data: string = '0x',
-    to: string = constants.AddressZero
+    to: string = constants.AddressZero,
+    destChain: Chain | string = Chain.Optimism
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
-    const chain = this.toChainModel(Chain.Optimism)
+    const chain = this.toChainModel(destChain)
     const gasPrice = await chain.provider.getGasPrice()
     const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
       .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
@@ -934,7 +960,7 @@ export class Base {
     const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
     const json = await fetchJsonOrThrow(url)
-    return json.data?.[0] ?? null
+    return json.data ?? null
   }
 
   getProviderRpcUrl (provider: any): string {

@@ -637,11 +637,11 @@ const Send: FC = () => {
     if (customRecipient) {
       if (gnosisEnabled && address?.eq(customRecipient)) {
         setManualWarning(
-          'Warning: make sure gnosis safe exists at the destination chain otherwise it may result in lost funds.'
+          'Warning: make sure Gnosis Safe exists at the destination chain otherwise it may result in lost funds.'
         )
       }
       setManualWarning(
-        'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
+        'Warning: Transfers to exchanges that do not support internal transactions may result in lost funds. If the recipient is not an exchange address, then you can ignore this warning.'
       )
     } else {
       setManualWarning('')

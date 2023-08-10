@@ -69,6 +69,7 @@ Base
 - [fetchIpfsCoreConfigData](Base.md#fetchipfscoreconfigdata)
 - [geConfigChains](Base.md#geconfigchains)
 - [getArbChainAddress](Base.md#getarbchainaddress)
+- [getAvailableRoutes](Base.md#getavailableroutes)
 - [getBumpedGasPrice](Base.md#getbumpedgasprice)
 - [getChainId](Base.md#getchainid)
 - [getChainProvider](Base.md#getchainprovider)
@@ -369,7 +370,7 @@ ___
 
 ### <a id="estimateoptimisml1feefromdata" name="estimateoptimisml1feefromdata"></a> estimateOptimismL1FeeFromData
 
-▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`): `Promise`<`any`\>
+▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`, `destChain?`): `Promise`<`any`\>
 
 #### Parameters
 
@@ -378,6 +379,7 @@ ___
 | `gasLimit` | `BigNumberish` | `undefined` |
 | `data` | `string` | `'0x'` |
 | `to` | `string` | `constants.AddressZero` |
+| `destChain` | `string` \| [`Chain`](Chain.md) | `Chain.Optimism` |
 
 #### Returns
 
@@ -479,6 +481,16 @@ ___
 #### Returns
 
 `string`
+
+___
+
+### <a id="getavailableroutes" name="getavailableroutes"></a> getAvailableRoutes
+
+▸ **getAvailableRoutes**(): `Promise`<`any`\>
+
+#### Returns
+
+`Promise`<`any`\>
 
 ___
 
@@ -1380,13 +1392,14 @@ ___
 
 ### <a id="txoverrides" name="txoverrides"></a> txOverrides
 
-▸ **txOverrides**(`chain`): `Promise`<`any`\>
+▸ **txOverrides**(`sourceChain`, `destinationChain?`): `Promise`<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chain` | [`Chain`](Chain.md) |
+| `sourceChain` | [`Chain`](Chain.md) |
+| `destinationChain?` | [`Chain`](Chain.md) |
 
 #### Returns
 

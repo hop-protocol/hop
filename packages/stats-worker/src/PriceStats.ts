@@ -1,27 +1,13 @@
 import { PriceFeed } from './PriceFeed'
+import { tokens } from '@hop-protocol/core/metadata'
 
 export class PriceStats {
-  tokens: string[] = [
-    'USDC',
-    'USDT',
-    'DAI',
-    'ETH',
-    'MATIC',
-    'WBTC',
-    'HOP',
-    'SNX',
-    'sUSD',
-    'rETH',
-    'RPL',
-    'GNO',
-    'GNO',
-    'OP',
-    'MAGIC'
-  ]
-
+  tokens: string[] = []
   priceFeed: PriceFeed
 
   constructor () {
+    this.tokens = Object.keys(tokens)
+
     this.priceFeed = new PriceFeed()
   }
 

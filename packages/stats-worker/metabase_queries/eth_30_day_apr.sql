@@ -1,3 +1,5 @@
+-- ETH Bonder 30 Day APR
+
 select
   ((((f - l) / (30.0 / 365.0)) / total) * 100) as apr
 from (

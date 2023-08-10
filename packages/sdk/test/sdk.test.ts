@@ -712,7 +712,7 @@ describe.skip('getSendDataAmountOutMins', () => {
   })
 })
 
-describe.skip('supported assets', () => {
+describe('supported assets', () => {
   it('should return list of supported assets per chain', () => {
     const hop = new Hop('mainnet')
     const assets = hop.getSupportedAssets()
@@ -726,6 +726,15 @@ describe.skip('supported assets', () => {
     expect(bridge.isSupportedAsset(Chain.fromSlug('polygon'))).toBe(false)
     expect(bridge.isSupportedAsset('optimism')).toBe(true)
     expect(bridge.isSupportedAsset(Chain.fromSlug('optimism'))).toBe(true)
+  })
+})
+
+describe('available routes', () => {
+  it('should return list available routes', async () => {
+    const hop = new Hop('mainnet')
+    const routes = await hop.getAvailableRoutes()
+    console.log(routes)
+    expect(routes).toBeTruthy()
   })
 })
 

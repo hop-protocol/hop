@@ -36,3 +36,6 @@ curl-quote:
 
 curl-transfer-status:
 	curl -g "http://localhost:8000/v1/transfer-status?transferId=0x5a15b2abd4d0f2e5d0ea3d5fc93758374b14940096487d70f7c95b5393fc9c89"
+
+curl-available-routes:
+	curl -g "http://localhost:8000/v1/available-routes" | jq

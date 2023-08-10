@@ -12,6 +12,7 @@
 - [Nova](ChainSlug.md#nova)
 - [Optimism](ChainSlug.md#optimism)
 - [Polygon](ChainSlug.md#polygon)
+- [PolygonZk](ChainSlug.md#polygonzk)
 - [ScrollZk](ChainSlug.md#scrollzk)
 - [ZkSync](ChainSlug.md#zksync)
 
@@ -62,6 +63,12 @@ ___
 ### <a id="polygon" name="polygon"></a> Polygon
 
 • **Polygon** = ``"polygon"``
+
+___
+
+### <a id="polygonzk" name="polygonzk"></a> PolygonZk
+
+• **PolygonZk** = ``"polygonzk"``
 
 ___
 

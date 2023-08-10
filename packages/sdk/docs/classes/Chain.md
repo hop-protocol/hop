@@ -22,6 +22,7 @@
 - [Nova](Chain.md#nova)
 - [Optimism](Chain.md#optimism)
 - [Polygon](Chain.md#polygon)
+- [PolygonZk](Chain.md#polygonzk)
 - [ScrollZk](Chain.md#scrollzk)
 - [ZkSync](Chain.md#zksync)
 
@@ -131,6 +132,12 @@ ___
 ### <a id="polygon" name="polygon"></a> Polygon
 
 ▪ `Static` **Polygon**: [`Chain`](Chain.md)
+
+___
+
+### <a id="polygonzk" name="polygonzk"></a> PolygonZk
+
+▪ `Static` **PolygonZk**: [`Chain`](Chain.md)
 
 ___
 

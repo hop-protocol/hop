@@ -7,6 +7,7 @@
 - [DAI](CanonicalToken.md#dai)
 - [ETH](CanonicalToken.md#eth)
 - [HOP](CanonicalToken.md#hop)
+- [MAGIC](CanonicalToken.md#magic)
 - [MATIC](CanonicalToken.md#matic)
 - [SNX](CanonicalToken.md#snx)
 - [UNI](CanonicalToken.md#uni)
@@ -36,6 +37,12 @@ ___
 ### <a id="hop" name="hop"></a> HOP
 
 • **HOP** = ``"HOP"``
+
+___
+
+### <a id="magic" name="magic"></a> MAGIC
+
+• **MAGIC** = ``"MAGIC"``
 
 ___
 

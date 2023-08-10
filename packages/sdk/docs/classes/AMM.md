@@ -78,6 +78,7 @@ AMM
 - [getApr](AMM.md#getapr)
 - [getApy](AMM.md#getapy)
 - [getArbChainAddress](AMM.md#getarbchainaddress)
+- [getAvailableRoutes](AMM.md#getavailableroutes)
 - [getBumpedGasPrice](AMM.md#getbumpedgasprice)
 - [getCanonicalTokenAddress](AMM.md#getcanonicaltokenaddress)
 - [getChainId](AMM.md#getchainid)
@@ -783,7 +784,7 @@ ___
 
 ### <a id="estimateoptimisml1feefromdata" name="estimateoptimisml1feefromdata"></a> estimateOptimismL1FeeFromData
 
-▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`): `Promise`<`any`\>
+▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`, `destChain?`): `Promise`<`any`\>
 
 #### Parameters
 
@@ -792,6 +793,7 @@ ___
 | `gasLimit` | `BigNumberish` | `undefined` |
 | `data` | `string` | `'0x'` |
 | `to` | `string` | `constants.AddressZero` |
+| `destChain` | `string` \| [`Chain`](Chain.md) | `Chain.Optimism` |
 
 #### Returns
 
@@ -965,6 +967,20 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getArbChainAddress](Base.md#getarbchainaddress)
+
+___
+
+### <a id="getavailableroutes" name="getavailableroutes"></a> getAvailableRoutes
+
+▸ **getAvailableRoutes**(): `Promise`<`any`\>
+
+#### Returns
+
+`Promise`<`any`\>
+
+#### Inherited from
+
+[Base](Base.md).[getAvailableRoutes](Base.md#getavailableroutes)
 
 ___
 
@@ -2374,13 +2390,14 @@ ___
 
 ### <a id="txoverrides" name="txoverrides"></a> txOverrides
 
-▸ **txOverrides**(`chain`): `Promise`<`any`\>
+▸ **txOverrides**(`sourceChain`, `destinationChain?`): `Promise`<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chain` | [`Chain`](Chain.md) |
+| `sourceChain` | [`Chain`](Chain.md) |
+| `destinationChain?` | [`Chain`](Chain.md) |
 
 #### Returns
 

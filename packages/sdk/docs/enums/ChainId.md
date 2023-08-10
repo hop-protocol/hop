@@ -5,6 +5,7 @@
 ### Enumeration Members
 
 - [Arbitrum](ChainId.md#arbitrum)
+- [Base](ChainId.md#base)
 - [Ethereum](ChainId.md#ethereum)
 - [Gnosis](ChainId.md#gnosis)
 - [Nova](ChainId.md#nova)
@@ -17,6 +18,12 @@
 ### <a id="arbitrum" name="arbitrum"></a> Arbitrum
 
 • **Arbitrum** = ``42161``
+
+___
+
+### <a id="base" name="base"></a> Base
+
+• **Base** = ``8453``
 
 ___
 

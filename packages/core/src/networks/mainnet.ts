@@ -74,7 +74,7 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge',
-    waitConfirmations: 1600,
+    waitConfirmations: 256,
     hasFinalizationBlockTag: false,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-polygon',
     etherscanApiUrl: 'https://api.polygonscan.com'

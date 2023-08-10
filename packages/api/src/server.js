@@ -150,6 +150,20 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
   }
 })
 
+app.get('/v1/available-routes', responseCache, ipRateLimitMiddleware, async (req, res) => {
+  try {
+    let { network } = req.query
+    if (!network) {
+      network = 'mainnet'
+    }
+    const hop = new Hop(network)
+    const json = await hop.getAvailableRoutes()
+    res.json(json)
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
 app.get('/health', async (req, res) => {
   res.json({ status: 'OK' })
 })

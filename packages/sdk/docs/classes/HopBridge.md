@@ -88,6 +88,7 @@ HopBridge
 - [getAmountOut](HopBridge.md#getamountout)
 - [getArbChainAddress](HopBridge.md#getarbchainaddress)
 - [getAvailableLiquidity](HopBridge.md#getavailableliquidity)
+- [getAvailableRoutes](HopBridge.md#getavailableroutes)
 - [getBonderAddress](HopBridge.md#getbonderaddress)
 - [getBonderAvailableLiquidityData](HopBridge.md#getbonderavailableliquiditydata)
 - [getBonderFeeAbsolute](HopBridge.md#getbonderfeeabsolute)
@@ -766,7 +767,7 @@ ___
 
 ### <a id="estimateoptimisml1feefromdata" name="estimateoptimisml1feefromdata"></a> estimateOptimismL1FeeFromData
 
-▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`): `Promise`<`any`\>
+▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`, `destChain?`): `Promise`<`any`\>
 
 #### Parameters
 
@@ -775,6 +776,7 @@ ___
 | `gasLimit` | `BigNumberish` | `undefined` |
 | `data` | `string` | `'0x'` |
 | `to` | `string` | `constants.AddressZero` |
+| `destChain` | `string` \| [`Chain`](Chain.md) | `Chain.Optimism` |
 
 #### Returns
 
@@ -1174,6 +1176,20 @@ ___
 #### Returns
 
 `Promise`<`BigNumber`\>
+
+___
+
+### <a id="getavailableroutes" name="getavailableroutes"></a> getAvailableRoutes
+
+▸ **getAvailableRoutes**(): `Promise`<`any`\>
+
+#### Returns
+
+`Promise`<`any`\>
+
+#### Inherited from
+
+[Base](Base.md).[getAvailableRoutes](Base.md#getavailableroutes)
 
 ___
 
@@ -3496,13 +3512,14 @@ ___
 
 ### <a id="txoverrides" name="txoverrides"></a> txOverrides
 
-▸ **txOverrides**(`chain`): `Promise`<`any`\>
+▸ **txOverrides**(`sourceChain`, `destinationChain?`): `Promise`<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chain` | [`Chain`](Chain.md) |
+| `sourceChain` | [`Chain`](Chain.md) |
+| `destinationChain?` | [`Chain`](Chain.md) |
 
 #### Returns
 

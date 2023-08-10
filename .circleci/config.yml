@@ -11,12 +11,14 @@ commands:
           name: On success
           when: on_success
           command: |
-            [ -n "$WEBHOOK_URL_API" ] && curl "$WEBHOOK_URL_API" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            [ -n "$WEBHOOK_URL_HOP_API" ] && curl "$WEBHOOK_URL_HOP_API" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            exit 0
       - run:
           name: On fail
           when: on_fail
           command: |
-            [ -n "$WEBHOOK_URL_API" ] && curl "$WEBHOOK_URL_API" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            [ -n "$WEBHOOK_URL_HOP_API" ] && curl "$WEBHOOK_URL_HOP_API" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            exit 0
 
 jobs:
   build_hop_node:

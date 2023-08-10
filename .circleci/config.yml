@@ -4,20 +4,36 @@ orbs:
   base: dmx-io/base@2.0.88
 
 commands:
-  notify_job_status:
+  notify_job_status_hop_api:
     description: Send webhook to server about job status
     steps:
       - run:
           name: On success
           when: on_success
           command: |
-            [ -n "$WEBHOOK_URL_HOP_API" ] && curl "$WEBHOOK_URL_HOP_API" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            [ -n "$WEBHOOK_URL_STATS_WORKER" ] && curl "$WEBHOOK_URL_STATS_WORKER" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
             exit 0
       - run:
           name: On fail
           when: on_fail
           command: |
-            [ -n "$WEBHOOK_URL_HOP_API" ] && curl "$WEBHOOK_URL_HOP_API" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            [ -n "$WEBHOOK_URL_STATS_WORKER" ] && curl "$WEBHOOK_URL_STATS_WORKER" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            exit 0
+
+  notify_job_status_stats_worker:
+    description: Send webhook to server about job status
+    steps:
+      - run:
+          name: On success
+          when: on_success
+          command: |
+            [ -n "$WEBHOOK_URL_STATS_WORKER" ] && curl "$WEBHOOK_URL_STATS_WORKER" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"success","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
+            exit 0
+      - run:
+          name: On fail
+          when: on_fail
+          command: |
+            [ -n "$WEBHOOK_URL_STATS_WORKER" ] && curl "$WEBHOOK_URL_STATS_WORKER" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
             exit 0
 
 jobs:
@@ -106,6 +122,7 @@ jobs:
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "stats-worker" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
+      - notify_job_status_stats_worker
 
   build_hop_api:
     working_directory: /app
@@ -149,7 +166,7 @@ jobs:
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "hop-api" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
-      - notify_job_status
+      - notify_job_status_hop_api
 
 workflows:
   main:

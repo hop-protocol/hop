@@ -37,7 +37,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
     }
 
     checkBalance().catch(logger.error)
-  }, [network, walletProvider, address])
+  }, [network, walletProvider, address, isSmartContractWallet])
 
   return needsToken
 }

@@ -1,7 +1,8 @@
 import BlockDater from 'ethereum-block-by-date'
 import fetch from 'isomorphic-fetch'
 import { DateTime } from 'luxon'
-import { etherscanApiKeys, etherscanApiUrls } from '../config'
+import { etherscanApiKeys } from '../config'
+import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl'
 
 export async function getBlockNumberFromDate (
   chain: string,
@@ -30,7 +31,7 @@ async function getBlockNumberFromDateUsingEtherscan (
     throw new Error('Please add an etherscan api key for ' + chain)
   }
 
-  const baseUrl = etherscanApiUrls[chain]
+  const baseUrl = getEtherscanApiUrl(chain)
   const url =
     baseUrl +
     `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`

@@ -81,6 +81,36 @@ Example response
 }
 ```
 
+## GET /v1/available-routes
+
+Example request
+
+```sh
+curl "http://localhost:8000/v1/available-routes"
+```
+
+Example response
+
+```sh
+[
+  {
+    "token": "USDC",
+    "sourceChain": "ethereum",
+    "sourceChainId": 1,
+    "destinationChain": "gnosis",
+    "destinationChainId": 100
+  },
+  {
+    "token": "ETH",
+    "sourceChain": "base",
+    "sourceChainId": 8453,
+    "destinationChain": "arbitrum",
+    "destinationChainId": 42161
+  },
+  ...
+]
+```
+
 ## Development
 
 Install dependencies

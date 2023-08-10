@@ -52,13 +52,13 @@ export const config : Config = {
       arbitrum: 23
     },
     HOP: {
-      ethereum: 50,
-      polygon: 50,
-      gnosis: 50,
-      optimism: 50,
-      arbitrum: 50,
-      nova: 50,
-      base: 50
+      ethereum: 20,
+      polygon: 20,
+      gnosis: 20,
+      optimism: 20,
+      arbitrum: 20,
+      nova: 20,
+      base: 20
     },
     SNX: {
       ethereum: 20

@@ -880,6 +880,31 @@ export class Base {
     return supported[chain.slug]
   }
 
+  async getAvailableRoutes (): Promise<any> {
+    const routes : any[] = []
+
+    for (const token in this.addresses) {
+      for (const sourceChainSlug in this.addresses[token]) {
+        for (const destinationChainSlug in this.addresses[token]) {
+          if (sourceChainSlug === destinationChainSlug) {
+            continue
+          }
+          const sourceChainId = Number(this.chains[sourceChainSlug]?.chainId)
+          const destinationChainId = Number(this.chains[destinationChainSlug]?.chainId)
+          routes.push({
+            token,
+            sourceChainSlug,
+            sourceChainId,
+            destinationChainSlug,
+            destinationChainId
+          })
+        }
+      }
+    }
+
+    return routes
+  }
+
   async estimateOptimismL1FeeFromData (
     gasLimit : BigNumberish,
     data: string = '0x',
@@ -935,7 +960,7 @@ export class Base {
     const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
     const json = await fetchJsonOrThrow(url)
-    return json.data?.[0] ?? null
+    return json.data ?? null
   }
 
   getProviderRpcUrl (provider: any): string {

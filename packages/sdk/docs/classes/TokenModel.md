@@ -16,6 +16,7 @@
 - [DAI](TokenModel.md#dai)
 - [ETH](TokenModel.md#eth)
 - [HOP](TokenModel.md#hop)
+- [MAGIC](TokenModel.md#magic)
 - [MATIC](TokenModel.md#matic)
 - [OP](TokenModel.md#op)
 - [SNX](TokenModel.md#snx)
@@ -103,6 +104,12 @@ ___
 ### <a id="hop" name="hop"></a> HOP
 
 ▪ `Static` **HOP**: `string` = `'HOP'`
+
+___
+
+### <a id="magic" name="magic"></a> MAGIC
+
+▪ `Static` **MAGIC**: `string` = `'MAGIC'`
 
 ___
 

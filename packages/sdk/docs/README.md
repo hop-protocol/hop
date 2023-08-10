@@ -44,10 +44,22 @@ Install dependencies
 npm install
 ```
 
-Run watcher
+Lerna link, to link hop core package:
+
+```sh
+npx lerna link
+```
+
+Run build watcher
 
 ```bash
 npm run dev
+```
+
+Build sdk
+
+```bash
+npm run build
 ```
 
 Generate documentation

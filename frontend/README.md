@@ -8,6 +8,14 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 [https://explorer.hop.exchange/](https://explorer.hop.exchange/)
 
+## Environment variables
+
+```sh
+# (optional) specify tokens/chains to display on dropdowns
+NEXT_PUBLIC_ENABLED_TOKENS=USDC,USDT,DAI,MATIC,ETH,WBTC,HOP,SNX,sUSD,rETH,MAGIC
+NEXT_PUBLIC_ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base
+```
+
 ## Getting Started
 
 First, run the development server:

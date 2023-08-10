@@ -40,6 +40,24 @@ cd frontend && npm run dev:local
 
 Visit [http://localhost:3000/](http://localhost:3000/)
 
+## Deployments
+
+Backend docker images are built and pushed to [Docker Hub](https://hub.docker.com/r/hopprotocol/explorer-backend).
+
+| Branch               | Docker Image
+| ------------         | -------------------------------------
+| `production-backend` | `hopprotocol/explorer-backend:latest`
+| `goerli-backend`     | `hopprotocol/explorer-backend:goerli`
+
+Frontend deployments
+
+| Branch               | URL
+| ------------         | -------------------------------------
+| `production` | https://app.explorer.hop.exchange
+| `goerli`     | https://goerli.explorer.hop.exchange
+
+The `develop` branch is the default branch will not perform any deployments.
+
 ## License
 
 [MIT](LICENSE)

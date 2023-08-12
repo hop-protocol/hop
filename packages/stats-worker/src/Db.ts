@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose()
 import { v4 as uuid } from 'uuid'
 import { dbPath } from './config'
+import wait from 'wait'
 
 console.log('db path:', dbPath)
 
@@ -10,9 +11,16 @@ let migrationRan = false
 
 class Db {
   db = new sqlite3.Database(dbPath)
+  migrations: any[] = []
+  ready = false
 
   constructor () {
     this.db.serialize(() => {
+      this.db.run(`CREATE TABLE IF NOT EXISTS migrations (
+          id TEXT PRIMARY KEY,
+          idx INTEGER NOT NULL,
+          timestamp INTEGER NOT NULL
+      )`)
       this.db.run(`CREATE TABLE IF NOT EXISTS volume_stats (
           id TEXT PRIMARY KEY,
           chain TEXT NOT NULL,
@@ -142,131 +150,140 @@ class Db {
           xdai_price_usd NUMERIC NOT NULL
       )`)
 
+      this.migrations[0] = () => {
+        this.db.run('ALTER TABLE bonder_balances ADD COLUMN result2 NUMERIC;')
+      }
+      this.migrations[1] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN eth_amounts NUMERIC;'
+        )
+      }
+      this.migrations[2] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN xdai_price_usd NUMERIC;'
+        )
+      }
+      this.migrations[3] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_tx_fees ADD COLUMN xdai_price_usd NUMERIC;'
+        )
+      }
+      this.migrations[4] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN deposit_amount NUMERIC;'
+        )
+      }
+      this.migrations[5] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN staked_amount NUMERIC;'
+        )
+      }
+      this.migrations[6] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN initial_canonical_amount NUMERIC;'
+        )
+      }
+      this.migrations[7] = () => {
+        this.db.run('ALTER TABLE bonder_balances ADD COLUMN result3 NUMERIC;')
+      }
+      this.migrations[8] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN arbitrum_weth_amount NUMERIC;'
+        )
+      }
+      this.migrations[9] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN withdrawn_amount NUMERIC;'
+        )
+      }
+      this.migrations[10] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN unstaked_eth_amount NUMERIC;'
+        )
+      }
+      this.migrations[11] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN bonder_address TEXT;'
+        )
+      }
+      this.migrations[12] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN deposit_event TEXT;'
+        )
+      }
+      this.migrations[13] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN restaked_eth_amount TEXT;'
+        )
+      }
+      this.migrations[14] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN initial_eth_amount NUMERIC;'
+        )
+      }
+      this.migrations[15] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN initial_matic_amount NUMERIC;'
+        )
+      }
+      this.migrations[16] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN initial_xdai_amount NUMERIC;'
+        )
+      }
+      this.migrations[17] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN withdraw_event TEXT;'
+        )
+      }
+      this.migrations[18] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN arbitrum_messenger_wrapper_amount NUMERIC;'
+        )
+      }
+      this.migrations[19] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN nova_block_number INTEGER;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN nova_canonical_amount NUMERIC;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN nova_hToken_amount NUMERIC;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN nova_native_amount NUMERIC;'
+        )
+      }
+      this.migrations[20] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN base_block_number INTEGER;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN base_canonical_amount NUMERIC;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN base_hToken_amount NUMERIC;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN base_native_amount NUMERIC;'
+        )
+      }
+
       if (argv.migrations && !migrationRan) {
-        const migrations = JSON.parse(argv.migrations)
-        if (migrations.includes(0)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN result2 NUMERIC;')
-        }
-        if (migrations.includes(1)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN eth_amounts NUMERIC;'
-          )
-        }
-        if (migrations.includes(2)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN xdai_price_usd NUMERIC;'
-          )
-        }
-        if (migrations.includes(3)) {
-          this.db.run(
-            'ALTER TABLE bonder_tx_fees ADD COLUMN xdai_price_usd NUMERIC;'
-          )
-        }
-        if (migrations.includes(4)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN deposit_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(5)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN staked_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(6)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN initial_canonical_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(7)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN result3 NUMERIC;')
-        }
-        if (migrations.includes(8)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN arbitrum_weth_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(9)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN withdrawn_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(10)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN unstaked_eth_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(11)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN bonder_address TEXT;'
-          )
-        }
-        if (migrations.includes(12)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN deposit_event TEXT;'
-          )
-        }
-        if (migrations.includes(13)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN restaked_eth_amount TEXT;'
-          )
-        }
-        if (migrations.includes(14)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN initial_eth_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(15)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN initial_matic_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(16)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN initial_xdai_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(17)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN withdraw_event TEXT;'
-          )
-        }
-        if (migrations.includes(18)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN arbitrum_messenger_wrapper_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(19)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN nova_block_number INTEGER;'
-          )
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN nova_canonical_amount NUMERIC;'
-          )
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN nova_hToken_amount NUMERIC;'
-          )
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN nova_native_amount NUMERIC;'
-          )
-        }
-        if (migrations.includes(20)) {
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN base_block_number INTEGER;'
-          )
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN base_canonical_amount NUMERIC;'
-          )
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN base_hToken_amount NUMERIC;'
-          )
-          this.db.run(
-            'ALTER TABLE bonder_balances ADD COLUMN base_native_amount NUMERIC;'
-          )
+        const migrationsToRun = JSON.parse(argv.migrations)
+
+        for (const index of migrationsToRun) {
+          console.log('running migration flag index', index)
+          this.migrations[index]()
         }
 
         migrationRan = true
       }
 
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_migrations_index_timestamp ON migrations (idx, timestamp);'
+      )
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_volume_stats_chain_token_timestamp ON volume_stats (chain, token, timestamp);'
       )
@@ -287,9 +304,86 @@ class Db {
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_amm_stats_chain_token_timestamp ON amm_stats (chain, token, timestamp);'
       )
     })
+
+    this.init().catch(err => {
+      console.error('db init error', err)
+      this.db.close()
+      process.exit(0)
+    })
+  }
+
+  async init () {
+    if (this.ready) {
+      return
+    }
+    let dbMigrations = await this.getMigrations()
+    if (dbMigrations.length === 0 && this.migrations.length > 0) {
+      console.log('upserting initial migration')
+      await this.upsertLatestMigration()
+    }
+
+    dbMigrations = await this.getMigrations()
+    const dbIndex = Number(dbMigrations[dbMigrations.length - 1].idx)
+    if (
+      !migrationRan &&
+      this.migrations.length > 0 &&
+      this.migrations.length - 1 >= dbIndex + 1
+    ) {
+      for (let index = dbIndex + 1; index < this.migrations.length; index++) {
+        console.log('running migration index', index)
+        this.migrations[index]()
+      }
+      await this.upsertLatestMigration()
+      migrationRan = true
+    }
+
+    this.ready = true
+    if (!this.ready) {
+      console.log('db init done')
+    }
+  }
+
+  async tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return await this.tilReady()
+  }
+
+  async upsertLatestMigration () {
+    const index = this.migrations.length - 1
+    const timestamp = Math.floor(Date.now() / 1000)
+    await this.upsertMigration(index, timestamp)
+    console.log('done upserting migration', index, timestamp)
+  }
+
+  async getMigrations (): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        'SELECT id, idx, timestamp FROM migrations ORDER BY idx ASC;',
+        (err: any, rows: any[]) => {
+          if (err) {
+            reject(err)
+            return
+          }
+          resolve(rows)
+        }
+      )
+    })
+  }
+
+  async upsertMigration (index: number, timestamp: number) {
+    const stmt = this.db.prepare(
+      'INSERT OR REPLACE INTO migrations VALUES (?, ?, ?)'
+    )
+    stmt.run(uuid(), index, timestamp)
+    stmt.finalize()
   }
 
   async getPrices () {
+    await this.tilReady()
     return new Promise((resolve, reject) => {
       this.db.all(
         'SELECT id, token, price, timestamp FROM token_prices;',
@@ -305,6 +399,7 @@ class Db {
   }
 
   async getPrice (token: string, price: number, timestamp: number) {
+    await this.tilReady()
     this.db.each(
       'SELECT id, token, price, timestamp FROM token_prices;',
       function (err: any, row: any) {
@@ -314,6 +409,7 @@ class Db {
   }
 
   async upsertPrice (token: string, price: number, timestamp: number) {
+    await this.tilReady()
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO token_prices VALUES (?, ?, ?, ?)'
     )
@@ -328,6 +424,7 @@ class Db {
     amountUsd: number,
     timestamp: number
   ) {
+    await this.tilReady()
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO volume_stats VALUES (?, ?, ?, ?, ?, ?)'
     )
@@ -342,6 +439,7 @@ class Db {
     amountUsd: number,
     timestamp: number
   ) {
+    await this.tilReady()
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO tvl_pool_stats VALUES (?, ?, ?, ?, ?, ?)'
     )
@@ -358,6 +456,7 @@ class Db {
     feesUsd: number,
     timestamp: number
   ) {
+    await this.tilReady()
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO amm_stats VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     )
@@ -366,6 +465,7 @@ class Db {
   }
 
   async getVolumeStats () {
+    await this.tilReady()
     return new Promise((resolve, reject) => {
       this.db.all(
         'SELECT id, chain, token, amount, amount_usd, timestamp FROM volume_stats;',
@@ -381,6 +481,7 @@ class Db {
   }
 
   async getTvlPoolStats () {
+    await this.tilReady()
     return new Promise((resolve, reject) => {
       this.db.all(
         'SELECT id, chain, token, amount, amount_usd, timestamp FROM tvl_pool_stats;',
@@ -451,6 +552,7 @@ class Db {
     baseHTokenAmount: number = 0,
     baseNativeAmount: number = 0
   ) {
+    await this.tilReady()
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
@@ -525,6 +627,7 @@ class Db {
     totalFees: number = 0,
     timestamp: number = 0
   ) {
+    await this.tilReady()
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO bonder_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
@@ -560,6 +663,7 @@ class Db {
     timestamp: number = 0,
     xdaiPriceUsd: number = 0
   ) {
+    await this.tilReady()
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO bonder_tx_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
@@ -588,3 +692,16 @@ class Db {
 }
 
 export default Db
+export const db = new Db()
+
+process.once('SIGINT', () => {
+  console.log('closing db')
+  db.close()
+})
+
+process.once('uncaughtException', async err => {
+  console.error('uncaughtException:', err)
+  console.log('closing db')
+  db.close()
+  process.exit(0)
+})

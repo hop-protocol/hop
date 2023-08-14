@@ -325,7 +325,7 @@ class SyncWatcher extends BaseWatcher {
         .then(async () => {
           await Promise.all([
             // This must be executed after the Withdrew and WithdrawalBonded event handlers
-            // on initial sync since it relies on data from those handlers.
+            // on initial sync since it relies on data from those handlers
             this.bridge.mapMultipleWithdrawalsSettledEvents(
               async (event: MultipleWithdrawalsSettledEvent) => {
                 return await this.handleMultipleWithdrawalsSettledEvent(event)

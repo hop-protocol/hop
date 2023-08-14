@@ -303,7 +303,7 @@ class TransfersDb extends BaseDb {
 
       // If a chain has been turned off, we need to ignore these transfers
       if (err.message.includes('not found')) {
-        await this.db.transfers.update(item.transferId, { isNotFound: true })
+        await this.update(item.transferId, { isNotFound: true })
       }
 
       logger.error('normalizeItem error:', err)

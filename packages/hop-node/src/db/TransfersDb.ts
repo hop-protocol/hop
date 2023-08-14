@@ -279,7 +279,7 @@ class TransfersDb extends BaseDb {
     return true
   }
 
-  private normalizeItem (item: Transfer) {
+  private async normalizeItem (item: Transfer) {
     try {
       if (!item) {
         return null
@@ -300,6 +300,12 @@ class TransfersDb extends BaseDb {
       return normalizeDbItem(item)
     } catch (err: any) {
       const logger = this.logger.create({ id: item?.transferId })
+
+      // If a chain has been turned off, we need to ignore these transfers
+      if (err.message.includes('not found')) {
+        await this.db.transfers.update(item.transferId, { isNotFound: true })
+      }
+
       logger.error('normalizeItem error:', err)
       return null
     }
@@ -357,7 +363,7 @@ class TransfersDb extends BaseDb {
 
   async getMultipleTransfersByTransferIds (transferIds: string[]) {
     const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
+    const transfers = batchedItems.map(async (item: Transfer) => await this.normalizeItem(item))
     const items = transfers.filter(Boolean).sort(this.sortItems)
     this.logger.info(`items length: ${items.length}`)
 
@@ -526,7 +532,7 @@ class TransfersDb extends BaseDb {
       return []
     }
     const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
+    const transfers = batchedItems.map(async (item: Transfer) => await this.normalizeItem(item))
 
     return transfers.filter((item: any) => {
       if (!item) {

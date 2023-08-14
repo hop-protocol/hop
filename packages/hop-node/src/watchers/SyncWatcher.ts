@@ -737,6 +737,18 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    // Check if the source or destination has been deprecated
+    const isSourceDeprecated = this.hasChainIdBeenDeprecated(dbTransfer.sourceChainId)
+    let isDestinationDeprecated = false
+    if (dbTransfer?.destinationChainId) {
+      isDestinationDeprecated = this.hasChainIdBeenDeprecated(dbTransfer.destinationChainId)
+    }
+    if (isSourceDeprecated || isDestinationDeprecated) {
+      logger.warn(`source ${dbTransfer.sourceChainId} deprecation status ${isSourceDeprecated}, dest${dbTransfer?.destinationChainId} deprecation status ${isDestinationDeprecated}. isNotFound: true`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferSender(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
@@ -752,7 +764,19 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferRootId })
 
     if (!dbTransferRoot.sourceChainId) {
-      logger.warn('populateTransferRootDbItem marking item not found. Missing sourceChainId (possibly due to missing TransfersCommitted event). isNotFound: true')
+      logger.warn('populateTransferRootDbItem marking item not found. Missing sourceChainId (possibly due to missing TransfersCommitted event). transfer isNotFound: true')
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
+    // Check if the source or destination has been deprecated
+    const isSourceDeprecated = this.hasChainIdBeenDeprecated(dbTransferRoot.sourceChainId)
+    let isDestinationDeprecated = false
+    if (dbTransferRoot?.destinationChainId) {
+      isDestinationDeprecated = this.hasChainIdBeenDeprecated(dbTransferRoot.destinationChainId)
+    }
+    if (isSourceDeprecated || isDestinationDeprecated) {
+      logger.warn(`source ${dbTransferRoot.sourceChainId} deprecation status ${isSourceDeprecated}, dest${dbTransferRoot?.destinationChainId} deprecation status ${isDestinationDeprecated}. transferRoot isNotFound: true`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
@@ -1593,6 +1617,16 @@ class SyncWatcher extends BaseWatcher {
       }
       logger.debug('pollGasCost poll end')
       await wait(this.gasCostPollMs)
+    }
+  }
+
+  hasChainIdBeenDeprecated (chainId: number): boolean {
+    // If a chainId has been deprecated, the chainId will not return a chain slug
+    try {
+      this.chainIdToSlug(chainId)
+      return true
+    } catch {
+      return false
     }
   }
 }

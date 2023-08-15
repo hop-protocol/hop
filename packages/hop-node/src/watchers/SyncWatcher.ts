@@ -1624,9 +1624,9 @@ class SyncWatcher extends BaseWatcher {
     // If a chainId has been deprecated, the chainId will not return a chain slug
     try {
       this.chainIdToSlug(chainId)
-      return true
-    } catch {
       return false
+    } catch {
+      return true
     }
   }
 }

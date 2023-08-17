@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, createContext, useContext, useState, useEffect, useMemo } from 'react'
+import React, { FC, createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { BigNumber } from 'ethers'
 import { formatEther, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
@@ -127,7 +127,7 @@ type PendingAmountStats = {
   availableLiquidity: BigNumber
 }
 
-const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
+const StatsProvider: FC = ({ children }) => {
   const { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
   const [fetching, setFetching] = useState<boolean>(true)

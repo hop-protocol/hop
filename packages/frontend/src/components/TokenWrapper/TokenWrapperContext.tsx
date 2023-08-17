@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, createContext, useContext, useState, useMemo } from 'react'
+import React, { FC, createContext, useContext, useState, useMemo } from 'react'
 import { Signer, BigNumber } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
@@ -48,7 +48,7 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   wrappedTokenBalance: undefined,
 })
 
-const TokenWrapperContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
+const TokenWrapperContextProvider: FC = ({ children }) => {
   const [amount, setAmount] = useState<string>('')
   const { txConfirm, selectedBridge } = useApp()
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()

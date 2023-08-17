@@ -74,7 +74,7 @@ type ConvertContextProps = {
 
 const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
 
-const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
+const ConvertProvider: FC = ({ children }) => {
   const { queryParams } = useQueryParams()
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const { selectedBridge, txConfirm, sdk, settings } = useApp()

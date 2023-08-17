@@ -1,6 +1,5 @@
 import React, {
   FC,
-  ReactNode,
   createContext,
   useContext,
   useEffect,
@@ -134,7 +133,7 @@ const TOTAL_AMOUNTS_DECIMALS = 18
 
 const PoolsContext = createContext<PoolsContextProps | undefined>(undefined)
 
-const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
+const PoolsProvider: FC = ({ children }) => {
   const { queryParams } = useQueryParams()
   const [token0Amount, setToken0Amount] = useState<string>('')
   const [token1Amount, setToken1Amount] = useState<string>('')

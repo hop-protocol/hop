@@ -1,4 +1,4 @@
-import React, { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react'
+import React, { createContext, FC, useContext, useEffect, useState } from 'react'
 import { ThemeProvider as MuiThemeProvider, Theme } from '@material-ui/core/styles'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
 import { lightTheme, darkTheme } from './theme'
@@ -99,7 +99,7 @@ const getTheme = mode =>
 
 const cacheKey = 'ui-theme-mode'
 
-const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
+const ThemeProvider: FC = ({ children }) => {
   const [mode, setMode] = useLocalStorage(cacheKey, 'light')
   const [theme, setTheme] = useState(mode === 'light' ? lightTheme : darkTheme)
   const ssTheme = getTheme(mode)

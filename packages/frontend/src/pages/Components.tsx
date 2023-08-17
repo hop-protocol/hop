@@ -26,7 +26,6 @@ const useStyles = makeStyles(() => ({
 
 type SectionProps = {
   title: string
-  children?: React.ReactNode
 }
 
 const Section: FC<SectionProps> = ({ title, children }) => {

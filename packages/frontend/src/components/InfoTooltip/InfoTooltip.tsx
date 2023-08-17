@@ -1,10 +1,10 @@
-import React, { FC, useState } from 'react'
+import React, { FC, ReactFragment, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 import HelpIcon from '@material-ui/icons/Help'
 
 type Props = {
-  title: React.ReactNode
+  title: ReactFragment
   children?: any
 } & Partial<TooltipProps>
 

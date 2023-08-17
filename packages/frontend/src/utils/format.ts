@@ -2,18 +2,29 @@ import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, prettifyErrorMessage, toTokenDisplay } from '.'
 
-export function formatError(error: any, network?: Network) {
+type PossibleError = {
+  data?: {
+    message?: string
+  }
+  message?: string
+}
+
+export function formatError(error: unknown, network?: Network): string {
+  let errMsg = 'Something went wrong. Please try again.'
+
   if (!error) {
-    return
+    return errMsg
   }
 
-  let errMsg = 'Something went wrong. Please try again.'
   if (typeof error === 'string') {
     errMsg = error
-  } else if (error?.data?.message) {
-    errMsg = error.data.message
-  } else if (error?.message) {
+  } else if (error instanceof Error) {
     errMsg = error.message
+  } else if (typeof error === 'object' && error !== null) {
+    const errObj = error as PossibleError
+    if (errObj.data && errObj.data.message) {
+      errMsg = errObj.data.message
+    }
   }
 
   if (Array.isArray(error) && error.length === 1) {

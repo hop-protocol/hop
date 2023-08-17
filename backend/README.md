@@ -98,7 +98,7 @@ Update `@hop-protocol/core` version and push. By default all chains and tokens f
 Example queries
 
 ```sh
-curl "https://explorer-api.hop.exchange/v1/transfers?transferId=0x4faef93d85044de9f90a299208b29d1c19dd4ba31e3d4b677f0a0fe91014b3c5"
+curl "https://explorer-api.hop.exchange/v1/transfers?transferId=0x1abd03ac6b6fe39fba5bfae8673d4ad530fde94bef517ea892abffeb09a35e31"
 ```
 
 ```sh
@@ -112,9 +112,11 @@ Example response
     "status": "ok",
     "data": [
         {
-            "id": "0x4faef93d85044de9f90a299208b29d1c19dd4ba31e3d4b677f0a0fe91014b3c5",
-            "transferId": "0x4faef93d85044de9f90a299208b29d1c19dd4ba31e3d4b677f0a0fe91014b3c5",
-            "transactionHash": "0x2294233882cee60d5149b7e560f6362782dd6b16a001de9c1a3c470b74b3387e",
+            "id": "0x1abd03ac6b6fe39fba5bfae8673d4ad530fde94bef517ea892abffeb09a35e31",
+            "transferId": "0x1abd03ac6b6fe39fba5bfae8673d4ad530fde94bef517ea892abffeb09a35e31",
+            "transactionHash": "0x2e854d1243d68e1741cdc069a995588249627f64c4e6df6c6ab6e79616894054",
+            "sourceChainId": 10,
+            "destinationChainId": 42161,
             ....
         }
     }]

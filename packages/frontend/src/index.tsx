@@ -11,7 +11,7 @@ import SafeProvider from '@gnosis.pm/safe-apps-react-sdk'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
-const Router: ComponentType = isIPFS ? HashRouter : BrowserRouter
+const Router: typeof BrowserRouter | typeof HashRouter = isIPFS ? HashRouter : BrowserRouter
 
 const queryClient = new QueryClient({
   defaultOptions: {

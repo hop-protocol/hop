@@ -3,7 +3,7 @@ import { usePool } from '../PoolsContext'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import Alert from 'src/components/alert/Alert'
-import { Link, useLocation, useHistory } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import Tabs from '@material-ui/core/Tabs'
@@ -82,7 +82,7 @@ export function PoolDetails () {
     walletConnected,
     warning,
   } = usePool()
-  const history = useHistory()
+  const navigate = useNavigate()
   const { search } = useLocation()
   const { tab } = useParams<{ tab: string }>()
   const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
@@ -90,10 +90,7 @@ export function PoolDetails () {
   const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)
 
   function goToTab(value: string) {
-    history.push({
-      pathname: `/pool/${value}`,
-      search,
-    })
+    navigate(`/pool/${value}${search}`)
     setSelectedTab(value)
   }
 

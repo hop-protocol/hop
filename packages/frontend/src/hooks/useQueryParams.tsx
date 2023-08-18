@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { stringify, parse } from 'qs'
 
 const useQueryParams = () => {
-  const history = useHistory()
+  const navigate = useNavigate()
   const location = useLocation()
 
   const queryParams = useMemo(
@@ -14,9 +14,7 @@ const useQueryParams = () => {
   const updateQueryParams = (updates: { [index: string]: string | undefined }) => {
     Object.assign(queryParams, updates)
 
-    history.push({
-      search: stringify(queryParams),
-    })
+    navigate('?' + stringify(queryParams))
   }
 
   return { queryParams, updateQueryParams, location }

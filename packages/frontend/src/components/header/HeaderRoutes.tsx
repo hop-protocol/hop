@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent } from 'react'
-import { useLocation, useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import { isMainnet, showRewards } from 'src/config'
@@ -19,16 +19,13 @@ const useStyles = makeStyles((theme: any) => ({
 
 const HeaderRoutes: FC = () => {
   const { pathname, search } = useLocation()
-  const history = useHistory()
+  const navigate = useNavigate()
   const styles = useStyles()
   const theme = useTheme()
 
   const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
     event.preventDefault()
-    history.push({
-      pathname: newValue,
-      search,
-    })
+    navigate(newValue + search)
   }
 
   let value = pathname.split('/').slice(0, 2).join('/')

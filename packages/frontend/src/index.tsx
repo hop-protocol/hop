@@ -1,6 +1,6 @@
 import React, { ComponentType } from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter, HashRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
@@ -11,7 +11,7 @@ import SafeProvider from '@gnosis.pm/safe-apps-react-sdk'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
-const Router: typeof BrowserRouter | typeof HashRouter = isIPFS ? HashRouter : BrowserRouter
+const Router: typeof HashRouter = HashRouter
 
 const queryClient = new QueryClient({
   defaultOptions: {

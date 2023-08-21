@@ -48,17 +48,17 @@ const AppRoutes: FC = () => {
                 <Routes>
                   <Route path="/stats" element={<Stats />} />
                   <Route path="/send" element={<Send />} />
-                  <Route path="/convert" element={<Convert />} />
+                  <Route path="/convert/*" element={<Convert />} />
                   <Route path="/pools" element={<PoolsOverview />} />
                   <Route path="/pool" element={<Navigate to="/pool/deposit" />} />
-                  <Route path="/pool/:tab" element={<PoolDetails />} />
+                  <Route path="/pool/:tab/*" element={<PoolDetails />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/withdraw" element={<Withdraw />} />
                   <Route path="/health" element={<Health />} />
                   <Route path="/faucet" element={<Faucet />} />
-                  <Route path="/claim" element={<Claim />} />
+                  <Route path="/claim/*" element={<Claim />} />
                   <Route path="/airdrop/social-verify" element={<SocialVerify />} />
-                  <Route path="/airdrop/preview" element={<AirdropPreview />} />
+                  <Route path="/airdrop/preview/*" element={<AirdropPreview />} />
                   <Route path="/social-verified" element={<SocialVerified />} />
                   <Route path="/authereum-verified" element={<AuthereumVerified />} />
                   <Route path="/airdrop/authereum" element={<AuthereumVerify />} />

@@ -134,7 +134,7 @@ export function AuthereumVerified() {
         </Box>
         <Box mt={2}>
           <Typography variant="body1">
-            Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your HOP token share on app.hop.exchange once the token is launched.
+            Per the governance action, you will be able to claim your tokens up to 14 days after the 6 month airdrop reopening.
           </Typography>
         </Box>
         <Box mt={3}>

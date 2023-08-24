@@ -1,81 +1,44 @@
 import { CSSProperties } from 'react'
-import createBreakpoints from '@material-ui/core/styles/createBreakpoints'
-import { SkeletonClassKey } from '@material-ui/lab/Skeleton'
-import {
-  boxShadowsLight,
-  boxShadowsDark,
-  bgGradients,
-  overridesLight,
-  overridesDark,
-} from './overrides'
-import { typographyOptions } from './typography'
-
-// https://stackoverflow.com/a/64135466/1439168
-import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles'
+import { SkeletonClassKey } from '@mui/material/Skeleton'
+import { createTheme } from '@mui/material/styles'
+import { Theme as EmotionTheme } from '@emotion/react'
+import { PaletteOptions } from '@mui/material'
 import { palette as paletteLight } from './light'
 import { palette as paletteDark } from './dark'
+import { boxShadowsLight, boxShadowsDark, bgGradients, overridesLight, overridesDark } from './overrides'
+import { typographyOptions } from './typography'
 
-declare module '@material-ui/core/styles/overrides' {
-  export interface ComponentNameToClassKey {
-    MuiSkeleton: SkeletonClassKey
+export interface HopTheme extends EmotionTheme {
+  palette: CustomPaletteOptions
+  padding: {
+    thick: CSSProperties['paddingTop']
+    default: CSSProperties['paddingTop']
+    light: CSSProperties['paddingTop']
+    extraLight: CSSProperties['paddingTop']
+  }
+  boxShadow: {
+    input: {
+      bold: CSSProperties['boxShadow']
+      normal: CSSProperties['boxShadow']
+    }
+    inner: CSSProperties['boxShadow']
+    card: CSSProperties['boxShadow']
+    button: {
+      default: CSSProperties['boxShadow']
+      disabled: CSSProperties['boxShadow']
+      highlighted: CSSProperties['boxShadow']
+    }
+    select: CSSProperties['boxShadow']
+  }
+  bgGradient: {
+    main: CSSProperties['background']
+    flat: CSSProperties['background']
   }
 }
 
-declare module '@material-ui/core/styles/createTheme' {
-  interface Theme {
-    padding: {
-      thick: CSSProperties['paddingTop']
-      default: CSSProperties['paddingTop']
-      light: CSSProperties['paddingTop']
-      extraLight: CSSProperties['paddingTop']
-    }
-    boxShadow: {
-      input: {
-        bold: CSSProperties['boxShadow']
-        normal: CSSProperties['boxShadow']
-      }
-      inner: CSSProperties['boxShadow']
-      card: CSSProperties['boxShadow']
-      button: {
-        default: CSSProperties['boxShadow']
-        disabled: CSSProperties['boxShadow']
-        highlighted: CSSProperties['boxShadow']
-      }
-      select: CSSProperties['boxShadow']
-    }
-    bgGradient: {
-      main: CSSProperties['background']
-      flat: CSSProperties['background']
-    }
-  }
-
-  // allow configuration using `createMuiTheme`
-  interface ThemeOptions {
-    padding?: {
-      thick?: CSSProperties['paddingTop']
-      default?: CSSProperties['paddingTop']
-      light?: CSSProperties['paddingTop']
-      extraLight?: CSSProperties['paddingTop']
-    }
-    boxShadow?: {
-      input?: {
-        bold?: CSSProperties['boxShadow']
-        normal?: CSSProperties['boxShadow']
-      }
-      inner?: CSSProperties['boxShadow']
-      card?: CSSProperties['boxShadow']
-      button?: {
-        default?: CSSProperties['boxShadow']
-        disabled?: CSSProperties['boxShadow']
-        highlighted?: CSSProperties['boxShadow']
-      }
-      select?: CSSProperties['boxShadow']
-    }
-    bgGradient?: {
-      main?: CSSProperties['background']
-      flat?: CSSProperties['background']
-    }
-  }
+declare module '@emotion/react' {
+  interface Theme extends HopTheme {}
+  interface ThemeOptions extends Theme {}
 }
 
 const padding = {
@@ -85,57 +48,40 @@ const padding = {
   extraLight: '1.2rem',
 }
 
-const breakpoints = createBreakpoints({})
-
-export const lightTheme = createMuiTheme({
+export const lightTheme = createTheme({
   palette: {
-    type: 'light',
+    mode: 'light',
     ...paletteLight,
   },
   padding,
   typography: typographyOptions,
-  breakpoints,
   boxShadow: boxShadowsLight,
   bgGradient: bgGradients,
-  overrides: {
-    ...overridesLight,
-    MuiTab: {
-      root: {
-        ...overridesLight.MuiTab.root,
-        [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
-        },
-      },
-    },
-  },
+  components: overridesLight
 })
 
-export const darkTheme = createMuiTheme({
+
+export const darkTheme = createTheme({
   palette: {
-    type: 'dark',
+    mode: 'dark',
     ...paletteDark,
   },
   padding,
   typography: typographyOptions,
-  breakpoints,
   boxShadow: boxShadowsDark,
   bgGradient: bgGradients,
-  overrides: {
-    ...overridesDark,
-    MuiTab: {
-      root: {
-        ...overridesDark.MuiTab.root,
-        [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
-        },
-      },
-    },
-  },
+  overrides: overridesDark,
 })
 
-interface PaletteType {
-  palette: {
-    type: 'dark' | 'light'
+interface CustomPaletteOptions extends PaletteOptions {
+  mode: 'dark' | 'light',
+  text: {
+    primary: string,
+    secondary: string,
+  }
+  secondary: {
+    light: string,
+    dark: string,
   }
 }
 
@@ -144,7 +90,7 @@ enum ThemeMode {
   light = 'light',
 }
 
-type ThemeOrMode = ThemeMode | PaletteType
+type ThemeOrMode = ThemeMode | CustomPaletteOptions
 
 export function isDarkMode(themeOrMode?: ThemeOrMode): boolean {
   if (themeOrMode == null) {
@@ -155,5 +101,5 @@ export function isDarkMode(themeOrMode?: ThemeOrMode): boolean {
     return themeOrMode === 'dark'
   }
 
-  return themeOrMode.palette.type === ThemeMode.dark
+  return themeOrMode.palette.mode === ThemeMode.dark
 }

@@ -1,11 +1,11 @@
 import React from 'react'
 import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
+import makeStyles from '@mui/styles/makeStyles';
+import Typography from '@mui/material/Typography'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({

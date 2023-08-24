@@ -1,8 +1,9 @@
 import React from 'react'
-import { Theme, makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import Button from '@material-ui/core/Button'
+import { Theme } from '@mui/material/styles';
+import makeStyles from '@mui/styles/makeStyles';
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
 import { useApp } from 'src/contexts/AppContext'
 import Modal from 'src/components/modal/Modal'
 import { useWeb3Context } from 'src/contexts/Web3Context'

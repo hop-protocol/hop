@@ -1,9 +1,10 @@
 import React, { forwardRef, useEffect, useCallback } from 'react'
 import classnames from 'classnames'
 import { Transition } from 'react-transition-group'
-import Card, { CardProps } from '@material-ui/core/Card'
-import { makeStyles, Theme } from '@material-ui/core/styles'
-import ClickAwayListener from '@material-ui/core/ClickAwayListener'
+import Card, { CardProps } from '@mui/material/Card'
+import { Theme } from '@mui/material/styles'
+import makeStyles from '@mui/styles/makeStyles'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import { useApp } from 'src/contexts/AppContext'
 import { isDarkMode } from 'src/theme/theme'
 
@@ -79,7 +80,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     '& img': {
       maxWidth: '100%'
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       maxWidth: '90%',
     },
   },
@@ -93,17 +94,17 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   content: {
     padding: '4rem',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       padding: '4rem 2rem',
     },
-  },
+  }
 }))
 
 export type ActivityDetailsProps = {
   onClose?: () => void
 } & CardProps
 
-const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Modal(props, ref) {
+const Modal = forwardRef<HTMLDivElement, Partial<ActivityDetailsProps>>(function Modal(props, ref) {
   const { children, onClose } = props
   const styles = useStyles()
   const { events } = useApp()
@@ -159,7 +160,7 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Mo
                   mouseEvent="onMouseDown"
                   touchEvent="onTouchStart"
                 >
-                  <Card className={styles.card} ref={ref}>
+                  <Card className={styles.card} ref={ref as React.RefObject<HTMLDivElement>}>
                     <div className={styles.close} onClick={handleClose}>
                       ✕
                     </div>

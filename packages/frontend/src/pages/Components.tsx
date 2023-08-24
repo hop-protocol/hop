@@ -1,13 +1,13 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import Card from '@material-ui/core/Card'
-import Typography from '@material-ui/core/Typography'
+import makeStyles from '@mui/styles/makeStyles';
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import Typography from '@mui/material/Typography'
 import Button from 'src/components/buttons/Button'
 import LargeTextField from 'src/components/LargeTextField'
-import SendIcon from '@material-ui/icons/Send'
+import SendIcon from '@mui/icons-material/Send'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
-import MenuItem from '@material-ui/core/MenuItem'
+import MenuItem from '@mui/material/MenuItem'
 
 const useStyles = makeStyles(() => ({
   container: {

@@ -1,9 +1,9 @@
 import React, { FC, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import IconButton from '@material-ui/core/IconButton'
-import Popover from '@material-ui/core/Popover'
+import makeStyles from '@mui/styles/makeStyles';
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import Popover from '@mui/material/Popover'
 import SettingsIcon from 'src/assets/settings-icon.svg'
 import { useApp } from 'src/contexts/AppContext'
 import SmallTextField from 'src/components/SmallTextField'
@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme: any) => ({
     padding: '3rem',
     width: '300px',
     textAlign: 'center',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       width: 'auto',
     },
   },
@@ -102,7 +102,7 @@ const Settings: FC = () => {
   return (
     <Flex alignCenter>
       <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
-        <IconButton onClick={handleClick}>
+        <IconButton onClick={handleClick} size="large">
           <Icon src={SettingsIcon} width={20} />
         </IconButton>
       </Flex>
@@ -135,19 +135,19 @@ const Settings: FC = () => {
               <IconButton
                 color={slippageTolerance === 0.1 ? 'primary' : 'secondary'}
                 onClick={() => setSlippageTolerance(0.1)}
-              >
+                size="large">
                 0.1%
               </IconButton>
               <IconButton
                 color={slippageTolerance === 0.5 ? 'primary' : 'secondary'}
                 onClick={() => setSlippageTolerance(0.5)}
-              >
+                size="large">
                 0.5%
               </IconButton>
               <IconButton
                 color={slippageTolerance === 1 ? 'primary' : 'secondary'}
                 onClick={() => setSlippageTolerance(1)}
-              >
+                size="large">
                 1%
               </IconButton>
               <SmallTextField
@@ -194,7 +194,7 @@ const Settings: FC = () => {
         </div>
       </Popover>
     </Flex>
-  )
+  );
 }
 
 export default Settings

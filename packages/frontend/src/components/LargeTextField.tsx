@@ -1,8 +1,8 @@
 import React, { FC, ReactNode } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import Typography from '@material-ui/core/Typography'
+import makeStyles from '@mui/styles/makeStyles';
+import MuiTextField, { TextFieldProps } from '@mui/material/TextField'
+import InputAdornment from '@mui/material/InputAdornment'
+import Typography from '@mui/material/Typography'
 
 type LargeTextFieldProps = {
   units?: string | ReactNode
@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   adornment: {
     width: 'auto',
     textAlign: 'right',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       fontSize: theme.typography.subtitle1.fontSize,
     },
   },
@@ -70,7 +70,7 @@ const useInputStyles = makeStyles(theme => ({
         }
       },
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       width: '100%',
       padding: '.5rem .6rem',
       fontSize: theme.typography.subtitle2.fontSize,
@@ -86,7 +86,7 @@ const useInputStyles = makeStyles(theme => ({
     animation: loadingValue
       ? `loadingEffect 1s ${theme.transitions.easing.sharp} infinite`
       : 'none',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
       padding: '.5rem',
     },
@@ -119,10 +119,11 @@ const LargeTextField: FC<LargeTextFieldProps> = props => {
 
   return (
     <MuiTextField
+      variant="standard"
       className={styles.root}
       InputProps={{
         classes: inputStyles,
-        disableUnderline: true,
+        /* disableUnderline: true, */
         endAdornment: units ? (
           <InputAdornment position="end">
             <Typography variant="h4" color="textPrimary" className={styles.adornment}>
@@ -131,9 +132,8 @@ const LargeTextField: FC<LargeTextFieldProps> = props => {
           </InputAdornment>
         ) : null,
       }}
-      {...textFieldProps}
-    />
-  )
+      {...textFieldProps} />
+  );
 }
 
 export default LargeTextField

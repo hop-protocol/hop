@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import IconButton from '@material-ui/core/IconButton'
-import { useTheme } from '@material-ui/core'
+import Skeleton from '@mui/material/Skeleton'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import { useTheme } from '@mui/material'
 import { ExternalLink } from 'src/components/Link'
-import NavigateNextIcon from '@material-ui/icons/NavigateNext'
-import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import { useQuery } from 'react-query'
 import useQueryParams from 'src/hooks/useQueryParams'
 import InfoTooltip from 'src/components/InfoTooltip'
@@ -261,10 +261,10 @@ export function AccountTransferHistory (props: Props) {
         </Box>
         <Box mb={2} display="flex" justifyContent="center">
           {hasPreviousPage && (
-            <IconButton onClick={handlePreviousPageClick}><NavigateBeforeIcon fontSize="large" /></IconButton>
+            <IconButton onClick={handlePreviousPageClick} size="large"><NavigateBeforeIcon fontSize="large" /></IconButton>
           )}
           {hasNextPage && (
-            <IconButton onClick={handleNextPageClick}><NavigateNextIcon fontSize="large" /></IconButton>
+            <IconButton onClick={handleNextPageClick} size="large"><NavigateNextIcon fontSize="large" /></IconButton>
           )}
         </Box>
         {!!volumeUsd && (
@@ -276,5 +276,5 @@ export function AccountTransferHistory (props: Props) {
         )}
       </Box>
     </Box>
-  )
+  );
 }

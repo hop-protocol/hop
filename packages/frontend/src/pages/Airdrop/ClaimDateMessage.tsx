@@ -1,5 +1,5 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import Alert from 'src/components/alert/Alert'
 
 export function ClaimDateMessage () {

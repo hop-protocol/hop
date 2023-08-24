@@ -1,9 +1,10 @@
 import React, { forwardRef, useEffect, useCallback } from 'react'
 import classnames from 'classnames'
 import { Transition } from 'react-transition-group'
-import Card, { CardProps } from '@material-ui/core/Card'
-import { makeStyles, Theme } from '@material-ui/core/styles'
-import ClickAwayListener from '@material-ui/core/ClickAwayListener'
+import Card, { CardProps } from '@mui/material/Card'
+import { Theme } from '@mui/material/styles'
+import makeStyles from '@mui/styles/makeStyles'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -74,7 +75,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       opacity: 0,
       transform: 'translate(-50%, -50%) scale(0)',
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       maxWidth: '90%',
     },
   },
@@ -90,7 +91,7 @@ export type ActivityDetailsProps = {
   onClose?: () => void
 } & CardProps
 
-export const StyledModal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(
+export const StyledModal = forwardRef<HTMLDivElement, Partial<ActivityDetailsProps>>(
   function StyledModal(props, ref) {
     const { children, onClose } = props
     const styles = useStyles()
@@ -139,7 +140,7 @@ export const StyledModal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>
                     mouseEvent="onMouseDown"
                     touchEvent="onTouchStart"
                   >
-                    <Card className={styles.card} ref={ref}>
+                    <Card className={styles.card} ref={ref as React.RefObject<HTMLDivElement>}>
                       <div className={styles.close} onClick={handleClose}>
                         ✕
                       </div>

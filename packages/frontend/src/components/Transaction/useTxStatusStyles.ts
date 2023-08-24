@@ -1,4 +1,6 @@
-import { Theme, makeStyles } from '@material-ui/core/styles'
+import { Theme } from '@mui/material/styles';
+
+import makeStyles from '@mui/styles/makeStyles';
 
 export const useTxStatusStyles = makeStyles((theme: Theme) => ({
   header: {
@@ -8,7 +10,7 @@ export const useTxStatusStyles = makeStyles((theme: Theme) => ({
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '1rem',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       flexDirection: 'column',
     },
   },

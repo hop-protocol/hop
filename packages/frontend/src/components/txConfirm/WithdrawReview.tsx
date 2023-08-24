@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles';
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
 import Address from 'src/models/Address'

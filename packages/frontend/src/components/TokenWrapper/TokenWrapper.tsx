@@ -1,8 +1,8 @@
 import React, { FC, useEffect } from 'react'
 import { constants } from 'ethers'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles';
 import Button from 'src/components/buttons/Button'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import Alert from 'src/components/alert/Alert'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import { useTokenWrapper } from './TokenWrapperContext'

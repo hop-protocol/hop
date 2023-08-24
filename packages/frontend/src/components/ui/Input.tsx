@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import styled from 'styled-components/macro'
 import {
   space,

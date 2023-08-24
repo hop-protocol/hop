@@ -1,6 +1,6 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import Transaction from 'src/models/Transaction'
 import Modal from 'src/components/modal'
 import { Chain } from '@hop-protocol/sdk'

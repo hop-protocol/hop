@@ -1,9 +1,10 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
-import CircularProgress from '@material-ui/core/CircularProgress'
+import makeStyles from '@mui/styles/makeStyles';
+import MuiButton, { ButtonProps as MuiButtonProps } from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 import { Flex } from '../ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
+import { Theme } from '@emotion/react'
 
 interface StyleProps {
   highlighted: boolean
@@ -24,7 +25,7 @@ interface StyleProps {
 export type ButtonProps = Partial<StyleProps> &
   MuiButtonProps & { boxShadow?: any; minWidth?: string }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: ({ highlighted, large, flat, text, isDarkMode, fullWidth }: StyleProps) => ({
     borderRadius: '3.0rem',
     textTransform: 'none',

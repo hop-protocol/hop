@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { MenuItem } from '@material-ui/core'
+import { MenuItem } from '@mui/material'
 import { useApp } from 'src/contexts/AppContext'
 import { Flex, Text } from '../ui'
 import { findNetworkBySlug } from 'src/utils'

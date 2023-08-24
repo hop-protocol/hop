@@ -1,5 +1,5 @@
 import React from 'react'
-import { Typography, TypographyProps } from '@material-ui/core'
+import { Typography, TypographyProps } from '@mui/material'
 import styled from 'styled-components/macro'
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 

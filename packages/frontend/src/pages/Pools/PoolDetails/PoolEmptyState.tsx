@@ -1,8 +1,8 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
-import LaunchIcon from '@material-ui/icons/Launch'
-import MuiLink from '@material-ui/core/Link'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import LaunchIcon from '@mui/icons-material/Launch'
+import MuiLink from '@mui/material/Link'
+import Typography from '@mui/material/Typography'
 import { DinoGame } from './DinoGame'
 
 export function PoolEmptyState() {
@@ -25,7 +25,11 @@ export function PoolEmptyState() {
       </Box>
       <Box mb={2} display="flex" justifyContent="center">
         <Typography variant="body1" component="div">
-          <MuiLink target="_blank" rel="noopener noreferrer" href="https://help.hop.exchange/hc/en-us/articles/4406095303565-What-do-I-need-in-order-to-provide-liquidity-on-Hop-" >
+          <MuiLink
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://help.hop.exchange/hc/en-us/articles/4406095303565-What-do-I-need-in-order-to-provide-liquidity-on-Hop-"
+            underline="hover">
             <Box display="flex" justifyContent="center" alignItems="center">
               Learn more <Box ml={1} display="flex" justifyContent="center" alignItems="center"><LaunchIcon /></Box>
             </Box>
@@ -33,5 +37,5 @@ export function PoolEmptyState() {
         </Typography>
       </Box>
     </Box>
-  )
+  );
 }

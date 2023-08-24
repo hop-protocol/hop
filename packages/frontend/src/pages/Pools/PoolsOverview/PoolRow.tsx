@@ -1,13 +1,13 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import Button from 'src/components/buttons/Button'
-import MuiButton from '@material-ui/core/Button'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Typography from '@material-ui/core/Typography'
+import MuiButton from '@mui/material/Button'
+import Skeleton from '@mui/material/Skeleton'
+import Typography from '@mui/material/Typography'
 import { AprDetailsTooltip } from 'src/components/InfoTooltip/AprDetailsTooltip'
 import { Link, useNavigate } from 'react-router-dom'
 import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles';
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -29,7 +29,7 @@ export const useStyles = makeStyles(theme => ({
   },
   tr: {
     '&:hover': {
-      background: theme.palette.type === 'dark' ? '#0000001a' : '#00000005'
+      background: theme.palette.mode === 'dark' ? '#0000001a' : '#00000005'
     }
   },
   poolLink: {
@@ -48,18 +48,18 @@ export const useStyles = makeStyles(theme => ({
     color: 'white'
   },
   poolName: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       flexDirection: 'column'
     },
   },
   hideMobile: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       display: 'none'
     },
   },
   bolt: {
     '& path': {
-      fill: theme.palette.type === 'dark' ? '#fff' : '#000'
+      fill: theme.palette.mode === 'dark' ? '#fff' : '#000'
     }
   }
 }))

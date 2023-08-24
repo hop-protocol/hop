@@ -1,8 +1,8 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
 import Button from 'src/components/buttons/Button'
-import SendIcon from '@material-ui/icons/Send'
-import Box from '@material-ui/core/Box'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
+import SendIcon from '@mui/icons-material/Send'
+import Box from '@mui/material/Box'
+import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
 import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
@@ -46,7 +46,7 @@ import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -743,7 +743,10 @@ const Send: FC = () => {
       />
 
       <Box display="flex" justifyContent="center" alignItems="center">
-        <IconButton onClick={handleSwitchDirection} title="Click to switch direction">
+        <IconButton
+          onClick={handleSwitchDirection}
+          title="Click to switch direction"
+          size="large">
           <ArrowDownIcon color="primary" className={styles.downArrow} />
         </IconButton>
       </Box>
@@ -888,7 +891,7 @@ const Send: FC = () => {
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
       </Flex>
     </Flex>
-  )
+  );
 }
 
 export default Send

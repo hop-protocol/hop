@@ -9,6 +9,7 @@ import Web3Provider from './contexts/Web3Context'
 import AppProvider from './contexts/AppContext'
 import SafeProvider from '@gnosis.pm/safe-apps-react-sdk'
 import { ReactQueryDevtools } from 'react-query/devtools'
+import { StyledEngineProvider } from '@mui/material/styles'
 
 const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
 const Router: typeof HashRouter = HashRouter
@@ -31,18 +32,20 @@ const queryClient = new QueryClient({
 
 ReactDOM.render(
   <SafeProvider>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <Web3Provider>
-            <AppProvider>
-              <App />
-              <ReactQueryDevtools />
-            </AppProvider>
-          </Web3Provider>
-        </Router>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <Router>
+            <Web3Provider>
+              <AppProvider>
+                <App />
+                <ReactQueryDevtools />
+              </AppProvider>
+            </Web3Provider>
+          </Router>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   </SafeProvider>,
   document.getElementById('root')
 )

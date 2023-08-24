@@ -1,6 +1,6 @@
 import React from 'react'
-import Button from '@material-ui/core/Button'
-import Typography from '@material-ui/core/Typography'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
 import Transaction from 'src/models/Transaction'
 import { Flex } from '../ui'
 import useTxHistory from 'src/contexts/AppContext/useTxHistory'

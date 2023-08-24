@@ -1,7 +1,7 @@
 import React, { FC, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Theme, makeStyles } from '@material-ui/core'
-import Box from '@material-ui/core/Box'
+import makeStyles from '@mui/styles/makeStyles'
+import Box from '@mui/material/Box'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/header/HeaderRoutes'
@@ -23,24 +23,24 @@ import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { useInterval } from 'react-use'
 import ConnectWalletButton from './ConnectWalletButton'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
 import { Flex, Icon } from '../ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import Banner from 'src/components/Banner'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
     minHeight: '8rem',
     padding: '0 4.2rem',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       minHeight: '7rem',
       padding: '0 2rem',
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       flexDirection: 'column',
       paddingTop: '2rem',
       marginBottom: '4rem',
@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: 'flex',
     alignItems: 'center',
     width: '8.2rem',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       width: '7rem',
     },
   },
@@ -77,10 +77,10 @@ const useStyles = makeStyles((theme: Theme) => ({
         ? theme.boxShadow.inner
         : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
     color: theme.palette.text.secondary,
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       fontSize: '.8rem',
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       display: 'none',
     },
     transition: 'all 0.15s ease-out',
@@ -92,14 +92,14 @@ const useStyles = makeStyles((theme: Theme) => ({
     fontWeight: 'bold',
     fontSize: '1.5rem',
     whiteSpace: 'nowrap',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       fontSize: '1.2rem',
     },
   },
   image: {
     marginRight: '0.5rem',
     width: '16px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       width: '12px',
     },
   },
@@ -143,73 +143,71 @@ const Header: FC = () => {
   const showBalance = !!displayBalance && !!connectedNetwork
   const ThemeModeIcon: any = isDarkMode ? SunIcon : MoonIcon
 
-  return (
-    <>
-      {showBannerMessage && (
-        <Banner>{showBannerMessage}</Banner>
-      )}
-      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
-        <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
-          <Link to="/" style={{ position: 'relative' }}>
-            <img
-              className={styles.hopLogo}
-              src={isDarkMode ? HopLogoWhite : HopLogoBlack}
-              alt="Hop"
-            />
-            {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}
-          </Link>
-        </Box>
-
-        <Box display="flex" flexDirection="row" justifyContent="center" alignSelf="center" flex={1} width="100%" flexWrap="wrap">
-          <HeaderRoutes />
-        </Box>
-
-        <Box
-          display="flex"
-          flex={1}
-          flexDirection="row"
-          justifyContent="flex-end"
-          alignItems="center"
-        >
-          <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
-            <IconButton onClick={toggleMode}>
-              <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
-            </IconButton>
-          </Flex>
-
-          <Settings />
-
-          {showBalance && (
-            <Flex
-              justifyCenter
-              alignCenter
-              borderRadius={'3rem'}
-              mx={1}
-              p={'1.2rem 2rem'}
-              boxShadow={
-                isDarkMode && theme
-                  ? theme.boxShadow.inner
-                  : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`
-              }
-              color="text.secondary"
-              fontSize={['.8rem', '1rem']}
-              display={['none', 'flex']}
-            >
-              <div className={styles.balance}>
-                <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
-                {displayBalance}
-              </div>
-            </Flex>
-          )}
-
-          <Flex alignCenter justifyCenter mx={1} fontSize={['.8rem', '1rem']}>
-            {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
-          </Flex>
-        </Box>
+  return <>
+    {showBannerMessage && (
+      <Banner>{showBannerMessage}</Banner>
+    )}
+    <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
+      <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
+        <Link to="/" style={{ position: 'relative' }}>
+          <img
+            className={styles.hopLogo}
+            src={isDarkMode ? HopLogoWhite : HopLogoBlack}
+            alt="Hop"
+          />
+          {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}
+        </Link>
       </Box>
-      <WalletWarning />
-    </>
-  )
+
+      <Box display="flex" flexDirection="row" justifyContent="center" alignSelf="center" flex={1} width="100%" flexWrap="wrap">
+        <HeaderRoutes />
+      </Box>
+
+      <Box
+        display="flex"
+        flex={1}
+        flexDirection="row"
+        justifyContent="flex-end"
+        alignItems="center"
+      >
+        <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
+          <IconButton onClick={toggleMode} size="large">
+            <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
+          </IconButton>
+        </Flex>
+
+        <Settings />
+
+        {showBalance && (
+          <Flex
+            justifyCenter
+            alignCenter
+            borderRadius={'3rem'}
+            mx={1}
+            p={'1.2rem 2rem'}
+            boxShadow={
+              isDarkMode && theme
+                ? theme.boxShadow.inner
+                : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`
+            }
+            color="text.secondary"
+            fontSize={['.8rem', '1rem']}
+            display={['none', 'flex']}
+          >
+            <div className={styles.balance}>
+              <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
+              {displayBalance}
+            </div>
+          </Flex>
+        )}
+
+        <Flex alignCenter justifyCenter mx={1} fontSize={['.8rem', '1rem']}>
+          {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.mode} />}
+        </Flex>
+      </Box>
+    </Box>
+    <WalletWarning />
+  </>;
 }
 
 export default Header

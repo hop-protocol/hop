@@ -1,7 +1,8 @@
 import React, { FC, ReactFragment } from 'react'
-import { makeStyles, Theme } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
+import { Theme } from '@mui/material/styles';
+import makeStyles from '@mui/styles/makeStyles';
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 import InfoTooltip from 'src/components/InfoTooltip'
 import classnames from 'classnames'
 import { Flex } from '../ui'
@@ -51,7 +52,7 @@ const useStyles = makeStyles<Theme, StyleProps>((theme: any) => {
         textAlign: 'right',
         width: '100%',
         whiteSpace: 'nowrap',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
           fontSize: '2rem',
         },
       } as any,
@@ -64,7 +65,7 @@ const useStyles = makeStyles<Theme, StyleProps>((theme: any) => {
       },
     },
     noop: {}
-  }
+  };
 })
 
 const DetailRow: FC<DetailRowProps> = props => {

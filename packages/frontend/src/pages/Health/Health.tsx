@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { useInterval } from 'react-use'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { DateTime } from 'luxon'
@@ -7,7 +7,7 @@ import { Div, Icon } from 'src/components/ui'
 import { findNetworkBySlug } from 'src/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 
 export const populateLowBonderBalances = (item: any) => {
   const chain = findNetworkBySlug(item.chain)

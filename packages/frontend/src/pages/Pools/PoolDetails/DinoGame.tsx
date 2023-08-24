@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 
 // source: https://github.com/wayou/t-rex-runner
 // script js: /public/js/dinoGame.js

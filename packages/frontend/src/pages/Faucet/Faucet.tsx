@@ -1,8 +1,9 @@
 import React, { FC, ChangeEvent, SyntheticEvent } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import MenuItem from '@material-ui/core/MenuItem'
-import Box from '@material-ui/core/Box'
+import makeStyles from '@mui/styles/makeStyles'
+import Typography from '@mui/material/Typography'
+import MenuItem from '@mui/material/MenuItem'
+import Box from '@mui/material/Box'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { useApp } from 'src/contexts/AppContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import Alert from 'src/components/alert/Alert'
@@ -44,7 +45,7 @@ const Faucet: FC = () => {
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
   const { mintToken, mintAmount, setMintAmount, isMinting, error, setError, success, setSuccess, tokens, selectedNetwork } = useFaucet()
 
-  const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleTokenChange = (event: SelectChangeEvent<unknown>) => {
     const tokenSymbol = event.target.value as string
     const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {

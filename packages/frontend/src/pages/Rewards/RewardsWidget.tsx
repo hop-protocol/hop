@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import Alert from 'src/components/alert/Alert'
-import Box from '@material-ui/core/Box'
-import Card from '@material-ui/core/Card'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
 import Button from 'src/components/buttons/Button'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { toTokenDisplay } from 'src/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { useRewards } from './useRewards'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles';
 import LargeTextField from 'src/components/LargeTextField'
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
 
 export const useStyles = makeStyles(theme => ({
   root: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       flexDirection: 'column',
       alignItems: 'center'
     },
@@ -31,7 +31,7 @@ export const useStyles = makeStyles(theme => ({
     minHeight: '200px',
   },
   header: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       maxWidth: '450',
       display: 'flex',
       flexDirection: 'column'

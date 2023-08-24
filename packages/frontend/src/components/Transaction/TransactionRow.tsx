@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
-import Link from '@material-ui/core/Link'
-import RightArrow from '@material-ui/icons/ArrowRightAlt'
+import Link from '@mui/material/Link'
+import RightArrow from '@mui/icons-material/ArrowRightAlt'
 import Transaction from 'src/models/Transaction'
 import { Flex } from '../ui'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
@@ -29,7 +29,11 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
       <Flex flexDirection="column" alignItems="flex-start" width="50%">
         <div>
           <span className={styles.network}>{networkSlugToName(tx.networkName)}:</span>
-          <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
+          <Link
+            href={tx.explorerLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            underline="hover">
             {tx.truncatedHash} ↗
           </Link>
         </div>
@@ -64,7 +68,7 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
       </>}
       </Flex>
     </Flex>
-  )
+  );
 }
 
 export default TransactionRow

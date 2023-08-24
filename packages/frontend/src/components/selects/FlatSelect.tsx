@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Select, { SelectProps } from '@material-ui/core/Select'
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
+import makeStyles from '@mui/styles/makeStyles';
+import Select, { SelectProps } from '@mui/material/Select'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 
 const useStyles = makeStyles(theme => ({
   root: ({ value }: any) => ({
@@ -20,7 +20,7 @@ const useStyles = makeStyles(theme => ({
       borderRadius: '2.3rem',
       backgroundColor: theme.palette.action.disabled,
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       minWidth: 0,
       maxWidth: '100%',
     },
@@ -42,8 +42,14 @@ const FlatSelect: FC<SelectProps & { children: any }> = props => {
   const icon = isSingle ? () => null : ArrowDropDownIcon
 
   return (
-    <Select disabled={isSingle} IconComponent={icon} {...props} classes={styles} disableUnderline />
-  )
+    <Select
+      variant="standard"
+      disabled={isSingle}
+      IconComponent={icon}
+      {...props}
+      classes={styles}
+      disableUnderline />
+  );
 }
 
 export default FlatSelect

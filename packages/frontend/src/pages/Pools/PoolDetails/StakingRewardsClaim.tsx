@@ -1,25 +1,25 @@
 import React, { ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import Button from 'src/components/buttons/Button'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles';
 import { useStaking } from '../useStaking'
 import { useStakingAll } from '../useStakingAll'
 
 export const useStyles = makeStyles(theme => ({
   claimRewards: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       width: '90%',
       marginLeft: 'auto',
       marginRight: 'auto',
     },
   },
   claimRewardsBox: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
   },
   claimRewardsFlex: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       flexDirection: 'column',
       justifyContent: 'center',
       textAlign: 'center',

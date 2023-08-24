@@ -1,8 +1,8 @@
 import React, { FC, useEffect, useState } from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles';
+import Box from '@mui/material/Box'
+import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
 import Button from 'src/components/buttons/Button'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
@@ -17,7 +17,7 @@ import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -42,7 +42,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'space-between',
     marginBottom: '0',
     width: '46.0rem',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       width: '90%',
     },
   },
@@ -68,7 +68,7 @@ const useStyles = makeStyles(theme => ({
     '&[open] summary span::before': {
       content: '"▾"',
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       width: '90%',
     },
   },
@@ -105,7 +105,7 @@ const useStyles = makeStyles(theme => ({
     boxSizing: 'border-box',
     borderRadius: '3rem',
     boxShadow: theme.boxShadow.inner,
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       width: '100%',
     },
   },
@@ -236,7 +236,7 @@ const ConvertContent: FC = () => {
           />
           <Box display="flex" style={{ position: 'relative' }}>
             <Box display="flex" justifyContent="center" alignItems="center">
-              <IconButton onClick={switchDirection} title="Click to switch direction">
+              <IconButton onClick={switchDirection} title="Click to switch direction" size="large">
                 <ArrowDownIcon color="primary" className={styles.downArrow} />
               </IconButton>
             </Box>
@@ -317,7 +317,7 @@ const ConvertContent: FC = () => {
         </>
       )}
     </Box>
-  )
+  );
 }
 
 export default ConvertContent

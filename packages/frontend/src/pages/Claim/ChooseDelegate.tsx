@@ -3,14 +3,14 @@ import { Link } from 'src/components/Link'
 import { Circle, Flex, Icon, Input } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import Button from 'src/components/buttons/Button'
-import CircularProgress from '@mui/material/CircularProgress'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import { useDelegates } from './useDelegates'
 import { Delegate } from './useClaim'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
 import { DelegateIcon } from './DelegateIcon'
-import ChatIcon from '@mui/icons-material/Chat'
+import ChatIcon from '@material-ui/icons/Chat'
 import { DelegateConfirmModal } from './DelegateConfirmModal'
 import { DelegateInfoModal } from './DelegateInfoModal'
 
@@ -166,7 +166,7 @@ export function ChooseDelegate(props: any) {
           </Box>
         </Box>
       </Box>
-      <Box mt={4} display="flex" justifyContent="center">
+      <Box mt={4} display="flex" justifyContent="center" maxWidth>
         <Button large highlighted onClick={onContinue} disabled={!delegate?.address}>
           Continue to Review
         </Button>

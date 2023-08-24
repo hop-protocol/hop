@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { useTable, useSortBy } from 'react-table'
 import makeData from './makeData'
 import { Div } from '../ui'
-import Skeleton from '@mui/material/Skeleton'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 const Styles = styled.div`
   padding: 0.25rem;

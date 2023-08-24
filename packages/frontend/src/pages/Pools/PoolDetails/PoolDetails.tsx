@@ -1,14 +1,14 @@
 import React, { useState, ChangeEvent } from 'react'
 import { usePool } from '../PoolsContext'
-import Box from '@mui/material/Box'
+import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import Alert from 'src/components/alert/Alert'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import Skeleton from '@mui/material/Skeleton'
+import Typography from '@material-ui/core/Typography'
+import IconButton from '@material-ui/core/IconButton'
+import Tabs from '@material-ui/core/Tabs'
+import Tab from '@material-ui/core/Tab'
+import Skeleton from '@material-ui/lab/Skeleton'
 import { BigNumber } from 'ethers'
 import {
   BNMin,
@@ -137,7 +137,7 @@ export function PoolDetails () {
       <Link to={'/pools'} className={styles.backLink}>
         <Box mb={4} display="flex" alignItems="center">
           <Box display="flex" alignItems="center">
-              <IconButton title="Go back to pools overview" size="large">
+              <IconButton title="Go back to pools overview">
                 <Typography variant="body1" color="secondary" className={styles.backLinkIcon}>
                 ‹
                 </Typography>
@@ -331,5 +331,5 @@ export function PoolDetails () {
         virtualPriceFormatted={virtualPriceFormatted}
       />
     </Box>
-  );
+  )
 }

@@ -1,13 +1,12 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
-import Box from '@mui/material/Box'
+import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import InfoTooltip from 'src/components/InfoTooltip'
-import MenuItem from '@mui/material/MenuItem'
-import MuiLink from '@mui/material/Link'
-import { SelectChangeEvent } from '@mui/material/Select'
+import MenuItem from '@material-ui/core/MenuItem'
+import MuiLink from '@material-ui/core/Link'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
-import Typography from '@mui/material/Typography'
+import Typography from '@material-ui/core/Typography'
 import { BalanceText } from '../components/BalanceText'
 import { BigNumber } from 'ethers'
 import { InputField } from '../components/InputField'
@@ -118,7 +117,7 @@ export function WithdrawForm(props: any) {
     }
   }, [amountBN, proportional, amountPercent, tokenIndex])
 
-  function handleSelection (event: SelectChangeEvent<unknown>) {
+  function handleSelection (event: ChangeEvent<{ value: unknown }>) {
     const value = Number(event.target.value)
     const _selection = selections.find(item => item.value === value)
     const _proportional = value === -1
@@ -223,7 +222,7 @@ export function WithdrawForm(props: any) {
     <Box>
       <Box mb={2} display="flex" justifyContent="center">
         <Typography variant="body1">
-          <em>To withdraw staked tokens, first unstake on the <MuiLink href="" onClick={handleUnstakeClick} underline="hover">stake tab</MuiLink>.</em>
+          <em>To withdraw staked tokens, first unstake on the <MuiLink href="" onClick={handleUnstakeClick}>stake tab</MuiLink>.</em>
         </Typography>
       </Box>
 
@@ -300,5 +299,5 @@ export function WithdrawForm(props: any) {
       </Box>
     </Box>
     </Box>
-  );
+  )
 }

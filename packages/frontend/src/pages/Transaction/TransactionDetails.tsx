@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from '@mui/material'
+import { Link } from '@material-ui/core'
 import { utils } from 'ethers'
 import { Div, Flex } from 'src/components/ui'
 import { Text } from 'src/components/ui/Text'
@@ -22,10 +22,7 @@ function TransactionDetails(props: TxState) {
       <Flex justifyBetween mb={2}>
         <Div bold>Source Network:</Div>
         {networkName && (
-          <Link
-            href={getExplorerTxUrl(networkName, txHash)}
-            target="_blank"
-            underline="hover">
+          <Link href={getExplorerTxUrl(networkName, txHash)} target="_blank">
             {networkName}: {truncateHash(txHash)}
           </Link>
         )}
@@ -76,7 +73,7 @@ function TransactionDetails(props: TxState) {
         </Div>
       </Flex>
     </Div>
-  );
+  )
 }
 
 export default TransactionDetails

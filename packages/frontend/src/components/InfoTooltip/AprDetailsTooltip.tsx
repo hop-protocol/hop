@@ -1,8 +1,8 @@
 import React, { FC } from 'react'
-import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
-import Tooltip from '@mui/material/Tooltip'
-import Box from '@mui/material/Box'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import Tooltip from '@material-ui/core/Tooltip'
+import Box from '@material-ui/core/Box'
 
 const useStyles = makeStyles(theme => ({
   root: {

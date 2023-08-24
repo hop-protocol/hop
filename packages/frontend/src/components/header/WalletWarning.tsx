@@ -1,8 +1,7 @@
 import React, { FC, useEffect, useState } from 'react'
 import Alert from 'src/components/alert/Alert'
-import { Theme } from '@mui/material/styles';
-import makeStyles from '@mui/styles/makeStyles';
-import Box from '@mui/material/Box'
+import { Theme, makeStyles } from '@material-ui/core/styles'
+import Box from '@material-ui/core/Box'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles((theme: Theme) => ({

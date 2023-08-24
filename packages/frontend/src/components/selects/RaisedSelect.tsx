@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
-import Select, { SelectProps } from '@mui/material/Select'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import { makeStyles } from '@material-ui/core/styles'
+import Select, { SelectProps } from '@material-ui/core/Select'
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -39,14 +39,7 @@ const RaisedSelect: FC<SelectProps & { children: any }> = props => {
   const isSingle = props?.children?.filter((x: any) => x).length <= 1
   const icon = isSingle ? () => null : ArrowDropDownIcon
 
-  return (
-    <Select
-      variant="standard"
-      IconComponent={icon}
-      {...props}
-      classes={styles}
-      disableUnderline />
-  );
+  return <Select IconComponent={icon} {...props} classes={styles} disableUnderline />
 }
 
 export default RaisedSelect

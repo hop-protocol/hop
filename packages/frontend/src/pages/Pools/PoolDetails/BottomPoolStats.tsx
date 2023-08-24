@@ -1,7 +1,7 @@
 import React from 'react'
-import Box from '@mui/material/Box'
+import Box from '@material-ui/core/Box'
 import InfoTooltip from 'src/components/InfoTooltip'
-import Typography from '@mui/material/Typography'
+import Typography from '@material-ui/core/Typography'
 import { useStyles } from './useStyles'
 
 type Props = {

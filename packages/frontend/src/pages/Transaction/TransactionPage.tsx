@@ -3,7 +3,7 @@ import { useParams } from 'react-router'
 import { Div, Flex } from 'src/components/ui'
 import { useTransaction } from 'src/hooks'
 import SmallTextField from 'src/components/SmallTextField'
-import { Link } from '@mui/material'
+import { Link } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import { networkIdToSlug, truncateHash } from 'src/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -130,7 +130,7 @@ function TransactionPage() {
                   <Flex justifyBetween mt={4} mb={2}>
                     <Div bold>Destination Network:</Div>
                     {tx.destTx?.explorerLink ? (
-                      <Link href={tx.destTx?.explorerLink} target="_blank" underline="hover">
+                      <Link href={tx.destTx?.explorerLink} target="_blank">
                         {tx.destTx.networkName}: {truncateHash(tx.destTx?.txHash)}
                       </Link>
                     ) : (
@@ -159,19 +159,19 @@ function TransactionPage() {
           <Link
             href="https://www.notion.so/authereum/How-to-find-out-if-a-transaction-has-arrived-on-the-Destination-Chain-using-The-Graph-5c65d441fe894ccfb75e01f8e10ff651"
             target="_blank"
-            underline="hover">
+          >
             How to find out if a transaction has arrived on the Destination Chain using The Graph
           </Link>
           <Link
             href="https://authereum.notion.site/Hop-Direct-Contract-Integration-b3a7030ba9264ae79d96087dec448d10"
             target="_blank"
-            underline="hover">
+          >
             Hop Direct Contract Integration
           </Link>
         </Flex>
       </Flex>
     </Div>
-  );
+  )
 }
 
 export default TransactionPage

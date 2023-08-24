@@ -80,160 +80,134 @@ export const boxShadows = {
 
 export const overridesLight = {
   MuiButton: {
-    styleOverrides: {
-      root: {
-        margin: 'inherit',
-        backgroundColor: 'transparent',
+    root: {
+      margin: 'inherit',
+      backgroundColor: 'transparent',
+      boxShadow: boxShadows.button.default,
+      color: palette.primary.main,
+      transition: defaultTransition,
+      '&:disabled': {
+        background: '#FDF7F9',
         boxShadow: boxShadows.button.default,
-        color: palette.primary.main,
-        transition: defaultTransition,
-        '&:disabled': {
-          background: '#FDF7F9',
-          boxShadow: boxShadows.button.default,
-          color: palette.text.disabled,
-        },
+        color: palette.text.disabled,
       },
     },
   },
   MuiCard: {
-    styleOverrides: {
-      root: {
-        padding: '2.8rem',
-        borderRadius: '3.0rem',
-        boxShadow: boxShadows.card,
-        transition: defaultTransition,
-      },
+    root: {
+      padding: '2.8rem',
+      borderRadius: '3.0rem',
+      boxShadow: boxShadows.card,
+      transition: defaultTransition,
     },
   },
   MuiListItem: {
-    styleOverrides: {
-      root: {
-        transition: defaultTransition,
-        '&$selected': {
-          backgroundColor: '#b32eff19',
-          color: palette.text.primary,
-          '&:hover': {
-            backgroundColor: '#b32eff1e',
-          },
-        },
-      },
-      button: {
+    root: {
+      transition: defaultTransition,
+      '&$selected': {
+        backgroundColor: '#b32eff19',
+        color: palette.text.primary,
         '&:hover': {
-          backgroundColor: palette.action.hover,
+          backgroundColor: '#b32eff1e',
         },
-        transition: defaultTransition,
       },
+    },
+    button: {
+      '&:hover': {
+        backgroundColor: palette.action.hover,
+      },
+      transition: defaultTransition,
     },
   },
   MuiMenuItem: {
-    styleOverrides: {
-      root: {
-        fontWeight: 700,
-        fontSize: '1.8rem',
-        transition: defaultTransition,
-      },
+    root: {
+      fontWeight: 700,
+      fontSize: '1.8rem',
+      transition: defaultTransition,
     },
   },
   MuiInputBase: {
-    styleOverrides: {
-      root: {
-        transition: defaultTransition,
-      },
+    root: {
+      transition: defaultTransition,
     },
   },
   MuiPaper: {
-    styleOverrides: {
-      root: {
-        backgroundColor: '#FDF7F9',
-        transition: defaultTransition,
-      },
+    root: {
+      backgroundColor: '#FDF7F9',
+      transition: defaultTransition,
     },
   },
   MuiPopover: {
-    styleOverrides: {
-      paper: {
-        transition: defaultTransition,
-        borderRadius: '3.0rem',
-        boxShadow: `
+    paper: {
+      transition: defaultTransition,
+      borderRadius: '3.0rem',
+      boxShadow: `
           0px 5px 15px -3px rgba(0,0,0,0.1),
           0px 8px 20px 1px rgba(0,0,0,0.07),
           0px 3px 24px 2px rgba(0,0,0,0.06);
         `,
-      },
     },
   },
   MuiSelect: {
-    styleOverrides: {
-      select: {
-        backgroundColor: 'white',
-        // boxShadow: boxShadows.select,
-        transition: defaultTransition,
-      },
+    root: {
+      backgroundColor: 'white',
+      // boxShadow: boxShadows.select,
+      transition: defaultTransition,
     },
   },
   MuiSlider: {
-    styleOverrides: {
-      root: {
-        height: 3,
-      },
-      thumb: {
-        height: 14,
-        width: 14,
-      },
-      track: {
-        height: 3,
-        borderRadius: 8,
-      },
-      rail: {
-        height: 3,
-        borderRadius: 8,
-      },
-      mark: {
-        height: 3,
-      },
-      valueLabel: {
-        fontSize: '1.4rem',
-      },
+    root: {
+      height: 3,
+    },
+    thumb: {
+      height: 14,
+      width: 14,
+    },
+    track: {
+      height: 3,
+      borderRadius: 8,
+    },
+    rail: {
+      height: 3,
+      borderRadius: 8,
+    },
+    mark: {
+      height: 3,
+    },
+    valueLabel: {
+      fontSize: '1.4rem',
     },
   },
   MuiTabs: {
-    styleOverrides: {
-      indicator: {
-        display: 'none',
-      },
+    indicator: {
+      display: 'none',
     },
   },
   MuiTab: {
-    styleOverrides: {
-      root: {
-        transition: defaultTransition,
-        '&.MuiTab-root': {
-          color: palette.text.secondary,
-          minWidth: 0,
-          borderRadius: '3rem',
-        },
-        '&$selected': {
-          color: palette.primary.main,
-        },
-        '&:hover:not($selected)': {
-          color: palette.text.primary,
-        },
+    root: {
+      transition: defaultTransition,
+      '&.MuiTab-root': {
+        color: palette.text.secondary,
+        minWidth: 0,
+        borderRadius: '3rem',
+      },
+      '&$selected': {
+        color: palette.primary.main,
+      },
+      '&:hover:not($selected)': {
+        color: palette.text.primary,
       },
     },
   },
   MuiTooltip: {
-    styleOverrides: {
-      tooltip: {
-        fontSize: '1.6rem',
-      },
+    tooltip: {
+      fontSize: '1.6rem',
     },
   },
   MuiTypography: {
-    styleOverrides: {
-      root: {
-        color: '#0F0524',
-        transition: defaultTransition,
-      },
+    root: {
+      color: '#0F0524',
+      transition: defaultTransition,
     },
   },
 }

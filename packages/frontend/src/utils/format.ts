@@ -80,7 +80,7 @@ export function formatError(error: unknown, network?: Network): string {
 }
 
 export function sanitizeNumericalString(numStr: string) {
-  return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '');
+  return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
 }
 
 export function maxDecimals(amount: string, decimals: number) {

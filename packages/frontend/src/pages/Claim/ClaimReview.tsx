@@ -4,9 +4,9 @@ import Button from 'src/components/buttons/Button'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { toTokenDisplay } from 'src/utils'
 import { BigNumber } from 'ethers'
-import Box from '@mui/material/Box'
+import Box from '@material-ui/core/Box'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import Typography from '@mui/material/Typography'
+import Typography from '@material-ui/core/Typography'
 import { DelegateIcon } from './DelegateIcon'
 
 export function ClaimReview (props: any) {

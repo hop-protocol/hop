@@ -1,12 +1,12 @@
 import React, { ChangeEvent } from 'react'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 import { TokenIcon } from './TokenIcon'
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core/styles'
 
 export const useStyles = makeStyles(theme => ({
   box: {
-    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
     position: 'relative'
   },

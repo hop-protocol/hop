@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import Button from 'src/components/buttons/Button'
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core/styles'
 import { Slider } from 'src/components/slider'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { BigNumber } from 'ethers'
-import Typography from '@mui/material/Typography'
+import Typography from '@material-ui/core/Typography'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import { Token } from '@hop-protocol/sdk'
 import logger from 'src/logger'

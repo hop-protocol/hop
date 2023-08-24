@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core/styles'
 
 export const useSendStyles = makeStyles((theme: any) => ({
   header: {
@@ -29,7 +29,7 @@ export const useSendStyles = makeStyles((theme: any) => ({
     justifyContent: 'space-between',
     minHeight: '12rem',
     width: '46.0rem',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       width: '90%',
     },
   },
@@ -62,7 +62,7 @@ export const useSendStyles = makeStyles((theme: any) => ({
     '&[open] summary span::before': {
       content: '"▾"',
     },
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       width: '90%',
     },
   },
@@ -99,7 +99,7 @@ export const useSendStyles = makeStyles((theme: any) => ({
     boxSizing: 'border-box',
     borderRadius: '3rem',
     boxShadow: theme.boxShadow.inner,
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       width: '100%',
     },
   },

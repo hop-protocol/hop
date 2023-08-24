@@ -1,9 +1,9 @@
 import React, { FC, ChangeEvent, useEffect, useState } from 'react'
-import Card from '@mui/material/Card'
-import makeStyles from '@mui/styles/makeStyles';
+import Card from '@material-ui/core/Card'
+import { makeStyles } from '@material-ui/core/styles'
 import LargeTextField from 'src/components/LargeTextField'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
+import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
 import Alert from 'src/components/alert/Alert'
 import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'

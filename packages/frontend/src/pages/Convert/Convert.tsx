@@ -1,11 +1,10 @@
 import React, { FC, ChangeEvent } from 'react'
 import { useNavigate, useLocation, useMatch } from 'react-router-dom'
-import makeStyles from '@mui/styles/makeStyles';
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import Grid from '@mui/material/Grid'
-import MenuItem from '@mui/material/MenuItem'
-import { SelectChangeEvent } from '@mui/material/Select'
+import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
+import Grid from '@material-ui/core/Grid'
+import MenuItem from '@material-ui/core/MenuItem'
 import { useApp } from 'src/contexts/AppContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
@@ -47,8 +46,8 @@ const Convert: FC = () => {
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
 
-  const handleBridgeChange = (event: SelectChangeEvent<unknown>) => {
-    const tokenSymbol = (event.target.value as { value: unknown }).value as string
+  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
+    const tokenSymbol = event.target.value as string
 
     const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
@@ -57,9 +56,9 @@ const Convert: FC = () => {
   }
 
   const lastPathname = pathname.split('/').pop() || '/amm'
-  const handleTabChange = (event: SelectChangeEvent<unknown>) => {
-    const value = event.target.value as string;
-    navigate(`${pathname}/${value}${search}`);
+  const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
+    const value = event.target.value as string
+    navigate(`${pathname}/${value}${search}`)
   }
 
   return (

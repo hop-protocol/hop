@@ -1,6 +1,6 @@
 import React from 'react'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
+import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
 import { gitRevision } from 'src/config/config'
 import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
 import { ReactComponent as github } from 'src/assets/logos/github.svg'
@@ -20,7 +20,7 @@ import { Flex, SvgImg } from '../ui'
 import { StyledLink } from '../ui/StyledLink'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { useBlockNumber } from './useBlockNumber'
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {

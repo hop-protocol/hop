@@ -12,7 +12,6 @@ import React, {
 } from 'react'
 import Address from 'src/models/Address'
 import Network from 'src/models/Network'
-import { SelectChangeEvent } from '@mui/material/Select'
 import Price from 'src/models/Price'
 import logger from 'src/logger'
 import { Signer, BigNumber, constants } from 'ethers'
@@ -84,7 +83,7 @@ type PoolsContextProps = {
   reserve1Formatted: string
   reserveTotalsUsd?: number
   reserveTotalsUsdFormatted: string
-  selectBothNetworks: (event: SelectChangeEvent<unknown>) => void
+  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
   selectedNetwork?: Network
   sendButtonText: string
   setError: (error?: string | null) => void

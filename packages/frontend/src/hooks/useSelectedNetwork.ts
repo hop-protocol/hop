@@ -1,6 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Network from 'src/models/Network'
-import { SelectChangeEvent } from '@mui/material/Select'
 import { defaultL2Network as _defaultL2Network, l2Networks } from 'src/config/networks'
 import { findNetworkBySlug, networkSlugToId } from 'src/utils'
 import useQueryParams from './useQueryParams'
@@ -57,7 +56,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     return false
   }, [opts, queryParams])
 
-  const selectSourceNetwork = (event: SelectChangeEvent<string>) => {
+  const selectSourceNetwork = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
     const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
@@ -79,8 +78,8 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     }
   }
 
-  const selectBothNetworks = (event: SelectChangeEvent<unknown>) => {
-    const selectedNetworkSlug = event.target.value as string
+  const selectBothNetworks = (event: ChangeEvent<{ value: any }>) => {
+    const selectedNetworkSlug = event.target.value
     const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)

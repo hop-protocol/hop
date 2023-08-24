@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Box, MenuItem, Typography } from '@mui/material'
+import { Box, MenuItem, Typography } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import FlatSelect from '../selects/FlatSelect'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'

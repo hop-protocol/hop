@@ -8,8 +8,8 @@ import Button from 'src/components/buttons/Button'
 import { ButtonLink } from 'src/components/Button'
 import Confetti from 'react-confetti'
 import useWindowSize from 'react-use/lib/useWindowSize'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 
 export function Claimed() {
   const { width, height } = useWindowSize()

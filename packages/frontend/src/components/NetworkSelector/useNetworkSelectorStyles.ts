@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core'
 
 export const useNetworkSelectorStyles = makeStyles((theme: any) => ({
   networkSelectionBox: {

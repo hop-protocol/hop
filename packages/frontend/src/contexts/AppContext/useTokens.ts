@@ -18,7 +18,7 @@ const useTokens = () => {
         imageUrl: tokenMeta.image,
         supportedNetworks,
       })
-    });
+    })
   }, [])
 
   return tokens

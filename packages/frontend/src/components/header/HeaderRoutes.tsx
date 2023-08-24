@@ -1,11 +1,11 @@
 import React, { FC, ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
+import Tabs from '@material-ui/core/Tabs'
+import Tab from '@material-ui/core/Tab'
 import { isMainnet, showRewards } from 'src/config'
 import { useClaim } from 'src/pages/Claim/useClaim'
-import makeStyles from '@mui/styles/makeStyles';
-import { useTheme } from '@mui/material'
+import { makeStyles } from '@material-ui/core/styles'
+import { useTheme } from '@material-ui/core'
 // import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 
 const useStyles = makeStyles((theme: any) => ({

@@ -1,6 +1,6 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles';
-import Typography from '@mui/material/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@material-ui/core/Typography'
 import { Token } from '@hop-protocol/sdk'
 import Button from 'src/components/buttons/Button'
 import { commafy, NetworkTokenEntity } from 'src/utils'

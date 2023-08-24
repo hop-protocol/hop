@@ -1,7 +1,7 @@
 import React, { FC, useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles';
-import Tooltip, { TooltipProps } from '@mui/material/Tooltip'
-import HelpIcon from '@mui/icons-material/Help'
+import { makeStyles } from '@material-ui/core/styles'
+import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
+import HelpIcon from '@material-ui/icons/Help'
 
 type Props = {
   title: React.ReactNode
@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme: any) => ({
     maxWidth: '100rem',
   },
   icon: {
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       fontSize: '2rem !important',
     },
   },

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles';
-import CircularProgress from '@mui/material/CircularProgress'
+import { makeStyles } from '@material-ui/core/styles'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StyledButton } from '../buttons/StyledButton'
@@ -14,7 +14,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     fontSize: '1rem',
-    [theme.breakpoints.down('md')]: {
+    [theme.breakpoints.down('sm')]: {
       fontSize: '.8rem',
     },
   },

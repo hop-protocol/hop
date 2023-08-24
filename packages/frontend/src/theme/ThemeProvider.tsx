@@ -1,19 +1,12 @@
 import React, { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react'
-import { ThemeProvider as MuiThemeProvider, StyledEngineProvider, Theme } from '@mui/material/styles'
+import { ThemeProvider as MuiThemeProvider, Theme } from '@material-ui/core/styles'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
-import { lightTheme, darkTheme, HopTheme } from './theme'
+import { lightTheme, darkTheme } from './theme'
 import { useLocalStorage } from 'react-use'
 import { Theme as StyledSystemTheme } from 'styled-system'
 import { paletteDark, paletteLight } from './overrides'
 import get from 'lodash/get'
 import merge from 'lodash/merge'
-
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends HopTheme {}
-}
-
 
 const shadows = {
   top: `
@@ -86,7 +79,7 @@ export const styledSystemTheme: CustomColors = {
 interface ThemeContextValues {
   mode?: string
   toggleMode: any
-  theme: HopTheme
+  theme: Theme
   ssTheme: any
   isDarkMode: boolean
 }
@@ -137,13 +130,11 @@ const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
         isDarkMode: mode === 'dark',
       }}
     >
-      <StyledEngineProvider injectFirst>
-        <MuiThemeProvider theme={theme}>
-          <SCThemeProvider theme={ssTheme}>{children}</SCThemeProvider>
-        </MuiThemeProvider>
-      </StyledEngineProvider>
+      <MuiThemeProvider theme={theme}>
+        <SCThemeProvider theme={ssTheme}>{children}</SCThemeProvider>
+      </MuiThemeProvider>
     </ThemeContext.Provider>
-  );
+  )
 }
 
 export const useThemeMode = () => useContext(ThemeContext)

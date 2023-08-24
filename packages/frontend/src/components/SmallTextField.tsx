@@ -1,8 +1,8 @@
 import React, { FC, ReactNode } from 'react'
-import makeStyles from '@mui/styles/makeStyles';
-import MuiTextField, { TextFieldProps } from '@mui/material/TextField'
-import InputAdornment from '@mui/material/InputAdornment'
-import Typography from '@mui/material/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import Typography from '@material-ui/core/Typography'
 
 type LargeTextFieldProps = {
   units?: string | ReactNode
@@ -47,11 +47,10 @@ const TextField: FC<LargeTextFieldProps> = props => {
 
   return (
     <MuiTextField
-      variant="standard"
       className={styles.root}
       InputProps={{
         classes: inputStyles,
-        /* disableUnderline: true, */
+        disableUnderline: true,
         endAdornment: units ? (
           <InputAdornment position="end">
             <Typography variant="h4" color="textPrimary" className={styles.adornment}>
@@ -60,8 +59,9 @@ const TextField: FC<LargeTextFieldProps> = props => {
           </InputAdornment>
         ) : null,
       }}
-      {...textFieldProps}></MuiTextField>
-  );
+      {...textFieldProps}
+    ></MuiTextField>
+  )
 }
 
 export default TextField

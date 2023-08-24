@@ -1,10 +1,10 @@
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core/styles'
 
 export const useAmountSelectorCardStyles = makeStyles(theme => ({
   root: {
     maxWidth: '51.6rem',
     boxSizing: 'border-box',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       width: '100%',
     },
     boxShadow: theme.boxShadow.inner,

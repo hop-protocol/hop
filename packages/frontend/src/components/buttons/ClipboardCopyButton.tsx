@@ -1,12 +1,10 @@
 import React, { useState, SyntheticEvent } from 'react'
 import clsx from 'clsx'
 import copy from 'copy-to-clipboard'
-import { Theme } from '@mui/material/styles';
-import withStyles from '@mui/styles/withStyles';
-import makeStyles from '@mui/styles/makeStyles';
-import MuiTooltip from '@mui/material/Tooltip'
+import { withStyles, makeStyles, Theme } from '@material-ui/core/styles'
+import MuiTooltip from '@material-ui/core/Tooltip'
 import ClipboardIcon from 'src/components/icons/ClipboardIcon'
-import { ButtonProps } from '@mui/material/Button'
+import { ButtonProps } from '@material-ui/core/Button'
 
 const useStyles = makeStyles((theme: Theme) => ({
   button: {

@@ -5,10 +5,10 @@ import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import Button from 'src/components/buttons/Button'
 import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
 import { correctClaimChain } from './claims'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 import { DelegateIcon } from './DelegateIcon'
-import CircularProgress from '@mui/material/CircularProgress'
+import CircularProgress from '@material-ui/core/CircularProgress'
 
 export function Claiming(props: any) {
   const { isDarkMode, claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props

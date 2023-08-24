@@ -18,7 +18,6 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { SelectChangeEvent } from '@mui/material/Select'
 import logger from 'src/logger'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
@@ -51,7 +50,7 @@ type ConvertContextProps = {
   loadingSourceBalance: boolean
   needsApproval?: boolean
   needsTokenForFee?: boolean
-  selectBothNetworks: (event: SelectChangeEvent<unknown>, child: ReactNode) => void
+  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
   selectedNetwork?: Network
   sending: boolean
   setDestTokenAmount: (value: string) => void

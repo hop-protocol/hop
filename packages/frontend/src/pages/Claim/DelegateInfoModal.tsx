@@ -1,12 +1,12 @@
 import React from 'react'
 import { Link } from 'src/components/Link'
 import Button from 'src/components/buttons/Button'
-import Typography from '@mui/material/Typography'
+import Typography from '@material-ui/core/Typography'
 import Modal from 'src/components/modal'
-import Box from '@mui/material/Box'
+import Box from '@material-ui/core/Box'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

@@ -1,12 +1,12 @@
 import React, { ChangeEvent } from 'react'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
+import Box from '@material-ui/core/Box'
+import IconButton from '@material-ui/core/IconButton'
 import InfoTooltip from 'src/components/InfoTooltip'
-import Skeleton from '@mui/material/Skeleton'
-import Typography from '@mui/material/Typography'
+import Skeleton from '@material-ui/lab/Skeleton'
+import Typography from '@material-ui/core/Typography'
 import { PoolRow } from './PoolRow'
 import { StakingRewardsClaim } from '../PoolDetails/StakingRewardsClaim'
-import makeStyles from '@mui/styles/makeStyles';
+import { makeStyles } from '@material-ui/core/styles'
 import { usePools } from './usePools'
 
 export const useStyles = makeStyles(theme => ({
@@ -14,13 +14,13 @@ export const useStyles = makeStyles(theme => ({
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
     borderRadius: '3rem',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       paddingLeft: '1rem',
       paddingRight: '1rem'
     },
   },
   header: {
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
     },
   },
@@ -33,7 +33,7 @@ export const useStyles = makeStyles(theme => ({
     textDecoration: 'none'
   },
   filters: {
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       flexDirection: 'column'
     },
   },
@@ -47,7 +47,7 @@ export const useStyles = makeStyles(theme => ({
     }
   },
   hideMobile: {
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       display: 'none'
     },
   },
@@ -58,7 +58,7 @@ export const useStyles = makeStyles(theme => ({
   },
   chip: {
     padding: '0.5rem 1rem',
-    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
     cursor: 'pointer'
   },

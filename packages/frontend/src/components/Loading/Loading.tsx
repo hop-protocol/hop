@@ -1,5 +1,5 @@
 import React from 'react'
-import { useTheme } from '@mui/material'
+import { useTheme } from '@material-ui/core'
 import { squareDimensions } from 'src/utils'
 import styled, { keyframes, css } from 'styled-components/macro'
 import { background, color } from 'styled-system'

@@ -19,7 +19,8 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { bondWithdrawalBatchSize, enableEmergencyMode, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
-import { isExecutionError } from 'src/utils/isExecutionError'
+import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
+import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -259,17 +260,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
         })
       }
 
-      const isCallExceptionError = isExecutionError(err.message)
+      const isCallExceptionError = isFetchExecutionError(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.CallException
         })
       }
       if (err instanceof BonderFeeTooLowError) {
-        let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-        if (!withdrawalBondBackoffIndex) {
-          withdrawalBondBackoffIndex = 0
-        }
+        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.BonderFeeTooLow,
@@ -285,13 +283,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       if (err instanceof RedundantProviderOutOfSync) {
         logger.error('redundant provider out of sync. trying again.')
-        let { withdrawalBondBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-        if (!withdrawalBondBackoffIndex) {
-          withdrawalBondBackoffIndex = 0
-        }
+        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.RedundantRpcOutOfSync,
+          withdrawalBondBackoffIndex
+        })
+        return
+      }
+      const isRpcError = isFetchRpcServerError(err.message)
+      if (isRpcError) {
+        logger.error('rpc server error. trying again.')
+        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
+        withdrawalBondBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: TxError.RpcServerError,
           withdrawalBondBackoffIndex
         })
         return
@@ -300,6 +306,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         logger.error('possible reorg detected. turning off writes.')
         enableEmergencyMode()
       }
+
       throw err
     }
   }

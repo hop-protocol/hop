@@ -25,7 +25,7 @@ import {
 } from 'src/types/error'
 import { Strategy, Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
-import { isExecutionError } from 'src/utils/isExecutionError'
+import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract
@@ -280,7 +280,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       await destinationBridge.provider.call(tx)
       return true
     } catch (err) {
-      const isRevertError = isExecutionError(err.message)
+      const isRevertError = isFetchExecutionError(err.message)
       if (isRevertError) {
         logger.error(`getIsRecipientReceivable err: ${err.message}`)
         return false

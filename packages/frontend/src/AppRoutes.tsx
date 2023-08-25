@@ -42,6 +42,8 @@ const AppRoutes: FC = () => {
   useEffect(() => {
     if (location.search === '?token=ETH' && location.pathname === '/') {
       navigate('/send')
+    } else if (location.pathname === '/airdrop') {
+      navigate('/airdrop/preview')
     }
   }, [location, navigate])
 

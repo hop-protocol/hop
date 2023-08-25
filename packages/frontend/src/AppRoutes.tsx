@@ -1,5 +1,5 @@
-import React, { FC, lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import React, { FC, lazy, Suspense, useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import Send from 'src/pages/Send'
 import { Div } from './components/ui'
@@ -35,6 +35,16 @@ const AuthereumVerified = lazy(
 )
 
 const AppRoutes: FC = () => {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // fix root path redirecting to .../#/?token=ETH
+  useEffect(() => {
+    if (location.search === '?token=ETH' && location.pathname === '/') {
+      navigate('/send')
+    }
+  }, [location, navigate])
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/send" />} />

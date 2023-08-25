@@ -10,7 +10,6 @@ import AppProvider from './contexts/AppContext'
 import SafeProvider from '@gnosis.pm/safe-apps-react-sdk'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
-const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
 const Router: typeof HashRouter = HashRouter
 
 const queryClient = new QueryClient({

@@ -38,9 +38,9 @@ const AppRoutes: FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // fix root path redirecting to .../#/?token=ETH
+  // root and airdrop paths
   useEffect(() => {
-    if (location.search === '?token=ETH' && location.pathname === '/') {
+    if (location.pathname === '/') {
       navigate('/send')
     } else if (location.pathname === '/airdrop') {
       navigate('/airdrop/preview')
@@ -49,8 +49,6 @@ const AppRoutes: FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/send" />} />
-      <Route path="/airdrop" element={<Navigate to="/airdrop/preview" />} />
       <Route
         path="/*"
         element={

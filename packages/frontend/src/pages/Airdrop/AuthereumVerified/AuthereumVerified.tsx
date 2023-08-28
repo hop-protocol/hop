@@ -134,7 +134,7 @@ export function AuthereumVerified() {
         </Box>
         <Box mt={2}>
           <Typography variant="body1">
-            Per the governance action, you will be able to claim your tokens up to 14 days after the 6 month airdrop reopening.
+            Per the governance action, you will be able to claim your tokens shortly after this renewed claim period.
           </Typography>
         </Box>
         <Box mt={3}>

@@ -19,5 +19,6 @@ hop.sh
 1
 yarn.lock
 
-airdrop-reopen.sublime-workspace
+*.sublime-workspace
+*.sublime-project
 airdrop-reopen.sublime-project

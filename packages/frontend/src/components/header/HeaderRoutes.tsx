@@ -25,7 +25,7 @@ const HeaderRoutes: FC = () => {
 
   const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
     event.preventDefault()
-    navigate(newValue + search)
+    navigate(`${newValue}${search}`)
   }
 
   let value = pathname.split('/').slice(0, 2).join('/')

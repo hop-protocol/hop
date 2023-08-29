@@ -14,7 +14,7 @@ const useQueryParams = () => {
   const updateQueryParams = (updates: { [index: string]: string | undefined }) => {
     Object.assign(queryParams, updates)
 
-    navigate(location.pathname + '?' + stringify(queryParams))
+    navigate(`${location.pathname}?${stringify(queryParams)}`)
   }
 
   return { queryParams, updateQueryParams, location }

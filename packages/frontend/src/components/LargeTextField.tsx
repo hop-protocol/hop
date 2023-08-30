@@ -130,7 +130,7 @@ const LargeTextField: FC<LargeTextFieldProps> = props => {
             </Typography>
           </InputAdornment>
         ) : null,
-      }}
+      } as any }
       {...textFieldProps}
     />
   )

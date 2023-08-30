@@ -18,7 +18,9 @@ export function formatError(error: unknown, network?: Network): string {
     return formatError(error[0], network)
   }
 
-  if (typeof error !== 'object' || error === null) {
+  if (error == null) {
+    return ''
+  }
     return ''
   }
 

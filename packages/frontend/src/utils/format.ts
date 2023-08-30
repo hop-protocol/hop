@@ -10,25 +10,28 @@ type PossibleError = {
 }
 
 export function formatError(error: unknown, network?: Network): string {
-  if (typeof error === 'string') {
-    return prettifyErrorMessage(error)
-  }
+  if (typeof error !== 'string') {
+    if (Array.isArray(error) && error.length === 1) {
+      return formatError(error[0], network)
+    }
 
-  if (Array.isArray(error) && error.length === 1) {
-    return formatError(error[0], network)
-  }
+    if (error == null) {
+      return ''
+    }
 
-  if (error == null) {
-    return ''
-  }
+    const errObj = error as PossibleError
 
-  const errObj = error as PossibleError
+    let errMsg = 'Something went wrong. Please try again.'
 
-  let errMsg = 'Something went wrong. Please try again.'
-  if (errObj.data?.message) {
-    errMsg = errObj.data.message
-  } else if (errObj.message) {
-    errMsg = errObj.message
+    if (!(error instanceof Object)) {
+      return errMsg
+    }
+
+    if (errObj.data?.message) {
+      errMsg = errObj.data.message
+    } else if (errObj.message) {
+      errMsg = errObj.message
+    }
   }
 
   const rpcEndpointsDocs = 'https://docs.hop.exchange/v/developer-docs/rpc/rpc-endpoints'

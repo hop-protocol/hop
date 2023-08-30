@@ -21,8 +21,6 @@ export function formatError(error: unknown, network?: Network): string {
   if (error == null) {
     return ''
   }
-    return ''
-  }
 
   const errObj = error as PossibleError
 

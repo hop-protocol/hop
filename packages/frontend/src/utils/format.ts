@@ -10,6 +10,8 @@ type PossibleError = {
 }
 
 export function formatError(error: unknown, network?: Network): string {
+  let errMsg = 'Something went wrong. Please try again.'
+
   if (typeof error !== 'string') {
     if (Array.isArray(error) && error.length === 1) {
       return formatError(error[0], network)
@@ -20,8 +22,6 @@ export function formatError(error: unknown, network?: Network): string {
     }
 
     const errObj = error as PossibleError
-
-    let errMsg = 'Something went wrong. Please try again.'
 
     if (!(error instanceof Object)) {
       return errMsg

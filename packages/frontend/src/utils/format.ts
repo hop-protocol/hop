@@ -24,7 +24,9 @@ export function formatError(error: unknown, network?: Network): string {
 
   const errObj = error as PossibleError
 
-  let errMsg = 'Something went wrong. Please try again.'
+  if (!(err instanceof Object) {
+    return errMsg
+  }
   if (errObj.data?.message) {
     errMsg = errObj.data.message
   } else if (errObj.message) {

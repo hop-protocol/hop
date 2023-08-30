@@ -32,6 +32,8 @@ export function formatError(error: unknown, network?: Network): string {
     } else if (errObj.message) {
       errMsg = errObj.message
     }
+  } else {
+    errMsg = error
   }
 
   const rpcEndpointsDocs = 'https://docs.hop.exchange/v/developer-docs/rpc/rpc-endpoints'

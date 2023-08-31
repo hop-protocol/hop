@@ -122,7 +122,7 @@ const Send: FC = () => {
 
     if (savedFromNetwork) {
       setFromNetwork(savedFromNetwork)
-    } else {
+    } else if (!queryParams.sourceNetwork) {
       setFromNetwork(networks.find(network => network.chainId === 1)) // use mainnet if no default origin exists
     }
 

@@ -26,6 +26,15 @@ export const isBonderProxyTx = async (
   let bonderEoa: string
   try {
     bonderEoa = await contract.callStatic.bonderEoa()
+
+    // If there is a state var but it is unset, the call will return the zero address
+    if (bonderEoa === constants.AddressZero) {
+      cache[cacheKey] = false
+      return false
+    }
+
+    cache[cacheKey] = true
+    return true
   } catch (err) {
     // Since an RPC call can fail another way and it is difficult to capture all possible errors from all providers, we
     // retry the call a few times before giving up
@@ -40,15 +49,6 @@ export const isBonderProxyTx = async (
     console.log('here')
     return isBonderProxy
   }
-
-  // If there is a state var but it is unset, the call will return the zero address
-  if (bonderEoa === constants.AddressZero) {
-    cache[cacheKey] = false
-    return false
-  }
-
-  cache[cacheKey] = true
-  return true
 }
 
 export default isBonderProxyTx

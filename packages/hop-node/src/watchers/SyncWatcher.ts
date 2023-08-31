@@ -5,6 +5,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
+import isBonderProxyTx from 'src/utils/isBonderProxyTx'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
@@ -33,7 +34,6 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import {
-  getIsFromAddressBonderProxyAddressForRoute,
   config as globalConfig,
   minEthBonderFeeBn,
   oruChains,
@@ -884,15 +884,14 @@ class SyncWatcher extends BaseWatcher {
 
     // If the bonder is a proxy, we need to use the proxy address
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    const isFromAddressBonderProxyAddressForRoute = await getIsFromAddressBonderProxyAddressForRoute(
-      tx.from,
+    const isBonderProxy = await isBonderProxyTx(
       this.tokenSymbol,
       this.chainSlug,
       destinationChainSlug
     )
 
     let calculatedWithdrawalBonder: string = tx.from
-    if (isFromAddressBonderProxyAddressForRoute) {
+    if (isBonderProxy) {
       calculatedWithdrawalBonder = await this.bridge.getBonderAddress()
     }
     logger.debug(`withdrawalBonder: ${calculatedWithdrawalBonder}`)
@@ -1027,15 +1026,14 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const isFromAddressBonderProxyAddressForRoute = await getIsFromAddressBonderProxyAddressForRoute(
-      tx.from,
+    const isBonderProxy = await isBonderProxyTx(
       this.tokenSymbol,
       this.chainSlug,
       Chain.Ethereum
     )
 
     let calculatedBonder: string = tx.from
-    if (isFromAddressBonderProxyAddressForRoute) {
+    if (isBonderProxy) {
       calculatedBonder = await this.bridge.getBonderAddress()
     }
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)

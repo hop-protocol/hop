@@ -1,5 +1,4 @@
 import buildInfo from 'src/.build-info.json'
-import getBonderEoaAddressFromConfig from '../utils/getBonderEoaAddressFromConfig'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
@@ -300,7 +299,6 @@ export const getConfigBonderForRoute = (token: string, sourceChain: string, dest
   return bonder
 }
 
-
 export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
@@ -442,29 +440,6 @@ export function getFinalityTimeSeconds (chainSlug: string) {
 
 export function getHasFinalizationBlockTag (chainSlug: string) {
   return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
-}
-
-export const getIsBonderProxyForRoute = async (token: string, sourceChain: string, destinationChain: string): Promise<boolean> => {
-  const bonderForRoute = getConfigBonderForRoute(token, sourceChain, destinationChain)
-  const bonderAddress = await getBonderEoaAddressFromConfig()
-  return bonderForRoute.toLowerCase() === bonderAddress.toLowerCase()
-}
-
-export const getIsFromAddressBonderProxyAddressForRoute = async (
-  eoaSender: string,
-  token: string,
-  sourceChain: string,
-  destinationChain: string
-): Promise<boolean> => {
-  // The eoaSender is the EOA who sent the transaction
-
-  // If there is a bonder proxy and the from address is the EOA, we know that the bonder was the proxy
-  const isBonderProxyForRoute = await getIsBonderProxyForRoute(token, sourceChain, destinationChain)
-  const didBonderEoaSendTx = await getBonderEoaAddressFromConfig() === eoaSender
-  if (isBonderProxyForRoute && didBonderEoaSendTx) {
-    return true
-  }
-  return false
 }
 
 export { Bonders }

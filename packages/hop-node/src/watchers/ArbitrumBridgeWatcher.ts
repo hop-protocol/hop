@@ -1,6 +1,6 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
-import getRpcUrl from 'src/utils/getRpcUrl'
+import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
@@ -20,7 +20,7 @@ type Config = {
 class ArbitrumBridgeWatcher extends BaseWatcher {
   l1Wallet: Signer
   l2Wallet: Signer
-  defaultL2Provider: providers.Provider
+  nonRetryableProvider: providers.Provider
   ready: boolean
 
   constructor (config: Config) {
@@ -35,8 +35,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(config.chainSlug)
 
-    const rpcUrl = getRpcUrl(config.chainSlug)
-    this.defaultL2Provider = new providers.StaticJsonRpcProvider(rpcUrl)
+    this.nonRetryableProvider = getNonRetryableRpcProvider(config.chainSlug)!
   }
 
   async relayXDomainMessage (
@@ -103,13 +102,13 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     return await l1ToL2Message.redeem()
   }
 
-  async getL1ToL2Message (l1TxHash: string, messageIndex: number = 0, useDefaultProvider: boolean = false): Promise<IL1ToL2MessageWriter> {
-    const l1ToL2Messages = await this.getL1ToL2Messages(l1TxHash, useDefaultProvider)
+  async getL1ToL2Message (l1TxHash: string, messageIndex: number = 0, useNonRetryableProvider: boolean = false): Promise<IL1ToL2MessageWriter> {
+    const l1ToL2Messages = await this.getL1ToL2Messages(l1TxHash, useNonRetryableProvider)
     return l1ToL2Messages[messageIndex]
   }
 
-  async getL1ToL2Messages (l1TxHash: string, useDefaultProvider: boolean = false): Promise<IL1ToL2MessageWriter[]> {
-    const l2Wallet = useDefaultProvider ? this.l2Wallet.connect(this.defaultL2Provider) : this.l2Wallet
+  async getL1ToL2Messages (l1TxHash: string, useNonRetryableProvider: boolean = false): Promise<IL1ToL2MessageWriter[]> {
+    const l2Wallet = useNonRetryableProvider ? this.l2Wallet.connect(this.nonRetryableProvider) : this.l2Wallet
     const txReceipt = await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)
     const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
     return l1TxnReceipt.getL1ToL2Messages(l2Wallet)
@@ -122,8 +121,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
 
   async getMessageStatus (l1TxHash: string, messageIndex: number = 0): Promise<L1ToL2MessageStatus> {
     // We cannot use our provider here because the SDK will rateLimitRetry and exponentially backoff as it retries an on-chain call
-    const useDefaultProvider = true
-    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex, useDefaultProvider)
+    const useNonRetryableProvider = true
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex, useNonRetryableProvider)
     const res = await l1ToL2Message.waitForStatus()
     return res.status
   }

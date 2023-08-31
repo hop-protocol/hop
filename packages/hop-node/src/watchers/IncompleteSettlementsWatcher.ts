@@ -5,6 +5,7 @@ import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootId from 'src/utils/getTransferRootId'
+import isBonderProxyTx from 'src/utils/isBonderProxyTx'
 import getTransferSent from 'src/theGraph/getTransferSent'
 import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
@@ -14,11 +15,7 @@ import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
-import {
-  getConfigBonderForRoute,
-  getIsFromAddressBonderProxyAddressForRoute,
-  getEnabledTokens
-} from 'src/config/config'
+import { getConfigBonderForRoute, getEnabledTokens } from 'src/config/config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
@@ -499,15 +496,14 @@ class IncompleteSettlementsWatcher {
         return
       }
 
-      const isFromAddressBonderProxyAddressForRoute = await getIsFromAddressBonderProxyAddressForRoute(
-        bondWithdrawalEvent.from,
+      const isBonderProxy = await isBonderProxyTx(
         token,
         sourceChain,
         destinationChain
       )
   
       let bonder: string = bondWithdrawalEvent.from
-      if (isFromAddressBonderProxyAddressForRoute) {
+      if (isBonderProxy) {
         bonder = getConfigBonderForRoute(token, sourceChain, destinationChain)
       }
 

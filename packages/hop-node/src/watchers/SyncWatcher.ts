@@ -32,7 +32,12 @@ import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { config as globalConfig, minEthBonderFeeBn, oruChains } from 'src/config'
+import {
+  getIsFromAddressBonderProxyAddressForRoute,
+  config as globalConfig,
+  minEthBonderFeeBn,
+  oruChains,
+} from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -876,10 +881,23 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
-    const { from } = tx
-    logger.debug(`withdrawalBonder: ${from}`)
+
+    // If the bonder is a proxy, we need to use the proxy address
+    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    const isFromAddressBonderProxyAddressForRoute = await getIsFromAddressBonderProxyAddressForRoute(
+      tx.from,
+      this.tokenSymbol,
+      this.chainSlug,
+      destinationChainSlug
+    )
+
+    let calculatedWithdrawalBonder: string = tx.from
+    if (isFromAddressBonderProxyAddressForRoute) {
+      calculatedWithdrawalBonder = await this.bridge.getBonderAddress()
+    }
+    logger.debug(`withdrawalBonder: ${calculatedWithdrawalBonder}`)
     await this.db.transfers.update(transferId, {
-      withdrawalBonder: from
+      withdrawalBonder: calculatedWithdrawalBonder
     })
   }
 
@@ -1008,7 +1026,18 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
-    const { from } = tx
+
+    const isFromAddressBonderProxyAddressForRoute = await getIsFromAddressBonderProxyAddressForRoute(
+      tx.from,
+      this.tokenSymbol,
+      this.chainSlug,
+      Chain.Ethereum
+    )
+
+    let calculatedBonder: string = tx.from
+    if (isFromAddressBonderProxyAddressForRoute) {
+      calculatedBonder = await this.bridge.getBonderAddress()
+    }
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
 
     if (!timestamp) {
@@ -1017,11 +1046,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    logger.debug(`bonder: ${from}`)
+    logger.debug(`bonder: ${calculatedBonder}`)
     logger.debug(`bondedAt: ${timestamp}`)
 
     await this.db.transferRoots.update(transferRootId, {
-      bonder: from,
+      bonder: calculatedBonder,
       bondedAt: timestamp
     })
   }

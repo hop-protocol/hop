@@ -14,7 +14,11 @@ import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
-import { getEnabledTokens } from 'src/config/config'
+import {
+  getConfigBonderForRoute,
+  getIsFromAddressBonderProxyAddressForRoute,
+  getEnabledTokens
+} from 'src/config/config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
@@ -494,7 +498,19 @@ class IncompleteSettlementsWatcher {
         })
         return
       }
-      const bonder = bondWithdrawalEvent.from
+
+      const isFromAddressBonderProxyAddressForRoute = await getIsFromAddressBonderProxyAddressForRoute(
+        bondWithdrawalEvent.from,
+        token,
+        sourceChain,
+        destinationChain
+      )
+  
+      let bonder: string = bondWithdrawalEvent.from
+      if (isFromAddressBonderProxyAddressForRoute) {
+        bonder = getConfigBonderForRoute(token, sourceChain, destinationChain)
+      }
+
       const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
       if (bondedWithdrawalAmount.gt(0)) {
         const amount = bondedWithdrawalAmount.toString()

@@ -1,7 +1,7 @@
-import { config as globalConfig } from 'src/config'
 import { KmsSigner } from 'src/aws/KmsSigner'
 import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { computeAddress } from 'ethers/lib/utils'
+import { config as globalConfig } from 'src/config'
 
 let cache: string = ''
 

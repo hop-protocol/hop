@@ -1,11 +1,10 @@
 import buildInfo from 'src/.build-info.json'
+import getBonderEoaAddressFromConfig from '../utils/getBonderEoaAddressFromConfig'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { KmsSigner } from 'src/aws/KmsSigner'
-import { LambdaSigner } from 'src/aws/LambdaSigner'
 import {
   AvgBlockTimeSeconds,
   Chain,
@@ -17,7 +16,7 @@ import {
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
-import { computeAddress, parseEther } from 'ethers/lib/utils'
+import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
 import * as kovanConfig from './kovan'
 import * as mainnetConfig from './mainnet'
@@ -447,7 +446,7 @@ export function getHasFinalizationBlockTag (chainSlug: string) {
 
 export const getIsBonderProxyForRoute = async (token: string, sourceChain: string, destinationChain: string): Promise<boolean> => {
   const bonderForRoute = getConfigBonderForRoute(token, sourceChain, destinationChain)
-  const bonderAddress = await _getBonderEoaAddressFromConfig()
+  const bonderAddress = await getBonderEoaAddressFromConfig()
   return bonderForRoute.toLowerCase() === bonderAddress.toLowerCase()
 }
 
@@ -461,39 +460,11 @@ export const getIsFromAddressBonderProxyAddressForRoute = async (
 
   // If there is a bonder proxy and the from address is the EOA, we know that the bonder was the proxy
   const isBonderProxyForRoute = await getIsBonderProxyForRoute(token, sourceChain, destinationChain)
-  const didBonderEoaSendTx = await _getBonderEoaAddressFromConfig() === eoaSender
+  const didBonderEoaSendTx = await getBonderEoaAddressFromConfig() === eoaSender
   if (isBonderProxyForRoute && didBonderEoaSendTx) {
     return true
   }
   return false
-}
-
-const _getBonderEoaAddressFromConfig = async (): Promise<string> => {
-  if (config.signerConfig.type === 'keystore') {
-    let privateKey = config.bonderPrivateKey
-    if (!privateKey) {
-      throw new Error('bonder private key is required')
-    }
-    if (!config.bonderPrivateKey.startsWith('0x')) {
-      privateKey = '0x' + privateKey
-    }
-
-    return computeAddress(privateKey)
-  }
-
-  if (config.signerConfig.type === 'kms') {
-    const { keyId, awsRegion } = config.signerConfig
-    const signer = new KmsSigner({ keyId: keyId!, region: awsRegion })
-    return signer.getAddress()
-  }
-
-  if (config.signerConfig.type === 'lambda') {
-    const { keyId, awsRegion, lambdaFunctionName } = config.signerConfig
-    const signer = new LambdaSigner({ keyId: keyId!, region: awsRegion, lambdaFunctionName: lambdaFunctionName! })
-    return signer.getAddress()
-  }
-
-  throw new Error('invalid signer type')
 }
 
 export { Bonders }

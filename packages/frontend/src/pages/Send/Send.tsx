@@ -13,7 +13,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay, networkIdToSlug } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
@@ -61,7 +61,7 @@ const Send: FC = () => {
     settings,
   } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { checkConnectedNetworkId, address } = useWeb3Context()
+  const { connectedNetworkId, checkConnectedNetworkId, address } = useWeb3Context()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
@@ -111,6 +111,15 @@ const Send: FC = () => {
 
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
+
+  // set fromNetwork based on connectedNetwork
+  useEffect(() => {
+    console.log(connectedNetworkId)
+    if (connectedNetworkId) {
+      setFromNetwork(networks.find(network => network.slug === networkIdToSlug(connectedNetworkId)))
+    }
+  }, [connectedNetworkId])
+
 
   useEffect(() => {
     if (queryParams.amount && !Number.isNaN(Number(queryParams.amount))) {

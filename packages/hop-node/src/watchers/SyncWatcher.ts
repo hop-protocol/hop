@@ -5,7 +5,6 @@ import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
-import isBonderProxyTx from 'src/utils/isBonderProxyTx'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
@@ -35,6 +34,7 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import {
   config as globalConfig,
+  getProxyAddressForChain,
   minEthBonderFeeBn,
   oruChains,
 } from 'src/config'
@@ -882,21 +882,16 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    // If the bonder is a proxy, we need to use the proxy address
+    this.bridge
+    let bonder = tx.from
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    const isBonderProxy = await isBonderProxyTx(
-      this.tokenSymbol,
-      this.chainSlug,
-      destinationChainSlug
-    )
-
-    let calculatedWithdrawalBonder: string = tx.from
-    if (isBonderProxy) {
-      calculatedWithdrawalBonder = await this.bridge.getBonderAddress()
+    const proxyAddress = getProxyAddressForChain(this.tokenSymbol, destinationChainSlug)
+    if (tx.to === proxyAddress) {
+      bonder = tx.to
     }
-    logger.debug(`withdrawalBonder: ${calculatedWithdrawalBonder}`)
+    logger.debug(`withdrawalBonder: ${bonder}`)
     await this.db.transfers.update(transferId, {
-      withdrawalBonder: calculatedWithdrawalBonder
+      withdrawalBonder: bonder
     })
   }
 
@@ -1026,15 +1021,10 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const isBonderProxy = await isBonderProxyTx(
-      this.tokenSymbol,
-      this.chainSlug,
-      Chain.Ethereum
-    )
-
     let calculatedBonder: string = tx.from
-    if (isBonderProxy) {
-      calculatedBonder = await this.bridge.getBonderAddress()
+    const proxyAddress = getProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)
+    if (tx.to === proxyAddress) {
+      calculatedBonder = tx.to
     }
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
 
@@ -1552,11 +1542,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     this.logger.debug(`starting pollGasCost, chainSlug: ${this.chainSlug}`)
-    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
+    const bridgeContract = this.bridge.bridgeWriteContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const bonder = await this.bridge.getBonderAddress()
+    const staker = await this.bridge.getStakerAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 
@@ -1572,7 +1562,7 @@ class SyncWatcher extends BaseWatcher {
           transferNonce,
           bonderFee,
           {
-            from: bonder
+            from: staker
           }
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
@@ -1591,7 +1581,7 @@ class SyncWatcher extends BaseWatcher {
             amountOutMin,
             deadline,
             {
-              from: bonder
+              from: staker
             }
           ] as const
           const gasLimit = await l2BridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)

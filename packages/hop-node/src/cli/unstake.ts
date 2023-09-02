@@ -5,6 +5,7 @@ import { actionHandler, logger, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
+import { getProxyAddressForChain } from 'src/config'
 
 root
   .command('unstake')
@@ -66,5 +67,10 @@ export async function unstake (
     logger.debug(`successfully unstaked ${bridge.formatUnits(parsedAmount)} tokens`)
   } else {
     logger.error('unstake was unsuccessful. tx status=0')
+  }
+
+  const proxyAddress = getProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
+  if (receipt.to === proxyAddress) {
+    logger.debug('Please use the send-from-proxy command to send tokens from the proxy contract')
   }
 }

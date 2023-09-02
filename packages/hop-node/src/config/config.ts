@@ -1,6 +1,7 @@
 import buildInfo from 'src/.build-info.json'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
+import isL1 from 'src/utils/isL1'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
@@ -440,6 +441,31 @@ export function getFinalityTimeSeconds (chainSlug: string) {
 
 export function getHasFinalizationBlockTag (chainSlug: string) {
   return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
+}
+
+export function getProxyAddressForChain (token: string, chainSlug: string): string {
+  const address = config.addresses?.[token]?.[chainSlug]?.proxy
+  if (!address) {
+    throw new Error(`Proxy address not found for token ${token} on chain ${chainSlug}`)
+  }
+  return address
+}
+
+export function isProxyAddressForChain (token: string, chainSlug: string): boolean {
+  return !!config.addresses?.[token]?.[chainSlug]?.proxy
+}
+
+export function getBridgeWriteContractAddress (token: string, chainSlug: string): string {
+  if (isProxyAddressForChain(token, chainSlug)) {
+    return getProxyAddressForChain(token, chainSlug)
+  }
+
+  const addresses = config.addresses?.[token]?.[chainSlug]
+  if (isL1(chainSlug)) {
+    return addresses.l1Bridge
+  } else {
+    return addresses.l2Bridge
+  }
 }
 
 export { Bonders }

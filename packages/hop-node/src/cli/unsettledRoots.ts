@@ -2,12 +2,11 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
 import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
-import isBonderProxyTx from 'src/utils/isBonderProxyTx'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, utils } from 'ethers'
 import { actionHandler, getSourceChains, parseString, root } from './shared'
-import { getConfigBonderForRoute } from 'src/config/config'
+import { getProxyAddressForChain } from 'src/config/config'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 
@@ -87,15 +86,10 @@ async function main (source: any) {
 
         tempAmt = tempAmt.add(bondData.amount)
 
-        // If the bonder is a proxy, we need to use the proxy address
-        const isBonderProxy = await isBonderProxyTx(
-          token,
-          chain,
-          settlementChain
-        )
         let bonder: string = bondData.from
-        if (isBonderProxy) {
-          bonder = getConfigBonderForRoute(token, chain, settlementChain)
+        const proxyAddress = getProxyAddressForChain(this.tokenSymbol, settlementChain)
+        if (bondData.transaction.to === proxyAddress) {
+          bonder = bondData.transaction.to
         }
         if (!bondedAmountPerBonder[bonder]) {
           bondedAmountPerBonder[bonder] = BigNumber.from('0')

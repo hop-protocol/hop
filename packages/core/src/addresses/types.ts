@@ -4,6 +4,7 @@ interface L1BridgeProps {
   l1CanonicalToken: string
   l1Bridge: string
   bridgeDeployedBlockNumber: number
+  proxy?: string
 }
 
 interface L2BridgeProps {
@@ -16,6 +17,7 @@ interface L2BridgeProps {
   l2AmmWrapper: string
   l2SaddleSwap: string
   l2SaddleLpToken: string
+  proxy?: string
   bridgeDeployedBlockNumber: number
 }
 

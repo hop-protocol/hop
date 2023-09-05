@@ -13,7 +13,8 @@ import { Hop } from '@hop-protocol/sdk'
 import { L2_Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import {
   getBridgeWriteContractAddress,
-  config as globalConfig
+  config as globalConfig,
+  isProxyAddressForChain
 } from 'src/config'
 
 export default class L2Bridge extends Bridge {
@@ -315,7 +316,8 @@ export default class L2Bridge extends Bridge {
     transferNonce: string,
     bonderFee: BigNumber,
     amountOutMin: BigNumber,
-    deadline: BigNumber
+    deadline: BigNumber,
+    hiddenCalldata?: string
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -339,7 +341,12 @@ export default class L2Bridge extends Bridge {
       txOverrides
     ] as const
 
-    const tx = await this.l2BridgeWriteContract.bondWithdrawalAndDistribute(...payload)
+    const populatedTx = await this.l2BridgeWriteContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
+    if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
+      populatedTx.data = populatedTx.data! + hiddenCalldata
+    }
+    const tx = await this.l2BridgeWriteContract.signer.sendTransaction(populatedTx)
+
     return tx
   }
 

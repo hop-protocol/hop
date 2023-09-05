@@ -12,7 +12,13 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { enableEmergencyMode, getFinalityTimeSeconds, getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
+import {
+  enableEmergencyMode,
+  getFinalityTimeSeconds,
+  getHasFinalizationBlockTag,
+  config as globalConfig,
+  isProxyAddressForChain
+} from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -28,6 +34,8 @@ export type SendBondTransferRootTxParams = {
   totalAmount: BigNumber
   transferIds: string[]
   rootCommittedAt: number
+  commitTxHash?: string
+  commitTxBlockNumber?: number
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -68,6 +76,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         committedAt,
         sourceChainId,
         transferIds,
+        commitTxHash,
         commitTxBlockNumber
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
@@ -91,6 +100,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         committedAt,
         sourceChainId,
         transferIds,
+        commitTxHash,
         commitTxBlockNumber
       ))
     }
@@ -106,6 +116,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     committedAt: number,
     sourceChainId: number,
     transferIds: string[],
+    commitTxHash: string,
     commitTxBlockNumber: number
   ) {
     const logger = this.logger.create({ root: transferRootId })
@@ -205,7 +216,9 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         totalAmount,
         transferIds,
-        rootCommittedAt: committedAt
+        rootCommittedAt: committedAt,
+        commitTxHash,
+        commitTxBlockNumber
       })
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
@@ -239,7 +252,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootId,
       transferRootHash,
       destinationChainId,
-      totalAmount
+      totalAmount,
+      commitTxHash,
+      commitTxBlockNumber
     } = params
 
     const logger = this.logger.create({ root: transferRootId })
@@ -247,11 +262,17 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation(params)
 
+    let hiddenCalldata: string | undefined
+    if (isProxyAddressForChain(this.tokenSymbol, Chain.Ethereum) && commitTxHash && commitTxBlockNumber) {
+      hiddenCalldata = await this.getHiddenCalldata(commitTxHash, commitTxBlockNumber)
+    }
+
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
       transferRootHash,
       destinationChainId,
-      totalAmount
+      totalAmount,
+      hiddenCalldata
     )
   }
 

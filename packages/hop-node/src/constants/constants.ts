@@ -160,3 +160,10 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.Nova]: FinalityTag.Safe,
   [Chain.PolygonZk]: FinalityTag.Safe
 }
+
+export const BlockHashValidatorAddresses: Record<string, string> = {
+  [Chain.Ethereum]: '0x131F938FAAeAE5DD4497EEFF3D4FF3B0259A62a5',
+  [Chain.Optimism]: '0xb3C68a491608952Cb1257FC9909a537a0173b63B',
+  [Chain.Arbitrum]: '0x70aF36240eC5040f6f9501E8E2D9db8703ec3d45',
+  [Chain.Base]: '0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283'
+}

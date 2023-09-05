@@ -18,7 +18,13 @@ import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { bondWithdrawalBatchSize, enableEmergencyMode, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
+import {
+  bondWithdrawalBatchSize,
+  enableEmergencyMode,
+  config as globalConfig,
+  isProxyAddressForChain,
+  zeroAvailableCreditTest
+} from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
@@ -42,6 +48,8 @@ export type SendBondWithdrawalTxParams = {
   amountOutMin: BigNumber
   deadline: BigNumber
   transferSentIndex: number
+  transferSentTxHash?: string
+  transferSentBlockNumber?: number
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
@@ -137,6 +145,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferNonce,
       deadline,
       transferSentTxHash,
+      transferSentBlockNumber,
       transferSentIndex
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
@@ -243,7 +252,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
         destinationChainId,
         amountOutMin,
         deadline,
-        transferSentIndex
+        transferSentIndex,
+        transferSentTxHash,
+        transferSentBlockNumber
       })
 
       const sentChain = attemptSwapDuringBondWithdrawal ? `destination chain ${destinationChainId}` : 'L1'
@@ -321,12 +332,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
       bonderFee,
       attemptSwap,
       amountOutMin,
-      deadline
+      deadline,
+      transferSentTxHash,
+      transferSentBlockNumber
     } = params
     const logger = this.logger.create({ id: transferId })
 
     logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation(params)
+
+    let hiddenCalldata: string | undefined
+
+    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    if (isProxyAddressForChain(this.tokenSymbol, destinationChainSlug) && transferSentTxHash && transferSentBlockNumber) {
+      hiddenCalldata = await this.getHiddenCalldata(transferSentTxHash, transferSentBlockNumber)
+    }
 
     if (attemptSwap) {
       logger.debug(
@@ -341,7 +361,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline
+        deadline,
+        hiddenCalldata
       )
     } else {
       // Redundantly verify that both amountOutMin and deadline are 0
@@ -355,7 +376,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        bonderFee
+        bonderFee,
+        hiddenCalldata
       )
     }
   }

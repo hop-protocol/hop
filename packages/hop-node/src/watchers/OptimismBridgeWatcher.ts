@@ -7,7 +7,7 @@ import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { Interface } from 'ethers/lib/utils'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Signer, providers } from 'ethers'
+import { Contract, Signer, providers } from 'ethers'
 import { config as globalConfig } from 'src/config'
 
 type Config = {
@@ -217,6 +217,58 @@ class OptimismBridgeWatcher extends BaseWatcher {
       return this.l2Wallet.sendTransaction(tx)
     } catch (err) {
       throw new Error(`relayL1ToL2Message error: ${err.message}`)
+    }
+  }
+
+  async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
+    // It is not trivial to get the exact inclusion block. Any block after the inclusion block achieves the same goal.
+
+    // Get the receipt instead of trusting the block number because the block number may have been reorged out
+    const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
+    const onchainBlockNumber: number = receipt?.blockNumber
+
+    if (!onchainBlockNumber) {
+      throw new Error(`no block number found for tx l2TxHash ${l2TxHash} on chain ${this.chainSlug}`)
+    }
+
+    if (onchainBlockNumber !== l2BlockNumber) {
+      throw new Error(`reorg detected. tx l2TxHash ${l2TxHash} on chain ${this.chainSlug} is not included in block ${l2BlockNumber}`)
+    }
+
+    const lastIncludedBlockNumber = await this.bridge.getSafeBlockNumber()
+    if (l2BlockNumber < lastIncludedBlockNumber) {
+      return
+    }
+
+    return this.l1Provider.getBlock(lastIncludedBlockNumber)
+  }
+
+  async getL1BlockOnL2 (l1Block: providers.Block): Promise<providers.Block | undefined> {
+    const expectedL1BlockNumber = l1Block.number
+
+    const l1BlockAddr = '0x4200000000000000000000000000000000000015'
+    const l1BlockAbi = [
+      'function number() view returns (uint64)',
+      'function sequenceNumber() view returns (uint64)',
+    ]
+    const l1BlockContract = new Contract(l1BlockAddr, l1BlockAbi, this.l2Provider)
+
+    let l2BlockNumber = await this.l2Provider.getBlockNumber()
+    let l1BlockNumberOnL2 = await l1BlockContract.number(l2BlockNumber)
+
+
+    while (true) {
+      if (l1BlockNumberOnL2 < expectedL1BlockNumber) {
+        return
+      } else if (l1BlockNumberOnL2 === expectedL1BlockNumber) {
+        return this.l2Provider.getBlock(l2BlockNumber)
+      } else {
+        const seqNum = await l1BlockContract.sequenceNumber(l2BlockNumber)
+        // Add one since index starts at 0
+        const numL2BlocksSinceLastL1Block = seqNum + 1
+        l2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
+        l1BlockNumberOnL2 = await l1BlockContract.number(l1BlockNumberOnL2)
+      }
     }
   }
 }

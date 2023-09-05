@@ -475,6 +475,35 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     return eventParams
   }
+
+  async getHiddenCalldata (l2TxHash: string, l2BlockNumber: number): Promise<string> {
+    const chainWatcher: ChainWatcher = this.chainWatchers[this.chainSlug]
+
+    const l1InclusionBlock: providers.Block | undefined = await chainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
+    if (!l1InclusionBlock) {
+      throw new Error(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
+    }
+
+    let blockInfo: providers.Block | undefined
+    if (this.isL1) {
+      blockInfo = l1InclusionBlock
+    } else {
+      blockInfo = await chainWatcher.getL1BlockOnL2(l1InclusionBlock)
+    }
+
+    if (!blockInfo) {
+      throw new Error(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
+    }
+
+    const blockHashValidatorAddress =  BlockHashValidatorAddresses[this.chainSlug]
+    const encodedData: string = getEncodedBlockHashValidatorData(
+      blockHashValidatorAddress,
+      blockInfo.hash,
+      blockInfo.number
+    )
+
+    return encodedData.slice(2)
+  }
 }
 
 export default BaseWatcher

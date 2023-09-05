@@ -84,6 +84,7 @@ export type UnbondedSentTransfer = {
   transferNonce: string
   deadline: BigNumber
   transferSentIndex: number
+  transferSentBlockNumber: number
 }
 
 export type UnrelayedSentTransfer = {
@@ -448,6 +449,7 @@ class TransfersDb extends BaseDb {
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
         item.isBondable &&
+        item.transferSentBlockNumber &&
         !item.isTransferSpent &&
         timestampOk
       )

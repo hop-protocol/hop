@@ -38,7 +38,7 @@ export type ConfirmRootsData = {
   rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | PolygonZkBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | PolygonZkBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge

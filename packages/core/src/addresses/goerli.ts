@@ -192,7 +192,7 @@ export const addresses: Addresses = {
       ethereum: {
         l1CanonicalToken: '0x0000000000000000000000000000000000000000',
         l1Bridge: '0xC8A4FB931e8D77df8497790381CA7d228E68a41b',
-        proxy: '0x371a493ECecbaE17B4b5C952E470eF2F415F0C39',
+        proxy: '0xb6E74faD6cDC60Cf6F28d9a6B490F43762F0ABF1',
         bridgeDeployedBlockNumber: 7393532
       },
       // polygon: {
@@ -221,7 +221,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xa832293f2DCe2f092182F17dd873ae06AD5fDbaF',
         l2SaddleSwap: '0x69a71b7F6Ff088a0310b4f911b4f9eA11e2E9740',
         l2SaddleLpToken: '0x8DC6D9fe4500D34A405414ed27e8Eb7Fd6889267',
-        proxy: '0x370A51222E99274bC8Db343C3163CFe446B355F7',
+        proxy: '0x07C592684Ee9f71D58853F9387579332d471b6Ca',
         bridgeDeployedBlockNumber: 96936
       },
       optimism: {
@@ -234,7 +234,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xC1985d7a3429cDC85E59E2E4Fcc805b857e6Ee2E',
         l2SaddleSwap: '0xa50395bdEaca7062255109fedE012eFE63d6D402',
         l2SaddleLpToken: '0x2105a73D7739f1034Becc1bd87f4F7820d575644',
-        proxy: '0xF181eD90D6CfaC84B8073FdEA6D34Aa744B41810',
+        proxy: '0x7191061D5d4C60f598214cC6913502184BAddf18',
         bridgeDeployedBlockNumber: 407263
       },
       // linea: {
@@ -259,7 +259,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xCbb852A6274e03fA00fb4895dE0463f66dF27a11',
         l2SaddleSwap: '0xB87aC009F61Fa214f196e232fD14A6f8AE422FA1',
         l2SaddleLpToken: '0x6Ad03376a15819c80b267038E2E4c00D35Cf8f67',
-        proxy: '0x9ec9551d4A1a1593b0ee8124D98590CC71b3B09D',
+        proxy: '0x72209Fe68386b37A40d6bCA04f78356fd342491f',
         bridgeDeployedBlockNumber: 1551608
       }
       // polygonzk: {

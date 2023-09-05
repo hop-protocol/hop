@@ -12,7 +12,8 @@ import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRoo
 import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/generated/L1_ERC20_Bridge'
 import {
   getBridgeWriteContractAddress,
-  config as globalConfig
+  config as globalConfig,
+  isProxyAddressForChain
 } from 'src/config'
 
 export default class L1Bridge extends Bridge {
@@ -176,7 +177,8 @@ export default class L1Bridge extends Bridge {
   bondTransferRoot = async (
     transferRootHash: string,
     chainId: number,
-    totalAmount: BigNumber
+    totalAmount: BigNumber,
+    hiddenCalldata?: string
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -195,7 +197,12 @@ export default class L1Bridge extends Bridge {
       txOverrides
     ] as const
 
-    const tx = await this.l1BridgeWriteContract.bondTransferRoot(...payload)
+    const populatedTx = await this.l1BridgeWriteContract.populateTransaction.bondTransferRoot(...payload)
+    if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
+      populatedTx.data = populatedTx.data! + hiddenCalldata
+    }
+    const tx = await this.l1BridgeWriteContract.signer.sendTransaction(populatedTx)
+
     return tx
   }
 

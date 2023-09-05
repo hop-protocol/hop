@@ -23,6 +23,8 @@ export interface UpdateTransactionOptions {
 
 const cacheKey = 'recentTransactions:v000'
 
+const maxTransactionCount: number = 4
+
 const localStorageSerializationOptions = {
   raw: false,
   serializer: (value: Transaction[]) => {
@@ -45,40 +47,38 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   )
 
   function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
-    const filtered = filterByHash(txs, hashFilter)
-    setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
+    setTransactions(prevTransactions => {
+      const currentTxs = txs ?? prevTransactions ?? []
+      const filtered = filterByHash(currentTxs, hashFilter)
+      return sortByRecentTimestamp([...filtered, tx]).slice(0, maxTransactionCount)
+    })
   }
 
-  const addTransaction = useCallback(
-    (tx: Transaction) => {
-      // disable this feature
-      return
-      // If tx exists with hash == tx.replaced, remove it
-      const match = find(transactions, ['hash', tx.replaced])
-      filterSortAndSetTransactions(tx, transactions, match?.hash)
-    },
-    [transactions]
-  )
+  function addTransaction(tx: Transaction) {
+    const match = find(transactions, ['hash', tx.replaced])
+    filterSortAndSetTransactions(tx, transactions, match?.hash)
+  }
 
-  const removeTransaction = useCallback(
-    (tx: Transaction) => {
-      // If tx exists with hash == tx.replaced, remove it
-      const filtered = filterByHash(transactions, tx.hash)
-      setTransactions(sortByRecentTimestamp(filtered).slice(0, 3))
-    },
-    [transactions]
-  )
+  function removeTransaction(tx: Transaction) {
+    setTransactions(prevTransactions => {
+      if (!prevTransactions) return []
+      const filtered = filterByHash(prevTransactions, tx.hash)
+      return sortByRecentTimestamp(filtered).slice(0, maxTransactionCount)
+    })
+  }
 
   const updateTransaction = useCallback(
     (tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) => {
-      // disable this feature
-      return
-      for (const key in updateOpts) {
-        tx[key] = updateOpts[key]
-      }
-      filterSortAndSetTransactions(tx, transactions, matchingHash || tx.hash)
-    },
-    [transactions]
+      const newTransactions = [...(transactions ?? [])]
+      const txIndex = newTransactions.findIndex(t => t.hash === (matchingHash || tx.hash))
+      if (txIndex === -1) return // No transaction found to update
+      
+      // Create a new transaction object instead of mutating
+      const newTx = { ...newTransactions[txIndex], ...updateOpts }
+      newTransactions[txIndex] = newTx as Transaction
+      
+      setTransactions(newTransactions)
+    }, [transactions]
   )
 
   // this will make sure to update in local storage the updated pending status,

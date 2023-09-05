@@ -23,8 +23,6 @@ export interface UpdateTransactionOptions {
 
 const cacheKey = 'recentTransactions:v000'
 
-const maxTransactionCount: number = 4
-
 const localStorageSerializationOptions = {
   raw: false,
   serializer: (value: Transaction[]) => {
@@ -50,26 +48,29 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     setTransactions(prevTransactions => {
       const currentTxs = txs ?? prevTransactions ?? []
       const filtered = filterByHash(currentTxs, hashFilter)
-      return sortByRecentTimestamp([...filtered, tx]).slice(0, maxTransactionCount)
+      return sortByRecentTimestamp([...filtered, tx]).slice(0, 3)
     })
   }
 
   function addTransaction(tx: Transaction) {
+    console.log("added tx")
     const match = find(transactions, ['hash', tx.replaced])
     filterSortAndSetTransactions(tx, transactions, match?.hash)
   }
 
-  function removeTransaction(tx: Transaction) {
-    setTransactions(prevTransactions => {
-      if (!prevTransactions) return []
-      const filtered = filterByHash(prevTransactions, tx.hash)
-      return sortByRecentTimestamp(filtered).slice(0, maxTransactionCount)
-    })
-  }
+  const removeTransaction = useCallback(
+    (tx: Transaction) => {
+      setTransactions(prevTransactions => {
+        if (!prevTransactions) return []
+        const filtered = filterByHash(prevTransactions, tx.hash)
+        return sortByRecentTimestamp(filtered).slice(0, 3)
+      })
+    }, []
+  )
 
   const updateTransaction = useCallback(
     (tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) => {
-      const newTransactions = [...(transactions ?? [])]
+      const newTransactions = [...(transactions ?? [])] // Create a new array
       const txIndex = newTransactions.findIndex(t => t.hash === (matchingHash || tx.hash))
       if (txIndex === -1) return // No transaction found to update
       

@@ -6,15 +6,17 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import getEncodedBlockHashValidatorData from 'src/utils/getEncodedBlockHashValidatorData'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { BigNumber, constants } from 'ethers'
-import { Chain, GasCostTransactionType, MaxReorgCheckBackoffIndex } from 'src/constants'
+import { BigNumber, constants, providers } from 'ethers'
+import { BlockHashValidatorAddresses, Chain, GasCostTransactionType, MaxReorgCheckBackoffIndex } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
+import { IChainWatcher } from './IChainWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Mutex } from 'async-mutex'
@@ -477,7 +479,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async getHiddenCalldata (l2TxHash: string, l2BlockNumber: number): Promise<string> {
-    const chainWatcher: ChainWatcher = this.chainWatchers[this.chainSlug]
+    const chainWatcher: IChainWatcher = this.siblingWatchers[this.chainSlug].relayWatcher
+
+    if (
+      typeof chainWatcher.getL1InclusionBlock !== 'function' ||
+      typeof chainWatcher.getL1BlockOnL2 !== 'function'
+    ) {
+      throw new Error(`chainWatcher calldata functions not implemented for chain ${this.chainSlug}`)
+    }
 
     const l1InclusionBlock: providers.Block | undefined = await chainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
     if (!l1InclusionBlock) {

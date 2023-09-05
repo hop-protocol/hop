@@ -6,6 +6,7 @@ import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
+import { IChainWatcher } from './classes/IChainWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Signer, providers, utils } from 'ethers'
@@ -20,7 +21,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class PolygonBridgeWatcher extends BaseWatcher {
+class PolygonBridgeWatcher extends BaseWatcher implements IChainWatcher {
   ready: boolean = false
   l1Provider: any
   l2Provider: any
@@ -102,7 +103,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     return json.message === 'success'
   }
 
-  async relayXDomainMessage (txHash: string): Promise<providers.TransactionResponse> {
+  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
     await this.tilReady()
 
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
@@ -110,7 +111,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
 
     // Generate payload
     const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
-    const payload = await this.maticClient.exitUtil.buildPayloadForExit(txHash, logEventSig, true)
+    const payload = await this.maticClient.exitUtil.buildPayloadForExit(l2TxHash, logEventSig, true)
 
     // Create tx data
     const abi = ['function receiveMessage(bytes)']
@@ -125,7 +126,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     })
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
     const commitTx: any = await this.bridge.getTransaction(commitTxHash)
     const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
     if (!isCheckpointed) {

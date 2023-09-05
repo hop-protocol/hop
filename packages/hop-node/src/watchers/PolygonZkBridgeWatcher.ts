@@ -4,6 +4,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
+import { IChainWatcher } from './classes/IChainWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Signer, providers, utils } from 'ethers'
@@ -18,7 +19,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class PolygonZkBridgeWatcher extends BaseWatcher {
+class PolygonZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
   ready: boolean = false
   l1Provider: any
   l2Provider: any
@@ -91,7 +92,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
     return await this.tilReady()
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
     await this.tilReady()
 
     logger.debug(
@@ -147,18 +148,18 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
     }
   }
 
-  async relayXDomainMessage (commitTxHash: string): Promise<providers.TransactionResponse> {
+  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
     await this.tilReady()
 
-    return this._relayXDomainMessage(commitTxHash)
+    return this._relayXDomainMessage(l2TxHash)
   }
 
-  async _relayXDomainMessage (commitTxHash: string, networkId: number = 1, wallet: Signer = this.l1Wallet): Promise<providers.TransactionResponse> {
+  async _relayXDomainMessage (l2TxHash: string, networkId: number = 1, wallet: Signer = this.l1Wallet): Promise<providers.TransactionResponse> {
     let isRelayable
     if (networkId === 0) {
-      isRelayable = await this.zkEvmClient.isDepositClaimable(commitTxHash)
+      isRelayable = await this.zkEvmClient.isDepositClaimable(l2TxHash)
     } else {
-      isRelayable = await this.zkEvmClient.isWithdrawExitable(commitTxHash)
+      isRelayable = await this.zkEvmClient.isWithdrawExitable(l2TxHash)
     }
     if (!isRelayable) {
       throw new Error('expected deposit to be claimable')
@@ -167,7 +168,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher {
     // As of Jun 2023, the SDK does not provide a claimMessage convenience function.
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
     const isParent = networkId === 0
-    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(commitTxHash, isParent, networkId)
+    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(l2TxHash, isParent, networkId)
 
     const abi = ['function claimMessage(bytes32[32],uint32,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)']
     const iface = new utils.Interface(abi)

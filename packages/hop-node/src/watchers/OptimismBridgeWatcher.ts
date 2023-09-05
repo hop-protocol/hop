@@ -4,6 +4,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
+import { IChainWatcher } from './classes/IChainWatcher'
 import { Interface } from 'ethers/lib/utils'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -17,7 +18,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class OptimismBridgeWatcher extends BaseWatcher {
+class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   l1Provider: any
   l2Provider: any
   l1Wallet: Signer
@@ -55,16 +56,14 @@ class OptimismBridgeWatcher extends BaseWatcher {
   // It is expected that the poller re-calls this message every hour during the challenge period, if the
   // transfer was challenged. The complexity of adding DB state to track successful/failed root prove txs
   // and challenges is not worth saving the additional RPC calls (2) per hour during the challenge period.
-  async relayXDomainMessage (
-    txHash: string
-  ): Promise<providers.TransactionResponse | undefined> {
-    const messageStatus: MessageStatus = await this.csm.getMessageStatus(txHash)
+  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+    const messageStatus: MessageStatus = await this.csm.getMessageStatus(l2TxHash)
     if (
       messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE ||
       messageStatus === MessageStatus.FAILED_L1_TO_L2_MESSAGE ||
       messageStatus === MessageStatus.RELAYED
     ) {
-      throw new Error(`unexpected message status: ${messageStatus}, txHash: ${txHash}`)
+      throw new Error(`unexpected message status: ${messageStatus}, l2TxHash: ${l2TxHash}`)
     }
 
     if (messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED) {
@@ -73,7 +72,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
     if (messageStatus === MessageStatus.READY_TO_PROVE) {
       console.log('sending proveMessage tx')
-      const resolved = await this.csm.toCrossChainMessage(txHash)
+      const resolved = await this.csm.toCrossChainMessage(l2TxHash)
       return this.csm.proveMessage(resolved)
     }
 
@@ -83,13 +82,13 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
       console.log('sending finalizeMessage tx')
-      return this.csm.finalizeMessage(txHash)
+      return this.csm.finalizeMessage(l2TxHash)
     }
 
-    throw new Error(`state not handled for tx ${txHash}`)
+    throw new Error(`state not handled for tx ${l2TxHash}`)
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
     logger.debug(
       `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
     )

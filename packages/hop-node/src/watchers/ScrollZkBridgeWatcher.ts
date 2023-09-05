@@ -1,7 +1,9 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import { IChainWatcher } from './classes/IChainWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -10,7 +12,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class ScrollZkBridgeWatcher extends BaseWatcher {
+class ScrollZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
@@ -21,12 +23,12 @@ class ScrollZkBridgeWatcher extends BaseWatcher {
     })
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
-    // L2->L1 messages on Scroll zkEMV are automatically executed by the operator so no need to execute transactions on L1.
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
+    throw new Error('unimplemented')
   }
 
-  async relayXDomainMessage (commitTxHash: string): Promise<void> {
-    // noop
+  relayXDomainMessage (txHash: string): Promise<providers.TransactionResponse> {
+    throw new Error('unimplemented')
   }
 }
 

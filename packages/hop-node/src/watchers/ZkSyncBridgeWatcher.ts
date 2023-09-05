@@ -4,6 +4,7 @@ import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, Signer, providers } from 'ethers'
+import { IChainWatcher } from './classes/IChainWatcher'
 import { Interface, keccak256 } from 'ethers/lib/utils'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -68,7 +69,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class ZkSyncBridgeWatcher extends BaseWatcher {
+class ZkSyncBridgeWatcher extends BaseWatcher implements IChainWatcher {
   zkSyncProvider: Provider
   zkSyncMessageWrapper: Contract
   l1Wallet: Signer
@@ -231,34 +232,48 @@ class ZkSyncBridgeWatcher extends BaseWatcher {
     return l2ContractAddress
   }
 
-  public async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
+  public async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
     const isReadyToExit = await this.isReadyToExit(commitTxHash, transferRootId)
     if (!isReadyToExit) {
       logger.warn(`transaction ${commitTxHash} not ready to exit`)
       return
     }
 
-    return this.relayXDomainMessage(commitTxHash, transferRootId)
+    await this.db.transferRoots.update(transferRootId, {
+      sentConfirmTxAt: Date.now()
+    })
+    const tx = await this.relayXDomainMessage(commitTxHash)
+    if (!tx) {
+      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+      return
+    }
+
+    const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 
-  public async relayXDomainMessage (commitTxHash: string, transferRootId: string): Promise<providers.TransactionResponse> {
-    if (!commitTxHash) {
-      throw new Error('expected commitTxHash')
-    }
-    if (!transferRootId) {
-      throw new Error('expected transferRootId')
-    }
+  public async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+    // TODO: To implement. Should not rely on transferRootId since this should handle arbitrary l2 to l1 messages
+    throw new Error('unimplemented')
 
-    const { index, proof, l1BatchNumber, l1BatchTxIndex, message } = await this.getMessageProofData(commitTxHash, transferRootId)
+    // if (!commitTxHash) {
+    //   throw new Error('expected commitTxHash')
+    // }
+    // if (!transferRootId) {
+    //   throw new Error('expected transferRootId')
+    // }
 
-    const tx = await this.zkSyncMessageWrapper.consumeMessageFromL2(
-      l1BatchNumber,
-      index,
-      l1BatchTxIndex,
-      message,
-      proof
-    )
-    return tx
+    // const { index, proof, l1BatchNumber, l1BatchTxIndex, message } = await this.getMessageProofData(commitTxHash, transferRootId)
+
+    // const tx = await this.zkSyncMessageWrapper.consumeMessageFromL2(
+    //   l1BatchNumber,
+    //   index,
+    //   l1BatchTxIndex,
+    //   message,
+    //   proof
+    // )
+    // return tx
   }
 }
 

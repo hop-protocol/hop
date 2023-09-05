@@ -3,6 +3,7 @@ import Logger from 'src/logger'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
+import { IChainWatcher, RelayL1ToL2MessageOpts } from './classes/IChainWatcher'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -16,8 +17,7 @@ type Config = {
   dryMode?: boolean
 }
 
-// Arbitrum applies to both Arbitrum one and to Nova
-class ArbitrumBridgeWatcher extends BaseWatcher {
+class ArbitrumBridgeWatcher extends BaseWatcher implements IChainWatcher {
   l1Wallet: Signer
   l2Wallet: Signer
   nonRetryableProvider: providers.Provider
@@ -38,34 +38,32 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.nonRetryableProvider = getNonRetryableRpcProvider(config.chainSlug)!
   }
 
-  async relayXDomainMessage (
-    txHash: string
-  ): Promise<providers.TransactionResponse> {
-    const txReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
+  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+    const txReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const initiatingTxnReceipt = new L2TransactionReceipt(
       txReceipt
     )
 
     if (!initiatingTxnReceipt) {
       throw new Error(
-        `no arbitrum transaction found for tx hash ${txHash}`
+        `no arbitrum transaction found for tx hash ${l2TxHash}`
       )
     }
 
     const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!)
     if (outGoingMessagesFromTxn.length === 0) {
-      throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
+      throw new Error(`tx hash ${l2TxHash} did not initiate an outgoing messages`)
     }
 
     const msg: any = outGoingMessagesFromTxn[0]
     if (!msg) {
-      throw new Error(`msg not found for tx hash ${txHash}`)
+      throw new Error(`msg not found for tx hash ${l2TxHash}`)
     }
 
     return msg.execute(this.l2Wallet.provider)
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
     logger.debug(
       `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
     )
@@ -88,7 +86,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.notifier.info(msg)
   }
 
-  async relayL1ToL2Message (l1TxHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
+    const messageIndex = opts?.messageIndex ?? 0
     this.logger.debug(`attempting to relay L1 to L2 message for l1TxHash: ${l1TxHash} messageIndex: ${messageIndex}`)
     const status = await this.getMessageStatus(l1TxHash, messageIndex)
     if (status !== L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2) {

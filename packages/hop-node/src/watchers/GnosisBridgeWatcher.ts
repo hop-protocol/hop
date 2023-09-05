@@ -6,6 +6,7 @@ import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
+import { IChainWatcher } from './classes/IChainWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -35,7 +36,7 @@ const getL2Amb = (token: string) => {
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class GnosisBridgeWatcher extends BaseWatcher {
+class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
   l1Bridge: L1Bridge
 
   constructor (config: Config) {
@@ -51,7 +52,7 @@ class GnosisBridgeWatcher extends BaseWatcher {
     }
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
     logger.debug(
       `attempting to send relay message on gnosis for commit tx hash ${commitTxHash}`
     )
@@ -74,27 +75,27 @@ class GnosisBridgeWatcher extends BaseWatcher {
     this.notifier.info(msg)
   }
 
-  async relayXDomainMessage (commitTxHash: string): Promise<providers.TransactionResponse> {
+  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
     const token: string = this.tokenSymbol
     const l1Amb = getL1Amb(token)
     const l2Amb = getL2Amb(token)
 
-    const sigEvent = await this.getValidSigEvent(commitTxHash)
+    const sigEvent = await this.getValidSigEvent(l2TxHash)
     if (!sigEvent?.args) {
-      throw new Error(`args for sigEvent not found for ${commitTxHash}`)
+      throw new Error(`args for sigEvent not found for ${l2TxHash}`)
     }
 
     this.logger.info('found sigEvent event args')
     const message = sigEvent.args.encodedData
     if (!message) {
-      throw new Error(`message not found for ${commitTxHash}`)
+      throw new Error(`message not found for ${l2TxHash}`)
     }
 
     const msgHash = solidityKeccak256(['bytes'], [message])
     const id = await l2Amb.numMessagesSigned(msgHash)
     const alreadyProcessed = await l2Amb.isAlreadyProcessed(id)
     if (!alreadyProcessed) {
-      throw new Error(`commit already processed found for ${commitTxHash}`)
+      throw new Error(`commit already processed found for ${l2TxHash}`)
     }
 
     const messageId =
@@ -104,7 +105,7 @@ class GnosisBridgeWatcher extends BaseWatcher {
         .toString('hex')
     const alreadyRelayed = await l1Amb.relayedMessages(messageId)
     if (alreadyRelayed) {
-      throw new Error(`message already relayed for ${commitTxHash}`)
+      throw new Error(`message already relayed for ${l2TxHash}`)
     }
 
     const requiredSigs = (await l2Amb.requiredSignatures()).toNumber()
@@ -123,8 +124,8 @@ class GnosisBridgeWatcher extends BaseWatcher {
     return l1Amb.executeSignatures(message, packedSigs)
   }
 
-  async getValidSigEvent (commitTxHash: string) {
-    const tx = await this.bridge.getTransactionReceipt(commitTxHash)
+  async getValidSigEvent (l2TxHash: string) {
+    const tx = await this.bridge.getTransactionReceipt(l2TxHash)
     const l2Amb = getL2Amb(this.tokenSymbol)
     const sigEvents = await l2Amb.queryFilter(
       l2Amb.filters.UserRequestForSignature(),
@@ -134,7 +135,7 @@ class GnosisBridgeWatcher extends BaseWatcher {
 
     for (const sigEvent of sigEvents) {
       const sigTxHash = sigEvent.transactionHash
-      if (sigTxHash.toLowerCase() !== commitTxHash.toLowerCase()) {
+      if (sigTxHash.toLowerCase() !== l2TxHash.toLowerCase()) {
         continue
       }
       const { encodedData } = sigEvent.args
@@ -153,7 +154,7 @@ export default GnosisBridgeWatcher
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
-const { toHex, numberToHex, padLeft } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
+const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
 
 const strip0x = (value: string) => value.replace(/^0x/i, '')
 

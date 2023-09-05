@@ -31,7 +31,7 @@ export const addresses: Addresses = {
         l1CanonicalToken: '0x0000000000000000000000000000000000000000',
         l1Bridge: '0xC8A4FB931e8D77df8497790381CA7d228E68a41b',
         proxy: '0xb6E74faD6cDC60Cf6F28d9a6B490F43762F0ABF1',
-        blockHashValidator: '0x131F938FAAeAE5DD4497EEFF3D4FF3B0259A62a5',
+        validator: '0x131F938FAAeAE5DD4497EEFF3D4FF3B0259A62a5',
         bridgeDeployedBlockNumber: 7393532
       },
       arbitrum: {
@@ -45,7 +45,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x69a71b7F6Ff088a0310b4f911b4f9eA11e2E9740',
         l2SaddleLpToken: '0x8DC6D9fe4500D34A405414ed27e8Eb7Fd6889267',
         proxy: '0x07C592684Ee9f71D58853F9387579332d471b6Ca',
-        blockHashValidator: '0x70aF36240eC5040f6f9501E8E2D9db8703ec3d45',
+        validator: '0x70aF36240eC5040f6f9501E8E2D9db8703ec3d45',
         bridgeDeployedBlockNumber: 96936
       },
       optimism: {
@@ -59,7 +59,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xa50395bdEaca7062255109fedE012eFE63d6D402',
         l2SaddleLpToken: '0x2105a73D7739f1034Becc1bd87f4F7820d575644',
         proxy: '0x7191061D5d4C60f598214cC6913502184BAddf18',
-        blockHashValidator: '0xb3C68a491608952Cb1257FC9909a537a0173b63B',
+        validator: '0xb3C68a491608952Cb1257FC9909a537a0173b63B',
         bridgeDeployedBlockNumber: 407263
       },
       base: {
@@ -73,7 +73,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xB87aC009F61Fa214f196e232fD14A6f8AE422FA1',
         l2SaddleLpToken: '0x6Ad03376a15819c80b267038E2E4c00D35Cf8f67',
         proxy: '0x72209Fe68386b37A40d6bCA04f78356fd342491f',
-        blockHashValidator: '0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283',
+        validator: '0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283',
         bridgeDeployedBlockNumber: 1551608
       }
     }

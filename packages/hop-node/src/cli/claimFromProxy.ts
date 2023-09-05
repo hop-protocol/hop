@@ -1,22 +1,15 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
-import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import wallets from 'src/wallets'
-import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
-import { Interface, formatEther, parseEther } from 'ethers/lib/utils'
+import { parseEther } from 'ethers/lib/utils'
 
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import { BigNumber, Contract, providers } from 'ethers'
-import encodeProxyTransactions from 'src/utils/encodeProxyTransactions'
-import { ProxyTransaction } from 'src/types'
+import { BigNumber, Contract, providers, constants } from 'ethers'
 import { getProxyAddressForChain } from 'src/config'
 
 root
-  .command('send-from-proxy')
+  .command('claim-from-proxy')
   .description('Send from the proxy to the sender')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
@@ -83,19 +76,12 @@ async function transferNativeFromProxy (
   }
 
   const eoaAddress = await wallet.getAddress()
-  const proxyTransaction: ProxyTransaction = {
-    to: eoaAddress,
-    data: '0x',
-    value: parsedAmount
-  }
-
-  const proxyAbi = ['function executeTransactions(bytes[])']
+  const proxyAbi = ['function claimFunds(address,uint256)']
   const proxyContract = new Contract(proxyAddress, proxyAbi, wallet)
+  const tokenAddress = constants.AddressZero
 
   logger.debug(`sending native tokens from proxy to EOA: attempting to send ${amount} to ${eoaAddress} on ${chain}`)
-
-  const txData: string[] = encodeProxyTransactions([proxyTransaction])
-  const tx = await proxyContract.executeTransactions(txData)
+  const tx = await proxyContract.claimFunds(tokenAddress, parsedAmount)
 
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
@@ -129,25 +115,13 @@ async function transferErc20FromProxy (
     throw new Error('not enough token balance to send')
   }
 
-  let eoaAddress = await wallet.getAddress()
-  const ethersInterface = new Interface(erc20Abi)
-
-  const erc20TransferData = ethersInterface.encodeFunctionData('transfer', [
-    eoaAddress,
-    parsedAmount
-  ])
-  const proxyTransaction: ProxyTransaction = {
-    to: tokenInstance.address,
-    data: erc20TransferData,
-    value: BigNumber.from(0)
-  }
-  const proxyAbi = ['function executeTransactions(bytes[])']
+  const eoaAddress = await wallet.getAddress()
+  const proxyAbi = ['function claimFunds(address,uint256)']
   const proxyContract = new Contract(proxyAddress, proxyAbi, wallet)
+  const tokenAddress = tokenInstance.address
 
-  logger.debug(`sending native tokens from proxy to EOA: attempting to send ${amount} to ${eoaAddress} on ${chain}`)
-
-  const txData: string[] = encodeProxyTransactions([proxyTransaction])
-  const tx = await proxyContract.executeTransactions(txData)
+  logger.debug(`sending tokens ${tokenAddress}from  proxy to EOA: attempting to send ${amount} to ${eoaAddress} on ${chain}`)
+  const tx = await proxyContract.claimFunds(tokenAddress, parsedAmount)
 
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()

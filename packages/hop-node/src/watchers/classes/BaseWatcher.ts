@@ -6,7 +6,7 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
-import getEncodedBlockHashValidatorData from 'src/utils/getEncodedBlockHashValidatorData'
+import getEncodedValidationData from 'src/utils/getEncodedValidationData'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
@@ -27,7 +27,7 @@ import {
 } from 'src/types/error'
 import { Strategy, Vault } from 'src/vault'
 import {
-  getBlockHashValidatorAddressForChain,
+  getValidatorAddressForChain,
   config as globalConfig,
   hostname
 } from 'src/config'
@@ -508,14 +508,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       throw new Error(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
-    const blockHashValidatorAddress = getBlockHashValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
-    const encodedData: string = getEncodedBlockHashValidatorData(
-      blockHashValidatorAddress,
+    const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
+    const encodedValidationData: string = getEncodedValidationData(
+      validatorAddress,
       blockInfo.hash,
       blockInfo.number
     )
 
-    return encodedData.slice(2)
+    return encodedValidationData.slice(2)
   }
 }
 

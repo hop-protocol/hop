@@ -242,7 +242,7 @@ class ZkSyncBridgeWatcher extends BaseWatcher implements IChainWatcher {
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
-    const tx = await this.relayXDomainMessage(commitTxHash)
+    const tx = await this.relayL2ToL1Message(commitTxHash)
     if (!tx) {
       logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
       return
@@ -253,7 +253,7 @@ class ZkSyncBridgeWatcher extends BaseWatcher implements IChainWatcher {
     this.notifier.info(msg)
   }
 
-  public async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+  public async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     // TODO: To implement. Should not rely on transferRootId since this should handle arbitrary l2 to l1 messages
     throw new Error('unimplemented')
 

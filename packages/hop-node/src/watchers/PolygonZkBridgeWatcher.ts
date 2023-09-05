@@ -100,7 +100,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
     )
 
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
       return
     }
 
@@ -121,7 +121,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      this.logger.error('relayXDomainMessage error:', err.message)
+      this.logger.error('relayL2ToL1Message error:', err.message)
 
       const {
         unrelayableErrors
@@ -148,7 +148,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
     }
   }
 
-  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     await this.tilReady()
 
     return this._relayXDomainMessage(l2TxHash)

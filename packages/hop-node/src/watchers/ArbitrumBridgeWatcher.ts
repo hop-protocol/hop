@@ -38,7 +38,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher implements IChainWatcher {
     this.nonRetryableProvider = getNonRetryableRpcProvider(config.chainSlug)!
   }
 
-  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     const txReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const initiatingTxnReceipt = new L2TransactionReceipt(
       txReceipt
@@ -68,14 +68,14 @@ class ArbitrumBridgeWatcher extends BaseWatcher implements IChainWatcher {
       `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
     )
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayXDomainMessage`)
+      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayL2ToL1Message`)
       return
     }
 
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
-    const tx = await this.relayXDomainMessage(commitTxHash)
+    const tx = await this.relayL2ToL1Message(commitTxHash)
     if (!tx) {
       logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
       return

@@ -56,7 +56,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   // It is expected that the poller re-calls this message every hour during the challenge period, if the
   // transfer was challenged. The complexity of adding DB state to track successful/failed root prove txs
   // and challenges is not worth saving the additional RPC calls (2) per hour during the challenge period.
-  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     const messageStatus: MessageStatus = await this.csm.getMessageStatus(l2TxHash)
     if (
       messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE ||
@@ -94,7 +94,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     )
 
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
       return
     }
 
@@ -103,7 +103,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     })
 
     try {
-      const tx = await this.relayXDomainMessage(commitTxHash)
+      const tx = await this.relayL2ToL1Message(commitTxHash)
       if (!tx) {
         logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
         return
@@ -113,7 +113,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      this.logger.error('relayXDomainMessage error:', err.message)
+      this.logger.error('relayL2ToL1Message error:', err.message)
 
       const {
         unexpectedPollError,

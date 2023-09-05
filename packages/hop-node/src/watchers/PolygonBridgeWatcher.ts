@@ -103,7 +103,7 @@ class PolygonBridgeWatcher extends BaseWatcher implements IChainWatcher {
     return json.message === 'success'
   }
 
-  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     await this.tilReady()
 
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
@@ -139,7 +139,7 @@ class PolygonBridgeWatcher extends BaseWatcher implements IChainWatcher {
     )
 
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
       return
     }
     await this.db.transferRoots.update(transferRootId, {
@@ -148,13 +148,13 @@ class PolygonBridgeWatcher extends BaseWatcher implements IChainWatcher {
 
     let tx
     try {
-      tx = await this.relayXDomainMessage(commitTxHash)
+      tx = await this.relayL2ToL1Message(commitTxHash)
       if (!tx) {
         logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
         return
       }
     } catch (err) {
-      logger.error(`relayXDomainMessage error: ${err.message}`)
+      logger.error(`relayL2ToL1Message error: ${err.message}`)
       return
     }
     const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`

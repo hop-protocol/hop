@@ -107,7 +107,7 @@ async function main (source: any) {
         throw new Error('commitTxHash is required')
       }
       console.log('commitTxHash', commitTxHash)
-      await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
+      await chainSpecificWatcher.relayL2ToL1Message(commitTxHash)
     }
   }
   console.log('done')

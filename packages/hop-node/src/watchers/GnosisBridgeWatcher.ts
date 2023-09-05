@@ -58,14 +58,14 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
     )
 
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
       return
     }
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
 
-    const tx = await this.relayXDomainMessage(commitTxHash)
+    const tx = await this.relayL2ToL1Message(commitTxHash)
     if (!tx) {
       logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
       return
@@ -75,7 +75,7 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
     this.notifier.info(msg)
   }
 
-  async relayXDomainMessage (l2TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     const token: string = this.tokenSymbol
     const l1Amb = getL1Amb(token)
     const l2Amb = getL2Amb(token)

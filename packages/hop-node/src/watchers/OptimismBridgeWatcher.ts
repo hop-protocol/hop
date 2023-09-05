@@ -25,6 +25,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   l2Wallet: Signer
   csm: CrossChainMessenger
   chainId: number
+  l1BlockContract: Contract
 
   constructor (config: Config) {
     super({
@@ -49,6 +50,14 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet
     })
+
+    // Replace this with SDK function when it becomes available
+    const l1BlockAddr = '0x4200000000000000000000000000000000000015'
+    const l1BlockAbi = [
+      'function number() view returns (uint64)',
+      'function sequenceNumber() view returns (uint64)',
+    ]
+    this.l1BlockContract = new Contract(l1BlockAddr, l1BlockAbi, this.l2Provider)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
@@ -220,8 +229,10 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       throw new Error(`reorg detected. tx l2TxHash ${l2TxHash} on chain ${this.chainSlug} is not included in block ${l2BlockNumber}`)
     }
 
+    console.log(`l2TxHash ${l2TxHash} on chain ${this.chainSlug} is included in block ${l2BlockNumber}`)
     const lastIncludedBlockNumber = await this.bridge.getSafeBlockNumber()
     if (l2BlockNumber < lastIncludedBlockNumber) {
+      console.log(`l2TxHash ${l2TxHash} on chain ${this.chainSlug} is included in block ${l2BlockNumber} which is less than last included block ${lastIncludedBlockNumber}`)
       return
     }
 
@@ -231,28 +242,27 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   async getL1BlockOnL2 (l1Block: providers.Block): Promise<providers.Block | undefined> {
     const expectedL1BlockNumber = l1Block.number
 
-    const l1BlockAddr = '0x4200000000000000000000000000000000000015'
-    const l1BlockAbi = [
-      'function number() view returns (uint64)',
-      'function sequenceNumber() view returns (uint64)',
-    ]
-    const l1BlockContract = new Contract(l1BlockAddr, l1BlockAbi, this.l2Provider)
-
     let l2BlockNumber = await this.l2Provider.getBlockNumber()
-    let l1BlockNumberOnL2 = await l1BlockContract.number(l2BlockNumber)
-
-
+    let l1BlockNumberOnL2 = await this.l1BlockContract.number(l2BlockNumber)
+    let counter = 0
     while (true) {
       if (l1BlockNumberOnL2 < expectedL1BlockNumber) {
+        console.log(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} is less than expectedL1BlockNumber ${expectedL1BlockNumber}`)
         return
       } else if (l1BlockNumberOnL2 === expectedL1BlockNumber) {
         return this.l2Provider.getBlock(l2BlockNumber)
       } else {
-        const seqNum = await l1BlockContract.sequenceNumber(l2BlockNumber)
-        // Add one since index starts at 0
+        const seqNum = await this.l1BlockContract.sequenceNumber(l2BlockNumber)
+        // Add 1 since index starts at 0
         const numL2BlocksSinceLastL1Block = seqNum + 1
         l2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
-        l1BlockNumberOnL2 = await l1BlockContract.number(l1BlockNumberOnL2)
+        l1BlockNumberOnL2 = await this.l1BlockContract.number(l1BlockNumberOnL2)
+      }
+
+      console.log(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} is greater than expectedL1BlockNumber ${expectedL1BlockNumber}, trying again`)
+      counter++
+      if (counter > 10) {
+        throw new Error(`getL1BlockOnL2 looped too many times`)
       }
     }
   }

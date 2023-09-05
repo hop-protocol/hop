@@ -12,7 +12,7 @@ import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber, constants, providers } from 'ethers'
-import { BlockHashValidatorAddresses, Chain, GasCostTransactionType, MaxReorgCheckBackoffIndex } from 'src/constants'
+import { Chain, GasCostTransactionType, MaxReorgCheckBackoffIndex } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
@@ -26,7 +26,11 @@ import {
   RedundantProviderOutOfSync
 } from 'src/types/error'
 import { Strategy, Vault } from 'src/vault'
-import { config as globalConfig, hostname } from 'src/config'
+import {
+  getBlockHashValidatorAddressForChain,
+  config as globalConfig,
+  hostname
+} from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 
 const mutexes: Record<string, Mutex> = {}
@@ -504,7 +508,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       throw new Error(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
-    const blockHashValidatorAddress =  BlockHashValidatorAddresses[this.chainSlug]
+    const blockHashValidatorAddress = getBlockHashValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
     const encodedData: string = getEncodedBlockHashValidatorData(
       blockHashValidatorAddress,
       blockInfo.hash,

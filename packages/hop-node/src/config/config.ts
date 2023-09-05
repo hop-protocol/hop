@@ -451,6 +451,14 @@ export function getProxyAddressForChain (token: string, chainSlug: string): stri
   return address
 }
 
+export function getBlockHashValidatorAddressForChain (token: string, chainSlug: string): string {
+  const address = config.addresses?.[token]?.[chainSlug]?.blockHashValidator
+  if (!address) {
+    throw new Error(`BlockHashValidator address not found for token ${token} on chain ${chainSlug}`)
+  }
+  return address
+}
+
 export function isProxyAddressForChain (token: string, chainSlug: string): boolean {
   return !!config.addresses?.[token]?.[chainSlug]?.proxy
 }

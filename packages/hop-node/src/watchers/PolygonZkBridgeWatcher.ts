@@ -83,17 +83,17 @@ class PolygonZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
     this.ready = true
   }
 
-  protected async tilReady (): Promise<boolean> {
+  private async _tilReady (): Promise<boolean> {
     if (this.ready) {
       return true
     }
 
     await wait(100)
-    return await this.tilReady()
+    return await this._tilReady()
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
-    await this.tilReady()
+    await this._tilReady()
 
     logger.debug(
       `attempting to send relay message on polygonzk for commit tx hash ${commitTxHash}`
@@ -137,7 +137,7 @@ class PolygonZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    await this.tilReady()
+    await this._tilReady()
 
     try {
       const networkId = 0
@@ -149,12 +149,12 @@ class PolygonZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this.tilReady()
+    await this._tilReady()
 
     return this._relayXDomainMessage(l2TxHash)
   }
 
-  async _relayXDomainMessage (l2TxHash: string, networkId: number = 1, wallet: Signer = this.l1Wallet): Promise<providers.TransactionResponse> {
+  private async _relayXDomainMessage (l2TxHash: string, networkId: number = 1, wallet: Signer = this.l1Wallet): Promise<providers.TransactionResponse> {
     let isRelayable
     if (networkId === 0) {
       isRelayable = await this.zkEvmClient.isDepositClaimable(l2TxHash)

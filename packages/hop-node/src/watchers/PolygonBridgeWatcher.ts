@@ -87,48 +87,18 @@ class PolygonBridgeWatcher extends BaseWatcher implements IChainWatcher {
     this.ready = true
   }
 
-  protected async tilReady (): Promise<boolean> {
+  private async _tilReady (): Promise<boolean> {
     if (this.ready) {
       return true
     }
 
     await wait(100)
-    return await this.tilReady()
-  }
-
-  async isCheckpointed (l2BlockNumber: number) {
-    const url = `${this.apiUrl}/${l2BlockNumber}`
-    const res = await fetch(url)
-    const json = await res.json()
-    return json.message === 'success'
-  }
-
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this.tilReady()
-
-    // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
-    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
-
-    // Generate payload
-    const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
-    const payload = await this.maticClient.exitUtil.buildPayloadForExit(l2TxHash, logEventSig, true)
-
-    // Create tx data
-    const abi = ['function receiveMessage(bytes)']
-    const iface = new utils.Interface(abi)
-    const data = iface.encodeFunctionData('receiveMessage', [payload])
-
-    // Generate tx and send
-    const rootTunnel = globalConfig.addresses[this.tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
-    return this.l1Wallet.sendTransaction({
-      to: rootTunnel,
-      data
-    })
+    return await this._tilReady()
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
     const commitTx: any = await this.bridge.getTransaction(commitTxHash)
-    const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
+    const isCheckpointed = await this._isCheckpointed(commitTx.blockNumber)
     if (!isCheckpointed) {
       logger.warn(`transaction ${commitTxHash} not checkpointed`)
       return
@@ -161,5 +131,36 @@ class PolygonBridgeWatcher extends BaseWatcher implements IChainWatcher {
     logger.info(msg)
     this.notifier.info(msg)
   }
+
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
+    await this._tilReady()
+
+    // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
+    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
+
+    // Generate payload
+    const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
+    const payload = await this.maticClient.exitUtil.buildPayloadForExit(l2TxHash, logEventSig, true)
+
+    // Create tx data
+    const abi = ['function receiveMessage(bytes)']
+    const iface = new utils.Interface(abi)
+    const data = iface.encodeFunctionData('receiveMessage', [payload])
+
+    // Generate tx and send
+    const rootTunnel = globalConfig.addresses[this.tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
+    return this.l1Wallet.sendTransaction({
+      to: rootTunnel,
+      data
+    })
+  }
+
+  private async _isCheckpointed (l2BlockNumber: number) {
+    const url = `${this.apiUrl}/${l2BlockNumber}`
+    const res = await fetch(url)
+    const json = await res.json()
+    return json.message === 'success'
+  }
 }
+
 export default PolygonBridgeWatcher

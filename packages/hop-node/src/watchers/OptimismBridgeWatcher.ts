@@ -51,6 +51,97 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     })
   }
 
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
+    logger.debug(
+      `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
+    )
+
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
+      return
+    }
+
+    await this.db.transferRoots.update(transferRootId, {
+      sentConfirmTxAt: Date.now()
+    })
+
+    try {
+      const tx = await this.relayL2ToL1Message(commitTxHash)
+      if (!tx) {
+        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+        return
+      }
+
+      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      this.logger.error('relayL2ToL1Message error:', err.message)
+
+      const {
+        unexpectedPollError,
+        unexpectedRelayErrors,
+        invalidMessageError,
+        onchainError,
+        cannotReadPropertyError,
+        preBedrockErrors
+      } = this._getErrorType(err.message)
+
+      // This error occurs if a poll happened while a message was either not yet published or in the challenge period
+      if (unexpectedPollError) {
+        return
+      }
+
+      if (unexpectedRelayErrors) {
+        throw new Error('unexpected message status')
+      }
+      if (invalidMessageError) {
+        throw new Error('invalid message')
+      }
+      if (onchainError) {
+        throw new Error('message has already been relayed')
+      }
+      if (cannotReadPropertyError) {
+        throw new Error('event not found in optimism sdk')
+      }
+      if (preBedrockErrors) {
+        throw new Error('unexpected Optimism SDK error')
+      }
+
+      throw err
+    }
+  }
+
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    try {
+      const message = await this.csm.toCrossChainMessage(l1TxHash)
+      // Use a custom gasLimit that is high enough for all transactions. This is because the original relay
+      // failed due to too low of an estimation, so we need to manually set it
+      const gasLimit = 1000000
+      const l2CrossDomainMessengerAddress = '0x4200000000000000000000000000000000000007'
+      const abi = ['function relayMessage(uint256,address,address,uint256,uint256,bytes calldata) external payable']
+      const ethersInterface = new Interface(abi)
+      const data = ethersInterface.encodeFunctionData(
+        'relayMessage', [
+          message.messageNonce,
+          message.sender,
+          message.target,
+          message.value,
+          message.minGasLimit,
+          message.message
+        ]
+      )
+      const tx: providers.TransactionRequest = {
+        to: l2CrossDomainMessengerAddress,
+        gasLimit,
+        data
+      }
+      return this.l2Wallet.sendTransaction(tx)
+    } catch (err) {
+      throw new Error(`relayL1ToL2Message error: ${err.message}`)
+    }
+  }
+
   // This function will only handle one stage at a time. Upon completion of a stage, the poller will re-call
   // this when the next stage is ready.
   // It is expected that the poller re-calls this message every hour during the challenge period, if the
@@ -88,69 +179,8 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     throw new Error(`state not handled for tx ${l2TxHash}`)
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
-    logger.debug(
-      `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
-    )
-
-    if (this.dryMode || globalConfig.emergencyDryMode) {
-      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
-      return
-    }
-
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-
-    try {
-      const tx = await this.relayL2ToL1Message(commitTxHash)
-      if (!tx) {
-        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-        return
-      }
-
-      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      this.logger.error('relayL2ToL1Message error:', err.message)
-
-      const {
-        unexpectedPollError,
-        unexpectedRelayErrors,
-        invalidMessageError,
-        onchainError,
-        cannotReadPropertyError,
-        preBedrockErrors
-      } = this.getErrorType(err.message)
-
-      // This error occurs if a poll happened while a message was either not yet published or in the challenge period
-      if (unexpectedPollError) {
-        return
-      }
-
-      if (unexpectedRelayErrors) {
-        throw new Error('unexpected message status')
-      }
-      if (invalidMessageError) {
-        throw new Error('invalid message')
-      }
-      if (onchainError) {
-        throw new Error('message has already been relayed')
-      }
-      if (cannotReadPropertyError) {
-        throw new Error('event not found in optimism sdk')
-      }
-      if (preBedrockErrors) {
-        throw new Error('unexpected Optimism SDK error')
-      }
-
-      throw err
-    }
-  }
-
   // At this time, most aof these errors are only informational and not explicitly handled
-  getErrorType (errMessage: string) {
+  private _getErrorType (errMessage: string) {
     // Hop errors
     const unexpectedPollError =
       errMessage.includes('state root not published') ||
@@ -185,37 +215,6 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       onchainError,
       cannotReadPropertyError,
       preBedrockErrors
-    }
-  }
-
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    try {
-      // TODO: Rip all this out and use this.csm.relayTx(l1TxHash) function once the Optimism SDK supports it
-      const message = await this.csm.toCrossChainMessage(l1TxHash)
-      // Use a custom gasLimit that is high enough for all transactions. This is because the original relay
-      // failed due to too low of an estimation, so we need to manually set it
-      const gasLimit = 1000000
-      const l2CrossDomainMessengerAddress = '0x4200000000000000000000000000000000000007'
-      const abi = ['function relayMessage(uint256,address,address,uint256,uint256,bytes calldata) external payable']
-      const ethersInterface = new Interface(abi)
-      const data = ethersInterface.encodeFunctionData(
-        'relayMessage', [
-          message.messageNonce,
-          message.sender,
-          message.target,
-          message.value,
-          message.minGasLimit,
-          message.message
-        ]
-      )
-      const tx: providers.TransactionRequest = {
-        to: l2CrossDomainMessengerAddress,
-        gasLimit,
-        data
-      }
-      return this.l2Wallet.sendTransaction(tx)
-    } catch (err) {
-      throw new Error(`relayL1ToL2Message error: ${err.message}`)
     }
   }
 

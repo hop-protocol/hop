@@ -14,6 +14,11 @@ import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
 import { config as globalConfig } from 'src/config'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 
+// https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
+const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
+const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
+
+
 type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -80,7 +85,7 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
     const l1Amb = getL1Amb(token)
     const l2Amb = getL2Amb(token)
 
-    const sigEvent = await this.getValidSigEvent(l2TxHash)
+    const sigEvent = await this._getValidSigEvent(l2TxHash)
     if (!sigEvent?.args) {
       throw new Error(`args for sigEvent not found for ${l2TxHash}`)
     }
@@ -100,7 +105,7 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
 
     const messageId =
       '0x' +
-      Buffer.from(strip0x(message), 'hex')
+      Buffer.from(this._strip0x(message), 'hex')
         .slice(0, 32)
         .toString('hex')
     const alreadyRelayed = await l1Amb.relayedMessages(messageId)
@@ -113,18 +118,18 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
     for (let i = 0; i < requiredSigs; i++) {
       const sig = await l2Amb.signature(msgHash, i)
       const [v, r, s]: any[] = [[], [], []]
-      const vrs = signatureToVRS(sig)
+      const vrs = this._signatureToVRS(sig)
       v.push(vrs.v)
       r.push(vrs.r)
       s.push(vrs.s)
       sigs.push(vrs)
     }
-    const packedSigs = packSignatures(sigs)
+    const packedSigs = this._packSignatures(sigs)
 
     return l1Amb.executeSignatures(message, packedSigs)
   }
 
-  async getValidSigEvent (l2TxHash: string) {
+  private async _getValidSigEvent (l2TxHash: string) {
     const tx = await this.bridge.getTransactionReceipt(l2TxHash)
     const l2Amb = getL2Amb(this.tokenSymbol)
     const sigEvents = await l2Amb.queryFilter(
@@ -148,35 +153,34 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
       }
     }
   }
+
+  private _strip0x (value: string): string {
+    return value.replace(/^0x/i, '')
+  }
+
+  private _signatureToVRS (rawSignature: any) {
+    const signature = this._strip0x(rawSignature)
+    assert.strictEqual(signature.length, 2 + 32 * 2 + 32 * 2)
+    const v = signature.substr(64 * 2)
+    const r = signature.substr(0, 32 * 2)
+    const s = signature.substr(32 * 2, 32 * 2)
+    return { v, r, s }
+  }
+  
+  private _packSignatures (array: any[]) {
+    const length = this._strip0x(toHex(array.length))
+    const msgLength = length.length === 1 ? `0${length}` : length
+    let v = ''
+    let r = ''
+    let s = ''
+    array.forEach(e => {
+      v = v.concat(e.v)
+      r = r.concat(e.r)
+      s = s.concat(e.s)
+    })
+    return `0x${msgLength}${v}${r}${s}`
+  }
 }
 
 export default GnosisBridgeWatcher
 
-// https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
-const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
-const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
-
-const strip0x = (value: string) => value.replace(/^0x/i, '')
-
-function signatureToVRS (rawSignature: any) {
-  const signature = strip0x(rawSignature)
-  assert.strictEqual(signature.length, 2 + 32 * 2 + 32 * 2)
-  const v = signature.substr(64 * 2)
-  const r = signature.substr(0, 32 * 2)
-  const s = signature.substr(32 * 2, 32 * 2)
-  return { v, r, s }
-}
-
-function packSignatures (array: any[]) {
-  const length = strip0x(toHex(array.length))
-  const msgLength = length.length === 1 ? `0${length}` : length
-  let v = ''
-  let r = ''
-  let s = ''
-  array.forEach(e => {
-    v = v.concat(e.v)
-    r = r.concat(e.r)
-    s = s.concat(e.s)
-  })
-  return `0x${msgLength}${v}${r}${s}`
-}

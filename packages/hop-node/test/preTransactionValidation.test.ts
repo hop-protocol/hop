@@ -13,6 +13,7 @@ import {
 
 // Run this with
 // npx ts-node test/preTransactionValidation.test.ts
+// NOTE: Use relative imports to avoid cannot find module errors
 
 // NOTE: These tests assume an updated DB and chain, token, transferId, and rootHash values.
 

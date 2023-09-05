@@ -487,7 +487,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     if (
       typeof chainWatcher.getL1InclusionBlock !== 'function' ||
-      typeof chainWatcher.getL1BlockOnL2 !== 'function'
+      typeof chainWatcher.getL2BlockByL1Block !== 'function'
     ) {
       throw new Error(`chainWatcher calldata functions not implemented for chain ${this.chainSlug}`)
     }
@@ -501,7 +501,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (this.isL1) {
       blockInfo = l1InclusionBlock
     } else {
-      blockInfo = await chainWatcher.getL1BlockOnL2(l1InclusionBlock)
+      blockInfo = await chainWatcher.getL2BlockByL1Block(l1InclusionBlock)
     }
 
     if (!blockInfo) {

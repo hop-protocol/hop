@@ -5,10 +5,9 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainWatcher } from './classes/IChainWatcher'
-import { Interface } from 'ethers/lib/utils'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Contract, Signer, providers } from 'ethers'
+import { BigNumber, Contract, Signer, providers } from 'ethers'
 import { config as globalConfig } from 'src/config'
 
 type Config = {
@@ -25,7 +24,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   l2Wallet: Signer
   csm: CrossChainMessenger
   chainId: number
-  l1BlockContract: Contract
+  private _l1BlockContract: Contract
 
   constructor (config: Config) {
     super({
@@ -57,7 +56,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       'function number() view returns (uint64)',
       'function sequenceNumber() view returns (uint64)',
     ]
-    this.l1BlockContract = new Contract(l1BlockAddr, l1BlockAbi, this.l2Provider)
+    this._l1BlockContract = new Contract(l1BlockAddr, l1BlockAbi, this.l2Provider)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
@@ -215,7 +214,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   }
 
   async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
-    // It is not trivial to get the exact inclusion block. Any block after the inclusion block achieves the same goal.
+    // It is not trivial to get the exact inclusion block, however any block after the inclusion block achieves the same goal.
 
     // Get the receipt instead of trusting the block number because the block number may have been reorged out
     const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
@@ -239,30 +238,31 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     return this.l1Provider.getBlock(lastIncludedBlockNumber)
   }
 
-  async getL1BlockOnL2 (l1Block: providers.Block): Promise<providers.Block | undefined> {
+  async getL2BlockByL1Block (l1Block: providers.Block): Promise<providers.Block | undefined> {
     const expectedL1BlockNumber = l1Block.number
 
-    let l2BlockNumber = await this.l2Provider.getBlockNumber()
-    let l1BlockNumberOnL2 = await this.l1BlockContract.number(l2BlockNumber)
+    let l2BlockNumber: number = await this.bridge.getBlockNumber()
+    let l1BlockNumberOnL2: number = Number(await this._l1BlockContract.number({ blockTag: l2BlockNumber }))
     let counter = 0
     while (true) {
       if (l1BlockNumberOnL2 < expectedL1BlockNumber) {
-        console.log(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} is less than expectedL1BlockNumber ${expectedL1BlockNumber}`)
+        console.log(`too early. l1BlockNumberOnL2 ${l1BlockNumberOnL2} is less than expectedL1BlockNumber ${expectedL1BlockNumber}`)
         return
       } else if (l1BlockNumberOnL2 === expectedL1BlockNumber) {
         return this.l2Provider.getBlock(l2BlockNumber)
-      } else {
-        const seqNum = await this.l1BlockContract.sequenceNumber(l2BlockNumber)
+      } else if (l1BlockNumberOnL2 > expectedL1BlockNumber) {
+        const seqNum: BigNumber = await this._l1BlockContract.sequenceNumber({ blockTag: l2BlockNumber })
         // Add 1 since index starts at 0
-        const numL2BlocksSinceLastL1Block = seqNum + 1
-        l2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
-        l1BlockNumberOnL2 = await this.l1BlockContract.number(l1BlockNumberOnL2)
-      }
+        const numL2BlocksSinceLastL1Block = Number(seqNum) + 1
+        const newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
+        console.log(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than expectedL1BlockNumber ${expectedL1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
 
-      console.log(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} is greater than expectedL1BlockNumber ${expectedL1BlockNumber}, trying again`)
-      counter++
-      if (counter > 10) {
-        throw new Error(`getL1BlockOnL2 looped too many times`)
+        l2BlockNumber = newL2BlockNumber
+        l1BlockNumberOnL2 = Number(await this._l1BlockContract.number({ blockTag: l2BlockNumber }))
+        counter++
+        if (counter > 10) {
+          throw new Error(`getL2BlockByL1Block looped too many times`)
+        }
       }
     }
   }

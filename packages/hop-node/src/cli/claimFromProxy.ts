@@ -8,6 +8,12 @@ import { parseEther } from 'ethers/lib/utils'
 import { BigNumber, Contract, providers, constants } from 'ethers'
 import { getProxyAddressForChain } from 'src/config'
 
+enum TransactionTypes {
+  Native,
+  ERC20,
+  ERC721
+}
+
 root
   .command('claim-from-proxy')
   .description('Send from the proxy to the sender')
@@ -76,12 +82,13 @@ async function transferNativeFromProxy (
   }
 
   const eoaAddress = await wallet.getAddress()
-  const proxyAbi = ['function claimFunds(address,uint256)']
+  const proxyAbi = ['function claimFunds(address,uint256,uint256)']
   const proxyContract = new Contract(proxyAddress, proxyAbi, wallet)
   const tokenAddress = constants.AddressZero
+  const type = TransactionTypes.Native
 
   logger.debug(`sending native tokens from proxy to EOA: attempting to send ${amount} to ${eoaAddress} on ${chain}`)
-  const tx = await proxyContract.claimFunds(tokenAddress, parsedAmount)
+  const tx = await proxyContract.claimFunds(tokenAddress, parsedAmount, type)
 
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
@@ -116,12 +123,13 @@ async function transferErc20FromProxy (
   }
 
   const eoaAddress = await wallet.getAddress()
-  const proxyAbi = ['function claimFunds(address,uint256)']
+  const proxyAbi = ['function claimFunds(address,uint256,uint256)']
   const proxyContract = new Contract(proxyAddress, proxyAbi, wallet)
   const tokenAddress = tokenInstance.address
+  const type = TransactionTypes.ERC20
 
   logger.debug(`sending tokens ${tokenAddress}from  proxy to EOA: attempting to send ${amount} to ${eoaAddress} on ${chain}`)
-  const tx = await proxyContract.claimFunds(tokenAddress, parsedAmount)
+  const tx = await proxyContract.claimFunds(tokenAddress, parsedAmount, type)
 
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()

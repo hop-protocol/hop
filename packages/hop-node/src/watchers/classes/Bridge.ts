@@ -57,9 +57,10 @@ export default class Bridge extends ContractBase {
     if (tokenDecimals !== undefined) {
       this.tokenDecimals = tokenDecimals
     }
-    if (tokenSymbol) {
-      this.tokenSymbol = tokenSymbol
+    if (!tokenSymbol) {
+      throw new Error(`expected tokenSymbol in Bridge constructor for chain "${this.chainSlug}" and bridge address "${bridgeContract.address}". Check config or try updating core package.`)
     }
+    this.tokenSymbol = tokenSymbol
     this.db = getDbSet(this.tokenSymbol)
     const bridgeDeployedBlockNumber = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
     const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken

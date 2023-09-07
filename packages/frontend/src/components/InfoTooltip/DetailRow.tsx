@@ -9,7 +9,7 @@ import { Flex } from '../ui'
 export type DetailRowProps = {
   title: string
   value?: any
-  tooltip?: ReactFragment
+  tooltip?: React.ReactNode
   highlighted?: boolean
   large?: boolean
   xlarge?: boolean

@@ -12,6 +12,7 @@ import { EventEmitter } from 'events'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
+import { promiseTimeout } from 'src/utils/promiseTimeout'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -59,6 +60,7 @@ class BaseDb extends EventEmitter {
   batchSize: number = 10
   batchTimeLimit: number = 2 * 1000
   batchQueue: QueueItem[] = []
+  timeoutSeconds: number = 10 * 1000
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -186,7 +188,15 @@ class BaseDb extends EventEmitter {
   }
 
   async _update (key: string, data: any) {
-    return this._updateSingle(key, data)
+    try {
+      return await promiseTimeout(this._updateSingle(key, data), this.timeoutSeconds)
+    } catch (err: any) {
+      this.logger.error(`BaseDb._update error: ${err.message}, key: ${key}, data: ${JSON.stringify(data)}`)
+      if (err.message.includes('timedout')) {
+        this.handleTimeoutError(err)
+      }
+      throw err
+    }
   }
 
   async _updateSingle (key: string, data: any) {
@@ -255,20 +265,42 @@ class BaseDb extends EventEmitter {
     })
   }
 
+  async _get (key: string): Promise<any> {
+    try {
+      return await promiseTimeout(this.db.get(key), this.timeoutSeconds)
+    } catch (err: any) {
+      if (err.message.includes('timedout')) {
+        this.handleTimeoutError(err)
+      }
+      throw err
+    }
+  }
+
   async getById (id: string, defaultValue: any = null) {
     try {
-      const value = await this.db.get(id)
+      const value = await this._get(id)
       return value
     } catch (err) {
       if (!err.message.includes('Key not found in database')) {
-        this.logger.error(`getById error: ${err.message}`)
+        this.logger.error(`getById error: ${err.message}, key: ${id}`)
       }
       return defaultValue
     }
   }
 
+  async _getMany (keys: string[]): Promise<any[]> {
+    try {
+      return await promiseTimeout(this.db.getMany(keys), this.timeoutSeconds)
+    } catch (err: any) {
+      if (err.message.includes('timedout')) {
+        this.handleTimeoutError(err)
+      }
+      throw err
+    }
+  }
+
   async batchGetByIds (ids: string[], defaultValue: any = null) {
-    const values = await this.db.getMany(ids)
+    const values = await this._getMany(ids)
     return values.filter(this.filterExisty)
   }
 
@@ -340,6 +372,12 @@ class BaseDb extends EventEmitter {
     if (this.listeners(Event.Error).length > 0) {
       this.emit(Event.Error, err)
     }
+  }
+
+  private handleTimeoutError (err: Error) {
+    console.trace()
+    this.logger.error(`BaseDb timeout error: ${err.message}. Possible reasons: mutex is hanging, db might be corrupt, lock rever released. exiting process to trigger restart and db reconnection...`)
+    process.exit(1)
   }
 }
 

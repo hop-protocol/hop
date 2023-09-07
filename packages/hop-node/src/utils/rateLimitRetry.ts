@@ -2,6 +2,10 @@ import Logger from 'src/logger'
 import wait from 'src/utils/wait'
 import { Notifier } from 'src/notifier'
 import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config'
+import { isFetchBadResponseError } from './isFetchBadResponseError'
+import { isFetchConnectionError } from './isFetchConnectionError'
+import { isFetchRateLimitError } from './isFetchRateLimitError'
+import { isFetchTimeoutError } from './isFetchTimeoutError'
 import { promiseTimeout } from 'src/utils/promiseTimeout'
 
 const _logger = new Logger('rateLimitRetry')
@@ -23,10 +27,6 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         return result
       } catch (err) {
         const errMsg = err.message
-        const rateLimitErrorRegex = /(rate limit|too many concurrent requests|exceeded|socket hang up)/i
-        const timeoutErrorRegex = /(timeout|time-out|time out|timedout|timed out)/i
-        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR|EPROTO|EHOSTUNREACH)/i
-        const badResponseErrorRegex = /(bad response|response error|missing response|processing response error|invalid json response body|FetchError)/i
         const revertErrorRegex = /revert/i
         const oversizedDataRegex = /oversized data/i
         const bridgeContractErrorRegex = /BRG:/
@@ -40,10 +40,10 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         // for example, l2Bridge.pendingTransferIdsForChainId(...)
         const isCallLookupRevertErrorRegex = /missing revert data in call exception.*invalid opcode/
 
-        const isRateLimitError = rateLimitErrorRegex.test(errMsg)
-        const isTimeoutError = timeoutErrorRegex.test(errMsg)
-        const isConnectionError = connectionErrorRegex.test(errMsg)
-        const isBadResponseError = badResponseErrorRegex.test(errMsg)
+        const isRateLimitError = isFetchRateLimitError(errMsg)
+        const isTimeoutError = isFetchTimeoutError(errMsg)
+        const isConnectionError = isFetchConnectionError(errMsg)
+        const isBadResponseError = isFetchBadResponseError(errMsg)
         const isOversizedDataError = oversizedDataRegex.test(errMsg)
         const isBridgeContractError = bridgeContractErrorRegex.test(errMsg)
         const isNonceTooLowErrorError = nonceTooLowErrorRegex.test(errMsg)

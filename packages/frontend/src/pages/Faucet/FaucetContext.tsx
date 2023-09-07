@@ -1,4 +1,4 @@
-import React, { FC, createContext, useContext, useState, useEffect } from 'react'
+import React, { FC, ReactNode, createContext, useContext, useState, useEffect } from 'react'
 import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { BigNumber, Contract } from 'ethers'
 import erc20Abi from '@hop-protocol/core/abi/static/ERC20Mintable.json'
@@ -41,7 +41,7 @@ const FaucetContext = createContext<FaucetContextProps>({
   selectedNetwork: l1Network,
 })
 
-const FaucetContextProvider: FC = ({ children }) => {
+const FaucetContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [mintAmount, setMintAmount] = useState<string>('')
   const [isMinting, setMinting] = useState<boolean>(false)
   const { selectedBridge, txHistory, tokens } = useApp()
@@ -128,7 +128,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       )
       await tx?.wait()
       setSuccess(`Successfully minted ${mintAmount} ${tokenSymbol}`)
-    } catch (err: any) {
+    } catch (err) {
       setError(formatError(err, selectedNetwork))
       logger.error(err)
     }

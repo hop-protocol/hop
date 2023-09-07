@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent } from 'react'
-import { useHistory, useLocation, useRouteMatch } from 'react-router-dom'
+import { useNavigate, useLocation, useMatch } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
@@ -44,8 +44,7 @@ const Convert: FC = () => {
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
   const { convertOptions, selectedNetwork, selectBothNetworks } = useConvert()
   const { pathname, search } = useLocation()
-  const { path } = useRouteMatch()
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
@@ -56,13 +55,10 @@ const Convert: FC = () => {
     }
   }
 
-  const lastPathname = pathname.replace(path, '') || '/amm'
+  const lastPathname = pathname.split('/').pop() || '/amm'
   const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
     const value = event.target.value as string
-    history.push({
-      pathname: `${path}${value}`,
-      search,
-    })
+    navigate(`${pathname}/${value}${search}`)
   }
 
   return (

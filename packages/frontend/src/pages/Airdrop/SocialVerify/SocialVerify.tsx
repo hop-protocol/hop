@@ -2,7 +2,7 @@ import React from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons";
+import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons"
 import { ClaimDateMessage } from '../ClaimDateMessage'
 
 export function SocialVerify() {

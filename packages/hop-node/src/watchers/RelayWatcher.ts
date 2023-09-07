@@ -13,7 +13,8 @@ import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
 import { getEnabledNetworks, config as globalConfig, relayTransactionBatchSize } from 'src/config'
-import { isExecutionError } from 'src/utils/isExecutionError'
+import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
+import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
 
@@ -290,17 +291,14 @@ class RelayWatcher extends BaseWatcher {
         })
       }
 
-      const isCallExceptionError = isExecutionError(err.message)
+      const isCallExceptionError = isFetchExecutionError(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.CallException
         })
       }
       if (err instanceof RelayerFeeTooLowError) {
-        let { relayBackoffIndex } = await this.db.transfers.getByTransferId(transferId)
-        if (!relayBackoffIndex) {
-          relayBackoffIndex = 0
-        }
+        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RelayerFeeTooLow,
@@ -313,6 +311,17 @@ class RelayWatcher extends BaseWatcher {
         await this.db.transfers.update(transferId, {
           relayAttemptedAt: 0
         })
+      }
+      const isRpcError = isFetchRpcServerError(err.message)
+      if (isRpcError) {
+        logger.error('rpc server error. trying again.')
+        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
+        relayBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          relayTxError: TxError.RpcServerError,
+          relayBackoffIndex
+        })
+        return
       }
       throw err
     }

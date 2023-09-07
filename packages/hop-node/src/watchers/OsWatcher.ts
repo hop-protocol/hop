@@ -1,7 +1,6 @@
 import Logger from 'src/logger'
 import Metrics from 'src/watchers/classes/Metrics'
 import checkDiskSpace from 'check-disk-space'
-import heapdump from 'heapdump'
 import os from 'os'
 import pidusage from 'pidusage'
 import wait from 'src/utils/wait'
@@ -145,6 +144,7 @@ class OsWatcher {
   }
 
   async logHeapdump () {
+    const heapdump = await import('heapdump')
     this.heapIndex++
     const location = `/tmp/heapdump_${Date.now()}.heapsnapshot`
     this.logger.debug('generating heapdump snapshot')

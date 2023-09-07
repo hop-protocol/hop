@@ -58,7 +58,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
             </Typography>
           </InputAdornment>
         ) : null,
-      }}
+      } as any }
       {...textFieldProps}
     ></MuiTextField>
   )

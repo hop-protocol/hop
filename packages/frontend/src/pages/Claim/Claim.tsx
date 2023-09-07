@@ -72,9 +72,9 @@ export function Claim() {
       } else {
         setShowTryAgain(true)
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err)
-      setError(formatError(err.message))
+      setError(formatError(err))
       setShowTryAgain(true)
     }
   }

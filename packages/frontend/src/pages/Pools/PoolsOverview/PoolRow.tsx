@@ -5,7 +5,7 @@ import MuiButton from '@material-ui/core/Button'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'
 import { AprDetailsTooltip } from 'src/components/InfoTooltip/AprDetailsTooltip'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { makeStyles } from '@material-ui/core/styles'
 
@@ -95,7 +95,7 @@ type Props = {
 
 export function PoolRow (props: Props) {
   const styles = useStyles()
-  const history = useHistory()
+  const navigate = useNavigate()
   const { isAllPools, data } = props
   const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, aprFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink, stakeLink } = data
 
@@ -189,18 +189,18 @@ export function PoolRow (props: Props) {
         <Box p={1} display="flex" justifyContent="center">
           {(canClaim || canStake) ? <>
             {canStake ? (
-              <Button highlighted onClick={() => history.push(stakeLink)}>
+              <Button highlighted onClick={() => navigate(stakeLink)}>
                 Stake
               </Button>
             ) : (
-              <Button highlighted onClick={() => history.push(claimLink)}>
+              <Button highlighted onClick={() => navigate(claimLink)}>
                 Claim
               </Button>
             )
             }
           </> : <>
             <Link to={depositLink} className={styles.poolLink}>
-              <MuiButton variant="text" className={styles.depositLink} onClick={() => history.push(depositLink)}>
+              <MuiButton variant="text" className={styles.depositLink} onClick={() => navigate(depositLink)}>
                   <Typography variant="body1" component="span" title="Deposit into pool">
                     <strong>Add Liquidity</strong>
                   </Typography>

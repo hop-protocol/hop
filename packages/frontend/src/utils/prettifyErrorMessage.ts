@@ -1,4 +1,4 @@
-export const prettifyErrorMessage = (str: string = '') => {
+export const prettifyErrorMessage = (str: string = ''): string => {
   if (!str) {
     return ''
   }

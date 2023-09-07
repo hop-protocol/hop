@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@material-ui/core'
 import Button from 'src/components/buttons/Button'
 import { Div } from 'src/components/ui'
@@ -27,7 +27,7 @@ export function ClaimWrapper(props: any) {
     merkleRootSet
   } = props
   const theme = useTheme()
-  const history = useHistory()
+  const navigate = useNavigate()
 
   return (
     <>
@@ -82,7 +82,7 @@ export function ClaimWrapper(props: any) {
         <Box display="flex" maxWidth={"400px"} mt={4} justifyContent="center" width="100%" px={[1, 5]}>
           <Button highlighted disabled={!delegate?.address} onClick={() => {
               setStep(0)
-              history.push('/')
+              navigate('/')
             }}>Go Home</Button>
         </Box>
       )}

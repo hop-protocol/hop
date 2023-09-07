@@ -279,7 +279,7 @@ class TransfersDb extends BaseDb {
     return true
   }
 
-  private async normalizeItem (item: Transfer) {
+  private normalizeItem (item: Transfer) {
     try {
       if (!item) {
         return null
@@ -300,13 +300,6 @@ class TransfersDb extends BaseDb {
       return normalizeDbItem(item)
     } catch (err: any) {
       const logger = this.logger.create({ id: item?.transferId })
-
-      // If a chain has been turned off, we need to ignore these transfers
-      if (err.message.includes('not found')) {
-        logger.error(`normalizeItem error, marking not found: ${err.message}`)
-        await this.update(item.transferId, { isNotFound: true })
-        return null
-      }
 
       logger.error('normalizeItem error:', err)
       return null
@@ -365,7 +358,7 @@ class TransfersDb extends BaseDb {
 
   async getMultipleTransfersByTransferIds (transferIds: string[]) {
     const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map(async (item: Transfer) => await this.normalizeItem(item))
+    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
     const items = transfers.filter(Boolean).sort(this.sortItems)
     this.logger.info(`items length: ${items.length}`)
 
@@ -436,7 +429,8 @@ class TransfersDb extends BaseDb {
       if (item.bondWithdrawalAttemptedAt) {
         if (
           item.withdrawalBondTxError === TxError.BonderFeeTooLow ||
-          item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync
+          item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync ||
+          item.withdrawalBondTxError === TxError.RpcServerError
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
           if (delayMs > OneWeekMs) {
@@ -497,7 +491,10 @@ class TransfersDb extends BaseDb {
 
       let timestampOk = true
       if (item.relayAttemptedAt) {
-        if (TxError.RelayerFeeTooLow === item.relayTxError) {
+        if (
+          item.relayTxError === TxError.RelayerFeeTooLow ||
+          item.withdrawalBondTxError === TxError.RpcServerError
+        ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
           if (delayMs > OneWeekMs) {
             return false
@@ -534,7 +531,7 @@ class TransfersDb extends BaseDb {
       return []
     }
     const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map(async (item: Transfer) => await this.normalizeItem(item))
+    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
 
     return transfers.filter((item: any) => {
       if (!item) {
@@ -553,6 +550,24 @@ class TransfersDb extends BaseDb {
 
       return this.subDbIncompletes.isItemIncomplete(item)
     })
+  }
+
+  async getWithdrawalBondBackoffIndexForTransferId (transferId: string) {
+    let { withdrawalBondBackoffIndex } = await this.getByTransferId(transferId)
+    if (!withdrawalBondBackoffIndex) {
+      withdrawalBondBackoffIndex = 0
+    }
+
+    return withdrawalBondBackoffIndex
+  }
+
+  async getRelayBackoffIndexForTransferId (transferId: string) {
+    let { relayBackoffIndex } = await this.getByTransferId(transferId)
+    if (!relayBackoffIndex) {
+      relayBackoffIndex = 0
+    }
+
+    return relayBackoffIndex
   }
 }
 

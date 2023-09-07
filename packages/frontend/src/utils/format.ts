@@ -2,22 +2,38 @@ import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, prettifyErrorMessage, toTokenDisplay } from '.'
 
-export function formatError(error: any, network?: Network) {
-  if (!error) {
-    return
+type PossibleError = {
+  data?: {
+    message?: string
   }
+  message?: string
+}
 
+export function formatError(error: unknown, network?: Network): string {
   let errMsg = 'Something went wrong. Please try again.'
-  if (typeof error === 'string') {
-    errMsg = error
-  } else if (error?.data?.message) {
-    errMsg = error.data.message
-  } else if (error?.message) {
-    errMsg = error.message
-  }
 
-  if (Array.isArray(error) && error.length === 1) {
-    return formatError(error[0], network)
+  if (typeof error !== 'string') {
+    if (Array.isArray(error) && error.length === 1) {
+      return formatError(error[0], network)
+    }
+
+    if (error == null) {
+      return ''
+    }
+
+    const errObj = error as PossibleError
+
+    if (!(error instanceof Object)) {
+      return errMsg
+    }
+
+    if (errObj.data?.message) {
+      errMsg = errObj.data.message
+    } else if (errObj.message) {
+      errMsg = errObj.message
+    }
+  } else {
+    errMsg = error
   }
 
   const rpcEndpointsDocs = 'https://docs.hop.exchange/v/developer-docs/rpc/rpc-endpoints'

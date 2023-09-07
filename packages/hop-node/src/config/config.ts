@@ -247,7 +247,7 @@ export const config: Config = {
     },
     [Chain.Base]: {
       totalBlocks: 100_000,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.PolygonZk]: {
       totalBlocks: 100_000,

@@ -1,4 +1,4 @@
-import React, { FC, useMemo, createContext, useContext } from 'react'
+import React, { FC, ReactNode, useMemo, createContext, useContext } from 'react'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Token from 'src/models/Token'
@@ -31,7 +31,7 @@ type AppContextProps = {
 
 const AppContext = createContext<AppContextProps | undefined>(undefined)
 
-const AppContextProvider: FC = ({ children }) => {
+const AppContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { provider } = useWeb3Context()
 
   const sdk = useMemo(() => {

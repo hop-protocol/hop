@@ -1,6 +1,7 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import parseFrames, { Frame } from 'src/utils/parseFrames'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
@@ -9,6 +10,10 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { BigNumber, Contract, Signer, providers } from 'ethers'
 import { config as globalConfig } from 'src/config'
+import zlib from 'zlib'
+import { RLP } from '@ethereumjs/rlp'
+import { TransactionFactory } from '@ethereumjs/tx'
+
 
 type Config = {
   chainSlug: string
@@ -25,6 +30,8 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   csm: CrossChainMessenger
   chainId: number
   private _l1BlockContract: Contract
+  private _sequencerAddress: string
+  private _batchInboxAddress: string
 
   constructor (config: Config) {
     super({
@@ -57,6 +64,8 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       'function sequenceNumber() view returns (uint64)',
     ]
     this._l1BlockContract = new Contract(l1BlockAddr, l1BlockAbi, this.l2Provider)
+    this._sequencerAddress = '0x6887246668a3b87F54DeB3b94Ba47a6f63F32985'
+    this._batchInboxAddress = '0xFF00000000000000000000000000000000000010'
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
@@ -214,8 +223,9 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   }
 
   async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
-    // It is not trivial to get the exact inclusion block, however any block after the inclusion block achieves the same goal.
+  // TODO: I believe this makes a ton of calls. See if it can be optimized.
 
+  async getL1InclusionBlockNumber (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block> {
     // Get the receipt instead of trusting the block number because the block number may have been reorged out
     const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
     const onchainBlockNumber: number = receipt?.blockNumber
@@ -228,14 +238,12 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       throw new Error(`reorg detected. tx l2TxHash ${l2TxHash} on chain ${this.chainSlug} is not included in block ${l2BlockNumber}`)
     }
 
-    console.log(`l2TxHash ${l2TxHash} on chain ${this.chainSlug} is included in block ${l2BlockNumber}`)
     const lastIncludedBlockNumber = await this.bridge.getSafeBlockNumber()
-    if (l2BlockNumber < lastIncludedBlockNumber) {
-      console.log(`l2TxHash ${l2TxHash} on chain ${this.chainSlug} is included in block ${l2BlockNumber} which is less than last included block ${lastIncludedBlockNumber}`)
-      return
+    if (l2BlockNumber > lastIncludedBlockNumber) {
+      throw new Error(`l2TxHash ${l2TxHash} on chain ${this.chainSlug} is included in block ${l2BlockNumber} which is not yet included (last included block ${lastIncludedBlockNumber})`)
     }
 
-    return this.l1Provider.getBlock(lastIncludedBlockNumber)
+    return this._getL1InclusionBlockByL2TxHash(l2TxHash)
   }
 
   async getL2BlockByL1Block (l1Block: providers.Block): Promise<providers.Block | undefined> {
@@ -263,6 +271,101 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
         if (counter > 10) {
           throw new Error(`getL2BlockByL1Block looped too many times`)
         }
+      }
+    }
+  }
+
+  // TODO: This assumes that all channels close within the same frame. This is not always true and needs to be handled
+  // TODO: This is expensive. Optimize calls.
+  private async _getL1InclusionBlockNumberByL2TxHash (l2TxHash: string): Promise<number> {
+    // Start at the timestamp of l2 block and iterate forward on L1. Slightly inefficient, but guaranteed
+    // to start behind where we need to look so we can iterate forward.
+    const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
+    let l1BlockNumberOnL2: number = Number(await this._l1BlockContract.number({ blockTag: receipt.blockNumber }))
+    let l1Block = await this.l1Provider.getBlockWithTransactions(l1BlockNumberOnL2)
+
+    const maxIterations = 1000
+    const maxL1BlockNumberToCheck = l1Block.number + maxIterations
+    let counter = 0
+    while (true) {
+      for (const tx of l1Block.transactions) {
+        if (
+          tx.to &&
+          tx.to.toLowerCase() === this._batchInboxAddress.toLowerCase() &&
+          tx.from.toLowerCase() === this._sequencerAddress.toLowerCase()
+        ) {
+          const l2TxHashes = await this._getL2TxHashesInFrame(tx.hash)
+          if (l2TxHashes.includes(l2TxHash.toLowerCase())) {
+            return l1Block
+          }
+        }
+      }
+
+      // Increment block and try again
+      l1Block = await this.l1Provider.getBlockWithTransactions(l1Block.number + 1)
+      counter++
+      if (counter > maxL1BlockNumberToCheck) {
+        throw new Error(`_getL1InclusionBlockByL2TxHash looped too many times`)
+      }
+    }
+  }
+
+  private async _getL2TxHashesInFrame (l1TxHash: string, existingFrames?: Frame[]): Promise<string[]> {
+    const tx = await this.l1Provider.getTransaction(l1TxHash)
+    let frames: Frame[] = await parseFrames(tx.data)
+
+    // Keep track of all frames incase they are split across multiple txs
+    if (existingFrames && existingFrames.length > 0) {
+      frames = existingFrames.concat(frames)
+    }
+
+    let l2TxHashes: string[] = []
+    for (const frame of frames) {
+      const decompressedChannel = await this._decompressChannel(frame.data)
+      const decodedTxHashes: string[] = await this._decodeTxHashesFromChannel(decompressedChannel)
+      for (const txHash of decodedTxHashes) {
+        l2TxHashes.push(txHash)
+      }
+    }
+    return l2TxHashes
+  }
+
+  private async _decompressChannel (frameData: Buffer): Promise<Buffer> {
+    // When decompressing a channel, we limit the amount of decompressed data to MAX_RLP_BYTES_PER_CHANNEL
+    // (currently 10,000,000 bytes), in order to avoid "zip-bomb" types of attack (where a small compressed
+    // input decompresses to a humongous amount of data). If the decompressed data exceeds the limit, things
+    // proceeds as though the channel contained only the first MAX_RLP_BYTES_PER_CHANNEL decompressed bytes.
+    // The limit is set on RLP decoding, so all batches that can be decoded in MAX_RLP_BYTES_PER_CHANNEL will
+    // be accepted ven if the size of the channel is greater than MAX_RLP_BYTES_PER_CHANNEL. The exact requirement
+    // is that length(input) <= MAX_RLP_BYTES_PER_CHANNEL.
+    // https://github.com/ethereum-optimism/optimism/blob/develop/specs/derivation.md#channel-format
+    const maxOutputLength = 10_000_000
+    const channelCompressed: Buffer = Buffer.concat([frameData])
+    return zlib.inflateSync(channelCompressed, { maxOutputLength })
+  }
+
+  private async _decodeTxHashesFromChannel (channelDecompressed: Buffer): Promise<string[]> {
+    // NOTE: We are using ethereumjs RPL package since ethers does not allow for a stream
+    const stream = true
+    let remainingBatches: Buffer = channelDecompressed
+    let transactionHashes: string[] = []
+    while (true) {
+      // Parse decoded data
+      const encodedTxs: string = '0x' + Buffer.from(remainingBatches).toString('hex')
+      const { data: batch, remainder } = RLP.decode(encodedTxs, stream)
+
+      // Decode batch and parse
+      const batchHex = '0x' + Buffer.from(batch as Buffer).toString('hex').slice(2)
+      const decodedBatch = RLP.decode(batchHex)
+      for (const tx of (decodedBatch[4] as Buffer[])) {
+        const txData = TransactionFactory.fromSerializedData(Buffer.from(tx))
+        transactionHashes.push('0x' + Buffer.from(txData.hash()).toString('hex'))
+      }
+
+      // Prep next loop
+      remainingBatches = remainder as Buffer
+      if (remainingBatches.length === 0){
+        return transactionHashes
       }
     }
   }

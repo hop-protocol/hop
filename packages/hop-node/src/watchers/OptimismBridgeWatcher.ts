@@ -277,7 +277,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
 
   // TODO: This assumes that all channels close within the same frame. This is not always true and needs to be handled
   // TODO: This is expensive. Optimize calls.
-  private async _getL1InclusionBlockNumberByL2TxHash (l2TxHash: string): Promise<number> {
+  private async _getL1InclusionBlockByL2TxHash (l2TxHash: string): Promise<providers.Block> {
     // Start at the timestamp of l2 block and iterate forward on L1. Slightly inefficient, but guaranteed
     // to start behind where we need to look so we can iterate forward.
     const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)

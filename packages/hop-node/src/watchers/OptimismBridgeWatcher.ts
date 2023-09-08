@@ -324,7 +324,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
       const decompressedChannel = await this._decompressChannel(frame.data)
       const decodedTxHashes: string[] = await this._decodeTxHashesFromChannel(decompressedChannel)
       for (const txHash of decodedTxHashes) {
-        l2TxHashes.push(txHash)
+        l2TxHashes.push(txHash.toLowerCase())
       }
     }
     return l2TxHashes

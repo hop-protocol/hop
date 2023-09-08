@@ -310,14 +310,9 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     }
   }
 
-  private async _getL2TxHashesInFrame (l1TxHash: string, existingFrames?: Frame[]): Promise<string[]> {
+  private async _getL2TxHashesInFrame (l1TxHash: string): Promise<string[]> {
     const tx = await this.l1Provider.getTransaction(l1TxHash)
     let frames: Frame[] = await parseFrames(tx.data)
-
-    // Keep track of all frames incase they are split across multiple txs
-    if (existingFrames && existingFrames.length > 0) {
-      frames = existingFrames.concat(frames)
-    }
 
     let l2TxHashes: string[] = []
     for (const frame of frames) {

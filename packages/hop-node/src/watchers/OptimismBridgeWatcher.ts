@@ -284,7 +284,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     let l1BlockNumberOnL2: number = Number(await this._l1BlockContract.number({ blockTag: receipt.blockNumber }))
     let l1Block = await this.l1Provider.getBlockWithTransactions(l1BlockNumberOnL2)
 
-    const maxIterations = 1000
+    const maxIterations = 100
     const maxL1BlockNumberToCheck = l1Block.number + maxIterations
     let counter = 0
     while (true) {

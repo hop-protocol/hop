@@ -222,7 +222,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     }
   }
 
-  async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
+  // TODO: Handle reorgs in the try...catch of the watchers...
   // TODO: I believe this makes a ton of calls. See if it can be optimized.
 
   async getL1InclusionBlockNumber (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block> {

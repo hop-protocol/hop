@@ -10,6 +10,8 @@ import { actionHandler, logger, parseBool, parseNumber, parseString, root } from
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
+import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
+import { Interface } from 'ethers/lib/utils'
 
 root
   .command('stake')
@@ -102,7 +104,27 @@ async function stake (
   if (token) {
     logger.debug('Approving token stake, if needed')
     const spender = bridge.getAddress()
-    tx = await token.approve(spender, parsedAmount)
+    const isProxy = isProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
+    if (isProxy) {
+      // Send proxy the tokens since it does not pull them on stake
+      const proxyAddress = getProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
+      tx = await token.transfer(proxyAddress, parsedAmount)
+      await tx?.wait()
+
+      // Approve the bridge to spend proxy tokens
+      const abi = ['function approveToken(address,address,uint256)']
+      const iface = new Interface(abi)
+      const data = iface.encodeFunctionData(
+        'approveToken', [token.address, spender, parsedAmount]
+      )
+      tx = await token.contract.signer.sendTransaction({
+        to: proxyAddress,
+        data
+      })
+      await tx?.wait()
+    } else {
+      tx = await token.approve(spender, parsedAmount)
+    }
     await tx?.wait()
   }
 

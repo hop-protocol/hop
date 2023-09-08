@@ -107,7 +107,6 @@ async function transferErc20FromProxy (
   const wallet = wallets.get(chain)
   const tokenInstance = getTokenInstance(token, chain, isHToken)
 
-  // TODO: Proxy
   let balance = await tokenInstance.getBalance()
   const label = `${chain}.${isHToken ? 'h' : ''}${token}`
   logger.debug(`${label} balance: ${await tokenInstance.formatUnits(balance)}`)

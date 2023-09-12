@@ -508,7 +508,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (this.isL1) {
       blockInfo = l1InclusionBlock
     } else {
-      blockInfo = await chainWatcher.getL2BlockByL1Block(l1InclusionBlock)
+      blockInfo = await chainWatcher.getL2BlockByL1BlockNumber(l1InclusionBlock.number)
     }
 
     if (!blockInfo) {

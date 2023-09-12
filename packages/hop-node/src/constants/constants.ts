@@ -166,3 +166,4 @@ export const FinalityTagForChain: Record<string, string> = {
 // Time buffer expected to account for the time between when blockHash validation logic is prepared
 // and when the transaction is sent
 export const BlockHashExpireBufferSec: number = 60
+export const NumStoredBlockHashes: number = 256

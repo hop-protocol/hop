@@ -12,5 +12,5 @@ export interface IChainWatcher {
   relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse>
 
   getL1InclusionBlock?(l2TxHash: string, l2BlockNumber: number): Promise<providers.Block>
-  getL2BlockByL1Block?(l1Block: providers.Block): Promise<providers.Block | undefined>
+  getL2BlockByL1BlockNumber?(l1BlockNumber: number): Promise<providers.Block | undefined>
 }

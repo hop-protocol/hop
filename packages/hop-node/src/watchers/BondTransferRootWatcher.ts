@@ -13,11 +13,11 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
+  doesProxyAndValidatorExistForChain,
   enableEmergencyMode,
   getFinalityTimeSeconds,
   getHasFinalizationBlockTag,
-  config as globalConfig,
-  isProxyAddressForChain
+  config as globalConfig
 } from 'src/config'
 
 type Config = {
@@ -263,8 +263,12 @@ class BondTransferRootWatcher extends BaseWatcher {
     await this.preTransactionValidation(params)
 
     let hiddenCalldata: string | undefined
-    if (isProxyAddressForChain(this.tokenSymbol, Chain.Ethereum) && commitTxHash && commitTxBlockNumber) {
-      hiddenCalldata = await this.getHiddenCalldata(commitTxHash, commitTxBlockNumber)
+    if (
+      doesProxyAndValidatorExistForChain(this.tokenSymbol, Chain.Ethereum) &&
+      commitTxHash &&
+      commitTxBlockNumber
+    ) {
+      hiddenCalldata = await this.getHiddenCalldataForDestination(commitTxHash, commitTxBlockNumber)
     }
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge

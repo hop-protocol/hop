@@ -20,9 +20,9 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import {
   bondWithdrawalBatchSize,
+  doesProxyAndValidatorExistForChain,
   enableEmergencyMode,
   config as globalConfig,
-  isProxyAddressForChain,
   zeroAvailableCreditTest
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
@@ -344,8 +344,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
     let hiddenCalldata: string | undefined
 
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    if (isProxyAddressForChain(this.tokenSymbol, destinationChainSlug) && transferSentTxHash && transferSentBlockNumber) {
-      hiddenCalldata = await this.getHiddenCalldata(transferSentTxHash, transferSentBlockNumber)
+    if (
+      doesProxyAndValidatorExistForChain(this.tokenSymbol, destinationChainSlug) &&
+      transferSentTxHash &&
+      transferSentBlockNumber
+    ) {
+      hiddenCalldata = await this.getHiddenCalldataForDestination(transferSentTxHash, transferSentBlockNumber)
     }
 
     if (attemptSwap) {

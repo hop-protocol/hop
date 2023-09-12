@@ -12,9 +12,9 @@ import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
 import { Hop } from '@hop-protocol/sdk'
 import { L2_Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import {
+  doesProxyAndValidatorExistForChain,
   getBridgeWriteContractAddress,
-  config as globalConfig,
-  isProxyAddressForChain
+  config as globalConfig
 } from 'src/config'
 
 export default class L2Bridge extends Bridge {
@@ -342,7 +342,7 @@ export default class L2Bridge extends Bridge {
     ] as const
 
     const populatedTx = await this.l2BridgeWriteContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
-    if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
+    if (doesProxyAndValidatorExistForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
       populatedTx.data = populatedTx.data! + hiddenCalldata
     }
     const tx = await this.l2BridgeWriteContract.signer.sendTransaction(populatedTx)

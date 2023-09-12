@@ -463,6 +463,18 @@ export function isProxyAddressForChain (token: string, chainSlug: string): boole
   return !!config.addresses?.[token]?.[chainSlug]?.proxy
 }
 
+export function isValidatorAddressForChain (token: string, chainSlug: string): boolean {
+  return !!config.addresses?.[token]?.[chainSlug]?.validator
+}
+
+export function doesProxyAndValidatorExistForChain (token: string, chainSlug: string): boolean {
+  return (
+    isProxyAddressForChain(token, chainSlug) &&
+    isValidatorAddressForChain(token, chainSlug)
+  )
+}
+
+
 export function getBridgeWriteContractAddress (token: string, chainSlug: string): string {
   if (isProxyAddressForChain(token, chainSlug)) {
     return getProxyAddressForChain(token, chainSlug)

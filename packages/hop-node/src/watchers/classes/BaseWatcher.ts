@@ -6,7 +6,6 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
-import contracts from 'src/contracts'
 import getEncodedValidationData from 'src/utils/getEncodedValidationData'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import isNativeToken from 'src/utils/isNativeToken'
@@ -14,8 +13,6 @@ import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber, constants, providers } from 'ethers'
 import { 
-  AvgBlockTimeSeconds,
-  BlockHashExpireBufferSec,
   Chain,
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
@@ -489,12 +486,12 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     return eventParams
   }
 
-  async getHiddenCalldata (l2TxHash: string, l2BlockNumber: number): Promise<string> {
+  async getHiddenCalldataForDestination (l2TxHash: string, l2BlockNumber: number): Promise<string> {
     const chainWatcher: IChainWatcher = this.siblingWatchers[this.chainSlug].relayWatcher
 
     if (
       typeof chainWatcher.getL1InclusionBlock !== 'function' ||
-      typeof chainWatcher.getL2BlockByL1Block !== 'function'
+      typeof chainWatcher.getL2BlockByL1BlockNumber !== 'function'
     ) {
       throw new Error(`chainWatcher calldata functions not implemented for chain ${this.chainSlug}`)
     }
@@ -513,20 +510,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     if (!blockInfo) {
       throw new Error(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
-    }
-
-    // Sanity check that the blockhash is valid before attempting the transaction. There should be enough
-    // time to let transaction to be executed onchain
-    const currentBlockNumber = await this.bridge.getBlockNumber()
-    const numBlocksToBuffer = AvgBlockTimeSeconds[this.chainSlug] * BlockHashExpireBufferSec
-    if (currentBlockNumber - numBlocksToBuffer < blockInfo.number) {
-      throw new Error(`blockInfo number ${blockInfo.number} is too recent. currentBlockNumber: ${currentBlockNumber}, numBlocksToBuffer: ${numBlocksToBuffer}`)
-    }
-
-    const validatorContract = contracts.get(this.tokenSymbol, this.chainSlug)?.validator
-    const isValid = await validatorContract.isBlockHashValid(blockInfo.hash, blockInfo.number)
-    if (!isValid) {
-      throw new Error(`blockInfo hash ${blockInfo.hash} is not valid for blockInfo number ${blockInfo.number}`)
     }
 
     const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, this.chainSlug)

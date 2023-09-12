@@ -1,11 +1,19 @@
 import ContractBase from './ContractBase'
 import Logger from 'src/logger'
+import getDecodedValidationData from 'src/utils/getDecodedValidationData'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import {
+  AvgBlockTimeSeconds,
+  BlockHashExpireBufferSec,
+  Chain,
+  GasCostTransactionType,
+  NumStoredBlockHashes,
+  SettlementGasLimitPerTx
+} from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -17,11 +25,13 @@ import { State } from 'src/db/SyncStateDb'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
+  doesProxyAndValidatorExistForChain,
   getBridgeWriteContractAddress,
   getProxyAddressForChain,
   getHasFinalizationBlockTag,
+  getValidatorAddressForChain,
   config as globalConfig,
-  isProxyAddressForChain
+  isProxyAddressForChain,
 } from 'src/config'
 
 export type EventsBatchOptions = {
@@ -475,7 +485,8 @@ export default class Bridge extends ContractBase {
     ] as const
 
     const populatedTx = await this.bridgeWriteContract.populateTransaction.bondWithdrawal(...payload)
-    if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
+    if (doesProxyAndValidatorExistForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
+      await this.validateHiddenCalldata(hiddenCalldata)
       populatedTx.data = populatedTx.data! + hiddenCalldata
     }
     const tx = await this.bridgeWriteContract.signer.sendTransaction(populatedTx)
@@ -896,5 +907,29 @@ export default class Bridge extends ContractBase {
     }
     const createdAt = Number(transferRootStruct.createdAt?.toString())
     return createdAt > 0
+  }
+
+  async validateHiddenCalldata (data: string) {
+    const { blockHash, blockNumber } = getDecodedValidationData(data)
+
+    // The current block should be within (256 - buffer) blocks of the decoded blockNumber
+    const currentBlockNumber = await this.getBlockNumber()
+    const numBlocksToBuffer = AvgBlockTimeSeconds[this.chainSlug] * BlockHashExpireBufferSec
+    const earliestBlockWithBlockHash = currentBlockNumber - (NumStoredBlockHashes + numBlocksToBuffer)
+    if (blockNumber < earliestBlockWithBlockHash) {
+      throw new Error(`blockNumber ${blockNumber} is too recent. earliestBlockWithBlockHash: ${earliestBlockWithBlockHash}, numBlocksToBuffer: ${numBlocksToBuffer}, currentBlockNumber: ${currentBlockNumber}`)
+    }
+
+    // Call the contract so the transaction fails, if needed, prior to making it onchain
+    const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
+    if (!validatorAddress) {
+      throw new Error(`validator address not found for chain ${this.chainSlug}`)
+    }
+    const validatorAbi = ['function validateBlockHash(bytes32,uint256)']
+    const validatorContract = new Contract(validatorAddress, validatorAbi, this.provider)
+    const isValid = await validatorContract.isBlockHashValid(blockHash, blockNumber)
+    if (!isValid) {
+      throw new Error(`blockHash ${blockHash} is not valid for blockNumber ${blockNumber}`)
+    }
   }
 }

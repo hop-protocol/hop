@@ -52,7 +52,9 @@ export { nativeChainTokens }
 export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Ethereum]: 12,
   [Chain.Polygon]: 2,
-  [Chain.Gnosis]: 6
+  [Chain.Gnosis]: 6,
+  [Chain.Optimism]: 2,
+  [Chain.Base]: 2
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -160,3 +162,7 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.Nova]: FinalityTag.Safe,
   [Chain.PolygonZk]: FinalityTag.Safe
 }
+
+// Time buffer expected to account for the time between when blockHash validation logic is prepared
+// and when the transaction is sent
+export const BlockHashExpireBufferSec: number = 60

@@ -11,7 +11,8 @@ import {
   L2_AmmWrapper__factory,
   L2_Bridge__factory,
   MessengerWrapper__factory,
-  SaddleLpToken__factory
+  SaddleLpToken__factory,
+  BlockHashValidator__factory
 } from '@hop-protocol/core/contracts'
 import { config as globalConfig } from 'src/config'
 
@@ -93,6 +94,17 @@ const getL1MessengerWrapperContract = (
   )
 }
 
+const getValidatorContract = (
+  token: string,
+  network: string,
+  wallet: Signer | providers.Provider
+) => {
+  return BlockHashValidator__factory.connect(
+    globalConfig.addresses[token][network].validator,
+    wallet
+  )
+}
+
 const constructContractsObject = memoize((token: string) => {
   if (!globalConfig.addresses[token]) {
     return null
@@ -106,7 +118,8 @@ const constructContractsObject = memoize((token: string) => {
     if (network === Chain.Ethereum) {
       obj[network] = {
         l1Bridge: getL1BridgeContract(token),
-        l1CanonicalToken: getL1TokenContract(token)
+        l1CanonicalToken: getL1TokenContract(token),
+        validator: getValidatorContract(token, network, wallet)
       }
     } else {
       obj[network] = {
@@ -115,7 +128,8 @@ const constructContractsObject = memoize((token: string) => {
         l2HopBridgeToken: getL2HopBridgeTokenContract(token, network, wallet),
         ammWrapper: getL2AmmWrapperContract(token, network, wallet),
         saddleSwap: getL2SaddleSwapContract(token, network, wallet),
-        l1MessengerWrapper: getL1MessengerWrapperContract(token, network)
+        l1MessengerWrapper: getL1MessengerWrapperContract(token, network),
+        validator: getValidatorContract(token, network, wallet)
       }
     }
     return obj

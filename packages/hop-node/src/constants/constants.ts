@@ -99,7 +99,8 @@ export enum TxError {
   RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
   RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
-  RpcServerError = 'RPC_SERVER_ERROR'
+  RpcServerError = 'RPC_SERVER_ERROR',
+  BondTooEarly = 'BOND_TOO_EARLY',
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95

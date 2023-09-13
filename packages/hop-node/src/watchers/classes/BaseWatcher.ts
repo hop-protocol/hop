@@ -36,6 +36,7 @@ import {
   hostname
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
+import { BondTooEarlyError } from 'src/types/error'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract
@@ -495,7 +496,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     const l1InclusionBlock: providers.Block | undefined = await sourceChainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
     if (!l1InclusionBlock) {
-      throw new Error(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
+      throw new BondTooEarlyError(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
     let blockInfo: providers.Block | undefined
@@ -510,7 +511,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     if (!blockInfo) {
-      throw new Error(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
+      throw new BondTooEarlyError(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
     // Return if the blockHash is no longer stored at the destination

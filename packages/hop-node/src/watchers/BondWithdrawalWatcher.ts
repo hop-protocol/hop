@@ -28,6 +28,7 @@ import {
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
+import { BondTooEarlyError } from 'src/types/error'
 
 type Config = {
   chainSlug: string
@@ -277,8 +278,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondTxError: TxError.CallException
         })
       }
+
+      let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
       if (err instanceof BonderFeeTooLowError) {
-        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.BonderFeeTooLow,
@@ -294,7 +296,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       if (err instanceof RedundantProviderOutOfSync) {
         logger.error('redundant provider out of sync. trying again.')
-        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.RedundantRpcOutOfSync,
@@ -305,10 +306,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const isRpcError = isFetchRpcServerError(err.message)
       if (isRpcError) {
         logger.error('rpc server error. trying again.')
-        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.RpcServerError,
+          withdrawalBondBackoffIndex
+        })
+        return
+      }
+      if (err instanceof BondTooEarlyError) {
+        logger.error('bond attempted too early. trying again.')
+        withdrawalBondBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: TxError.BondTooEarly,
           withdrawalBondBackoffIndex
         })
         return

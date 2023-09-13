@@ -19,6 +19,7 @@ import {
   getHasFinalizationBlockTag,
   config as globalConfig
 } from 'src/config'
+import { BondTooEarlyError } from 'src/types/error'
 
 type Config = {
   chainSlug: string
@@ -226,15 +227,25 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
+      let { rootBondBackoffIndex } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+      if (!rootBondBackoffIndex) {
+        rootBondBackoffIndex = 0
+      }
+
       if (err instanceof RedundantProviderOutOfSync) {
         logger.error('redundant provider out of sync. trying again.')
-        let { rootBondBackoffIndex } = await this.db.transferRoots.getByTransferRootId(transferRootId)
-        if (!rootBondBackoffIndex) {
-          rootBondBackoffIndex = 0
-        }
         rootBondBackoffIndex++
         await this.db.transferRoots.update(transferRootId, {
           rootBondTxError: TxError.RedundantRpcOutOfSync,
+          rootBondBackoffIndex
+        })
+        return
+      }
+      if (err instanceof BondTooEarlyError) {
+        logger.error('bond attempted too early. trying again.')
+        rootBondBackoffIndex++
+        await this.db.transferRoots.update(transferRootId, {
+          rootBondTxError: TxError.BondTooEarly,
           rootBondBackoffIndex
         })
         return

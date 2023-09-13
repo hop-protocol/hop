@@ -268,7 +268,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       commitTxHash &&
       commitTxBlockNumber
     ) {
-      hiddenCalldata = await this.getHiddenCalldataForDestination(commitTxHash, commitTxBlockNumber)
+      hiddenCalldata = await this.getHiddenCalldataForDestinationChain(Chain.Ethereum, commitTxHash, commitTxBlockNumber)
+      logger.debug(`storing hiddenCalldata: ${hiddenCalldata}`)
     }
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge

@@ -486,17 +486,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     return eventParams
   }
 
-  async getHiddenCalldataForDestination (l2TxHash: string, l2BlockNumber: number): Promise<string> {
-    const chainWatcher: IChainWatcher = this.siblingWatchers[this.chainSlug].relayWatcher
-
-    if (
-      typeof chainWatcher.getL1InclusionBlock !== 'function' ||
-      typeof chainWatcher.getL2BlockByL1BlockNumber !== 'function'
-    ) {
-      throw new Error(`chainWatcher calldata functions not implemented for chain ${this.chainSlug}`)
+  // Returns packed(address,data) without the leading 0x
+  async getHiddenCalldataForDestinationChain (destinationChainSlug: string, l2TxHash: string, l2BlockNumber: number): Promise<string | undefined> {
+    const sourceChainWatcher: IChainWatcher = this.siblingWatchers[this.chainSlug].relayWatcher
+    if (typeof sourceChainWatcher.getL1InclusionBlock !== 'function') {
+      throw new Error(`sourceChainWatcher getL1InclusionBlock not implemented for chain ${this.chainSlug}`)
     }
 
-    const l1InclusionBlock: providers.Block | undefined = await chainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
+    const l1InclusionBlock: providers.Block | undefined = await sourceChainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
     if (!l1InclusionBlock) {
       throw new Error(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
@@ -505,21 +502,34 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (this.isL1) {
       blockInfo = l1InclusionBlock
     } else {
-      blockInfo = await chainWatcher.getL2BlockByL1BlockNumber(l1InclusionBlock.number)
+      const destinationChainWatcher: IChainWatcher = this.siblingWatchers[destinationChainSlug].relayWatcher
+      if (typeof destinationChainWatcher.getL2BlockByL1BlockNumber !== 'function') {
+        throw new Error(`destinationChainWatcher getL2BlockByL1BlockNumber not implemented for chain ${destinationChainSlug}`)
+      }
+      blockInfo = await destinationChainWatcher.getL2BlockByL1BlockNumber(l1InclusionBlock.number)
     }
 
     if (!blockInfo) {
       throw new Error(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
+    // Return if the blockHash is no longer stored at the destination
+    const destinationBridge = this.getSiblingWatcherByChainSlug(destinationChainSlug).bridge
+    const isHashStored = await destinationBridge.isBlockHashStoredAtBlockNumber(blockInfo.number)
+    if (!isHashStored) {
+      this.logger.debug(`block hash for block number ${blockInfo.number} is no longer stored at destination`)
+      return
+    }
+
     const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
-    const encodedValidationData: string = getEncodedValidationData(
+    const hiddenCalldata: string = getEncodedValidationData(
       validatorAddress,
       blockInfo.hash,
       blockInfo.number
     )
 
-    return encodedValidationData.slice(2)
+    await destinationBridge.validateHiddenCalldata(hiddenCalldata)
+    return hiddenCalldata.slice(2)
   }
 }
 

@@ -11,7 +11,6 @@ import { Hop } from '@hop-protocol/sdk'
 import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/generated/L1_ERC20_Bridge'
 import {
-  doesProxyAndValidatorExistForChain,
   getBridgeWriteContractAddress,
   config as globalConfig
 } from 'src/config'
@@ -198,7 +197,7 @@ export default class L1Bridge extends Bridge {
     ] as const
 
     const populatedTx = await this.l1BridgeWriteContract.populateTransaction.bondTransferRoot(...payload)
-    if (doesProxyAndValidatorExistForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
+    if (hiddenCalldata) {
       populatedTx.data = populatedTx.data! + hiddenCalldata
     }
     const tx = await this.l1BridgeWriteContract.signer.sendTransaction(populatedTx)

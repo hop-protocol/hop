@@ -349,7 +349,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferSentTxHash &&
       transferSentBlockNumber
     ) {
-      hiddenCalldata = await this.getHiddenCalldataForDestination(transferSentTxHash, transferSentBlockNumber)
+      hiddenCalldata = await this.getHiddenCalldataForDestinationChain(destinationChainSlug, transferSentTxHash, transferSentBlockNumber)
+      logger.debug(`storing hiddenCalldata: ${hiddenCalldata}`)
     }
 
     if (attemptSwap) {

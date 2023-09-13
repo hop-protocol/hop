@@ -25,7 +25,6 @@ import { State } from 'src/db/SyncStateDb'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
-  doesProxyAndValidatorExistForChain,
   getBridgeWriteContractAddress,
   getProxyAddressForChain,
   getHasFinalizationBlockTag,
@@ -485,8 +484,7 @@ export default class Bridge extends ContractBase {
     ] as const
 
     const populatedTx = await this.bridgeWriteContract.populateTransaction.bondWithdrawal(...payload)
-    if (doesProxyAndValidatorExistForChain(this.tokenSymbol, this.chainSlug) && hiddenCalldata) {
-      await this.validateHiddenCalldata(hiddenCalldata)
+    if (hiddenCalldata) {
       populatedTx.data = populatedTx.data! + hiddenCalldata
     }
     const tx = await this.bridgeWriteContract.signer.sendTransaction(populatedTx)
@@ -910,17 +908,8 @@ export default class Bridge extends ContractBase {
   }
 
   async validateHiddenCalldata (data: string) {
-    const { blockHash, blockNumber } = getDecodedValidationData(data)
-
-    // The current block should be within (256 - buffer) blocks of the decoded blockNumber
-    const currentBlockNumber = await this.getBlockNumber()
-    const numBlocksToBuffer = AvgBlockTimeSeconds[this.chainSlug] * BlockHashExpireBufferSec
-    const earliestBlockWithBlockHash = currentBlockNumber - (NumStoredBlockHashes + numBlocksToBuffer)
-    if (blockNumber < earliestBlockWithBlockHash) {
-      throw new Error(`blockNumber ${blockNumber} is too recent. earliestBlockWithBlockHash: ${earliestBlockWithBlockHash}, numBlocksToBuffer: ${numBlocksToBuffer}, currentBlockNumber: ${currentBlockNumber}`)
-    }
-
     // Call the contract so the transaction fails, if needed, prior to making it onchain
+    const { blockHash, blockNumber } = getDecodedValidationData(data)
     const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
     if (!validatorAddress) {
       throw new Error(`validator address not found for chain ${this.chainSlug}`)
@@ -931,5 +920,16 @@ export default class Bridge extends ContractBase {
     if (!isValid) {
       throw new Error(`blockHash ${blockHash} is not valid for blockNumber ${blockNumber}`)
     }
+  }
+
+  async isBlockHashStoredAtBlockNumber (blockNumber: number): Promise<boolean> {
+    // The current block should be within (256 - buffer) blocks of the decoded blockNumber
+    const currentBlockNumber = await this.getBlockNumber()
+    const numBlocksToBuffer = AvgBlockTimeSeconds[this.chainSlug] * BlockHashExpireBufferSec
+    const earliestBlockWithBlockHash = currentBlockNumber - (NumStoredBlockHashes + numBlocksToBuffer)
+    if (blockNumber < earliestBlockWithBlockHash) {
+      return false
+    }
+    return true
   }
 }

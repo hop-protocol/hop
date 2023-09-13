@@ -166,7 +166,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     }
 
     if (messageStatus === MessageStatus.READY_TO_PROVE) {
-      console.log('sending proveMessage tx')
+      this.logger.info('sending proveMessage tx')
       const resolved = await this.csm.toCrossChainMessage(l2TxHash)
       return this.csm.proveMessage(resolved)
     }
@@ -176,7 +176,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
     }
 
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
-      console.log('sending finalizeMessage tx')
+      this.logger.info('sending finalizeMessage tx')
       return this.csm.finalizeMessage(l2TxHash)
     }
 
@@ -225,7 +225,7 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   // TODO: Handle reorgs in the try...catch of the watchers...
   // TODO: I believe this makes a ton of calls. See if it can be optimized.
 
-  async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block> {
+  async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
     // Get the receipt instead of trusting the block number because the block number may have been reorged out
     const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
     const onchainBlockNumber: number = receipt?.blockNumber
@@ -240,7 +240,8 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
 
     const lastIncludedBlockNumber = await this.bridge.getSafeBlockNumber()
     if (l2BlockNumber > lastIncludedBlockNumber) {
-      throw new Error(`l2TxHash ${l2TxHash} on chain ${this.chainSlug} is included in block ${l2BlockNumber} which is not yet included (last included block ${lastIncludedBlockNumber})`)
+      this.logger.debug(`l2 block number ${l2BlockNumber} is not yet included (last included block ${lastIncludedBlockNumber})`)
+      return
     }
 
     return this._getL1InclusionBlockByL2TxHash(l2TxHash)
@@ -249,26 +250,31 @@ class OptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   async getL2BlockByL1BlockNumber (l1BlockNumber: number): Promise<providers.Block | undefined> {
     let l2BlockNumber: number = await this.bridge.getBlockNumber()
     let l1BlockNumberOnL2: number = Number(await this._l1BlockContract.number({ blockTag: l2BlockNumber }))
+      
+    // If the L2 is unaware of the L1 block, then we are too early and need to try later
+    if (l1BlockNumberOnL2 < l1BlockNumber) {
+      this.logger.info(`too early. l1BlockNumber ${l1BlockNumber} does not yet exist on l2 (${l1BlockNumberOnL2})`)
+      return
+    }
+
     let counter = 0
     while (true) {
-      if (l1BlockNumberOnL2 < l1BlockNumber) {
-        console.log(`too early. l1BlockNumberOnL2 ${l1BlockNumberOnL2} is less than l1BlockNumber ${l1BlockNumber}`)
-        return
-      } else if (l1BlockNumberOnL2 === l1BlockNumber) {
+      if (l1BlockNumberOnL2 === l1BlockNumber) {
         return this.l2Provider.getBlock(l2BlockNumber)
-      } else if (l1BlockNumberOnL2 > l1BlockNumber) {
-        const seqNum: BigNumber = await this._l1BlockContract.sequenceNumber({ blockTag: l2BlockNumber })
-        // Add 1 since index starts at 0
-        const numL2BlocksSinceLastL1Block = Number(seqNum) + 1
-        const newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
-        console.log(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
+      }
 
-        l2BlockNumber = newL2BlockNumber
-        l1BlockNumberOnL2 = Number(await this._l1BlockContract.number({ blockTag: l2BlockNumber }))
-        counter++
-        if (counter > 10) {
-          throw new Error(`getL2BlockByL1BlockNumber looped too many times`)
-        }
+      // If the L2 is aware of the L1 block, then we are too late and need to try earlier
+      // Jump to the block that contains the previous l1Block by skipping the remaining sequences in the block
+      const seqNum: BigNumber = await this._l1BlockContract.sequenceNumber({ blockTag: l2BlockNumber })
+      const numL2BlocksSinceLastL1Block = Number(seqNum) + 1
+      const newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
+      this.logger.info(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
+
+      l2BlockNumber = newL2BlockNumber
+      l1BlockNumberOnL2 = Number(await this._l1BlockContract.number({ blockTag: l2BlockNumber }))
+      counter++
+      if (counter > 10) {
+        throw new Error(`getL2BlockByL1BlockNumber looped too many times`)
       }
     }
   }

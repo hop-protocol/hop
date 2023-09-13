@@ -5,17 +5,25 @@ type DecodedValidationData = {
   blockNumber: number
 }
 
+// TODO: Better decoding
 const getDecodedValidationData = (data: string): DecodedValidationData => {
   if (!data.startsWith('0x')) {
     data = `0x${data}`
   }
-  let types: string[] = ['bytes32', 'uint256']
 
-  if (data.startsWith('0x3d12a85a')) {
-    data = data.replace('0x3d12a85a', '')
+  if (data.length !== 178) {
+    throw new Error('invalid call data length')
+  }
+
+  // Remove the leading address
+  data = data.substring(42)
+  if (data.startsWith('8003405b')) {
+    data = data.replace('8003405b', '')
   } else {
     throw new Error('invalid call data')
   }
+
+  const types: string[] = ['bytes32', 'uint256']
   const decoded = defaultAbiCoder.decode(types, `0x${data}`)
   return {
     blockHash: decoded[0],

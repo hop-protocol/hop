@@ -29,7 +29,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
   const [transactions, setTransactions/*, clear */] = useLocalStorage<Transaction[] | undefined>(
     cacheKey,
-    defaultTxs,
+    defaultTxs
   )
 
   function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
@@ -70,26 +70,44 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   )
 
   // on page load or any time a new transaction is created
-  // useEffect(() => {
-  //   if (!provider || !transactions) {
-  //     return
-  //   }
+  useEffect(() => {
+    if (!provider || !transactions) {
+      return
+    }
 
-  //   // scan through each transaction in localStorage
-  //   transactions.forEach(tx => {
-  //     // creating listeners for each
-  //     const listenForTx = async () => {
-  //       try {
-  //         await provider.waitForTransaction(tx.hash)
-  //         updateTransaction(tx, { pending: false })
-  //       } catch (e) {
-  //         console.error("Error transaction listener:", e)
-  //       }
-  //     }
+    // scan through each transaction in localStorage
+    transactions.forEach(tx => {
+      // only create listeners for transactions that are pending
+      if (tx.pending) {
+        const listenForOriginConfirmation = async () => {
+          try {
+            provider.once(tx.hash, (transaction) => {
+              updateTransaction(tx, { pending: false })
+            })
+          } catch (e) {
+            console.error('Error transaction listener:', e)
+          }
+        }
 
-  //     listenForTx()
-  //   })
-  // }, [transactions])
+        listenForOriginConfirmation()
+      }
+
+      // if (tx.pendingDestinationConfirmation) {
+      //   const listenForDestinationConfirmation = async () => {
+      //     try {
+      //       provider.once(tx.hash, (transaction) => {
+      //         updateTransaction(tx, { pendingDestinationConfirmation: false })
+      //       })
+      //     } catch (e) {
+      //       console.error('Error transaction listener:', e)
+      //     }
+      //   }
+
+      //   listenForDestinationConfirmation()
+      // }
+    })
+  }, [transactions])
+
 
   return {
     transactions,

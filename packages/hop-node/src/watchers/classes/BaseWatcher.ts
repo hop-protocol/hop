@@ -488,6 +488,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   // Returns packed(address,data) without the leading 0x
+  // The calldata will be undefined if the blockHash is no longer stored at the destination
   async getHiddenCalldataForDestinationChain (destinationChainSlug: string, l2TxHash: string, l2BlockNumber: number): Promise<string | undefined> {
     const sourceChainWatcher: IChainWatcher = this.siblingWatchers[this.chainSlug].relayWatcher
     if (typeof sourceChainWatcher.getL1InclusionBlock !== 'function') {

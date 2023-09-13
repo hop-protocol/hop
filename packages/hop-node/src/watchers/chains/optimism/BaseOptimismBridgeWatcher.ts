@@ -14,6 +14,10 @@ import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 import { config as globalConfig } from 'src/config'
 
+type BlockWithTransactions = providers.Block & {
+  transactions: providers.TransactionResponse[]
+}
+
 type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -282,7 +286,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
     // to start behind where we need to look so we can iterate forward.
     const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
     const l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: receipt.blockNumber }))
-    let l1Block = await this.l1Provider.getBlockWithTransactions(l1BlockNumberOnL2)
+    let l1Block: BlockWithTransactions = await this.l1Provider.getBlockWithTransactions(l1BlockNumberOnL2)
 
     const maxIterations = 100
     const maxL1BlockNumberToCheck = l1Block.number + maxIterations

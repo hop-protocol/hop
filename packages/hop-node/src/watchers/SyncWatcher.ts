@@ -882,7 +882,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    this.bridge
     let bonder = tx.from
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
     const proxyAddress = getProxyAddressForChain(this.tokenSymbol, destinationChainSlug)

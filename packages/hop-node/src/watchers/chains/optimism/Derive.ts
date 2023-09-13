@@ -13,7 +13,7 @@ interface UnmarshalBinaryRes {
 class Derive {
   private readonly DerivationVersion0: number = 0
   private readonly MaxFrameLen: number = 1_000_000
-  private readonly DataLengths: any
+  private readonly DataLengths: Record<string, number>
 
   constructor () {
     this.DataLengths = {

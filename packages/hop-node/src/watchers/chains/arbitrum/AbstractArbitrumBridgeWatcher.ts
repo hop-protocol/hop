@@ -1,9 +1,9 @@
-import BaseWatcher from './classes/BaseWatcher'
+import BaseWatcher from '../../classes/BaseWatcher'
 import Logger from 'src/logger'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { IChainWatcher, RelayL1ToL2MessageOpts } from './classes/IChainWatcher'
+import { IChainWatcher, RelayL1ToL2MessageOpts } from '../../classes/IChainWatcher'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -17,7 +17,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class ArbitrumBridgeWatcher extends BaseWatcher implements IChainWatcher {
+abstract class AbstractArbitrumBridgeWatcher extends BaseWatcher implements IChainWatcher {
   l1Wallet: Signer
   l2Wallet: Signer
   nonRetryableProvider: providers.Provider
@@ -122,4 +122,4 @@ class ArbitrumBridgeWatcher extends BaseWatcher implements IChainWatcher {
   }
 }
 
-export default ArbitrumBridgeWatcher
+export default AbstractArbitrumBridgeWatcher

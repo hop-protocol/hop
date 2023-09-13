@@ -25,7 +25,7 @@ type Config = {
   dryMode?: boolean
 }
 
-abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
+abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
   l1Provider: any
   l2Provider: any
   l1Wallet: Signer
@@ -233,6 +233,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
       throw new Error(`no block number found for tx l2TxHash ${l2TxHash} on chain ${this.chainSlug}`)
     }
 
+    // TODO: Handle reorgs here when implementing reorg watcher
     if (onchainBlockNumber !== l2BlockNumber) {
       throw new Error(`reorg detected. tx l2TxHash ${l2TxHash} on chain ${this.chainSlug} is not included in block ${l2BlockNumber}`)
     }
@@ -370,4 +371,4 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
   }
 }
 
-export default BaseOptimismBridgeWatcher
+export default AbstractOptimismBridgeWatcher

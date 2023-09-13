@@ -1,5 +1,5 @@
 import '../moduleAlias'
-import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
+import ArbitrumBridgeWatcher from './chains/arbitrum/ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import BaseZkBridgeWatcher from './chains/optimism/BaseZkBridgeWatcher'
 import Logger from 'src/logger'

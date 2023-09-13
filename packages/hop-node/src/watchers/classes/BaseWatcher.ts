@@ -13,7 +13,7 @@ import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber, constants, providers } from 'ethers'
 import {
-  BondTooEarlyError,
+  BonderTooEarlyError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync
 } from 'src/types/error'
@@ -498,14 +498,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     const l1InclusionBlock: providers.Block | undefined = await sourceChainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
     if (!l1InclusionBlock) {
-      throw new BondTooEarlyError(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
+      throw new BonderTooEarlyError(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
     let blockInfo: providers.Block | undefined
     if (this.isL1) {
       blockInfo = l1InclusionBlock
     } else {
-      const destinationChainWatcher: IChainWatcher = this.siblingWatchers[destinationChainSlug].relayWatcher
+      const destinationChainWatcher: IChainWatcher = getChainWatcher(destinationChainSlug)
       if (typeof destinationChainWatcher.getL2BlockByL1BlockNumber !== 'function') {
         throw new Error(`destinationChainWatcher getL2BlockByL1BlockNumber not implemented for chain ${destinationChainSlug}`)
       }
@@ -513,7 +513,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     if (!blockInfo) {
-      throw new BondTooEarlyError(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
+      throw new BonderTooEarlyError(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
     // Return if the blockHash is no longer stored at the destination

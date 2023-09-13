@@ -9,7 +9,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
 import {
-  BondTooEarlyError,
+  BonderTooEarlyError,
   BonderFeeTooLowError,
   NonceTooLowError,
   PossibleReorgDetected,
@@ -313,7 +313,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         })
         return
       }
-      if (err instanceof BondTooEarlyError) {
+      if (err instanceof BonderTooEarlyError) {
         logger.error('bond attempted too early. trying again.')
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {

@@ -16,7 +16,7 @@ import { IChainWatcher } from '../classes/IChainWatcher'
 const chainWatchers: Record<string, IChainWatcher> = {}
 
 export default function getChainWatcher (chainSlug: string): IChainWatcher {
-  if (chainWatchers[chainSlug]) {
+  if (chainWatchers?.[chainSlug]) {
     return this.chainWatchers[chainSlug]
   }
 
@@ -45,6 +45,6 @@ export default function getChainWatcher (chainSlug: string): IChainWatcher {
     throw new Error(`Chain ${chainSlug} is not supported`)
   }
 
-  this.chainWatchers[chainSlug] = chainWatcher
+  chainWatchers[chainSlug] = chainWatcher
   return chainWatcher
 }

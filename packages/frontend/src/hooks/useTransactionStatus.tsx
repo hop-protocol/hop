@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { TChain } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import { useInterval } from 'react-use'
+import { useInterval } from 'usehooks-ts'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'

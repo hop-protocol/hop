@@ -1,5 +1,6 @@
 import { useEffect, useCallback, Dispatch, SetStateAction } from 'react'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage } from 'usehooks-ts'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
 import { filterByHash, sortByRecentTimestamp } from 'src/utils'
@@ -10,7 +11,7 @@ export interface TxHistory {
   addTransaction: (tx: Transaction) => void
   removeTransaction: (tx: Transaction) => void
   updateTransaction: (tx: Transaction, updateOpts: any, matchingHash?: string) => void
-  clear: () => void
+  // clear: () => void
 }
 
 export interface UpdateTransactionOptions {
@@ -23,37 +24,23 @@ export interface UpdateTransactionOptions {
 
 const cacheKey = 'recentTransactions:v000'
 
-const localStorageSerializationOptions = {
-  raw: false,
-  serializer: (value: Transaction[]) => {
-    return JSON.stringify(
-      value.map(tx => {
-        return tx.toObject()
-      })
-    )
-  },
-  deserializer: (value: string) => {
-    return JSON.parse(value).map((obj: Transaction) => Transaction.fromObject(obj))
-  },
-}
-
 const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
-  const [transactions, setTransactions, clear] = useLocalStorage<Transaction[]>(
+  const { provider } = useWeb3Context()
+
+  const [transactions, setTransactions/*, clear */] = useLocalStorage<Transaction[] | undefined>(
     cacheKey,
     defaultTxs,
-    localStorageSerializationOptions
   )
 
   function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
     setTransactions(prevTransactions => {
       const currentTxs = txs ?? prevTransactions ?? []
       const filtered = filterByHash(currentTxs, hashFilter)
-      return sortByRecentTimestamp([...filtered, tx]).slice(0, 3)
+      return sortByRecentTimestamp([...filtered, tx]).slice(0, 4)
     })
   }
 
   function addTransaction(tx: Transaction) {
-    console.log("added tx")
     const match = find(transactions, ['hash', tx.replaced])
     filterSortAndSetTransactions(tx, transactions, match?.hash)
   }
@@ -63,7 +50,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       setTransactions(prevTransactions => {
         if (!prevTransactions) return []
         const filtered = filterByHash(prevTransactions, tx.hash)
-        return sortByRecentTimestamp(filtered).slice(0, 3)
+        return sortByRecentTimestamp(filtered).slice(0, 4)
       })
     }, []
   )
@@ -82,33 +69,27 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     }, [transactions]
   )
 
-  // this will make sure to update in local storage the updated pending status,
-  // so it doesn't show as pending indefinitely on reload.
-  // This wouldn't be an issue if useEffect worked properly with array nested
-  // of nested objects and it detected property changes.
-  useEffect(() => {
-    transactions?.forEach(tx => {
-      const oldPending = tx.pending
-      const oldPendingDC = tx.pendingDestinationConfirmation
-      const cbPending = (pending: boolean) => {
-        if (oldPending !== pending) {
-          updateTransaction(tx, { pending })
-        }
-      }
-      const cbPendingDC = (pendingDestinationConfirmation: boolean) => {
-        if (oldPendingDC !== pendingDestinationConfirmation) {
-          updateTransaction(tx, { pendingDestinationConfirmation })
-        }
-      }
-      tx.once('pending', cbPending)
-      tx.once('pendingDestinationConfirmation', cbPendingDC)
-    })
-    return () => {
-      transactions?.forEach(tx => {
-        tx.removeAllListeners()
-      })
-    }
-  }, [transactions])
+  // on page load or any time a new transaction is created
+  // useEffect(() => {
+  //   if (!provider || !transactions) {
+  //     return
+  //   }
+
+  //   // scan through each transaction in localStorage
+  //   transactions.forEach(tx => {
+  //     // creating listeners for each
+  //     const listenForTx = async () => {
+  //       try {
+  //         await provider.waitForTransaction(tx.hash)
+  //         updateTransaction(tx, { pending: false })
+  //       } catch (e) {
+  //         console.error("Error transaction listener:", e)
+  //       }
+  //     }
+
+  //     listenForTx()
+  //   })
+  // }, [transactions])
 
   return {
     transactions,
@@ -116,7 +97,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     addTransaction,
     removeTransaction,
     updateTransaction,
-    clear,
+    // clear,
   }
 }
 

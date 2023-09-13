@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useInterval } from 'react-use'
+import { useInterval } from 'usehooks-ts'
 import { formatError } from 'src/utils/format'
 import { BigNumber, Contract } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'

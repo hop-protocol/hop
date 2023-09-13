@@ -29,8 +29,7 @@ const useStyles = makeStyles(theme => ({
 const TxPill = () => {
   const { accountDetails, txHistory } = useApp()
   const transactions = txHistory?.transactions
-  const transactionString = JSON.stringify(transactions)
-
+  const transactionString = JSON.stringify(txHistory?.transactions)
   const { address } = useWeb3Context()
   const styles = useStyles()
   const [numPendingTxs, setNumPendingTxs] = useState<number>(0)
@@ -41,8 +40,6 @@ const TxPill = () => {
   }
 
   useEffect(() => {
-    console.dir({ transactions })
-
     if (transactions && transactions.length > 0) {
       const pendingTxs = transactions.filter(tx => tx.pending)
       setNumPendingTxs(pendingTxs.length)
@@ -55,7 +52,7 @@ const TxPill = () => {
     <div className={styles.root}>
       {numPendingTxs > 0 ? (
         <StyledButton flat onClick={handleClick}>
-          {numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
+          {numPendingTxs > 3 ? "3+" : numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
         </StyledButton>
       ) : (
         <StyledButton

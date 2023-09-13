@@ -31,13 +31,13 @@ import {
 import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import {
-  config as globalConfig,
   getProxyAddressForChain,
+  config as globalConfig,
   minEthBonderFeeBn,
-  oruChains,
+  oruChains
 } from 'src/config'
+import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {

@@ -7,10 +7,10 @@ import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
+import { BondTooEarlyError, PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   doesProxyAndValidatorExistForChain,
@@ -19,7 +19,6 @@ import {
   getHasFinalizationBlockTag,
   config as globalConfig
 } from 'src/config'
-import { BondTooEarlyError } from 'src/types/error'
 
 type Config = {
   chainSlug: string

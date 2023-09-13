@@ -9,6 +9,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
 import {
+  BondTooEarlyError,
   BonderFeeTooLowError,
   NonceTooLowError,
   PossibleReorgDetected,
@@ -28,7 +29,6 @@ import {
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
-import { BondTooEarlyError } from 'src/types/error'
 
 type Config = {
   chainSlug: string

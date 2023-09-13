@@ -5,7 +5,6 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, Contract, providers } from 'ethers'
 import {
   AvgBlockTimeSeconds,
   BlockHashExpireBufferSec,
@@ -14,6 +13,7 @@ import {
   NumStoredBlockHashes,
   SettlementGasLimitPerTx
 } from 'src/constants'
+import { BigNumber, Contract, providers } from 'ethers'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -26,11 +26,11 @@ import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
   getBridgeWriteContractAddress,
-  getProxyAddressForChain,
   getHasFinalizationBlockTag,
+  getProxyAddressForChain,
   getValidatorAddressForChain,
   config as globalConfig,
-  isProxyAddressForChain,
+  isProxyAddressForChain
 } from 'src/config'
 
 export type EventsBatchOptions = {

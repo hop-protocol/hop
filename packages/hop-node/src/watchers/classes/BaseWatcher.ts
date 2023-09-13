@@ -12,7 +12,12 @@ import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber, constants, providers } from 'ethers'
-import { 
+import {
+  BondTooEarlyError,
+  PossibleReorgDetected,
+  RedundantProviderOutOfSync
+} from 'src/types/error'
+import {
   Chain,
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
@@ -25,10 +30,6 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
-import {
-  PossibleReorgDetected,
-  RedundantProviderOutOfSync
-} from 'src/types/error'
 import { Strategy, Vault } from 'src/vault'
 import {
   getValidatorAddressForChain,
@@ -36,7 +37,6 @@ import {
   hostname
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import { BondTooEarlyError } from 'src/types/error'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract

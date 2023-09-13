@@ -1,8 +1,8 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { RelayL1ToL2MessageOpts } from 'src/watchers/classes/IChainWatcher'
 import {
   getL1ToL2RelayWatcher
 } from 'src/watchers/watchers'
-import { RelayL1ToL2MessageOpts } from 'src/watchers/classes/IChainWatcher'
 
 import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared'
 
@@ -16,7 +16,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { chain, token, messageIndex, txHashes } = source
+  const { chain, token, messageIndex, txHashes } = source
 
   if (!chain) {
     throw new Error('Chain not found')

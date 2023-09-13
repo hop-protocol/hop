@@ -1,7 +1,7 @@
 import buildInfo from 'src/.build-info.json'
+import isL1 from 'src/utils/isL1'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
-import isL1 from 'src/utils/isL1'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
@@ -473,7 +473,6 @@ export function doesProxyAndValidatorExistForChain (token: string, chainSlug: st
     isValidatorAddressForChain(token, chainSlug)
   )
 }
-
 
 export function getBridgeWriteContractAddress (token: string, chainSlug: string): string {
   if (isProxyAddressForChain(token, chainSlug)) {

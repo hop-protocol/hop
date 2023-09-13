@@ -18,7 +18,6 @@ import { solidityKeccak256 } from 'ethers/lib/utils'
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
 const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
 
-
 type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -41,7 +40,7 @@ const getL2Amb = (token: string) => {
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
+class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher {
   l1Bridge: L1Bridge
 
   constructor (config: Config) {
@@ -166,7 +165,7 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
     const s = signature.substr(32 * 2, 32 * 2)
     return { v, r, s }
   }
-  
+
   private _packSignatures (array: any[]) {
     const length = this._strip0x(toHex(array.length))
     const msgLength = length.length === 1 ? `0${length}` : length
@@ -183,4 +182,3 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher  {
 }
 
 export default GnosisBridgeWatcher
-

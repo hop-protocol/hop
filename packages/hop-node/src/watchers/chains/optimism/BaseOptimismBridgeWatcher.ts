@@ -3,17 +3,16 @@ import Derive, { Frame } from '../../chains/optimism/Derive'
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
+import zlib from 'zlib'
+import { BigNumber, Contract, Signer, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainWatcher } from '../../classes/IChainWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { BigNumber, Contract, Signer, providers } from 'ethers'
-import { config as globalConfig } from 'src/config'
-import zlib from 'zlib'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -29,6 +28,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
   l2Wallet: Signer
   csm: CrossChainMessenger
   chainId: number
+  l1BlockAbi: string[]
   l1BlockAddr: string
   l1BlockContract: Contract
   sequencerAddress: string
@@ -61,7 +61,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
 
     this.l1BlockAbi = [
       'function number() view returns (uint64)',
-      'function sequenceNumber() view returns (uint64)',
+      'function sequenceNumber() view returns (uint64)'
     ]
   }
 
@@ -245,7 +245,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
   async getL2BlockByL1BlockNumber (l1BlockNumber: number): Promise<providers.Block | undefined> {
     let l2BlockNumber: number = await this.bridge.getBlockNumber()
     let l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
-      
+
     // If the L2 is unaware of the L1 block, then we are too early and need to try later
     if (l1BlockNumberOnL2 < l1BlockNumber) {
       this.logger.debug(`too early. l1BlockNumber ${l1BlockNumber} does not yet exist on l2 (${l1BlockNumberOnL2})`)
@@ -269,7 +269,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
       l1BlockNumberOnL2 = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
       counter++
       if (counter > 10) {
-        throw new Error(`getL2BlockByL1BlockNumber looped too many times`)
+        throw new Error('getL2BlockByL1BlockNumber looped too many times')
       }
     }
   }
@@ -281,7 +281,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
     // Start at the timestamp of l2 block and iterate forward on L1. Slightly inefficient, but guaranteed
     // to start behind where we need to look so we can iterate forward.
     const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
-    let l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: receipt.blockNumber }))
+    const l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: receipt.blockNumber }))
     let l1Block = await this.l1Provider.getBlockWithTransactions(l1BlockNumberOnL2)
 
     const maxIterations = 100
@@ -305,16 +305,16 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
       l1Block = await this.l1Provider.getBlockWithTransactions(l1Block.number + 1)
       counter++
       if (counter > maxL1BlockNumberToCheck) {
-        throw new Error(`_getL1InclusionBlockByL2TxHash looped too many times`)
+        throw new Error('_getL1InclusionBlockByL2TxHash looped too many times')
       }
     }
   }
 
   private async _getL2TxHashesInFrame (l1TxHash: string): Promise<string[]> {
     const tx = await this.l1Provider.getTransaction(l1TxHash)
-    let frames: Frame[] = await this.derive.parseFrames(tx.data)
+    const frames: Frame[] = await this.derive.parseFrames(tx.data)
 
-    let l2TxHashes: string[] = []
+    const l2TxHashes: string[] = []
     for (const frame of frames) {
       const decompressedChannel: Buffer = await this._decompressChannel(frame.data)
       const decodedTxHashes: string[] = await this._decodeTxHashesFromChannel(decompressedChannel)
@@ -343,7 +343,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
     // NOTE: We are using ethereumjs RPL package since ethers does not allow for a stream
     const stream = true
     let remainingBatches: Buffer = channelDecompressed
-    let transactionHashes: string[] = []
+    const transactionHashes: string[] = []
     while (true) {
       // Parse decoded data
       const encodedTxs: string = '0x' + Buffer.from(remainingBatches).toString('hex')
@@ -359,7 +359,7 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
 
       // Prep next loop
       remainingBatches = remainder as Buffer
-      if (remainingBatches.length === 0){
+      if (remainingBatches.length === 0) {
         return transactionHashes
       }
     }

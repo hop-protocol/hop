@@ -1,4 +1,4 @@
-import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
+import { defaultAbiCoder } from 'ethers/lib/utils'
 
 type DecodedValidationData = {
   blockHash: string
@@ -31,4 +31,4 @@ const getDecodedValidationData = (data: string): DecodedValidationData => {
   }
 }
 
-export default getDecodedValidationData 
+export default getDecodedValidationData

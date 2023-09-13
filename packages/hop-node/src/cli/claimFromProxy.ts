@@ -5,7 +5,7 @@ import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { parseEther } from 'ethers/lib/utils'
 
-import { BigNumber, Contract, providers, constants } from 'ethers'
+import { BigNumber, Contract, constants, providers } from 'ethers'
 import { getProxyAddressForChain } from 'src/config'
 
 enum TransactionTypes {
@@ -33,7 +33,7 @@ async function main (source: any) {
 
   if (!token) {
     throw new Error('token is required')
-  } 
+  }
 
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')
@@ -68,11 +68,11 @@ async function transferNativeFromProxy (
   shouldSendMax: boolean
 ): Promise<providers.TransactionResponse> {
   const wallet = wallets.get(chain)
-  
+
   let parsedAmount: BigNumber
-  let proxyBalance = await wallet.provider!.getBalance(proxyAddress)
+  const proxyBalance = await wallet.provider!.getBalance(proxyAddress)
   if (shouldSendMax) {
-    parsedAmount = proxyBalance 
+    parsedAmount = proxyBalance
   } else {
     parsedAmount = parseEther(amount.toString())
   }
@@ -92,7 +92,7 @@ async function transferNativeFromProxy (
 
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
-  logger.debug(`send complete`)
+  logger.debug('send complete')
   return tx
 }
 
@@ -107,7 +107,7 @@ async function transferErc20FromProxy (
   const wallet = wallets.get(chain)
   const tokenInstance = getTokenInstance(token, chain, isHToken)
 
-  let balance = await tokenInstance.getBalance()
+  const balance = await tokenInstance.getBalance()
   const label = `${chain}.${isHToken ? 'h' : ''}${token}`
   logger.debug(`${label} balance: ${await tokenInstance.formatUnits(balance)}`)
   let parsedAmount
@@ -132,7 +132,7 @@ async function transferErc20FromProxy (
 
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
-  logger.debug(`send complete`)
+  logger.debug('send complete')
   return tx
 }
 
@@ -150,5 +150,5 @@ function getTokenInstance (token: string, chain: string, isHToken: boolean): Tok
     } else {
       return new Token(tokenContracts.l2CanonicalToken)
     }
-  } 
+  }
 }

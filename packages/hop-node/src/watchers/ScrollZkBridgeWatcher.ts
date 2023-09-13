@@ -27,7 +27,7 @@ class ScrollZkBridgeWatcher extends BaseWatcher implements IChainWatcher {
     throw new Error('unimplemented')
   }
 
-  relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {
     throw new Error('unimplemented')
   }
 }

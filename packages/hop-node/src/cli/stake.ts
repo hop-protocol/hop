@@ -6,12 +6,12 @@ import wait from 'src/utils/wait'
 import { BigNumber, constants } from 'ethers'
 import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
+import { Interface } from 'ethers/lib/utils'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
-import { Interface } from 'ethers/lib/utils'
 
 root
   .command('stake')

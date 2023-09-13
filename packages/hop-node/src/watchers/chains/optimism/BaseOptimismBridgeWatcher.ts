@@ -59,11 +59,10 @@ abstract class BaseOptimismBridgeWatcher extends BaseWatcher implements IChainWa
       l2SignerOrProvider: this.l2Wallet
     })
 
-    const l1BlockAbi = [
+    this.l1BlockAbi = [
       'function number() view returns (uint64)',
       'function sequenceNumber() view returns (uint64)',
     ]
-    this.l1BlockContract = new Contract(this.l1BlockAddr, l1BlockAbi, this.l2Provider)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {

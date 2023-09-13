@@ -1,6 +1,7 @@
 import BaseOptimismBridgeWatcher from './BaseOptimismBridgeWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { Contract } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -22,6 +23,7 @@ class BaseZkBridgeWatcher extends BaseOptimismBridgeWatcher {
     this.l1BlockAddr = '0x4200000000000000000000000000000000000015'
     this.sequencerAddress = '0x6088B06c5a187058434655B71057a9ee93E13d0d'
     this.batchInboxAddress = '0xFF00000000000000000000000000000000000010'
+    this.l1BlockContract = new Contract(this.l1BlockAddr, this.l1BlockAbi, this.l2Provider)
   }
 }
 

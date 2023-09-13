@@ -51,6 +51,23 @@ export type Bridges = {
   }>
 }
 
+export interface GnosisCanonicalAddresses {
+  l1AmbAddress: string
+  l2AmbAddress: string
+}
+
+export interface OptimismSuperchainCanonicalAddresses {
+  l1BlockAddress: string
+  sequencerAddress: string
+  batchInboxAddress: string
+}
+
+export type CanonicalAddresses = {
+  gnosis: GnosisCanonicalAddresses
+  optimism: OptimismSuperchainCanonicalAddresses
+  base: OptimismSuperchainCanonicalAddresses
+}
+
 export type Routes = Partial<{
   [key in ChainSlug]: Partial<{
     [key in ChainSlug]: string
@@ -71,4 +88,5 @@ export type Addresses = {
   bridges: Partial<Bridges>
   bonders: Partial<Bonders>
   rewardsContracts?: RewardsContracts
+  canonicalAddresses?: Partial<CanonicalAddresses>
 }

@@ -1,23 +1,21 @@
 import '../moduleAlias'
-import ArbitrumBridgeWatcher from './chains/arbitrum/ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
-import BaseZkBridgeWatcher from './chains/optimism/BaseZkBridgeWatcher'
 import Logger from 'src/logger'
-import OptimismBridgeWatcher from './chains/optimism/OptimismBridgeWatcher'
-import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import isNativeToken from 'src/utils/isNativeToken'
-import { Chain, GasCostTransactionType, TxError } from 'src/constants'
+import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayL1ToL2MessageOpts } from 'src/watchers/classes/IChainWatcher'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
-import { getEnabledNetworks, config as globalConfig, relayTransactionBatchSize } from 'src/config'
+import { config as globalConfig, relayTransactionBatchSize } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
+import getChainWatcher from 'src/watchers/chains/getChainWatcher'
 
 type Config = {
   chainSlug: string
@@ -26,11 +24,8 @@ type Config = {
   dryMode?: boolean
 }
 
-type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher | BaseZkBridgeWatcher
-
 class RelayWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: RelayWatcher }
-  relayWatchers: { [chainId: number]: RelayWatchers } = {}
 
   constructor (config: Config) {
     super({
@@ -40,58 +35,6 @@ class RelayWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
-
-    const enabledNetworks = getEnabledNetworks()
-
-    if (enabledNetworks.includes(Chain.Optimism)) {
-      const optimismChainId = this.chainSlugToId(Chain.Optimism)
-      this.relayWatchers[optimismChainId] = new OptimismBridgeWatcher({
-        chainSlug: Chain.Optimism,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
-
-    if (enabledNetworks.includes(Chain.Arbitrum)) {
-      const arbitrumChainId = this.chainSlugToId(Chain.Arbitrum)
-      this.relayWatchers[arbitrumChainId] = new ArbitrumBridgeWatcher({
-        chainSlug: Chain.Arbitrum,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
-
-    if (enabledNetworks.includes(Chain.Nova)) {
-      const novaChainId = this.chainSlugToId(Chain.Nova)
-      this.relayWatchers[novaChainId] = new ArbitrumBridgeWatcher({
-        chainSlug: Chain.Nova,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
-
-    if (enabledNetworks.includes(Chain.PolygonZk)) {
-      const polygonzkChainId = this.chainSlugToId(Chain.PolygonZk)
-      this.relayWatchers[polygonzkChainId] = new PolygonZkBridgeWatcher({
-        chainSlug: Chain.PolygonZk,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
-
-    if (enabledNetworks.includes(Chain.Base)) {
-      const baseChainId = this.chainSlugToId(Chain.Base)
-      this.relayWatchers[baseChainId] = new BaseZkBridgeWatcher({
-        chainSlug: Chain.Base,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
   }
 
   async pollHandler () {
@@ -397,12 +340,18 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, relayL1ToL2MessageOpts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
-    if (!this.relayWatchers[destinationChainId]) {
+    const destinationChainSlug = chainIdToSlug(destinationChainId)
+    const chainWatcher = getChainWatcher(destinationChainSlug)
+    if (!chainWatcher) {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
     }
 
+    if (typeof chainWatcher.relayL1ToL2Message !== 'function') {
+      throw new Error(`RelayWatcher: sendRelayTx: no relayL1ToL2Message function for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
+    }
+
     this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} relayL1ToL2MessageOpts ${JSON.stringify(relayL1ToL2MessageOpts) ?? ''} destinationChainId: ${destinationChainId}`)
-    return await this.relayWatchers[destinationChainId].relayL1ToL2Message(txHash, relayL1ToL2MessageOpts)
+    return chainWatcher.relayL1ToL2Message(txHash, relayL1ToL2MessageOpts)
   }
 }
 

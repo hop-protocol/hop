@@ -1,89 +1,41 @@
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import Logger from 'src/logger'
+import AbstractChainWatcher from '../AbstractChainWatcher'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
-import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
-import { IChainWatcher } from './classes/IChainWatcher'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { IChainWatcher } from '../../classes/IChainWatcher'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
-import { config as globalConfig } from 'src/config'
 import { solidityKeccak256 } from 'ethers/lib/utils'
+import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
+import { getCanonicalAddressesForChain } from 'src/config'
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
 const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
 
-type Config = {
-  chainSlug: string
-  tokenSymbol: string
-  l1BridgeContract?: L1BridgeContract
-  bridgeContract?: L1BridgeContract | L2BridgeContract
-  dryMode?: boolean
-}
-
-const getL1Amb = (token: string) => {
-  const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = globalConfig.addresses[token].gnosis.l1Amb
-  return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1_xDaiAMB
-}
-
-const getL2Amb = (token: string) => {
-  const l2xDaiProvider = wallets.get(Chain.Gnosis).provider
-  const l2AmbAddress = globalConfig.addresses[token].gnosis.l2Amb
-  return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2_xDaiAMB
-}
-
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher {
-  l1Bridge: L1Bridge
+class GnosisBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+  l1Amb: L1_xDaiAMB
+  l2Amb: L2_xDaiAMB
 
-  constructor (config: Config) {
-    super({
-      chainSlug: config.chainSlug,
-      tokenSymbol: config.tokenSymbol,
-      logColor: 'yellow',
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    })
-    if (config.l1BridgeContract != null) {
-      this.l1Bridge = new L1Bridge(config.l1BridgeContract)
+  constructor () {
+    super(Chain.Gnosis)
+
+    // Get chain contracts
+    const GnosisCanonicalAddresses: GnosisCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
+    const l1AmbAddress = GnosisCanonicalAddresses?.l1AmbAddress
+    const l2AmbAddress = GnosisCanonicalAddresses?.l2AmbAddress
+    if (!l1AmbAddress || !l2AmbAddress) {
+      throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
-  }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
-    logger.debug(
-      `attempting to send relay message on gnosis for commit tx hash ${commitTxHash}`
-    )
-
-    if (this.dryMode || globalConfig.emergencyDryMode) {
-      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
-      return
-    }
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-
-    const tx = await this.relayL2ToL1Message(commitTxHash)
-    if (!tx) {
-      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-      return
-    }
-    const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-    logger.info(msg)
-    this.notifier.info(msg)
+    this.l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, this.l1Wallet) as L1_xDaiAMB
+    this.l1Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L1_xDaiAMB
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    const token: string = this.tokenSymbol
-    const l1Amb = getL1Amb(token)
-    const l2Amb = getL2Amb(token)
-
     const sigEvent = await this._getValidSigEvent(l2TxHash)
     if (!sigEvent?.args) {
       throw new Error(`args for sigEvent not found for ${l2TxHash}`)
@@ -96,8 +48,8 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher {
     }
 
     const msgHash = solidityKeccak256(['bytes'], [message])
-    const id = await l2Amb.numMessagesSigned(msgHash)
-    const alreadyProcessed = await l2Amb.isAlreadyProcessed(id)
+    const id = await this.l2Amb.numMessagesSigned(msgHash)
+    const alreadyProcessed = await this.l2Amb.isAlreadyProcessed(id)
     if (!alreadyProcessed) {
       throw new Error(`commit already processed found for ${l2TxHash}`)
     }
@@ -107,15 +59,15 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher {
       Buffer.from(this._strip0x(message), 'hex')
         .slice(0, 32)
         .toString('hex')
-    const alreadyRelayed = await l1Amb.relayedMessages(messageId)
+    const alreadyRelayed = await this.l1Amb.relayedMessages(messageId)
     if (alreadyRelayed) {
       throw new Error(`message already relayed for ${l2TxHash}`)
     }
 
-    const requiredSigs = (await l2Amb.requiredSignatures()).toNumber()
+    const requiredSigs = (await this.l2Amb.requiredSignatures()).toNumber()
     const sigs: any[] = []
     for (let i = 0; i < requiredSigs; i++) {
-      const sig = await l2Amb.signature(msgHash, i)
+      const sig = await this.l2Amb.signature(msgHash, i)
       const [v, r, s]: any[] = [[], [], []]
       const vrs = this._signatureToVRS(sig)
       v.push(vrs.v)
@@ -125,14 +77,13 @@ class GnosisBridgeWatcher extends BaseWatcher implements IChainWatcher {
     }
     const packedSigs = this._packSignatures(sigs)
 
-    return l1Amb.executeSignatures(message, packedSigs)
+    return this.l1Amb.executeSignatures(message, packedSigs)
   }
 
   private async _getValidSigEvent (l2TxHash: string) {
-    const tx = await this.bridge.getTransactionReceipt(l2TxHash)
-    const l2Amb = getL2Amb(this.tokenSymbol)
-    const sigEvents = await l2Amb.queryFilter(
-      l2Amb.filters.UserRequestForSignature(),
+    const tx = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
+    const sigEvents = await this.l2Amb.queryFilter(
+      this.l2Amb.filters.UserRequestForSignature(),
       tx.blockNumber,
       tx.blockNumber
     )

@@ -1,6 +1,22 @@
 import { Addresses } from './types'
 
 export const addresses: Addresses = {
+  canonicalAddresses: {
+    gnosis: {
+      l1AmbAddress: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
+      l2AmbAddress: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59'
+    },
+    optimism: {
+      l1BlockAddress: '0x4200000000000000000000000000000000000015',
+      sequencerAddress: '0x6887246668a3b87F54DeB3b94Ba47a6f63F32985',
+      batchInboxAddress: '0xFF00000000000000000000000000000000000010'
+    },
+    base: {
+      l1BlockAddress: '0x4200000000000000000000000000000000000015',
+      sequencerAddress: '0x6088B06c5a187058434655B71057a9ee93E13d0d',
+      batchInboxAddress: '0xFF00000000000000000000000000000000000010'
+    }
+  },
   bonders: {
     USDC: {
       ethereum: {

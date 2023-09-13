@@ -1,64 +1,15 @@
-import BaseWatcher from '../../classes/BaseWatcher'
-import Logger from 'src/logger'
+import AbstractChainWatcher from '../AbstractChainWatcher'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
-import wallets from 'src/wallets'
-import { Chain } from 'src/constants'
 import { IChainWatcher, RelayL1ToL2MessageOpts } from '../../classes/IChainWatcher'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Signer, providers } from 'ethers'
-import { config as globalConfig } from 'src/config'
+import { providers } from 'ethers'
 
-type Config = {
-  chainSlug: string
-  tokenSymbol: string
-  bridgeContract?: L1BridgeContract | L2BridgeContract
-  dryMode?: boolean
-}
-
-abstract class AbstractArbitrumBridgeWatcher extends BaseWatcher implements IChainWatcher {
-  l1Wallet: Signer
-  l2Wallet: Signer
+abstract class AbstractArbitrumBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
   nonRetryableProvider: providers.Provider
-  ready: boolean
 
-  constructor (config: Config) {
-    super({
-      chainSlug: config.chainSlug,
-      tokenSymbol: config.tokenSymbol,
-      logColor: 'yellow',
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    })
-
-    this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(config.chainSlug)
-
-    this.nonRetryableProvider = getNonRetryableRpcProvider(config.chainSlug)!
-  }
-
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
-    logger.debug(
-      `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
-    )
-    if (this.dryMode || globalConfig.emergencyDryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayL2ToL1Message`)
-      return
-    }
-
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-    const tx = await this.relayL2ToL1Message(commitTxHash)
-    if (!tx) {
-      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-      return
-    }
-
-    const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
-    logger.info(msg)
-    this.notifier.info(msg)
+  constructor (chainSlug: string) {
+    super(chainSlug)
+    this.nonRetryableProvider = getNonRetryableRpcProvider(chainSlug)!
   }
 
   async relayL1ToL2Message (l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {

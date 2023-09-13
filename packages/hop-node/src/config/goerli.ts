@@ -4,6 +4,7 @@ import { goerli as metadata } from '@hop-protocol/core/metadata'
 
 const addresses = goerliAddresses.bridges
 const bonders = goerliAddresses.bonders
+const canonicalAddresses = goerliAddresses.canonicalAddresses
 const networks: any = {}
 
 for (const chain in _networks) {
@@ -18,4 +19,4 @@ for (const chain in _networks) {
   networks[chain].hasFinalizationBlockTag = network?.hasFinalizationBlockTag
 }
 
-export { addresses, bonders, networks, metadata }
+export { addresses, bonders, canonicalAddresses, networks, metadata }

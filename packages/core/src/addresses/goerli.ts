@@ -1,8 +1,19 @@
 import { Addresses } from './types'
 
 export const addresses: Addresses = {
+  canonicalAddresses: {
+    optimism: {
+      l1BlockAddress: '',
+      sequencerAddress: '',
+      batchInboxAddress: ''
+    },
+    base: {
+      l1BlockAddress: '',
+      sequencerAddress: '',
+      batchInboxAddress: ''
+    }
+  },
   bonders: {
-    // TODO: Single per chain
     ETH: {
       ethereum: {
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',

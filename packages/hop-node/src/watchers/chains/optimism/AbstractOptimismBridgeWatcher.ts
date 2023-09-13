@@ -1,7 +1,6 @@
-import BaseWatcher from '../../classes/BaseWatcher'
+import AbstractChainWatcher from '../AbstractChainWatcher'
 import Derive, { Frame } from '../../chains/optimism/Derive'
 import Logger from 'src/logger'
-import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import zlib from 'zlib'
 import { BigNumber, Contract, Signer, providers } from 'ethers'
@@ -12,48 +11,21 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-import { config as globalConfig } from 'src/config'
+import { config as globalConfig, getCanonicalAddressesForChain } from 'src/config'
+import { BlockWithTransactions } from '@ethersproject/abstract-provider'
+import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 
-type BlockWithTransactions = providers.Block & {
-  transactions: providers.TransactionResponse[]
-}
-
-type Config = {
-  chainSlug: string
-  tokenSymbol: string
-  bridgeContract?: L1BridgeContract | L2BridgeContract
-  dryMode?: boolean
-}
-
-abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements IChainWatcher {
-  l1Provider: any
-  l2Provider: any
-  l1Wallet: Signer
-  l2Wallet: Signer
+abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
   csm: CrossChainMessenger
-  chainId: number
   l1BlockAbi: string[]
-  l1BlockAddr: string
+  l1BlockAddress: string
   l1BlockContract: Contract
   sequencerAddress: string
   batchInboxAddress: string
   derive: Derive = new Derive()
 
-  constructor (config: Config) {
-    super({
-      chainSlug: config.chainSlug,
-      tokenSymbol: config.tokenSymbol,
-      logColor: 'yellow',
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    })
-
-    this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(Chain.Optimism)
-    this.l1Provider = this.l1Wallet.provider
-    this.l2Provider = this.l2Wallet.provider
-
-    this.chainId = chainSlugToId(config.chainSlug)
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     this.csm = new CrossChainMessenger({
       bedrock: true,
@@ -63,71 +35,19 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
       l2SignerOrProvider: this.l2Wallet
     })
 
+    const optimismSuperchainCanonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
+    this.l1BlockAddress = optimismSuperchainCanonicalAddresses.l1BlockAddress
+    this.sequencerAddress = optimismSuperchainCanonicalAddresses.sequencerAddress
+    this.batchInboxAddress = optimismSuperchainCanonicalAddresses.batchInboxAddress
+    if (!this.l1BlockAddress || !this.sequencerAddress || !this.batchInboxAddress) {
+      throw new Error(`canonical addresses not found for ${this.chainSlug}`)
+    }
+
     this.l1BlockAbi = [
       'function number() view returns (uint64)',
       'function sequenceNumber() view returns (uint64)'
     ]
-  }
-
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger): Promise<void> {
-    logger.debug(
-      `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
-    )
-
-    if (this.dryMode || globalConfig.emergencyDryMode) {
-      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayL2ToL1Message`)
-      return
-    }
-
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-
-    try {
-      const tx = await this.relayL2ToL1Message(commitTxHash)
-      if (!tx) {
-        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-        return
-      }
-
-      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      this.logger.error('relayL2ToL1Message error:', err.message)
-
-      const {
-        unexpectedPollError,
-        unexpectedRelayErrors,
-        invalidMessageError,
-        onchainError,
-        cannotReadPropertyError,
-        preBedrockErrors
-      } = this._getErrorType(err.message)
-
-      // This error occurs if a poll happened while a message was either not yet published or in the challenge period
-      if (unexpectedPollError) {
-        return
-      }
-
-      if (unexpectedRelayErrors) {
-        throw new Error('unexpected message status')
-      }
-      if (invalidMessageError) {
-        throw new Error('invalid message')
-      }
-      if (onchainError) {
-        throw new Error('message has already been relayed')
-      }
-      if (cannotReadPropertyError) {
-        throw new Error('event not found in optimism sdk')
-      }
-      if (preBedrockErrors) {
-        throw new Error('unexpected Optimism SDK error')
-      }
-
-      throw err
-    }
+    this.l1BlockContract = new Contract(this.l1BlockAddress, this.l1BlockAbi, this.l2Wallet)
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
@@ -184,49 +104,10 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
     throw new Error(`state not handled for tx ${l2TxHash}`)
   }
 
-  // At this time, most aof these errors are only informational and not explicitly handled
-  private _getErrorType (errMessage: string) {
-    // Hop errors
-    const unexpectedPollError =
-      errMessage.includes('state root not published') ||
-      errMessage.includes('message in challenge period')
-
-    const unexpectedRelayErrors =
-      errMessage.includes('unexpected message status') ||
-      errMessage.includes('state not handled for tx ')
-
-    // Optimism SDK errors
-    const invalidMessageError =
-      errMessage.includes('unable to find transaction receipt for') ||
-      errMessage.includes('message is undefined') ||
-      errMessage.includes('could not find SentMessage event for message') ||
-      errMessage.includes('expected 1 message, got')
-
-    const onchainError = errMessage.includes('message has already been relayed')
-
-    // isEventLow() does not handle the case where `batchEvents` is null
-    // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
-    const cannotReadPropertyError = errMessage.includes('Cannot read property')
-
-    const preBedrockErrors =
-      errMessage.includes('unable to find state root batch for tx') ||
-      errMessage.includes('messagePairs not found') ||
-      errMessage.includes('exit within challenge window')
-
-    return {
-      unexpectedPollError,
-      unexpectedRelayErrors,
-      invalidMessageError,
-      onchainError,
-      cannotReadPropertyError,
-      preBedrockErrors
-    }
-  }
-
   // TODO: This is expensive. Optimize calls.
   async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
     // Get the receipt instead of trusting the block number because the block number may have been reorged out
-    const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
+    const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const onchainBlockNumber: number = receipt?.blockNumber
 
     if (!onchainBlockNumber) {
@@ -238,9 +119,9 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
       throw new Error(`reorg detected. tx l2TxHash ${l2TxHash} on chain ${this.chainSlug} is not included in block ${l2BlockNumber}`)
     }
 
-    const lastIncludedBlockNumber = await this.bridge.getSafeBlockNumber()
-    if (l2BlockNumber > lastIncludedBlockNumber) {
-      this.logger.debug(`l2 block number ${l2BlockNumber} is not yet included (last included block ${lastIncludedBlockNumber})`)
+    const lastIncludedBlock = await this.l2Wallet.provider!.getBlock('safe')
+    if (l2BlockNumber > lastIncludedBlock.number) {
+      this.logger.debug(`l2 block number ${l2BlockNumber} is not yet included (last included block ${lastIncludedBlock.number})`)
       return
     }
 
@@ -248,7 +129,7 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
   }
 
   async getL2BlockByL1BlockNumber (l1BlockNumber: number): Promise<providers.Block | undefined> {
-    let l2BlockNumber: number = await this.bridge.getBlockNumber()
+    let l2BlockNumber: number = await this.l2Wallet.provider!.getBlockNumber()
     let l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
 
     // If the L2 is unaware of the L1 block, then we are too early and need to try later
@@ -260,7 +141,7 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
     let counter = 0
     while (true) {
       if (l1BlockNumberOnL2 === l1BlockNumber) {
-        return this.l2Provider.getBlock(l2BlockNumber)
+        return this.l2Wallet.provider!.getBlock(l2BlockNumber)
       }
 
       // If the L2 is aware of the L1 block, then we are too late and need to try earlier
@@ -285,9 +166,9 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
   private async _getL1InclusionBlockByL2TxHash (l2TxHash: string): Promise<providers.Block> {
     // Start at the timestamp of l2 block and iterate forward on L1. Slightly inefficient, but guaranteed
     // to start behind where we need to look so we can iterate forward.
-    const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
+    const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: receipt.blockNumber }))
-    let l1Block: BlockWithTransactions = await this.l1Provider.getBlockWithTransactions(l1BlockNumberOnL2)
+    let l1Block: BlockWithTransactions = await this.l1Wallet.provider!.getBlockWithTransactions(l1BlockNumberOnL2)
 
     const maxIterations = 100
     const maxL1BlockNumberToCheck = l1Block.number + maxIterations
@@ -301,13 +182,15 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
         ) {
           const l2TxHashes = await this._getL2TxHashesInFrame(tx.hash)
           if (l2TxHashes.includes(l2TxHash.toLowerCase())) {
-            return l1Block
+            // Get Block type without full txs
+            // TODO: More typescript way of doing this
+            return this.l1Wallet.provider!.getBlock(l1Block.number)
           }
         }
       }
 
       // Increment block and try again
-      l1Block = await this.l1Provider.getBlockWithTransactions(l1Block.number + 1)
+      l1Block = await this.l1Wallet.provider!.getBlockWithTransactions(l1Block.number + 1)
       counter++
       if (counter > maxL1BlockNumberToCheck) {
         throw new Error('_getL1InclusionBlockByL2TxHash looped too many times')
@@ -316,7 +199,7 @@ abstract class AbstractOptimismBridgeWatcher extends BaseWatcher implements ICha
   }
 
   private async _getL2TxHashesInFrame (l1TxHash: string): Promise<string[]> {
-    const tx = await this.l1Provider.getTransaction(l1TxHash)
+    const tx = await this.l1Wallet.provider!.getTransaction(l1TxHash)
     const frames: Frame[] = await this.derive.parseFrames(tx.data)
 
     const l2TxHashes: string[] = []

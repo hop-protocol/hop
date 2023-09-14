@@ -6,21 +6,26 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import getDecodedValidationData from 'src/utils/getDecodedValidationData'
 import getEncodedValidationData from 'src/utils/getEncodedValidationData'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
+import { getRpcProvider } from 'src/utils/getRpcProvider'
 import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { BigNumber, constants, providers } from 'ethers'
+import { BigNumber, Contract, constants, providers } from 'ethers'
 import {
   BonderTooEarlyError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync
 } from 'src/types/error'
 import {
+  AvgBlockTimeSeconds,
+  BlockHashExpireBufferSec,
   Chain,
   GasCostTransactionType,
-  MaxReorgCheckBackoffIndex
+  MaxReorgCheckBackoffIndex,
+  NumStoredBlockHashes
 } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
@@ -496,15 +501,18 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       throw new Error(`sourceChainWatcher getL1InclusionBlock not implemented for chain ${this.chainSlug}`)
     }
 
+    this.logger.debug(`getHiddenCalldataForDestinationChain: retrieving l1InclusionBlock`)
     const l1InclusionBlock: providers.Block | undefined = await sourceChainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
     if (!l1InclusionBlock) {
       throw new BonderTooEarlyError(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
 
+    this.logger.debug(`getHiddenCalldataForDestinationChain: l1InclusionBlock found ${l1InclusionBlock.number}`)
     let blockInfo: providers.Block | undefined
     if (this.isL1) {
       blockInfo = l1InclusionBlock
     } else {
+      this.logger.debug(`getHiddenCalldataForDestinationChain: getting blockInfo for l1InclusionBlock ${l1InclusionBlock.number} on destination chain ${destinationChainSlug}`)
       const destinationChainWatcher: IChainWatcher = getChainWatcher(destinationChainSlug)
       if (typeof destinationChainWatcher.getL2BlockByL1BlockNumber !== 'function') {
         throw new Error(`destinationChainWatcher getL2BlockByL1BlockNumber not implemented for chain ${destinationChainSlug}`)
@@ -515,24 +523,53 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (!blockInfo) {
       throw new BonderTooEarlyError(`blockInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
+    this.logger.debug(`getHiddenCalldataForDestinationChain: blockInfo found ${blockInfo.number} on destination chain ${destinationChainSlug}`)
 
     // Return if the blockHash is no longer stored at the destination
-    const destinationBridge = this.getSiblingWatcherByChainSlug(destinationChainSlug).bridge
-    const isHashStored = await destinationBridge.isBlockHashStoredAtBlockNumber(blockInfo.number)
+    const isHashStored = await this.isBlockHashStoredAtBlockNumber(blockInfo.number, destinationChainSlug)
     if (!isHashStored) {
       this.logger.debug(`block hash for block number ${blockInfo.number} is no longer stored at destination`)
       return
     }
 
-    const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
+    const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, destinationChainSlug)
     const hiddenCalldata: string = getEncodedValidationData(
       validatorAddress,
       blockInfo.hash,
       blockInfo.number
     )
 
-    await destinationBridge.validateHiddenCalldata(hiddenCalldata)
+    await this.validateHiddenCalldata(hiddenCalldata, destinationChainSlug)
     return hiddenCalldata.slice(2)
+  }
+
+  async validateHiddenCalldata (data: string, chainSlug: string) {
+    // Call the contract so the transaction fails, if needed, prior to making it onchain
+    const { blockHash, blockNumber } = getDecodedValidationData(data)
+    const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, chainSlug)
+    if (!validatorAddress) {
+      throw new Error(`validator address not found for chain ${chainSlug}`)
+    }
+
+    const provider: providers.Provider = getRpcProvider(chainSlug)!
+    const validatorAbi = ['function isBlockHashValid(bytes32,uint256) view returns (bool)']
+    const validatorContract = new Contract(validatorAddress, validatorAbi, provider)
+    const isValid = await validatorContract.isBlockHashValid(blockHash, blockNumber)
+    if (!isValid) {
+      throw new Error(`blockHash ${blockHash} is not valid for blockNumber ${blockNumber}`)
+    }
+  }
+
+  async isBlockHashStoredAtBlockNumber (blockNumber: number, chainSlug: string): Promise<boolean> {
+    // The current block should be within (256 - buffer) blocks of the decoded blockNumber
+    const provider: providers.Provider = getRpcProvider(chainSlug)!
+    const currentBlockNumber = await provider.getBlockNumber()
+    const numBlocksToBuffer = AvgBlockTimeSeconds[chainSlug] * BlockHashExpireBufferSec
+    const earliestBlockWithBlockHash = currentBlockNumber - (NumStoredBlockHashes + numBlocksToBuffer)
+    if (blockNumber < earliestBlockWithBlockHash) {
+      return false
+    }
+    return true
   }
 }
 

@@ -5,4 +5,4 @@ export class EstimateGasError extends Error {}
 export class PossibleReorgDetected extends Error {}
 export class RedundantProviderOutOfSync extends Error {}
 export class KmsSignerError extends Error {}
-export class BondTooEarlyError extends Error {}
+export class BonderTooEarlyError extends Error {}

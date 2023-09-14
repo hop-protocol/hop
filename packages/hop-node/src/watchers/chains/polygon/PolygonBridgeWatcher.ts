@@ -32,6 +32,10 @@ class PolygonBridgeWatcher extends AbstractChainWatcher implements IChainWatcher
     const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
     await this._initClient(rootTunnelAddress)
 
+    const isCheckpointed = await this._isCheckpointed(l2TxHash)
+    if (!isCheckpointed) {
+      throw new Error(`l2TxHash ${l2TxHash} is not checkpointed`)
+    }
 
     // Generate payload
     const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
@@ -71,7 +75,7 @@ class PolygonBridgeWatcher extends AbstractChainWatcher implements IChainWatcher
     this.ready = true
   }
 
-  async isCheckpointed (l2TxHash: string) {
+  async _isCheckpointed (l2TxHash: string) {
     const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const url = `${this.apiUrl}/${l2Block.blockNumber}`
     const res = await fetch(url)

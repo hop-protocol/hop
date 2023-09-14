@@ -125,6 +125,7 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
       return
     }
 
+    this.logger.debug(`getL1InclusionBlock: getting l1 inclusion block for l2 tx hash ${l2TxHash}`)
     return this._getL1InclusionBlockByL2TxHash(l2TxHash)
   }
 
@@ -134,7 +135,8 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
 
     // If the L2 is unaware of the L1 block, then we are too early and need to try later
     if (l1BlockNumberOnL2 < l1BlockNumber) {
-      this.logger.debug(`too early. l1BlockNumber ${l1BlockNumber} does not yet exist on l2 (${l1BlockNumberOnL2})`)
+      const numBlocksEarly = l1BlockNumber - l1BlockNumberOnL2
+      this.logger.debug(`getL2BlockByL1BlockNumber: too early by ${numBlocksEarly} blocks. l1BlockNumber ${l1BlockNumber} does not yet exist on l2 (${l1BlockNumberOnL2})`)
       return
     }
 
@@ -149,7 +151,8 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
       const seqNum: BigNumber = await this.l1BlockContract.sequenceNumber({ blockTag: l2BlockNumber })
       const numL2BlocksSinceLastL1Block = Number(seqNum) + 1
       const newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
-      this.logger.info(`l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
+      const numBlocksAhead = l1BlockNumberOnL2 - l1BlockNumber
+      this.logger.info(`getL2BlockByL1BlockNumber: ${numBlocksAhead} blocks ahead. l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
 
       l2BlockNumber = newL2BlockNumber
       l1BlockNumberOnL2 = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
@@ -191,6 +194,10 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
 
       // Increment block and try again
       l1Block = await this.l1Wallet.provider!.getBlockWithTransactions(l1Block.number + 1)
+
+      if (!l1Block) {
+        throw new Error('no newer l1 blocks to check')
+      }
       counter++
       if (counter > maxL1BlockNumberToCheck) {
         throw new Error('_getL1InclusionBlockByL2TxHash looped too many times')

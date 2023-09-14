@@ -1,16 +1,12 @@
 import ContractBase from './ContractBase'
 import Logger from 'src/logger'
-import getDecodedValidationData from 'src/utils/getDecodedValidationData'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import {
-  AvgBlockTimeSeconds,
-  BlockHashExpireBufferSec,
   Chain,
   GasCostTransactionType,
-  NumStoredBlockHashes,
   SettlementGasLimitPerTx
 } from 'src/constants'
 import { BigNumber, Contract, providers } from 'ethers'
@@ -28,7 +24,6 @@ import {
   getBridgeWriteContractAddress,
   getHasFinalizationBlockTag,
   getProxyAddressForChain,
-  getValidatorAddressForChain,
   config as globalConfig,
   isProxyAddressForChain
 } from 'src/config'
@@ -905,31 +900,5 @@ export default class Bridge extends ContractBase {
     }
     const createdAt = Number(transferRootStruct.createdAt?.toString())
     return createdAt > 0
-  }
-
-  async validateHiddenCalldata (data: string) {
-    // Call the contract so the transaction fails, if needed, prior to making it onchain
-    const { blockHash, blockNumber } = getDecodedValidationData(data)
-    const validatorAddress = getValidatorAddressForChain(this.tokenSymbol, this.chainSlug)
-    if (!validatorAddress) {
-      throw new Error(`validator address not found for chain ${this.chainSlug}`)
-    }
-    const validatorAbi = ['function validateBlockHash(bytes32,uint256)']
-    const validatorContract = new Contract(validatorAddress, validatorAbi, this.provider)
-    const isValid = await validatorContract.isBlockHashValid(blockHash, blockNumber)
-    if (!isValid) {
-      throw new Error(`blockHash ${blockHash} is not valid for blockNumber ${blockNumber}`)
-    }
-  }
-
-  async isBlockHashStoredAtBlockNumber (blockNumber: number): Promise<boolean> {
-    // The current block should be within (256 - buffer) blocks of the decoded blockNumber
-    const currentBlockNumber = await this.getBlockNumber()
-    const numBlocksToBuffer = AvgBlockTimeSeconds[this.chainSlug] * BlockHashExpireBufferSec
-    const earliestBlockWithBlockHash = currentBlockNumber - (NumStoredBlockHashes + numBlocksToBuffer)
-    if (blockNumber < earliestBlockWithBlockHash) {
-      return false
-    }
-    return true
   }
 }

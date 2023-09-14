@@ -3,14 +3,14 @@ import { Addresses } from './types'
 export const addresses: Addresses = {
   canonicalAddresses: {
     optimism: {
-      l1BlockAddress: '',
-      sequencerAddress: '',
-      batchInboxAddress: ''
+      l1BlockAddress: '0x4200000000000000000000000000000000000015',
+      sequencerAddress: '0x7431310e026B69BFC676C0013E12A1A11411EEc9',
+      batchInboxAddress: '0xff00000000000000000000000000000000000420'
     },
     base: {
-      l1BlockAddress: '',
-      sequencerAddress: '',
-      batchInboxAddress: ''
+      l1BlockAddress: '0x4200000000000000000000000000000000000015',
+      sequencerAddress: '0x73b4168Cc87F35Cc239200A20Eb841CdeD23493B',
+      batchInboxAddress: '0x8453100000000000000000000000000000000000'
     }
   },
   bonders: {
@@ -51,7 +51,7 @@ export const addresses: Addresses = {
         l1CanonicalToken: '0x0000000000000000000000000000000000000000',
         l1Bridge: '0xC8A4FB931e8D77df8497790381CA7d228E68a41b',
         proxy: '0xe8e33b75A1E9953eFd593Fd8A653C9368800196F',
-        validator: '0x131F938FAAeAE5DD4497EEFF3D4FF3B0259A62a5',
+        validator: '0xdCdD23BDa7d553C447423440C1F7D386773E3a39',
         bridgeDeployedBlockNumber: 7393532
       },
       arbitrum: {
@@ -65,7 +65,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x69a71b7F6Ff088a0310b4f911b4f9eA11e2E9740',
         l2SaddleLpToken: '0x8DC6D9fe4500D34A405414ed27e8Eb7Fd6889267',
         proxy: '0xF6f46250caF9A19799D3F425A9442118171CEe55',
-        validator: '0x70aF36240eC5040f6f9501E8E2D9db8703ec3d45',
+        validator: '0xF86c14f015AcFb14a88C0d3eB51b51e4637ABa3c',
         bridgeDeployedBlockNumber: 96936
       },
       optimism: {
@@ -79,7 +79,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xa50395bdEaca7062255109fedE012eFE63d6D402',
         l2SaddleLpToken: '0x2105a73D7739f1034Becc1bd87f4F7820d575644',
         proxy: '0x750339f4AD00b2A7029d736c3ef98604112CCCc5',
-        validator: '0xb3C68a491608952Cb1257FC9909a537a0173b63B',
+        validator: '0x3F9880B2dF19aE17AdbdcD6a91a16fCd4a1A9D3D',
         bridgeDeployedBlockNumber: 407263
       },
       base: {
@@ -93,7 +93,7 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xB87aC009F61Fa214f196e232fD14A6f8AE422FA1',
         l2SaddleLpToken: '0x6Ad03376a15819c80b267038E2E4c00D35Cf8f67',
         proxy: '0xE4757dD81AFbecF61E51824AB9238df6691c3D0e',
-        validator: '0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283',
+        validator: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',
         bridgeDeployedBlockNumber: 1551608
       }
     },

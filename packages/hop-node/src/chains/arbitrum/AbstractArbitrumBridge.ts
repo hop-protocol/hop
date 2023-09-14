@@ -1,10 +1,10 @@
-import AbstractChainWatcher from '../AbstractChainWatcher'
+import AbstractBridge from '../AbstractBridge'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
-import { IChainWatcher, RelayL1ToL2MessageOpts } from '../../classes/IChainWatcher'
+import { IChainBridge, RelayL1ToL2MessageOpts } from '.././IChainBridge'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { providers } from 'ethers'
 
-abstract class AbstractArbitrumBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+abstract class AbstractArbitrumBridge extends AbstractBridge implements IChainBridge {
   nonRetryableProvider: providers.Provider
 
   constructor (chainSlug: string) {
@@ -73,4 +73,4 @@ abstract class AbstractArbitrumBridgeWatcher extends AbstractChainWatcher implem
   }
 }
 
-export default AbstractArbitrumBridgeWatcher
+export default AbstractArbitrumBridge

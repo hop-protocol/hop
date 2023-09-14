@@ -1,13 +1,13 @@
-import AbstractChainWatcher from '../AbstractChainWatcher'
+import AbstractBridge from '../AbstractBridge'
 import fetch from 'node-fetch'
 import { Chain } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
-import { IChainWatcher } from '../../classes/IChainWatcher'
+import { IChainBridge } from '../IChainBridge'
 import { providers, utils } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
-class PolygonBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+class PolygonBridge extends AbstractBridge implements IChainBridge {
   ready: boolean = false
   apiUrl: string
   polygonMainnetChainId: number = 137
@@ -125,4 +125,4 @@ class PolygonBridgeWatcher extends AbstractChainWatcher implements IChainWatcher
   }
 }
 
-export default PolygonBridgeWatcher
+export default PolygonBridge

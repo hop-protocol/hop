@@ -12,7 +12,7 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
-import getChainWatcher from 'src/watchers/chains/getChainWatcher'
+import getChainBridge from 'src/chains/getChainBridge'
 
 type Config = {
   chainSlug: string
@@ -106,9 +106,9 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    const chainWatcher = getChainWatcher(this.chainSlug)
-    if (!chainWatcher) {
-      logger.warn(`exit watcher for ${chainWatcher} is not implemented yet`)
+    const chainBridge = getChainBridge(this.chainSlug)
+    if (!chainBridge) {
+      logger.warn(`chainBridge for ${this.chainSlug} is not implemented yet`)
       return
     }
 
@@ -123,7 +123,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     })
 
     try {
-      const tx = await chainWatcher.relayL2ToL1Message(commitTxHash)
+      const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
 
       if (!tx) {
         throw new Error('tx relayL2ToL2Message tx found')

@@ -1,12 +1,12 @@
-import AbstractChainWatcher from '../AbstractChainWatcher'
+import AbstractBridge from '../AbstractBridge'
 import wait from 'src/utils/wait'
 import { Chain } from 'src/constants'
-import { IChainWatcher } from '../../classes/IChainWatcher'
+import { IChainBridge } from '../IChainBridge'
 import { Signer, providers, utils } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
 
-class PolygonZkBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+class PolygonZkBridge extends AbstractBridge implements IChainBridge {
   ready: boolean = false
   l1Provider: any
   l2Provider: any
@@ -125,4 +125,4 @@ class PolygonZkBridgeWatcher extends AbstractChainWatcher implements IChainWatch
     }
   }
 }
-export default PolygonZkBridgeWatcher
+export default PolygonZkBridge

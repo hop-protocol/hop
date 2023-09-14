@@ -1,9 +1,9 @@
-import AbstractChainWatcher from '../AbstractChainWatcher'
-import { IChainWatcher } from '../../classes/IChainWatcher'
+import AbstractBridge from '../AbstractBridge'
+import { IChainBridge } from '.././IChainBridge'
 import { providers } from 'ethers'
 import { Chain } from 'src/constants'
 
-class LineaBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+class LineaBridge extends AbstractBridge implements IChainBridge {
   constructor () {
     super(Chain.Linea)
   }
@@ -13,4 +13,4 @@ class LineaBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
   }
 }
 
-export default LineaBridgeWatcher
+export default LineaBridge

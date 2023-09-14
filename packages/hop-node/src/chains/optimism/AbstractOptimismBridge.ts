@@ -1,12 +1,12 @@
-import AbstractChainWatcher from '../AbstractChainWatcher'
-import Derive, { Frame } from '../../chains/optimism/Derive'
+import AbstractBridge from '../AbstractBridge'
+import Derive, { Frame } from './Derive'
 import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import zlib from 'zlib'
 import { BigNumber, Contract, Signer, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
-import { IChainWatcher } from '../../classes/IChainWatcher'
+import { IChainBridge } from '../IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RLP } from '@ethereumjs/rlp'
@@ -15,7 +15,7 @@ import { config as globalConfig, getCanonicalAddressesForChain } from 'src/confi
 import { BlockWithTransactions } from '@ethersproject/abstract-provider'
 import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 
-abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBridge {
   csm: CrossChainMessenger
   l1BlockAbi: string[]
   l1BlockAddress: string
@@ -103,8 +103,6 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
 
     throw new Error(`state not handled for tx ${l2TxHash}`)
   }
-
-  // TODO: This is expensive. Optimize calls.
   async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
     // Get the receipt instead of trusting the block number because the block number may have been reorged out
     const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
@@ -114,7 +112,6 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
       throw new Error(`no block number found for tx l2TxHash ${l2TxHash} on chain ${this.chainSlug}`)
     }
 
-    // TODO: Handle reorgs here when implementing reorg watcher
     if (onchainBlockNumber !== l2BlockNumber) {
       throw new Error(`reorg detected. tx l2TxHash ${l2TxHash} on chain ${this.chainSlug} is not included in block ${l2BlockNumber}`)
     }
@@ -163,9 +160,6 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
     }
   }
 
-  // TODO: This takes too long, get more efficient. Possibly just get all the blocks from now + 5 min in parallel and
-  // TODO: This assumes that all channels close within the same frame. This is not always true and needs to be handled
-  // TODO: This is expensive. Optimize calls.
   private async _getL1InclusionBlockByL2TxHash (l2TxHash: string): Promise<providers.Block> {
     // Start at the timestamp of l2 block and iterate forward on L1. Slightly inefficient, but guaranteed
     // to start behind where we need to look so we can iterate forward.
@@ -261,4 +255,4 @@ abstract class AbstractOptimismBridgeWatcher extends AbstractChainWatcher implem
   }
 }
 
-export default AbstractOptimismBridgeWatcher
+export default AbstractOptimismBridge

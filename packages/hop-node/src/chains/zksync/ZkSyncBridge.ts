@@ -1,6 +1,6 @@
-import AbstractChainWatcher from '../AbstractChainWatcher'
+import AbstractBridge from '../AbstractBridge'
 import { Chain } from 'src/constants'
-import { IChainWatcher } from '../../classes/IChainWatcher'
+import { IChainBridge } from '../IChainBridge'
 import { Provider as ZkSyncProvider, utils } from 'zksync-web3'
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
@@ -56,7 +56,7 @@ const abi = [
   }
 ]
 
-class ZkSyncBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+class ZkSyncBridge extends AbstractBridge implements IChainBridge {
   zkSyncProvider: ZkSyncProvider
 
   constructor () {
@@ -220,4 +220,4 @@ class ZkSyncBridgeWatcher extends AbstractChainWatcher implements IChainWatcher 
   // }
 }
 
-export default ZkSyncBridgeWatcher
+export default ZkSyncBridge

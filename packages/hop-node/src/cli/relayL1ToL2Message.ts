@@ -1,5 +1,5 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
-import { RelayL1ToL2MessageOpts } from 'src/watchers/classes/IChainWatcher'
+import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import {
   getL1ToL2RelayWatcher
 } from 'src/watchers/watchers'

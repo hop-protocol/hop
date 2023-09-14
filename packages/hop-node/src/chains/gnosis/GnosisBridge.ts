@@ -1,9 +1,9 @@
-import AbstractChainWatcher from '../AbstractChainWatcher'
+import AbstractBridge from '../AbstractBridge'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
-import { IChainWatcher } from '../../classes/IChainWatcher'
+import { IChainBridge } from '.././IChainBridge'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
 import { solidityKeccak256 } from 'ethers/lib/utils'
@@ -16,7 +16,7 @@ const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslin
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class GnosisBridgeWatcher extends AbstractChainWatcher implements IChainWatcher {
+class GnosisBridge extends AbstractBridge implements IChainBridge {
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB
 
@@ -132,4 +132,4 @@ class GnosisBridgeWatcher extends AbstractChainWatcher implements IChainWatcher 
   }
 }
 
-export default GnosisBridgeWatcher
+export default GnosisBridge

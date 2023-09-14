@@ -30,7 +30,7 @@ import {
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
-import { IChainWatcher } from './IChainWatcher'
+import { IChainBridge } from '../../chains/IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Mutex } from 'async-mutex'
@@ -42,7 +42,7 @@ import {
   hostname
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import getChainWatcher from 'src/watchers/chains/getChainWatcher'
+import getChainBridge from 'src/chains/getChainBridge'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract
@@ -496,13 +496,13 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   // Returns packed(address,data) without the leading 0x
   // The calldata will be undefined if the blockHash is no longer stored at the destination
   async getHiddenCalldataForDestinationChain (destinationChainSlug: string, l2TxHash: string, l2BlockNumber: number): Promise<string | undefined> {
-    const sourceChainWatcher: IChainWatcher = getChainWatcher(this.chainSlug)
-    if (typeof sourceChainWatcher.getL1InclusionBlock !== 'function') {
-      throw new Error(`sourceChainWatcher getL1InclusionBlock not implemented for chain ${this.chainSlug}`)
+    const sourceChainBridge: IChainBridge = getChainBridge(this.chainSlug)
+    if (typeof sourceChainBridge.getL1InclusionBlock !== 'function') {
+      throw new Error(`sourceChainBridge getL1InclusionBlock not implemented for chain ${this.chainSlug}`)
     }
 
     this.logger.debug(`getHiddenCalldataForDestinationChain: retrieving l1InclusionBlock`)
-    const l1InclusionBlock: providers.Block | undefined = await sourceChainWatcher.getL1InclusionBlock(l2TxHash, l2BlockNumber)
+    const l1InclusionBlock: providers.Block | undefined = await sourceChainBridge.getL1InclusionBlock(l2TxHash, l2BlockNumber)
     if (!l1InclusionBlock) {
       throw new BonderTooEarlyError(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
     }
@@ -513,11 +513,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       blockInfo = l1InclusionBlock
     } else {
       this.logger.debug(`getHiddenCalldataForDestinationChain: getting blockInfo for l1InclusionBlock ${l1InclusionBlock.number} on destination chain ${destinationChainSlug}`)
-      const destinationChainWatcher: IChainWatcher = getChainWatcher(destinationChainSlug)
-      if (typeof destinationChainWatcher.getL2BlockByL1BlockNumber !== 'function') {
-        throw new Error(`destinationChainWatcher getL2BlockByL1BlockNumber not implemented for chain ${destinationChainSlug}`)
+      const destinationChainBridge: IChainBridge = getChainBridge(destinationChainSlug)
+      if (typeof destinationChainBridge.getL2BlockByL1BlockNumber !== 'function') {
+        throw new Error(`destinationChainBridge getL2BlockByL1BlockNumber not implemented for chain ${destinationChainSlug}`)
       }
-      blockInfo = await destinationChainWatcher.getL2BlockByL1BlockNumber(l1InclusionBlock.number)
+      blockInfo = await destinationChainBridge.getL2BlockByL1BlockNumber(l1InclusionBlock.number)
     }
 
     if (!blockInfo) {

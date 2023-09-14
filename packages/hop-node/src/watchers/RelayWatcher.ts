@@ -7,7 +7,7 @@ import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
-import { RelayL1ToL2MessageOpts } from 'src/watchers/classes/IChainWatcher'
+import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
 import { config as globalConfig, relayTransactionBatchSize } from 'src/config'
@@ -15,7 +15,7 @@ import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
-import getChainWatcher from 'src/watchers/chains/getChainWatcher'
+import getChainBridge from 'src/chains/getChainBridge'
 
 type Config = {
   chainSlug: string
@@ -341,7 +341,7 @@ class RelayWatcher extends BaseWatcher {
 
   async sendRelayTx (destinationChainId: number, txHash: string, relayL1ToL2MessageOpts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
     const destinationChainSlug = chainIdToSlug(destinationChainId)
-    const chainWatcher = getChainWatcher(destinationChainSlug)
+    const chainWatcher = getChainBridge(destinationChainSlug)
     if (!chainWatcher) {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
     }

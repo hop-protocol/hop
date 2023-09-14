@@ -31,19 +31,25 @@ async function main () {
   const destinationChainSlug = Chain.Base
 
   // 210 blocks gives optimism enough time for the tx to get included on L1 and posted on the destination L2 (base only)
-  const blockBuffer = 210
+  const blockBuffer = 350
   const currentBlockNumber: number = await l2Provider.getBlockNumber()
-  const blockToUse = await l2Provider.getBlockWithTransactions(currentBlockNumber - blockBuffer)
-  const l2BlockNumber = blockToUse.number
 
+  // If a block only has system txs, skip it since they are not checkpointed
+  let blockNumberToUse = currentBlockNumber - blockBuffer
+  let l2BlockNumber: number | undefined
   let l2TxHash: string | undefined
-  for (const tx of blockToUse.transactions) {
-    if (tx.data.substring(0, 10) === '0x015d8eb9') continue
-    l2TxHash = tx.hash
-  }
+  while (true) {
+    const blockToUse = await l2Provider.getBlockWithTransactions(blockNumberToUse)
 
-  if (!l2TxHash) {
-    throw new Error('bad block')
+    for (const tx of blockToUse.transactions) {
+      if (tx.data.substring(0, 10) === '0x015d8eb9') continue
+      l2BlockNumber = blockToUse.number
+      l2TxHash = tx.hash
+      break
+    }
+
+    if (l2TxHash) break
+    blockNumberToUse--
   }
 
   const opts = {
@@ -54,7 +60,6 @@ async function main () {
     l2BlockNumber
   }
 
-  // getHiddenCalldataForDestinationChain
   await testGetHiddenCalldataForDestinationChain(opts)
   // await testGetL1InclusionBlock(opts)
   // await testGetL2BlockByL1BlockNumber(opts)

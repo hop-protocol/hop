@@ -2,6 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
+import getChainBridge from 'src/chains/getChainBridge'
 import isNativeToken from 'src/utils/isNativeToken'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -15,7 +16,6 @@ import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
-import getChainBridge from 'src/chains/getChainBridge'
 
 type Config = {
   chainSlug: string

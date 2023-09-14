@@ -3,6 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
 import contracts from 'src/contracts'
+import getChainBridge from 'src/chains/getChainBridge'
 import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
@@ -12,7 +13,6 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
-import getChainBridge from 'src/chains/getChainBridge'
 
 type Config = {
   chainSlug: string

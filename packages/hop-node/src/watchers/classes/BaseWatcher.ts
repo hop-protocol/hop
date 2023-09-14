@@ -6,19 +6,13 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import getChainBridge from 'src/chains/getChainBridge'
 import getDecodedValidationData from 'src/utils/getDecodedValidationData'
 import getEncodedValidationData from 'src/utils/getEncodedValidationData'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
 import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, constants, providers } from 'ethers'
-import {
-  BonderTooEarlyError,
-  PossibleReorgDetected,
-  RedundantProviderOutOfSync
-} from 'src/types/error'
 import {
   AvgBlockTimeSeconds,
   BlockHashExpireBufferSec,
@@ -27,6 +21,12 @@ import {
   MaxReorgCheckBackoffIndex,
   NumStoredBlockHashes
 } from 'src/constants'
+import { BigNumber, Contract, constants, providers } from 'ethers'
+import {
+  BonderTooEarlyError,
+  PossibleReorgDetected,
+  RedundantProviderOutOfSync
+} from 'src/types/error'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
@@ -36,13 +36,13 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
 import { Strategy, Vault } from 'src/vault'
+import { getRpcProvider } from 'src/utils/getRpcProvider'
 import {
   getValidatorAddressForChain,
   config as globalConfig,
   hostname
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import getChainBridge from 'src/chains/getChainBridge'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract
@@ -501,7 +501,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       throw new Error(`sourceChainBridge getL1InclusionBlock not implemented for chain ${this.chainSlug}`)
     }
 
-    this.logger.debug(`getHiddenCalldataForDestinationChain: retrieving l1InclusionBlock`)
+    this.logger.debug('getHiddenCalldataForDestinationChain: retrieving l1InclusionBlock')
     const l1InclusionBlock: providers.Block | undefined = await sourceChainBridge.getL1InclusionBlock(l2TxHash, l2BlockNumber)
     if (!l1InclusionBlock) {
       throw new BonderTooEarlyError(`l1InclusionBlock not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)

@@ -4,12 +4,12 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
+import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from 'src/constants'
-import { BigNumber, Contract, providers } from 'ethers'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'

@@ -9,8 +9,8 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
 import {
-  BonderTooEarlyError,
   BonderFeeTooLowError,
+  BonderTooEarlyError,
   NonceTooLowError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync

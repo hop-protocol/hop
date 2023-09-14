@@ -1,8 +1,3 @@
-import ArbitrumBridge from 'src/chains/arbitrum/ArbitrumBridge'
-import BaseBridge from 'src/chains/optimism/BaseBridge'
-import GnosisBridge from 'src/chains/gnosis/GnosisBridge'
-import OptimismBridge from 'src/chains/optimism/OptimismBridge'
-import PolygonBridge from 'src/chains/polygon/PolygonBridge'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'

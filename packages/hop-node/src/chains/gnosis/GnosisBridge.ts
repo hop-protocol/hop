@@ -3,12 +3,12 @@ import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
+import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { IChainBridge } from '.././IChainBridge'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
-import { solidityKeccak256 } from 'ethers/lib/utils'
-import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { getCanonicalAddressesForChain } from 'src/config'
+import { solidityKeccak256 } from 'ethers/lib/utils'
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires

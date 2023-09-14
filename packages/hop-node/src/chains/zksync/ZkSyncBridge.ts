@@ -1,7 +1,7 @@
 import AbstractBridge from '../AbstractBridge'
 import { Chain } from 'src/constants'
 import { IChainBridge } from '../IChainBridge'
-import { Provider as ZkSyncProvider, utils } from 'zksync-web3'
+import { Provider as ZkSyncProvider } from 'zksync-web3'
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 

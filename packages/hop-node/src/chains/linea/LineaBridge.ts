@@ -1,7 +1,7 @@
 import AbstractBridge from '../AbstractBridge'
+import { Chain } from 'src/constants'
 import { IChainBridge } from '.././IChainBridge'
 import { providers } from 'ethers'
-import { Chain } from 'src/constants'
 
 class LineaBridge extends AbstractBridge implements IChainBridge {
   constructor () {

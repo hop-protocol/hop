@@ -84,7 +84,7 @@ class PolygonZkBridge extends AbstractBridge implements IChainBridge {
   }
 
   private async _relayXDomainMessage (txHash: string, networkId: number, wallet: Signer): Promise<providers.TransactionResponse> {
-    let isRelayable = await this._isCheckpointed(txHash, networkId)
+    const isRelayable = await this._isCheckpointed(txHash, networkId)
     if (!isRelayable) {
       throw new Error('expected deposit to be claimable')
     }

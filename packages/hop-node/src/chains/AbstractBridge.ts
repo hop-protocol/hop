@@ -1,16 +1,16 @@
 import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Signer } from 'ethers'
-import chainSlugToId from 'src/utils/chainSlugToId'
 import { getEnabledNetworks } from 'src/config'
 
 class AbstractBridge {
   logger: Logger
   chainSlug: string
   chainId: number
-  l1Wallet: Signer 
-  l2Wallet: Signer 
+  l1Wallet: Signer
+  l2Wallet: Signer
 
   constructor (chainSlug: string) {
     const enabledNetworks = getEnabledNetworks()

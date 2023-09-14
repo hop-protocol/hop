@@ -3,8 +3,8 @@ import fetch from 'node-fetch'
 import { Chain } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { IChainBridge } from '../IChainBridge'
-import { providers, utils } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
+import { providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
 class PolygonBridge extends AbstractBridge implements IChainBridge {
@@ -26,7 +26,6 @@ class PolygonBridge extends AbstractBridge implements IChainBridge {
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
     const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)

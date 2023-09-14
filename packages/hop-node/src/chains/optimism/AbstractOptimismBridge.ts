@@ -1,19 +1,14 @@
 import AbstractBridge from '../AbstractBridge'
 import Derive, { Frame } from './Derive'
-import Logger from 'src/logger'
-import wallets from 'src/wallets'
 import zlib from 'zlib'
-import { BigNumber, Contract, Signer, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { BigNumber, Contract, providers } from 'ethers'
+import { BlockWithTransactions } from '@ethersproject/abstract-provider'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainBridge } from '../IChainBridge'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-import { config as globalConfig, getCanonicalAddressesForChain } from 'src/config'
-import { BlockWithTransactions } from '@ethersproject/abstract-provider'
-import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
+import { getCanonicalAddressesForChain, config as globalConfig } from 'src/config'
 
 abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBridge {
   csm: CrossChainMessenger

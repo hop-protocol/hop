@@ -1,12 +1,10 @@
-import { getConfirmRootsWatcher } from '../src/watchers/watchers'
-import OptimismBridge from '../src/chains/optimism/OptimismBridge'
 import getRpcProvider from '../src/utils/getRpcProvider'
+import { Chain } from '../src/constants'
+import { getConfirmRootsWatcher } from '../src/watchers/watchers'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from '../src/config'
-import { Chain } from '../src/constants'
-import { providers } from 'ethers'
 
 // Run this with
 // NETWORK=goerli npx ts-node test/OptimismBridge.test.ts
@@ -39,10 +37,10 @@ async function main () {
 
   let l2TxHash: string | undefined
   for (const tx of blockToUse.transactions) {
-    if (tx.data.substring(0,10) === '0x015d8eb9') continue
+    if (tx.data.substring(0, 10) === '0x015d8eb9') continue
     l2TxHash = tx.hash
   }
-  
+
   if (!l2TxHash) {
     throw new Error('bad block')
   }
@@ -70,11 +68,9 @@ async function main () {
 
   // // getL1InclusionBlock
   // // TODO
-
-
 }
 
-async function testGetHiddenCalldataForDestinationChain(opts: any): Promise<void> {
+async function testGetHiddenCalldataForDestinationChain (opts: any): Promise<void> {
   const { chainWatcher, destinationChainSlug, l2TxHash, l2BlockNumber } = opts
 
   const getHiddenCalldataForDestinationChainOpts = {
@@ -87,11 +83,11 @@ async function testGetHiddenCalldataForDestinationChain(opts: any): Promise<void
   await testGetHiddenCalldataForDestinationChainSuccess(getHiddenCalldataForDestinationChainOpts)
 }
 
-async function testGetL1InclusionBlock(opts: any): Promise<void> {
+async function testGetL1InclusionBlock (opts: any): Promise<void> {
   // TODO
 }
 
-async function testGetL2BlockByL1BlockNumber(opts: any): Promise<void> {
+async function testGetL2BlockByL1BlockNumber (opts: any): Promise<void> {
   const { chainWatcher, l1Provider } = opts
 
   const l1BlockHead = await l1Provider.getBlockNumber()
@@ -106,7 +102,7 @@ async function testGetL2BlockByL1BlockNumber(opts: any): Promise<void> {
   await testGetL2BlockByL1BlockNumberTooEarly(getL2BlockByL1BlockNumberOpts)
 }
 
-async function testGetHiddenCalldataForDestinationChainSuccess(opts: any): Promise<void> {
+async function testGetHiddenCalldataForDestinationChainSuccess (opts: any): Promise<void> {
   const { chainWatcher, destinationChainSlug, l2TxHash, l2BlockNumber } = opts
   const hiddenCalldata = await chainWatcher.getHiddenCalldataForDestinationChain(destinationChainSlug, l2TxHash, l2BlockNumber)
   if (hiddenCalldata === undefined) {

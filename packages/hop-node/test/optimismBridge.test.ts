@@ -1,14 +1,15 @@
-import getRpcProvider from '../src/utils/getRpcProvider'
-import { Chain } from '../src/constants'
-import { getConfirmRootsWatcher } from '../src/watchers/watchers'
+import '../src/moduleAlias'
+import getRpcProvider from 'src/utils/getRpcProvider'
+import { Chain } from 'src/constants'
+import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from '../src/config'
+} from 'src/config'
 
 // Run this with
 // NETWORK=goerli npx ts-node test/OptimismBridge.test.ts
-// NOTE: Use relative imports to avoid cannot find module errors. Also, move '../src/watchers/' to the top fo the file
+// NOTE: import moduleAlias first to avoid errors
 
 async function main () {
   const chain = Chain.Optimism

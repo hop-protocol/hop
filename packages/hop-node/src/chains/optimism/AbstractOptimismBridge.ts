@@ -98,6 +98,7 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
 
     throw new Error(`state not handled for tx ${l2TxHash}`)
   }
+
   async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
     // Get the receipt instead of trusting the block number because the block number may have been reorged out
     const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
@@ -142,9 +143,16 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
       // Jump to the block that contains the previous l1Block by skipping the remaining sequences in the block
       const seqNum: BigNumber = await this.l1BlockContract.sequenceNumber({ blockTag: l2BlockNumber })
       const numL2BlocksSinceLastL1Block = Number(seqNum) + 1
-      const newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
+      let newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
       const numBlocksAhead = l1BlockNumberOnL2 - l1BlockNumber
       this.logger.info(`getL2BlockByL1BlockNumber: ${numBlocksAhead} blocks ahead. l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
+
+      // TODO: Remove optimization for more sustainable solution
+      if (numBlocksAhead >= 5) {
+        const numBlocksToSkip = 20
+        newL2BlockNumber = newL2BlockNumber - numBlocksToSkip
+        this.logger.info(`getL2BlockByL1BlockNumber: skipping ahead ${numBlocksToSkip} blocks to ${newL2BlockNumber}`)
+      }
 
       l2BlockNumber = newL2BlockNumber
       l1BlockNumberOnL2 = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
@@ -162,10 +170,9 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
     const l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: receipt.blockNumber }))
     let l1Block: BlockWithTransactions = await this.l1Wallet.provider!.getBlockWithTransactions(l1BlockNumberOnL2)
 
-    const maxIterations = 100
-    const maxL1BlockNumberToCheck = l1Block.number + maxIterations
     let counter = 0
     while (true) {
+      let blockNumberIncrementer = 1
       for (const tx of l1Block.transactions) {
         if (
           tx.to &&
@@ -182,13 +189,14 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
       }
 
       // Increment block and try again
-      l1Block = await this.l1Wallet.provider!.getBlockWithTransactions(l1Block.number + 1)
-
+      l1Block = await this.l1Wallet.provider!.getBlockWithTransactions(l1Block.number + blockNumberIncrementer)
       if (!l1Block) {
         throw new Error('no newer l1 blocks to check')
       }
+
+      this.logger.debug(`trying again with l1 block ${l1Block.number} (incremented ${blockNumberIncrementer} blocks)`)
       counter++
-      if (counter > maxL1BlockNumberToCheck) {
+      if (counter > 20) {
         throw new Error('_getL1InclusionBlockByL2TxHash looped too many times')
       }
     }

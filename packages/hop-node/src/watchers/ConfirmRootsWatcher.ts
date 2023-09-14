@@ -122,18 +122,16 @@ class ConfirmRootsWatcher extends BaseWatcher {
       sentConfirmTxAt: Date.now()
     })
 
-    try {
-      const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
+    const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
 
-      if (!tx) {
-        throw new Error('tx relayL2ToL2Message tx found')
-      }
-
-      const msg = `sent chain ${this.chainSlug} confirmTransferRoot exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
+    if (!tx) {
+      throw new Error('tx relayL2ToL2Message tx found')
     }
+
+    const msg = `sent chain ${this.chainSlug} confirmTransferRoot exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
+      
   }
 
   async checkConfirmableTransferRoots (transferRootId: string) {

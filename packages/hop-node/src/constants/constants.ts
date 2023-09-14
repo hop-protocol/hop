@@ -168,3 +168,16 @@ export const FinalityTagForChain: Record<string, string> = {
 // and when the transaction is sent
 export const BlockHashExpireBufferSec: number = 60
 export const NumStoredBlockHashes: number = 256
+
+// These values are currently the same on both mainnet and testnet but this might not always be the case
+export const TimeToIncludeOnL1Sec: Record<string, number> = {
+  [Chain.Optimism]: 120,
+  [Chain.Base]: 20
+}
+
+// These values are currently the same on both mainnet and testnet but this might not always be the case
+export const TimeToIncludeOnL2Sec: Record<string, number> = {
+  [Chain.Ethereum]: 0,
+  [Chain.Optimism]: 180,
+  [Chain.Base]: 90
+}

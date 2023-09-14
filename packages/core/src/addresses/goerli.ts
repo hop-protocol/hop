@@ -3,12 +3,10 @@ import { Addresses } from './types'
 export const addresses: Addresses = {
   canonicalAddresses: {
     optimism: {
-      l1BlockAddress: '0x4200000000000000000000000000000000000015',
       sequencerAddress: '0x7431310e026B69BFC676C0013E12A1A11411EEc9',
       batchInboxAddress: '0xff00000000000000000000000000000000000420'
     },
     base: {
-      l1BlockAddress: '0x4200000000000000000000000000000000000015',
       sequencerAddress: '0x73b4168Cc87F35Cc239200A20Eb841CdeD23493B',
       batchInboxAddress: '0x8453100000000000000000000000000000000000'
     }

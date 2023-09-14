@@ -9,14 +9,23 @@ import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/address
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 import { getCanonicalAddressesForChain, config as globalConfig } from 'src/config'
+import { Chain } from 'src/constants'
+
+// Transactions have been observed that are less than the expected, which is why div(2) is required
+// Mainnet and testnet for all chains are the same now but might not always be. Handle if they are no longer the same.
+const CheckpointTxBlockGap: Record<string, number> = {
+  [Chain.Optimism]: Math.floor(10 / 2),
+  [Chain.Base]: Math.floor(5 / 2)
+}
 
 abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBridge {
   csm: CrossChainMessenger
   l1BlockAbi: string[]
-  l1BlockAddress: string
   l1BlockContract: Contract
   sequencerAddress: string
   batchInboxAddress: string
+  l1BlockSetterAddress: string
+  l1BlockAddress: string
   derive: Derive = new Derive()
 
   constructor (chainSlug: string) {
@@ -30,11 +39,15 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
       l2SignerOrProvider: this.l2Wallet
     })
 
+    // System addresses and precompiles
+    this.l1BlockSetterAddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0001'
+    this.l1BlockAddress = '0x4200000000000000000000000000000000000015'
+
+    // Addresses from config
     const optimismSuperchainCanonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    this.l1BlockAddress = optimismSuperchainCanonicalAddresses.l1BlockAddress
     this.sequencerAddress = optimismSuperchainCanonicalAddresses.sequencerAddress
     this.batchInboxAddress = optimismSuperchainCanonicalAddresses.batchInboxAddress
-    if (!this.l1BlockAddress || !this.sequencerAddress || !this.batchInboxAddress) {
+    if (!this.sequencerAddress || !this.batchInboxAddress) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
 
@@ -99,44 +112,45 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
     throw new Error(`state not handled for tx ${l2TxHash}`)
   }
 
-  async getL1InclusionBlock (l2TxHash: string, l2BlockNumber: number): Promise<providers.Block | undefined> {
-    // Get the receipt instead of trusting the block number because the block number may have been reorged out
+  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const onchainBlockNumber: number = receipt?.blockNumber
-
-    if (!onchainBlockNumber) {
-      throw new Error(`no block number found for tx l2TxHash ${l2TxHash} on chain ${this.chainSlug}`)
-    }
-
-    if (onchainBlockNumber !== l2BlockNumber) {
-      throw new Error(`reorg detected. tx l2TxHash ${l2TxHash} on chain ${this.chainSlug} is not included in block ${l2BlockNumber}`)
-    }
-
     const lastIncludedBlock = await this.l2Wallet.provider!.getBlock('safe')
-    if (l2BlockNumber > lastIncludedBlock.number) {
-      this.logger.debug(`l2 block number ${l2BlockNumber} is not yet included (last included block ${lastIncludedBlock.number})`)
+    if (receipt.blockNumber > lastIncludedBlock.number) {
+      this.logger.debug(`l2 block number ${receipt.blockNumber} is not yet included (last included block ${lastIncludedBlock.number})`)
       return
     }
 
-    this.logger.debug(`getL1InclusionBlock: getting l1 inclusion block for l2 tx hash ${l2TxHash}`)
-    return this._getL1InclusionBlockByL2TxHash(l2TxHash)
+    this.logger.debug(`getL1InclusionTx: getting l1 inclusion tx for l2 tx hash ${l2TxHash}`)
+    return this._getL1InclusionTx(l2TxHash)
   }
 
-  async getL2BlockByL1BlockNumber (l1BlockNumber: number): Promise<providers.Block | undefined> {
+  // TODO: Update with inclusion watcher
+  async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+    const l1BlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
     let l2BlockNumber: number = await this.l2Wallet.provider!.getBlockNumber()
     let l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
 
     // If the L2 is unaware of the L1 block, then we are too early and need to try later
     if (l1BlockNumberOnL2 < l1BlockNumber) {
       const numBlocksEarly = l1BlockNumber - l1BlockNumberOnL2
-      this.logger.debug(`getL2BlockByL1BlockNumber: too early by ${numBlocksEarly} blocks. l1BlockNumber ${l1BlockNumber} does not yet exist on l2 (${l1BlockNumberOnL2})`)
+      this.logger.debug(`getL2InclusionTx: too early by ${numBlocksEarly} blocks. l1BlockNumber ${l1BlockNumber} does not yet exist on l2 (${l1BlockNumberOnL2})`)
       return
     }
 
     let counter = 0
     while (true) {
       if (l1BlockNumberOnL2 === l1BlockNumber) {
-        return this.l2Wallet.provider!.getBlock(l2BlockNumber)
+        const txs = (await this.l2Wallet.provider!.getBlockWithTransactions(l2BlockNumber)).transactions
+        for (const tx of txs) {
+          if (
+            tx.to &&
+            tx.to.toLowerCase() === this.l1BlockAddress.toLowerCase() &&
+            tx.from.toLocaleLowerCase() === this.l1BlockSetterAddress.toLowerCase()
+          ) {
+            return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
+          }
+        }
+        throw new Error(`getL2InclusionTx: inclusion tx does not exist in block ${l2BlockNumber}`)
       }
 
       // If the L2 is aware of the L1 block, then we are too late and need to try earlier
@@ -145,29 +159,28 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
       const numL2BlocksSinceLastL1Block = Number(seqNum) + 1
       let newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
       const numBlocksAhead = l1BlockNumberOnL2 - l1BlockNumber
-      this.logger.info(`getL2BlockByL1BlockNumber: ${numBlocksAhead} blocks ahead. l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
+      this.logger.info(`getL2InclusionTx: ${numBlocksAhead} blocks ahead. l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
 
       // TODO: Remove optimization for more sustainable solution
       if (numBlocksAhead >= 5) {
         const numBlocksToSkip = 20
         newL2BlockNumber = newL2BlockNumber - numBlocksToSkip
-        this.logger.info(`getL2BlockByL1BlockNumber: skipping ahead ${numBlocksToSkip} blocks to ${newL2BlockNumber}`)
+        this.logger.info(`getL2InclusionTx: skipping ahead ${numBlocksToSkip} blocks to ${newL2BlockNumber}`)
       }
 
       l2BlockNumber = newL2BlockNumber
       l1BlockNumberOnL2 = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
       counter++
-      if (counter > 10) {
-        throw new Error('getL2BlockByL1BlockNumber looped too many times')
+      if (counter > 50) {
+        throw new Error('getL2InclusionTx looped too many times')
       }
     }
   }
 
-  private async _getL1InclusionBlockByL2TxHash (l2TxHash: string): Promise<providers.Block> {
-    // Start at the timestamp of l2 block and iterate forward on L1. Slightly inefficient, but guaranteed
-    // to start behind where we need to look so we can iterate forward.
-    const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: receipt.blockNumber }))
+  // TODO: Update with inclusion watcher
+  private async _getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt> {
+    const l2BlockNumber: number = (await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)).blockNumber
+    const l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
     let l1Block: BlockWithTransactions = await this.l1Wallet.provider!.getBlockWithTransactions(l1BlockNumberOnL2)
 
     let counter = 0
@@ -179,11 +192,10 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
           tx.to.toLowerCase() === this.batchInboxAddress.toLowerCase() &&
           tx.from.toLowerCase() === this.sequencerAddress.toLowerCase()
         ) {
+          blockNumberIncrementer = CheckpointTxBlockGap[this.chainSlug]
           const l2TxHashes = await this._getL2TxHashesInFrame(tx.hash)
           if (l2TxHashes.includes(l2TxHash.toLowerCase())) {
-            // Get Block type without full txs
-            // TODO: More typescript way of doing this
-            return this.l1Wallet.provider!.getBlock(l1Block.number)
+            return this.l1Wallet.provider!.getTransactionReceipt(tx.hash)
           }
         }
       }
@@ -196,8 +208,8 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
 
       this.logger.debug(`trying again with l1 block ${l1Block.number} (incremented ${blockNumberIncrementer} blocks)`)
       counter++
-      if (counter > 20) {
-        throw new Error('_getL1InclusionBlockByL2TxHash looped too many times')
+      if (counter > 50) {
+        throw new Error('_getL1InclusionTx: looped too many times')
       }
     }
   }

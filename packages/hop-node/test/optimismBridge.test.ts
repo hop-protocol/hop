@@ -13,6 +13,7 @@ import {
 
 async function main () {
   const chain = Chain.Optimism
+  const destinationChainSlug = Chain.Base
   const token = 'ETH'
   const dryMode = true
 
@@ -28,10 +29,9 @@ async function main () {
   const l1Provider = getRpcProvider(Chain.Ethereum)!
   const l2Provider = getRpcProvider(chain)!
 
-  const destinationChainSlug = Chain.Base
-
   // 210 blocks gives optimism enough time for the tx to get included on L1 and posted on the destination L2 (base only)
-  const blockBuffer = 350
+  // More than ~300 will result in a blockHash that is no longer stored
+  const blockBuffer = 250
   const currentBlockNumber: number = await l2Provider.getBlockNumber()
 
   // If a block only has system txs, skip it since they are not checkpointed
@@ -61,19 +61,8 @@ async function main () {
   }
 
   await testGetHiddenCalldataForDestinationChain(opts)
-  // await testGetL1InclusionBlock(opts)
-  // await testGetL2BlockByL1BlockNumber(opts)
-
-  // const getHiddenCalldataForDestinationChainOpts = {
-  //   chainWatcher,
-  //   destinationChainSlug,
-  //   l2TxHash,
-  //   l2BlockNumber
-  // }
-  // await getHiddenCalldataForDestinationChain(getHiddenCalldataForDestinationChainOpts)
-
-  // // getL1InclusionBlock
-  // // TODO
+  // await testGetL1InclusionTx(opts)
+  // await testGetL2InclusionTx(opts)
 }
 
 async function testGetHiddenCalldataForDestinationChain (opts: any): Promise<void> {
@@ -89,23 +78,23 @@ async function testGetHiddenCalldataForDestinationChain (opts: any): Promise<voi
   await testGetHiddenCalldataForDestinationChainSuccess(getHiddenCalldataForDestinationChainOpts)
 }
 
-async function testGetL1InclusionBlock (opts: any): Promise<void> {
+async function testGetL1InclusionTx (opts: any): Promise<void> {
   // TODO
 }
 
-async function testGetL2BlockByL1BlockNumber (opts: any): Promise<void> {
+async function testGetL2InclusionTx (opts: any): Promise<void> {
   const { chainWatcher, l1Provider } = opts
 
   const l1BlockHead = await l1Provider.getBlockNumber()
-  const getL2BlockByL1BlockNumberOpts = {
+  const getL2InclusionTxOpts = {
     chainWatcher,
     l1Provider,
     l1BlockHead
   }
 
-  await testGetL2BlockByL1BlockNumberSuccess(getL2BlockByL1BlockNumberOpts)
-  await testGetL2BlockByL1BlockNumberTooManyLoops(getL2BlockByL1BlockNumberOpts)
-  await testGetL2BlockByL1BlockNumberTooEarly(getL2BlockByL1BlockNumberOpts)
+  await testGetL2InclusionTxSuccess(getL2InclusionTxOpts)
+  await testGetL2InclusionTxTooManyLoops(getL2InclusionTxOpts)
+  await testGetL2InclusionTxTooEarly(getL2InclusionTxOpts)
 }
 
 async function testGetHiddenCalldataForDestinationChainSuccess (opts: any): Promise<void> {
@@ -117,28 +106,28 @@ async function testGetHiddenCalldataForDestinationChainSuccess (opts: any): Prom
   console.log(hiddenCalldata)
 }
 
-async function testGetL2BlockByL1BlockNumberSuccess (opts: any): Promise<void> {
+async function testGetL2InclusionTxSuccess (opts: any): Promise<void> {
   const { chainWatcher, l1Provider, l1BlockHead } = opts
   const l1Block = await l1Provider.getBlock(l1BlockHead - 10)
-  const l2BlockWithL1BlockData = await chainWatcher.getL2BlockByL1BlockNumber(l1Block)
+  const l2BlockWithL1BlockData = await chainWatcher.getL2InclusionTx(l1Block)
   if (l2BlockWithL1BlockData === undefined) {
     throw new Error('shouldn\'t have failed')
   }
 }
 
-async function testGetL2BlockByL1BlockNumberTooManyLoops (opts: any): Promise<void> {
+async function testGetL2InclusionTxTooManyLoops (opts: any): Promise<void> {
   const { chainWatcher, l1Provider, l1BlockHead } = opts
   const l1Block = await l1Provider.getBlock(l1BlockHead - 100)
   try {
-    await chainWatcher.getL2BlockByL1BlockNumber(l1Block)
+    await chainWatcher.getL2InclusionTx(l1Block)
     throw new Error('should have failed')
   } catch {}
 }
 
-async function testGetL2BlockByL1BlockNumberTooEarly (opts: any): Promise<void> {
+async function testGetL2InclusionTxTooEarly (opts: any): Promise<void> {
   const { chainWatcher, l1Provider, l1BlockHead } = opts
   const l1Block = await l1Provider.getBlock(l1BlockHead)
-  const l2BlockWithL1BlockData = await chainWatcher.getL2BlockByL1BlockNumber(l1Block)
+  const l2BlockWithL1BlockData = await chainWatcher.getL2InclusionTx(l1Block)
   if (l2BlockWithL1BlockData !== undefined) {
     throw new Error('should have failed')
   }

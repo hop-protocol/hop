@@ -7,14 +7,12 @@ export const addresses: Addresses = {
       l2AmbAddress: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59'
     },
     optimism: {
-      l1BlockAddress: '0x4200000000000000000000000000000000000015',
       sequencerAddress: '0x6887246668a3b87F54DeB3b94Ba47a6f63F32985',
       batchInboxAddress: '0xFF00000000000000000000000000000000000010'
     },
     base: {
-      l1BlockAddress: '0x4200000000000000000000000000000000000015',
-      sequencerAddress: '0x6088B06c5a187058434655B71057a9ee93E13d0d',
-      batchInboxAddress: '0xFF00000000000000000000000000000000000010'
+      sequencerAddress: '0x5050F69a9786F081509234F1a7F4684b5E5b76C9',
+      batchInboxAddress: '0xFf00000000000000000000000000000000008453'
     }
   },
   bonders: {

@@ -57,7 +57,6 @@ export interface GnosisCanonicalAddresses {
 }
 
 export interface OptimismSuperchainCanonicalAddresses {
-  l1BlockAddress: string
   sequencerAddress: string
   batchInboxAddress: string
 }

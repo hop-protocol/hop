@@ -457,7 +457,7 @@ export function getProxyAddressForChain (token: string, chainSlug: string): stri
 export function getValidatorAddressForChain (token: string, chainSlug: string): string {
   const address = config.addresses?.[token]?.[chainSlug]?.validator
   if (!address) {
-    throw new Error(`validator address address not found for token ${token} on chain ${chainSlug}`)
+    throw new Error(`validator address ${address} not found for token ${token} on chain ${chainSlug}`)
   }
   return address
 }

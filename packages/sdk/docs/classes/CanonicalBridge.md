@@ -1,10 +1,7 @@
 # Class: CanonicalBridge
 
 Class reprensenting Canonical Token Bridge.
-
-**`Namespace`**
-
-CanonicalBridge
+ CanonicalBridge
 
 ## Hierarchy
 
@@ -143,6 +140,16 @@ CanonicalBridge
 
 • **new CanonicalBridge**(`networkOrOptionsObject`, `signer?`, `token?`, `chain?`, `chainProviders?`)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `networkOrOptionsObject` | `string` \| `CanonicalBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
+| `token?` | [`TToken`](../modules.md#ttoken) | Token symbol or model |
+| `chain?` | [`TChain`](../modules.md#tchain) | Chain model |
+| `chainProviders?` | `ChainProviders` | - |
+
 **`Desc`**
 
 Instantiates Canonical Token Bridge.
@@ -157,16 +164,6 @@ import { Wallet } from 'ethers'
 const signer = new Wallet(privateKey)
 const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `CanonicalBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
-| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
-| `token?` | [`TToken`](../modules.md#ttoken) | Token symbol or model |
-| `chain?` | [`TChain`](../modules.md#tchain) | Chain model |
-| `chainProviders?` | `ChainProviders` | - |
 
 #### Overrides
 
@@ -388,15 +385,15 @@ Token class instance
 
 • `get` **address**(): `string`
 
-**`Desc`**
-
-Return address of L1 canonical token bridge.
-
 #### Returns
 
 `string`
 
 L1 canonical token bridge address
+
+**`Desc`**
+
+Return address of L1 canonical token bridge.
 
 ___
 
@@ -517,11 +514,6 @@ ___
 
 ▸ **approveDeposit**(`amount`, `chain?`): `Promise`<`any`\>
 
-**`Desc`**
-
-Sends transaction to approve tokens for canonical token bridge deposit.
-Will only send approval transaction if necessary.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -535,16 +527,16 @@ Will only send approval transaction if necessary.
 
 Ethers transaction object.
 
+**`Desc`**
+
+Sends transaction to approve tokens for canonical token bridge deposit.
+Will only send approval transaction if necessary.
+
 ___
 
 ### <a id="approvewithdraw" name="approvewithdraw"></a> approveWithdraw
 
 ▸ **approveWithdraw**(`amount`): `Promise`<`any`\>
-
-**`Desc`**
-
-Sends transaction to approve tokens for canonical token bridge withdrawal.
-Will only send approval transaction if necessary.
 
 #### Parameters
 
@@ -557,6 +549,11 @@ Will only send approval transaction if necessary.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to approve tokens for canonical token bridge withdrawal.
+Will only send approval transaction if necessary.
 
 ___
 
@@ -578,10 +575,6 @@ ___
 
 ▸ **connect**(`signer`): [`CanonicalBridge`](CanonicalBridge.md)
 
-**`Desc`**
-
-Returns canonical bridge instance with signer connected. Used for adding or changing signer.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -594,15 +587,15 @@ Returns canonical bridge instance with signer connected. Used for adding or chan
 
 New CanonicalBridge SDK instance with connected signer.
 
+**`Desc`**
+
+Returns canonical bridge instance with signer connected. Used for adding or changing signer.
+
 ___
 
 ### <a id="deposit" name="deposit"></a> deposit
 
 ▸ **deposit**(`amount`, `chain?`): `Promise`<`any`\>
-
-**`Desc`**
-
-Sends transaction to canonical token bridge to deposit tokens into L2.
 
 #### Parameters
 
@@ -616,6 +609,10 @@ Sends transaction to canonical token bridge to deposit tokens into L2.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to canonical token bridge to deposit tokens into L2.
 
 ___
 
@@ -646,12 +643,6 @@ ___
 
 ▸ **exit**(`txHash`, `chain`): `Promise`<`any`\>
 
-**`Desc`**
-
-Sends transaction to finalize withdrawal.
-This call is necessary on Polygon to finalize L2 withdrawal into L1 on
-certain chains. Will only send transaction if necessary.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -664,6 +655,12 @@ certain chains. Will only send transaction if necessary.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to finalize withdrawal.
+This call is necessary on Polygon to finalize L2 withdrawal into L1 on
+certain chains. Will only send transaction if necessary.
 
 ___
 
@@ -834,6 +831,19 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
+| `percent` | `number` | Percentage to bump by. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Bumped as price as BigNumber
+
 **`Desc`**
 
 Calculates current gas price plus increased percentage amount.
@@ -847,19 +857,6 @@ const hop = new Hop()
 const bumpedGasPrice = await hop.getBumpedGasPrice(signer, 1.20)
 console.log(bumpedGasPrice.toNumber())
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
-| `percent` | `number` | Percentage to bump by. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Bumped as price as BigNumber
 
 #### Inherited from
 
@@ -887,10 +884,6 @@ ___
 
 ▸ **getChainId**(`chain`): `number`
 
-**`Desc`**
-
-Returns Chain ID for specified Chain model.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -903,6 +896,10 @@ Returns Chain ID for specified Chain model.
 
 - Chain ID.
 
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
+
 #### Inherited from
 
 [Base](Base.md).[getChainId](Base.md#getchainid)
@@ -912,10 +909,6 @@ ___
 ### <a id="getchainprovider" name="getchainprovider"></a> getChainProvider
 
 ▸ **getChainProvider**(`chain`): `any`
-
-**`Desc`**
-
-Returns Ethers provider for specified Chain model.
 
 #### Parameters
 
@@ -928,6 +921,10 @@ Returns Ethers provider for specified Chain model.
 `any`
 
 Ethers provider.
+
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 #### Inherited from
 
@@ -1550,6 +1547,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
+#### Returns
+
+`Promise`<`string`\>
+
+Ethers signer address.
+
 **`Desc`**
 
 Returns the connected signer address.
@@ -1564,12 +1567,6 @@ const address = await hop.getSignerAddress()
 console.log(address)
 ```
 
-#### Returns
-
-`Promise`<`string`\>
-
-Ethers signer address.
-
 #### Inherited from
 
 [Base](Base.md).[getSignerAddress](Base.md#getsigneraddress)
@@ -1579,11 +1576,6 @@ ___
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
 ▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
-
-**`Desc`**
-
-Returns the connected signer if it's connected to the specified
-chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Parameters
 
@@ -1597,6 +1589,11 @@ chain id, otherwise it returns a regular provider for the specified chain.
 `Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
+
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
+chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Inherited from
 
@@ -2006,10 +2003,6 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](Chain.md)
 
-**`Desc`**
-
-Returns a Chain model instance with connected provider.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2021,6 +2014,10 @@ Returns a Chain model instance with connected provider.
 [`Chain`](Chain.md)
 
 Chain model with connected provider.
+
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 #### Inherited from
 
@@ -2050,10 +2047,6 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](TokenModel.md)
 
-**`Desc`**
-
-Returns a Token instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2065,6 +2058,10 @@ Returns a Token instance.
 [`TokenModel`](TokenModel.md)
 
 Token model.
+
+**`Desc`**
+
+Returns a Token instance.
 
 #### Inherited from
 
@@ -2097,10 +2094,6 @@ ___
 
 ▸ **withdraw**(`amount`, `chain?`): `Promise`<`any`\>
 
-**`Desc`**
-
-Sends transaction to L2 canonical token bridge to withdraw tokens into L1.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2113,3 +2106,7 @@ Sends transaction to L2 canonical token bridge to withdraw tokens into L1.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to L2 canonical token bridge to withdraw tokens into L1.

@@ -34,7 +34,7 @@ npm install @hop-protocol/sdk
 
 ## Documentation
 
-See [docs.hop.protocol/js-sdk](https://docs.hop.exchange/js-sdk)
+See ([docs.hop.exchange/v/developer-docs/js-sdk/js-sdk](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk))
 
 ## Development
 

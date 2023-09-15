@@ -34,7 +34,9 @@ npm install @hop-protocol/sdk
 
 ## Documentation
 
-See ([docs.hop.exchange/v/developer-docs/js-sdk/js-sdk](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk))
+For getting started and examples, see [docs.hop.exchange/v/developer-docs/js-sdk/js-sdk](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
+
+For sdk API reference, see [hop-sdk-docs.netlify.app](https://hop-sdk-docs.netlify.app/)
 
 ## Development
 

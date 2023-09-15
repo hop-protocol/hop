@@ -10,6 +10,7 @@ import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 import { getCanonicalAddressesForChain, config as globalConfig } from 'src/config'
 import { Chain } from 'src/constants'
+import wait from 'src/utils/wait'
 
 // Transactions have been observed that are less than the expected, which is why div(2) is required
 // Mainnet and testnet for all chains are the same now but might not always be. Handle if they are no longer the same.
@@ -124,57 +125,56 @@ abstract class AbstractOptimismBridge extends AbstractBridge implements IChainBr
     return this._getL1InclusionTx(l2TxHash)
   }
 
-  // TODO: Update with inclusion watcher
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const l1BlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
-    let l2BlockNumber: number = await this.l2Wallet.provider!.getBlockNumber()
-    let l1BlockNumberOnL2: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
+    const l2InclusionBlockNumber = await this._traverseL2BlocksForInclusion(l1BlockNumber)
 
-    // If the L2 is unaware of the L1 block, then we are too early and need to try later
-    if (l1BlockNumberOnL2 < l1BlockNumber) {
-      const numBlocksEarly = l1BlockNumber - l1BlockNumberOnL2
-      this.logger.debug(`getL2InclusionTx: too early by ${numBlocksEarly} blocks. l1BlockNumber ${l1BlockNumber} does not yet exist on l2 (${l1BlockNumberOnL2})`)
-      return
-    }
-
-    let counter = 0
-    while (true) {
-      if (l1BlockNumberOnL2 === l1BlockNumber) {
-        const txs = (await this.l2Wallet.provider!.getBlockWithTransactions(l2BlockNumber)).transactions
-        for (const tx of txs) {
-          if (
-            tx.to &&
-            tx.to.toLowerCase() === this.l1BlockAddress.toLowerCase() &&
-            tx.from.toLocaleLowerCase() === this.l1BlockSetterAddress.toLowerCase()
-          ) {
-            return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
-          }
-        }
-        throw new Error(`getL2InclusionTx: inclusion tx does not exist in block ${l2BlockNumber}`)
-      }
-
-      // If the L2 is aware of the L1 block, then we are too late and need to try earlier
-      // Jump to the block that contains the previous l1Block by skipping the remaining sequences in the block
-      const seqNum: BigNumber = await this.l1BlockContract.sequenceNumber({ blockTag: l2BlockNumber })
-      const numL2BlocksSinceLastL1Block = Number(seqNum) + 1
-      let newL2BlockNumber = l2BlockNumber - numL2BlocksSinceLastL1Block
-      const numBlocksAhead = l1BlockNumberOnL2 - l1BlockNumber
-      this.logger.info(`getL2InclusionTx: ${numBlocksAhead} blocks ahead. l1BlockNumberOnL2 ${l1BlockNumberOnL2} at l2Block ${l2BlockNumber} is greater than l1BlockNumber ${l1BlockNumber}, seqNum: ${seqNum}, trying again with ${newL2BlockNumber}`)
-
-      // TODO: Remove optimization for more sustainable solution
-      if (numBlocksAhead >= 5) {
-        const numBlocksToSkip = 20
-        newL2BlockNumber = newL2BlockNumber - numBlocksToSkip
-        this.logger.info(`getL2InclusionTx: skipping ahead ${numBlocksToSkip} blocks to ${newL2BlockNumber}`)
-      }
-
-      l2BlockNumber = newL2BlockNumber
-      l1BlockNumberOnL2 = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
-      counter++
-      if (counter > 50) {
-        throw new Error('getL2InclusionTx looped too many times')
+    const txs = (await this.l2Wallet.provider!.getBlockWithTransactions(l2InclusionBlockNumber)).transactions
+    for (const tx of txs) {
+      if (
+        tx.to &&
+        tx.to.toLowerCase() === this.l1BlockAddress.toLowerCase() &&
+        tx.from.toLocaleLowerCase() === this.l1BlockSetterAddress.toLowerCase()
+      ) {
+        return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
       }
     }
+    throw new Error(`getL2InclusionTx: inclusion tx does not exist in block ${l2InclusionBlockNumber}`)
+  }
+
+  private async _traverseL2BlocksForInclusion (l1BlockNumber: number): Promise<number> {
+    // L1 data on L2 lags behind true data by 36 L2 blocks (72 sec)
+    const numL2BlocksPerL1Block = 6
+    const l1DataLagInL1Blocks = 6
+    const l1DataLagInL2Blocks = l1DataLagInL1Blocks * numL2BlocksPerL1Block
+
+    // With the lag, the included block should represent the block that the tx was included in on L1
+    let l2BlockNumber: number = await this.l2Wallet.provider!.getBlockNumber() - l1DataLagInL2Blocks
+    let includedL1BlockNumber: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
+
+    // If the includedL1BlockNumber is still too large, decrement until it is not
+    // This may happen if proposals on L1 are missed
+    while (includedL1BlockNumber > l1BlockNumber) {
+      const numL2BlocksToDecrement = (includedL1BlockNumber - l1BlockNumber) * numL2BlocksPerL1Block
+      l2BlockNumber -= numL2BlocksToDecrement
+      includedL1BlockNumber = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
+    }
+
+    // If we are too far behind, then we need to jump ahead. This might happen if less than
+    // numL2BlocksPerL1Block were included in the last l1Block for some reason
+    while (includedL1BlockNumber < l1BlockNumber) {
+      // If we are behind by more than 1 l1 block, there is something wrong and we should throw since
+      // that implies there are a number of low-sequence-number transactions
+      if (l1BlockNumber - includedL1BlockNumber > numL2BlocksPerL1Block) {
+        throw new Error(`getL2InclusionTx: too far behind. l1BlockNumber ${l1BlockNumber} is more than ${numL2BlocksPerL1Block} blocks ahead of l2BlockNumber ${l2BlockNumber}`)
+      }
+
+      // If not, increment by one until we get the right block
+      l2BlockNumber += 1
+      includedL1BlockNumber = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
+    }
+
+    return l2BlockNumber
   }
 
   // TODO: Update with inclusion watcher

@@ -203,6 +203,10 @@ app.get('/index', (req: any, res: any) => {
   res.sendFile(path.resolve(__dirname, '..', 'public/index.html'))
 })
 
+app.get('v1/transfer-timestamp', (req, res) => {
+  controller.getTransferTimes(sourceSlug, destinationSlug)
+})
+
 const argv = require('minimist')(process.argv.slice(2))
 console.debug('flags:', argv)
 

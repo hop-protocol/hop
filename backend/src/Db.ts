@@ -779,6 +779,18 @@ class Db {
     return this.db.any(sql, queryParams)
   }
 
+  async getTransferTimes (sourceChainSlug, destinationChainSlug) {
+    const sql = `
+      SELECT MIN(bond_within_timestamp) AS min_bond_within_timestamp, MAX(bond_within_timestamp) AS max_bond_within_timestamp 
+      FROM (SELECT transfer_id, bond_within_timestamp FROM transfers where source_chain_slug = $1 AND destination_chain_slug = $2 AND to_timestamp(timestamp) >= (NOW() - INTERVAL '7 day'))
+      AS t where bond_within_timestamp > 0
+    `
+
+    const queryParams = [sourceChainSlug, destinationChainSlug]
+
+    return this.db.any(sql, queryParams)
+  }
+
   close () {
     this.db.close()
   }

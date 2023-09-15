@@ -284,4 +284,42 @@ export class Controller {
 
     return data
   }
+
+  async getTransferTimes (params: any): Promise<Transfer[]> {
+    // validate parameters
+
+    db.getTransferTimes(sourceSlug, destinationSlug)
+
+    // calculate stat values
+    /*
+      interface TimeToBridge {
+        avg: number | null
+        median: number | null
+        percentile90: number | null
+      }
+
+      timeToBridgeStats(times: number[]): TimeToBridgeStats {
+        const n = times.length
+        if (n === 0) {
+          return { avg: null, median: null, percentile90: null }
+        }
+
+        // sort bundle of transactions 
+        times.sort((a, b) => a - b)
+
+        // calculate average time
+        const avg = times.reduce((a, b) => a + b, 0) / n
+
+        // calculate average time
+        const mid = Math.floor(n / 2)
+        const median = n % 2 === 0 ? (times[mid - 1] + times[mid]) / 2 : times[mid]
+
+        // calculate 90th percentile
+        const idx90 = Math.floor(n * 0.9) - 1
+        const percentile90 = times[idx90]
+
+        return { avg, median, percentile90 }
+      }
+    */
+  }
 }

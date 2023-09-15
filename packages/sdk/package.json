@@ -15,6 +15,7 @@
     "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
     "clean": "rimraf dist && rimraf hop.js",
     "clean:docs": "rimraf docs",
+    "clean:docs-ui": "rimraf docs-ui",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
     "version:bump": "npm version prerelease --preid=beta",
@@ -29,8 +30,10 @@
     "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run lerna:sync",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build && npm run build:browser",
-    "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
+    "docs:markdown": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
     "docs:concat": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && npx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
+    "docs:ui": "npm run clean:docs-ui && typedoc --out docs-ui src/index.ts",
+    "docs": "npm run docs:ui && npm run docs:markdown",
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
   "directories": {},
@@ -83,7 +86,7 @@
     "standard": "^12.0.1",
     "ts-jest": "^26.5.4",
     "tsify": "^4.0.1",
-    "typedoc": "^0.23.10",
+    "typedoc": "^0.25.1",
     "typedoc-plugin-markdown": "^3.13.4",
     "typescript": "^4.8.4",
     "uglify-es": "^3.3.9"

@@ -49,6 +49,17 @@ async function getTransfersData (startTime: number, endTime: number) {
   console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length, mainnetTransfers.length, baseTransfers.length)
 
   for (const x of mainnetTransfers) {
+    const transferId = getTransferSentToL2TransferId(
+      x.destinationChainId,
+      x.recipient,
+      x.amount,
+      x.amountOutMin,
+      x.deadline,
+      x.relayer,
+      x.relayerFee,
+      x.transactionHash,
+      x.logIndex
+    )
     data.push({
       sourceChain: 1,
       destinationChain: x.destinationChainId,
@@ -57,7 +68,7 @@ async function getTransfersData (startTime: number, endTime: number) {
       recipient: x.recipient,
       bonderFee: x.relayerFee,
       deadline: x.deadline,
-      transferId: x.id,
+      transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
       token: x.token

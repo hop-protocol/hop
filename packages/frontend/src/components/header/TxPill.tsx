@@ -40,8 +40,9 @@ const TxPill = () => {
   }
 
   useEffect(() => {
+    console.dir({ transactions })
     if (transactions && transactions.length > 0) {
-      const pendingTxs = transactions.filter(tx => tx.pending)
+      const pendingTxs = transactions.filter(tx => tx.pendingDestinationConfirmation)
       setNumPendingTxs(pendingTxs.length)
     } else {
       setNumPendingTxs(0)

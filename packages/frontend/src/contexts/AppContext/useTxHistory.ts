@@ -1,6 +1,5 @@
-import { useEffect, useCallback, Dispatch, SetStateAction } from 'react'
+import { useEffect, useCallback, Dispatch, SetStateAction, useRef } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
 import { filterByHash, sortByRecentTimestamp } from 'src/utils'
@@ -11,7 +10,7 @@ export interface TxHistory {
   addTransaction: (tx: Transaction) => void
   removeTransaction: (tx: Transaction) => void
   updateTransaction: (tx: Transaction, updateOpts: any, matchingHash?: string) => void
-  // clear: () => void
+  clear: () => void
 }
 
 export interface UpdateTransactionOptions {
@@ -25,12 +24,19 @@ export interface UpdateTransactionOptions {
 const cacheKey = 'recentTransactions:v000'
 
 const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
-  const { provider } = useWeb3Context()
 
-  const [transactions, setTransactions/*, clear */] = useLocalStorage<Transaction[] | undefined>(
+  const [transactions, setTransactions] = useLocalStorage<Transaction[] | undefined>(
     cacheKey,
     defaultTxs
   )
+
+  function clear() {
+    try {
+      localStorage.removeItem(cacheKey)
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
     setTransactions(prevTransactions => {
@@ -69,20 +75,64 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     }, [transactions]
   )
 
+  const isFirstRender = useRef(true)
+
   // on page load or any time a new transaction is created
   useEffect(() => {
-    if (!provider || !transactions) {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
       return
     }
 
-    // scan through each transaction in localStorage
+    if (!transactions) {
+      return
+    }
+
+    // helper function using destTxHash get destination confirmation
+    const listenForDestinationConfirmation = async (tx) => {
+      if (tx.destTxHash === "") {
+        const stopPolling = setTimeout(() => {
+          clearInterval(interval)
+        }, 3600000)  // stop after an hour
+
+        const interval = setInterval(async () => {
+          // repeatedly poll explorer with timeout to get destTxHash (bondTransactionHash)
+          const explorerAPIUrl = `https://${process.env.REACT_APP_NETWORK === 'goerli' && "goerli-"}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
+          console.log({ explorerAPIUrl })
+
+          const response = await fetch(explorerAPIUrl)
+          console.dir({ response })
+
+          const data = await response.json()
+          const bondTransactionHash = data[0]?.bondTransactionHash
+
+          if (bondTransactionHash) {
+            clearTimeout(stopPolling)
+            clearInterval(interval)
+
+            try {
+              tx.destProvider.once(tx.hash, transaction => {
+                updateTransaction(tx, { destTxHash: bondTransactionHash })
+                updateTransaction(tx, { pendingDestinationConfirmation: false })
+              })
+            } catch (e) {
+              console.error('Error transaction listener:', e)
+            }
+          }
+        }, 15000) // poll every 15 seconds
+      }
+    }
+
+
+    // main function scanning through each transaction in localStorage
     transactions.forEach(tx => {
       // only create listeners for transactions that are pending
       if (tx.pending) {
         const listenForOriginConfirmation = async () => {
           try {
-            provider.once(tx.hash, (transaction) => {
+            tx.provider.once(tx.hash, (transaction) => {
               updateTransaction(tx, { pending: false })
+              listenForDestinationConfirmation(tx)
             })
           } catch (e) {
             console.error('Error transaction listener:', e)
@@ -90,21 +140,9 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
         }
 
         listenForOriginConfirmation()
+      } else if (tx.pendingDestinationConfirmation) {
+        listenForDestinationConfirmation(tx)
       }
-
-      // if (tx.pendingDestinationConfirmation) {
-      //   const listenForDestinationConfirmation = async () => {
-      //     try {
-      //       provider.once(tx.hash, (transaction) => {
-      //         updateTransaction(tx, { pendingDestinationConfirmation: false })
-      //       })
-      //     } catch (e) {
-      //       console.error('Error transaction listener:', e)
-      //     }
-      //   }
-
-      //   listenForDestinationConfirmation()
-      // }
     })
   }, [transactions])
 
@@ -115,7 +153,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     addTransaction,
     removeTransaction,
     updateTransaction,
-    // clear,
+    clear,
   }
 }
 

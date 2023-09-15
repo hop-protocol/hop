@@ -9,7 +9,7 @@ import TransactionRow from './TransactionRow'
 
 function TransactionsList(props: any) {
   const styles = useTxStatusStyles()
-  const { transactions, /* clear,*/removeTransaction } = useTxHistory(props.transactions)
+  const { transactions, clear, removeTransaction } = useTxHistory(props.transactions)
 
   if (!transactions || transactions.length === 0) {
     return <Typography variant="body1">Your recent transactions will appear here...</Typography>
@@ -21,9 +21,9 @@ function TransactionsList(props: any) {
         <Typography variant="h3" className={styles.header}>
           Recent transactions
         </Typography>
-        {/*<Button className={styles.clearButton} onClick={clear}>
+        {<Button className={styles.clearButton} onClick={clear}>
           (clear all)
-        </Button>*/}
+        </Button>}
       </Flex>
       {transactions?.map((tx: Transaction) => (
         <TransactionRow key={tx.hash} tx={tx} styles={styles} rmTx={removeTransaction} />

@@ -963,6 +963,13 @@ export class Base {
     return json.data ?? null
   }
 
+  async getTransferTimes (transferIdOrTxHash: String):Promise<any> {
+    const baseApiUrl = `https://${this.network === 'goerli' && 'goerli-'}explorer-api.hop.exchange`
+    const url = `${baseApiUrl}/v1/transferTimes?transferId=${transferIdOrTxHash}`
+    const json = await fetchJsonOrThrow(url)
+    return json.data ?? null
+  }
+
   getProviderRpcUrl (provider: any): string {
     return getUrlFromProvider(provider)
   }

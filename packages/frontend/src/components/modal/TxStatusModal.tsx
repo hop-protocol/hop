@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { useApp } from 'src/contexts/AppContext'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
@@ -20,6 +21,7 @@ type Props = {
 }
 
 function TxStatusModal(props: Props) {
+  const { sdk } = useApp()
   const styles = useTxStatusStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
@@ -30,7 +32,22 @@ function TxStatusModal(props: Props) {
 
   const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
   const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
-  const timeEstimate = sourceChain && destinationChain ? getTransferTimeString(sourceChain?.slug, destinationChain?.slug) : ''
+  
+  const [timeEstimate, setTimeEstimate] = useState(sourceChain && destinationChain ? getTransferTimeString(sourceChain?.slug, destinationChain?.slug) : '')
+
+  // async update the time estimate using historical times
+  useEffect(() => {
+    if (!sourceChain || !destinationChain) {
+      return
+    }
+
+    const fetchData = async () => {
+      const historicalTimeEstimate = await sdk.getTransferTimes(sourceChain, destinationChain)
+      setTimeEstimate(historicalTimeEstimate)
+    }
+
+    fetchData()
+  }, [sourceChain, destinationChain])
 
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
     tx,

@@ -57,7 +57,7 @@ export interface GnosisCanonicalAddresses {
 }
 
 export interface OptimismSuperchainCanonicalAddresses {
-  sequencerAddress: string
+  batcherAddress: string
   batchInboxAddress: string
 }
 

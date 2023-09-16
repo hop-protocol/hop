@@ -7,11 +7,11 @@ export const addresses: Addresses = {
       l2AmbAddress: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59'
     },
     optimism: {
-      sequencerAddress: '0x6887246668a3b87F54DeB3b94Ba47a6f63F32985',
+      batcherAddress: '0x6887246668a3b87F54DeB3b94Ba47a6f63F32985',
       batchInboxAddress: '0xFF00000000000000000000000000000000000010'
     },
     base: {
-      sequencerAddress: '0x5050F69a9786F081509234F1a7F4684b5E5b76C9',
+      batcherAddress: '0x5050F69a9786F081509234F1a7F4684b5E5b76C9',
       batchInboxAddress: '0xFf00000000000000000000000000000000008453'
     }
   },

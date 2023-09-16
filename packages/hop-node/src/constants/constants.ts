@@ -181,3 +181,8 @@ export const TimeToIncludeOnL2Sec: Record<string, number> = {
   [Chain.Optimism]: 180,
   [Chain.Base]: 90
 }
+
+export const L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {
+  [Chain.Optimism]: 6,
+  [Chain.Base]: 12
+}

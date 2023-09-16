@@ -504,10 +504,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     // If we know the blockhash is no longer stored, return
-    // TODO: Update with inclusion watcher
     const isHashStoredAppx = await this.isBlockHashStoredAtBlockNumberAppx(l2BlockNumber, destinationChainSlug)
     if (!isHashStoredAppx) {
-      this.logger.debug(`BlockHash no longer stored appx`)
+      this.logger.debug('BlockHash no longer stored appx')
       return
     }
 
@@ -583,7 +582,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  // TODO: Update with inclusion watcher
   async isBlockHashStoredAtBlockNumberAppx (blockNumber: number, chainSlug: string): Promise<boolean> {
     // Get chain-specific constants
     const hashStorageTime = AvgBlockTimeSeconds[chainSlug] * NumStoredBlockHashes

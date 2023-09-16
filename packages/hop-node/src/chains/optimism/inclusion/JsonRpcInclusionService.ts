@@ -1,14 +1,9 @@
 import InclusionService from './InclusionService'
-import { InclusionServiceConfig } from './IInclusionService'
-import { providers } from 'ethers'
-import { BlockWithTransactions } from '@ethersproject/abstract-provider'
 import { AvgBlockTimeSeconds, Chain } from 'src/constants'
+import { BlockWithTransactions } from '@ethersproject/abstract-provider'
+import { providers } from 'ethers'
 
 class JsonRpcInclusionService extends InclusionService {
-  constructor (config: InclusionServiceConfig) {
-    super(config)
-  }
-
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const safeL2Block: providers.Block = await this.l2Wallet.provider!.getBlock('safe')
@@ -47,7 +42,7 @@ class JsonRpcInclusionService extends InclusionService {
       l1OriginTimestamp
     ] = await Promise.all([
       Number(await this.l1BlockContract.number({ blockTag: safeL2Block.number })),
-      Number(await this.l1BlockContract.timestamp({ blockTag: safeL2Block.number })),
+      Number(await this.l1BlockContract.timestamp({ blockTag: safeL2Block.number }))
     ])
 
     // Get num blocks from l1 origin tx to expected checkpoint of safe l2 tx
@@ -72,7 +67,7 @@ class JsonRpcInclusionService extends InclusionService {
     // Some variance may exist so get multiple blocks
     const expectedCheckpointBlock = l1InclusionTx.blockNumber - numL1BlocksInChannel
     const possibleCheckpointBlocks = await this._getPossibleCheckpointBlock(expectedCheckpointBlock)
-      
+
     for (const checkpointBlock of possibleCheckpointBlocks) {
       for (const tx of checkpointBlock.transactions) {
         if (this.isBatcherTx(tx)) {

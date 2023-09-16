@@ -1,8 +1,8 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
+import { IChainBridge } from '../chains/IChainBridge'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
-import { IChainBridge } from '../chains/IChainBridge'
 
 root
   .command('confirm-root')

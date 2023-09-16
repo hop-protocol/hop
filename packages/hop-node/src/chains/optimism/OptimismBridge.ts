@@ -1,12 +1,12 @@
 import AbstractBridge from '../AbstractBridge'
+import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import Derive from './Derive'
 import { Contract, providers } from 'ethers'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainBridge } from '../IChainBridge'
+import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
 import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { getCanonicalAddressesForChain, config as globalConfig } from 'src/config'
-import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
-import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
 
 class OptimismBridge extends AbstractBridge implements IChainBridge {
   csm: CrossChainMessenger
@@ -50,14 +50,14 @@ class OptimismBridge extends AbstractBridge implements IChainBridge {
     this.l1BlockContract = new Contract(this.l1BlockAddress, this.l1BlockAbi, this.l2Wallet)
 
     const inclusionServiceConfig: InclusionServiceConfig = {
-        chainSlug: this.chainSlug,
-        l1Wallet: this.l1Wallet,
-        l2Wallet: this.l2Wallet,
-        logger: this.logger,
-        batcherAddress: this.batcherAddress,
-        batchInboxAddress: this.batchInboxAddress,
-        l1BlockSetterAddress: this.l1BlockSetterAddress,
-        l1BlockAddress: this.l1BlockAddress,
+      chainSlug: this.chainSlug,
+      l1Wallet: this.l1Wallet,
+      l2Wallet: this.l2Wallet,
+      logger: this.logger,
+      batcherAddress: this.batcherAddress,
+      batchInboxAddress: this.batchInboxAddress,
+      l1BlockSetterAddress: this.l1BlockSetterAddress,
+      l1BlockAddress: this.l1BlockAddress
     }
     this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
   }

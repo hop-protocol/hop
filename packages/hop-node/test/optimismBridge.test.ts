@@ -1,4 +1,5 @@
 import '../src/moduleAlias'
+import getChainBridge from 'src/chains/getChainBridge'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { Chain } from 'src/constants'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
@@ -6,7 +7,6 @@ import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import getChainBridge from 'src/chains/getChainBridge'
 import { providers } from 'ethers'
 
 // Run this with
@@ -20,8 +20,8 @@ async function main () {
   const dryMode = true
 
   // Run with
-  const configFilePath = '~/.hop/eth.config.json'
-  // const configFilePath = '~/.hop/goerli.config.json'
+  // const configFilePath = '~/.hop/eth.config.json'
+  const configFilePath = '~/.hop/goerli.config.json'
   const config = await parseConfigFile(configFilePath)
   await setGlobalConfigFromConfigFile(config)
 
@@ -44,7 +44,7 @@ async function main () {
     l2BlockNumber
   }
 
-  await testGetHiddenCalldataForDestinationChain(opts)
+  // await testGetHiddenCalldataForDestinationChain(opts)
   await testGetL1InclusionTx(opts)
   await testGetL2InclusionTx(opts)
 }
@@ -59,8 +59,7 @@ async function testGetHiddenCalldataForDestinationChain (opts: any): Promise<voi
 }
 
 async function testGetL1InclusionTx (opts: any): Promise<void> {
-  const { chainBridge, l2Provider } = opts
-  const l2TxHash: string = await _getL2TxHashToTest(l2Provider)
+  const { chainBridge, l2TxHash } = opts
   const inclusionTx = await chainBridge.getL1InclusionTx!(l2TxHash)
   if (!inclusionTx.transactionHash) {
     throw new Error('testGetL1InclusionTx failed')

@@ -131,7 +131,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
     const msg = `sent chain ${this.chainSlug} confirmTransferRoot exit tx ${tx.hash}`
     logger.info(msg)
     this.notifier.info(msg)
-      
   }
 
   async checkConfirmableTransferRoots (transferRootId: string) {

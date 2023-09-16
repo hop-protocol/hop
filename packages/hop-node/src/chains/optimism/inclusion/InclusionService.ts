@@ -1,13 +1,11 @@
 import Derive, { Frame } from '../Derive'
+import Logger from 'src/logger'
 import zlib from 'zlib'
-import { Contract, providers } from 'ethers'
+import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
+import { Contract, Signer, providers } from 'ethers'
+import { InclusionServiceConfig } from './IInclusionService'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
-import { Signer } from 'ethers'
-import Logger from 'src/logger'
-import { InclusionServiceConfig } from './IInclusionService'
-
 
 interface Channel {
   transactionHashes: string[]
@@ -18,7 +16,6 @@ interface Batch {
   transactionHashes: string[]
   numL1BlocksInBatch: number
 }
-
 
 abstract class InclusionService {
   derive: Derive = new Derive()
@@ -48,7 +45,7 @@ abstract class InclusionService {
     const l1BlockAbi: string[] = [
       'function number() view returns (uint64)',
       'function sequenceNumber() view returns (uint64)',
-      'function timestamp() view returns (uint64)',
+      'function timestamp() view returns (uint64)'
     ]
     this.l1BlockContract = new Contract(this.l1BlockAddress, l1BlockAbi, this.l2Wallet)
   }
@@ -126,7 +123,7 @@ abstract class InclusionService {
         transactionHashes.push('0x' + Buffer.from(txData.hash()).toString('hex'))
       }
 
-      const l1BlockNum = Number('0x'+ Buffer.from(decodedBatch[1] as Buffer).toString('hex'))
+      const l1BlockNum = Number('0x' + Buffer.from(decodedBatch[1] as Buffer).toString('hex'))
       if (currentL1BlockNumInBatch !== l1BlockNum) {
         numL1BlocksInBatch++
         currentL1BlockNumInBatch = l1BlockNum

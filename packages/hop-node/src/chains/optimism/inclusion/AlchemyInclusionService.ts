@@ -13,7 +13,7 @@ interface GetInclusionTxHashes {
 class AlchemyInclusionService extends InclusionService implements IInclusionService {
   constructor (config: InclusionServiceConfig) {
     super(config)
-    
+
     if (!this._isAlchemy(this.l1Wallet.provider!)) {
       throw new Error('l1 provider is not alchemy')
     }
@@ -22,9 +22,9 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     }
   }
 
-  async getL1InclusionTx(l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const l2Tx = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2Tx.blockNumber}))
+    const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2Tx.blockNumber }))
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(l1OriginBlockNum)
 
     for (const inclusionTxHash of inclusionTxHashes) {
@@ -35,9 +35,9 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     }
   }
 
-  async getL2InclusionTx(l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+  async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const l1Tx: providers.TransactionReceipt = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash))
-    const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1Tx.blockNumber!)
+    const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1Tx.blockNumber)
 
     const l2StartBlock = await this.getApproximateL2BlockAtL1Timestamp(l1Block.timestamp)
     const inclusionTxHashes: string[] = await this._getL1lToL2InclusionTxHashes(l2StartBlock)
@@ -73,13 +73,13 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
 
     // Defined the from and to block numbers
     const destHeadBlockNumber = await destChainProvider.getBlockNumber()
-  
+
     const searchLengthBlocks = 50
     let endBlockNumber = startBlockNumber + searchLengthBlocks
     if (endBlockNumber > destHeadBlockNumber) {
       endBlockNumber = destHeadBlockNumber
     }
-  
+
     // Make call
     const params = {
       fromBlock: '0x' + startBlockNumber.toString(16),
@@ -91,24 +91,24 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
       ],
       excludeZeroValue: false
     }
-  
-     const query = {
+
+    const query = {
       id: 1,
       jsonrpc: '2.0',
       method: 'alchemy_getAssetTransfers',
       params: [params]
     }
-  
+
     const rpcUrl = this._getRpcUrlFromProvider(destChainProvider)
     const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json'
       },
       body: JSON.stringify(query)
     })
-  
+
     const jsonRes = await res.json()
     return jsonRes.result.transfers.map((tx: any) => tx.hash)
   }

@@ -1,5 +1,5 @@
-import { Signer, providers } from 'ethers'
 import Logger from 'src/logger'
+import { Signer, providers } from 'ethers'
 
 export interface InclusionServiceConfig {
   chainSlug: string

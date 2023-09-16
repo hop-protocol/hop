@@ -8,15 +8,17 @@ import { Signer } from 'ethers'
 import Logger from 'src/logger'
 import { InclusionServiceConfig } from './IInclusionService'
 
-interface DecodedChannel {
+
+interface Channel {
   transactionHashes: string[]
   numL1BlocksInChannel: number
 }
 
-interface DecodedBatch {
+interface Batch {
   transactionHashes: string[]
   numL1BlocksInBatch: number
 }
+
 
 abstract class InclusionService {
   derive: Derive = new Derive()
@@ -67,26 +69,26 @@ abstract class InclusionService {
     return l2BlockAtTimeOfL1Tx + l1DataLagInL2Blocks
   }
 
-  async getL2TxHashesInBatch (l1TxHash: string): Promise<DecodedBatch> {
+  async getL2TxHashesInChannel (l1TxHash: string): Promise<Channel> {
     const tx = await this.l1Wallet.provider!.getTransaction(l1TxHash)
     const frames: Frame[] = await this.derive.parseFrames(tx.data)
 
-    let numL1BlocksInBatch: number = 0
+    let numL1BlocksInChannel: number = 0
     const l2TxHashes: string[] = []
     for (const frame of frames) {
       const decompressedChannel: Buffer = await this._decompressChannel(frame.data)
       const {
         transactionHashes,
-        numL1BlocksInChannel
-      } = await this._decodeChannel(decompressedChannel)
-      numL1BlocksInBatch += numL1BlocksInChannel
+        numL1BlocksInBatch
+      } = await this._decodeBatch(decompressedChannel)
+      numL1BlocksInChannel += numL1BlocksInBatch
       for (const txHash of transactionHashes) {
         l2TxHashes.push(txHash.toLowerCase())
       }
     }
     return {
       transactionHashes: l2TxHashes,
-      numL1BlocksInBatch
+      numL1BlocksInChannel
     }
   }
 
@@ -104,12 +106,12 @@ abstract class InclusionService {
     return zlib.inflateSync(channelCompressed, { maxOutputLength })
   }
 
-  private async _decodeChannel (channelDecompressed: Buffer): Promise<DecodedChannel> {
+  private async _decodeBatch (channelDecompressed: Buffer): Promise<Batch> {
     // NOTE: We are using ethereumjs RPL package since ethers does not allow for a stream
     const stream = true
     let remainingBatches: Buffer = channelDecompressed
     let currentL1BlockNumInBatch: number = 0
-    let numL1BlocksInChannel: number = 0
+    let numL1BlocksInBatch: number = 0
     const transactionHashes: string[] = []
     while (true) {
       // Parse decoded data
@@ -126,7 +128,7 @@ abstract class InclusionService {
 
       const l1BlockNum = Number('0x'+ Buffer.from(decodedBatch[1] as Buffer).toString('hex'))
       if (currentL1BlockNumInBatch !== l1BlockNum) {
-        numL1BlocksInChannel++
+        numL1BlocksInBatch++
         currentL1BlockNumInBatch = l1BlockNum
       }
 
@@ -135,7 +137,7 @@ abstract class InclusionService {
       if (remainingBatches.length === 0) {
         return {
           transactionHashes,
-         numL1BlocksInChannel 
+          numL1BlocksInBatch
         }
       }
     }

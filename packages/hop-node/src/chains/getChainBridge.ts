@@ -17,7 +17,7 @@ const chainWatchers: Record<string, IChainBridge> = {}
 
 export default function getChainBridge (chainSlug: string): IChainBridge {
   if (chainWatchers?.[chainSlug]) {
-    return this.chainWatchers[chainSlug]
+    return chainWatchers[chainSlug]
   }
 
   let chainWatcher: IChainBridge

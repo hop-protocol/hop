@@ -27,7 +27,7 @@ class JsonRpcInclusionService extends InclusionService {
     }
 
     // If the tx was checkpointed in the current epoch, then the tx is in the checkpoint block
-    const { transactionHashes } = await this.getL2TxHashesInBatch(l1InclusionTxForSafeBlock.transactionHash)
+    const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTxForSafeBlock.transactionHash)
     if (transactionHashes.includes(l2TxHash.toLowerCase())) {
       return l1InclusionTxForSafeBlock
     }
@@ -67,10 +67,10 @@ class JsonRpcInclusionService extends InclusionService {
   }
 
   private async _getPreviousCheckpointBlock (l1InclusionTx: providers.TransactionReceipt): Promise<providers.TransactionReceipt | undefined> {
-    const { numL1BlocksInBatch } = await this.getL2TxHashesInBatch(l1InclusionTx.transactionHash)
+    const { numL1BlocksInChannel } = await this.getL2TxHashesInChannel(l1InclusionTx.transactionHash)
 
     // Some variance may exist so get multiple blocks
-    const expectedCheckpointBlock = l1InclusionTx.blockNumber - numL1BlocksInBatch
+    const expectedCheckpointBlock = l1InclusionTx.blockNumber - numL1BlocksInChannel
     const possibleCheckpointBlocks = await this._getPossibleCheckpointBlock(expectedCheckpointBlock)
       
     for (const checkpointBlock of possibleCheckpointBlocks) {

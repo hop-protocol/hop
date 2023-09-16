@@ -27,9 +27,8 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2Tx.blockNumber}))
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(l1OriginBlockNum)
 
-    console.log(l2TxHash)
     for (const inclusionTxHash of inclusionTxHashes) {
-      const { transactionHashes } = await this.getL2TxHashesInBatch(inclusionTxHash)
+      const { transactionHashes } = await this.getL2TxHashesInChannel(inclusionTxHash)
       if (transactionHashes.includes(l2TxHash.toLowerCase())) {
         return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHash)
       }
@@ -110,8 +109,6 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
       body: JSON.stringify(query)
     })
   
-    console.log(startBlockNumber, endBlockNumber)
-    console.log(query)
     const jsonRes = await res.json()
     return jsonRes.result.transfers.map((tx: any) => tx.hash)
   }

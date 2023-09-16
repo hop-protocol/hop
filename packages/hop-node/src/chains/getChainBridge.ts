@@ -1,9 +1,7 @@
 import '../moduleAlias'
 import ArbitrumBridge from './arbitrum/ArbitrumBridge'
-import BaseBridge from './optimism/BaseBridge'
 import GnosisBridge from './gnosis/GnosisBridge'
 import LineaBridge from './linea/LineaBridge'
-import NovaBridge from './arbitrum/NovaBridge'
 import OptimismBridge from './optimism/OptimismBridge'
 import PolygonBridge from './polygon/PolygonBridge'
 import PolygonZkBridge from './polygonzk/PolygonZkBridge'
@@ -21,26 +19,22 @@ export default function getChainBridge (chainSlug: string): IChainBridge {
   }
 
   let chainWatcher: IChainBridge
-  if (chainSlug === Chain.Gnosis) {
-    chainWatcher = new GnosisBridge()
+  if (chainSlug === Chain.Optimism || chainSlug === Chain.Base) {
+    chainWatcher = new OptimismBridge(chainSlug)
+  } else if (chainSlug === Chain.Arbitrum || chainSlug === Chain.Nova) {
+    chainWatcher = new ArbitrumBridge(chainSlug)
+  } else if (chainSlug === Chain.Gnosis) {
+    chainWatcher = new GnosisBridge(chainSlug)
   } else if (chainSlug === Chain.Polygon) {
-    chainWatcher = new PolygonBridge()
-  } else if (chainSlug === Chain.Optimism) {
-    chainWatcher = new OptimismBridge()
-  } else if (chainSlug === Chain.Arbitrum) {
-    chainWatcher = new ArbitrumBridge()
-  } else if (chainSlug === Chain.Nova) {
-    chainWatcher = new NovaBridge()
+    chainWatcher = new PolygonBridge(chainSlug)
   } else if (chainSlug === Chain.ZkSync) {
-    chainWatcher = new ZkSyncBridge()
+    chainWatcher = new ZkSyncBridge(chainSlug)
   } else if (chainSlug === Chain.Linea) {
-    chainWatcher = new LineaBridge()
+    chainWatcher = new LineaBridge(chainSlug)
   } else if (chainSlug === Chain.ScrollZk) {
-    chainWatcher = new ScrollBridge()
-  } else if (chainSlug === Chain.Base) {
-    chainWatcher = new BaseBridge()
+    chainWatcher = new ScrollBridge(chainSlug)
   } else if (chainSlug === Chain.PolygonZk) {
-    chainWatcher = new PolygonZkBridge()
+    chainWatcher = new PolygonZkBridge(chainSlug)
   } else {
     throw new Error(`Chain ${chainSlug} is not supported`)
   }

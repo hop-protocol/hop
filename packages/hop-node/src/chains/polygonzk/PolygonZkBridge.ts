@@ -1,6 +1,5 @@
 import AbstractBridge from '../AbstractBridge'
 import wait from 'src/utils/wait'
-import { Chain } from 'src/constants'
 import { IChainBridge } from '../IChainBridge'
 import { Signer, providers, utils } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
@@ -18,8 +17,8 @@ class PolygonZkBridge extends AbstractBridge implements IChainBridge {
   zkEvmClient: ZkEvmClient
   messengerAddress: string
 
-  constructor () {
-    super(Chain.PolygonZk)
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${
       this.chainId === this.polygonzkMainnetChainId ? 'matic' : 'mumbai'

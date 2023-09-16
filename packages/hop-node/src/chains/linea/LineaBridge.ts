@@ -1,11 +1,10 @@
 import AbstractBridge from '../AbstractBridge'
-import { Chain } from 'src/constants'
 import { IChainBridge } from '.././IChainBridge'
 import { providers } from 'ethers'
 
 class LineaBridge extends AbstractBridge implements IChainBridge {
-  constructor () {
-    super(Chain.Linea)
+  constructor (chainSlug: string) {
+    super(chainSlug)
   }
 
   async relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {

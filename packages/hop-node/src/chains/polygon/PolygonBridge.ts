@@ -1,6 +1,5 @@
 import AbstractBridge from '../AbstractBridge'
 import fetch from 'node-fetch'
-import { Chain } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { IChainBridge } from '../IChainBridge'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
@@ -13,8 +12,8 @@ class PolygonBridge extends AbstractBridge implements IChainBridge {
   polygonMainnetChainId: number = 137
   maticClient: any
 
-  constructor () {
-    super(Chain.Polygon)
+  constructor (chainSlug: string) {
+    super(chainSlug)
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`

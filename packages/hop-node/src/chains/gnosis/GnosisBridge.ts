@@ -1,7 +1,6 @@
 import AbstractBridge from '../AbstractBridge'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
-import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { IChainBridge } from '.././IChainBridge'
@@ -20,8 +19,8 @@ class GnosisBridge extends AbstractBridge implements IChainBridge {
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB
 
-  constructor () {
-    super(Chain.Gnosis)
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     // Get chain contracts
     const GnosisCanonicalAddresses: GnosisCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)

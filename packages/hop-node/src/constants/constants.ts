@@ -74,6 +74,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 export const DefaultBatchBlocks = 10000
 
 export const TenSecondsMs = 10 * 1000
+export const FiveMinutesMs = 5 * 60 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
 export const OneHourSeconds = 60 * 60
 export const OneHourMs = OneHourSeconds * 1000

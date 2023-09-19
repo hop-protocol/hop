@@ -518,7 +518,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     this.logger.debug(`getHiddenCalldataForDestinationChain: l1InclusionTx found ${l1InclusionTx.transactionHash}`)
     let inclusionTxInfo: providers.TransactionReceipt| undefined
-    if (this.isL1) {
+    if (destinationChainSlug === Chain.Ethereum) {
       inclusionTxInfo = l1InclusionTx
     } else {
       this.logger.debug(`getHiddenCalldataForDestinationChain: getting blockInfo for l1InclusionTx ${l1InclusionTx.transactionHash} on destination chain ${destinationChainSlug}`)
@@ -599,6 +599,28 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     return true
   }
+
+  isProxyValidationImplementedForRoute (sourceChainSlug: string, destinationChainSlug: string): boolean {
+    // Both a source and dest chain must implement proxy validation
+    // If the dest is L1, then only the source needs to implement proxy validation
+
+    const sourceChainBridge: IChainBridge = getChainBridge(sourceChainSlug)
+    if (typeof sourceChainBridge.getL1InclusionTx !== 'function') {
+      return false
+    }
+
+    if (destinationChainSlug === Chain.Ethereum) {
+      return true
+    }
+
+    const destinationChainBridge: IChainBridge = getChainBridge(destinationChainSlug)
+    if (typeof destinationChainBridge.getL2InclusionTx !== 'function') {
+      return false
+    }
+
+    return true
+  }
+
 }
 
 export default BaseWatcher

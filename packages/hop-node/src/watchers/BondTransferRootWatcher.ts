@@ -275,6 +275,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     let hiddenCalldata: string | undefined
     if (
       doesProxyAndValidatorExistForChain(this.tokenSymbol, Chain.Ethereum) &&
+      this.isProxyValidationImplementedForRoute(this.chainSlug, Chain.Ethereum) &&
       commitTxHash &&
       commitTxBlockNumber
     ) {

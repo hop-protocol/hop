@@ -355,6 +355,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
     if (
       doesProxyAndValidatorExistForChain(this.tokenSymbol, destinationChainSlug) &&
+      this.isProxyValidationImplementedForRoute(this.chainSlug, destinationChainSlug) &&
       transferSentTxHash &&
       transferSentBlockNumber
     ) {

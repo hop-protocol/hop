@@ -73,6 +73,7 @@ export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.sp
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
+export const CoingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''
 
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',

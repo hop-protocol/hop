@@ -34,6 +34,7 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getProxyAddressForChain,
   config as globalConfig,
+  isProxyAddressForChain,
   minEthBonderFeeBn,
   oruChains
 } from 'src/config'
@@ -884,9 +885,11 @@ class SyncWatcher extends BaseWatcher {
 
     let bonder = tx.from
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    const proxyAddress = getProxyAddressForChain(this.tokenSymbol, destinationChainSlug)
-    if (tx.to === proxyAddress) {
-      bonder = tx.to
+    if (isProxyAddressForChain(this.tokenSymbol, destinationChainSlug)) {
+      const proxyAddress = getProxyAddressForChain(this.tokenSymbol, destinationChainSlug)
+      if (tx.to === proxyAddress) {
+        bonder = tx.to
+      }
     }
     logger.debug(`withdrawalBonder: ${bonder}`)
     await this.db.transfers.update(transferId, {
@@ -1021,9 +1024,11 @@ class SyncWatcher extends BaseWatcher {
     }
 
     let calculatedBonder: string = tx.from
-    const proxyAddress = getProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)
-    if (tx.to === proxyAddress) {
-      calculatedBonder = tx.to
+    if (isProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)) {
+      const proxyAddress = getProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)
+      if (tx.to === proxyAddress) {
+        calculatedBonder = tx.to
+      }
     }
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
 
@@ -1545,7 +1550,7 @@ class SyncWatcher extends BaseWatcher {
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const staker = await this.bridge.getStakerAddress()
+    const staker = await this.bridge.getBonderAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 

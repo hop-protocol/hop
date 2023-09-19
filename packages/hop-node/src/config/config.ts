@@ -54,6 +54,7 @@ export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
 export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
+export const ShouldIgnoreProxy = process.env.SHOULD_IGNORE_PROXY ?? false
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -448,7 +449,7 @@ export function getHasFinalizationBlockTag (chainSlug: string) {
 
 export function getProxyAddressForChain (token: string, chainSlug: string): string {
   const address = config.addresses?.[token]?.[chainSlug]?.proxy
-  if (!address) {
+  if (!address || ShouldIgnoreProxy) {
     throw new Error(`Proxy address not found for token ${token} on chain ${chainSlug}`)
   }
   return address
@@ -456,18 +457,18 @@ export function getProxyAddressForChain (token: string, chainSlug: string): stri
 
 export function getValidatorAddressForChain (token: string, chainSlug: string): string {
   const address = config.addresses?.[token]?.[chainSlug]?.validator
-  if (!address) {
+  if (!address || ShouldIgnoreProxy) {
     throw new Error(`validator address ${address} not found for token ${token} on chain ${chainSlug}`)
   }
   return address
 }
 
 export function isProxyAddressForChain (token: string, chainSlug: string): boolean {
-  return !!config.addresses?.[token]?.[chainSlug]?.proxy
+  return !!config.addresses?.[token]?.[chainSlug]?.proxy && !ShouldIgnoreProxy
 }
 
 export function isValidatorAddressForChain (token: string, chainSlug: string): boolean {
-  return !!config.addresses?.[token]?.[chainSlug]?.validator
+  return !!config.addresses?.[token]?.[chainSlug]?.validator && !ShouldIgnoreProxy
 }
 
 export function doesProxyAndValidatorExistForChain (token: string, chainSlug: string): boolean {

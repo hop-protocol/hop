@@ -328,7 +328,6 @@ export async function validateConfigValues (config?: Config) {
       }
     }
     if (hasFinalizationBlockTag == null) {
-      console.log(chain)
       throw new Error(`hasFinalizationBlockTag for chain "${chainSlug}" is required`)
     }
     if (maxGasPrice != null) {

@@ -104,8 +104,7 @@ async function stake (
   if (token) {
     logger.debug('Approving token stake, if needed')
     const spender = bridge.getAddress()
-    const isProxy = isProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
-    if (isProxy) {
+    if (isProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)) {
       // Send proxy the tokens since it does not pull them on stake
       const proxyAddress = getProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
       tx = await token.transfer(proxyAddress, parsedAmount)

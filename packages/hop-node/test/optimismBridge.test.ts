@@ -68,7 +68,10 @@ async function testGetL1InclusionTx (opts: any): Promise<void> {
 
 async function testGetL2InclusionTx (opts: any): Promise<void> {
   const { chainBridge, l1Provider } = opts
-  const l1Block = await l1Provider.getBlock('safe')
+  let l1Block = await l1Provider.getBlock('safe')
+  while (l1Block.transactions.length === 0) {
+    l1Block = await l1Provider.getBlock(l1Block.number - 1)
+  }
   const inclusionTx = await chainBridge.getL2InclusionTx!(l1Block.transactions[0])
   if (!inclusionTx.transactionHash) {
     throw new Error('testGetL2InclusionTx failed')

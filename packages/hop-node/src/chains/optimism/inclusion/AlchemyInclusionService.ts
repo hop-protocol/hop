@@ -39,8 +39,8 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     const l1Tx: providers.TransactionReceipt = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash))
     const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1Tx.blockNumber)
 
-    const l2StartBlock = await this.getApproximateL2BlockAtL1Timestamp(l1Block.timestamp)
-    const inclusionTxHashes: string[] = await this._getL1lToL2InclusionTxHashes(l2StartBlock)
+    const l2StartBlockNumber = await this.getApproximateL2BlockNumberAtL1Timestamp(l1Block.timestamp)
+    const inclusionTxHashes: string[] = await this._getL1lToL2InclusionTxHashes(l2StartBlockNumber)
 
     for (const inclusionTxHash of inclusionTxHashes) {
       const tx = await this.l2Wallet.provider!.getTransaction(inclusionTxHash)
@@ -110,6 +110,9 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     })
 
     const jsonRes = await res.json()
+    if (!jsonRes?.result) {
+      throw new Error(`alchemy_getAssetTransfers failed: ${JSON.stringify(jsonRes)}`)
+    }
     return jsonRes.result.transfers.map((tx: any) => tx.hash)
   }
 

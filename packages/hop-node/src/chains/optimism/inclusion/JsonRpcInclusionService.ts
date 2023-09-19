@@ -99,7 +99,8 @@ class JsonRpcInclusionService extends InclusionService {
   }
 
   private async _traverseL2BlocksForInclusion (l1BlockNumber: number): Promise<number> {
-    let l2BlockNumber = await this.getApproximateL2BlockAtL1Timestamp(l1BlockNumber)
+    const l1Block = await this.l1Wallet.provider!.getBlock(l1BlockNumber)
+    let l2BlockNumber = await this.getApproximateL2BlockNumberAtL1Timestamp(l1Block.timestamp)
     let includedL1BlockNumber: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
 
     // If the includedL1BlockNumber is still too large, decrement until it is not

@@ -234,12 +234,17 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncHandler (): Promise<any> {
+    // Events that are related to user transfers can be polled every cycle while
+    // all other, less time-sensitive events can be polled every N cycles
     const slowSyncModulo = this.resyncIntervalSec * SyncIterationMultiplier[this.chainSlug]
     let promisesPerPoll: EventPromise = []
-    if (!this.isInitialSyncCompleted() || this.syncIndex % slowSyncModulo === 0) {
-      promisesPerPoll = this.getSlowPromises()
+    if (
+      !this.isInitialSyncCompleted() ||
+      this.syncIndex % slowSyncModulo === 0
+    ) {
+      promisesPerPoll = this.getAllPromises()
     } else {
-      promisesPerPoll = this.getFastPromises()
+      promisesPerPoll = this.getTransferSendPromises()
     }
 
     // these must come after db is done syncing, and syncAvailableCredit must be last
@@ -383,7 +388,7 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getSlowPromises (): EventPromise {
+  getAllPromises (): EventPromise {
     const asyncPromises: EventPromise = [
       this.getTransferSentToL2EventPromise(),
       this.getTransferRootConfirmedEventPromise(),
@@ -411,7 +416,7 @@ class SyncWatcher extends BaseWatcher {
     ]
   }
 
-  getFastPromises (): EventPromise {
+  getTransferSendPromises (): EventPromise {
     if (ShouldRelayL1ToL2Message[this.chainSlug]) {
       return [
         this.getTransferSentEventPromise(),

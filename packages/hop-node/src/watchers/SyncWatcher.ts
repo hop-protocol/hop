@@ -433,15 +433,15 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getTransferSentPromises (): EventPromise {
-    if (this.isL1 && this.isRelayableChainEnabled) {
-      return [
-        this.getTransferSentEventPromise(),
-        this.getTransferSentToL2EventPromise(),
-      ]
+    // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
+    if (this.isL1) {
+      if (this.isRelayableChainEnabled) {
+        return [this.getTransferSentToL2EventPromise()]
+      }
+    } else {
+      return [this.getTransferSentEventPromise()]
     }
-    return [
-      this.getTransferSentEventPromise(),
-    ]
+    return []
   }
 
   async handleTransferSentToL2Event (event: TransferSentToL2Event) {

@@ -171,5 +171,3 @@ export const ChainSyncMultiplier: Record<string, number> = {
   [Chain.Nova]: 2,
   [Chain.PolygonZk]: 1
 }
-
-export const DefaultSyncIntervalSec: number = 30

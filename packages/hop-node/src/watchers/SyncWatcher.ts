@@ -10,10 +10,10 @@ import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import {
   Chain,
-  DefaultSyncIntervalSec,
   GasCostTransactionType,
   OneWeekMs,
   RelayableChains,
+  TenMinutesMs,
   ChainSyncMultiplier
 } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -39,7 +39,14 @@ import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { getEnabledNetworks, config as globalConfig, minEthBonderFeeBn, oruChains } from 'src/config'
+import {
+  SyncCyclesPerFullSync,
+  SyncIntervalSec,
+  getEnabledNetworks,
+  config as globalConfig,
+  minEthBonderFeeBn,
+  oruChains
+} from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -47,7 +54,7 @@ type Config = {
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
   syncFromDate?: string
-  resyncIntervalMultiplier?: number
+  syncIntervalMultiplier?: number
   gasCostPollEnabled?: boolean
 }
 
@@ -57,7 +64,6 @@ class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   syncIntervalSec: number
   syncIntervalMs: number
-  cyclesPerFullSync: number
   gasCostPollMs: number = 60 * 1000
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
@@ -79,24 +85,17 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`gasCostPollEnabled: ${this.gasCostPollEnabled}`)
     }
 
-    // Add resync multipliers if applicable
     // There is a multiplier for each chain and a multiplier for each network (passed in by config)
-    let configSyncMultiplier = 1
-    if (typeof config.resyncIntervalMultiplier === 'number') {
-      configSyncMultiplier = config.resyncIntervalMultiplier
-    }
-
-    if (ChainSyncMultiplier[this.chainSlug] === 0 || configSyncMultiplier === 0) {
-      throw new Error(`invalid sync multiplier for chain ${this.chainSlug}: ${ChainSyncMultiplier[this.chainSlug]}, ${configSyncMultiplier}`)
-    }
-    this.syncIntervalSec = DefaultSyncIntervalSec * ChainSyncMultiplier[this.chainSlug] * configSyncMultiplier
+    const chainSyncMultiplier = ChainSyncMultiplier?.[this.chainSlug] ?? 1
+    const networkSyncMultiplier = config?.syncIntervalMultiplier ?? 1
+    this.syncIntervalSec = SyncIntervalSec * chainSyncMultiplier * networkSyncMultiplier
     this.syncIntervalMs = this.syncIntervalSec * 1000
-    this.logger.debug(`syncIntervalSec set to ${this.syncIntervalSec} (${this.syncIntervalMs} ms)`)
+    this.logger.debug(`syncIntervalSec set to ${this.syncIntervalSec} (${this.syncIntervalMs} ms). chainSyncMultiplier: ${chainSyncMultiplier}, networkSyncMultiplier: ${networkSyncMultiplier}`)
 
-    // As a practical example, this value results in a full sync every 30 mins when defaults are used (30 sec
-    // default sync time)
-    this.cyclesPerFullSync = 60
-    this.logger.debug(`cyclesPerFullSync set to ${this.cyclesPerFullSync}`)
+    if (this.syncIntervalMs > TenMinutesMs) {
+      this.logger.error('syncIntervalMs must be less than 10 minutes. Please use a lower multiplier')
+      this.quit()
+    }
 
     const enabledNetworks = getEnabledNetworks()
     for (const enabledNetwork of enabledNetworks) {
@@ -258,11 +257,13 @@ class SyncWatcher extends BaseWatcher {
 
   async syncHandler (): Promise<any> {
     // Events that are related to user transfers can be polled every cycle while
-    // all other, less time-sensitive events can be polled every N cycles
+    // all other, less time-sensitive events can be polled every N cycles.
+    // If SyncCyclesPerFullSync is 60, then the default values will be 30 seconds for the transferSent
+    // events and 30 minutes for the rest of the events.
     let promisesPerPoll: EventPromise = []
     if (
       !this.isInitialSyncCompleted() ||
-      this.syncIndex % this.cyclesPerFullSync === 0
+      this.syncIndex % SyncCyclesPerFullSync === 0
     ) {
       promisesPerPoll = this.getAllPromises()
     } else {

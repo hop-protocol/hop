@@ -38,7 +38,7 @@ root
   .option('--health-check-cache-file <filepath>', 'Health checker cache file', parseString)
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
-  .option('--resync-interval-ms <number>', 'The sync interval for the SyncWatcher', parseNumber)
+  .option('--sync-interval-multiplier <number>', 'The multiplier for polls in the SyncWatcher', parseNumber)
   .option('--arb-bot [boolean]', 'Run the Goerli arb bot', parseBool)
   .option(
     '--arb-bot-config <path>',
@@ -52,7 +52,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMultiplier, arbBot: runArbBot, arbBotConfig } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, syncIntervalMultiplier, arbBot: runArbBot, arbBotConfig } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -130,8 +130,11 @@ async function main (source: any) {
     logger.info('Bonder public address:', bonderPublicAddress)
   }
 
-  if (resyncIntervalMultiplier) {
-    logger.info(`resync interval multiplier: ${resyncIntervalMultiplier}`)
+  if (syncIntervalMultiplier) {
+    if (typeof syncIntervalMultiplier !== 'number' || syncIntervalMultiplier === 0) {
+      throw new Error('syncIntervalMultiplier must be a number greater than 0')
+    }
+    logger.info(`resync interval multiplier: ${syncIntervalMultiplier}`)
   }
 
   const { starts } = await startWatchers({
@@ -146,7 +149,7 @@ async function main (source: any) {
     settleBondedWithdrawalsThresholdPercent,
     dryMode,
     syncFromDate,
-    resyncIntervalMultiplier,
+    syncIntervalMultiplier,
     s3Upload,
     s3Namespace
   })

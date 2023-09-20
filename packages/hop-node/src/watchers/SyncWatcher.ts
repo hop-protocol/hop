@@ -244,7 +244,7 @@ class SyncWatcher extends BaseWatcher {
     ) {
       promisesPerPoll = this.getAllPromises()
     } else {
-      promisesPerPoll = this.getTransferSendPromises()
+      promisesPerPoll = this.getTransferSentPromises()
     }
 
     // these must come after db is done syncing, and syncAvailableCredit must be last
@@ -416,7 +416,7 @@ class SyncWatcher extends BaseWatcher {
     ]
   }
 
-  getTransferSendPromises (): EventPromise {
+  getTransferSentPromises (): EventPromise {
     if (ShouldRelayL1ToL2Message[this.chainSlug]) {
       return [
         this.getTransferSentEventPromise(),

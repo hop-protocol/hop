@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 import { chunk, uniqBy } from 'lodash'
 import { formatUnits } from 'ethers/lib/utils'
 import { padHex } from 'src/utils/padHex'
+import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 
 export async function getUnbondedTransfers (days: number, offsetDays: number = 0) {
   const endDate = DateTime.now().toUTC()

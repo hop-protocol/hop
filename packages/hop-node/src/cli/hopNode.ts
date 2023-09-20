@@ -52,7 +52,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs, arbBot: runArbBot, arbBotConfig } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMultiplier, arbBot: runArbBot, arbBotConfig } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -141,7 +141,7 @@ async function main (source: any) {
     settleBondedWithdrawalsThresholdPercent,
     dryMode,
     syncFromDate,
-    resyncIntervalMs,
+    resyncIntervalMultiplier,
     s3Upload,
     s3Namespace
   })

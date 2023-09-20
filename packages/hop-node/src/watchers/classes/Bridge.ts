@@ -597,7 +597,7 @@ export default class Bridge extends ContractBase {
     const isAtHead = (
       start === end &&
       start === earliestBlockInBatch &&
-      end === latestBlockInBatch
+      start === latestBlockInBatch
     )
 
     let traversalStart = start

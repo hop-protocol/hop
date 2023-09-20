@@ -172,7 +172,4 @@ export const SyncIterationMultiplier: Record<string, number> = {
   [Chain.PolygonZk]: 1
 }
 
-export const ShouldRelayL1ToL2Message: Record<string, boolean> = {
-  [Chain.Arbitrum]: true,
-  [Chain.Nova]: true
-}
+export const DefaultSyncIntervalSec: number = 30

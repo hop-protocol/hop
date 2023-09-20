@@ -10,10 +10,10 @@ import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import {
   Chain,
+  DefaultSyncIntervalSec,
   GasCostTransactionType,
   OneWeekMs,
   RelayableChains,
-  ShouldRelayL1ToL2Message,
   SyncIterationMultiplier
 } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -39,7 +39,7 @@ import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { config as globalConfig, minEthBonderFeeBn, oruChains } from 'src/config'
+import { getEnabledNetworks, config as globalConfig, minEthBonderFeeBn, oruChains } from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -55,13 +55,14 @@ type EventPromise = Array<Promise<any>>
 
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
-  resyncIntervalSec: number = 30
-  resyncIntervalMs: number
+  syncIntervalSec: number
+  syncIntervalMs: number
   gasCostPollMs: number = 60 * 1000
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
   syncFromDate: string
   customStartBlockNumber: number
+  isRelayableChainEnabled: boolean = false
   ready: boolean = false
 
   constructor (config: Config) {
@@ -76,11 +77,23 @@ class SyncWatcher extends BaseWatcher {
       this.gasCostPollEnabled = config.gasCostPollEnabled
       this.logger.debug(`gasCostPollEnabled: ${this.gasCostPollEnabled}`)
     }
+
+    // Add resync multiplier if applicable
+    let configSyncMultiplier = 1
     if (typeof config.resyncIntervalMultiplier === 'number') {
-      this.resyncIntervalMs = this.resyncIntervalMs * config.resyncIntervalMultiplier
-      this.logger.debug(`resyncIntervalMs set to ${this.resyncIntervalMs}`)
+      configSyncMultiplier = config.resyncIntervalMultiplier
     }
-    this.resyncIntervalMs = this.resyncIntervalSec * 1000
+
+    this.syncIntervalSec = DefaultSyncIntervalSec * SyncIterationMultiplier[this.chainSlug] * configSyncMultiplier
+    this.syncIntervalMs = this.syncIntervalSec * 1000
+    this.logger.debug(`syncIntervalSec set to ${this.syncIntervalSec} (${this.syncIntervalMs} ms)`)
+
+    const enabledNetworks = getEnabledNetworks()
+    for (const enabledNetwork of enabledNetworks) {
+      if (RelayableChains.includes(enabledNetwork)) {
+        this.isRelayableChainEnabled = true
+      }
+    }
 
     this.init()
       .catch(err => {
@@ -218,7 +231,7 @@ class SyncWatcher extends BaseWatcher {
     } catch (err) {
       this.logger.error(err)
     }
-    await wait(this.resyncIntervalMs)
+    await wait(this.syncIntervalMs)
   }
 
   isInitialSyncCompleted (): boolean {
@@ -238,7 +251,7 @@ class SyncWatcher extends BaseWatcher {
     // all other, less time-sensitive events can be polled every N cycles
 
     // The number of cycles between syncs should be a multiplier of the time it takes to sync
-    const numberOfCyclesBetweenSyncs = this.resyncIntervalSec * 2
+    const numberOfCyclesBetweenSyncs = this.syncIntervalSec * 2
     const fullSyncModulo = numberOfCyclesBetweenSyncs * SyncIterationMultiplier[this.chainSlug]
     let promisesPerPoll: EventPromise = []
     if (
@@ -420,7 +433,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getTransferSentPromises (): EventPromise {
-    if (ShouldRelayL1ToL2Message[this.chainSlug]) {
+    if (this.isL1 && this.isRelayableChainEnabled) {
       return [
         this.getTransferSentEventPromise(),
         this.getTransferSentToL2EventPromise(),

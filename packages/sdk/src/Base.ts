@@ -963,9 +963,9 @@ export class Base {
     return json.data ?? null
   }
 
-  async getTransferTimes (transferIdOrTxHash: String):Promise<any> {
+  async getTransferTimes (sourceChainSlug: String, destinationChainSlug: String):Promise<any> {
     const baseApiUrl = `https://${this.network === 'goerli' && 'goerli-'}explorer-api.hop.exchange`
-    const url = `${baseApiUrl}/v1/transferTimes?transferId=${transferIdOrTxHash}`
+    const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
     const json = await fetchJsonOrThrow(url)
     return json.data ?? null
   }

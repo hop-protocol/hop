@@ -57,6 +57,7 @@ class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   syncIntervalSec: number
   syncIntervalMs: number
+  cyclesPerFullSync: number
   gasCostPollMs: number = 60 * 1000
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
@@ -91,6 +92,11 @@ class SyncWatcher extends BaseWatcher {
     this.syncIntervalSec = DefaultSyncIntervalSec * ChainSyncMultiplier[this.chainSlug] * configSyncMultiplier
     this.syncIntervalMs = this.syncIntervalSec * 1000
     this.logger.debug(`syncIntervalSec set to ${this.syncIntervalSec} (${this.syncIntervalMs} ms)`)
+
+    // As a practical example, this value results in a full sync every 30 mins when defaults are used (30 sec
+    // default sync time)
+    this.cyclesPerFullSync = 60
+    this.logger.debug(`cyclesPerFullSync set to ${this.cyclesPerFullSync}`)
 
     const enabledNetworks = getEnabledNetworks()
     for (const enabledNetwork of enabledNetworks) {
@@ -253,14 +259,10 @@ class SyncWatcher extends BaseWatcher {
   async syncHandler (): Promise<any> {
     // Events that are related to user transfers can be polled every cycle while
     // all other, less time-sensitive events can be polled every N cycles
-
-    // The number of cycles between syncs should be a multiplier of the time it takes to sync
-    const numberOfCyclesBetweenSyncs = this.syncIntervalSec * 2
-    const fullSyncModulo = numberOfCyclesBetweenSyncs * SyncIterationMultiplier[this.chainSlug]
     let promisesPerPoll: EventPromise = []
     if (
       !this.isInitialSyncCompleted() ||
-      this.syncIndex % fullSyncModulo === 0
+      this.syncIndex % this.cyclesPerFullSync === 0
     ) {
       promisesPerPoll = this.getAllPromises()
     } else {

@@ -349,7 +349,7 @@ class SyncWatcher extends BaseWatcher {
     const l2Bridge = this.bridge as L2Bridge
     return l2Bridge.mapTransfersCommittedEvents(
       async (event: TransfersCommittedEvent) => {
-        this.handleTransfersCommittedEvent(event)
+        return this.handleTransfersCommittedEvent(event)
       },
       this.getSyncOptions(l2Bridge.TransfersCommitted)
     )

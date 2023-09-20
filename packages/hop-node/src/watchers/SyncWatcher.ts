@@ -14,7 +14,7 @@ import {
   GasCostTransactionType,
   OneWeekMs,
   RelayableChains,
-  SyncIterationMultiplier
+  ChainSyncMultiplier
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
@@ -78,13 +78,17 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`gasCostPollEnabled: ${this.gasCostPollEnabled}`)
     }
 
-    // Add resync multiplier if applicable
+    // Add resync multipliers if applicable
+    // There is a multiplier for each chain and a multiplier for each network (passed in by config)
     let configSyncMultiplier = 1
     if (typeof config.resyncIntervalMultiplier === 'number') {
       configSyncMultiplier = config.resyncIntervalMultiplier
     }
 
-    this.syncIntervalSec = DefaultSyncIntervalSec * SyncIterationMultiplier[this.chainSlug] * configSyncMultiplier
+    if (ChainSyncMultiplier[this.chainSlug] === 0 || configSyncMultiplier === 0) {
+      throw new Error(`invalid sync multiplier for chain ${this.chainSlug}: ${ChainSyncMultiplier[this.chainSlug]}, ${configSyncMultiplier}`)
+    }
+    this.syncIntervalSec = DefaultSyncIntervalSec * ChainSyncMultiplier[this.chainSlug] * configSyncMultiplier
     this.syncIntervalMs = this.syncIntervalSec * 1000
     this.logger.debug(`syncIntervalSec set to ${this.syncIntervalSec} (${this.syncIntervalMs} ms)`)
 

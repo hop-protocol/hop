@@ -129,6 +129,11 @@ async function main (source: any) {
     const bonderPublicAddress = computeAddress(privateKey)
     logger.info('Bonder public address:', bonderPublicAddress)
   }
+
+  if (resyncIntervalMultiplier) {
+    logger.info(`resync interval multiplier: ${resyncIntervalMultiplier}`)
+  }
+
   const { starts } = await startWatchers({
     enabledWatchers: Object.keys(config.watchers).filter(
       key => config.watchers[key]

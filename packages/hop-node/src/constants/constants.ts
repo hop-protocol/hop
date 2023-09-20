@@ -161,7 +161,7 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.PolygonZk]: FinalityTag.Safe
 }
 
-export const SyncIterationMultiplier: Record<string, number> = {
+export const ChainSyncMultiplier: Record<string, number> = {
   [Chain.Ethereum]: 1,
   [Chain.Gnosis]: 2,
   [Chain.Polygon]: 2,

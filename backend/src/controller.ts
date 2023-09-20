@@ -72,6 +72,12 @@ type Transfer = {
   estimatedRelativeTimeUntilBond: string
 }
 
+interface TimeToBridgeStats {
+  avg: number | null
+  median: number | null
+  percentile90: number | null
+}
+
 export class Controller {
   db : Db = getInstance()
   worker: Worker
@@ -285,41 +291,50 @@ export class Controller {
     return data
   }
 
-  async getTransferTimes (params: any): Promise<Transfer[]> {
-    // validate parameters
+async getTransferTimes(params: any): Promise<TimeToBridgeStats> {
+  const { sourceChainSlug, destinationChainSlug } = params
 
-    db.getTransferTimes(sourceSlug, destinationSlug)
+  if (!sourceChainSlug || !destinationChainSlug) {
+    return
+  }
 
-    // calculate stat values
-    /*
-      interface TimeToBridge {
-        avg: number | null
-        median: number | null
-        percentile90: number | null
+  const txIdAndTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug)
+  const timesArray = txIdAndTimes.map(record => record.bond_within_timestamp)
+
+  const cacheKey = `${sourceChainSlug}-${destinationChainSlug}`
+  const cacheDurationMs = 5 * 60 * 1000 // 5 minutes
+  const cachedStats = cache.get(cacheKey)
+
+  if (cachedStats) {
+    return cachedStats
+  }
+
+  const stats = timeToBridgeStats(timesArray)
+  cache.put(cacheKey, stats, cacheDurationMs)
+
+  return stats
+
+  function timeToBridgeStats(times: number[]): TimeToBridgeStats {
+      const n = times.length
+      if (n === 0) {
+        return { avg: null, median: null, percentile90: null }
       }
 
-      timeToBridgeStats(times: number[]): TimeToBridgeStats {
-        const n = times.length
-        if (n === 0) {
-          return { avg: null, median: null, percentile90: null }
-        }
+      // sort bundle of transactions 
+      times.sort((a, b) => a - b)
 
-        // sort bundle of transactions 
-        times.sort((a, b) => a - b)
+      // calculate average time
+      const avg = times.reduce((a, b) => a + b, 0) / n
 
-        // calculate average time
-        const avg = times.reduce((a, b) => a + b, 0) / n
+      // calculate average time
+      const mid = Math.floor(n / 2)
+      const median = n % 2 === 0 ? (times[mid - 1] + times[mid]) / 2 : times[mid]
 
-        // calculate average time
-        const mid = Math.floor(n / 2)
-        const median = n % 2 === 0 ? (times[mid - 1] + times[mid]) / 2 : times[mid]
+      // calculate 90th percentile
+      const idx90 = Math.floor(n * 0.9) - 1
+      const percentile90 = times[idx90]
 
-        // calculate 90th percentile
-        const idx90 = Math.floor(n * 0.9) - 1
-        const percentile90 = times[idx90]
-
-        return { avg, median, percentile90 }
-      }
-    */
+      return { avg, median, percentile90 }
+    }
   }
 }

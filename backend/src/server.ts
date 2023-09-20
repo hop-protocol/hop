@@ -203,8 +203,14 @@ app.get('/index', (req: any, res: any) => {
   res.sendFile(path.resolve(__dirname, '..', 'public/index.html'))
 })
 
-app.get('v1/transfer-timestamp', (req, res) => {
-  controller.getTransferTimes(sourceSlug, destinationSlug)
+app.get('/v1/transfers/timeStats', async (req, res) => {
+  try {
+    const { sourceChainSlug, destinationChainSlug } = req.query
+    const data = await controller.getTransferTimes({ sourceChainSlug, destinationChainSlug })
+    res.status(200).json({ status: 'ok', data })
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
 })
 
 const argv = require('minimist')(process.argv.slice(2))

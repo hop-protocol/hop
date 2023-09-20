@@ -236,11 +236,11 @@ class SyncWatcher extends BaseWatcher {
   async syncHandler (): Promise<any> {
     // Events that are related to user transfers can be polled every cycle while
     // all other, less time-sensitive events can be polled every N cycles
-    const slowSyncModulo = this.resyncIntervalSec * SyncIterationMultiplier[this.chainSlug]
+    const fullSyncModulo = this.resyncIntervalSec * SyncIterationMultiplier[this.chainSlug]
     let promisesPerPoll: EventPromise = []
     if (
       !this.isInitialSyncCompleted() ||
-      this.syncIndex % slowSyncModulo === 0
+      this.syncIndex % fullSyncModulo === 0
     ) {
       promisesPerPoll = this.getAllPromises()
     } else {

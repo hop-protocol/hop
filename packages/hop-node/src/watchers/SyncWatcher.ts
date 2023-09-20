@@ -41,6 +41,7 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import {
   SyncCyclesPerFullSync,
+  SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
   config as globalConfig,
@@ -54,7 +55,6 @@ type Config = {
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
   syncFromDate?: string
-  syncIntervalMultiplier?: number
   gasCostPollEnabled?: boolean
 }
 
@@ -87,7 +87,7 @@ class SyncWatcher extends BaseWatcher {
 
     // There is a multiplier for each chain and a multiplier for each network (passed in by config)
     const chainSyncMultiplier = ChainSyncMultiplier?.[this.chainSlug] ?? 1
-    const networkSyncMultiplier = config?.syncIntervalMultiplier ?? 1
+    const networkSyncMultiplier = SyncIntervalMultiplier
     this.syncIntervalSec = SyncIntervalSec * chainSyncMultiplier * networkSyncMultiplier
     this.syncIntervalMs = this.syncIntervalSec * 1000
     this.logger.debug(`syncIntervalSec set to ${this.syncIntervalSec} (${this.syncIntervalMs} ms). chainSyncMultiplier: ${chainSyncMultiplier}, networkSyncMultiplier: ${networkSyncMultiplier}`)

@@ -70,6 +70,7 @@ export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 
 export const SyncIntervalSec = process.env.SYNC_INTERVAL_SEC ? Number(process.env.SYNC_INTERVAL_SEC) : 30
+export const SyncIntervalMultiplier = process.env.SYNC_INTERVAL_MULTIPLIER ? Number(process.env.SYNC_INTERVAL_MULTIPLIER) : 1
 export const SyncCyclesPerFullSync = process.env.SYNC_CYCLES_PER_FULL_SYNC ? Number(process.env.SYNC_CYCLES_PER_FULL_SYNC) : 60
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95

@@ -13,7 +13,7 @@ import { Div, Flex, Icon } from '../ui'
 import { StyledButton } from '../buttons/StyledButton'
 import MetaMaskLogo from 'src/assets/logos/metamask.png'
 import { useTransactionStatus } from 'src/hooks'
-import { getTransferTimeString } from 'src/utils/getTransferTimeString'
+import { getTransferTimeMinutes } from 'src/utils/getTransferTimeMinutes'
 
 type Props = {
   tx: Transaction
@@ -32,18 +32,23 @@ function TxStatusModal(props: Props) {
 
   const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
   const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
+  const fixedTimeEstimate = sourceChain && destinationChain ? getTransferTimeMinutes(sourceChain?.slug, destinationChain?.slug) : ''
   
-  const [timeEstimate, setTimeEstimate] = useState(sourceChain && destinationChain ? getTransferTimeString(sourceChain?.slug, destinationChain?.slug) : '')
+  const [timeEstimate, setTimeEstimate] = useState(fixedTimeEstimate)
 
   // async update the time estimate using historical times
   useEffect(() => {
-    if (!sourceChain || !destinationChain) {
-      return
-    }
-
     const fetchData = async () => {
-      const historicalTimeEstimate = await sdk.getTransferTimes(sourceChain, destinationChain)
-      setTimeEstimate(historicalTimeEstimate)
+      const sourceChainSlug = tx.networkName
+      const destinationChainSlug = tx.destNetworkName
+
+      console.log(sourceChainSlug, destinationChainSlug)
+
+      if (sourceChainSlug && destinationChainSlug) {
+        const historicalTimeStats = await sdk.getTransferTimes(sourceChainSlug, destinationChainSlug)
+        const medianTimeMinutes = Math.round(historicalTimeStats.median/60)
+        setTimeEstimate(medianTimeMinutes)
+      }
     }
 
     fetchData()
@@ -69,8 +74,9 @@ function TxStatusModal(props: Props) {
         <Typography variant="body1">
           {(tx && tx.token && timeEstimate) ? (
             <em>
-              Your transfer will arrive at the destination in <strong>{timeEstimate}</strong>{' '}
-              after your transaction is confirmed.
+              Your transfer will arrive at the destination in <strong>{timeEstimate && `~${timeEstimate} minute${timeEstimate !== 1 && 's'}`}</strong>{' '}
+              after your transaction is confirmed.{' '}
+              { timeEstimate > fixedTimeEstimate * 1.5 && 'This estimate is higher than expected and may not reflect current transfer times.' }
             </em>
           ) : (
             <em>This may take a few minutes</em>

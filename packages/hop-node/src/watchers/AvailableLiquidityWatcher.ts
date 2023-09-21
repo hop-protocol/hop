@@ -35,6 +35,10 @@ type S3JsonData = {
   }
 }
 
+// These should be global since they apply to all instances
+const pendingAmountCache: Record<string, BigNumber> = {}
+const availableLiquidityCache: Record<string, BigNumber> = {}
+
 // TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
@@ -49,7 +53,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private lastCalculated: { [destinationChain: string]: number } = {}
   s3Upload: S3Upload
   s3Namespace: S3Upload
-  bonderCreditPollerIncrementer: number = 0
+  lastUpdateTimestampSec: number = 0
+  pollTimeSec: number = 15 * 60
+  lastCacheTimestampSec: Record<string, number> = {}
+  cacheTimeSec: number = 30
 
   constructor (config: Config) {
     super({
@@ -70,13 +77,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async syncBonderCredit () {
-    this.bonderCreditPollerIncrementer++
-    const bonderCreditSyncInterval = 10
-    // Don't check the 0 remainder so that the bonder has a valid credit immediately on startup
-    const shouldSync = this.bonderCreditPollerIncrementer % bonderCreditSyncInterval === 1
+    // Ensure this runs once immediately on startup so that the bonder has a valid credit.
+    // Use a time-based poller here since this function is called from the SyncWatcher
+    // which makes calls at different times based on the bridge and token.
 
-    // When not uploading to S3, only sync on certain poll intervals
-    if (!this.s3Upload && !shouldSync) {
+    const nowSec = Math.floor(Date.now() / 1000)
+    if (nowSec - this.lastUpdateTimestampSec < this.pollTimeSec) {
+      return
+    }
+    this.lastUpdateTimestampSec = nowSec
+
+    if (!this.s3Upload) {
       return
     }
 
@@ -94,8 +105,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     if (!destinationWatcher) {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
-    const destinationBridge = destinationWatcher.bridge
-    let baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+
+    let baseAvailableCredit = await this.getOnchainBaseAvailableCredit(destinationWatcher, bonder)
     const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
     this.logger.debug(`on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
     let baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
@@ -135,8 +146,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async calculatePendingAmount (destinationChainId: number) {
+    const cacheKey = this.getPendingAmountCacheKey(destinationChainId)
+    const nowSec = Math.floor(Date.now() / 1000)
+    if (nowSec - this.lastCacheTimestampSec[cacheKey] < this.cacheTimeSec) {
+      return pendingAmountCache[cacheKey]
+    }
+
     const bridge = this.bridge as L2Bridge
     const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
+
+    this.lastCacheTimestampSec[cacheKey] = nowSec
+    pendingAmountCache[cacheKey] = pendingAmount
     return pendingAmount
   }
 
@@ -155,8 +175,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
       if (isBonded) {
         const logger = this.logger.create({ root: transferRootId })
-        logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
-        await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+        logger.warn('calculateUnbondedTransferRootAmounts already bonded')
         continue
       }
 
@@ -302,6 +321,21 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return totalAmount
   }
 
+  async getOnchainBaseAvailableCredit (destinationWatcher: any, bonder?: string): Promise<BigNumber> {
+    const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
+    const nowSec = Math.floor(Date.now() / 1000)
+    if (nowSec - this.lastCacheTimestampSec[cacheKey] < this.cacheTimeSec) {
+      return availableLiquidityCache[cacheKey]
+    }
+
+    const destinationBridge = destinationWatcher.bridge
+    const onchainBaseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+
+    this.lastCacheTimestampSec[cacheKey] = nowSec
+    availableLiquidityCache[cacheKey] = onchainBaseAvailableCredit
+    return onchainBaseAvailableCredit
+  }
+
   public getBaseAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const baseAvailableCredit = this.baseAvailableCredit[destinationChain]
@@ -427,6 +461,25 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       }
     }
     return false
+  }
+
+  private getPendingAmountCacheKey (destinationChainId: number): string {
+    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    const cacheName = 'pendingAmount'
+    return this._getCacheKey(cacheName, destinationChainSlug)
+  }
+
+  private getAvailableLiquidityCacheKey (destinationChainSlug: string, bonder?: string): string {
+    const cacheName = 'availableLiquidity'
+    return this._getCacheKey(cacheName, destinationChainSlug, bonder)
+  }
+
+  private _getCacheKey (cacheName: string, destinationChainSlug: string, bonder?: string): string {
+    let cacheKey = `${this.chainSlug}-${destinationChainSlug}-${cacheName}`
+    if (bonder) {
+      cacheKey += `-${bonder}`
+    }
+    return cacheKey
   }
 }
 

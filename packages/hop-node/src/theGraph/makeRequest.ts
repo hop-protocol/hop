@@ -2,6 +2,7 @@ import fetch from 'node-fetch'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { Chain } from 'src/constants'
 import { config as globalConfig } from 'src/config'
+import getSubgraphUrl from 'src/utils/getSubgraphUrl'
 
 export default async function makeRequest (
   chain: string,
@@ -18,44 +19,9 @@ async function _makeRequest (
   params: any = {},
   isGoerli: boolean = false
 ) {
-  if (chain === 'gnosis') {
-    chain = 'xdai'
-  }
-
-  let url
-  if (chain === Chain.Nova) {
-    url = 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop'
-  } else {
-    url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
-  }
-  if (chain === Chain.Ethereum) {
-    if (isGoerli) {
-      url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
-    } else {
-      // In order to use the decentralized service, please ensure the decentralized subgraph is pushed and published. This
-      // is a different process than the centralized subgraph.
-      url = `${url}-mainnet`
-      // url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
-    }
-  } else {
-    url = `${url}-${chain}`
-  }
-
-  if (chain === 'linea') {
-    if (!globalConfig.isMainnet) {
-      url = 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
-    } else {
-      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
-    }
-  }
-
-  if (chain === 'base') {
-    if (!globalConfig.isMainnet) {
-      url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
-    } else {
-      url = 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet'
-    }
-  }
+  // TODO: Better way to get network
+  const network = isGoerli ? 'goerli' : 'mainnet'
+  const url = getSubgraphUrl(chain, network)
 
   const res = await fetch(url, {
     method: 'POST',

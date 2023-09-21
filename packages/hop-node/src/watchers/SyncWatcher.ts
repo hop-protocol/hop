@@ -62,7 +62,6 @@ type EventPromise = Array<Promise<any>>
 
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
-  syncIntervalSec: number
   syncIntervalMs: number
   gasCostPollMs: number = 60 * 1000
   gasCostPollEnabled: boolean = false
@@ -88,9 +87,9 @@ class SyncWatcher extends BaseWatcher {
     // There is a multiplier for each chain and a multiplier for each network (passed in by config)
     const chainSyncMultiplier = ChainSyncMultiplier?.[this.chainSlug] ?? 1
     const networkSyncMultiplier = SyncIntervalMultiplier
-    this.syncIntervalSec = SyncIntervalSec * chainSyncMultiplier * networkSyncMultiplier
-    this.syncIntervalMs = this.syncIntervalSec * 1000
-    this.logger.debug(`syncIntervalSec set to ${this.syncIntervalSec} (${this.syncIntervalMs} ms). chainSyncMultiplier: ${chainSyncMultiplier}, networkSyncMultiplier: ${networkSyncMultiplier}`)
+    const syncIntervalSec = SyncIntervalSec * chainSyncMultiplier * networkSyncMultiplier
+    this.syncIntervalMs = syncIntervalSec * 1000
+    this.logger.debug(`syncIntervalMs set to ${this.syncIntervalMs}. chainSyncMultiplier: ${chainSyncMultiplier}, networkSyncMultiplier: ${networkSyncMultiplier}`)
 
     if (this.syncIntervalMs > TenMinutesMs) {
       this.logger.error('syncIntervalMs must be less than 10 minutes. Please use a lower multiplier')
@@ -101,6 +100,7 @@ class SyncWatcher extends BaseWatcher {
     for (const enabledNetwork of enabledNetworks) {
       if (RelayableChains.includes(enabledNetwork)) {
         this.isRelayableChainEnabled = true
+        break
       }
     }
 

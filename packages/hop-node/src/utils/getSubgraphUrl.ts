@@ -9,4 +9,4 @@ const getSubgraphUrl = (chain: string): string => {
   return url
 }
 
-export default getSubgraphUrl 
+export default getSubgraphUrl

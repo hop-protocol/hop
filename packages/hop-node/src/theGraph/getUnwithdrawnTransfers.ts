@@ -1,7 +1,7 @@
 import makeRequest from './makeRequest'
 import { normalizeEntity } from './shared'
 
-async function getTransfers (network: string, chain: string, token: string, filters: any) {
+async function getTransfers (chain: string, token: string, filters: any) {
   const { account } = filters
   const query = `
     query TransfersSent($token: String!, $account: String!) {
@@ -40,7 +40,7 @@ async function getTransfers (network: string, chain: string, token: string, filt
     account: account.toLowerCase()
   }
 
-  const jsonRes = await makeRequest(chain, query, variables, network === 'goerli')
+  const jsonRes = await makeRequest(chain, query, variables)
   const transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
   return transfers
 }
@@ -70,7 +70,7 @@ async function getWithdrawalBondeds (network: string, chain: string, transferIds
     transferIds
   }
 
-  const jsonRes = await makeRequest(chain, query, variables, network === 'goerli')
+  const jsonRes = await makeRequest(chain, query, variables)
   const withdrawalBondeds = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
   return withdrawalBondeds
 }
@@ -100,13 +100,13 @@ async function getWithdrawals (network: string, chain: string, transferIds: stri
     transferIds
   }
 
-  const jsonRes = await makeRequest(chain, query, variables, network === 'goerli')
+  const jsonRes = await makeRequest(chain, query, variables)
   const withdrews = jsonRes.withdrews.map((x: any) => normalizeEntity(x))
   return withdrews
 }
 
 export async function getUnwithdrawnTransfers (network: string, chain: string, destinationChain: string, token: string, filters: any): Promise<any[]> {
-  const transfers = await getTransfers(network, chain, token, filters)
+  const transfers = await getTransfers(chain, token, filters)
 
   const transferIds = transfers.map((x: any) => x.transferId)
   const withdrawalBondeds = await getWithdrawalBondeds(network, destinationChain, transferIds)

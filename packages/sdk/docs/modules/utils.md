@@ -226,7 +226,7 @@ ___
 
 `fn`
 
-▸ (...`args`): `Promise`<`Awaited`<`ReturnType`<`FN`\>\>\>
+▸ (`...args`): `Promise`<`Awaited`<`ReturnType`<`FN`\>\>\>
 
 ##### Parameters
 

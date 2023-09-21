@@ -1,10 +1,7 @@
 # Class: Base
 
 Class with base methods.
-
-**`Namespace`**
-
-Base
+ Base
 
 ## Hierarchy
 
@@ -132,11 +129,6 @@ Base
 
 • **new Base**(`networkOrOptionsObject`, `signer`, `chainProviders?`)
 
-**`Desc`**
-
-Instantiates Base class.
-Returns a new Base class instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -144,6 +136,11 @@ Returns a new Base class instance.
 | `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
 | `signer` | [`TProvider`](../modules.md#tprovider) | - |
 | `chainProviders?` | `ChainProviders` | - |
+
+**`Desc`**
+
+Instantiates Base class.
+Returns a new Base class instance.
 
 ## Properties
 
@@ -498,6 +495,19 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
+| `percent` | `number` | Percentage to bump by. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Bumped as price as BigNumber
+
 **`Desc`**
 
 Calculates current gas price plus increased percentage amount.
@@ -512,28 +522,11 @@ const bumpedGasPrice = await hop.getBumpedGasPrice(signer, 1.20)
 console.log(bumpedGasPrice.toNumber())
 ```
 
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
-| `percent` | `number` | Percentage to bump by. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Bumped as price as BigNumber
-
 ___
 
 ### <a id="getchainid" name="getchainid"></a> getChainId
 
 ▸ **getChainId**(`chain`): `number`
-
-**`Desc`**
-
-Returns Chain ID for specified Chain model.
 
 #### Parameters
 
@@ -547,15 +540,15 @@ Returns Chain ID for specified Chain model.
 
 - Chain ID.
 
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
+
 ___
 
 ### <a id="getchainprovider" name="getchainprovider"></a> getChainProvider
 
 ▸ **getChainProvider**(`chain`): `any`
-
-**`Desc`**
-
-Returns Ethers provider for specified Chain model.
 
 #### Parameters
 
@@ -568,6 +561,10 @@ Returns Ethers provider for specified Chain model.
 `any`
 
 Ethers provider.
+
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 ___
 
@@ -1012,6 +1009,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
+#### Returns
+
+`Promise`<`string`\>
+
+Ethers signer address.
+
 **`Desc`**
 
 Returns the connected signer address.
@@ -1026,22 +1029,11 @@ const address = await hop.getSignerAddress()
 console.log(address)
 ```
 
-#### Returns
-
-`Promise`<`string`\>
-
-Ethers signer address.
-
 ___
 
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
 ▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
-
-**`Desc`**
-
-Returns the connected signer if it's connected to the specified
-chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Parameters
 
@@ -1055,6 +1047,11 @@ chain id, otherwise it returns a regular provider for the specified chain.
 `Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
+
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
+chain id, otherwise it returns a regular provider for the specified chain.
 
 ___
 
@@ -1350,10 +1347,6 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](Chain.md)
 
-**`Desc`**
-
-Returns a Chain model instance with connected provider.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1366,15 +1359,15 @@ Returns a Chain model instance with connected provider.
 
 Chain model with connected provider.
 
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
+
 ___
 
 ### <a id="totokenmodel" name="totokenmodel"></a> toTokenModel
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](TokenModel.md)
-
-**`Desc`**
-
-Returns a Token instance.
 
 #### Parameters
 
@@ -1387,6 +1380,10 @@ Returns a Token instance.
 [`TokenModel`](TokenModel.md)
 
 Token model.
+
+**`Desc`**
+
+Returns a Token instance.
 
 ___
 

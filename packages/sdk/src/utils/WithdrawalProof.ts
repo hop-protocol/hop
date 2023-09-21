@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-fetch'
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
 import { chainIdToSlug } from './chainIdToSlug'
-import { getGraphUrl } from './getGraphUrl'
+import { getSubgraphUrl } from './getSubgraphUrl'
 import { getTokenDecimals } from './getTokenDecimals'
 import { keccak256 } from 'ethereumjs-util'
 
@@ -207,7 +207,7 @@ export class WithdrawalProof {
     query: string,
     params: any = {}
   ) {
-    const url = getGraphUrl(this.network, chain)
+    const url = getSubgraphUrl(this.network, chain)
     const res = await fetch(url, {
       method: 'POST',
       headers: {

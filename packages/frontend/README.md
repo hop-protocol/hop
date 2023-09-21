@@ -52,6 +52,12 @@ Build distribution build:
 npm run build
 ```
 
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+act --workflows ../../.github/workflows/debug.yml
+```
+
 ## Deployments
 
 | Branch       | Network | URL                                                  | Release  | Description                                 |

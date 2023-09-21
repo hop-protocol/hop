@@ -16,6 +16,7 @@ for (const chain in networks) {
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
   chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
   chains[chain].hasFinalizationBlockTag = network?.hasFinalizationBlockTag
+  chains[chain].subgraphUrl = network?.subgraphUrl
 }
 
 const addresses = kovanAddresses.bridges

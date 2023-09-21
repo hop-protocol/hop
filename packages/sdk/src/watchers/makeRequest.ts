@@ -1,8 +1,8 @@
 import fetch from 'isomorphic-fetch'
-import { getGraphUrl } from '../utils/getGraphUrl'
+import { getSubgraphUrl } from '../utils/getSubgraphUrl'
 
 export async function makeRequest (network: string, chain: string, query: string, variables?: any) {
-  const url = getGraphUrl(network, chain)
+  const url = getSubgraphUrl(network, chain)
   const res = await fetch(url, {
     method: 'POST',
     headers: {

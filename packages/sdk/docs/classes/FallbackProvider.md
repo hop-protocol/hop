@@ -153,7 +153,7 @@ ___
 
 ### <a id="emit" name="emit"></a> emit
 
-▸ **emit**(`eventName`, ...`args`): `boolean`
+▸ **emit**(`eventName`, `...args`): `boolean`
 
 #### Parameters
 

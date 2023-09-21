@@ -102,7 +102,7 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     waitConfirmations: 64,
     hasFinalizationBlockTag: true,
-    subgraphUrl: 'https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-mainnet',
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-base',
     etherscanApiUrl: 'https://api.basescan.org'
   }
   /*

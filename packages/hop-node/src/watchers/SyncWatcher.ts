@@ -7,7 +7,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
@@ -845,8 +845,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.populateTransferSentTimestamp(transferId)
-    await this.populateTransferSender(transferId)
+    await this.populateTransferSentTimestampAndSender(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
     await this.populateTransferWithdrawalBondSettled(transferId)
   }
@@ -885,63 +884,45 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTransferIds(transferRootId)
   }
 
-  async populateTransferSentTimestamp (transferId: string) {
+  async populateTransferSentTimestampAndSender (transferId: string) {
     const logger = this.logger.create({ id: transferId })
-    logger.debug('starting populateTransferSentTimestamp')
+    logger.debug('starting populateTransferSentTimestampAndSender')
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId } = dbTransfer
-    if (
-      !transferSentBlockNumber ||
-      transferSentTimestamp
-    ) {
-      logger.debug('populateTransferSentTimestamp already found')
-      return
-    }
-    if (!sourceChainId) {
-      logger.warn(`populateTransferSentTimestamp marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
+    const {
+      sourceChainId,
+      transferSentTxHash,
+      transferSentTimestamp,
+      sender,
+      recipient
+    } = dbTransfer
+
+    if (!sourceChainId || !transferSentTxHash) {
+      logger.warn(`populateTransferSentTimestampAndSender marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
+
+    if (transferSentTimestamp || sender) {
+      logger.debug(`populateTransferSentTimestampAndSender already found. dbItem: ${JSON.stringify(dbTransfer)}`)
+      return
+    }
+
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
-    const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
-    if (!timestamp) {
-      logger.warn(`populateTransferSentTimestamp marking item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
+    const tx: providers.TransactionResponse = await sourceBridge.getTransaction(transferSentTxHash)
+    if (!tx) {
+      logger.warn(`populateTransferSentTimestampAndSender marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
-    logger.debug(`transferSentTimestamp: ${timestamp}`)
+
+    const { from, timestamp } = tx
+    logger.debug(`sender: ${from}, timestamp: ${timestamp}`)
     await this.db.transfers.update(transferId, {
+      sender: from,
       transferSentTimestamp: timestamp
     })
-  }
 
-  async populateTransferSender (transferId: string) {
-    const logger = this.logger.create({ id: transferId })
-    logger.debug('starting populateTransferSender')
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { sourceChainId, transferSentTxHash, sender, recipient } = dbTransfer
-    if (sourceChainId && transferSentTxHash && sender) {
-      logger.debug('populateTransferSender already found')
-      return
-    }
-    if (!sourceChainId || !transferSentTxHash) {
-      logger.debug('populateTransferSender expected sourceChainId and transferSentTxHash')
-      return
-    }
-    const bridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
-    const tx = await bridge.getTransaction(transferSentTxHash)
-    if (!tx) {
-      logger.warn(`populateTransferSender marking item not found. dbItem: ${JSON.stringify(dbTransfer)}`)
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
-    }
-    const { from } = tx
-    logger.debug(`sender: ${from}`)
-    await this.db.transfers.update(transferId, {
-      sender: from
-    })
-
-    const isBlocklisted = this.getIsBlocklisted([from, recipient])
+    const isBlocklisted = this.getIsBlocklisted([from, recipient!])
     if (isBlocklisted) {
       const msg = `transfer is unbondable because sender or recipient is in blocklist. transferId: ${transferId}, sender: ${from}, recipient: ${recipient}`
       logger.warn(msg)

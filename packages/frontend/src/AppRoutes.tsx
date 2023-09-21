@@ -1,5 +1,5 @@
-import React, { FC, lazy, Suspense } from 'react'
-import { Switch, Route, Redirect } from 'react-router-dom'
+import React, { FC, lazy, Suspense, useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import Send from 'src/pages/Send'
 import { Div } from './components/ui'
@@ -35,37 +35,54 @@ const AuthereumVerified = lazy(
 )
 
 const AppRoutes: FC = () => {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // root and airdrop paths
+  useEffect(() => {
+    if (location.pathname === '/') {
+      navigate('/send')
+    } else if (location.pathname === '/airdrop') {
+      navigate('/airdrop/preview')
+    }
+  }, [location, navigate])
+
   return (
-    <Switch>
-      <Route exact path="/" component={() => <Redirect to="/send" />} />
-      <Route exact path="/airdrop" component={() => <Redirect to="/airdrop/preview" />} />
-      <Div flexGrow={1}>
-        <Div p={['2.2rem', '2.5rem']} flexGrow={1}>
-          <Suspense fallback={<Loading />}>
-            <Route exact path="/stats" component={Stats} />
-            <Route exact path="/send" component={Send} />
-            <Route path="/convert" component={Convert} />
-            <Route exact path="/pools" component={PoolsOverview} />
-            <Route exact path="/pool" component={() => <Redirect to="/pool/deposit" />} />
-            <Route path="/pool/:tab" component={PoolDetails} />
-            <Route exact path="/rewards" component={Rewards} />
-            <Route exact path="/withdraw" component={Withdraw} />
-            <Route exact path="/health" component={Health} />
-            <Route exact path="/faucet" component={Faucet} />
-            <Route path="/claim" component={Claim} />
-            <Route exact path="/airdrop/social-verify" component={SocialVerify} />
-            <Route path="/airdrop/preview" component={AirdropPreview} />
-            <Route exact path="/social-verified" component={SocialVerified} />
-            <Route exact path="/authereum-verified" component={AuthereumVerified} />
-            <Route exact path="/airdrop/authereum" component={AuthereumVerify} />
-            <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
-            <Route exact path="/components" component={Components} />
-            <Route exact path="/stake" component={() => <Redirect to="/pool/stake" />} />
-          </Suspense>
-        </Div>
-      </Div>
-      <Route component={() => <Redirect to="/send" />} />
-    </Switch>
+    <Routes>
+      <Route
+        path="/*"
+        element={
+          <Div flexGrow={1}>
+            <Div p={['2.2rem', '2.5rem']} flexGrow={1}>
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  <Route path="/stats" element={<Stats />} />
+                  <Route path="/send" element={<Send />} />
+                  <Route path="/convert/*" element={<Convert />} />
+                  <Route path="/pools" element={<PoolsOverview />} />
+                  <Route path="/pool" element={<Navigate to="/pool/deposit" />} />
+                  <Route path="/pool/:tab/*" element={<PoolDetails />} />
+                  <Route path="/rewards" element={<Rewards />} />
+                  <Route path="/withdraw" element={<Withdraw />} />
+                  <Route path="/health" element={<Health />} />
+                  <Route path="/faucet" element={<Faucet />} />
+                  <Route path="/claim/*" element={<Claim />} />
+                  <Route path="/airdrop/social-verify" element={<SocialVerify />} />
+                  <Route path="/airdrop/preview/*" element={<AirdropPreview />} />
+                  <Route path="/social-verified" element={<SocialVerified />} />
+                  <Route path="/authereum-verified" element={<AuthereumVerified />} />
+                  <Route path="/airdrop/authereum" element={<AuthereumVerify />} />
+                  <Route path="/tx" element={<TransactionPage />} />
+                  <Route path="/tx/:hash" element={<TransactionPage />} />
+                  <Route path="/components" element={<Components />} />
+                  <Route path="/stake" element={<Navigate to="/pool/stake" />} />
+                </Routes>
+              </Suspense>
+            </Div>
+          </Div>
+        }
+      />
+    </Routes>
   )
 }
 

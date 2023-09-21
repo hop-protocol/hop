@@ -2,7 +2,7 @@ import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
 import { BigNumber, providers, Contract, constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
-import Db from './Db'
+import { db } from './Db'
 import { timestampPerBlockPerChain } from './constants'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
@@ -26,7 +26,7 @@ type Options = {
 }
 
 class TvlStats {
-  db = new Db()
+  db = db
   regenesis: boolean = false
   days: number = 365
   blockTags: Record<string, Record<number, number>> = {}
@@ -56,21 +56,6 @@ class TvlStats {
         archiveRpcUrls[chain]
       )
     }
-
-    process.once('uncaughtException', async err => {
-      console.error('uncaughtException:', err)
-      this.cleanUp()
-      process.exit(0)
-    })
-
-    process.once('SIGINT', () => {
-      this.cleanUp()
-    })
-  }
-
-  cleanUp () {
-    // console.log('closing db')
-    // this.db.close()
   }
 
   async trackTvl () {

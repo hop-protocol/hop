@@ -1,69 +1,7 @@
-import { Slug } from '@hop-protocol/sdk'
+import { utils } from '@hop-protocol/sdk'
 import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
 import { isGoerli } from 'src/config'
-
-export function getUrl(chain: Slug | string) {
-  if (chain === Slug.gnosis) {
-    chain = 'xdai'
-  }
-
-  if (chain === Slug.ethereum) {
-    chain = 'mainnet'
-  }
-
-  if (isGoerli) {
-    if (chain === 'mainnet') {
-      chain = 'goerli'
-    }
-    if (chain === 'polygon') {
-      chain = 'mumbai'
-    }
-    if (chain === 'optimism') {
-      chain = 'optimism-goerli'
-    }
-    if (chain === 'nova') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-    if (chain === 'arbitrum') {
-      return 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
-    }
-    if (chain === 'xdai') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-    if (chain === 'zksync') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-    if (chain === 'linea') {
-      return 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
-    }
-    if (chain === 'scrollzk') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-    if (chain === 'base') {
-      return 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
-    }
-    if (chain === 'polygonzk') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
-
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-
-  if (chain === Slug.mainnet) {
-    // In order to use the decentralized service, please ensure the decentralized subgraph is pushed and published. This
-    // is a different process than the centralized subgraph.
-    return 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet'
-    // TODO: Reintroduce this
-    // return 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
-  } else if (chain === Slug.nova) {
-    return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
-  } else if (chain === Slug.base) {
-    return `https://base.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}-mainnet`
-  } else {
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-}
 
 async function queryFetch(url: string, query: string, variables?: any) {
   try {
@@ -142,7 +80,9 @@ export async function fetchTransferSents(
     }
   `
 
-  const url = getUrl(chain)
+  // TODO: Better way to get network
+  const network = isGoerli ? 'goerli' : 'mainnet'
+  const url = utils.getSubgraphUrl(network, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferSents
@@ -173,7 +113,9 @@ export async function fetchTransferFromL1Completeds(
     }
   `
 
-  const url = getUrl(chain)
+  // TODO: Better way to get network
+  const network = isGoerli ? 'goerli' : 'mainnet'
+  const url = utils.getSubgraphUrl(network, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferFromL1Completeds
@@ -195,7 +137,9 @@ export async function fetchWithdrawalBondedsByTransferId(chain, transferId: BigN
         }
       }
     `
-  const url = getUrl(chain)
+  // TODO: Better way to get network
+  const network = isGoerli ? 'goerli' : 'mainnet'
+  const url = utils.getSubgraphUrl(network, chain)
   const data = await queryFetch(url, query)
   return data?.withdrawalBondeds
 }

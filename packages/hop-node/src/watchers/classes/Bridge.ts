@@ -28,6 +28,14 @@ export type CanonicalTokenConvertOptions = {
   shouldSkipNearestCheck?: boolean
 }
 
+type BlockValues = {
+  end: number
+  start: number
+  batchBlocks?: number
+  earliestBlockInBatch: number
+  latestBlockInBatch: number
+}
+
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 type BridgeContract = L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
 
@@ -57,9 +65,10 @@ export default class Bridge extends ContractBase {
     if (tokenDecimals !== undefined) {
       this.tokenDecimals = tokenDecimals
     }
-    if (tokenSymbol) {
-      this.tokenSymbol = tokenSymbol
+    if (!tokenSymbol) {
+      throw new Error(`expected tokenSymbol in Bridge constructor for chain "${this.chainSlug}" and bridge address "${bridgeContract.address}". Check config or try updating core package.`)
     }
+    this.tokenSymbol = tokenSymbol
     this.db = getDbSet(this.tokenSymbol)
     const bridgeDeployedBlockNumber = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
     const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
@@ -573,16 +582,47 @@ export default class Bridge extends ContractBase {
       state = await this.db.syncState.getByKey(syncCacheKey)
     }
 
-    const blockValues = await this.getBlockValues(options, state)
-    let {
+    const blockValues: BlockValues = await this.getBlockValues(options, state)
+    const {
       start,
       end,
-      batchBlocks,
       earliestBlockInBatch,
       latestBlockInBatch
     } = blockValues
 
     this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
+
+    // If the syncer is already at the head, do not fall into the while loop since that uses
+    // an unnecessary getLogs call
+    const isAtHead = (
+      start === end &&
+      start === earliestBlockInBatch &&
+      start === latestBlockInBatch
+    )
+
+    let traversalStart = start
+    if (!isAtHead) {
+      traversalStart = await this.traverseBlockRange(cb, blockValues)
+    }
+
+    // Only store latest block if a sync is successful. Sync is complete when the start block is reached since
+    // it traverses backwards from head.
+    // NOTE: The syncCacheKey here enforces that the syncState is only updated during a sync and not when this
+    // is called for other purposes, such as looking onchain for transferIds in a root.
+    if (syncCacheKey && traversalStart === earliestBlockInBatch) {
+      this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
+      await this.db.syncState.update(syncCacheKey, {
+        latestBlockSynced: latestBlockInBatch,
+        timestamp: Date.now()
+      })
+    }
+  }
+
+  private readonly traverseBlockRange = async (
+    cb: (start?: number, end?: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
+    blockValues: BlockValues
+  ): Promise<number> => {
+    let { start, end, batchBlocks, earliestBlockInBatch } = blockValues
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -604,20 +644,10 @@ export default class Bridge extends ContractBase {
       i++
     }
 
-    // Only store latest block if a sync is successful. Sync is complete when the start block is reached since
-    // it traverses backwards from head.
-    // NOTE: The syncCacheKey here enforces that the syncState is only updated during a sync and not when this
-    // is called for other purposes, such as looking onchain for transferIds in a root.
-    if (syncCacheKey && start === earliestBlockInBatch) {
-      this.logger.debug(`eventsBatch syncCacheKey: ${syncCacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
-      await this.db.syncState.update(syncCacheKey, {
-        latestBlockSynced: latestBlockInBatch,
-        timestamp: Date.now()
-      })
-    }
+    return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State) => {
+  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State): Promise<BlockValues> => {
     const { startBlockNumber, endBlockNumber } = options
 
     let end: number

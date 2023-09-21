@@ -1,6 +1,6 @@
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
-import Db from './Db'
+import { db } from './Db'
 import { PriceFeed } from './PriceFeed'
 import { queryFetch } from './utils/queryFetch'
 import { nearestDate } from './utils/nearestDate'
@@ -14,7 +14,7 @@ type Options = {
 }
 
 class VolumeStats {
-  db = new Db()
+  db = db
   regenesis: boolean = false
   priceFeed: PriceFeed
 
@@ -24,21 +24,6 @@ class VolumeStats {
     }
 
     this.priceFeed = new PriceFeed()
-
-    process.once('uncaughtException', async err => {
-      console.error('uncaughtException:', err)
-      this.cleanUp()
-      process.exit(0)
-    })
-
-    process.once('SIGINT', () => {
-      this.cleanUp()
-    })
-  }
-
-  cleanUp () {
-    // console.log('closing db')
-    // this.db.close()
   }
 
   async fetchDailyVolume (chain: string, startDate: number) {

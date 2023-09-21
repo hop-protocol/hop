@@ -14,7 +14,9 @@ const getProviderChainSlug = (provider: any): Chain | undefined => {
   }
   for (const chain in globalConfig.networks) {
     const url = globalConfig.networks[chain].rpcUrl
-    if (new URL(providerUrl).host === new URL(url).host) {
+    const providerUrlObj = new URL(providerUrl)
+    const configUrlObj = new URL(url)
+    if (providerUrlObj.host === configUrlObj.host && providerUrlObj.pathname === configUrlObj.pathname) {
       cache[providerUrl] = chain
       return chain as Chain
     }

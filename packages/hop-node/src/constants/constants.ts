@@ -97,6 +97,7 @@ export enum TxError {
   RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
   RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
+  RpcServerError = 'RPC_SERVER_ERROR'
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
@@ -158,4 +159,15 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.Base]: FinalityTag.Finalized,
   [Chain.Nova]: FinalityTag.Safe,
   [Chain.PolygonZk]: FinalityTag.Safe
+}
+
+export const ChainSyncMultiplier: Record<string, number> = {
+  [Chain.Ethereum]: 1,
+  [Chain.Gnosis]: 2,
+  [Chain.Polygon]: 2,
+  [Chain.Optimism]: 1,
+  [Chain.Arbitrum]: 1,
+  [Chain.Base]: 1,
+  [Chain.Nova]: 2,
+  [Chain.PolygonZk]: 1
 }

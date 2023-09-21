@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Alert from 'src/components/alert/Alert'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -37,7 +37,7 @@ export function SocialVerified() {
   const [userData, setUserData] = useState<ActiveUserEligibility>()
   const [captchaResponseToken, setCaptchaResponseToken] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
-  const history = useHistory()
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (userData) {
@@ -45,7 +45,7 @@ export function SocialVerified() {
     }
     const { username, eligible, social, userId, address: prevAddress } = queryParams
     if (!username) {
-      history.push('/airdrop/social-verify')
+      navigate('/airdrop/social-verify')
       return
     }
     const data = {
@@ -153,7 +153,7 @@ export function SocialVerified() {
         </Box>
         <Box mt={2}>
           <Typography variant="body1">
-            Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your HOP token share on app.hop.exchange once the token is launched.
+            Per the governance action, you will be able to claim your tokens shortly after this renewed claim period.
           </Typography>
         </Box>
         <Box mt={3}>

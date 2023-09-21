@@ -1,5 +1,6 @@
 import React, {
   FC,
+  ReactNode,
   createContext,
   useContext,
   useMemo,
@@ -169,7 +170,7 @@ const walletConnect = walletConnectModule({
 
 const Web3Context = createContext<Props | undefined>(undefined)
 
-const Web3ContextProvider: FC = ({ children }) => {
+const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
   const { isDarkMode } = useThemeMode()
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()

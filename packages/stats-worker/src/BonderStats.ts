@@ -9,7 +9,7 @@ import {
   parseUnits
 } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
-import Db from './Db'
+import { db } from './Db'
 import {
   enabledTokens,
   enabledChains,
@@ -55,7 +55,7 @@ type Options = {
 }
 
 class BonderStats {
-  db = new Db()
+  db = db
   days: number = 1
   offsetDays: number = 0
   startDate?: DateTime
@@ -122,21 +122,6 @@ class BonderStats {
         archiveRpcUrls[chain]
       )
     }
-
-    process.once('uncaughtException', async err => {
-      console.error('uncaughtException:', err)
-      this.cleanUp()
-      process.exit(0)
-    })
-
-    process.once('SIGINT', () => {
-      this.cleanUp()
-    })
-  }
-
-  cleanUp () {
-    // console.log('closing db')
-    // this.db.close()
   }
 
   async trackBonderFee () {

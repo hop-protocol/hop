@@ -864,12 +864,13 @@ class SyncWatcher extends BaseWatcher {
     const {
       sourceChainId,
       transferSentTxHash,
+      transferSentBlockNumber,
       transferSentTimestamp,
       sender,
       recipient
     } = dbTransfer
 
-    if (!sourceChainId || !transferSentTxHash) {
+    if (!sourceChainId || !transferSentTxHash || !transferSentBlockNumber) {
       logger.warn(`populateTransferSentTimestampAndSender marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
@@ -888,7 +889,12 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const { from, timestamp } = tx
+    // A timestamp should exist in a mined transaction. If it does not, look it up
+    let { from, timestamp } = tx
+    if (!timestamp) {
+      timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+    }
+
     logger.debug(`populateTransferSentTimestampAndSender: sender: ${from}, timestamp: ${timestamp}`)
     await this.db.transfers.update(transferId, {
       sender: from,

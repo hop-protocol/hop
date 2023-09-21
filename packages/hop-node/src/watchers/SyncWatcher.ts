@@ -10,11 +10,11 @@ import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import {
   Chain,
+  ChainSyncMultiplier,
   GasCostTransactionType,
   OneWeekMs,
   RelayableChains,
-  TenMinutesMs,
-  ChainSyncMultiplier
+  TenMinutesMs
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
@@ -36,9 +36,6 @@ import {
   TransfersCommittedEvent
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RelayerFee } from '@hop-protocol/sdk'
-import { Transfer } from 'src/db/TransfersDb'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import {
   SyncCyclesPerFullSync,
   SyncIntervalMultiplier,
@@ -48,6 +45,9 @@ import {
   minEthBonderFeeBn,
   oruChains
 } from 'src/config'
+import { Transfer } from 'src/db/TransfersDb'
+import { TransferRoot } from 'src/db/TransferRootsDb'
+import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -270,12 +270,12 @@ class SyncWatcher extends BaseWatcher {
       .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
   }
 
-  shouldSyncAllEvents(): boolean {
+  shouldSyncAllEvents (): boolean {
     return !this.isInitialSyncCompleted() || this.isAtNewFullSyncCycleIndex()
   }
 
-  isAtNewFullSyncCycleIndex(): boolean {
-      return this.syncIndex % SyncCyclesPerFullSync === 0
+  isAtNewFullSyncCycleIndex (): boolean {
+    return this.syncIndex % SyncCyclesPerFullSync === 0
   }
 
   getSyncOptions (keyName: string) {
@@ -296,7 +296,7 @@ class SyncWatcher extends BaseWatcher {
 
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferSentToL2Events(
-      event => this.handleTransferSentToL2Event(event),
+      async event => this.handleTransferSentToL2Event(event),
       this.getSyncOptions(l1Bridge.TransferSentToL2)
     )
   }
@@ -306,7 +306,7 @@ class SyncWatcher extends BaseWatcher {
 
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferRootConfirmedEvents(
-      event => this.handleTransferRootConfirmedEvent(event),
+      async event => this.handleTransferRootConfirmedEvent(event),
       this.getSyncOptions(l1Bridge.TransferRootConfirmed)
     )
   }
@@ -316,7 +316,7 @@ class SyncWatcher extends BaseWatcher {
 
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferBondChallengedEvents(
-      event => this.handleTransferBondChallengedEvent(event),
+      async event => this.handleTransferBondChallengedEvent(event),
       this.getSyncOptions(l1Bridge.TransferBondChallenged)
     )
   }
@@ -326,24 +326,24 @@ class SyncWatcher extends BaseWatcher {
 
     const l2Bridge = this.bridge as L2Bridge
     return l2Bridge.mapTransferSentEvents(
-      event => this.handleTransferSentEvent(event),
+      async event => this.handleTransferSentEvent(event),
       this.getSyncOptions(l2Bridge.TransferSent)
     )
   }
 
   async getTransferRootSetEventPromise (): Promise<any> {
     return this.bridge.mapTransferRootSetEvents(
-      event => this.handleTransferRootSetEvent(event),
+      async event => this.handleTransferRootSetEvent(event),
       this.getSyncOptions(this.bridge.TransferRootSet)
     )
   }
 
-  async getTransferRootBondedEventPromise (): Promise<any>{
+  async getTransferRootBondedEventPromise (): Promise<any> {
     if (!this.isL1) return []
 
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferRootBondedEvents(
-      event => this.handleTransferRootBondedEvent(event),
+      async event => this.handleTransferRootBondedEvent(event),
       this.getSyncOptions(l1Bridge.TransferRootBonded)
     )
   }
@@ -353,35 +353,35 @@ class SyncWatcher extends BaseWatcher {
 
     const l2Bridge = this.bridge as L2Bridge
     return l2Bridge.mapTransfersCommittedEvents(
-      event => this.handleTransfersCommittedEvent(event),
+      async event => this.handleTransfersCommittedEvent(event),
       this.getSyncOptions(l2Bridge.TransfersCommitted)
     )
   }
 
   async getWithdrawalBondedEventPromise (): Promise<any> {
     return this.bridge.mapWithdrawalBondedEvents(
-      event => this.handleWithdrawalBondedEvent(event),
+      async event => this.handleWithdrawalBondedEvent(event),
       this.getSyncOptions(this.bridge.WithdrawalBonded)
     )
   }
 
   async getWithdrewEventPromise (): Promise<any> {
     return this.bridge.mapWithdrewEvents(
-      event => this.handleWithdrewEvent(event),
+      async event => this.handleWithdrewEvent(event),
       this.getSyncOptions(this.bridge.Withdrew)
     )
   }
 
   async getMultipleWithdrawalsSettledEventPromise (): Promise<any> {
     return this.bridge.mapMultipleWithdrawalsSettledEvents(
-      event => this.handleMultipleWithdrawalsSettledEvent(event),
+      async event => this.handleMultipleWithdrawalsSettledEvent(event),
       this.getSyncOptions(this.bridge.MultipleWithdrawalsSettled)
     )
   }
 
   async getWithdrawalBondSettledEventPromise (): Promise<any> {
     return this.bridge.mapWithdrawalBondSettledEvents(
-      event => this.handleWithdrawalBondSettledEvent(event),
+      async event => this.handleWithdrawalBondSettledEvent(event),
       this.getSyncOptions(this.bridge.WithdrawalBondSettled)
     )
   }
@@ -392,20 +392,20 @@ class SyncWatcher extends BaseWatcher {
       this.getTransferRootConfirmedEventPromise(),
       this.getTransferBondChallengedEventPromise(),
       this.getTransferSentEventPromise(),
-      this.getTransferRootSetEventPromise(),
+      this.getTransferRootSetEventPromise()
     ]
     const syncPromises: EventPromise = [
       this.getTransferRootBondedEventPromise(),
       this.getTransfersCommittedEventPromise(),
       this.getWithdrawalBondedEventPromise(),
-      this.getWithdrewEventPromise(),
+      this.getWithdrewEventPromise()
     ]
     const orderedPromises: Promise<any> = Promise.all(syncPromises).then(async () => {
       // These must be executed after the Withdrew and WithdrawalBonded event handlers
       // on initial sync since it relies on data from those handlers
       await Promise.all([
         this.getMultipleWithdrawalsSettledEventPromise(),
-        this.getWithdrawalBondSettledEventPromise(),
+        this.getWithdrawalBondSettledEventPromise()
       ])
     })
     return [
@@ -875,7 +875,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    if (transferSentTimestamp || sender) {
+    if (transferSentTimestamp || sender) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
       logger.debug(`populateTransferSentTimestampAndSender already found. dbItem: ${JSON.stringify(dbTransfer)}`)
       return
     }

@@ -583,7 +583,7 @@ export default class Bridge extends ContractBase {
     }
 
     const blockValues: BlockValues = await this.getBlockValues(options, state)
-    let {
+    const {
       start,
       end,
       earliestBlockInBatch,

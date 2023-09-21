@@ -1,28 +1,21 @@
 import fetch from 'node-fetch'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
-import { Chain } from 'src/constants'
-import { config as globalConfig } from 'src/config'
 import getSubgraphUrl from 'src/utils/getSubgraphUrl'
 
 export default async function makeRequest (
   chain: string,
   query: string,
-  params: any = {},
-  isGoerli: boolean = false
+  params: any = {}
 ) {
-  return await rateLimitRetry(_makeRequest)(chain, query, params, isGoerli)
+  return await rateLimitRetry(_makeRequest)(chain, query, params)
 }
 
 async function _makeRequest (
   chain: string,
   query: string,
-  params: any = {},
-  isGoerli: boolean = false
+  params: any = {}
 ) {
-  // TODO: Better way to get network
-  const network = isGoerli ? 'goerli' : 'mainnet'
-  const url = getSubgraphUrl(chain, network)
-
+  const url = getSubgraphUrl(chain)
   const res = await fetch(url, {
     method: 'POST',
     headers: {

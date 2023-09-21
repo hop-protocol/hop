@@ -1,9 +1,7 @@
-import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { config as globalConfig } from 'src/config'
 
-const getSubgraphUrl = (chain: string, network: string): string => {
-  // TODO: Generalize for multiple networks
-  const addresses = network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
-  const url = addresses?.[chain]?.subgraphUrl
+const getSubgraphUrl = (chain: string): string => {
+  const url = globalConfig.networks?.[chain]?.subgraphUrl
   if (!url) {
     throw new Error(`subgraph url not found for chain ${chain}`)
   }

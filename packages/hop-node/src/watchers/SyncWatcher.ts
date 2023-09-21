@@ -291,10 +291,9 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  getTransferSentToL2EventPromise (): Promise<any> {
-    if (!this.isL1) {
-      return Promise.resolve()
-    }
+  async getTransferSentToL2EventPromise (): Promise<any> {
+    if (!this.isL1) return []
+
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferSentToL2Events(
       event => this.handleTransferSentToL2Event(event),
@@ -302,10 +301,9 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getTransferRootConfirmedEventPromise (): Promise<any> {
-    if (!this.isL1) {
-      return Promise.resolve()
-    }
+  async getTransferRootConfirmedEventPromise (): Promise<any> {
+    if (!this.isL1) return []
+
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferRootConfirmedEvents(
       event => this.handleTransferRootConfirmedEvent(event),
@@ -313,10 +311,9 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getTransferBondChallengedEventPromise (): Promise<any> {
-    if (!this.isL1) {
-      return Promise.resolve()
-    }
+  async getTransferBondChallengedEventPromise (): Promise<any> {
+    if (!this.isL1) return []
+
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferBondChallengedEvents(
       event => this.handleTransferBondChallengedEvent(event),
@@ -324,10 +321,9 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getTransferSentEventPromise (): Promise<any> {
-    if (this.isL1) {
-      return Promise.resolve()
-    }
+  async getTransferSentEventPromise (): Promise<any> {
+    if (this.isL1) return []
+
     const l2Bridge = this.bridge as L2Bridge
     return l2Bridge.mapTransferSentEvents(
       event => this.handleTransferSentEvent(event),
@@ -335,17 +331,16 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getTransferRootSetEventPromise (): Promise<any> {
+  async getTransferRootSetEventPromise (): Promise<any> {
     return this.bridge.mapTransferRootSetEvents(
       event => this.handleTransferRootSetEvent(event),
       this.getSyncOptions(this.bridge.TransferRootSet)
     )
   }
 
-  getTransferRootBondedEventPromise (): Promise<any>{
-    if (!this.isL1) {
-      return Promise.resolve()
-    }
+  async getTransferRootBondedEventPromise (): Promise<any>{
+    if (!this.isL1) return []
+
     const l1Bridge = this.bridge as L1Bridge
     return l1Bridge.mapTransferRootBondedEvents(
       event => this.handleTransferRootBondedEvent(event),
@@ -353,10 +348,9 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getTransfersCommittedEventPromise (): Promise<any> {
-    if (this.isL1) {
-      return Promise.resolve()
-    }
+  async getTransfersCommittedEventPromise (): Promise<any> {
+    if (this.isL1) return []
+
     const l2Bridge = this.bridge as L2Bridge
     return l2Bridge.mapTransfersCommittedEvents(
       event => this.handleTransfersCommittedEvent(event),
@@ -364,28 +358,28 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getWithdrawalBondedEventPromise (): Promise<any> {
+  async getWithdrawalBondedEventPromise (): Promise<any> {
     return this.bridge.mapWithdrawalBondedEvents(
       event => this.handleWithdrawalBondedEvent(event),
       this.getSyncOptions(this.bridge.WithdrawalBonded)
     )
   }
 
-  getWithdrewEventPromise (): Promise<any> {
+  async getWithdrewEventPromise (): Promise<any> {
     return this.bridge.mapWithdrewEvents(
       event => this.handleWithdrewEvent(event),
       this.getSyncOptions(this.bridge.Withdrew)
     )
   }
 
-  getMultipleWithdrawalsSettledEventPromise (): Promise<any> {
+  async getMultipleWithdrawalsSettledEventPromise (): Promise<any> {
     return this.bridge.mapMultipleWithdrawalsSettledEvents(
       event => this.handleMultipleWithdrawalsSettledEvent(event),
       this.getSyncOptions(this.bridge.MultipleWithdrawalsSettled)
     )
   }
 
-  getWithdrawalBondSettledEventPromise (): Promise<any> {
+  async getWithdrawalBondSettledEventPromise (): Promise<any> {
     return this.bridge.mapWithdrawalBondSettledEvents(
       event => this.handleWithdrawalBondSettledEvent(event),
       this.getSyncOptions(this.bridge.WithdrawalBondSettled)

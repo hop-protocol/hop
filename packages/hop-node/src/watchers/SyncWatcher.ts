@@ -875,7 +875,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    if (transferSentTimestamp || sender) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+    if (transferSentTimestamp && sender) {
       logger.debug(`populateTransferSentTimestampAndSender already found. dbItem: ${JSON.stringify(dbTransfer)}`)
       return
     }

@@ -881,7 +881,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
-    const tx: providers.TransactionResponse = await sourceBridge.getTransaction(transferSentTxHash)
+    const tx: providers.TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
     if (!tx) {
       logger.warn(`populateTransferSentTimestampAndSender marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
@@ -889,7 +889,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const { from, timestamp } = tx
-    logger.debug(`sender: ${from}, timestamp: ${timestamp}`)
+    logger.debug(`populateTransferSentTimestampAndSender: sender: ${from}, timestamp: ${timestamp}`)
     await this.db.transfers.update(transferId, {
       sender: from,
       transferSentTimestamp: timestamp

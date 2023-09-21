@@ -24,7 +24,11 @@ import {
   RedundantProviderOutOfSync
 } from 'src/types/error'
 import { Strategy, Vault } from 'src/vault'
-import { config as globalConfig, hostname } from 'src/config'
+import {
+  TxRetryDelayMs,
+  config as globalConfig,
+  hostname
+} from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 
 const mutexes: Record<string, Mutex> = {}
@@ -105,6 +109,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     this.mutex = mutexes[this.chainSlug]
+
+    this.logger.debug(`tx retry delay: ${TxRetryDelayMs} ms`)
   }
 
   get isL1 (): boolean {

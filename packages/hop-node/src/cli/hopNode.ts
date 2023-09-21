@@ -38,7 +38,6 @@ root
   .option('--health-check-cache-file <filepath>', 'Health checker cache file', parseString)
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
-  .option('--resync-interval-ms <number>', 'The sync interval for the SyncWatcher', parseNumber)
   .option('--arb-bot [boolean]', 'Run the Goerli arb bot', parseBool)
   .option(
     '--arb-bot-config <path>',
@@ -52,7 +51,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs, arbBot: runArbBot, arbBotConfig } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -129,6 +128,7 @@ async function main (source: any) {
     const bonderPublicAddress = computeAddress(privateKey)
     logger.info('Bonder public address:', bonderPublicAddress)
   }
+
   const { starts } = await startWatchers({
     enabledWatchers: Object.keys(config.watchers).filter(
       key => config.watchers[key]
@@ -141,7 +141,6 @@ async function main (source: any) {
     settleBondedWithdrawalsThresholdPercent,
     dryMode,
     syncFromDate,
-    resyncIntervalMs,
     s3Upload,
     s3Namespace
   })

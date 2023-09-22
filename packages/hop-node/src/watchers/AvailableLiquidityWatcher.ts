@@ -87,7 +87,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     this.updateCache(cacheKey, this.pollCount)
 
     this.pollCount++
-    this.logger.debug('syncing bonder credit', this.pollCount)
+    this.logger.debug('syncing bonder credit index:', this.pollCount)
     await this.syncUnbondedTransferRootAmounts()
       .then(async () => await this.syncPendingAmounts())
       .then(async () => await this.syncAvailableCredit())

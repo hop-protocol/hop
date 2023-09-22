@@ -36,8 +36,7 @@ type S3JsonData = {
 }
 
 // These should be global since they apply to all instances
-const pendingAmountCache: Record<string, BigNumber> = {}
-const availableLiquidityCache: Record<string, BigNumber> = {}
+const cache: Record<string, BigNumber> = {}
 
 // TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
@@ -149,18 +148,16 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async calculatePendingAmount (destinationChainId: number) {
     const cacheKey = this.getPendingAmountCacheKey(destinationChainId)
-    const nowSec = Math.floor(Date.now() / 1000)
-    const isFirstRun = !!pendingAmountCache[cacheKey]
-    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.cacheTimeSec
-    if (!isFirstRun && !shouldPoll) {
-      return pendingAmountCache[cacheKey]
-    }
+    // const shouldGetNewData = this.shouldGetNewCacheData(cacheKey)
+    // if (!shouldGetNewData) {
+    //   return cache[cacheKey]
+    // }
 
     const bridge = this.bridge as L2Bridge
     const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
 
-    this.lastCacheTimestampSec[cacheKey] = nowSec
-    pendingAmountCache[cacheKey] = pendingAmount
+    this.lastCacheTimestampSec[cacheKey] = Math.floor(Date.now() / 1000)
+    cache[cacheKey] = pendingAmount
     return pendingAmount
   }
 
@@ -327,18 +324,16 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getOnchainBaseAvailableCredit (destinationWatcher: any, bonder?: string): Promise<BigNumber> {
     const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
-    const nowSec = Math.floor(Date.now() / 1000)
-    const isFirstRun = !!availableLiquidityCache[cacheKey]
-    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.cacheTimeSec
-    if (!isFirstRun && !shouldPoll) {
-      return availableLiquidityCache[cacheKey]
-    }
+    // const shouldGetNewData = this.shouldGetNewCacheData(cacheKey)
+    // if (!shouldGetNewData) {
+    //   return cache[cacheKey]
+    // }
 
     const destinationBridge = destinationWatcher.bridge
     const onchainBaseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
 
-    this.lastCacheTimestampSec[cacheKey] = nowSec
-    availableLiquidityCache[cacheKey] = onchainBaseAvailableCredit
+    this.lastCacheTimestampSec[cacheKey] = Math.floor(Date.now() / 1000)
+    cache[cacheKey] = onchainBaseAvailableCredit
     return onchainBaseAvailableCredit
   }
 
@@ -467,6 +462,13 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       }
     }
     return false
+  }
+
+  private shouldGetNewCacheData (cacheKey: string): boolean {
+    const nowSec = Math.floor(Date.now() / 1000)
+    const doesCacheValueExist = !!cache[cacheKey]
+    const isCacheTimeExpired = nowSec - this.lastCacheTimestampSec[cacheKey] > this.cacheTimeSec
+    return !doesCacheValueExist || isCacheTimeExpired
   }
 
   private getPendingAmountCacheKey (destinationChainId: number): string {

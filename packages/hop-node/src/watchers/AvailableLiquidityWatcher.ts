@@ -52,6 +52,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private lastCalculated: { [destinationChain: string]: number } = {}
   s3Upload: S3Upload
   s3Namespace: S3Upload
+  pollCount: number = 0
   pollTimeSec: number = 15 * 60
   cacheTimeSec: number = 30
   lastCacheTimestampSec: Record<string, number> = {}
@@ -83,9 +84,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     if (!getNewData) {
       return
     }
-    this.updateLastCacheTimestampSec(cacheKey)
+    this.updateCache(cacheKey, this.pollCount)
 
-    this.logger.debug('syncing bonder credit')
+    this.pollCount++
+    this.logger.debug('syncing bonder credit', this.pollCount)
     await this.syncUnbondedTransferRootAmounts()
       .then(async () => await this.syncPendingAmounts())
       .then(async () => await this.syncAvailableCredit())
@@ -149,8 +151,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const bridge = this.bridge as L2Bridge
     const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
 
-    this.updateLastCacheTimestampSec(cacheKey)
-    cache[cacheKey] = pendingAmount
+    this.updateCache(cacheKey, pendingAmount)
     return pendingAmount
   }
 
@@ -325,8 +326,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationBridge = destinationWatcher.bridge
     const onchainBaseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
 
-    this.updateLastCacheTimestampSec(cacheKey)
-    cache[cacheKey] = onchainBaseAvailableCredit
+    this.updateCache(cacheKey, onchainBaseAvailableCredit)
     return onchainBaseAvailableCredit
   }
 
@@ -468,7 +468,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return false
   }
 
-  private updateLastCacheTimestampSec (cacheKey: string): void {
+  private updateCache (cacheKey: string, value: BigNumber | number): void {
+    if (typeof value === 'number') {
+      value = BigNumber.from(value)
+    }
+    cache[cacheKey] = value
     this.lastCacheTimestampSec[cacheKey] = Math.floor(Date.now() / 1000)
   }
 

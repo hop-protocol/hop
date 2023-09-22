@@ -809,15 +809,13 @@ export default class Bridge extends ContractBase {
   async getGasCostEstimation (
     chain: string,
     tokenSymbol: string,
+    gasPrice: BigNumber,
     gasLimit: BigNumber,
     transactionType: GasCostTransactionType,
     data?: string,
     to?: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
-    const provider = getRpcProvider(chain)!
-    const gasPrice = await provider.getGasPrice()
-
     let gasCost: BigNumber = BigNumber.from('0')
     if (transactionType === GasCostTransactionType.Relay) {
       // Relay transactions use the gasLimit as the gasCost
@@ -871,7 +869,6 @@ export default class Bridge extends ContractBase {
     return {
       gasCost,
       gasCostInToken,
-      gasPrice,
       gasLimit,
       tokenPriceUsd,
       nativeTokenPriceUsd

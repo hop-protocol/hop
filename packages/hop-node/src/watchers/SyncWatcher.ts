@@ -265,8 +265,9 @@ class SyncWatcher extends BaseWatcher {
     let promisesPerPoll: EventPromise = []
     if (this.shouldSyncAllEvents()) {
       promisesPerPoll = this.getAllPromises()
-    } else {
-      promisesPerPoll = this.getTransferSentPromises()
+    } else  {
+      const isFinalized = !this.shouldSyncHead
+      promisesPerPoll = this.getTransferSentPromises(isFinalized)
     }
 
     // these must come after db is done syncing, and syncAvailableCredit must be last
@@ -325,12 +326,12 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async getTransferSentEventPromise (): Promise<any> {
+  async getTransferSentEventPromise (isFinalized: boolean): Promise<any> {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
     return l2Bridge.mapTransferSentEvents(
-      async event => this.handleTransferSentEvent(event),
+      async event => this.handleTransferSentEvent(event, isFinalized),
       this.getSyncOptions(l2Bridge.TransferSent)
     )
   }
@@ -391,11 +392,13 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getAllPromises (): EventPromise {
+    // Full syncs will always use finalized data
+    const isFinalized = true
     const asyncPromises: EventPromise = [
       this.getTransferSentToL2EventPromise(),
       this.getTransferRootConfirmedEventPromise(),
       this.getTransferBondChallengedEventPromise(),
-      this.getTransferSentEventPromise(),
+      this.getTransferSentEventPromise(isFinalized),
       this.getTransferRootSetEventPromise()
     ]
     const syncPromises: EventPromise = [
@@ -418,14 +421,14 @@ class SyncWatcher extends BaseWatcher {
     ]
   }
 
-  getTransferSentPromises (): EventPromise {
+  getTransferSentPromises (isFinalized: boolean): EventPromise {
     // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
     if (this.isL1) {
       if (this.isRelayableChainEnabled) {
         return [this.getTransferSentToL2EventPromise()]
       }
     } else {
-      return [this.getTransferSentEventPromise()]
+      return [this.getTransferSentEventPromise(isFinalized)]
     }
     return []
   }
@@ -502,7 +505,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferSentEvent (event: TransferSentEvent) {
+  async handleTransferSentEvent (event: TransferSentEvent, isFinalized: boolean) {
     const {
       transferId,
       chainId: destinationChainIdBn,
@@ -516,6 +519,11 @@ class SyncWatcher extends BaseWatcher {
     } = event.args
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
+
+    // There is no need to handle the finalized or unfinalized events differently.
+    // If the finalized data does not match the unfinalized data, the other watchers
+    // will have handled this case and removed the transfer from the DB. This watcher
+    // simply stores data to let the rest of the system do what it wants with the data
 
     try {
       const { transactionHash } = event
@@ -536,6 +544,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('deadline:', deadline.toString())
       logger.debug('transferSentIndex:', transferSentIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
+      logger.debug('isFinalized:', isFinalized)
 
       if (!isBondable) {
         logger.warn('transfer is unbondable', amountOutMin, deadline)
@@ -554,7 +563,8 @@ class SyncWatcher extends BaseWatcher {
         deadline,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
-        transferSentIndex
+        transferSentIndex,
+        isFinalized
       })
 
       logger.debug('handleTransferSentEvent: stored transfer item')
@@ -1495,7 +1505,6 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash
     } = event.args
     const logger = this.logger.create({ id: transferId })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
 
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {

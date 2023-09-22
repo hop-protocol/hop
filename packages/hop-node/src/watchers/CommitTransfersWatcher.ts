@@ -2,7 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, ChainPollMultiplier } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TxRetryDelayMs, getEnabledNetworks, config as globalConfig, pendingCountCommitThreshold } from 'src/config'
@@ -43,7 +43,9 @@ class CommitTransfersWatcher extends BaseWatcher {
     // This causes high RPC usage, so we increase the poll interval to reduce RPC usage.
     // Since commits are a relatively slow event, this will not cause any user-facing efficiencies.
     const pollMultiplier = 200
-    this.pollIntervalMs = this.pollIntervalMs * pollMultiplier
+    const chainMultiplier = ChainPollMultiplier?.[this.chainSlug] ?? 1
+    this.pollIntervalMs = this.pollIntervalMs * pollMultiplier * chainMultiplier
+    console.log(`commit transfers watcher poll interval: ${this.pollIntervalMs} ms`)
   }
 
   async start () {

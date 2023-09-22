@@ -45,7 +45,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     const pollMultiplier = 200
     const chainMultiplier = ChainPollMultiplier?.[this.chainSlug] ?? 1
     this.pollIntervalMs = this.pollIntervalMs * pollMultiplier * chainMultiplier
-    console.log(`commit transfers watcher poll interval: ${this.pollIntervalMs} ms`)
+    this.logger.debug(`commit transfers watcher poll interval: ${this.pollIntervalMs} ms`)
   }
 
   async start () {

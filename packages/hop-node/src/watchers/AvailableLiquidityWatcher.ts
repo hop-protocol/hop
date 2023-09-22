@@ -82,7 +82,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     // which makes calls at different times based on the bridge and token.
 
     const nowSec = Math.floor(Date.now() / 1000)
-    if (nowSec - this.lastUpdateTimestampSec < this.pollTimeSec) {
+    const isFirstRun = this.lastUpdateTimestampSec === 0
+    const shouldPoll = nowSec - this.lastUpdateTimestampSec > this.pollTimeSec
+    if (!isFirstRun && !shouldPoll) {
       return
     }
     this.lastUpdateTimestampSec = nowSec

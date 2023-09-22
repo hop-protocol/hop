@@ -52,10 +52,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private lastCalculated: { [destinationChain: string]: number } = {}
   s3Upload: S3Upload
   s3Namespace: S3Upload
-  lastUpdateTimestampSec: number = 0
   pollTimeSec: number = 15 * 60
-  lastCacheTimestampSec: Record<string, number> = {}
   cacheTimeSec: number = 30
+  lastCacheTimestampSec: Record<string, number> = {}
 
   constructor (config: Config) {
     super({
@@ -79,26 +78,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     // Ensure this runs once immediately on startup so that the bonder has a valid credit.
     // Use a time-based poller here since this function is called from the SyncWatcher
     // which makes calls at different times based on the bridge and token.
-    if (!this.shouldPoll()) {
+    const cacheKey = this.getPollCacheKey()
+    const getNewData = this.shouldGetNewCacheData(cacheKey, this.pollTimeSec)
+    if (!getNewData) {
       return
     }
-    this.lastUpdateTimestampSec = Math.floor(Date.now() / 1000)
+    this.updateLastCacheTimestampSec(cacheKey)
 
     this.logger.debug('syncing bonder credit')
     await this.syncUnbondedTransferRootAmounts()
       .then(async () => await this.syncPendingAmounts())
       .then(async () => await this.syncAvailableCredit())
-  }
-
-  private shouldPoll (): boolean {
-    const isFirstPoll = this.lastUpdateTimestampSec === 0
-    const nowSec = Math.floor(Date.now() / 1000)
-    const isPollCacheExpired = nowSec - this.lastUpdateTimestampSec > this.pollTimeSec
-
-    if (isFirstPoll || isPollCacheExpired) {
-      return true
-    }
-    return false
   }
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
@@ -151,14 +141,15 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async calculatePendingAmount (destinationChainId: number) {
     const cacheKey = this.getPendingAmountCacheKey(destinationChainId)
-    if (!this.shouldGetNewCacheData(cacheKey)) {
+    const getNewData = this.shouldGetNewCacheData(cacheKey, this.cacheTimeSec)
+    if (!getNewData) {
       return cache[cacheKey]
     }
 
     const bridge = this.bridge as L2Bridge
     const pendingAmount = await bridge.getPendingAmountForChainId(destinationChainId)
 
-    this.lastCacheTimestampSec[cacheKey] = Math.floor(Date.now() / 1000)
+    this.updateLastCacheTimestampSec(cacheKey)
     cache[cacheKey] = pendingAmount
     return pendingAmount
   }
@@ -326,14 +317,15 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getOnchainBaseAvailableCredit (destinationWatcher: any, bonder?: string): Promise<BigNumber> {
     const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
-    if (!this.shouldGetNewCacheData(cacheKey)) {
+    const getNewData = this.shouldGetNewCacheData(cacheKey, this.cacheTimeSec)
+    if (!getNewData) {
       return cache[cacheKey]
     }
 
     const destinationBridge = destinationWatcher.bridge
     const onchainBaseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
 
-    this.lastCacheTimestampSec[cacheKey] = Math.floor(Date.now() / 1000)
+    this.updateLastCacheTimestampSec(cacheKey)
     cache[cacheKey] = onchainBaseAvailableCredit
     return onchainBaseAvailableCredit
   }
@@ -465,15 +457,24 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return false
   }
 
-  private shouldGetNewCacheData (cacheKey: string): boolean {
+  private shouldGetNewCacheData (cacheKey: string, cacheTime: number): boolean {
     const isFirstCache = !cache[cacheKey]
     const nowSec = Math.floor(Date.now() / 1000)
-    const isCacheExpired = nowSec - this.lastCacheTimestampSec[cacheKey] > this.cacheTimeSec
+    const isCacheExpired = nowSec - this.lastCacheTimestampSec[cacheKey] > cacheTime
 
     if (isFirstCache || isCacheExpired) {
       return true
     }
     return false
+  }
+
+  private updateLastCacheTimestampSec (cacheKey: string): void {
+    this.lastCacheTimestampSec[cacheKey] = Math.floor(Date.now() / 1000)
+  }
+
+  private getPollCacheKey (): string {
+    const cacheName = 'poll'
+    return this._getCacheKey(cacheName)
   }
 
   private getPendingAmountCacheKey (destinationChainId: number): string {
@@ -487,8 +488,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return this._getCacheKey(cacheName, destinationChainSlug, bonder)
   }
 
-  private _getCacheKey (cacheName: string, destinationChainSlug: string, bonder?: string): string {
-    let cacheKey = `${this.chainSlug}-${destinationChainSlug}-${cacheName}`
+  private _getCacheKey (cacheName: string, destinationChainSlug?: string, bonder?: string): string {
+    let cacheKey = `${this.chainSlug}-${cacheName}`
+    if (destinationChainSlug) {
+      cacheKey += `-${destinationChainSlug}`
+    }
     if (bonder) {
       cacheKey += `-${bonder}`
     }

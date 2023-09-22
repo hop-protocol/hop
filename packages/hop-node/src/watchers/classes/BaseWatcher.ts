@@ -40,6 +40,7 @@ import { Notifier } from 'src/notifier'
 import { Strategy, Vault } from 'src/vault'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import {
+  TxRetryDelayMs,
   getValidatorAddressForChain,
   config as globalConfig,
   hostname
@@ -124,6 +125,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     this.mutex = mutexes[this.chainSlug]
+
+    this.logger.debug(`tx retry delay: ${TxRetryDelayMs} ms`)
   }
 
   get isL1 (): boolean {

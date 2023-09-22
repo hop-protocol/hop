@@ -17,6 +17,7 @@ for (const chain in _networks) {
   networks[chain].rpcUrl = network?.publicRpcUrl
   networks[chain].waitConfirmations = network?.waitConfirmations
   networks[chain].hasFinalizationBlockTag = network?.hasFinalizationBlockTag
+  networks[chain].subgraphUrl = network?.subgraphUrl
 }
 
 export { addresses, bonders, canonicalAddresses, networks, metadata }

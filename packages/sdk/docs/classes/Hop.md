@@ -1,10 +1,7 @@
 # Class: Hop
 
 Class reprensenting Hop
-
-**`Namespace`**
-
-Hop
+ Hop
 
 ## Hierarchy
 
@@ -139,6 +136,14 @@ Hop
 
 • **new Hop**(`networkOrOptionsObject`, `signer?`, `chainProviders?`)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
+| `chainProviders?` | `ChainProviders` | - |
+
 **`Desc`**
 
 Instantiates Hop SDK.
@@ -161,14 +166,6 @@ import { Wallet } from 'ethers'
 const signer = new Wallet(privateKey)
 const hop = new Hop('mainnet', signer)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
-| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
-| `chainProviders?` | `ChainProviders` | - |
 
 #### Overrides
 
@@ -498,6 +495,12 @@ ___
 
 • `get` **version**(): `string`
 
+#### Returns
+
+`string`
+
+version string
+
 **`Desc`**
 
 Returns the SDK version.
@@ -510,12 +513,6 @@ import { Hop } from '@hop-protocol/sdk'
 const hop = new Hop()
 console.log(hop.version)
 ```
-
-#### Returns
-
-`string`
-
-version string
 
 ## Methods
 
@@ -566,6 +563,18 @@ ___
 
 ▸ **bridge**(`token`): [`HopBridge`](HopBridge.md)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) | Token model or symbol of token of bridge to use. |
+
+#### Returns
+
+[`HopBridge`](HopBridge.md)
+
+A HopBridge instance.
+
 **`Desc`**
 
 Returns a bridge set instance.
@@ -579,36 +588,11 @@ const hop = new Hop()
 const bridge = hop.bridge('USDC')
 ```
 
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `token` | [`TToken`](../modules.md#ttoken) | Token model or symbol of token of bridge to use. |
-
-#### Returns
-
-[`HopBridge`](HopBridge.md)
-
-A HopBridge instance.
-
 ___
 
 ### <a id="canonicalbridge" name="canonicalbridge"></a> canonicalBridge
 
 ▸ **canonicalBridge**(`token`, `chain?`): [`CanonicalBridge`](CanonicalBridge.md)
-
-**`Desc`**
-
-Returns a canonical bridge sdk instance.
-
-**`Example`**
-
-```js
-import { Hop } from '@hop-protocol/sdk'
-
-const hop = new Hop()
-const bridge = hop.canonicalBridge('USDC')
-```
 
 #### Parameters
 
@@ -622,6 +606,19 @@ const bridge = hop.canonicalBridge('USDC')
 [`CanonicalBridge`](CanonicalBridge.md)
 
 A CanonicalBridge instance.
+
+**`Desc`**
+
+Returns a canonical bridge sdk instance.
+
+**`Example`**
+
+```js
+import { Hop } from '@hop-protocol/sdk'
+
+const hop = new Hop()
+const bridge = hop.canonicalBridge('USDC')
+```
 
 ___
 
@@ -643,6 +640,18 @@ ___
 
 ▸ **connect**(`signer`): [`Hop`](Hop.md)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
+
+#### Returns
+
+[`Hop`](Hop.md)
+
+A new Hop SDK instance with connected Ethers Signer.
+
 **`Desc`**
 
 Returns hop instance with signer connected. Used for adding or changing signer.
@@ -658,18 +667,6 @@ let hop = new Hop()
 // ...
 hop = hop.connect(signer)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
-
-#### Returns
-
-[`Hop`](Hop.md)
-
-A new Hop SDK instance with connected Ethers Signer.
 
 ___
 
@@ -847,6 +844,19 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
+| `percent` | `number` | Percentage to bump by. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Bumped as price as BigNumber
+
 **`Desc`**
 
 Calculates current gas price plus increased percentage amount.
@@ -861,19 +871,6 @@ const bumpedGasPrice = await hop.getBumpedGasPrice(signer, 1.20)
 console.log(bumpedGasPrice.toNumber())
 ```
 
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
-| `percent` | `number` | Percentage to bump by. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Bumped as price as BigNumber
-
 #### Inherited from
 
 [Base](Base.md).[getBumpedGasPrice](Base.md#getbumpedgasprice)
@@ -883,10 +880,6 @@ ___
 ### <a id="getchainid" name="getchainid"></a> getChainId
 
 ▸ **getChainId**(`chain`): `number`
-
-**`Desc`**
-
-Returns Chain ID for specified Chain model.
 
 #### Parameters
 
@@ -900,6 +893,10 @@ Returns Chain ID for specified Chain model.
 
 - Chain ID.
 
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
+
 #### Inherited from
 
 [Base](Base.md).[getChainId](Base.md#getchainid)
@@ -909,10 +906,6 @@ ___
 ### <a id="getchainprovider" name="getchainprovider"></a> getChainProvider
 
 ▸ **getChainProvider**(`chain`): `any`
-
-**`Desc`**
-
-Returns Ethers provider for specified Chain model.
 
 #### Parameters
 
@@ -925,6 +918,10 @@ Returns Ethers provider for specified Chain model.
 `any`
 
 Ethers provider.
+
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 #### Inherited from
 
@@ -1485,6 +1482,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
+#### Returns
+
+`Promise`<`string`\>
+
+Ethers signer address.
+
 **`Desc`**
 
 Returns the connected signer address.
@@ -1499,12 +1502,6 @@ const address = await hop.getSignerAddress()
 console.log(address)
 ```
 
-#### Returns
-
-`Promise`<`string`\>
-
-Ethers signer address.
-
 #### Inherited from
 
 [Base](Base.md).[getSignerAddress](Base.md#getsigneraddress)
@@ -1514,11 +1511,6 @@ ___
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
 ▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
-
-**`Desc`**
-
-Returns the connected signer if it's connected to the specified
-chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Parameters
 
@@ -1532,6 +1524,11 @@ chain id, otherwise it returns a regular provider for the specified chain.
 `Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
+
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
+chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Inherited from
 
@@ -1923,10 +1920,6 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](Chain.md)
 
-**`Desc`**
-
-Returns a Chain model instance with connected provider.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1939,6 +1932,10 @@ Returns a Chain model instance with connected provider.
 
 Chain model with connected provider.
 
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
+
 #### Inherited from
 
 [Base](Base.md).[toChainModel](Base.md#tochainmodel)
@@ -1948,10 +1945,6 @@ ___
 ### <a id="totokenmodel" name="totokenmodel"></a> toTokenModel
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](TokenModel.md)
-
-**`Desc`**
-
-Returns a Token instance.
 
 #### Parameters
 
@@ -1964,6 +1957,10 @@ Returns a Token instance.
 [`TokenModel`](TokenModel.md)
 
 Token model.
+
+**`Desc`**
+
+Returns a Token instance.
 
 #### Inherited from
 
@@ -1996,6 +1993,21 @@ ___
 
 ▸ **watch**(`txHash`, `token`, `sourceChain`, `destinationChain`, `isCanonicalTransfer?`, `options?`): `any`
 
+#### Parameters
+
+| Name | Type | Default value | Description |
+| :------ | :------ | :------ | :------ |
+| `txHash` | `string` | `undefined` | Source transaction hash. |
+| `token` | [`TToken`](../modules.md#ttoken) | `undefined` | Token name or model. |
+| `sourceChain` | [`TChain`](../modules.md#tchain) | `undefined` | Source chain name or model. |
+| `destinationChain` | [`TChain`](../modules.md#tchain) | `undefined` | Destination chain name or model. |
+| `isCanonicalTransfer` | `boolean` | `false` | - |
+| `options` | `WatchOptions` | `{}` | - |
+
+#### Returns
+
+`any`
+
 **`Desc`**
 
 Watches for Hop transaction events.
@@ -2012,21 +2024,6 @@ hop
     console.log(chain.Name, receipt)
   })
 ```
-
-#### Parameters
-
-| Name | Type | Default value | Description |
-| :------ | :------ | :------ | :------ |
-| `txHash` | `string` | `undefined` | Source transaction hash. |
-| `token` | [`TToken`](../modules.md#ttoken) | `undefined` | Token name or model. |
-| `sourceChain` | [`TChain`](../modules.md#tchain) | `undefined` | Source chain name or model. |
-| `destinationChain` | [`TChain`](../modules.md#tchain) | `undefined` | Destination chain name or model. |
-| `isCanonicalTransfer` | `boolean` | `false` | - |
-| `options` | `WatchOptions` | `{}` | - |
-
-#### Returns
-
-`any`
 
 ___
 

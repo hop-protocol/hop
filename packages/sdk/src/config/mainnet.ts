@@ -17,6 +17,7 @@ for (const chain in networks) {
   chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
   chains[chain].hasFinalizationBlockTag = network?.hasFinalizationBlockTag
   chains[chain].fallbackRpcUrls = network?.fallbackPublicRpcUrls ?? []
+  chains[chain].subgraphUrl = network?.subgraphUrl
 }
 
 const addresses = mainnetAddresses.bridges

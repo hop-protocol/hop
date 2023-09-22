@@ -7,8 +7,15 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber } from 'ethers'
-import { Chain, GasCostTransactionType, OneWeekMs, RelayableChains } from 'src/constants'
+import { BigNumber, providers } from 'ethers'
+import {
+  Chain,
+  ChainPollMultiplier,
+  GasCostTransactionType,
+  OneWeekMs,
+  RelayableChains,
+  TenMinutesMs
+} from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
 import {
@@ -29,6 +36,15 @@ import {
   TransfersCommittedEvent
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RelayerFee } from '@hop-protocol/sdk'
+import {
+  SyncCyclesPerFullSync,
+  SyncIntervalMultiplier,
+  SyncIntervalSec,
+  getEnabledNetworks,
+  config as globalConfig,
+  minEthBonderFeeBn,
+  oruChains
+} from 'src/config'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
@@ -46,18 +62,20 @@ type Config = {
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
   syncFromDate?: string
-  resyncIntervalMs?: number
   gasCostPollEnabled?: boolean
 }
 
+type EventPromise = Array<Promise<any>>
+
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
-  resyncIntervalMs: number = 60 * 1000
+  syncIntervalMs: number
   gasCostPollMs: number = 60 * 1000
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
   syncFromDate: string
   customStartBlockNumber: number
+  isRelayableChainEnabled: boolean = false
   ready: boolean = false
 
   constructor (config: Config) {
@@ -72,9 +90,24 @@ class SyncWatcher extends BaseWatcher {
       this.gasCostPollEnabled = config.gasCostPollEnabled
       this.logger.debug(`gasCostPollEnabled: ${this.gasCostPollEnabled}`)
     }
-    if (typeof config.resyncIntervalMs === 'number') {
-      this.resyncIntervalMs = config.resyncIntervalMs
-      this.logger.debug(`resyncIntervalMs set to ${this.resyncIntervalMs}`)
+
+    // There is a multiplier for each chain and a multiplier for each network (passed in by config)
+    const chainMultiplier = ChainPollMultiplier?.[this.chainSlug] ?? 1
+    const networkMultiplier = SyncIntervalMultiplier
+    this.syncIntervalMs = SyncIntervalSec * chainMultiplier * networkMultiplier * 1000
+    this.logger.debug(`syncIntervalMs set to ${this.syncIntervalMs}. chainMultiplier: ${chainMultiplier}, networkMultiplier: ${networkMultiplier}`)
+
+    if (this.syncIntervalMs > TenMinutesMs) {
+      this.logger.error('syncIntervalMs must be less than 10 minutes. Please use a lower multiplier')
+      this.quit()
+    }
+
+    const enabledNetworks = getEnabledNetworks()
+    for (const enabledNetwork of enabledNetworks) {
+      if (RelayableChains.includes(enabledNetwork)) {
+        this.isRelayableChainEnabled = true
+        break
+      }
     }
 
     this.init()
@@ -213,7 +246,7 @@ class SyncWatcher extends BaseWatcher {
     } catch (err) {
       this.logger.error(err)
     }
-    await wait(this.resyncIntervalMs)
+    await wait(this.syncIntervalMs)
   }
 
   isInitialSyncCompleted (): boolean {
@@ -229,138 +262,174 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncHandler (): Promise<any> {
-    const promises: Array<Promise<any>> = []
+    // Events that are related to user transfers can be polled every cycle while all other, less
+    // time-sensitive events can be polled every N cycles.
+    let promisesPerPoll: EventPromise = []
+    if (this.shouldSyncAllEvents()) {
+      promisesPerPoll = this.getAllPromises()
+    } else {
+      promisesPerPoll = this.getTransferSentPromises()
+    }
 
+    // these must come after db is done syncing, and syncAvailableCredit must be last
+    await Promise.all(promisesPerPoll)
+      .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
+  }
+
+  shouldSyncAllEvents (): boolean {
+    return !this.isInitialSyncCompleted() || this.isAtNewFullSyncCycleIndex()
+  }
+
+  isAtNewFullSyncCycleIndex (): boolean {
+    return this.syncIndex % SyncCyclesPerFullSync === 0
+  }
+
+  getSyncOptions (keyName: string) {
     // Use a custom start block number on the initial sync if it is defined
     let startBlockNumber: number = this.bridge.bridgeDeployedBlockNumber
     if (!this.isInitialSyncCompleted() && this.customStartBlockNumber) {
       startBlockNumber = this.customStartBlockNumber
     }
 
-    const getOptions = (keyName: string) => {
-      return {
-        syncCacheKey: this.syncCacheKey(keyName),
-        startBlockNumber
-      }
+    return {
+      syncCacheKey: this.syncCacheKey(keyName),
+      startBlockNumber
     }
+  }
 
-    const transferRootInitialEventPromises: Array<Promise<any>> = []
+  async getTransferSentToL2EventPromise (): Promise<any> {
+    if (!this.isL1) return []
+
+    const l1Bridge = this.bridge as L1Bridge
+    return l1Bridge.mapTransferSentToL2Events(
+      async event => this.handleTransferSentToL2Event(event),
+      this.getSyncOptions(l1Bridge.TransferSentToL2)
+    )
+  }
+
+  async getTransferRootConfirmedEventPromise (): Promise<any> {
+    if (!this.isL1) return []
+
+    const l1Bridge = this.bridge as L1Bridge
+    return l1Bridge.mapTransferRootConfirmedEvents(
+      async event => this.handleTransferRootConfirmedEvent(event),
+      this.getSyncOptions(l1Bridge.TransferRootConfirmed)
+    )
+  }
+
+  async getTransferBondChallengedEventPromise (): Promise<any> {
+    if (!this.isL1) return []
+
+    const l1Bridge = this.bridge as L1Bridge
+    return l1Bridge.mapTransferBondChallengedEvents(
+      async event => this.handleTransferBondChallengedEvent(event),
+      this.getSyncOptions(l1Bridge.TransferBondChallenged)
+    )
+  }
+
+  async getTransferSentEventPromise (): Promise<any> {
+    if (this.isL1) return []
+
+    const l2Bridge = this.bridge as L2Bridge
+    return l2Bridge.mapTransferSentEvents(
+      async event => this.handleTransferSentEvent(event),
+      this.getSyncOptions(l2Bridge.TransferSent)
+    )
+  }
+
+  async getTransferRootSetEventPromise (): Promise<any> {
+    return this.bridge.mapTransferRootSetEvents(
+      async event => this.handleTransferRootSetEvent(event),
+      this.getSyncOptions(this.bridge.TransferRootSet)
+    )
+  }
+
+  async getTransferRootBondedEventPromise (): Promise<any> {
+    if (!this.isL1) return []
+
+    const l1Bridge = this.bridge as L1Bridge
+    return l1Bridge.mapTransferRootBondedEvents(
+      async event => this.handleTransferRootBondedEvent(event),
+      this.getSyncOptions(l1Bridge.TransferRootBonded)
+    )
+  }
+
+  async getTransfersCommittedEventPromise (): Promise<any> {
+    if (this.isL1) return []
+
+    const l2Bridge = this.bridge as L2Bridge
+    return l2Bridge.mapTransfersCommittedEvents(
+      async event => this.handleTransfersCommittedEvent(event),
+      this.getSyncOptions(l2Bridge.TransfersCommitted)
+    )
+  }
+
+  async getWithdrawalBondedEventPromise (): Promise<any> {
+    return this.bridge.mapWithdrawalBondedEvents(
+      async event => this.handleWithdrawalBondedEvent(event),
+      this.getSyncOptions(this.bridge.WithdrawalBonded)
+    )
+  }
+
+  async getWithdrewEventPromise (): Promise<any> {
+    return this.bridge.mapWithdrewEvents(
+      async event => this.handleWithdrewEvent(event),
+      this.getSyncOptions(this.bridge.Withdrew)
+    )
+  }
+
+  async getMultipleWithdrawalsSettledEventPromise (): Promise<any> {
+    return this.bridge.mapMultipleWithdrawalsSettledEvents(
+      async event => this.handleMultipleWithdrawalsSettledEvent(event),
+      this.getSyncOptions(this.bridge.MultipleWithdrawalsSettled)
+    )
+  }
+
+  async getWithdrawalBondSettledEventPromise (): Promise<any> {
+    return this.bridge.mapWithdrawalBondSettledEvents(
+      async event => this.handleWithdrawalBondSettledEvent(event),
+      this.getSyncOptions(this.bridge.WithdrawalBondSettled)
+    )
+  }
+
+  getAllPromises (): EventPromise {
+    const asyncPromises: EventPromise = [
+      this.getTransferSentToL2EventPromise(),
+      this.getTransferRootConfirmedEventPromise(),
+      this.getTransferBondChallengedEventPromise(),
+      this.getTransferSentEventPromise(),
+      this.getTransferRootSetEventPromise()
+    ]
+    const syncPromises: EventPromise = [
+      this.getTransferRootBondedEventPromise(),
+      this.getTransfersCommittedEventPromise(),
+      this.getWithdrawalBondedEventPromise(),
+      this.getWithdrewEventPromise()
+    ]
+    const orderedPromises: Promise<any> = Promise.all(syncPromises).then(async () => {
+      // These must be executed after the Withdrew and WithdrawalBonded event handlers
+      // on initial sync since it relies on data from those handlers
+      await Promise.all([
+        this.getMultipleWithdrawalsSettledEventPromise(),
+        this.getWithdrawalBondSettledEventPromise()
+      ])
+    })
+    return [
+      ...asyncPromises,
+      orderedPromises
+    ]
+  }
+
+  getTransferSentPromises (): EventPromise {
+    // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
     if (this.isL1) {
-      const l1Bridge = this.bridge as L1Bridge
-      transferRootInitialEventPromises.push(
-        l1Bridge.mapTransferRootBondedEvents(
-          async (event: TransferRootBondedEvent) => {
-            return await this.handleTransferRootBondedEvent(event)
-          },
-          getOptions(l1Bridge.TransferRootBonded)
-        )
-      )
-
-      promises.push(
-        l1Bridge.mapTransferSentToL2Events(
-          async (event: TransferSentToL2Event) => {
-            return await this.handleTransferSentToL2Event(event)
-          },
-          getOptions(l1Bridge.TransferSentToL2)
-        )
-      )
-
-      promises.push(
-        l1Bridge.mapTransferRootConfirmedEvents(
-          async (event: TransferRootConfirmedEvent) => {
-            return await this.handleTransferRootConfirmedEvent(event)
-          },
-          getOptions(l1Bridge.TransferRootConfirmed)
-        )
-      )
-
-      promises.push(
-        l1Bridge.mapTransferBondChallengedEvents(
-          async (event: TransferBondChallengedEvent) => {
-            return await this.handleTransferBondChallengedEvent(event)
-          },
-          getOptions(l1Bridge.TransferBondChallenged)
-        )
-      )
+      if (this.isRelayableChainEnabled) {
+        return [this.getTransferSentToL2EventPromise()]
+      }
+    } else {
+      return [this.getTransferSentEventPromise()]
     }
-
-    if (!this.isL1) {
-      const l2Bridge = this.bridge as L2Bridge
-      promises.push(
-        l2Bridge.mapTransferSentEvents(
-          async (event: TransferSentEvent) => {
-            return await this.handleTransferSentEvent(event)
-          },
-          getOptions(l2Bridge.TransferSent)
-        )
-      )
-
-      transferRootInitialEventPromises.push(
-        l2Bridge.mapTransfersCommittedEvents(
-          async (event: TransfersCommittedEvent) => {
-            return await Promise.all([
-              this.handleTransfersCommittedEvent(event)
-            ])
-          },
-          getOptions(l2Bridge.TransfersCommitted)
-        )
-      )
-    }
-
-    const transferSpentPromises: Array<Promise<any>> = []
-    transferSpentPromises.push(
-      this.bridge.mapWithdrawalBondedEvents(
-        async (event: WithdrawalBondedEvent) => {
-          return await this.handleWithdrawalBondedEvent(event)
-        },
-        getOptions(this.bridge.WithdrawalBonded)
-      )
-    )
-
-    transferSpentPromises.push(
-      this.bridge.mapWithdrewEvents(
-        async (event: WithdrewEvent) => {
-          return await this.handleWithdrewEvent(event)
-        },
-        getOptions(this.bridge.Withdrew)
-      )
-    )
-
-    promises.push(
-      Promise.all(transferSpentPromises.concat(transferRootInitialEventPromises))
-        .then(async () => {
-          await Promise.all([
-            // This must be executed after the Withdrew and WithdrawalBonded event handlers
-            // on initial sync since it relies on data from those handlers
-            this.bridge.mapMultipleWithdrawalsSettledEvents(
-              async (event: MultipleWithdrawalsSettledEvent) => {
-                return await this.handleMultipleWithdrawalsSettledEvent(event)
-              },
-              getOptions(this.bridge.MultipleWithdrawalsSettled)
-            ),
-            this.bridge.mapWithdrawalBondSettledEvents(
-              async (event: WithdrawalBondSettledEvent) => {
-                return await this.handleWithdrawalBondSettledEvent(event)
-              },
-              getOptions(this.bridge.WithdrawalBondSettled)
-            )
-          ])
-        })
-    )
-
-    promises.push(
-      this.bridge.mapTransferRootSetEvents(
-        async (event: TransferRootSetEvent) => {
-          return await this.handleTransferRootSetEvent(event)
-        },
-        getOptions(this.bridge.TransferRootSet)
-      )
-    )
-
-    // these must come after db is done syncing,
-    // and syncAvailableCredit must be last
-    await Promise.all(promises)
-      .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
+    return []
   }
 
   async handleTransferSentToL2Event (event: TransferSentToL2Event) {
@@ -755,8 +824,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.populateTransferSentTimestamp(transferId)
-    await this.populateTransferSender(transferId)
+    await this.populateTransferSentTimestampAndSender(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
     await this.populateTransferWithdrawalBondSettled(transferId)
   }
@@ -795,63 +863,51 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTransferIds(transferRootId)
   }
 
-  async populateTransferSentTimestamp (transferId: string) {
+  async populateTransferSentTimestampAndSender (transferId: string) {
     const logger = this.logger.create({ id: transferId })
-    logger.debug('starting populateTransferSentTimestamp')
+    logger.debug('starting populateTransferSentTimestampAndSender')
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId } = dbTransfer
-    if (
-      !transferSentBlockNumber ||
-      transferSentTimestamp
-    ) {
-      logger.debug('populateTransferSentTimestamp already found')
-      return
-    }
-    if (!sourceChainId) {
-      logger.warn(`populateTransferSentTimestamp marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
+    const {
+      sourceChainId,
+      transferSentTxHash,
+      transferSentBlockNumber,
+      transferSentTimestamp,
+      sender,
+      recipient
+    } = dbTransfer
+
+    if (!sourceChainId || !transferSentTxHash || !transferSentBlockNumber) {
+      logger.warn(`populateTransferSentTimestampAndSender marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
+
+    if (transferSentTimestamp && sender) {
+      logger.debug(`populateTransferSentTimestampAndSender already found. dbItem: ${JSON.stringify(dbTransfer)}`)
+      return
+    }
+
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
-    const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
-    if (!timestamp) {
-      logger.warn(`populateTransferSentTimestamp marking item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
+    const tx: providers.TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
+    if (!tx) {
+      logger.warn(`populateTransferSentTimestampAndSender marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
-    logger.debug(`transferSentTimestamp: ${timestamp}`)
+
+    // A timestamp should exist in a mined transaction. If it does not, look it up
+    let { from, timestamp } = tx
+    if (!timestamp) {
+      timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+    }
+
+    logger.debug(`populateTransferSentTimestampAndSender: sender: ${from}, timestamp: ${timestamp}`)
     await this.db.transfers.update(transferId, {
+      sender: from,
       transferSentTimestamp: timestamp
     })
-  }
 
-  async populateTransferSender (transferId: string) {
-    const logger = this.logger.create({ id: transferId })
-    logger.debug('starting populateTransferSender')
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { sourceChainId, transferSentTxHash, sender, recipient } = dbTransfer
-    if (sourceChainId && transferSentTxHash && sender) {
-      logger.debug('populateTransferSender already found')
-      return
-    }
-    if (!sourceChainId || !transferSentTxHash) {
-      logger.debug('populateTransferSender expected sourceChainId and transferSentTxHash')
-      return
-    }
-    const bridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
-    const tx = await bridge.getTransaction(transferSentTxHash)
-    if (!tx) {
-      logger.warn(`populateTransferSender marking item not found. dbItem: ${JSON.stringify(dbTransfer)}`)
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
-    }
-    const { from } = tx
-    logger.debug(`sender: ${from}`)
-    await this.db.transfers.update(transferId, {
-      sender: from
-    })
-
-    const isBlocklisted = this.getIsBlocklisted([from, recipient])
+    const isBlocklisted = this.getIsBlocklisted([from, recipient!])
     if (isBlocklisted) {
       const msg = `transfer is unbondable because sender or recipient is in blocklist. transferId: ${transferId}, sender: ${from}, recipient: ${recipient}`
       logger.warn(msg)
@@ -1558,6 +1614,7 @@ class SyncWatcher extends BaseWatcher {
       const logger = this.logger.create({ id: `${Date.now()}` })
       logger.debug('pollGasCost poll start')
       try {
+        const gasPrice = await bridgeContract.provider.getGasPrice()
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const payload = [
@@ -1604,9 +1661,10 @@ class SyncWatcher extends BaseWatcher {
 
         logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, data, to, transactionType }) => {
-          const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+          const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             this.chainSlug,
             this.tokenSymbol,
+            gasPrice,
             gasLimit,
             transactionType,
             data,

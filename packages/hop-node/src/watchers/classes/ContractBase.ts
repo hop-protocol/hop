@@ -8,7 +8,6 @@ import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import { Chain, FinalityTag, FinalityTagForChain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { Transaction } from 'src/types'
 import { config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
@@ -58,7 +57,7 @@ export default class ContractBase extends EventEmitter {
     return this.contract.address
   }
 
-  getTransaction = async (txHash: string): Promise<Transaction> => {
+  getTransaction = async (txHash: string): Promise<providers.TransactionResponse> => {
     if (!txHash) {
       throw new Error('tx hash is required')
     }

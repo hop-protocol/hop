@@ -1,10 +1,7 @@
 # Class: AMM
 
 Class representing AMM contract
-
-**`Namespace`**
-
-AMM
+ AMM
 
 ## Hierarchy
 
@@ -159,6 +156,16 @@ AMM
 
 • **new AMM**(`networkOrOptionsObject`, `tokenSymbol?`, `chain?`, `signer?`, `chainProviders?`)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `networkOrOptionsObject` | `string` \| `AmmConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `tokenSymbol?` | `string` | Token model |
+| `chain?` | [`TChain`](../modules.md#tchain) | Chain model |
+| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
+| `chainProviders?` | `ChainProviders` | - |
+
 **`Desc`**
 
 Instantiates AMM instance.
@@ -175,16 +182,6 @@ import { AMM, Chain } from '@hop-protocol/sdk'
 
 const amm = new AMM('mainnet', 'USDC', Chain.Gnosis)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `AmmConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
-| `tokenSymbol?` | `string` | Token model |
-| `chain?` | [`TChain`](../modules.md#tchain) | Chain model |
-| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
-| `chainProviders?` | `ChainProviders` | - |
 
 #### Overrides
 
@@ -248,7 +245,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`any`\>
+▸ (`...args`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -468,15 +465,15 @@ ___
 
 • `get` **defaultDeadlineSeconds**(): `number`
 
-**`Desc`**
-
-The default deadline to use in seconds.
-
 #### Returns
 
 `number`
 
 Deadline in seconds
+
+**`Desc`**
+
+The default deadline to use in seconds.
 
 ___
 
@@ -555,20 +552,6 @@ ___
 
 ▸ **addLiquidity**(`amount0Desired`, `amount1Desired`, `minToMint?`, `deadline?`): `Promise`<`TransactionResponse`\>
 
-**`Desc`**
-
-Sends transaction to add liquidity to AMM.
-
-**`Example`**
-
-```js
-import { AMM } from '@hop-protocol/sdk'
-
-const amm = new AMM(...)
-const tx = await amm.addLiquidity('1000000000000000000', '1000000000000000000', '0')
-console.log(tx.hash)
-```
-
 #### Parameters
 
 | Name | Type | Default value | Description |
@@ -583,6 +566,20 @@ console.log(tx.hash)
 `Promise`<`TransactionResponse`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to add liquidity to AMM.
+
+**`Example`**
+
+```js
+import { AMM } from '@hop-protocol/sdk'
+
+const amm = new AMM(...)
+const tx = await amm.addLiquidity('1000000000000000000', '1000000000000000000', '0')
+console.log(tx.hash)
+```
 
 ___
 
@@ -753,6 +750,18 @@ ___
 
 ▸ **connect**(`signer`): [`AMM`](AMM.md)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
+
+#### Returns
+
+[`AMM`](AMM.md)
+
+Hop AMM instance with connected signer.
+
 **`Desc`**
 
 Returns hop AMM instance with signer connected. Used for adding or changing signer.
@@ -767,18 +776,6 @@ let amm = new AMM(...)
 // ...
 amm = amm.connect(signer)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
-
-#### Returns
-
-[`AMM`](AMM.md)
-
-Hop AMM instance with connected signer.
 
 ___
 
@@ -988,6 +985,19 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
+| `percent` | `number` | Percentage to bump by. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Bumped as price as BigNumber
+
 **`Desc`**
 
 Calculates current gas price plus increased percentage amount.
@@ -1002,19 +1012,6 @@ const bumpedGasPrice = await hop.getBumpedGasPrice(signer, 1.20)
 console.log(bumpedGasPrice.toNumber())
 ```
 
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
-| `percent` | `number` | Percentage to bump by. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Bumped as price as BigNumber
-
 #### Inherited from
 
 [Base](Base.md).[getBumpedGasPrice](Base.md#getbumpedgasprice)
@@ -1025,25 +1022,21 @@ ___
 
 ▸ **getCanonicalTokenAddress**(): `Promise`<`string`\>
 
-**`Desc`**
-
-Returns the address of the L2 canonical token.
-
 #### Returns
 
 `Promise`<`string`\>
 
 address
 
+**`Desc`**
+
+Returns the address of the L2 canonical token.
+
 ___
 
 ### <a id="getchainid" name="getchainid"></a> getChainId
 
 ▸ **getChainId**(`chain`): `number`
-
-**`Desc`**
-
-Returns Chain ID for specified Chain model.
 
 #### Parameters
 
@@ -1057,6 +1050,10 @@ Returns Chain ID for specified Chain model.
 
 - Chain ID.
 
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
+
 #### Inherited from
 
 [Base](Base.md).[getChainId](Base.md#getchainid)
@@ -1066,10 +1063,6 @@ ___
 ### <a id="getchainprovider" name="getchainprovider"></a> getChainProvider
 
 ▸ **getChainProvider**(`chain`): `any`
-
-**`Desc`**
-
-Returns Ethers provider for specified Chain model.
 
 #### Parameters
 
@@ -1082,6 +1075,10 @@ Returns Ethers provider for specified Chain model.
 `any`
 
 Ethers provider.
+
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 #### Inherited from
 
@@ -1261,15 +1258,15 @@ ___
 
 ▸ **getHopTokenAddress**(): `Promise`<`string`\>
 
-**`Desc`**
-
-Returns the address of the L2 hop token.
-
 #### Returns
 
 `Promise`<`string`\>
 
 address
+
+**`Desc`**
+
+Returns the address of the L2 hop token.
 
 ___
 
@@ -1722,21 +1719,27 @@ ___
 
 ▸ **getSaddleSwap**(): `Promise`<`any`\>
 
-**`Desc`**
-
-Returns the Saddle swap contract instance for the specified chain.
-
 #### Returns
 
 `Promise`<`any`\>
 
 Ethers contract instance.
 
+**`Desc`**
+
+Returns the Saddle swap contract instance for the specified chain.
+
 ___
 
 ### <a id="getsigneraddress" name="getsigneraddress"></a> getSignerAddress
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
+
+#### Returns
+
+`Promise`<`string`\>
+
+Ethers signer address.
 
 **`Desc`**
 
@@ -1752,12 +1755,6 @@ const address = await hop.getSignerAddress()
 console.log(address)
 ```
 
-#### Returns
-
-`Promise`<`string`\>
-
-Ethers signer address.
-
 #### Inherited from
 
 [Base](Base.md).[getSignerAddress](Base.md#getsigneraddress)
@@ -1767,11 +1764,6 @@ ___
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
 ▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
-
-**`Desc`**
-
-Returns the connected signer if it's connected to the specified
-chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Parameters
 
@@ -1785,6 +1777,11 @@ chain id, otherwise it returns a regular provider for the specified chain.
 `Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
+
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
+chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Inherited from
 
@@ -2045,20 +2042,6 @@ ___
 
 ▸ **removeLiquidity**(`liquidityTokenAmount`, `amount0Min?`, `amount1Min?`, `deadline?`): `Promise`<`TransactionResponse`\>
 
-**`Desc`**
-
-Sends transaction to remove liquidity from AMM.
-
-**`Example`**
-
-```js
-import { AMM } from '@hop-protocol/sdk'
-
-const amm = new AMM(...)
-const tx = await amm.removeLiquidity('1000000000000000000', '0', '0')
-console.log(tx.hash)
-```
-
 #### Parameters
 
 | Name | Type | Default value | Description |
@@ -2073,6 +2056,20 @@ console.log(tx.hash)
 `Promise`<`TransactionResponse`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to remove liquidity from AMM.
+
+**`Example`**
+
+```js
+import { AMM } from '@hop-protocol/sdk'
+
+const amm = new AMM(...)
+const tx = await amm.removeLiquidity('1000000000000000000', '0', '0')
+console.log(tx.hash)
+```
 
 ___
 
@@ -2340,10 +2337,6 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](Chain.md)
 
-**`Desc`**
-
-Returns a Chain model instance with connected provider.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2356,6 +2349,10 @@ Returns a Chain model instance with connected provider.
 
 Chain model with connected provider.
 
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
+
 #### Inherited from
 
 [Base](Base.md).[toChainModel](Base.md#tochainmodel)
@@ -2365,10 +2362,6 @@ ___
 ### <a id="totokenmodel" name="totokenmodel"></a> toTokenModel
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](TokenModel.md)
-
-**`Desc`**
-
-Returns a Token instance.
 
 #### Parameters
 
@@ -2381,6 +2374,10 @@ Returns a Token instance.
 [`TokenModel`](TokenModel.md)
 
 Token model.
+
+**`Desc`**
+
+Returns a Token instance.
 
 #### Inherited from
 

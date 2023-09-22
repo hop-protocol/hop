@@ -150,10 +150,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   async calculatePendingAmount (destinationChainId: number) {
     const cacheKey = this.getPendingAmountCacheKey(destinationChainId)
     const nowSec = Math.floor(Date.now() / 1000)
-    if (
-      pendingAmountCache[cacheKey] &&
-      nowSec - this.lastCacheTimestampSec[cacheKey] < this.cacheTimeSec
-    ) {
+    const isFirstRun = !!pendingAmountCache[cacheKey]
+    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.pollTimeSec
+    if (!isFirstRun && !shouldPoll) {
       return pendingAmountCache[cacheKey]
     }
 
@@ -329,10 +328,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   async getOnchainBaseAvailableCredit (destinationWatcher: any, bonder?: string): Promise<BigNumber> {
     const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
     const nowSec = Math.floor(Date.now() / 1000)
-    if (
-      availableLiquidityCache[cacheKey] &&
-      nowSec - this.lastCacheTimestampSec[cacheKey] < this.cacheTimeSec
-    ) {
+    const isFirstRun = !!availableLiquidityCache[cacheKey]
+    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.pollTimeSec
+    if (!isFirstRun && !shouldPoll) {
       return availableLiquidityCache[cacheKey]
     }
 

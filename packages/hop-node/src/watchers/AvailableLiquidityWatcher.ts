@@ -72,7 +72,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
 
     this.logger.debug('modified liquidity routes', modifiedLiquidityRoutes)
-    this.logger.debug('syncing bonder credit')
+    this.logger.debug('starting poller for syncing bonder credit')
   }
 
   async syncBonderCredit () {
@@ -493,12 +493,12 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   private _getCacheKey (cacheName: string, destinationChainSlug?: string, bonder?: string): string {
-    let cacheKey = `${this.chainSlug}-${cacheName}`
+    let cacheKey = `${this.chainSlug}:${this.tokenSymbol}:${cacheName}`
     if (destinationChainSlug) {
-      cacheKey += `-${destinationChainSlug}`
+      cacheKey += `:${destinationChainSlug}`
     }
     if (bonder) {
-      cacheKey += `-${bonder}`
+      cacheKey += `:${bonder}`
     }
     return cacheKey
   }

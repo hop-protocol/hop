@@ -780,7 +780,7 @@ export class HealthCheckWatcher {
     this.logger.debug('fetching incomplete settlements')
     // This makes a ton of RPC calls. Cache the data for a few hours since
     // incomplete settlements are not super time sensitive.
-    const incompleteSettlementsCacheTimeSeconds = 4 * 60 * 60
+    const incompleteSettlementsCacheTimeSeconds = 6 * 60 * 60
     const now = DateTime.now().toUTC().toSeconds()
     const cacheKey = 'incompleteSettlements'
     const isFirstCache = !this.cacheTimestamps[cacheKey]

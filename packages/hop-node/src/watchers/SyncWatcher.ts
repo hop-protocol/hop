@@ -1592,6 +1592,7 @@ class SyncWatcher extends BaseWatcher {
       const logger = this.logger.create({ id: `${Date.now()}` })
       logger.debug('pollGasCost poll start')
       try {
+        const gasPrice = await bridgeContract.provider.getGasPrice()
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const payload = [
@@ -1638,9 +1639,10 @@ class SyncWatcher extends BaseWatcher {
 
         logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, data, to, transactionType }) => {
-          const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+          const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             this.chainSlug,
             this.tokenSymbol,
+            gasPrice,
             gasLimit,
             transactionType,
             data,

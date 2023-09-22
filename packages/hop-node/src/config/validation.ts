@@ -104,7 +104,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   for (const key in config.chains) {
     const chain = config.chains[key]
-    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls']
+    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'headSync']
     const chainKeys = Object.keys(chain)
     validateKeys(validChainConfigKeys, chainKeys)
   }
@@ -304,7 +304,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, hasFinalizationBlockTag, subgraphUrl } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, hasFinalizationBlockTag, headSync} = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -337,6 +337,11 @@ export async function validateConfigValues (config?: Config) {
       }
       if (maxGasPrice <= 0) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
+      }
+    }
+    if (headSync != null) {
+      if (typeof headSync !== 'boolean') {
+        throw new Error(`headSync for chain "${chainSlug}" must be a boolean`)
       }
     }
     if (redundantRpcUrls && redundantRpcUrls.length > 0) {

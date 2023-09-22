@@ -41,6 +41,7 @@ import {
   SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
+  getNetworkHeadSync,
   config as globalConfig,
   minEthBonderFeeBn,
   oruChains
@@ -69,6 +70,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   isRelayableChainEnabled: boolean = false
+  shouldSyncHead: boolean
   ready: boolean = false
 
   constructor (config: Config) {
@@ -102,6 +104,9 @@ class SyncWatcher extends BaseWatcher {
         break
       }
     }
+
+    this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
+    this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
 
     this.init()
       .catch(err => {

@@ -330,8 +330,19 @@ export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
   }
 }
 
+export const setNetworkHeadSync = (network: string, headSync: boolean) => {
+  network = normalizeNetwork(network)
+  if (config.networks[network]) {
+    config.networks[network].headSync = headSync
+  }
+}
+
 export const getNetworkMaxGasPrice = (network: string) => {
   return config.networks[network].maxGasPrice
+}
+
+export const getNetworkHeadSync = (network: string) => {
+  return config.networks[network].headSync ?? false
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {

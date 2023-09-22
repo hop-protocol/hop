@@ -83,14 +83,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const nowSec = Math.floor(Date.now() / 1000)
     const isFirstRun = this.lastUpdateTimestampSec === 0
     const shouldPoll = nowSec - this.lastUpdateTimestampSec > this.pollTimeSec
-    if (!isFirstRun && !shouldPoll) {
+    if (!isFirstRun && !shouldPoll && !this.s3Upload) {
       return
     }
     this.lastUpdateTimestampSec = nowSec
-
-    if (!this.s3Upload) {
-      return
-    }
 
     this.logger.debug('syncing bonder credit')
     await this.syncUnbondedTransferRootAmounts()

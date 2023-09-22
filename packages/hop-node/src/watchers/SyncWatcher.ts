@@ -10,7 +10,7 @@ import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import {
   Chain,
-  ChainSyncMultiplier,
+  ChainPollMultiplier,
   GasCostTransactionType,
   OneWeekMs,
   RelayableChains,
@@ -85,11 +85,10 @@ class SyncWatcher extends BaseWatcher {
     }
 
     // There is a multiplier for each chain and a multiplier for each network (passed in by config)
-    const chainSyncMultiplier = ChainSyncMultiplier?.[this.chainSlug] ?? 1
-    const networkSyncMultiplier = SyncIntervalMultiplier
-    const syncIntervalSec = SyncIntervalSec * chainSyncMultiplier * networkSyncMultiplier
-    this.syncIntervalMs = syncIntervalSec * 1000
-    this.logger.debug(`syncIntervalMs set to ${this.syncIntervalMs}. chainSyncMultiplier: ${chainSyncMultiplier}, networkSyncMultiplier: ${networkSyncMultiplier}`)
+    const chainMultiplier = ChainPollMultiplier?.[this.chainSlug] ?? 1
+    const networkMultiplier = SyncIntervalMultiplier
+    this.syncIntervalMs = SyncIntervalSec * chainMultiplier * networkMultiplier * 1000
+    this.logger.debug(`syncIntervalMs set to ${this.syncIntervalMs}. chainMultiplier: ${chainMultiplier}, networkMultiplier: ${networkMultiplier}`)
 
     if (this.syncIntervalMs > TenMinutesMs) {
       this.logger.error('syncIntervalMs must be less than 10 minutes. Please use a lower multiplier')

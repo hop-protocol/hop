@@ -161,7 +161,8 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.PolygonZk]: FinalityTag.Safe
 }
 
-export const ChainSyncMultiplier: Record<string, number> = {
+// Poll certain chains at a slower cadence if they are not widely used
+export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Ethereum]: 1,
   [Chain.Gnosis]: 2,
   [Chain.Polygon]: 2,

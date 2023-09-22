@@ -151,7 +151,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const cacheKey = this.getPendingAmountCacheKey(destinationChainId)
     const nowSec = Math.floor(Date.now() / 1000)
     const isFirstRun = !!pendingAmountCache[cacheKey]
-    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.pollTimeSec
+    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.cacheTimeSec
     if (!isFirstRun && !shouldPoll) {
       return pendingAmountCache[cacheKey]
     }
@@ -329,7 +329,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
     const nowSec = Math.floor(Date.now() / 1000)
     const isFirstRun = !!availableLiquidityCache[cacheKey]
-    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.pollTimeSec
+    const shouldPoll = nowSec - this.lastCacheTimestampSec[cacheKey] > this.cacheTimeSec
     if (!isFirstRun && !shouldPoll) {
       return availableLiquidityCache[cacheKey]
     }

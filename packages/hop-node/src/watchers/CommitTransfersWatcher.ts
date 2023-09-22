@@ -42,7 +42,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     // Because of this watcher relies on on-chain calls to determine when to execute a tx.
     // This causes high RPC usage, so we increase the poll interval to reduce RPC usage.
     // Since commits are a relatively slow event, this will not cause any user-facing efficiencies.
-    const pollMultiplier = 100
+    const pollMultiplier = 200
     this.pollIntervalMs = this.pollIntervalMs * pollMultiplier
   }
 

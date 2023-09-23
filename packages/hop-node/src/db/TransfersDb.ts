@@ -85,6 +85,7 @@ export type UnbondedSentTransfer = {
   transferNonce: string
   deadline: BigNumber
   transferSentIndex: number
+  isFinalized: boolean
 }
 
 export type UnrelayedSentTransfer = {
@@ -465,6 +466,13 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      // Do not bond an unfinalized transaction unless proxy validation exists
+      let isPreFinalizedTxOk = true
+      // TODO: Add proxyAndValidator check after merge
+      // if (!item.isFinalized && !doesProxyAndValidatorExistForChain(this.tokenSymbol, destinationChainId))) {
+      //   isPreFinalizedTxOk = false
+      // }
+
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -472,6 +480,7 @@ class TransfersDb extends BaseDb {
         item.transferSentTxHash &&
         item.isBondable &&
         !item.isTransferSpent &&
+        isPreFinalizedTxOk &&
         timestampOk
       )
     })

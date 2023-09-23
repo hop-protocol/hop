@@ -137,7 +137,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferNonce,
       deadline,
       transferSentTxHash,
-      transferSentIndex
+      transferSentIndex,
+      isFinalized
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
     logger.debug('processing bondWithdrawal')
@@ -145,10 +146,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('recipient:', recipient)
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', bonderFee && this.bridge.formatUnits(bonderFee))
+    logger.debug('isFinalized:', isFinalized)
 
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
+
+    // Do not bond an unfinalized transaction unless proxy validation exists
+    // TODO: Add proxyAndValidator check after merge
+    // const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    // if (!isFinalized && !doesProxyAndValidatorExistForChain(this.tokenSymbol, destinationChainId))) {
+    //   logger.warn(`transfer id "${transferId}" is not finalized and proxy and validator are not set on ${destinationChainSlug}. Cannot proceed`)
+    //   return
+    // }
 
     logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)

@@ -785,7 +785,7 @@ class Db {
       FROM transfers 
       WHERE source_chain_slug = $1
       AND destination_chain_slug = $2
-      AND to_timestamp(timestamp) >= (NOW() - INTERVAL '1 day') 
+      AND to_timestamp(timestamp) >= (NOW() - INTERVAL '2 day') 
       AND bond_within_timestamp > 0
     `
 

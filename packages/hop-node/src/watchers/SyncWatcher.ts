@@ -1761,11 +1761,11 @@ class SyncWatcher extends BaseWatcher {
       deadline: args.deadline,
       index: args.index
     }
-    this.logger.debug('handleWsSuccess', event)
+    this.logger.debug('handleWsSuccess', JSON.stringify(event))
   }
 
   handleWsError(event: any) {
-    this.logger.error('handleWsError', event)
+    this.logger.error('handleWsError', JSON.stringify(event))
   }
 
   compareWsCache(event: TransferSentEvent) {

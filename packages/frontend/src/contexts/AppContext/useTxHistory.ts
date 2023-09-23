@@ -98,10 +98,8 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
         const interval = setInterval(async () => {
           // repeatedly poll explorer with timeout to get destTxHash (bondTransactionHash)
           const explorerAPIUrl = `https://${process.env.REACT_APP_NETWORK === 'goerli' && "goerli-"}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
-          console.log({ explorerAPIUrl })
 
           const response = await fetch(explorerAPIUrl)
-          console.dir({ response })
 
           const data = await response.json()
           const bondTransactionHash = data[0]?.bondTransactionHash
@@ -122,7 +120,6 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
         }, 15000) // poll every 15 seconds
       }
     }
-
 
     // main function scanning through each transaction in localStorage
     transactions.forEach(tx => {

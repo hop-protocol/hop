@@ -55,8 +55,6 @@ const ConfirmSend = (props: Props) => {
     dest?.network?.slug
   )
 
-  console.log({ fixedTimeEstimate, medianTimeEstimate })
-
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
     warning =

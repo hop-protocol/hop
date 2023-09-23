@@ -307,8 +307,8 @@ async getTransferTimes(params: any): Promise<TimeToBridgeStats> {
   const cacheDurationMs = 5 * 60 * 1000 // 5 minutes
   const cachedStats = cache.get(cacheKey)
 
-  if (cachedStats) {
-    return cachedStats
+  if (cachedStats && typeof cachedStats === 'object' && 'avg' in cachedStats && 'median' in cachedStats && 'percentile90' in cachedStats) {
+    return cachedStats as TimeToBridgeStats
   }
 
   const stats = timeToBridgeStats(timesArray)

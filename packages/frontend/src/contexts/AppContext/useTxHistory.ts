@@ -99,6 +99,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       return await func()
     }
 
+    // helper function using destTxHash get destination confirmation
     const listenForDestinationConfirmation = async (tx) => {
       if (tx.destTxHash === "" && !listenerSet.current.has(tx.hash)) {
         listenerSet.current.add(tx.hash)

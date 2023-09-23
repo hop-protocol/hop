@@ -15,6 +15,7 @@ import { useAddTokenToMetamask } from 'src/hooks/useAddTokenToMetamask'
 import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
 import { getTransferTimeMinutes } from 'src/utils/getTransferTimeMinutes'
 import pluralize from 'pluralize'
+import { networkSlugToName } from 'src/utils'
 
 type Props = {
   tx: Transaction
@@ -54,12 +55,16 @@ function TxStatusModal(props: Props) {
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
         <Box>
           {(tx && tx.token && medianTimeEstimate) ? (
-            <Box margin="0 auto" maxWidth="84%">
+            <Box margin="0 auto" maxWidth="32rem" paddingLeft={3} paddingRight={3}>
               <Typography variant="body2" color="textSecondary">
-                Your transfer will arrive at the destination ~<strong>{medianTimeEstimate !== null ? (medianTimeEstimate + " " + `${pluralize('minute', medianTimeEstimate)}`) : (fixedTimeEstimate + " " + pluralize('minute', fixedTimeEstimate))}</strong>{' '}
-                after your transaction is confirmed.{' '}
+                Your {tx.token._symbol ? tx.token._symbol : "transfer"} will arrive {tx.destNetworkName ? `on ${networkSlugToName(tx.destNetworkName)}` : "at the destination"} <strong>~{medianTimeEstimate !== null ? (medianTimeEstimate + " " + `${pluralize('minute', medianTimeEstimate)}`) : (fixedTimeEstimate + " " + pluralize('minute', fixedTimeEstimate))}</strong>{' '}
+                after the transaction is confirmed.{' '}
                 { percentileTimeEstimate !== null && (
-                  <>90% of transfers were completed in ~<strong>{percentileTimeEstimate + " " + pluralize('minute', percentileTimeEstimate)}</strong>{'.'}</>
+                  <>
+                    <br />
+                    <br />
+                    Only 10% of recent transfers took more than {percentileTimeEstimate + " " + pluralize('minute', percentileTimeEstimate)}.
+                  </>
                 )}
               </Typography>
               { medianTimeEstimate > fixedTimeEstimate * 1.5 &&

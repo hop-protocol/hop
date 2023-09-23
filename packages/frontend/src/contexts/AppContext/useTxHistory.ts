@@ -1,4 +1,5 @@
 import { useEffect, useCallback, Dispatch, SetStateAction, useRef } from 'react'
+import { useQuery } from 'react-query'
 import { useLocalStorage } from 'usehooks-ts'
 import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
@@ -75,46 +76,56 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     }, [transactions]
   )
 
+  const listenerSet = useRef(new Set())
   const isFirstRender = useRef(true)
 
-  // on page load or any time a new transaction is created
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
       return
     }
-
+    
     if (!transactions) {
       return
     }
 
-    // helper function using destTxHash get destination confirmation
+    let lastCalled = 0
+    const debounce = async (func, delay = 15000) => {
+      const now = new Date().getTime()
+      if (now - lastCalled < delay) {
+        return
+      }
+      lastCalled = now
+      return await func()
+    }
+
     const listenForDestinationConfirmation = async (tx) => {
-      if (tx.destTxHash === "") {
+      if (tx.destTxHash === "" && !listenerSet.current.has(tx.hash)) {
+        listenerSet.current.add(tx.hash)
         const stopPolling = setTimeout(() => {
           clearInterval(interval)
-        }, 3600000)  // stop after an hour
+        }, 3600000) // stop after an hour
 
         const interval = setInterval(async () => {
-          // repeatedly poll explorer with timeout to get destTxHash (bondTransactionHash)
           const explorerAPIUrl = `https://${process.env.REACT_APP_NETWORK === 'goerli' && "goerli-"}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
+          const response = await debounce(() => fetch(explorerAPIUrl))
 
-          const response = await fetch(explorerAPIUrl)
+          if (response) {
+            const data = await response.json()
+            const bondTransactionHash = data[0]?.bondTransactionHash
 
-          const data = await response.json()
-          const bondTransactionHash = data[0]?.bondTransactionHash
+            if (bondTransactionHash) {
+              clearTimeout(stopPolling)
+              clearInterval(interval)
 
-          if (bondTransactionHash) {
-            clearTimeout(stopPolling)
-            clearInterval(interval)
-
-            try {
-              tx.destProvider.once(tx.hash, transaction => {
-                updateTransaction(tx, { destTxHash: bondTransactionHash })
-                updateTransaction(tx, { pendingDestinationConfirmation: false })
-              })
-            } catch (e) {
-              console.error('Error transaction listener:', e)
+              try {
+                tx.destProvider.once(tx.hash, transaction => {
+                  updateTransaction(tx, { destTxHash: bondTransactionHash })
+                  updateTransaction(tx, { pendingDestinationConfirmation: false })
+                })
+              } catch (e) {
+                console.error('Error transaction listener:', e)
+              }
             }
           }
         }, 15000) // poll every 15 seconds
@@ -123,11 +134,11 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
     // main function scanning through each transaction in localStorage
     transactions.forEach(tx => {
-      // only create listeners for transactions that are pending
-      if (tx.pending) {
+      if (tx.pending && !listenerSet.current.has(tx.hash)) {
+        listenerSet.current.add(tx.hash)
         const listenForOriginConfirmation = async () => {
           try {
-            tx.provider.once(tx.hash, (transaction) => {
+            tx.provider.once(tx.hash, transaction => {
               updateTransaction(tx, { pending: false })
               listenForDestinationConfirmation(tx)
             })
@@ -135,14 +146,13 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
             console.error('Error transaction listener:', e)
           }
         }
-
+        
         listenForOriginConfirmation()
       } else if (tx.pendingDestinationConfirmation) {
         listenForDestinationConfirmation(tx)
       }
     })
   }, [transactions])
-
 
   return {
     transactions,

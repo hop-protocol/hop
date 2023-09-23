@@ -956,14 +956,14 @@ export class Base {
     return `${this.baseExplorerUrl}/?transferId=${transactionHash}`
   }
 
-  async getTransferStatus (transferIdOrTxHash: String):Promise<any> {
+  async getTransferStatus (transferIdOrTxHash: string):Promise<any> {
     const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
     const json = await fetchJsonOrThrow(url)
     return json.data ?? null
   }
 
-  async getTransferTimes (sourceChainSlug: String, destinationChainSlug: String):Promise<any> {
+  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string):Promise<any> {
     const baseApiUrl = `https://${this.network === 'goerli' && 'goerli-'}explorer-api.hop.exchange`
     const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
     const json = await fetchJsonOrThrow(url)

@@ -3,10 +3,13 @@ import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import Grid from '@material-ui/core/Grid'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
 import Box from '@material-ui/core/Box'
 import { useSendingTransaction } from './useSendingTransaction'
+import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
+import pluralize from 'pluralize'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -47,6 +50,13 @@ const ConfirmSend = (props: Props) => {
     source,
   })
 
+  const { fixedTimeEstimate, medianTimeEstimate } = useTransferTimeEstimate(
+    source?.network?.slug,
+    dest?.network?.slug
+  )
+
+  console.log({ fixedTimeEstimate, medianTimeEstimate })
+
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
     warning =
@@ -58,27 +68,36 @@ const ConfirmSend = (props: Props) => {
   return (
     <div className={styles.root}>
       <div className={styles.title}>
-        <div
-          style={{
-            marginBottom: '1rem',
-          }}
-        >
-          <Typography variant="h6" color="textSecondary">
-            Send{' '}
-            <strong>
-              {commafy(source.amount, 5)} {source.token.symbol}
-            </strong>{' '}
-            from {source.network.name} to {dest?.network?.name}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="subtitle2" color="textSecondary">
-            Estimated Received:
-          </Typography>
-          <Typography variant="subtitle2" color="textPrimary">
-            {estimatedReceived}
-          </Typography>
-        </div>
+        <Typography variant="h6" color="textSecondary">
+          Send{' '}
+          <strong>
+            {commafy(source.amount, 5)} {source.token.symbol}
+          </strong>
+          <br />
+          {source.network.name} to {dest?.network?.name}
+        </Typography>
+
+        <br />
+
+        <Grid container justifyContent="center" spacing={6}>
+          <Grid item>
+            <Typography variant="subtitle2" color="textSecondary">
+              Estimated Received
+            </Typography>
+            <Typography variant="subtitle2" color="textPrimary">
+              {estimatedReceived}
+            </Typography>
+          </Grid>
+
+          <Grid item>
+            <Typography variant="subtitle2" color="textSecondary">
+              Estimated Wait
+            </Typography>
+            <Typography variant="subtitle2" color="textPrimary">
+              {(medianTimeEstimate !== null ? medianTimeEstimate : fixedTimeEstimate) + ' ' + pluralize('minute', medianTimeEstimate)}
+            </Typography>
+          </Grid>
+        </Grid>
         {!!customRecipient && (
           <>
             <Typography variant="body1" color="textPrimary" className={styles.customRecipient}>

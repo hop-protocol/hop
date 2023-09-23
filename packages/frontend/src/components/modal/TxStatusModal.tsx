@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useApp } from 'src/contexts/AppContext'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
@@ -8,12 +7,14 @@ import { Chain } from '@hop-protocol/sdk'
 import { useTxStatusStyles } from '../Transaction'
 import TxStatusTracker from 'src/components/Transaction/TxStatusTracker'
 import Button from 'src/components/buttons/Button'
-import { useAddTokenToMetamask } from 'src/hooks/useAddTokenToMetamask'
 import { Div, Flex, Icon } from '../ui'
 import { StyledButton } from '../buttons/StyledButton'
 import MetaMaskLogo from 'src/assets/logos/metamask.png'
 import { useTransactionStatus } from 'src/hooks'
+import { useAddTokenToMetamask } from 'src/hooks/useAddTokenToMetamask'
+import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
 import { getTransferTimeMinutes } from 'src/utils/getTransferTimeMinutes'
+import pluralize from 'pluralize'
 
 type Props = {
   tx: Transaction
@@ -21,7 +22,6 @@ type Props = {
 }
 
 function TxStatusModal(props: Props) {
-  const { sdk } = useApp()
   const styles = useTxStatusStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
@@ -29,30 +29,11 @@ function TxStatusModal(props: Props) {
       onClose()
     }
   }
-
-  const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
-  const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
-  const fixedTimeEstimate = sourceChain && destinationChain ? getTransferTimeMinutes(sourceChain?.slug, destinationChain?.slug) : ''
   
-  const [timeEstimate, setTimeEstimate] = useState(fixedTimeEstimate)
-
-  // async update the time estimate using historical times
-  useEffect(() => {
-    const fetchData = async () => {
-      const sourceChainSlug = tx.networkName
-      const destinationChainSlug = tx.destNetworkName
-
-      console.log(sourceChainSlug, destinationChainSlug)
-
-      if (sourceChainSlug && destinationChainSlug) {
-        const historicalTimeStats = await sdk.getTransferTimes(sourceChainSlug, destinationChainSlug)
-        const medianTimeMinutes = Math.round(historicalTimeStats.median/60)
-        setTimeEstimate(medianTimeMinutes)
-      }
-    }
-
-    fetchData()
-  }, [sourceChain, destinationChain])
+  const { fixedTimeEstimate, medianTimeEstimate, percentileTimeEstimate } = useTransferTimeEstimate(
+    tx.networkName,
+    tx.destNetworkName
+  )
 
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
     tx,
@@ -71,17 +52,30 @@ function TxStatusModal(props: Props) {
       />
 
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
-        <Typography variant="body1">
-          {(tx && tx.token && timeEstimate) ? (
-            <em>
-              Your transfer will arrive at the destination in <strong>{timeEstimate && `~${timeEstimate} minute${timeEstimate !== 1 && 's'}`}</strong>{' '}
-              after your transaction is confirmed.{' '}
-              { timeEstimate > fixedTimeEstimate * 1.5 && 'This estimate is higher than expected and may not reflect current transfer times.' }
-            </em>
+        <Box>
+          {(tx && tx.token && medianTimeEstimate) ? (
+            <Box margin="0 auto" maxWidth="84%">
+              <Typography variant="body2" color="textSecondary">
+                Your transfer will arrive at the destination ~<strong>{medianTimeEstimate !== null ? (medianTimeEstimate + " " + `${pluralize('minute', medianTimeEstimate)}`) : (fixedTimeEstimate + " " + pluralize('minute', fixedTimeEstimate))}</strong>{' '}
+                after your transaction is confirmed.{' '}
+                { percentileTimeEstimate !== null && (
+                  <>90% of transfers were completed in ~<strong>{percentileTimeEstimate + " " + pluralize('minute', percentileTimeEstimate)}</strong>{'.'}</>
+                )}
+              </Typography>
+              { medianTimeEstimate > fixedTimeEstimate * 1.5 &&
+                <>
+                  <br />
+                  <Typography variant="body2" color="textSecondary" style={{ fontStyle: 'italic' }}>
+                    This estimate is higher than usual and may not reflect current speeds.
+                  </Typography>
+                </>
+              }
+            </Box>
           ) : (
-            <em>This may take a few minutes</em>
+            <Typography variant="body1" style={{ fontStyle: 'italic' }}>This may take a few minutes</Typography>
           )}
-        </Typography>
+          <br />
+        </Box>
 
         {tx?.token?.symbol && (
           <Flex mt={2} justifyCenter>

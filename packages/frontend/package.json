@@ -39,6 +39,7 @@
     "luxon": "1.28.0",
     "merkletreejs": "0.2.32",
     "numbro": "2.3.6",
+    "pluralize": "^8.0.0",
     "qs": "6.11.0",
     "react": "^17.0.2",
     "react-confetti": "6.1.0",

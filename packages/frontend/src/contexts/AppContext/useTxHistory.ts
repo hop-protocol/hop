@@ -103,9 +103,12 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     const listenForDestinationConfirmation = async (tx) => {
       if (tx.destTxHash === "" && !listenerSet.current.has(tx.hash)) {
         listenerSet.current.add(tx.hash)
+        let retryCounter = 0 // initialize retry counter
+        
+        // stop polling after an hour
         const stopPolling = setTimeout(() => {
           clearInterval(interval)
-        }, 3600000) // stop after an hour
+        }, 3600000)
 
         const interval = setInterval(async () => {
           const explorerAPIUrl = `https://${process.env.REACT_APP_NETWORK === 'goerli' && "goerli-"}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
@@ -125,8 +128,17 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
                   updateTransaction(tx, { pendingDestinationConfirmation: false })
                 })
               } catch (e) {
-                console.error('Error transaction listener:', e)
+                console.error('Error with transaction listener:', e)
+                listenerSet.current.delete(tx.hash)
               }
+            }
+          } else {
+            retryCounter++
+            if (retryCounter >= 3) {
+              console.error('Max retries reached for:', tx.hash)
+              listenerSet.current.delete(tx.hash)
+              clearInterval(interval)
+              updateTransaction(tx, { pendingDestinationConfirmation: false })
             }
           }
         }, 15000) // poll every 15 seconds

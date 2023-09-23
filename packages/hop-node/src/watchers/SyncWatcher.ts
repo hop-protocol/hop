@@ -4,10 +4,11 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   Chain,
   ChainPollMultiplier,
@@ -72,6 +73,9 @@ class SyncWatcher extends BaseWatcher {
   isRelayableChainEnabled: boolean = false
   shouldSyncHead: boolean
   ready: boolean = false
+  // Experimental
+  wsProvider: providers.WebSocketProvider
+  wsCache: Record<string, any> = {}
 
   constructor (config: Config) {
     super({
@@ -107,6 +111,13 @@ class SyncWatcher extends BaseWatcher {
 
     this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
     this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
+
+    // TODO: This only works for Alchemy. Add WS url to config long term.
+    if (wsEnabledChains.includes(this.chainSlug)) {
+      const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
+      this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
+      this.initEventWebsockets()
+    }
 
     this.init()
       .catch(err => {
@@ -566,6 +577,13 @@ class SyncWatcher extends BaseWatcher {
         transferSentIndex,
         isFinalized
       })
+
+      // Compare against WS cache
+      if (this.wsCache[transferId]) {
+        this.compareWsCache(event)
+        // Clear memory
+        this.wsCache[event.args.transferId] = undefined
+      }
 
       logger.debug('handleTransferSentEvent: stored transfer item')
     } catch (err) {
@@ -1698,6 +1716,62 @@ class SyncWatcher extends BaseWatcher {
       return false
     } catch {
       return true
+    }
+  }
+
+  // Experimental Websocket Support
+
+  initWebsocket = (contract: Contract, filter: EventFilter, cb: Function) => {
+    contract.on(filter, async (...event: any) => cb(event[event.length - 1]) )
+    contract.on('error', async (...event: any) => this.handleWsError(event))
+  }
+
+  initEventWebsockets () {
+    if (this.isL1) return
+
+    const bridgeContract = this.bridge.bridgeContract.connect(this.wsProvider) as L2BridgeContract
+    const filter = bridgeContract.filters.TransferSent()
+    this.initWebsocket(
+      bridgeContract, 
+      filter,
+      async (event: TransferSentEvent) => this.handleWsSuccess(event)
+    )
+  }
+
+  handleWsSuccess(event: TransferSentEvent) {
+    const args = event.args
+    this.wsCache[args.transferId] = {
+      chainId: args.chainId,
+      recipient: args.recipient,
+      amount: args.amount,
+      transferNonce: args.transferNonce,
+      bonderFee: args.bonderFee,
+      amountOutMin: args.amountOutMin,
+      deadline: args.deadline,
+      index: args.index
+    }
+    this.logger.debug('handleWsSuccess', event)
+  }
+
+  handleWsError(event: any) {
+    this.logger.error('handleWsError', event)
+  }
+
+  compareWsCache(event: TransferSentEvent) {
+    const wsData = this.wsCache[event.args.transferId]
+    if (
+      wsData.chainId !== event.args.chainId ||
+      wsData.recipient !== event.args.recipient ||
+      wsData.amount !== event.args.amount ||
+      wsData.transferNonce !== event.args.transferNonce ||
+      wsData.bonderFee !== event.args.bonderFee ||
+      wsData.amountOutMin !== event.args.amountOutMin ||
+      wsData.deadline !== event.args.deadline ||
+      wsData.index !== event.args.index
+    ) {
+      this.logger.error(`compareWsCache failed for transferId ${event.args.transferId}. wsData: ${JSON.stringify(wsData)}, event: ${JSON.stringify(event)}`)
+    } else {
+      this.logger.debug(`compareWsCache success for transferId ${event.args.transferId}`)
     }
   }
 }

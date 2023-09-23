@@ -68,6 +68,7 @@ export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PEN
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
+export const wsEnabledChains = process.env.WS_ENABLED_CHAINS?.split(',') ?? []
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
 // available liquidity watcher to have up-to-date info

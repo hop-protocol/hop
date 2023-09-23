@@ -5,7 +5,13 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import {
+  Chain,
+  GasCostTransactionType,
+  SettlementGasLimitPerTx,
+  UnfinalizedKey,
+  UnfinalizedSyncStartBlockNumber
+} from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -580,6 +586,14 @@ export default class Bridge extends ContractBase {
         options.syncCacheKey
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
+
+      // An unfinalized does not have state, use the state of its unfinalized counterpart.
+      // The unfinalized counterpart is guaranteed to have state since the syncer
+      // bonder performs a full sync before beginning any other operations.
+      if (!state?.latestBlockSynced && syncCacheKey.includes(UnfinalizedKey)) {
+        const stateKey = syncCacheKey.replace(UnfinalizedKey, '')
+        state = await this.db.syncState.getByKey(stateKey)
+      }
     }
 
     const blockValues: BlockValues = await this.getBlockValues(options, state)
@@ -654,16 +668,23 @@ export default class Bridge extends ContractBase {
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    let blockNumberWithAcceptableFinality: number
 
-    if (getHasFinalizationBlockTag(this.chainSlug)) {
+    // TODO: Better state handling
+    const isUnfinalizedSync = startBlockNumber === UnfinalizedSyncStartBlockNumber
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isUnfinalizedSync
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isUnfinalizedSync
+
+    let blockNumberWithAcceptableFinality: number
+    if (getHasFinalizationBlockTag(this.chainSlug) && !isUnfinalizedSync) {
       blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
-      blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
+      if (isUnfinalizedSync) {
+        blockNumberWithAcceptableFinality = currentBlockNumber
+      } else {
+        blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
+      }
     }
-    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
-    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -675,6 +696,9 @@ export default class Bridge extends ContractBase {
       end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync) {
+      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
+      totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
+    } else if (isUnfinalizedSync) {
       end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {

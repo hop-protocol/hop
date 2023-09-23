@@ -172,3 +172,10 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Nova]: 2,
   [Chain.PolygonZk]: 1
 }
+
+// Random value that is unlikely to be used as a block number
+// A chain that goes through regenesis might have a block number of 0
+// A number higher than the current block will throw an error at the filter
+// It is unlikely that a bridge is deployed on block 5 of a chain
+export const UnfinalizedSyncStartBlockNumber: number = 5
+export const UnfinalizedKey = 'Unfinalized'

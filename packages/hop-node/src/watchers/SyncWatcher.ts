@@ -15,7 +15,9 @@ import {
   GasCostTransactionType,
   OneWeekMs,
   RelayableChains,
-  TenMinutesMs
+  TenMinutesMs,
+  UnfinalizedKey,
+  UnfinalizedSyncStartBlockNumber
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
@@ -45,7 +47,8 @@ import {
   getNetworkHeadSync,
   config as globalConfig,
   minEthBonderFeeBn,
-  oruChains
+  oruChains,
+  wsEnabledChains
 } from 'src/config'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -301,6 +304,12 @@ class SyncWatcher extends BaseWatcher {
       startBlockNumber = this.customStartBlockNumber
     }
 
+    // Unfinalized polls only care about recent transactions, so use a constant value
+    // that can be handled explicitly in the calling function
+    if (keyName.includes(UnfinalizedKey)) {
+      startBlockNumber = UnfinalizedSyncStartBlockNumber
+    }
+
     return {
       syncCacheKey: this.syncCacheKey(keyName),
       startBlockNumber
@@ -341,9 +350,11 @@ class SyncWatcher extends BaseWatcher {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
+    const keyName = isFinalized ? l2Bridge.TransferSent : l2Bridge.TransferSent + UnfinalizedKey
+
     return l2Bridge.mapTransferSentEvents(
       async event => this.handleTransferSentEvent(event, isFinalized),
-      this.getSyncOptions(l2Bridge.TransferSent)
+      this.getSyncOptions(keyName)
     )
   }
 
@@ -1759,16 +1770,7 @@ class SyncWatcher extends BaseWatcher {
 
   compareWsCache(event: TransferSentEvent) {
     const wsData = this.wsCache[event.args.transferId]
-    if (
-      wsData.chainId !== event.args.chainId ||
-      wsData.recipient !== event.args.recipient ||
-      wsData.amount !== event.args.amount ||
-      wsData.transferNonce !== event.args.transferNonce ||
-      wsData.bonderFee !== event.args.bonderFee ||
-      wsData.amountOutMin !== event.args.amountOutMin ||
-      wsData.deadline !== event.args.deadline ||
-      wsData.index !== event.args.index
-    ) {
+    if (JSON.stringify(wsData) === JSON.stringify(event.args)) {
       this.logger.error(`compareWsCache failed for transferId ${event.args.transferId}. wsData: ${JSON.stringify(wsData)}, event: ${JSON.stringify(event)}`)
     } else {
       this.logger.debug(`compareWsCache success for transferId ${event.args.transferId}`)

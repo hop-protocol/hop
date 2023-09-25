@@ -8,8 +8,8 @@ import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
+  HeadSyncKeySuffix,
   SettlementGasLimitPerTx,
-  UnfinalizedKeySuffix
 } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
@@ -586,22 +586,20 @@ export default class Bridge extends ContractBase {
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
 
-      // TODO: I don't like the word unfinalized...anything else?
-
-      const isUnfinalizedSync = syncCacheKey.includes(UnfinalizedKeySuffix)
-      if (isUnfinalizedSync) {
-        // If an unfinalized sync does not have state or the state is stale, use the state of
+      const isHeadSync = syncCacheKey.includes(HeadSyncKeySuffix)
+      if (isHeadSync) {
+        // If a head sync does not have state or the state is stale, use the state of
         // its finalized counterpart. The finalized counterpart is guaranteed to have updated
         // state since the bonder performs a full sync before beginning any other operations.
-        // * The unfinalized sync will not have state upon fresh bonder sync.
-        // * The unfinalized sync will have stale data if they use the unfinalized syncer, turn it off
+        // * The head sync will not have state upon fresh bonder sync.
+        // * The head sync will have stale data if they use the head syncer, turn it off
         //   for some time, and then turn it back on again.
-        const finalizedStateKey = syncCacheKey.replace(UnfinalizedKeySuffix, '')
+        const finalizedStateKey = syncCacheKey.replace(HeadSyncKeySuffix, '')
         const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
 
-        const doesUnfinalizedDbExist = !!state?.latestBlockSynced
-        const isUnfinalizedDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
-        if (!doesUnfinalizedDbExist || isUnfinalizedDataStale) {
+        const doesHeadSyncDbExist = !!state?.latestBlockSynced
+        const isHeadSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
+        if (!doesHeadSyncDbExist || isHeadSyncDataStale) {
           state = finalizedState
           state.key = syncCacheKey
         }
@@ -682,16 +680,16 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
 
     // TODO: Better state handling
-    const isUnfinalizedSync = syncCacheKey?.includes(UnfinalizedKeySuffix)
-    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isUnfinalizedSync
-    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isUnfinalizedSync
+    const isHeadSync = syncCacheKey?.includes(HeadSyncKeySuffix)
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
 
     let blockNumberWithAcceptableFinality: number
-    if (getHasFinalizationBlockTag(this.chainSlug) && !isUnfinalizedSync) {
+    if (getHasFinalizationBlockTag(this.chainSlug) && !isHeadSync) {
       blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
-      if (isUnfinalizedSync) {
+      if (isHeadSync) {
         blockNumberWithAcceptableFinality = currentBlockNumber
       } else {
         blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
@@ -707,7 +705,7 @@ export default class Bridge extends ContractBase {
     } else if (isInitialSync) {
       end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync || isUnfinalizedSync) {
+    } else if (isSync || isHeadSync) {
       end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {

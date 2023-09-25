@@ -13,10 +13,10 @@ import {
   Chain,
   ChainPollMultiplier,
   GasCostTransactionType,
+  HeadSyncKeySuffix,
   OneWeekMs,
   RelayableChains,
-  TenMinutesMs,
-  UnfinalizedKeySuffix
+  TenMinutesMs
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
@@ -279,8 +279,8 @@ class SyncWatcher extends BaseWatcher {
     if (this.shouldSyncAllEvents()) {
       promisesPerPoll = this.getAllPromises()
     } else  {
-      const isFinalizedPoll = !this.shouldSyncHead
-      promisesPerPoll = this.getTransferSentPromises(isFinalizedPoll)
+      const isHeadSync = this.shouldSyncHead
+      promisesPerPoll = this.getTransferSentPromises(isHeadSync)
     }
 
     // these must come after db is done syncing, and syncAvailableCredit must be last
@@ -339,14 +339,14 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async getTransferSentEventPromise (isFinalizedPoll: boolean): Promise<any> {
+  async getTransferSentEventPromise (isHeadSync: boolean): Promise<any> {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
-    const keyName = isFinalizedPoll ? l2Bridge.TransferSent : l2Bridge.TransferSent + UnfinalizedKeySuffix
+    const keyName = isHeadSync ? l2Bridge.TransferSent + HeadSyncKeySuffix : l2Bridge.TransferSent
 
     return l2Bridge.mapTransferSentEvents(
-      async event => this.handleTransferSentEvent(event, isFinalizedPoll),
+      async event => this.handleTransferSentEvent(event, isHeadSync),
       this.getSyncOptions(keyName)
     )
   }
@@ -408,12 +408,12 @@ class SyncWatcher extends BaseWatcher {
 
   getAllPromises (): EventPromise {
     // Full syncs will always use finalized data
-    const isFinalizedPoll = true
+    const isHeadSync = false
     const asyncPromises: EventPromise = [
       this.getTransferSentToL2EventPromise(),
       this.getTransferRootConfirmedEventPromise(),
       this.getTransferBondChallengedEventPromise(),
-      this.getTransferSentEventPromise(isFinalizedPoll),
+      this.getTransferSentEventPromise(isHeadSync),
       this.getTransferRootSetEventPromise()
     ]
     const syncPromises: EventPromise = [
@@ -436,14 +436,14 @@ class SyncWatcher extends BaseWatcher {
     ]
   }
 
-  getTransferSentPromises (isFinalizedPoll: boolean): EventPromise {
+  getTransferSentPromises (isHeadSync: boolean): EventPromise {
     // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
     if (this.isL1) {
       if (this.isRelayableChainEnabled) {
         return [this.getTransferSentToL2EventPromise()]
       }
     } else {
-      return [this.getTransferSentEventPromise(isFinalizedPoll)]
+      return [this.getTransferSentEventPromise(isHeadSync)]
     }
     return []
   }
@@ -520,7 +520,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferSentEvent (event: TransferSentEvent, isFinalizedPoll: boolean) {
+  async handleTransferSentEvent (event: TransferSentEvent, isHeadSync: boolean) {
     const {
       transferId,
       chainId: destinationChainIdBn,
@@ -550,6 +550,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
       const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
+      const isFinalized = !isHeadSync
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -561,7 +562,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('deadline:', deadline.toString())
       logger.debug('transferSentIndex:', transferSentIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
-      logger.debug('isFinalized:', isFinalizedPoll)
+      logger.debug('isFinalized:', isFinalized)
 
 
       if (!isBondable) {
@@ -582,7 +583,7 @@ class SyncWatcher extends BaseWatcher {
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
         transferSentIndex,
-        isFinalized: isFinalizedPoll
+        isFinalized
       })
 
       // Experimental: compare data against WS cache and clear the memory

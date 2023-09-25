@@ -173,4 +173,4 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.PolygonZk]: 1
 }
 
-export const UnfinalizedKeySuffix = 'Unfinalized'
+export const HeadSyncKeySuffix = 'HeadSync'

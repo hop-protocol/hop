@@ -16,8 +16,7 @@ import {
   OneWeekMs,
   RelayableChains,
   TenMinutesMs,
-  UnfinalizedKey,
-  UnfinalizedSyncStartBlockNumber
+  UnfinalizedKeySuffix
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
@@ -76,7 +75,7 @@ class SyncWatcher extends BaseWatcher {
   isRelayableChainEnabled: boolean = false
   shouldSyncHead: boolean
   ready: boolean = false
-  // Experimental
+  // Experimental: Websocket support
   wsProvider: providers.WebSocketProvider
   wsCache: Record<string, any> = {}
 
@@ -280,8 +279,8 @@ class SyncWatcher extends BaseWatcher {
     if (this.shouldSyncAllEvents()) {
       promisesPerPoll = this.getAllPromises()
     } else  {
-      const isFinalized = !this.shouldSyncHead
-      promisesPerPoll = this.getTransferSentPromises(isFinalized)
+      const isFinalizedPoll = !this.shouldSyncHead
+      promisesPerPoll = this.getTransferSentPromises(isFinalizedPoll)
     }
 
     // these must come after db is done syncing, and syncAvailableCredit must be last
@@ -302,12 +301,6 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber: number = this.bridge.bridgeDeployedBlockNumber
     if (!this.isInitialSyncCompleted() && this.customStartBlockNumber) {
       startBlockNumber = this.customStartBlockNumber
-    }
-
-    // Unfinalized polls only care about recent transactions, so use a constant value
-    // that can be handled explicitly in the calling function
-    if (keyName.includes(UnfinalizedKey)) {
-      startBlockNumber = UnfinalizedSyncStartBlockNumber
     }
 
     return {
@@ -346,14 +339,14 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async getTransferSentEventPromise (isFinalized: boolean): Promise<any> {
+  async getTransferSentEventPromise (isFinalizedPoll: boolean): Promise<any> {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
-    const keyName = isFinalized ? l2Bridge.TransferSent : l2Bridge.TransferSent + UnfinalizedKey
+    const keyName = isFinalizedPoll ? l2Bridge.TransferSent : l2Bridge.TransferSent + UnfinalizedKeySuffix
 
     return l2Bridge.mapTransferSentEvents(
-      async event => this.handleTransferSentEvent(event, isFinalized),
+      async event => this.handleTransferSentEvent(event, isFinalizedPoll),
       this.getSyncOptions(keyName)
     )
   }
@@ -415,12 +408,12 @@ class SyncWatcher extends BaseWatcher {
 
   getAllPromises (): EventPromise {
     // Full syncs will always use finalized data
-    const isFinalized = true
+    const isFinalizedPoll = true
     const asyncPromises: EventPromise = [
       this.getTransferSentToL2EventPromise(),
       this.getTransferRootConfirmedEventPromise(),
       this.getTransferBondChallengedEventPromise(),
-      this.getTransferSentEventPromise(isFinalized),
+      this.getTransferSentEventPromise(isFinalizedPoll),
       this.getTransferRootSetEventPromise()
     ]
     const syncPromises: EventPromise = [
@@ -443,14 +436,14 @@ class SyncWatcher extends BaseWatcher {
     ]
   }
 
-  getTransferSentPromises (isFinalized: boolean): EventPromise {
+  getTransferSentPromises (isFinalizedPoll: boolean): EventPromise {
     // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
     if (this.isL1) {
       if (this.isRelayableChainEnabled) {
         return [this.getTransferSentToL2EventPromise()]
       }
     } else {
-      return [this.getTransferSentEventPromise(isFinalized)]
+      return [this.getTransferSentEventPromise(isFinalizedPoll)]
     }
     return []
   }
@@ -527,7 +520,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferSentEvent (event: TransferSentEvent, isFinalized: boolean) {
+  async handleTransferSentEvent (event: TransferSentEvent, isFinalizedPoll: boolean) {
     const {
       transferId,
       chainId: destinationChainIdBn,
@@ -545,7 +538,9 @@ class SyncWatcher extends BaseWatcher {
     // There is no need to handle the finalized or unfinalized events differently.
     // If the finalized data does not match the unfinalized data, the other watchers
     // will have handled this case and removed the transfer from the DB. This watcher
-    // simply stores data to let the rest of the system do what it wants with the data
+    // simply stores data to let the rest of the system do what it wants with the data.
+    // Since fully finalized data is collected upon bonder start, there is no way for
+    // data to go from finalized to unfinalized.
 
     try {
       const { transactionHash } = event
@@ -566,7 +561,8 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('deadline:', deadline.toString())
       logger.debug('transferSentIndex:', transferSentIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
-      logger.debug('isFinalized:', isFinalized)
+      logger.debug('isFinalized:', isFinalizedPoll)
+
 
       if (!isBondable) {
         logger.warn('transfer is unbondable', amountOutMin, deadline)
@@ -586,13 +582,12 @@ class SyncWatcher extends BaseWatcher {
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
         transferSentIndex,
-        isFinalized
+        isFinalized: isFinalizedPoll
       })
 
-      // Compare against WS cache
+      // Experimental: compare data against WS cache and clear the memory
       if (this.wsCache[transferId]) {
         this.compareWsCache(event)
-        // Clear memory
         this.wsCache[event.args.transferId] = undefined
       }
 
@@ -1730,7 +1725,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  // Experimental Websocket Support
+  // Experimental: Websocket support methods
 
   initWebsocket = (contract: Contract, filter: EventFilter, cb: Function) => {
     contract.on(filter, async (...event: any) => cb(event[event.length - 1]) )
@@ -1761,19 +1756,19 @@ class SyncWatcher extends BaseWatcher {
       deadline: args.deadline,
       index: args.index
     }
-    this.logger.debug('handleWsSuccess', JSON.stringify(event))
+    this.logger.debug('handleWsSuccess: websocket event successfully logged', JSON.stringify(event))
   }
 
   handleWsError(event: any) {
-    this.logger.error('handleWsError', JSON.stringify(event))
+    this.logger.error('handleWsError: websocket error occurred', JSON.stringify(event))
   }
 
   compareWsCache(event: TransferSentEvent) {
     const wsData = this.wsCache[event.args.transferId]
     if (JSON.stringify(wsData) === JSON.stringify(event.args)) {
-      this.logger.error(`compareWsCache failed for transferId ${event.args.transferId}. wsData: ${JSON.stringify(wsData)}, event: ${JSON.stringify(event)}`)
+      this.logger.error(`compareWsCache: websocket comparison to poller data failed for transferId ${event.args.transferId}. wsData: ${JSON.stringify(wsData)}, event: ${JSON.stringify(event)}`)
     } else {
-      this.logger.debug(`compareWsCache success for transferId ${event.args.transferId}`)
+      this.logger.debug(`compareWsCache: websocket comparison to poller data success for transferId ${event.args.transferId}`)
     }
   }
 }

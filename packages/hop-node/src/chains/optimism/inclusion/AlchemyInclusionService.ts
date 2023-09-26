@@ -23,7 +23,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    const l2Tx = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
+    const l2Tx: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2Tx.blockNumber }))
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(l1OriginBlockNum)
 

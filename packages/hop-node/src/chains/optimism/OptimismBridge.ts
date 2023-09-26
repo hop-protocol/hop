@@ -1,11 +1,11 @@
 import AbstractBridge from '../AbstractBridge'
 import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import Derive from './Derive'
-import { Contract, providers } from 'ethers'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainBridge } from '../IChainBridge'
 import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
 import { config as globalConfig } from 'src/config'
+import { providers } from 'ethers'
 
 class OptimismBridge extends AbstractBridge implements IChainBridge {
   csm: CrossChainMessenger

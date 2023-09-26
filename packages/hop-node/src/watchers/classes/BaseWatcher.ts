@@ -38,13 +38,13 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
 import { Strategy, Vault } from 'src/vault'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
 import {
   TxRetryDelayMs,
   getValidatorAddressForChain,
   config as globalConfig,
   hostname
 } from 'src/config'
+import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 
 const mutexes: Record<string, Mutex> = {}
@@ -623,7 +623,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     return true
   }
-
 }
 
 export default BaseWatcher

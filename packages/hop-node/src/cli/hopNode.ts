@@ -1,10 +1,10 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
+  ShouldIgnoreProxy,
   bondWithdrawalBatchSize,
   gitRev,
   config as globalConfig,
-  ShouldIgnoreProxy,
   slackAuthToken,
   slackChannel,
   slackUsername

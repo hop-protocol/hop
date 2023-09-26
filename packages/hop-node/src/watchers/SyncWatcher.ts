@@ -41,19 +41,14 @@ import {
   SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
-  config as globalConfig,
-  minEthBonderFeeBn,
-  oruChains
-} from 'src/config'
-import { Transfer } from 'src/db/TransfersDb'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import {
   getProxyAddressForChain,
   config as globalConfig,
   isProxyAddressForChain,
   minEthBonderFeeBn,
   oruChains
 } from 'src/config'
+import { Transfer } from 'src/db/TransfersDb'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { promiseQueue } from 'src/utils/promiseQueue'
 

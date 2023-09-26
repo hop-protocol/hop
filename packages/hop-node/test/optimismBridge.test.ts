@@ -14,8 +14,8 @@ import { providers } from 'ethers'
 // NOTE: import moduleAlias first to avoid errors
 
 async function main () {
-  const chain = Chain.Optimism
-  const destinationChainSlug = Chain.Base
+  const chain = Chain.Arbitrum
+  const destinationChainSlug = Chain.Optimism
   const token = 'ETH'
   const dryMode = true
 
@@ -46,7 +46,7 @@ async function main () {
 
   // await testGetHiddenCalldataForDestinationChain(opts)
   await testGetL1InclusionTx(opts)
-  await testGetL2InclusionTx(opts)
+  // await testGetL2InclusionTx(opts)
 }
 
 async function testGetHiddenCalldataForDestinationChain (opts: any): Promise<void> {

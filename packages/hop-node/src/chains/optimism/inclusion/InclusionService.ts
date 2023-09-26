@@ -4,9 +4,9 @@ import zlib from 'zlib'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
 import { Contract, Signer, providers } from 'ethers'
 import { InclusionServiceConfig } from './IInclusionService'
+import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { getCanonicalAddressesForChain } from 'src/config'
 
 interface Channel {

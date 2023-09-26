@@ -298,10 +298,10 @@ async getTransferTimes(params: any): Promise<TimeToBridgeStats> {
     return
   }
 
-  const txIdAndTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug)
+  const txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug)
 
-  // array of transfer times
-  const timesArray = txIdAndTimes.map(record => Number(record.bond_within_timestamp))
+  // array of transfer times as numbers
+  const timesArray = txTimes.map(record => Number(record.bond_within_timestamp))
 
   const cacheKey = `${sourceChainSlug}-${destinationChainSlug}`
   const cacheDurationMs = 5 * 60 * 1000 // 5 minutes

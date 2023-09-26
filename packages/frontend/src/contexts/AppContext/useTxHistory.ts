@@ -147,6 +147,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     const bondTransactionHash = await getBondedTxHash(tx)
 
     if (!bondTransactionHash) {
+      listenerSet.current.delete(tx.hash)
       return
     }
 

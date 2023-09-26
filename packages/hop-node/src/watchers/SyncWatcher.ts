@@ -535,13 +535,6 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
 
-    // There is no need to handle the finalized or unfinalized events differently.
-    // If the finalized data does not match the unfinalized data, the other watchers
-    // will have handled this case and removed the transfer from the DB. This watcher
-    // simply stores data to let the rest of the system do what it wants with the data.
-    // Since fully finalized data is collected upon bonder start, there is no way for
-    // data to go from finalized to unfinalized.
-
     try {
       const { transactionHash } = event
       const transferSentIndex: number = index.toNumber()
@@ -592,8 +585,9 @@ class SyncWatcher extends BaseWatcher {
 
       // NOTE: There is a rare race condition where an unfinalized transfer may be processed before
       // the finalized transfer is seen but sent and fail onchain validation after the finalized
-      // transfer has been recorded. In this case, the transferId will be marked as notFound and the
-      // transfer will never be bonded. If this occurs in practice, handle that case here.
+      // transfer has been recorded. For example, if a reorg happens at block 255 and finalization
+      // is at block 256. In this case, the transferId will be marked as notFound and the
+      // transfer will never be bonded. This is not handled, but if it ever occurs in practice, handle here.
       if (isFinalized) {
         dbData.isNotFound = undefined
         dbData.withdrawalBondTxError = undefined

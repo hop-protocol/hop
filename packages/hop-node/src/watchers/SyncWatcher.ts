@@ -338,11 +338,14 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async getTransferSentEventPromise (isHeadSync: boolean): Promise<any> {
+  async getTransferSentEventPromise (isHeadSync: boolean = false): Promise<any> {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
-    const keyName = isHeadSync ? l2Bridge.TransferSent + HeadSyncKeySuffix : l2Bridge.TransferSent
+    let keyName = l2Bridge.TransferSent
+    if (isHeadSync) {
+      keyName += HeadSyncKeySuffix
+    }
 
     return l2Bridge.mapTransferSentEvents(
       async event => this.handleTransferSentEvent(event, isHeadSync),
@@ -406,13 +409,11 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getAllPromises (): EventPromise {
-    // Full syncs will always use finalized data
-    const isHeadSync = false
     const asyncPromises: EventPromise = [
       this.getTransferSentToL2EventPromise(),
       this.getTransferRootConfirmedEventPromise(),
       this.getTransferBondChallengedEventPromise(),
-      this.getTransferSentEventPromise(isHeadSync),
+      this.getTransferSentEventPromise(),
       this.getTransferRootSetEventPromise()
     ]
     const syncPromises: EventPromise = [
@@ -443,7 +444,7 @@ class SyncWatcher extends BaseWatcher {
     
     if (!this.isL1) {
       // Always sync the finalized transfers. Also sync head if enabled.
-      const promises: EventPromise = [this.getTransferSentEventPromise(false)]
+      const promises: EventPromise = [this.getTransferSentEventPromise()]
       if (this.shouldSyncHead) {
         promises.push(this.getTransferSentEventPromise(true))
       }

@@ -10,7 +10,7 @@ import {
 import { providers } from 'ethers'
 
 // Run this with
-// NETWORK=goerli npx ts-node test/OptimismBridge.test.ts
+// NETWORK=goerli npx ts-node test/chainBridge.test.ts
 // NOTE: import moduleAlias first to avoid errors
 
 async function main () {
@@ -34,7 +34,7 @@ async function main () {
   const l2Provider = getRpcProvider(chain)!
   const chainBridge = getChainBridge(chain)
 
-  const { l2TxHash, l2BlockNumber } = await _getL2TxHashToTest(l2Provider)
+  const { l2TxHash, l2BlockNumber } = await _getL2TxHashToTest(chain, l2Provider)
   const opts = {
     chainWatcher,
     chainBridge,
@@ -78,12 +78,20 @@ async function testGetL2InclusionTx (opts: any): Promise<void> {
   }
 }
 
-async function _getL2TxHashToTest (l2Provider: providers.Provider): Promise<any> {
+async function _getL2TxHashToTest (chain: string, l2Provider: providers.Provider): Promise<any> {
   // System txs on Optimism are not included in checkpoints, so we must get a tx that is not a system tx
 
-  // 210 blocks gives optimism enough time for the tx to get included on L1 and posted on the destination L2 (base only)
-  // More than ~300 will result in a blockHash that is no longer stored
-  const blockBuffer = 250
+  let blockBuffer: number
+  if (chain === Chain.Arbitrum || chain === Chain.Nova) {
+    // Arbitrum blocks are ~250ms, so we need to look back farther
+    blockBuffer = 2500
+  } else if (chain === Chain.Optimism || chain === Chain.Base) {
+    // 210 blocks gives optimism enough time for the tx to get included on L1 and posted on the destination L2 (base only)
+    // More than ~300 will result in a blockHash that is no longer stored
+    blockBuffer = 250
+  } else {
+    throw new Error(`unknown chain ${chain}`)
+  }
   const currentBlockNumber: number = await l2Provider.getBlockNumber()
 
   // If a block only has system txs, skip it since they are not checkpointed

@@ -13,7 +13,6 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
-  doesProxyAndValidatorExistForChain,
   enableEmergencyMode,
   getFinalityTimeSeconds,
   getHasFinalizationBlockTag,
@@ -34,8 +33,6 @@ export type SendBondTransferRootTxParams = {
   totalAmount: BigNumber
   transferIds: string[]
   rootCommittedAt: number
-  commitTxHash?: string
-  commitTxBlockNumber?: number
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -216,9 +213,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         totalAmount,
         transferIds,
-        rootCommittedAt: committedAt,
-        commitTxHash,
-        commitTxBlockNumber
+        rootCommittedAt: committedAt
       })
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
@@ -262,9 +257,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       transferRootId,
       transferRootHash,
       destinationChainId,
-      totalAmount,
-      commitTxHash,
-      commitTxBlockNumber
+      totalAmount
     } = params
 
     const logger = this.logger.create({ root: transferRootId })
@@ -272,23 +265,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('performing preTransactionValidation')
     await this.preTransactionValidation(params)
 
-    let hiddenCalldata: string | undefined
-    if (
-      doesProxyAndValidatorExistForChain(this.tokenSymbol, Chain.Ethereum) &&
-      this.isProxyValidationImplementedForRoute(this.chainSlug, Chain.Ethereum) &&
-      commitTxHash &&
-      commitTxBlockNumber
-    ) {
-      hiddenCalldata = await this.getHiddenCalldataForDestinationChain(Chain.Ethereum, commitTxHash, commitTxBlockNumber)
-      logger.debug(`hiddenCalldata: ${hiddenCalldata}`)
-    }
-
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
       transferRootHash,
       destinationChainId,
-      totalAmount,
-      hiddenCalldata
+      totalAmount
     )
   }
 

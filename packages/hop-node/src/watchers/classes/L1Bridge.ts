@@ -176,8 +176,7 @@ export default class L1Bridge extends Bridge {
   bondTransferRoot = async (
     transferRootHash: string,
     chainId: number,
-    totalAmount: BigNumber,
-    hiddenCalldata?: string
+    totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -195,12 +194,7 @@ export default class L1Bridge extends Bridge {
       totalAmount,
       txOverrides
     ] as const
-
-    const populatedTx = await this.l1BridgeWriteContract.populateTransaction.bondTransferRoot(...payload)
-    if (hiddenCalldata) {
-      populatedTx.data = populatedTx.data! + hiddenCalldata
-    }
-    const tx = await this.l1BridgeWriteContract.signer.sendTransaction(populatedTx)
+    const tx = await this.l1BridgeWriteContract.bondTransferRoot(...payload)
 
     return tx
   }

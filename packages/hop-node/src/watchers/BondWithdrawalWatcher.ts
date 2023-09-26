@@ -154,10 +154,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    // Do not bond an unfinalized transaction unless blockhash validation exists
-    // TODO: Add proxyAndValidator check after merge
+    // TODO: Add isProxyAndValidatorEnabled after merging with that branch
     // const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    // if (!isFinalized && !isProxyAndValidatorEnabled(this.tokenSymbol, this.chainSlug, destinationChainSlug)) {
+    // if (
+    //   !isFinalized &&
+    //   !isProxyAndValidatorEnabled(this.tokenSymbol, this.chainSlug, destinationChainSlug)
+    // ) {
     //   logger.warn(`transfer id "${transferId}" is not finalized and proxy and validator are not set on ${destinationChainSlug}. marking item not found.`)
     //   await this.db.transfers.update(transferId, { isNotFound: true })
     //   return
@@ -346,7 +348,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
 
-    // TODO: Add proxyAndValidator check after merge
+    // TODO: Add isProxyAndValidatorEnabled after merging with that branch
     // An unfinalized transfer without blockHash validation enabled should never be here.
     // If it is, then it would need to go through a preTransactionValidation check since it is not
     // performing the validation onchain with the proxy and validator contracts. However, unfinalized

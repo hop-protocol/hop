@@ -34,6 +34,7 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const estimateGasFailedErrorRegex = /eth_estimateGas/i
         const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
         const feeTooLowErrorRegex = /FeeTooLowToCompete|transaction underpriced/
+        const validatorContractErrorRegex = /BHV:/
 
         // this invalid opcode error occurs when doing an on-chain lookup on a nested mapping where the index doesn't exist.
         // it doesn't necessary mean there's an eror, only that the value at the index hasn't been set yet.
@@ -51,12 +52,13 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const isAlreadyKnownError = alreadyKnownErrorRegex.test(errMsg)
         const isFeeTooLowError = feeTooLowErrorRegex.test(errMsg)
         const isCallLookupRevertError = isCallLookupRevertErrorRegex.test(errMsg)
+        const isValidatorContractError = validatorContractErrorRegex.test(errMsg)
 
         // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
         // so we want to exclude server connection errors from actual contract call revert errors.
         const isRevertError = revertErrorRegex.test(errMsg) && !isConnectionError && !isTimeoutError
 
-        const shouldNotRetryErrors = (isOversizedDataError || isBridgeContractError || isNonceTooLowErrorError || isEstimateGasFailedError || isAlreadyKnownError || isFeeTooLowError || isCallLookupRevertError)
+        const shouldNotRetryErrors = (isOversizedDataError || isBridgeContractError || isNonceTooLowErrorError || isEstimateGasFailedError || isAlreadyKnownError || isFeeTooLowError || isCallLookupRevertError || isValidatorContractError)
         const shouldRetry = (isRateLimitError || isTimeoutError || isConnectionError || isBadResponseError) && !isRevertError && !shouldNotRetryErrors
 
         logger.debug(`isRateLimitError: ${isRateLimitError}, isTimeoutError: ${isTimeoutError}, isConnectionError: ${isConnectionError}, isBadResponseError: ${isBadResponseError}, isRevertError: ${isRevertError}, shouldRetry: ${shouldRetry}`)

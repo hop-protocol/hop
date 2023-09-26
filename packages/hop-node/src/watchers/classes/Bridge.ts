@@ -9,7 +9,7 @@ import {
   Chain,
   GasCostTransactionType,
   HeadSyncKeySuffix,
-  SettlementGasLimitPerTx,
+  SettlementGasLimitPerTx
 } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
@@ -705,7 +705,7 @@ export default class Bridge extends ContractBase {
     } else if (isInitialSync) {
       end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync || isHeadSync) {
+    } else if (isSync ?? isHeadSync) {
       end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {

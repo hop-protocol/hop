@@ -278,7 +278,7 @@ class SyncWatcher extends BaseWatcher {
     let promisesPerPoll: EventPromise = []
     if (this.shouldSyncAllEvents()) {
       promisesPerPoll = this.getAllPromises()
-    } else  {
+    } else {
       const isHeadSync = this.shouldSyncHead
       promisesPerPoll = this.getTransferSentPromises(isHeadSync)
     }
@@ -564,12 +564,11 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('transferSentBlockNumber:', blockNumber)
       logger.debug('isFinalized:', isFinalized)
 
-
       if (!isBondable) {
         logger.warn('transfer is unbondable', amountOutMin, deadline)
       }
 
-      await this.db.transfers.update(transferId, {
+      const dbData: Transfer = {
         transferId,
         destinationChainId,
         sourceChainId,
@@ -584,7 +583,25 @@ class SyncWatcher extends BaseWatcher {
         transferSentBlockNumber: blockNumber,
         transferSentIndex,
         isFinalized
-      })
+      }
+
+      // When a transfer is finalized, reset its error states. It might have been marked
+      // as notFound previously if there was weird behavior onchain after this
+      // transfer was seen at the head. If this is the case, the transfer would not have been
+      // bonded before finality and will need to be bonded now.
+
+      // NOTE: There is a rare race condition where an unfinalized transfer may be processed before
+      // the finalized transfer is seen but sent and fail onchain validation after the finalized
+      // transfer has been recorded. In this case, the transferId will be marked as notFound and the
+      // transfer will never be bonded. If this occurs in practice, handle that case here.
+      if (isFinalized) {
+        dbData.isNotFound = undefined
+        dbData.withdrawalBondTxError = undefined
+        dbData.withdrawalBondBackoffIndex = undefined
+        logger.debug('finalized transfer seen, resetting unfinalized error states')
+      }
+
+      await this.db.transfers.update(transferId, dbData)
 
       // Experimental: compare data against WS cache and clear the memory
       if (this.wsCache[transferId]) {
@@ -1729,7 +1746,7 @@ class SyncWatcher extends BaseWatcher {
   // Experimental: Websocket support methods
 
   initWebsocket = (contract: Contract, filter: EventFilter, cb: Function) => {
-    contract.on(filter, async (...event: any) => cb(event[event.length - 1]) )
+    contract.on(filter, async (...event: any) => cb(event[event.length - 1]))
     contract.on('error', async (...event: any) => this.handleWsError(event))
   }
 
@@ -1739,13 +1756,13 @@ class SyncWatcher extends BaseWatcher {
     const bridgeContract = this.bridge.bridgeContract.connect(this.wsProvider) as L2BridgeContract
     const filter = bridgeContract.filters.TransferSent()
     this.initWebsocket(
-      bridgeContract, 
+      bridgeContract,
       filter,
       async (event: TransferSentEvent) => this.handleWsSuccess(event)
     )
   }
 
-  handleWsSuccess(event: TransferSentEvent) {
+  handleWsSuccess (event: TransferSentEvent) {
     const args = event.args
     this.wsCache[args.transferId] = {
       chainId: args.chainId,
@@ -1760,11 +1777,11 @@ class SyncWatcher extends BaseWatcher {
     this.logger.debug('handleWsSuccess: websocket event successfully logged', JSON.stringify(event))
   }
 
-  handleWsError(event: any) {
+  handleWsError (event: any) {
     this.logger.error('handleWsError: websocket error occurred', JSON.stringify(event))
   }
 
-  compareWsCache(event: TransferSentEvent) {
+  compareWsCache (event: TransferSentEvent) {
     const wsData = this.wsCache[event.args.transferId]
     if (JSON.stringify(wsData) === JSON.stringify(event.args)) {
       this.logger.error(`compareWsCache: websocket comparison to poller data failed for transferId ${event.args.transferId}. wsData: ${JSON.stringify(wsData)}, event: ${JSON.stringify(event)}`)

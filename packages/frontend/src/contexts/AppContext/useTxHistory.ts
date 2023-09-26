@@ -89,6 +89,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   const listenerSet = useRef(new Set())
 
   const listenForOriginConfirmation = async (tx) => {
+    console.dir(tx.hash, tx.provider)
     try {
       tx.provider.once(tx.hash, transaction => {
         updateTransaction(tx, { pending: false })
@@ -96,6 +97,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       })
     } catch (e) {
       console.error('Error with origin transaction listener:', e)
+      listenerSet.current.delete(tx.hash)
     }
   }
 
@@ -165,15 +167,18 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     transactions.forEach(tx => {
       if (!listenerSet.current.has(tx.hash)) {
         listenerSet.current.add(tx.hash)
+        console.log("not found in listener set:", tx.hash)
       } else {
+        console.log("found in listener set:", tx.hash)
         return
       }
 
-      if (tx.pendingDestinationConfirmation) {
-        listenForDestinationConfirmation(tx)
-      } else if (tx.pending) {
-        listenerSet.current.add(tx.hash)
+      if (tx.pending) {
+        console.log("pending originConfirmation", tx.hash)
         listenForOriginConfirmation(tx)
+      } else if (tx.pendingDestinationConfirmation) {
+        console.log("pending destinationConfirmation", tx.hash)
+        listenForDestinationConfirmation(tx)
       }
     })
 

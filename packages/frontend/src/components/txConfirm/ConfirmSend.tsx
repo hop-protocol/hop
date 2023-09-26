@@ -87,12 +87,13 @@ const ConfirmSend = (props: Props) => {
             </Typography>
           </Grid>
 
+
           <Grid item>
             <Typography variant="subtitle2" color="textSecondary">
               Estimated Wait
             </Typography>
             <Typography variant="subtitle2" color="textPrimary">
-              {(medianTimeEstimate !== null ? medianTimeEstimate : fixedTimeEstimate) + ' ' + pluralize('minute', medianTimeEstimate)}
+              {(medianTimeEstimate !== null && medianTimeEstimate > 0 ? medianTimeEstimate : fixedTimeEstimate) + ' ' + pluralize('minute', medianTimeEstimate)}
             </Typography>
           </Grid>
         </Grid>

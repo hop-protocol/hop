@@ -76,101 +76,111 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     }, [transactions]
   )
 
-  const debounce = async (func, lastCalled, delay = 15000) => {
-    const now = new Date().getTime()
-    if (now - lastCalled.value < delay) {
-      return
+  const debounce = (func, delay = 15000) => {
+    let inDebounce: ReturnType<typeof setTimeout>
+    return function(this: any, ...args: any[]) {
+      const context = this
+      clearTimeout(inDebounce)
+      inDebounce = setTimeout(() => func.apply(context, args), delay)
     }
-    lastCalled.value = now
-    return await func()
   }
 
+  // stores hashes for either pending origin or destination confirmation to prevent redundant listeners
   const listenerSet = useRef(new Set())
-  const intervalRefs = useRef({})
-  const stopPollingRefs = useRef({})
 
-  useEffect(() => {    
+  const listenForOriginConfirmation = async (tx) => {
+    try {
+      tx.provider.once(tx.hash, transaction => {
+        updateTransaction(tx, { pending: false })
+        listenForDestinationConfirmation(tx)
+      })
+    } catch (e) {
+      console.error('Error with origin transaction listener:', e)
+    }
+  }
+
+  // stores setInterval IDs -- may be cleared to stop polling
+  const intervalRefs = useRef({})
+  // stores setTimeouts to limit polling to one hour
+  const pollingRefs = useRef({})
+  // use a different debounced fetch for each transaction
+  const fetchRef = useRef({})
+
+  const getBondedTxHash = (tx) => {
+    return new Promise((resolve, reject) => {
+      const explorerAPIUrl = `https://${process.env.REACT_APP_NETWORK === 'goerli' && "goerli-"}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
+
+      if (!fetchRef.current[tx.hash]) {
+        fetchRef.current[tx.hash] = debounce(() => fetch(explorerAPIUrl), 15000)
+      }
+
+      if (!pollingRefs.current[tx.hash]) {
+        pollingRefs.current[tx.hash] = setTimeout(() => {
+          clearInterval(intervalRefs.current[tx.hash])
+          updateTransaction(tx, { pendingDestinationConfirmation: false })
+          reject(new Error('Polling timed out'))
+        }, 3600000)
+      }
+
+      const interval = setInterval(async () => {
+        const response = await fetchRef.current[tx.hash](explorerAPIUrl)
+        if (response) {
+          const data = await response.json()
+          const bondTransactionHash = data[0]?.bondTransactionHash
+          if (bondTransactionHash) {
+            clearTimeout(pollingRefs.current[tx.hash])
+            clearInterval(intervalRefs.current[tx.hash])
+            resolve(bondTransactionHash)
+          }
+        }
+      }, 15000)
+
+      intervalRefs.current[tx.hash] = interval
+    })
+  }
+
+  const listenForDestinationConfirmation = async (tx) => {
+    const bondTransactionHash = await getBondedTxHash(tx)
+
+    if (!bondTransactionHash) {
+      return
+    }
+
+    try {
+      tx.destProvider.once(tx.hash, transaction => {
+        updateTransaction(tx, { pendingDestinationConfirmation: false })
+        // updateTransaction(tx, { destTxHash: bondTransactionHash })
+      })
+    } catch (e) {
+      console.error('Error with destination transaction listener:', e)
+      listenerSet.current.delete(tx.hash)
+    }
+  }
+
+  useEffect(() => {
     if (!transactions) {
       return
     }
 
-    const listenForOriginConfirmation = async (tx) => {
-      try {
-        tx.provider.once(tx.hash, transaction => {
-          updateTransaction(tx, { pending: false })
-          listenForDestinationConfirmation(tx)
-        })
-      } catch (e) {
-        console.error('Error transaction listener:', e)
-      }
-    }
-
-    const listenForDestinationConfirmation = async (tx) => {
+    transactions.forEach(tx => {
       if (!listenerSet.current.has(tx.hash)) {
         listenerSet.current.add(tx.hash)
+      } else {
+        return
       }
 
-      let retryCounter = 0 // initialize retry counter
-      
-      // stop polling after an hour
-      if (!stopPollingRefs.current[tx.hash]) {
-        stopPollingRefs.current[tx.hash] = setTimeout(() => {
-          clearInterval(intervalRefs.current[tx.hash])
-        }, 3600000)
-      }
-
-      // debouncer interval reset
-      const lastCalledForTx = { value: 0 }
-      const interval = setInterval(async () => {
-        const explorerAPIUrl = `https://${process.env.REACT_APP_NETWORK === 'goerli' && "goerli-"}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
-        const response = await debounce((lastCalled) => fetch(explorerAPIUrl), lastCalledForTx) // only call API every 15 seconds
-
-        if (response) {
-          const data = await response.json()
-          const bondTransactionHash = data[0]?.bondTransactionHash
-
-          if (bondTransactionHash) {
-            clearTimeout(stopPollingRefs.current[tx.hash])
-            clearInterval(interval)
-
-            try {
-              tx.destProvider.once(tx.hash, transaction => {
-                updateTransaction(tx, { destTxHash: bondTransactionHash })
-                updateTransaction(tx, { pendingDestinationConfirmation: false })
-              })
-            } catch (e) {
-              console.error('Error with transaction listener:', e)
-              listenerSet.current.delete(tx.hash)
-            }
-          }
-        } else {
-          retryCounter++
-          if (retryCounter >= 3) {
-            console.error('Max retries reached for:', tx.hash)
-            listenerSet.current.delete(tx.hash)
-            clearInterval(interval)
-            updateTransaction(tx, { pendingDestinationConfirmation: false })
-          }
-        }
-      }, 15000) // poll every 15 seconds
-
-      intervalRefs.current[tx.hash] = interval
-    }
-
-    // main function scanning through each transaction in localStorage
-    transactions.forEach(tx => {
-      if (tx.pending && !listenerSet.current.has(tx.hash)) {
+      if (tx.pendingDestinationConfirmation) {
+        listenForDestinationConfirmation(tx)
+      } else if (tx.pending) {
         listenerSet.current.add(tx.hash)
         listenForOriginConfirmation(tx)
-      } else if (tx.pendingDestinationConfirmation && !listenerSet.current.has(tx.hash)) {
-        listenForDestinationConfirmation(tx)
       }
     })
 
     return () => {
       listenerSet.current = new Set()
-      Object.values(stopPollingRefs.current).forEach(clearTimeout)
-      Object.values(intervalRefs.current).forEach(clearInterval)
+      Object.values(pollingRefs.current).forEach(value => clearTimeout(value as ReturnType<typeof setTimeout>))
+      Object.values(intervalRefs.current).forEach(value => clearInterval(value as ReturnType<typeof setInterval>))
     }
   }, [transactions])
 

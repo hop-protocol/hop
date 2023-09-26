@@ -57,9 +57,20 @@ function TxStatusModal(props: Props) {
           {(tx && tx.token && medianTimeEstimate) ? (
             <Box margin="0 auto" maxWidth="32rem" paddingLeft={3} paddingRight={3}>
               <Typography variant="body2" color="textSecondary">
-                Your {tx.token._symbol ? tx.token._symbol : "transfer"} will arrive {tx.destNetworkName ? `on ${networkSlugToName(tx.destNetworkName)}` : "at the destination"} <strong>~{medianTimeEstimate !== null ? (medianTimeEstimate + " " + `${pluralize('minute', medianTimeEstimate)}`) : (fixedTimeEstimate + " " + pluralize('minute', fixedTimeEstimate))}</strong>{' '}
-                after the transaction is confirmed.{' '}
-                { percentileTimeEstimate !== null && (
+                Your {tx.token._symbol ? tx.token._symbol : "transfer"}{' '}
+                will arrive{' '}
+                {
+                  tx.destNetworkName
+                  ? `on ${networkSlugToName(tx.destNetworkName)}` 
+                  : "at the destination"
+                }
+                <strong>{' '}~
+                  {(medianTimeEstimate !== null && medianTimeEstimate > 0) 
+                  ? (medianTimeEstimate + " " + `${pluralize('minute', medianTimeEstimate)}`) 
+                  : (fixedTimeEstimate + " " + pluralize('minute', fixedTimeEstimate))}
+                </strong>{' '}
+                after the transaction is confirmed.
+                { percentileTimeEstimate !== null && percentileTimeEstimate > 0 && (
                   <>
                     <br />
                     <br />

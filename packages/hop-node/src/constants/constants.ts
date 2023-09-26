@@ -160,3 +160,15 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.Nova]: FinalityTag.Safe,
   [Chain.PolygonZk]: FinalityTag.Safe
 }
+
+// Poll certain chains at a slower cadence if they are not widely used
+export const ChainPollMultiplier: Record<string, number> = {
+  [Chain.Ethereum]: 1,
+  [Chain.Gnosis]: 2,
+  [Chain.Polygon]: 2,
+  [Chain.Optimism]: 1,
+  [Chain.Arbitrum]: 1,
+  [Chain.Base]: 1,
+  [Chain.Nova]: 2,
+  [Chain.PolygonZk]: 1
+}

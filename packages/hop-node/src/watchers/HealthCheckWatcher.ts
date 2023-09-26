@@ -230,6 +230,7 @@ export class HealthCheckWatcher {
     [NativeChainToken.XDAI]: parseEther('10'),
     [NativeChainToken.MATIC]: parseEther('10')
   }
+  cacheTimestamps: Record<string, any> = {}
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
     USDC: parseUnits('2951000', 6),
@@ -777,14 +778,25 @@ export class HealthCheckWatcher {
 
   private async getIncompleteSettlements (): Promise<IncompleteSettlement[]> {
     this.logger.debug('fetching incomplete settlements')
-    const timestamp = DateTime.now().toUTC().toSeconds()
+    // This makes a ton of RPC calls. Cache the data for a few hours since
+    // incomplete settlements are not super time sensitive.
+    const incompleteSettlementsCacheTimeSeconds = 6 * 60 * 60
+    const now = DateTime.now().toUTC().toSeconds()
+    const cacheKey = 'incompleteSettlements'
+    const isFirstCache = !this.cacheTimestamps[cacheKey]
+    const isCacheExpired = now - this.cacheTimestamps[cacheKey] > incompleteSettlementsCacheTimeSeconds
+    if (!isFirstCache || !isCacheExpired) {
+      return []
+    }
+    this.cacheTimestamps[cacheKey] = now
+
     const incompleteSettlementsWatcher = new IncompleteSettlementsWatcher({
       days: this.days,
       offsetDays: this.offsetDays,
       format: 'json'
     })
     let result = await incompleteSettlementsWatcher.getDiffResults()
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlementsMinTimeToWaitHours * 60 * 60)))
+    result = result.filter((x: any) => now > (Number(x.timestamp) + (this.incompleteSettlementsMinTimeToWaitHours * 60 * 60)))
     result = result.filter((x: any) => x.diffFormatted > 0.01)
     this.logger.debug('done fetching incomplete settlements')
     result = result.map((item: any) => {

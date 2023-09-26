@@ -1,5 +1,6 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -460,6 +461,8 @@ export async function _fetchTransfers (chain: Chain, startTime: number, endTime:
         transactionHash
         timestamp
         token
+        relayer
+        logIndex
       }
     }
   `

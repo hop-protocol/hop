@@ -1,6 +1,6 @@
 import { useEffect, useCallback, Dispatch, SetStateAction, useRef } from 'react'
 import { useQuery } from 'react-query'
-import { useLocalStorage } from 'usehooks-ts'
+import { useLocalStorage } from 'react-use'
 import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
 import { filterByHash, sortByRecentTimestamp } from 'src/utils'
@@ -24,11 +24,24 @@ export interface UpdateTransactionOptions {
 
 const cacheKey = 'recentTransactions:v000'
 
-const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
+const localStorageSerializationOptions = {
+  raw: false,
+  serializer: (value: Transaction[] | undefined) => {
+    if (!value) return '' // Handle undefined if needed
+    return JSON.stringify(value.map(tx => tx.toObject()))
+  },
+  deserializer: (value: string) => {
+    if (!value) return undefined // Handle empty string if needed
+    return JSON.parse(value).map((obj: any) => Transaction.fromObject(obj)) as Transaction[]
+  },
+}
 
+
+const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   const [transactions, setTransactions] = useLocalStorage<Transaction[] | undefined>(
     cacheKey,
-    defaultTxs
+    defaultTxs,
+    localStorageSerializationOptions
   )
 
   function clear() {
@@ -64,16 +77,12 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
   const updateTransaction = useCallback(
     (tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) => {
-      const newTransactions = [...(transactions ?? [])] // Create a new array
-      const txIndex = newTransactions.findIndex(t => t.hash === (matchingHash || tx.hash))
-      if (txIndex === -1) return // No transaction found to update
-      
-      // Create a new transaction object instead of mutating
-      const newTx = { ...newTransactions[txIndex], ...updateOpts }
-      newTransactions[txIndex] = newTx as Transaction
-      
-      setTransactions(newTransactions)
-    }, [transactions]
+      for (const key in updateOpts) {
+        tx[key] = updateOpts[key]
+      }
+      filterSortAndSetTransactions(tx, transactions, matchingHash || tx.hash)
+    },
+    [transactions]
   )
 
   const debounce = (func, delay = 15000) => {
@@ -97,7 +106,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       })
     } catch (e) {
       console.error('Error with origin transaction listener:', e)
-      listenerSet.current.delete(tx.hash)
+      // listenerSet.current.delete(tx.hash)
     }
   }
 
@@ -126,7 +135,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       }
 
       const interval = setInterval(async () => {
-        const response = await fetchRef.current[tx.hash](explorerAPIUrl)
+        const response = await fetchRef.current[tx.hash].call(null)
         if (response) {
           const data = await response.json()
           const bondTransactionHash = data[0]?.bondTransactionHash
@@ -186,7 +195,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     })
 
     return () => {
-      listenerSet.current = new Set()
+      // listenerSet.current = new Set()
       Object.values(pollingRefs.current).forEach(value => clearTimeout(value as ReturnType<typeof setTimeout>))
       Object.values(intervalRefs.current).forEach(value => clearInterval(value as ReturnType<typeof setInterval>))
       fetchRef.current = {}

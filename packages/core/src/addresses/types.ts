@@ -61,10 +61,16 @@ export interface OptimismSuperchainCanonicalAddresses {
   batchInboxAddress: string
 }
 
+export interface ArbitrumSuperchainCanonicalAddresses {
+  sequencerInboxAddress: string
+}
+
 export type CanonicalAddresses = {
   gnosis: GnosisCanonicalAddresses
   optimism: OptimismSuperchainCanonicalAddresses
   base: OptimismSuperchainCanonicalAddresses
+  arbitrum: ArbitrumSuperchainCanonicalAddresses
+  nova: ArbitrumSuperchainCanonicalAddresses
 }
 
 export type Routes = Partial<{

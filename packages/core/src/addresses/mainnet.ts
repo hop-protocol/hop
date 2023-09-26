@@ -13,6 +13,12 @@ export const addresses: Addresses = {
     base: {
       batcherAddress: '0x5050F69a9786F081509234F1a7F4684b5E5b76C9',
       batchInboxAddress: '0xFf00000000000000000000000000000000008453'
+    },
+    arbitrum: {
+      sequencerInboxAddress: '0x1c479675ad559DC151F6Ec7ed3FbF8ceE79582B6'
+    },
+    nova: {
+      sequencerInboxAddress: '0x211E1c4c7f1bF5351Ac850Ed10FD68CFfCF6c21b'
     }
   },
   bonders: {

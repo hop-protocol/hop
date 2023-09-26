@@ -705,7 +705,7 @@ export default class Bridge extends ContractBase {
     } else if (isInitialSync) {
       end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync ?? isHeadSync) {
+    } else if (isSync || isHeadSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
       end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {

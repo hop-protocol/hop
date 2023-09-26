@@ -120,6 +120,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
         pollingRefs.current[tx.hash] = setTimeout(() => {
           clearInterval(intervalRefs.current[tx.hash])
           updateTransaction(tx, { pendingDestinationConfirmation: false })
+          delete fetchRef.current[tx.hash]
           reject(new Error('Polling timed out'))
         }, 3600000)
       }
@@ -132,6 +133,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
           if (bondTransactionHash) {
             clearTimeout(pollingRefs.current[tx.hash])
             clearInterval(intervalRefs.current[tx.hash])
+            delete fetchRef.current[tx.hash]
             resolve(bondTransactionHash)
           }
         }
@@ -186,6 +188,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       listenerSet.current = new Set()
       Object.values(pollingRefs.current).forEach(value => clearTimeout(value as ReturnType<typeof setTimeout>))
       Object.values(intervalRefs.current).forEach(value => clearInterval(value as ReturnType<typeof setInterval>))
+      fetchRef.current = {}
     }
   }, [transactions])
 

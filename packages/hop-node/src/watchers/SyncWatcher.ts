@@ -437,18 +437,19 @@ class SyncWatcher extends BaseWatcher {
 
   getTransferSentPromises (): EventPromise {
     // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
-    if (this.isL1) {
-      if (this.isRelayableChainEnabled) {
-        return [this.getTransferSentToL2EventPromise()]
-      }
-    } else {
+    if (this.isL1 && this.isRelayableChainEnabled) {
+      return [this.getTransferSentToL2EventPromise()]
+    } 
+    
+    if (!this.isL1) {
       // Always sync the finalized transfers. Also sync head if enabled.
-      let promises: EventPromise = [this.getTransferSentEventPromise(false)]
+      const promises: EventPromise = [this.getTransferSentEventPromise(false)]
       if (this.shouldSyncHead) {
         promises.push(this.getTransferSentEventPromise(true))
       }
       return promises
     }
+
     return []
   }
 

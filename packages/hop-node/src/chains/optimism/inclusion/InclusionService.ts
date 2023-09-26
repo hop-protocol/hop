@@ -6,6 +6,8 @@ import { Contract, Signer, providers } from 'ethers'
 import { InclusionServiceConfig } from './IInclusionService'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
+import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
+import { getCanonicalAddressesForChain } from 'src/config'
 
 interface Channel {
   transactionHashes: string[]
@@ -37,10 +39,17 @@ abstract class InclusionService {
       color: 'blue'
     })
 
-    this.l1BlockSetterAddress = config.l1BlockSetterAddress
-    this.l1BlockAddress = config.l1BlockAddress
-    this.batcherAddress = config.batcherAddress
-    this.batchInboxAddress = config.batchInboxAddress
+    // System addresses and precompiles
+    this.l1BlockSetterAddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0001'
+    this.l1BlockAddress = '0x4200000000000000000000000000000000000015'
+
+    // Addresses from config
+    const optimismSuperchainCanonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
+    this.batcherAddress = optimismSuperchainCanonicalAddresses.batcherAddress
+    this.batchInboxAddress = optimismSuperchainCanonicalAddresses.batchInboxAddress
+    if (!this.batcherAddress || !this.batchInboxAddress) {
+      throw new Error(`canonical addresses not found for ${this.chainSlug}`)
+    }
 
     const l1BlockAbi: string[] = [
       'function number() view returns (uint64)',

@@ -5,17 +5,10 @@ import { Contract, providers } from 'ethers'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainBridge } from '../IChainBridge'
 import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
-import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
-import { getCanonicalAddressesForChain, config as globalConfig } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 class OptimismBridge extends AbstractBridge implements IChainBridge {
   csm: CrossChainMessenger
-  l1BlockAbi: string[]
-  l1BlockContract: Contract
-  batcherAddress: string
-  batchInboxAddress: string
-  l1BlockSetterAddress: string
-  l1BlockAddress: string
   derive: Derive = new Derive()
   inclusionService: IInclusionService
 
@@ -30,34 +23,11 @@ class OptimismBridge extends AbstractBridge implements IChainBridge {
       l2SignerOrProvider: this.l2Wallet
     })
 
-    // System addresses and precompiles
-    this.l1BlockSetterAddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0001'
-    this.l1BlockAddress = '0x4200000000000000000000000000000000000015'
-
-    // Addresses from config
-    const optimismSuperchainCanonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    this.batcherAddress = optimismSuperchainCanonicalAddresses.batcherAddress
-    this.batchInboxAddress = optimismSuperchainCanonicalAddresses.batchInboxAddress
-    if (!this.batcherAddress || !this.batchInboxAddress) {
-      throw new Error(`canonical addresses not found for ${this.chainSlug}`)
-    }
-
-    this.l1BlockAbi = [
-      'function number() view returns (uint64)',
-      'function sequenceNumber() view returns (uint64)',
-      'function timestamp() view returns (uint64)'
-    ]
-    this.l1BlockContract = new Contract(this.l1BlockAddress, this.l1BlockAbi, this.l2Wallet)
-
     const inclusionServiceConfig: InclusionServiceConfig = {
       chainSlug: this.chainSlug,
       l1Wallet: this.l1Wallet,
       l2Wallet: this.l2Wallet,
-      logger: this.logger,
-      batcherAddress: this.batcherAddress,
-      batchInboxAddress: this.batchInboxAddress,
-      l1BlockSetterAddress: this.l1BlockSetterAddress,
-      l1BlockAddress: this.l1BlockAddress
+      logger: this.logger
     }
     this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
   }

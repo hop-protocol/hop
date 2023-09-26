@@ -6,10 +6,6 @@ export interface InclusionServiceConfig {
   l1Wallet: Signer
   l2Wallet: Signer
   logger: Logger
-  batcherAddress: string
-  batchInboxAddress: string
-  l1BlockSetterAddress: string
-  l1BlockAddress: string
 }
 
 export interface IInclusionService {

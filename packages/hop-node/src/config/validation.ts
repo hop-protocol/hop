@@ -331,10 +331,6 @@ export async function validateConfigValues (config?: Config) {
       console.log(chain)
       throw new Error(`hasFinalizationBlockTag for chain "${chainSlug}" is required`)
     }
-    if (subgraphUrl == null) {
-      console.log(chain)
-      throw new Error(`subgraphUrl for chain "${chainSlug}" is required`)
-    }
     if (maxGasPrice != null) {
       if (typeof maxGasPrice !== 'number') {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be a number`)

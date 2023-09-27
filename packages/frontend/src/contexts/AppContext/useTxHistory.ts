@@ -40,14 +40,8 @@ const localStorageSerializationOptions = {
 const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   const [transactions, setTransactions] = useState<Transaction[] | undefined>(defaultTxs)
 
-  // const [transactions, setTransactions] = useLocalStorage<Transaction[] | undefined>(
-  //   cacheKey,
-  //   defaultTxs,
-  //   localStorageSerializationOptions
-  // )
-
   useEffect(() => {
-    // On mount, load from local storage
+    // on mount, load from local storage
     const storedTxs = localStorage.getItem(cacheKey)
     if (storedTxs) {
       setTransactions(localStorageSerializationOptions.deserializer(storedTxs))
@@ -55,7 +49,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   }, [])
 
   useEffect(() => {
-    // On transactions change, save to local storage
+    // on transactions change, save to local storage
     if (transactions) {
       localStorage.setItem(cacheKey, localStorageSerializationOptions.serializer(transactions))
     }
@@ -90,18 +84,11 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     })
   }
 
-  // function updateTransaction(tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) {
-  //   const updatedTx = { ...tx, ...updateOpts }
-  //   filterSortAndSetTransactions(tx, transactions, matchingHash || tx.hash)
-  // }
-
   function updateTransaction(tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) {
     setTransactions(prevTransactions => {
-      console.log("trying to update")
       if (!prevTransactions) return []
       
-      // Deep clone to avoid mutating state directly.
-      // const clonedTxs = JSON.parse(JSON.stringify(prevTransactions))
+      // deep clone to avoid mutating state directly
       const customizer = (value) => {
         if (_.isFunction(value)) {
           return value
@@ -109,9 +96,6 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       }
 
       const clonedTxs = _.cloneDeepWith(prevTransactions, customizer)
-
-      console.dir({ clonedTxs })
-      
       const targetTx = find(clonedTxs, ['hash', matchingHash || tx.hash])
 
       if (targetTx) {
@@ -119,8 +103,6 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
           targetTx[key] = updateOpts[key]
         }
       }
-
-      console.dir({ targetTx })
       
       return sortByRecentTimestamp(clonedTxs).slice(0, 4)
     })
@@ -130,11 +112,10 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   const listenerSet = useRef(new Set())
 
   const listenForOriginConfirmation = async (tx) => {
-    console.log("pending originConfirmation", tx.hash)
     try {
       tx.provider.once(tx.hash, transaction => {
+        listenerSet.current.delete(tx.hash)
         updateTransaction(tx, { pending: false })
-        listenForDestinationConfirmation(tx)
       })
     } catch (e) {
       console.error('Error with origin transaction listener:', e)
@@ -155,8 +136,6 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       const network = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_NETWORK) ? process.env.REACT_APP_NETWORK : 'goerli'
       const explorerAPIUrl = `https://${network === 'goerli' && 'goerli-'}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
 
-      console.log("explorerAPIUrl", explorerAPIUrl)
-
       if (!timeoutRefs.current[tx.hash]) {
         timeoutRefs.current[tx.hash] = setTimeout(() => {
           clearInterval(intervalRefs.current[tx.hash])
@@ -167,23 +146,16 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
       const fetchAPI = async () => {
         try {
-          console.log("fetching from", explorerAPIUrl, "for", tx.hash)
-          console.dir({ intervalRefs, timeoutRefs })
-
           const response = await fetch(explorerAPIUrl)
           if (!response.ok) throw new Error('API request failed')
 
           const responseJSON = await response.json()
-
-          console.dir(tx.hash, responseJSON)
           if (!responseJSON.data || !responseJSON.data[0]) {
-            console.log("bond hash not yet available for", tx.hash)
             return
           }
 
           const bondTransactionHash = responseJSON.data[0].bondTransactionHash
           if (bondTransactionHash) {
-            console.log("found bondTransactionHash", bondTransactionHash, "resolving...")
             clearInterval(intervalRefs.current[tx.hash])
             clearTimeout(timeoutRefs.current[tx.hash])
             resolve(bondTransactionHash)
@@ -194,32 +166,21 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       }
 
       const interval = setInterval(fetchAPI, POLLING_INTERVAL)
-      console.log(intervalRefs.current)
       intervalRefs.current[tx.hash] = interval
-      console.log(intervalRefs.current)
     })
   }
 
   const listenForDestinationConfirmation = async (tx) => {
-    console.log("pending destinationConfirmation", tx.hash)
-
     const bondTransactionHash = await getBondedTxHash(tx)
-
-    console.log("got hash", bondTransactionHash, "for", tx.hash)
 
     if (!bondTransactionHash) {
       listenerSet.current.delete(tx.hash)
-      console.log("deleting listener for", tx.hash)
       return
     }
 
-    console.log({ transactions })
-
     try {
       tx.destProvider.once(bondTransactionHash, transaction => {
-        // console.dir("updating tx", tx)
         updateTransaction(tx, { pendingDestinationConfirmation: false })
-        console.log("updated destination pending for", tx.hash)
       })
     } catch (e) {
       console.error('Error with destination transaction listener:', e)
@@ -239,14 +200,9 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
         return
       }
 
-      // updateTransaction(tx, { pendingDestinationConfirmation: true })
-      // console.log({ transactions })
-      console.log("hook called")
-
       if (tx.pending) {
         listenForOriginConfirmation(tx)
       } else if (tx.pendingDestinationConfirmation) {
-        console.log("getting dest")
         listenForDestinationConfirmation(tx)
       }
     })
@@ -256,19 +212,6 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       Object.values(intervalRefs.current).forEach(value => clearInterval(value as ReturnType<typeof setInterval>))
     }
   }, [transactions])
-
-  // useEffect(() => {
-  //   function clearAllTimeoutsAndIntervals() {
-  //     Object.values(timeoutRefs.current).forEach(id => clearTimeout(id))
-  //     Object.values(intervalRefs.current).forEach(id => clearInterval(id))
-
-  //     // Reset references
-  //     timeoutRefs.current = {}
-  //     intervalRefs.current = {}
-  //   }
-
-  //   clearAllTimeoutsAndIntervals()
-  // }, [])
 
   return {
     transactions,

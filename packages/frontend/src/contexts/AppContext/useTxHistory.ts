@@ -118,7 +118,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
       if (!pollingRefs.current[tx.hash]) {
         pollingRefs.current[tx.hash] = setTimeout(() => {
-          clearInterval(intervalRefs.current[tx.hash])
+          clearTimeout(intervalRefs.current[tx.hash])
           updateTransaction(tx, { pendingDestinationConfirmation: false })
           reject(new Error('Polling timed out'))
         }, POLLING_TIMEOUT)
@@ -126,19 +126,24 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
       const fetchAPI = async () => {
         try {
-          console.log("fetching")
+          console.log("fetching from", explorerAPIUrl, "for", tx.hash)
+          console.dir({ intervalRefs, pollingRefs })
+          
           const response = await fetch(explorerAPIUrl)
           if (!response.ok) throw new Error('API request failed')
 
           const responseJSON = await response.json()
+
+          console.dir(tx.hash, responseJSON)
           if (!responseJSON.data || !responseJSON.data[0]) {
+            console.log("breaking for", tx.hash)
             return
           }
 
           const bondTransactionHash = responseJSON.data[0].bondTransactionHash
           if (bondTransactionHash) {
+            clearTimeout(intervalRefs.current[tx.hash])
             clearTimeout(pollingRefs.current[tx.hash])
-            clearInterval(intervalRefs.current[tx.hash])
             resolve(bondTransactionHash)
           }
         } catch (e) {
@@ -164,7 +169,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
     if (!bondTransactionHash) {
       listenerSet.current.delete(tx.hash)
-      console.log("deleting listener")
+      console.log("deleting listener for", tx.hash)
       return
     }
 
@@ -200,7 +205,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
     return () => {
       Object.values(pollingRefs.current).forEach(value => clearTimeout(value as ReturnType<typeof setTimeout>))
-      Object.values(intervalRefs.current).forEach(value => clearInterval(value as ReturnType<typeof setInterval>))
+      Object.values(intervalRefs.current).forEach(value => clearTimeout(value as ReturnType<typeof setTimeout>))
     }
   }, [transactions])
 

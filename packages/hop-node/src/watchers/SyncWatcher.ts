@@ -606,7 +606,7 @@ class SyncWatcher extends BaseWatcher {
       // Experimental: compare data against WS cache and clear the memory
       if (this.wsCache[transferId]) {
         this.compareWsCache(event)
-        this.wsCache[event.args.transferId] = undefined
+delete this.wsCache[event.args.transferId] 
       }
 
       logger.debug('handleTransferSentEvent: stored transfer item')

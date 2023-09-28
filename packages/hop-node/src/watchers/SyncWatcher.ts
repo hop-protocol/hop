@@ -1745,12 +1745,12 @@ delete this.wsCache[event.args.transferId]
 
   // Experimental: Websocket support methods
 
-  initWebsocket = (contract: Contract, filter: EventFilter, cb: Function) => {
+  initWebsocket (contract: Contract, filter: EventFilter, cb: Function): void {
     contract.on(filter, async (...event: any) => cb(event[event.length - 1]))
     contract.on('error', async (...event: any) => this.handleWsError(event))
   }
 
-  initEventWebsockets () {
+  initEventWebsockets (): void {
     if (this.isL1) return
 
     const bridgeContract = this.bridge.bridgeContract.connect(this.wsProvider) as L2BridgeContract
@@ -1762,7 +1762,7 @@ delete this.wsCache[event.args.transferId]
     )
   }
 
-  handleWsSuccess (event: TransferSentEvent) {
+  handleWsSuccess (event: TransferSentEvent): void {
     const args = event.args
     this.wsCache[args.transferId] = {
       chainId: args.chainId,
@@ -1777,11 +1777,11 @@ delete this.wsCache[event.args.transferId]
     this.logger.debug('handleWsSuccess: websocket event successfully logged', JSON.stringify(event))
   }
 
-  handleWsError (event: any) {
+  handleWsError (event: any): void {
     this.logger.error('handleWsError: websocket error occurred', JSON.stringify(event))
   }
 
-  compareWsCache (event: TransferSentEvent) {
+  compareWsCache (event: TransferSentEvent): void {
     const wsData = this.wsCache[event.args.transferId]
     if (JSON.stringify(wsData) === JSON.stringify(event.args)) {
       this.logger.error(`compareWsCache: websocket comparison to poller data failed for transferId ${event.args.transferId}. wsData: ${JSON.stringify(wsData)}, event: ${JSON.stringify(event)}`)

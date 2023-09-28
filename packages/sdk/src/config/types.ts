@@ -6,6 +6,7 @@ interface Chain {
   explorerUrl: string
   waitConfirmations: number
   hasFinalizationBlockTag: boolean
+  subgraphUrl: string
 }
 
 export interface Chains {

@@ -66,7 +66,7 @@ providers.StaticJsonRpcProvider.constructor
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -94,7 +94,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`BigNumber`\>
+▸ (`...args`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -122,7 +122,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -146,7 +146,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`BigNumber`\>
+▸ (`...args`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -174,7 +174,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`Block`\>
+▸ (`...args`): `Promise`<`Block`\>
 
 ##### Parameters
 
@@ -202,7 +202,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`number`\>
+▸ (`...args`): `Promise`<`number`\>
 
 ##### Parameters
 
@@ -230,7 +230,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`BlockWithTransactions`\>
+▸ (`...args`): `Promise`<`BlockWithTransactions`\>
 
 ##### Parameters
 
@@ -258,7 +258,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -286,7 +286,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`BigNumber`\>
+▸ (`...args`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -314,7 +314,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`Log`[]\>
+▸ (`...args`): `Promise`<`Log`[]\>
 
 ##### Parameters
 
@@ -342,7 +342,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`Network`\>
+▸ (`...args`): `Promise`<`Network`\>
 
 ##### Parameters
 
@@ -370,7 +370,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -398,7 +398,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`TransactionResponse`\>
+▸ (`...args`): `Promise`<`TransactionResponse`\>
 
 ##### Parameters
 
@@ -426,7 +426,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`number`\>
+▸ (`...args`): `Promise`<`number`\>
 
 ##### Parameters
 
@@ -454,7 +454,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`TransactionReceipt`\>
+▸ (`...args`): `Promise`<`TransactionReceipt`\>
 
 ##### Parameters
 
@@ -482,7 +482,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -510,7 +510,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`string`\>
+▸ (`...args`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -538,7 +538,7 @@ ___
 
 #### Type declaration
 
-▸ (...`args`): `Promise`<`TransactionResponse`\>
+▸ (`...args`): `Promise`<`TransactionResponse`\>
 
 ##### Parameters
 

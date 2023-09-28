@@ -61,7 +61,7 @@ const Send: FC = () => {
     settings,
   } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { connectedNetworkId, checkConnectedNetworkId, address } = useWeb3Context()
+  const { checkConnectedNetworkId, address, connectedNetworkId } = useWeb3Context()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
@@ -495,7 +495,7 @@ const Send: FC = () => {
     const networkId = Number(fromNetwork.networkId)
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
     if (!isNetworkConnected) {
-      throw new Error('wrong network connected')
+      throw new Error(`wrong network connected on wallet. Expected chainId "${networkId}", got "${connectedNetworkId}"`)
     }
 
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
@@ -681,14 +681,23 @@ const Send: FC = () => {
         setManualWarning(
           'Warning: make sure Gnosis Safe exists at the destination chain otherwise it may result in lost funds.'
         )
+      } else if (isSmartContractWallet && address?.eq(customRecipient)) {
+        setManualWarning(
+          'Warning: make sure smart contract wallet exists at the destination chain otherwise it may result in lost funds.'
+        )
+      } else {
+        setManualWarning(
+          'Warning: Transfers to exchanges that do not support internal transactions may result in lost funds. If the recipient is not an exchange address, then you can ignore this warning.'
+        )
       }
-      setManualWarning(
-        'Warning: Transfers to exchanges that do not support internal transactions may result in lost funds. If the recipient is not an exchange address, then you can ignore this warning.'
-      )
+    } else if (isSmartContractWallet && !customRecipient) {
+        setManualWarning(
+          'The connected wallet is a smart contract wallet. Please set the recipient address above. Make sure the recipient can receive funds at the destination chain.'
+        )
     } else {
       setManualWarning('')
     }
-  }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
+  }, [gnosisEnabled, isSmartContractWallet, fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   useEffect(() => {
     // comment this out when warning not needed anymore
@@ -723,7 +732,7 @@ const Send: FC = () => {
       estimatedReceived?.gt(0) &&
       !manualError &&
       (!disabledTx || disabledTx?.warningOnly) &&
-      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet) &&
+      (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused
     )
   }, [

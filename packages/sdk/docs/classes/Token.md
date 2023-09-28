@@ -1,10 +1,7 @@
 # Class: Token
 
 Class reprensenting ERC20 Token
-
-**`Namespace`**
-
-Token
+ Token
 
 ## Hierarchy
 
@@ -158,10 +155,6 @@ Token
 
 • **new Token**(`networkOrOptionsObject`, `chain?`, `address?`, `decimals?`, `symbol?`, `name?`, `image?`, `signer?`, `chainProviders?`)
 
-**`Desc`**
-
-Instantiates Token class.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -175,6 +168,10 @@ Instantiates Token class.
 | `image?` | `string` | - |
 | `signer?` | `Provider` \| `Signer` | Ethers signer. |
 | `chainProviders?` | `ChainProviders` | - |
+
+**`Desc`**
+
+Instantiates Token class.
 
 #### Overrides
 
@@ -585,6 +582,19 @@ ___
 
 ▸ **allowance**(`spender`, `address?`): `Promise`<`BigNumber`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `spender` | `string` | spender address. |
+| `address?` | `string` | - |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Ethers Transaction object.
+
 **`Desc`**
 
 Returns token allowance.
@@ -603,24 +613,24 @@ const allowance = await token.allowance(spender, account)
 console.log(allowance)
 ```
 
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `spender` | `string` | spender address. |
-| `address?` | `string` | - |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Ethers Transaction object.
-
 ___
 
 ### <a id="approve" name="approve"></a> approve
 
 ▸ **approve**(`spender`, `amount?`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type | Default value | Description |
+| :------ | :------ | :------ | :------ |
+| `spender` | `string` | `undefined` | spender address. |
+| `amount` | `BigNumberish` | `ethers.constants.MaxUint256` | amount allowed to spend. |
+
+#### Returns
+
+`Promise`<`any`\>
+
+Ethers Transaction object.
 
 **`Desc`**
 
@@ -637,24 +647,23 @@ const amount = '1000000000000000000'
 const tx = await bridge.approve(Chain.Gnosis, spender, amount)
 ```
 
-#### Parameters
-
-| Name | Type | Default value | Description |
-| :------ | :------ | :------ | :------ |
-| `spender` | `string` | `undefined` | spender address. |
-| `amount` | `BigNumberish` | `ethers.constants.MaxUint256` | amount allowed to spend. |
-
-#### Returns
-
-`Promise`<`any`\>
-
-Ethers Transaction object.
-
 ___
 
 ### <a id="balanceof" name="balanceof"></a> balanceOf
 
 ▸ **balanceOf**(`address?`): `Promise`<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `address?` | `string` | account address. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Ethers Transaction object.
 
 **`Desc`**
 
@@ -669,18 +678,6 @@ const bridge = hop.bridge('USDC').connect(signer)
 const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 const allowance = bridge.allowance(Chain.Gnosis, spender)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `address?` | `string` | account address. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Ethers Transaction object.
 
 ___
 
@@ -702,10 +699,6 @@ ___
 
 ▸ **connect**(`signer`): [`Token`](Token.md)
 
-**`Desc`**
-
-Returns a token instance with signer connected. Used for adding or changing signer.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -717,6 +710,10 @@ Returns a token instance with signer connected. Used for adding or changing sign
 [`Token`](Token.md)
 
 New Token SDK instance with connected signer.
+
+**`Desc`**
+
+Returns a token instance with signer connected. Used for adding or changing signer.
 
 ___
 
@@ -910,6 +907,19 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
+| `percent` | `number` | Percentage to bump by. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Bumped as price as BigNumber
+
 **`Desc`**
 
 Calculates current gas price plus increased percentage amount.
@@ -924,19 +934,6 @@ const bumpedGasPrice = await hop.getBumpedGasPrice(signer, 1.20)
 console.log(bumpedGasPrice.toNumber())
 ```
 
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
-| `percent` | `number` | Percentage to bump by. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Bumped as price as BigNumber
-
 #### Inherited from
 
 [Base](Base.md).[getBumpedGasPrice](Base.md#getbumpedgasprice)
@@ -946,10 +943,6 @@ ___
 ### <a id="getchainid" name="getchainid"></a> getChainId
 
 ▸ **getChainId**(`chain`): `number`
-
-**`Desc`**
-
-Returns Chain ID for specified Chain model.
 
 #### Parameters
 
@@ -963,6 +956,10 @@ Returns Chain ID for specified Chain model.
 
 - Chain ID.
 
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
+
 #### Inherited from
 
 [Base](Base.md).[getChainId](Base.md#getchainid)
@@ -972,10 +969,6 @@ ___
 ### <a id="getchainprovider" name="getchainprovider"></a> getChainProvider
 
 ▸ **getChainProvider**(`chain`): `any`
-
-**`Desc`**
-
-Returns Ethers provider for specified Chain model.
 
 #### Parameters
 
@@ -988,6 +981,10 @@ Returns Ethers provider for specified Chain model.
 `any`
 
 Ethers provider.
+
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 #### Inherited from
 
@@ -1062,15 +1059,15 @@ ___
 
 ▸ **getErc20**(): `Promise`<`any`\>
 
-**`Desc`**
-
-Returns a token Ethers contract instance.
-
 #### Returns
 
 `Promise`<`any`\>
 
 Ethers contract instance.
+
+**`Desc`**
+
+Returns a token Ethers contract instance.
 
 ___
 
@@ -1590,6 +1587,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
+#### Returns
+
+`Promise`<`string`\>
+
+Ethers signer address.
+
 **`Desc`**
 
 Returns the connected signer address.
@@ -1604,12 +1607,6 @@ const address = await hop.getSignerAddress()
 console.log(address)
 ```
 
-#### Returns
-
-`Promise`<`string`\>
-
-Ethers signer address.
-
 #### Inherited from
 
 [Base](Base.md).[getSignerAddress](Base.md#getsigneraddress)
@@ -1619,11 +1616,6 @@ ___
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
 ▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
-
-**`Desc`**
-
-Returns the connected signer if it's connected to the specified
-chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Parameters
 
@@ -1637,6 +1629,11 @@ chain id, otherwise it returns a regular provider for the specified chain.
 `Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
+
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
+chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Inherited from
 
@@ -2125,10 +2122,6 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](Chain.md)
 
-**`Desc`**
-
-Returns a Chain model instance with connected provider.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2140,6 +2133,10 @@ Returns a Chain model instance with connected provider.
 [`Chain`](Chain.md)
 
 Chain model with connected provider.
+
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 #### Inherited from
 
@@ -2161,10 +2158,6 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](TokenModel.md)
 
-**`Desc`**
-
-Returns a Token instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2176,6 +2169,10 @@ Returns a Token instance.
 [`TokenModel`](TokenModel.md)
 
 Token model.
+
+**`Desc`**
+
+Returns a Token instance.
 
 #### Inherited from
 
@@ -2197,6 +2194,19 @@ ___
 
 ▸ **transfer**(`recipient`, `amount`): `Promise`<`any`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `recipient` | `string` | recipient address. |
+| `amount` | `BigNumberish` | Token amount. |
+
+#### Returns
+
+`Promise`<`any`\>
+
+Ethers Transaction object.
+
 **`Desc`**
 
 ERC20 token transfer
@@ -2211,19 +2221,6 @@ const recipient = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 const amount = '1000000000000000000'
 const tx = await bridge.erc20Transfer(spender, amount)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `recipient` | `string` | recipient address. |
-| `amount` | `BigNumberish` | Token amount. |
-
-#### Returns
-
-`Promise`<`any`\>
-
-Ethers Transaction object.
 
 ___
 

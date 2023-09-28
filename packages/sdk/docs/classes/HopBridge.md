@@ -1,10 +1,7 @@
 # Class: HopBridge
 
 Class representing Hop bridge.
-
-**`Namespace`**
-
-HopBridge
+ HopBridge
 
 ## Hierarchy
 
@@ -219,6 +216,15 @@ HopBridge
 
 • **new HopBridge**(`networkOrOptionsObject`, `signer?`, `token?`, `chainProviders?`)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `networkOrOptionsObject` | `string` \| `HopBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
+| `token?` | [`TToken`](../modules.md#ttoken) | Token symbol or model |
+| `chainProviders?` | `ChainProviders` | - |
+
 **`Desc`**
 
 Instantiates Hop Bridge.
@@ -233,15 +239,6 @@ import { Wallet } from 'ethers'
 const signer = new Wallet(privateKey)
 const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `HopBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
-| `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
-| `token?` | [`TToken`](../modules.md#ttoken) | Token symbol or model |
-| `chainProviders?` | `ChainProviders` | - |
 
 #### Overrides
 
@@ -531,15 +528,15 @@ ___
 
 • `get` **defaultDeadlineSeconds**(): `number`
 
-**`Desc`**
-
-The default deadline to use in seconds.
-
 #### Returns
 
 `number`
 
 Deadline in seconds
+
+**`Desc`**
+
+The default deadline to use in seconds.
 
 ___
 
@@ -628,10 +625,6 @@ ___
 
 ▸ **addLiquidity**(`amount0Desired`, `amount1Desired`, `chain?`, `options?`): `Promise`<`any`\>
 
-**`Desc`**
-
-Sends transaction to add liquidity to AMM.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -646,6 +639,10 @@ Sends transaction to add liquidity to AMM.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to add liquidity to AMM.
 
 ___
 
@@ -688,15 +685,15 @@ ___
 
 ▸ `Readonly` **challengePeriod**(): `Promise`<`BigNumber`\>
 
-**`Desc`**
-
-The challenge period.
-
 #### Returns
 
 `Promise`<`BigNumber`\>
 
 The challenge period for the bridge as BigNumber.
+
+**`Desc`**
+
+The challenge period.
 
 ___
 
@@ -718,6 +715,18 @@ ___
 
 ▸ **connect**(`signer`): [`HopBridge`](HopBridge.md)
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | `Signer` | Ethers `Signer` for signing transactions. |
+
+#### Returns
+
+[`HopBridge`](HopBridge.md)
+
+New HopBridge SDK instance with connected signer.
+
 **`Desc`**
 
 Returns hop bridge instance with signer connected. Used for adding or changing signer.
@@ -733,18 +742,6 @@ let hop = new Hop()
 // ...
 const bridge = hop.bridge(Token.USDC).connect(signer)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | `Signer` | Ethers `Signer` for signing transactions. |
-
-#### Returns
-
-[`HopBridge`](HopBridge.md)
-
-New HopBridge SDK instance with connected signer.
 
 ___
 
@@ -830,10 +827,6 @@ ___
 
 ▸ **execSaddleSwap**(`sourceChain`, `toHop`, `amount`, `minAmountOut`, `deadline`): `Promise`<`any`\>
 
-**`Desc`**
-
-Sends transaction to execute swap on Saddle contract.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -849,6 +842,10 @@ Sends transaction to execute swap on Saddle contract.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to execute swap on Saddle contract.
 
 ___
 
@@ -1087,10 +1084,6 @@ ___
 
 ▸ **getAmmWrapper**(`chain`, `signer?`): `Promise`<`any`\>
 
-**`Desc`**
-
-Returns Hop Bridge AMM wrapper Ethers contract instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1104,11 +1097,29 @@ Returns Hop Bridge AMM wrapper Ethers contract instance.
 
 Ethers contract instance.
 
+**`Desc`**
+
+Returns Hop Bridge AMM wrapper Ethers contract instance.
+
 ___
 
 ### <a id="getamountout" name="getamountout"></a> getAmountOut
 
 ▸ **getAmountOut**(`tokenAmountIn`, `sourceChain?`, `destinationChain?`): `Promise`<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `tokenAmountIn` | `BigNumberish` | Token amount input. |
+| `sourceChain?` | [`TChain`](../modules.md#tchain) | Source chain model. |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) | Destination chain model. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Amount as BigNumber.
 
 **`Desc`**
 
@@ -1124,20 +1135,6 @@ const bridge = hop.connect(signer).bridge('USDC')
 const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(amountOut)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `tokenAmountIn` | `BigNumberish` | Token amount input. |
-| `sourceChain?` | [`TChain`](../modules.md#tchain) | Source chain model. |
-| `destinationChain?` | [`TChain`](../modules.md#tchain) | Destination chain model. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Amount as BigNumber.
 
 ___
 
@@ -1240,10 +1237,6 @@ ___
 
 ▸ **getBridgeContract**(`chain`): `Promise`<`any`\>
 
-**`Desc`**
-
-Returns bridge contract instance for specified chain.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1256,11 +1249,28 @@ Returns bridge contract instance for specified chain.
 
 Ethers contract instance.
 
+**`Desc`**
+
+Returns bridge contract instance for specified chain.
+
 ___
 
 ### <a id="getbumpedgasprice" name="getbumpedgasprice"></a> getBumpedGasPrice
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
+| `percent` | `number` | Percentage to bump by. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Bumped as price as BigNumber
 
 **`Desc`**
 
@@ -1275,19 +1285,6 @@ const hop = new Hop()
 const bumpedGasPrice = await hop.getBumpedGasPrice(signer, 1.20)
 console.log(bumpedGasPrice.toNumber())
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `signer` | [`TProvider`](../modules.md#tprovider) | Ether's Signer |
-| `percent` | `number` | Percentage to bump by. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Bumped as price as BigNumber
 
 #### Inherited from
 
@@ -1315,10 +1312,6 @@ ___
 
 ▸ **getChainId**(`chain`): `number`
 
-**`Desc`**
-
-Returns Chain ID for specified Chain model.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1330,6 +1323,10 @@ Returns Chain ID for specified Chain model.
 `number`
 
 - Chain ID.
+
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
 
 #### Inherited from
 
@@ -1357,10 +1354,6 @@ ___
 
 ▸ **getChainProvider**(`chain`): `any`
 
-**`Desc`**
-
-Returns Ethers provider for specified Chain model.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1372,6 +1365,10 @@ Returns Ethers provider for specified Chain model.
 `any`
 
 Ethers provider.
+
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 #### Inherited from
 
@@ -1432,10 +1429,6 @@ ___
 
 ▸ **getCredit**(`sourceChain`, `bonder`): `Promise`<`BigNumber`\>
 
-**`Desc`**
-
-Returns total credit that bonder holds on Hop bridge at specified chain.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1449,15 +1442,15 @@ Returns total credit that bonder holds on Hop bridge at specified chain.
 
 Total credit as BigNumber.
 
+**`Desc`**
+
+Returns total credit that bonder holds on Hop bridge at specified chain.
+
 ___
 
 ### <a id="getdebit" name="getdebit"></a> getDebit
 
 ▸ **getDebit**(`sourceChain`, `bonder`): `Promise`<`BigNumber`\>
-
-**`Desc`**
-
-Returns total debit that bonder holds on Hop bridge at specified chain.
 
 #### Parameters
 
@@ -1471,6 +1464,10 @@ Returns total debit that bonder holds on Hop bridge at specified chain.
 `Promise`<`BigNumber`\>
 
 Total debit as BigNumber.
+
+**`Desc`**
+
+Returns total debit that bonder holds on Hop bridge at specified chain.
 
 ___
 
@@ -1638,10 +1635,6 @@ ___
 
 ▸ **getFrontendAvailableLiquidity**(`sourceChain`, `destinationChain`): `Promise`<`BigNumber`\>
 
-**`Desc`**
-
-Returns available liquidity for Hop bridge at specified chain.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1654,6 +1647,10 @@ Returns available liquidity for Hop bridge at specified chain.
 `Promise`<`BigNumber`\>
 
 Available liquidity as BigNumber.
+
+**`Desc`**
+
+Returns available liquidity for Hop bridge at specified chain.
 
 ___
 
@@ -1702,10 +1699,6 @@ ___
 
 ▸ **getL1Bridge**(`signer?`): `Promise`<`any`\>
 
-**`Desc`**
-
-Returns Hop L1 Bridge Ethers contract instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1717,6 +1710,10 @@ Returns Hop L1 Bridge Ethers contract instance.
 `Promise`<`any`\>
 
 Ethers contract instance.
+
+**`Desc`**
+
+Returns Hop L1 Bridge Ethers contract instance.
 
 ___
 
@@ -1920,10 +1917,6 @@ ___
 
 ▸ **getL2Bridge**(`chain`, `signer?`): `Promise`<`any`\>
 
-**`Desc`**
-
-Returns Hop L2 Bridge Ethers contract instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -1936,6 +1929,10 @@ Returns Hop L2 Bridge Ethers contract instance.
 `Promise`<`any`\>
 
 Ethers contract instance.
+
+**`Desc`**
+
+Returns Hop L2 Bridge Ethers contract instance.
 
 ___
 
@@ -2177,6 +2174,19 @@ ___
 
 ▸ **getRequiredLiquidity**(`tokenAmountIn`, `sourceChain`): `Promise`<`BigNumber`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `tokenAmountIn` | `BigNumberish` | Token amount input. |
+| `sourceChain` | [`TChain`](../modules.md#tchain) | Source chain model. |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+Amount as BigNumber.
+
 **`Desc`**
 
 Estimate the bonder liquidity needed at the destination.
@@ -2191,19 +2201,6 @@ const bridge = hop.connect(signer).bridge('USDC')
 const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(requiredLiquidity)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `tokenAmountIn` | `BigNumberish` | Token amount input. |
-| `sourceChain` | [`TChain`](../modules.md#tchain) | Source chain model. |
-
-#### Returns
-
-`Promise`<`BigNumber`\>
-
-Amount as BigNumber.
 
 ___
 
@@ -2241,10 +2238,6 @@ ___
 
 ▸ **getSaddleLpToken**(`chain`, `signer?`): [`Token`](Token.md)
 
-**`Desc`**
-
-Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2258,15 +2251,15 @@ Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
 
 Ethers contract instance.
 
+**`Desc`**
+
+Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
+
 ___
 
 ### <a id="getsaddleswapreserves" name="getsaddleswapreserves"></a> getSaddleSwapReserves
 
 ▸ **getSaddleSwapReserves**(`chain?`): `Promise`<`BigNumber`[]\>
-
-**`Desc`**
-
-Returns Hop Bridge Saddle reserve amounts.
 
 #### Parameters
 
@@ -2280,6 +2273,10 @@ Returns Hop Bridge Saddle reserve amounts.
 
 Array containing reserve amounts for canonical token
 and hTokens.
+
+**`Desc`**
+
+Returns Hop Bridge Saddle reserve amounts.
 
 ___
 
@@ -2368,6 +2365,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
+#### Returns
+
+`Promise`<`string`\>
+
+Ethers signer address.
+
 **`Desc`**
 
 Returns the connected signer address.
@@ -2382,12 +2385,6 @@ const address = await hop.getSignerAddress()
 console.log(address)
 ```
 
-#### Returns
-
-`Promise`<`string`\>
-
-Ethers signer address.
-
 #### Inherited from
 
 [Base](Base.md).[getSignerAddress](Base.md#getsigneraddress)
@@ -2397,11 +2394,6 @@ ___
 ### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
 ▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
-
-**`Desc`**
-
-Returns the connected signer if it's connected to the specified
-chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Parameters
 
@@ -2415,6 +2407,11 @@ chain id, otherwise it returns a regular provider for the specified chain.
 `Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
+
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
+chain id, otherwise it returns a regular provider for the specified chain.
 
 #### Inherited from
 
@@ -2498,10 +2495,6 @@ ___
 
 ▸ `Readonly` **getTimeSlot**(`time`): `Promise`<`BigNumber`\>
 
-**`Desc`**
-
-The time slot for the current time.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2513,6 +2506,10 @@ The time slot for the current time.
 `Promise`<`BigNumber`\>
 
 Time slot for the given time as BigNumber.
+
+**`Desc`**
+
+The time slot for the current time.
 
 ___
 
@@ -2567,10 +2564,6 @@ ___
 
 ▸ **getTotalDebit**(`sourceChain`, `bonder`): `Promise`<`BigNumber`\>
 
-**`Desc`**
-
-Returns total debit, including sliding window debit, that bonder holds on Hop bridge at specified chain.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -2583,6 +2576,10 @@ Returns total debit, including sliding window debit, that bonder holds on Hop br
 `Promise`<`BigNumber`\>
 
 Total debit as BigNumber.
+
+**`Desc`**
+
+Returns total debit, including sliding window debit, that bonder holds on Hop bridge at specified chain.
 
 ___
 
@@ -2995,10 +2992,6 @@ ___
 
 ▸ **removeLiquidity**(`liquidityTokenAmount`, `chain?`, `options?`): `Promise`<`any`\>
 
-**`Desc`**
-
-Sends transaction to remove liquidity from AMM.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -3012,6 +3005,10 @@ Sends transaction to remove liquidity from AMM.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+**`Desc`**
+
+Sends transaction to remove liquidity from AMM.
 
 ___
 
@@ -3077,6 +3074,21 @@ ___
 
 ▸ **send**(`tokenAmount`, `sourceChain?`, `destinationChain?`, `options?`): `Promise`<`any`\>
 
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `tokenAmount` | `BigNumberish` | Token amount to send denominated in smallest unit. |
+| `sourceChain?` | [`TChain`](../modules.md#tchain) | Source chain model. |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) | Destination chain model. |
+| `options` | `Partial`<`SendOptions`\> | - |
+
+#### Returns
+
+`Promise`<`any`\>
+
+Ethers Transaction object.
+
 **`Desc`**
 
 Send tokens to another chain.
@@ -3092,21 +3104,6 @@ const bridge = hop.connect(signer).bridge(Token.USDC)
 const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(tx.hash)
 ```
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `tokenAmount` | `BigNumberish` | Token amount to send denominated in smallest unit. |
-| `sourceChain?` | [`TChain`](../modules.md#tchain) | Source chain model. |
-| `destinationChain?` | [`TChain`](../modules.md#tchain) | Destination chain model. |
-| `options` | `Partial`<`SendOptions`\> | - |
-
-#### Returns
-
-`Promise`<`any`\>
-
-Ethers Transaction object.
 
 ___
 
@@ -3387,25 +3384,21 @@ ___
 
 ▸ `Readonly` **timeSlotSize**(): `Promise`<`BigNumber`\>
 
-**`Desc`**
-
-The size of the time slots.
-
 #### Returns
 
 `Promise`<`BigNumber`\>
 
 The size of the time slots for the bridge as BigNumber.
 
+**`Desc`**
+
+The size of the time slots.
+
 ___
 
 ### <a id="timeslottoamountbonded" name="timeslottoamountbonded"></a> timeSlotToAmountBonded
 
 ▸ `Readonly` **timeSlotToAmountBonded**(`timeSlot`, `bonder`): `Promise`<`BigNumber`\>
-
-**`Desc`**
-
-The amount bonded for a time slot for a bonder.
 
 #### Parameters
 
@@ -3419,6 +3412,10 @@ The amount bonded for a time slot for a bonder.
 `Promise`<`BigNumber`\>
 
 Amount bonded for the bonder for the given time slot as BigNumber.
+
+**`Desc`**
+
+The amount bonded for a time slot for a bonder.
 
 ___
 
@@ -3444,10 +3441,6 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](Chain.md)
 
-**`Desc`**
-
-Returns a Chain model instance with connected provider.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -3459,6 +3452,10 @@ Returns a Chain model instance with connected provider.
 [`Chain`](Chain.md)
 
 Chain model with connected provider.
+
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 #### Inherited from
 
@@ -3488,10 +3485,6 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](TokenModel.md)
 
-**`Desc`**
-
-Returns a Token instance.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -3503,6 +3496,10 @@ Returns a Token instance.
 [`TokenModel`](TokenModel.md)
 
 Token model.
+
+**`Desc`**
+
+Returns a Token instance.
 
 #### Inherited from
 

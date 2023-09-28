@@ -9,7 +9,7 @@ import {
   Chain,
   DefaultBatchBlocks,
   Network,
-  OneHourMs,
+  TenMinutesMs,
   TotalBlocks
 } from 'src/constants'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
@@ -49,7 +49,7 @@ export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = buildInfo.rev
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
-export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
+export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : TenMinutesMs
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
 export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
@@ -68,6 +68,12 @@ export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PEN
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
+
+// Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
+// available liquidity watcher to have up-to-date info
+export const SyncIntervalSec = process.env.SYNC_INTERVAL_SEC ? Number(process.env.SYNC_INTERVAL_SEC) : 30
+export const SyncIntervalMultiplier = process.env.SYNC_INTERVAL_MULTIPLIER ? Number(process.env.SYNC_INTERVAL_MULTIPLIER) : 1
+export const SyncCyclesPerFullSync = process.env.SYNC_CYCLES_PER_FULL_SYNC ? Number(process.env.SYNC_CYCLES_PER_FULL_SYNC) : 60
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''

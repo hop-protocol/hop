@@ -171,6 +171,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   }
 
   const listenForDestinationConfirmation = async (tx) => {
+
     const bondTransactionHash = await getBondedTxHash(tx)
 
     if (!bondTransactionHash) {
@@ -208,8 +209,19 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     })
 
     return () => {
-      Object.values(timeoutRefs.current).forEach(value => clearTimeout(value as ReturnType<typeof setTimeout>))
-      Object.values(intervalRefs.current).forEach(value => clearInterval(value as ReturnType<typeof setInterval>))
+      Object.keys(timeoutRefs.current).forEach(hash => {
+        if (!listenerSet.current.has(hash)) {
+          clearTimeout(timeoutRefs.current[hash] as ReturnType<typeof setTimeout>)
+          delete timeoutRefs.current[hash]
+        }
+      })
+
+      Object.keys(intervalRefs.current).forEach(hash => {
+        if (!listenerSet.current.has(hash)) {
+          clearInterval(intervalRefs.current[hash] as ReturnType<typeof setInterval>)
+          delete intervalRefs.current[hash]
+        }
+      })
     }
   }, [transactions])
 

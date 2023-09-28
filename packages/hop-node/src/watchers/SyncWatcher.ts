@@ -440,8 +440,8 @@ class SyncWatcher extends BaseWatcher {
     // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
     if (this.isL1 && this.isRelayableChainEnabled) {
       return [this.getTransferSentToL2EventPromise()]
-    } 
-    
+    }
+
     if (!this.isL1) {
       // Always sync the finalized transfers. Also sync head if enabled.
       const promises: EventPromise = [this.getTransferSentEventPromise()]
@@ -606,7 +606,7 @@ class SyncWatcher extends BaseWatcher {
       // Experimental: compare data against WS cache and clear the memory
       if (this.wsCache[transferId]) {
         this.compareWsCache(event)
-delete this.wsCache[event.args.transferId] 
+        delete this.wsCache[event.args.transferId]
       }
 
       logger.debug('handleTransferSentEvent: stored transfer item')

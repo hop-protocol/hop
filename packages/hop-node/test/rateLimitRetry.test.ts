@@ -58,7 +58,6 @@ class Example {
     })
   })
 
-
   triggerBlockHashValidationError = rateLimitRetry(async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -69,7 +68,6 @@ class Example {
       }, 100)
     })
   })
-
 }
 
 describe('rateLimitRetry', () => {

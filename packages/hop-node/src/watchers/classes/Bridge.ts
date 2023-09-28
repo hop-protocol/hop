@@ -586,7 +586,7 @@ export default class Bridge extends ContractBase {
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
 
-      const isHeadSync = syncCacheKey.includes(HeadSyncKeySuffix)
+      const isHeadSync = syncCacheKey.endsWith(HeadSyncKeySuffix)
       if (isHeadSync) {
         // If a head sync does not have state or the state is stale, use the state of
         // its finalized counterpart. The finalized counterpart is guaranteed to have updated
@@ -680,7 +680,7 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
 
     // TODO: Better state handling
-    const isHeadSync = syncCacheKey?.includes(HeadSyncKeySuffix)
+    const isHeadSync = syncCacheKey?.endsWith(HeadSyncKeySuffix)
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
 

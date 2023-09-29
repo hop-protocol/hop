@@ -88,7 +88,7 @@ function TxStatusModal(props: Props) {
               }
             </Box>
           ) : (
-            <Typography variant="body1" style={{ fontStyle: 'italic' }}>This may take a few minutes</Typography>
+<Typography variant="body1"><em>This may take a few minutes</em></Typography>
           )}
           <br />
         </Box>

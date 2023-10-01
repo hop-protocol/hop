@@ -4,7 +4,8 @@ import { useLocalStorage } from 'react-use'
 import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
 import { filterByHash, sortByRecentTimestamp } from 'src/utils'
-import _ from 'lodash'
+import isFunction from 'lodash/isFunction'
+import cloneDeepWith from 'lodash/cloneDeepWith'
 
 export interface TxHistory {
   transactions?: Transaction[]
@@ -22,6 +23,8 @@ export interface UpdateTransactionOptions {
   destTxHash?: string
   replaced?: boolean | string
 }
+
+const MAX_TRANSACTION_COUNT = 4
 
 const cacheKey = 'recentTransactions:v000'
 
@@ -58,8 +61,8 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   function clear() {
     try {
       localStorage.removeItem(cacheKey)
-    } catch (error) {
-      console.error(error)
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -67,7 +70,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     setTransactions(prevTransactions => {
       const currentTxs = txs ?? prevTransactions ?? []
       const filtered = filterByHash(currentTxs, hashFilter)
-      return sortByRecentTimestamp([...filtered, tx]).slice(0, 4)
+      return sortByRecentTimestamp([...filtered, tx]).slice(0, MAX_TRANSACTION_COUNT)
     })
   }
 
@@ -80,7 +83,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     setTransactions(prevTransactions => {
       if (!prevTransactions) return []
       const filtered = filterByHash(prevTransactions, tx.hash)
-      return sortByRecentTimestamp(filtered).slice(0, 4)
+      return sortByRecentTimestamp(filtered).slice(0, MAX_TRANSACTION_COUNT)
     })
   }
 
@@ -90,12 +93,12 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       
       // deep clone to avoid mutating state directly
       const customizer = (value) => {
-        if (_.isFunction(value)) {
+        if (isFunction(value)) {
           return value
         }
       }
 
-      const clonedTxs = _.cloneDeepWith(prevTransactions, customizer)
+      const clonedTxs = cloneDeepWith(prevTransactions, customizer)
       const targetTx = find(clonedTxs, ['hash', matchingHash || tx.hash])
 
       if (targetTx) {
@@ -104,7 +107,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
         }
       }
       
-      return sortByRecentTimestamp(clonedTxs).slice(0, 4)
+      return sortByRecentTimestamp(clonedTxs).slice(0, MAX_TRANSACTION_COUNT)
     })
   }
 
@@ -117,8 +120,8 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
         listenerSet.current.delete(tx.hash)
         updateTransaction(tx, { pending: false })
       })
-    } catch (e) {
-      console.error('Error with origin transaction listener:', e)
+    } catch (err) {
+      console.error('Error with origin transaction listener:', err)
       listenerSet.current.delete(tx.hash)
     }
   }
@@ -128,8 +131,8 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
   // stores setTimeouts to limit polling to one hour
   const timeoutRefs = useRef({})
 
-  const POLLING_INTERVAL = 15000
-  const POLLING_TIMEOUT = 3600000
+  const POLLING_INTERVAL_MS = 15000
+  const POLLING_TIMEOUT_MS = 3600000
 
   const getBondedTxHash = (tx) => {
     return new Promise((resolve, reject) => {
@@ -141,7 +144,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
           clearInterval(intervalRefs.current[tx.hash])
           updateTransaction(tx, { pendingDestinationConfirmation: false })
           reject(new Error('Polling timed out'))
-        }, POLLING_TIMEOUT)
+        }, POLLING_TIMEOUT_MS)
       }
 
       const fetchAPI = async () => {
@@ -160,12 +163,12 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
             clearTimeout(timeoutRefs.current[tx.hash])
             resolve(bondTransactionHash)
           }
-        } catch (e) {
-          console.error(e)
+        } catch (err) {
+          console.error(err)
         }
       }
 
-      const interval = setInterval(fetchAPI, POLLING_INTERVAL)
+      const interval = setInterval(fetchAPI, POLLING_INTERVAL_MS)
       intervalRefs.current[tx.hash] = interval
     })
   }
@@ -183,8 +186,8 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
       tx.destProvider.once(bondTransactionHash, transaction => {
         updateTransaction(tx, { pendingDestinationConfirmation: false })
       })
-    } catch (e) {
-      console.error('Error with destination transaction listener:', e)
+    } catch (err) {
+      console.error('Error with destination transaction listener:', err)
       listenerSet.current.delete(tx.hash)
     }
   }

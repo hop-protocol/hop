@@ -44,6 +44,7 @@ import {
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
@@ -672,6 +673,7 @@ const Send: FC = () => {
   }, [fromNetwork, toNetwork])
 
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
+  const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?.symbol)
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
@@ -848,6 +850,12 @@ const Send: FC = () => {
       {showLineaFeeWarning && (
         <Box mb={4}>
           <Alert severity="warning" text="The Linea chain is undergoing maintenance and Linea has increased the message relay fee to a high value. Please see Linea Discord for updates." />
+        </Box>
+      )}
+
+      {isTokenDeprecated && (
+        <Box mb={4}>
+          <Alert severity="warning" text={(sourceToken.symbol ? ("The " + sourceToken.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>
       )}
 

@@ -55,10 +55,12 @@ const Convert: FC = () => {
     }
   }
 
-  const lastPathname = pathname.split('/').pop() || '/amm'
+  const queryParams = new URLSearchParams(search)
+  const viaParamValue = queryParams.get('via') || 'amm'
   const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
     const value = event.target.value as string
-    navigate(`${pathname}/${value}${search}`)
+    queryParams.set('via', value)
+    navigate(`${pathname}?${queryParams.toString()}`)
   }
 
   return (
@@ -94,7 +96,7 @@ const Convert: FC = () => {
         </div>
 
         <div className={styles.select}>
-          <RaisedSelect value={lastPathname} onChange={handleTabChange}>
+          <RaisedSelect value={viaParamValue} onChange={handleTabChange}>
             {convertOptions.map(_convertOption => (
               <MenuItem value={_convertOption.path} key={_convertOption.path}>
                 via {_convertOption.name}

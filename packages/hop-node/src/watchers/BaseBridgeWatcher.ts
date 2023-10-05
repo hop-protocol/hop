@@ -15,7 +15,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class BaseZkBridgeWatcher extends OptimismBridgeWatcher {
+class BaseBridgeWatcher extends OptimismBridgeWatcher {
   l1Provider: any
   l2Provider: any
   l1Wallet: Signer
@@ -48,4 +48,4 @@ class BaseZkBridgeWatcher extends OptimismBridgeWatcher {
   }
 }
 
-export default BaseZkBridgeWatcher
+export default BaseBridgeWatcher

@@ -137,7 +137,6 @@ const useTxHistory = (sdk: Hop): TxHistory => {
 
   const getBondedTxHash = (tx) => {
     return new Promise((resolve, reject) => {
-
       if (!timeoutRefs.current[tx.hash]) {
         timeoutRefs.current[tx.hash] = setTimeout(() => {
           clearInterval(intervalRefs.current[tx.hash])
@@ -149,14 +148,12 @@ const useTxHistory = (sdk: Hop): TxHistory => {
       const fetchAPI = async () => {
         try {
           const response = await sdk.getTransferStatus(tx.hash)
-          if (!response.ok) throw new Error('API request failed')
 
-          const responseJSON = await response.json()
-          if (!responseJSON.data || !responseJSON.data[0]) {
+          if (!response) {
             return
           }
 
-          const bondTransactionHash = responseJSON.data[0].bondTransactionHash
+          const bondTransactionHash = response[0].bondTransactionHash
           if (bondTransactionHash) {
             clearInterval(intervalRefs.current[tx.hash])
             clearTimeout(timeoutRefs.current[tx.hash])

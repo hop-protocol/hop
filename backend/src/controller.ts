@@ -3,6 +3,8 @@ import { DateTime } from 'luxon'
 import Worker from './worker'
 import { TransferStats } from './TransferStats'
 import { formatCurrency } from './utils/formatCurrency'
+import { timeToBridgeStats } from './utils/timeToBridgeStats'
+import { TimeToBridgeStats } from './models/TimeToBridgeStats'
 import { populateData } from './populateData'
 import { cache } from './cache'
 import { isGoerli } from './config'
@@ -283,5 +285,47 @@ export class Controller {
     }
 
     return data
+  }
+
+  async getTransferTimes (params: any): Promise<TimeToBridgeStats> {
+    const { sourceChainSlug, destinationChainSlug } = params
+
+    if (!sourceChainSlug) {
+      throw new Error('sourceChainSlug is required')
+    }
+
+    if (!destinationChainSlug) {
+      throw new Error('destinationChainSlug is required')
+    }
+
+    let txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, '2 day')
+
+    if (txTimes.length < 1) {
+      txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, '4 day')
+
+      if (txTimes.length < 1) {
+        throw new Error('No transfer data available for set periods and chains')
+      }
+    }
+
+    // array of transfer times as numbers
+    const timesArray = txTimes.map(record => Number(record.bondWithinTimestamp))
+
+    const cacheKey = `${sourceChainSlug}-${destinationChainSlug}`
+    const cacheDurationMs = 5 * 60 * 1000 // 5 minutes
+    const cachedStats = cache.get(cacheKey)
+
+    if (cachedStats && typeof cachedStats === 'object' && 'avg' in cachedStats && 'median' in cachedStats && 'percentile90' in cachedStats) {
+      return cachedStats as TimeToBridgeStats
+    }
+
+    const stats = timeToBridgeStats(timesArray)
+
+    if (stats) {
+      cache.put(cacheKey, stats, cacheDurationMs)
+      return stats
+    }
+
+    throw new Error('Unexpected error while getting transfer times')
   }
 }

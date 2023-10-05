@@ -142,7 +142,8 @@ export class TransferStats {
         this.trackRecentTransfers({ lookbackMinutes: 20, pollIntervalMs: 2 * 60 * 1000 }),
         this.trackRecentTransfers({ lookbackMinutes: 60, pollIntervalMs: 10 * 60 * 1000 }),
         this.trackRecentTransferBonds({ lookbackMinutes: 10, pollIntervalMs: 3 * 60 * 1000 }),
-        this.trackRecentTransferBonds({ lookbackMinutes: 60, pollIntervalMs: 10 * 60 * 1000 })
+        this.trackRecentTransferBonds({ lookbackMinutes: 60, pollIntervalMs: 10 * 60 * 1000 }),
+        this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
       ]
     } else {
       promises = [

@@ -779,6 +779,21 @@ class Db {
     return this.db.any(sql, queryParams)
   }
 
+  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, searchWindow: string) {
+    const sql = `
+      SELECT bond_within_timestamp AS "bondWithinTimestamp"
+      FROM transfers 
+      WHERE source_chain_slug = $1
+      AND destination_chain_slug = $2
+      AND to_timestamp(timestamp) >= (NOW() - INTERVAL $3) 
+      AND bond_within_timestamp > 0
+    `
+
+    const queryParams = [sourceChainSlug, destinationChainSlug, searchWindow]
+
+    return await this.db.any(sql, queryParams)
+  }
+
   close () {
     this.db.close()
   }

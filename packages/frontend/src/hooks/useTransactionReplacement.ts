@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 import { errors, ContractTransaction } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
-import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import Transaction from 'src/models/Transaction'
 import { getTransferSentDetailsFromLogs } from 'src/utils/logs'
 import { useGnosisSafeTransaction } from './useGnosisSafeTransaction'

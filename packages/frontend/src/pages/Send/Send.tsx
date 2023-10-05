@@ -13,7 +13,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay, networkSlugToId } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
@@ -123,7 +123,7 @@ const Send: FC = () => {
     if (savedFromNetwork) {
       setFromNetwork(savedFromNetwork)
     } else if (!queryParams.sourceNetwork) {
-      setFromNetwork(networks.find(network => network.chainId === 1)) // use mainnet if no default origin exists
+      setFromNetwork(networks.find(network => network.chainId === networkSlugToId(ChainSlug.Ethereum)))
     }
 
     if (savedToNetwork) {

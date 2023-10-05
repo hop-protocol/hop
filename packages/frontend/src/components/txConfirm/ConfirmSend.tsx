@@ -9,7 +9,9 @@ import Address from 'src/models/Address'
 import Box from '@material-ui/core/Box'
 import { useSendingTransaction } from './useSendingTransaction'
 import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
+import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
 import pluralize from 'pluralize'
+import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -67,12 +69,18 @@ const ConfirmSend = (props: Props) => {
     <div className={styles.root}>
       <div className={styles.title}>
         <Typography variant="h6" color="textSecondary">
-          Send{' '}
           <strong>
-            {commafy(source.amount, 5)} {source.token.symbol}
+            Send{' '}
+            {commafy(source.amount, 5)}
+            {' '}<TokenIcon width="16px" inline src={source.token.image} alt={source.token._symbol} title={source.token._symbol} />
+            &thinsp;{source.token.symbol}
           </strong>
           <br />
-          {source.network.name} to {dest?.network?.name}
+          <TokenIcon width="16px" inline src={source.network.imageUrl} alt={source.network.name} title={source.token.name} />
+          &thinsp;{source.network.name}
+          {' → '}
+          <TokenIcon width="16px" inline src={dest?.network?.imageUrl} alt={dest?.network?.name} title={dest?.token?.name} />
+          &thinsp;{dest?.network?.name}
         </Typography>
 
         <br />
@@ -93,7 +101,7 @@ const ConfirmSend = (props: Props) => {
               Estimated Wait
             </Typography>
             <Typography variant="subtitle2" color="textPrimary">
-              {(medianTimeEstimate !== null && medianTimeEstimate > 0 ? medianTimeEstimate : fixedTimeEstimate) + ' ' + pluralize('minute', medianTimeEstimate)}
+              {transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate)}
             </Typography>
           </Grid>
         </Grid>

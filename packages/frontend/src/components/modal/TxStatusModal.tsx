@@ -14,6 +14,7 @@ import { useTransactionStatus } from 'src/hooks'
 import { useAddTokenToMetamask } from 'src/hooks/useAddTokenToMetamask'
 import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
 import { getTransferTimeMinutes } from 'src/utils/getTransferTimeMinutes'
+import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
 import pluralize from 'pluralize'
 import { networkSlugToName } from 'src/utils'
 
@@ -42,6 +43,53 @@ function TxStatusModal(props: Props) {
   )
   const { success, addTokenToDestNetwork } = useAddTokenToMetamask(tx.token, tx.destNetworkName)
 
+  function InfoContent(props) {
+    const { tx, medianTimeEstimate, percentileTimeEstimate, fixedTimeEstimate } = props
+
+    if (tx && tx.token && medianTimeEstimate) {
+      return (
+        <>
+          <Typography variant="body2" color="textSecondary">
+            Your {tx.token._symbol ?? 'transfer'}{' '}
+            will arrive{' '}
+            {
+              tx.destNetworkName
+              ? `on ${networkSlugToName(tx.destNetworkName)}` 
+              : "at the destination"
+            }
+            <strong>{' '}~
+              { transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate) }
+            </strong>{' '}
+            after the transaction is confirmed.
+            { percentileTimeEstimate !== null && percentileTimeEstimate > 0 && (
+              <>
+                <br />
+                <br />
+                Only 10% of recent transfers took more than {percentileTimeEstimate + " " + pluralize('minute', percentileTimeEstimate)}.
+              </>
+            )}
+          </Typography>
+          { medianTimeEstimate > fixedTimeEstimate * 1.5 &&
+            <>
+              <br />
+              <Typography variant="body2" color="textSecondary" style={{ fontStyle: 'italic' }}>
+                This estimate is higher than usual and may not reflect current speeds.
+              </Typography>
+            </>
+          }
+        </>
+      )
+    } else if (tx && fixedTimeEstimate) {
+      return (
+        <Typography variant="body1"><em>{`Your ${tx.token._symbol ?? 'transfer'} will arrive ${tx.destNetworkName ? `on ${networkSlugToName(tx.destNetworkName)}` : "at the destination"} ~${fixedTimeEstimate} minutes after your transaction is confirmed.`}</em></Typography>
+      )
+    } else {
+      return (
+        <Typography variant="body1"><em>This may take a few minutes</em></Typography>
+      )
+    }
+  }
+
   return (
     <Modal onClose={handleTxStatusClose}>
       <TxStatusTracker
@@ -53,43 +101,8 @@ function TxStatusModal(props: Props) {
       />
 
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
-        <Box>
-          {(tx && tx.token && medianTimeEstimate) ? (
-            <Box margin="0 auto" maxWidth="32rem" paddingLeft={3} paddingRight={3}>
-              <Typography variant="body2" color="textSecondary">
-                Your {tx.token._symbol ? tx.token._symbol : "transfer"}{' '}
-                will arrive{' '}
-                {
-                  tx.destNetworkName
-                  ? `on ${networkSlugToName(tx.destNetworkName)}` 
-                  : "at the destination"
-                }
-                <strong>{' '}~
-                  {(medianTimeEstimate !== null && medianTimeEstimate > 0) 
-                  ? (medianTimeEstimate + " " + `${pluralize('minute', medianTimeEstimate)}`) 
-                  : (fixedTimeEstimate + " " + pluralize('minute', fixedTimeEstimate))}
-                </strong>{' '}
-                after the transaction is confirmed.
-                { percentileTimeEstimate !== null && percentileTimeEstimate > 0 && (
-                  <>
-                    <br />
-                    <br />
-                    Only 10% of recent transfers took more than {percentileTimeEstimate + " " + pluralize('minute', percentileTimeEstimate)}.
-                  </>
-                )}
-              </Typography>
-              { medianTimeEstimate > fixedTimeEstimate * 1.5 &&
-                <>
-                  <br />
-                  <Typography variant="body2" color="textSecondary" style={{ fontStyle: 'italic' }}>
-                    This estimate is higher than usual and may not reflect current speeds.
-                  </Typography>
-                </>
-              }
-            </Box>
-          ) : (
-<Typography variant="body1"><em>This may take a few minutes</em></Typography>
-          )}
+        <Box margin="0 auto" maxWidth="32rem" paddingLeft={3} paddingRight={3}>
+          <InfoContent tx={tx} medianTimeEstimate={medianTimeEstimate} percentileTimeEstimate={percentileTimeEstimate} fixedTimeEstimate={fixedTimeEstimate} />
           <br />
         </Box>
 

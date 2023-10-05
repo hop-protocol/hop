@@ -6,6 +6,7 @@ import find from 'lodash/find'
 import { filterByHash, sortByRecentTimestamp } from 'src/utils'
 import isFunction from 'lodash/isFunction'
 import cloneDeepWith from 'lodash/cloneDeepWith'
+import { Hop } from '@hop-protocol/sdk'
 
 export interface TxHistory {
   transactions?: Transaction[]
@@ -40,8 +41,8 @@ const localStorageSerializationOptions = {
   },
 }
 
-const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
-  const [transactions, setTransactions] = useState<Transaction[] | undefined>(defaultTxs)
+const useTxHistory = (sdk: Hop): TxHistory => {
+  const [transactions, setTransactions] = useState<Transaction[] | undefined>([])
 
   useEffect(() => {
     // on mount, load from local storage
@@ -136,8 +137,6 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
   const getBondedTxHash = (tx) => {
     return new Promise((resolve, reject) => {
-      const network = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_NETWORK) ? process.env.REACT_APP_NETWORK : 'goerli'
-      const explorerAPIUrl = `https://${network === 'goerli' && 'goerli-'}explorer-api.hop.exchange/v1/transfers?transferId=${tx.hash}`
 
       if (!timeoutRefs.current[tx.hash]) {
         timeoutRefs.current[tx.hash] = setTimeout(() => {
@@ -149,7 +148,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
       const fetchAPI = async () => {
         try {
-          const response = await fetch(explorerAPIUrl)
+          const response = await sdk.getTransferStatus(tx.hash)
           if (!response.ok) throw new Error('API request failed')
 
           const responseJSON = await response.json()

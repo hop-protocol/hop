@@ -37,7 +37,7 @@ export const useTransferTimeEstimate = (sourceChainSlug, destinationChainSlug) =
         setPercentileTimeEstimate(percentileMinutes)
       }
     }
-    fetchData()
+    fetchData().catch(console.error)
   }, [sourceChain, destinationChain])
 
   return { fixedTimeEstimate, averageTimeEstimate, medianTimeEstimate, percentileTimeEstimate }

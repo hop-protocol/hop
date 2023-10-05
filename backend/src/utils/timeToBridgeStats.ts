@@ -1,4 +1,4 @@
-import { TimeToBridgeStats } from './models/TimeToBridgeStats'
+import { TimeToBridgeStats } from '../models/TimeToBridgeStats'
 
 export function timeToBridgeStats(times: number[]): TimeToBridgeStats {
   const n = times.length

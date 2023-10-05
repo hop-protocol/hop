@@ -781,7 +781,7 @@ class Db {
 
   async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string) {
     const sql = `
-      SELECT bond_within_timestamp 
+      SELECT bond_within_timestamp AS "bondWithinTimestamp"
       FROM transfers 
       WHERE source_chain_slug = $1
       AND destination_chain_slug = $2

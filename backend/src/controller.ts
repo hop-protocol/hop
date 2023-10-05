@@ -312,8 +312,12 @@ export class Controller {
     }
 
     const stats = timeToBridgeStats(timesArray)
-    cache.put(cacheKey, stats, cacheDurationMs)
 
-    return stats
+    if (stats) {
+      cache.put(cacheKey, stats, cacheDurationMs)
+      return stats
+    }
+
+    throw new Error('Unexpected error while getting transfer times')
   }
 }

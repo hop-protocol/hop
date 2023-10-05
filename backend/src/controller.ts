@@ -298,7 +298,15 @@ export class Controller {
       throw new Error('destinationChainSlug is required')
     }
 
-    const txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug)
+    let txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, '2 day')
+
+    if (txTimes.length < 1) {
+      txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, '4 day')
+
+      if (txTimes.length < 1) {
+        throw new Error('No transfer data available for set periods') 
+      }
+    }
 
     // array of transfer times as numbers
     const timesArray = txTimes.map(record => Number(record.bondWithinTimestamp))

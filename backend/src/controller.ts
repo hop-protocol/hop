@@ -287,7 +287,7 @@ export class Controller {
     return data
   }
 
-  async getTransferTimes(params: any): Promise<TimeToBridgeStats> {
+  async getTransferTimes (params: any): Promise<TimeToBridgeStats> {
     const { sourceChainSlug, destinationChainSlug } = params
 
     if (!sourceChainSlug) {
@@ -304,7 +304,7 @@ export class Controller {
       txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, '4 day')
 
       if (txTimes.length < 1) {
-        throw new Error('No transfer data available for set periods') 
+        throw new Error('No transfer data available for set periods and chains')
       }
     }
 

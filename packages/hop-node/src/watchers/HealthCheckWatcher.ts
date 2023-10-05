@@ -230,6 +230,7 @@ export class HealthCheckWatcher {
     [NativeChainToken.XDAI]: parseEther('10'),
     [NativeChainToken.MATIC]: parseEther('10')
   }
+
   cacheTimestamps: Record<string, any> = {}
 
   bonderTotalLiquidity: Record<string, BigNumber> = {

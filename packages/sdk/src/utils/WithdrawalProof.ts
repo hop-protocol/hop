@@ -1,15 +1,10 @@
 import fetch from 'isomorphic-fetch'
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
 import { chainIdToSlug } from './chainIdToSlug'
+import { getSubgraphChains } from './getSubgraphChains'
 import { getSubgraphUrl } from './getSubgraphUrl'
 import { getTokenDecimals } from './getTokenDecimals'
 import { keccak256 } from 'ethereumjs-util'
-
-// TODO: read from core
-export const ChainsWithSubgraphs: Record<string, string[]> = {
-  mainnet: ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova', 'base'],
-  goerli: ['arbitrum', 'polygon', 'optimism', 'linea', 'base']
-}
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
@@ -227,12 +222,15 @@ export class WithdrawalProof {
   }
 
   private async findTransfer (transferId: string) {
-    const chainsWithSubgraphs: string[] = ChainsWithSubgraphs[this.network]
+    const chainsWithSubgraphs: string[] = getSubgraphChains(this.network)
     if (!chainsWithSubgraphs) {
       throw new Error('Expected chains with subgraphs for network: ' + this.network)
     }
     let transfer : Transfer
     for (const chain of chainsWithSubgraphs) {
+      if (chain === 'ethereum') {
+        continue
+      }
       transfer = await this.queryTransfer(transferId, chain)
       if (transfer) {
         break
@@ -241,6 +239,9 @@ export class WithdrawalProof {
 
     if (!transfer) {
       for (const chain of chainsWithSubgraphs) {
+        if (chain === 'ethereum') {
+          continue
+        }
         transfer = await this.queryTransferByTransactionHash(transferId, chain)
         if (transfer) {
           break

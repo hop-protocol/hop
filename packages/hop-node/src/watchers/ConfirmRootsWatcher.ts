@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
+import BaseBridgeWatcher from './BaseBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
-import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
@@ -38,7 +38,7 @@ export type ConfirmRootsData = {
   rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | PolygonZkBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | PolygonZkBridgeWatcher | BaseBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -90,7 +90,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
-      this.watchers[Chain.Base] = new BaseZkBridgeWatcher(watcherParams)
+      this.watchers[Chain.Base] = new BaseBridgeWatcher(watcherParams)
     }
     if (this.chainSlug === Chain.PolygonZk && enabledNetworks.includes(Chain.PolygonZk)) {
       this.watchers[Chain.PolygonZk] = new PolygonZkBridgeWatcher(watcherParams)

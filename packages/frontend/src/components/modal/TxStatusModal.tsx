@@ -61,13 +61,6 @@ function TxStatusModal(props: Props) {
               { transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate) }
             </strong>{' '}
             after the transaction is confirmed.
-            { percentileTimeEstimate !== null && percentileTimeEstimate > 0 && (
-              <>
-                <br />
-                <br />
-                Only 10% of recent transfers took more than {percentileTimeEstimate + " " + pluralize('minute', percentileTimeEstimate)}.
-              </>
-            )}
           </Typography>
           { medianTimeEstimate > fixedTimeEstimate * 1.5 &&
             <>

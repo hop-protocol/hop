@@ -1,7 +1,7 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
+import BaseBridgeWatcher from './BaseBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
-import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
 import Logger from 'src/logger'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
@@ -25,7 +25,7 @@ type Config = {
   dryMode?: boolean
 }
 
-type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher | BaseZkBridgeWatcher
+type RelayWatchers = OptimismBridgeWatcher | ArbitrumBridgeWatcher | PolygonZkBridgeWatcher | BaseBridgeWatcher
 
 // TODO: Modularize this for multiple chains
 
@@ -86,7 +86,7 @@ class RelayWatcher extends BaseWatcher {
 
     if (enabledNetworks.includes(Chain.Base)) {
       const baseChainId = this.chainSlugToId(Chain.Base)
-      this.relayWatchers[baseChainId] = new BaseZkBridgeWatcher({
+      this.relayWatchers[baseChainId] = new BaseBridgeWatcher({
         chainSlug: Chain.Base,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

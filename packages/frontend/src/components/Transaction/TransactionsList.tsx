@@ -3,13 +3,14 @@ import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
 import { Flex } from '../ui'
-import useTxHistory from 'src/contexts/AppContext/useTxHistory'
+import { useApp } from 'src/contexts/AppContext'
 import { useTxStatusStyles } from './useTxStatusStyles'
 import TransactionRow from './TransactionRow'
 
 function TransactionsList(props: any) {
   const styles = useTxStatusStyles()
-  const { transactions, clear, removeTransaction } = useTxHistory(props.transactions)
+  const { txHistory } = useApp()
+  const { transactions, clear, removeTransaction } = txHistory
 
   if (!transactions || transactions.length === 0) {
     return <Typography variant="body1">Your recent transactions will appear here...</Typography>

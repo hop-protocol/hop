@@ -51,8 +51,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
   private lastCalculated: { [destinationChain: string]: number } = {}
   private pollCount: number = 0
-  private pollTimeSec: number = 15 * 60
-  private cacheTimeSec: number = 30
+  private readonly pollTimeSec: number = 15 * 60
+  private readonly cacheTimeSec: number = 30
   private lastCacheTimestampSec: Record<string, number> = {}
   s3Upload: S3Upload
   s3Namespace: S3Upload

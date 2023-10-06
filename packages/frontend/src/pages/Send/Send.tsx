@@ -13,7 +13,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay, networkSlugToId } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
@@ -111,6 +111,48 @@ const Send: FC = () => {
 
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
+
+  // use the values saved to localStorage for default network selection (if they exist)
+  useEffect(() => {
+    const fromNetworkString = localStorage.getItem('fromNetwork')
+    const savedFromNetwork = fromNetworkString ? JSON.parse(fromNetworkString) : ''
+
+    const toNetworkString = localStorage.getItem('toNetwork')
+    const savedToNetwork = toNetworkString ? JSON.parse(toNetworkString) : ''
+
+    if (savedFromNetwork) {
+      setFromNetwork(savedFromNetwork)
+    } else if (!queryParams.sourceNetwork) {
+      setFromNetwork(networks.find(network => network.chainId === networkSlugToId(ChainSlug.Ethereum)))
+    }
+
+    if (savedToNetwork) {
+      setToNetwork(savedToNetwork)
+    }
+  }, [])
+
+  // update localStorage on network change for persistent field values
+  useEffect(() => {
+    if (fromNetwork) {
+      localStorage.setItem('fromNetwork', JSON.stringify(fromNetwork))
+    }
+
+    if (toNetwork) {
+      localStorage.setItem('toNetwork', JSON.stringify(toNetwork))
+    }
+  }, [fromNetwork, toNetwork])
+
+  // update fromNetwork to be the connectedNetwork on load and change
+  useEffect(() => {
+    if (connectedNetworkId) {
+      setFromNetwork(networks.find(network => network.chainId === connectedNetworkId))
+    }
+
+    // ensure fromNetwork is not the same as toNetwork
+    if (queryParams.sourceNetwork && queryParams.sourceNetwork === queryParams.destNetwork) {
+      setToNetwork(undefined)
+    }
+  }, [connectedNetworkId])
 
   useEffect(() => {
     if (queryParams.amount && !Number.isNaN(Number(queryParams.amount))) {

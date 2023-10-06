@@ -72,14 +72,14 @@ const ConfirmSend = (props: Props) => {
           <strong>
             Send{' '}
             {commafy(source.amount, 5)}
-            {' '}<TokenIcon width="16px" inline src={source.token.image} alt={source.token._symbol} title={source.token._symbol} />
+            {' '}<TokenIcon width="16px" inline bgTransparent src={source.token.image} alt={source.token._symbol} title={source.token._symbol} />
             &thinsp;{source.token.symbol}
           </strong>
           <br />
-          <TokenIcon width="16px" inline src={source.network.imageUrl} alt={source.network.name} title={source.token.name} />
+          <TokenIcon width="16px" inline bgTransparent src={source.network.imageUrl} alt={source.network.name} title={source.token.name} />
           &thinsp;{source.network.name}
           {' → '}
-          <TokenIcon width="16px" inline src={dest?.network?.imageUrl} alt={dest?.network?.name} title={dest?.token?.name} />
+          <TokenIcon width="16px" inline bgTransparent src={dest?.network?.imageUrl} alt={dest?.network?.name} title={dest?.token?.name} />
           &thinsp;{dest?.network?.name}
         </Typography>
 

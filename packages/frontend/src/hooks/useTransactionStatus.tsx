@@ -1,18 +1,18 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { TChain } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import { useInterval } from 'react-use'
+import { useInterval } from 'usehooks-ts'
 import Transaction from 'src/models/Transaction'
 import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
-import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
 import { find } from 'lodash'
 import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
-  const { transactions, updateTransaction } = useTxHistory()
+  const { sdk, txHistory } = useApp()
+  const { transactions, updateTransaction } = txHistory
   const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
   const [networkConfirmations, setNetworkConfirmations] = useState<number>()
   const [confirmations, setConfirmations] = useState<number>()
@@ -21,7 +21,6 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   )
   const [replaced, setReplaced] = useState<Transaction>()
 
-  const { sdk } = useApp()
   const provider = useMemo(() => {
     if (!chain) return
     const _chain = sdk.toChainModel(chain)

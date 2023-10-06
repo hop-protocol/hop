@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Transaction from 'src/models/Transaction'
@@ -7,12 +7,16 @@ import { Chain } from '@hop-protocol/sdk'
 import { useTxStatusStyles } from '../Transaction'
 import TxStatusTracker from 'src/components/Transaction/TxStatusTracker'
 import Button from 'src/components/buttons/Button'
-import { useAddTokenToMetamask } from 'src/hooks/useAddTokenToMetamask'
 import { Div, Flex, Icon } from '../ui'
 import { StyledButton } from '../buttons/StyledButton'
 import MetaMaskLogo from 'src/assets/logos/metamask.png'
 import { useTransactionStatus } from 'src/hooks'
-import { getTransferTimeString } from 'src/utils/getTransferTimeString'
+import { useAddTokenToMetamask } from 'src/hooks/useAddTokenToMetamask'
+import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
+import { getTransferTimeMinutes } from 'src/utils/getTransferTimeMinutes'
+import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
+import pluralize from 'pluralize'
+import { networkSlugToName } from 'src/utils'
 
 type Props = {
   tx: Transaction
@@ -27,16 +31,57 @@ function TxStatusModal(props: Props) {
       onClose()
     }
   }
-
-  const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
-  const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
-  const timeEstimate = sourceChain && destinationChain ? getTransferTimeString(sourceChain?.slug, destinationChain?.slug) : ''
+  
+  const { fixedTimeEstimate, medianTimeEstimate, percentileTimeEstimate } = useTransferTimeEstimate(
+    tx.networkName,
+    tx.destNetworkName
+  )
 
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
     tx,
     tx.networkName
   )
   const { success, addTokenToDestNetwork } = useAddTokenToMetamask(tx.token, tx.destNetworkName)
+
+  function InfoContent(props) {
+    const { tx, medianTimeEstimate, percentileTimeEstimate, fixedTimeEstimate } = props
+
+    if (tx && tx.token && medianTimeEstimate) {
+      return (
+        <>
+          <Typography variant="body2" color="textSecondary">
+            Your {tx.token._symbol ?? 'transfer'}{' '}
+            will arrive{' '}
+            {
+              tx.destNetworkName
+              ? `on ${networkSlugToName(tx.destNetworkName)}` 
+              : "at the destination"
+            }
+            <strong>{' '}~
+              { transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate) }
+            </strong>{' '}
+            after the transaction is confirmed.
+          </Typography>
+          { medianTimeEstimate > fixedTimeEstimate * 1.5 &&
+            <>
+              <br />
+              <Typography variant="body2" color="textSecondary" style={{ fontStyle: 'italic' }}>
+                This estimate is higher than usual and may not reflect current speeds.
+              </Typography>
+            </>
+          }
+        </>
+      )
+    } else if (tx && fixedTimeEstimate) {
+      return (
+        <Typography variant="body1"><em>{`Your ${tx.token._symbol ?? 'transfer'} will arrive ${tx.destNetworkName ? `on ${networkSlugToName(tx.destNetworkName)}` : "at the destination"} ~${fixedTimeEstimate} minutes after your transaction is confirmed.`}</em></Typography>
+      )
+    } else {
+      return (
+        <Typography variant="body1"><em>This may take a few minutes</em></Typography>
+      )
+    }
+  }
 
   return (
     <Modal onClose={handleTxStatusClose}>
@@ -49,16 +94,10 @@ function TxStatusModal(props: Props) {
       />
 
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
-        <Typography variant="body1">
-          {(tx && tx.token && timeEstimate) ? (
-            <em>
-              Your transfer will arrive at the destination in <strong>{timeEstimate}</strong>{' '}
-              after your transaction is confirmed.
-            </em>
-          ) : (
-            <em>This may take a few minutes</em>
-          )}
-        </Typography>
+        <Box margin="0 auto" maxWidth="32rem" paddingLeft={3} paddingRight={3}>
+          <InfoContent tx={tx} medianTimeEstimate={medianTimeEstimate} percentileTimeEstimate={percentileTimeEstimate} fixedTimeEstimate={fixedTimeEstimate} />
+          <br />
+        </Box>
 
         {tx?.token?.symbol && (
           <Flex mt={2} justifyCenter>

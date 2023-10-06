@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, DependencyList } from 'react'
-import { useInterval } from 'react-use'
+import { useInterval } from 'usehooks-ts'
 import { shallowEquals } from 'src/utils'
 
 function usePollValue<T>(

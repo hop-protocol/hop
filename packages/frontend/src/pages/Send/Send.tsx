@@ -13,7 +13,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay, networkSlugToId } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
@@ -61,7 +61,7 @@ const Send: FC = () => {
     settings,
   } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { checkConnectedNetworkId, address } = useWeb3Context()
+  const { checkConnectedNetworkId, address, connectedNetworkId } = useWeb3Context()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [fromNetwork, _setFromNetwork] = useState<Network>()
   const [toNetwork, _setToNetwork] = useState<Network>()
@@ -111,6 +111,48 @@ const Send: FC = () => {
 
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
+
+  // use the values saved to localStorage for default network selection (if they exist)
+  useEffect(() => {
+    const fromNetworkString = localStorage.getItem('fromNetwork')
+    const savedFromNetwork = fromNetworkString ? JSON.parse(fromNetworkString) : ''
+
+    const toNetworkString = localStorage.getItem('toNetwork')
+    const savedToNetwork = toNetworkString ? JSON.parse(toNetworkString) : ''
+
+    if (savedFromNetwork) {
+      setFromNetwork(savedFromNetwork)
+    } else if (!queryParams.sourceNetwork) {
+      setFromNetwork(networks.find(network => network.chainId === networkSlugToId(ChainSlug.Ethereum)))
+    }
+
+    if (savedToNetwork) {
+      setToNetwork(savedToNetwork)
+    }
+  }, [])
+
+  // update localStorage on network change for persistent field values
+  useEffect(() => {
+    if (fromNetwork) {
+      localStorage.setItem('fromNetwork', JSON.stringify(fromNetwork))
+    }
+
+    if (toNetwork) {
+      localStorage.setItem('toNetwork', JSON.stringify(toNetwork))
+    }
+  }, [fromNetwork, toNetwork])
+
+  // update fromNetwork to be the connectedNetwork on load and change
+  useEffect(() => {
+    if (connectedNetworkId) {
+      setFromNetwork(networks.find(network => network.chainId === connectedNetworkId))
+    }
+
+    // ensure fromNetwork is not the same as toNetwork
+    if (queryParams.sourceNetwork && queryParams.sourceNetwork === queryParams.destNetwork) {
+      setToNetwork(undefined)
+    }
+  }, [connectedNetworkId])
 
   useEffect(() => {
     if (queryParams.amount && !Number.isNaN(Number(queryParams.amount))) {
@@ -453,7 +495,7 @@ const Send: FC = () => {
     const networkId = Number(fromNetwork.networkId)
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
     if (!isNetworkConnected) {
-      throw new Error('wrong network connected')
+      throw new Error(`wrong network connected on wallet. Expected chainId "${networkId}", got "${connectedNetworkId}"`)
     }
 
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
@@ -639,14 +681,23 @@ const Send: FC = () => {
         setManualWarning(
           'Warning: make sure Gnosis Safe exists at the destination chain otherwise it may result in lost funds.'
         )
+      } else if (isSmartContractWallet && address?.eq(customRecipient)) {
+        setManualWarning(
+          'Warning: make sure smart contract wallet exists at the destination chain otherwise it may result in lost funds.'
+        )
+      } else {
+        setManualWarning(
+          'Warning: Transfers to exchanges that do not support internal transactions may result in lost funds. If the recipient is not an exchange address, then you can ignore this warning.'
+        )
       }
-      setManualWarning(
-        'Warning: Transfers to exchanges that do not support internal transactions may result in lost funds. If the recipient is not an exchange address, then you can ignore this warning.'
-      )
+    } else if (isSmartContractWallet && !customRecipient) {
+        setManualWarning(
+          'The connected wallet is a smart contract wallet. Please set the recipient address above. Make sure the recipient can receive funds at the destination chain.'
+        )
     } else {
       setManualWarning('')
     }
-  }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
+  }, [gnosisEnabled, isSmartContractWallet, fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   useEffect(() => {
     // comment this out when warning not needed anymore
@@ -681,7 +732,7 @@ const Send: FC = () => {
       estimatedReceived?.gt(0) &&
       !manualError &&
       (!disabledTx || disabledTx?.warningOnly) &&
-      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet) &&
+      (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused
     )
   }, [

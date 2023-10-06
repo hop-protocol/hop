@@ -10,7 +10,7 @@ import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import {
   Chain,
-  ChainSyncMultiplier,
+  ChainPollMultiplier,
   GasCostTransactionType,
   OneWeekMs,
   RelayableChains,
@@ -85,11 +85,10 @@ class SyncWatcher extends BaseWatcher {
     }
 
     // There is a multiplier for each chain and a multiplier for each network (passed in by config)
-    const chainSyncMultiplier = ChainSyncMultiplier?.[this.chainSlug] ?? 1
-    const networkSyncMultiplier = SyncIntervalMultiplier
-    const syncIntervalSec = SyncIntervalSec * chainSyncMultiplier * networkSyncMultiplier
-    this.syncIntervalMs = syncIntervalSec * 1000
-    this.logger.debug(`syncIntervalMs set to ${this.syncIntervalMs}. chainSyncMultiplier: ${chainSyncMultiplier}, networkSyncMultiplier: ${networkSyncMultiplier}`)
+    const chainMultiplier = ChainPollMultiplier?.[this.chainSlug] ?? 1
+    const networkMultiplier = SyncIntervalMultiplier
+    this.syncIntervalMs = SyncIntervalSec * chainMultiplier * networkMultiplier * 1000
+    this.logger.debug(`syncIntervalMs set to ${this.syncIntervalMs}. chainMultiplier: ${chainMultiplier}, networkMultiplier: ${networkMultiplier}`)
 
     if (this.syncIntervalMs > TenMinutesMs) {
       this.logger.error('syncIntervalMs must be less than 10 minutes. Please use a lower multiplier')
@@ -864,32 +863,38 @@ class SyncWatcher extends BaseWatcher {
     const {
       sourceChainId,
       transferSentTxHash,
+      transferSentBlockNumber,
       transferSentTimestamp,
       sender,
       recipient
     } = dbTransfer
 
-    if (!sourceChainId || !transferSentTxHash) {
+    if (!sourceChainId || !transferSentTxHash || !transferSentBlockNumber) {
       logger.warn(`populateTransferSentTimestampAndSender marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 
-    if (transferSentTimestamp || sender) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+    if (transferSentTimestamp && sender) {
       logger.debug(`populateTransferSentTimestampAndSender already found. dbItem: ${JSON.stringify(dbTransfer)}`)
       return
     }
 
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
-    const tx: providers.TransactionResponse = await sourceBridge.getTransaction(transferSentTxHash)
+    const tx: providers.TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
     if (!tx) {
       logger.warn(`populateTransferSentTimestampAndSender marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 
-    const { from, timestamp } = tx
-    logger.debug(`sender: ${from}, timestamp: ${timestamp}`)
+    // A timestamp should exist in a mined transaction. If it does not, look it up
+    let { from, timestamp } = tx
+    if (!timestamp) {
+      timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+    }
+
+    logger.debug(`populateTransferSentTimestampAndSender: sender: ${from}, timestamp: ${timestamp}`)
     await this.db.transfers.update(transferId, {
       sender: from,
       transferSentTimestamp: timestamp
@@ -1587,6 +1592,7 @@ class SyncWatcher extends BaseWatcher {
       const logger = this.logger.create({ id: `${Date.now()}` })
       logger.debug('pollGasCost poll start')
       try {
+        const gasPrice = await bridgeContract.provider.getGasPrice()
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const payload = [
@@ -1633,9 +1639,10 @@ class SyncWatcher extends BaseWatcher {
 
         logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, data, to, transactionType }) => {
-          const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+          const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             this.chainSlug,
             this.tokenSymbol,
+            gasPrice,
             gasLimit,
             transactionType,
             data,

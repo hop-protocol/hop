@@ -21,7 +21,7 @@ import {
 } from 'src/utils'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
-import { useInterval } from 'react-use'
+import { useInterval } from 'usehooks-ts'
 import ConnectWalletButton from './ConnectWalletButton'
 import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'

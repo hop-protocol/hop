@@ -1,8 +1,12 @@
-import { useEffect, useCallback, Dispatch, SetStateAction } from 'react'
+import { useEffect, useCallback, Dispatch, SetStateAction, useRef, useState } from 'react'
+import { useQuery } from 'react-query'
 import { useLocalStorage } from 'react-use'
 import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
 import { filterByHash, sortByRecentTimestamp } from 'src/utils'
+import isFunction from 'lodash/isFunction'
+import cloneDeepWith from 'lodash/cloneDeepWith'
+import { Hop } from '@hop-protocol/sdk'
 
 export interface TxHistory {
   transactions?: Transaction[]
@@ -21,90 +25,201 @@ export interface UpdateTransactionOptions {
   replaced?: boolean | string
 }
 
+const MAX_TRANSACTION_COUNT = 4
+
 const cacheKey = 'recentTransactions:v000'
 
 const localStorageSerializationOptions = {
   raw: false,
-  serializer: (value: Transaction[]) => {
-    return JSON.stringify(
-      value.map(tx => {
-        return tx.toObject()
-      })
-    )
+  serializer: (value: Transaction[] | undefined) => {
+    if (!value) return '' // Handle undefined if needed
+    return JSON.stringify(value.map(tx => tx.toObject()))
   },
   deserializer: (value: string) => {
-    return JSON.parse(value).map((obj: Transaction) => Transaction.fromObject(obj))
+    if (!value) return undefined // Handle empty string if needed
+    return JSON.parse(value).map((obj: any) => Transaction.fromObject(obj)) as Transaction[]
   },
 }
 
-const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
-  const [transactions, setTransactions, clear] = useLocalStorage<Transaction[]>(
-    cacheKey,
-    defaultTxs,
-    localStorageSerializationOptions
-  )
+const useTxHistory = (sdk: Hop): TxHistory => {
+  const [transactions, setTransactions] = useState<Transaction[] | undefined>([])
 
-  function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
-    const filtered = filterByHash(txs, hashFilter)
-    setTransactions(sortByRecentTimestamp([...filtered, tx]).slice(0, 3))
+  useEffect(() => {
+    // on mount, load from local storage
+    const storedTxs = localStorage.getItem(cacheKey)
+    if (storedTxs) {
+      setTransactions(localStorageSerializationOptions.deserializer(storedTxs))
+    }
+  }, [])
+
+  useEffect(() => {
+    // on transactions change, save to local storage
+    if (transactions) {
+      localStorage.setItem(cacheKey, localStorageSerializationOptions.serializer(transactions))
+    }
+  }, [transactions])
+
+  function clear() {
+    try {
+      localStorage.removeItem(cacheKey)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  const addTransaction = useCallback(
-    (tx: Transaction) => {
-      // disable this feature
-      return
-      // If tx exists with hash == tx.replaced, remove it
-      const match = find(transactions, ['hash', tx.replaced])
-      filterSortAndSetTransactions(tx, transactions, match?.hash)
-    },
-    [transactions]
-  )
-
-  const removeTransaction = useCallback(
-    (tx: Transaction) => {
-      // If tx exists with hash == tx.replaced, remove it
-      const filtered = filterByHash(transactions, tx.hash)
-      setTransactions(sortByRecentTimestamp(filtered).slice(0, 3))
-    },
-    [transactions]
-  )
-
-  const updateTransaction = useCallback(
-    (tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) => {
-      // disable this feature
-      return
-      for (const key in updateOpts) {
-        tx[key] = updateOpts[key]
-      }
-      filterSortAndSetTransactions(tx, transactions, matchingHash || tx.hash)
-    },
-    [transactions]
-  )
-
-  // this will make sure to update in local storage the updated pending status,
-  // so it doesn't show as pending indefinitely on reload.
-  // This wouldn't be an issue if useEffect worked properly with array nested
-  // of nested objects and it detected property changes.
-  useEffect(() => {
-    transactions?.forEach(tx => {
-      const oldPending = tx.pending
-      const oldPendingDC = tx.pendingDestinationConfirmation
-      const cbPending = (pending: boolean) => {
-        if (oldPending !== pending) {
-          updateTransaction(tx, { pending })
-        }
-      }
-      const cbPendingDC = (pendingDestinationConfirmation: boolean) => {
-        if (oldPendingDC !== pendingDestinationConfirmation) {
-          updateTransaction(tx, { pendingDestinationConfirmation })
-        }
-      }
-      tx.once('pending', cbPending)
-      tx.once('pendingDestinationConfirmation', cbPendingDC)
+  function filterSortAndSetTransactions(tx: Transaction, txs?: Transaction[], hashFilter?: string) {
+    setTransactions(prevTransactions => {
+      const currentTxs = txs ?? prevTransactions ?? []
+      const filtered = filterByHash(currentTxs, hashFilter)
+      return sortByRecentTimestamp([...filtered, tx]).slice(0, MAX_TRANSACTION_COUNT)
     })
+  }
+
+  function addTransaction(tx: Transaction) {
+    const match = find(transactions, ['hash', tx.replaced])
+    filterSortAndSetTransactions(tx, transactions, match?.hash)
+  }
+
+  function removeTransaction(tx: Transaction) {
+    setTransactions(prevTransactions => {
+      if (!prevTransactions) return []
+      const filtered = filterByHash(prevTransactions, tx.hash)
+      return sortByRecentTimestamp(filtered).slice(0, MAX_TRANSACTION_COUNT)
+    })
+  }
+
+  function updateTransaction(tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) {
+    setTransactions(prevTransactions => {
+      if (!prevTransactions) return []
+      
+      // deep clone to avoid mutating state directly
+      const customizer = (value) => {
+        if (isFunction(value)) {
+          return value
+        }
+      }
+
+      const clonedTxs = cloneDeepWith(prevTransactions, customizer)
+      const targetTx = find(clonedTxs, ['hash', matchingHash || tx.hash])
+
+      if (targetTx) {
+        for (const key in updateOpts) {
+          targetTx[key] = updateOpts[key]
+        }
+      }
+      
+      return sortByRecentTimestamp(clonedTxs).slice(0, MAX_TRANSACTION_COUNT)
+    })
+  }
+
+  // stores hashes for either pending origin or destination confirmation to prevent redundant listeners
+  const listenerSet = useRef(new Set())
+
+  const listenForOriginConfirmation = async (tx) => {
+    try {
+      tx.provider.once(tx.hash, transaction => {
+        listenerSet.current.delete(tx.hash)
+        updateTransaction(tx, { pending: false })
+      })
+    } catch (err) {
+      console.error('Error with origin transaction listener:', err)
+      listenerSet.current.delete(tx.hash)
+    }
+  }
+
+  // stores setInterval IDs -- may be cleared to stop polling
+  const intervalRefs = useRef({})
+  // stores setTimeouts to limit polling to one hour
+  const timeoutRefs = useRef({})
+
+  const POLLING_INTERVAL_MS = 15000
+  const POLLING_TIMEOUT_MS = 3600000
+
+  const getBondedTxHash = (tx) => {
+    return new Promise((resolve, reject) => {
+      if (!timeoutRefs.current[tx.hash]) {
+        timeoutRefs.current[tx.hash] = setTimeout(() => {
+          clearInterval(intervalRefs.current[tx.hash])
+          updateTransaction(tx, { pendingDestinationConfirmation: false })
+          reject(new Error('Polling timed out'))
+        }, POLLING_TIMEOUT_MS)
+      }
+
+      const fetchAPI = async () => {
+        try {
+          const response = await sdk.getTransferStatus(tx.hash)
+
+          if (!response) {
+            return
+          }
+
+          const bondTransactionHash = response[0].bondTransactionHash
+          if (bondTransactionHash) {
+            clearInterval(intervalRefs.current[tx.hash])
+            clearTimeout(timeoutRefs.current[tx.hash])
+            resolve(bondTransactionHash)
+          }
+        } catch (err) {
+          console.error(err)
+        }
+      }
+
+      const interval = setInterval(fetchAPI, POLLING_INTERVAL_MS)
+      intervalRefs.current[tx.hash] = interval
+    })
+  }
+
+  const listenForDestinationConfirmation = async (tx) => {
+
+    const bondTransactionHash = await getBondedTxHash(tx)
+
+    if (!bondTransactionHash) {
+      listenerSet.current.delete(tx.hash)
+      return
+    }
+
+    try {
+      tx.destProvider.once(bondTransactionHash, transaction => {
+        updateTransaction(tx, { pendingDestinationConfirmation: false })
+      })
+    } catch (err) {
+      console.error('Error with destination transaction listener:', err)
+      listenerSet.current.delete(tx.hash)
+    }
+  }
+
+  useEffect(() => {
+    if (!transactions) {
+      return
+    }
+
+    transactions.forEach(tx => {
+      if (!listenerSet.current.has(tx.hash)) {
+        listenerSet.current.add(tx.hash)
+      } else {
+        return
+      }
+
+      if (tx.pending) {
+        listenForOriginConfirmation(tx)
+      } else if (tx.pendingDestinationConfirmation) {
+        listenForDestinationConfirmation(tx)
+      }
+    })
+
     return () => {
-      transactions?.forEach(tx => {
-        tx.removeAllListeners()
+      Object.keys(timeoutRefs.current).forEach(hash => {
+        if (!listenerSet.current.has(hash)) {
+          clearTimeout(timeoutRefs.current[hash] as ReturnType<typeof setTimeout>)
+          delete timeoutRefs.current[hash]
+        }
+      })
+
+      Object.keys(intervalRefs.current).forEach(hash => {
+        if (!listenerSet.current.has(hash)) {
+          clearInterval(intervalRefs.current[hash] as ReturnType<typeof setInterval>)
+          delete intervalRefs.current[hash]
+        }
       })
     }
   }, [transactions])

@@ -461,6 +461,8 @@ export async function _fetchTransfers (chain: Chain, startTime: number, endTime:
         transactionHash
         timestamp
         token
+        relayer
+        logIndex
       }
     }
   `

@@ -2,7 +2,7 @@ import React, { createContext, FC, ReactNode, useContext, useEffect, useState } 
 import { ThemeProvider as MuiThemeProvider, Theme } from '@material-ui/core/styles'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
 import { lightTheme, darkTheme } from './theme'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage } from 'usehooks-ts'
 import { Theme as StyledSystemTheme } from 'styled-system'
 import { paletteDark, paletteLight } from './overrides'
 import get from 'lodash/get'

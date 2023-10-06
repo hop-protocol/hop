@@ -110,4 +110,12 @@ describe('fallback provider', () => {
     console.log('resolver:', resolver)
     expect(resolver).toBeTruthy()
   }, 10 * 60 * 1000)
+
+  it('Should test .once()', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const provider = bridge.toChainModel('optimism').provider as IProvider
+    expect(provider instanceof FallbackProvider).toBe(true)
+    expect(typeof provider.once).toBe('function')
+  })
 })

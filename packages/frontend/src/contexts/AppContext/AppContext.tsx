@@ -47,7 +47,7 @@ const AppContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const tokens = useTokens()
   const events = useEvents()
-  const txHistory = useTxHistory()
+  const txHistory = useTxHistory(sdk)
   const accountDetails = useAccountDetails()
   const txConfirm = useTxConfirm()
   const settings = useSettings()

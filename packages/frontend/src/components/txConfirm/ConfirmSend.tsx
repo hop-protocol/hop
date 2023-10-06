@@ -3,10 +3,15 @@ import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import Grid from '@material-ui/core/Grid'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
 import Box from '@material-ui/core/Box'
 import { useSendingTransaction } from './useSendingTransaction'
+import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
+import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
+import pluralize from 'pluralize'
+import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -47,6 +52,11 @@ const ConfirmSend = (props: Props) => {
     source,
   })
 
+  const { fixedTimeEstimate, medianTimeEstimate } = useTransferTimeEstimate(
+    source?.network?.slug,
+    dest?.network?.slug
+  )
+
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
     warning =
@@ -58,27 +68,43 @@ const ConfirmSend = (props: Props) => {
   return (
     <div className={styles.root}>
       <div className={styles.title}>
-        <div
-          style={{
-            marginBottom: '1rem',
-          }}
-        >
-          <Typography variant="h6" color="textSecondary">
+        <Typography variant="h6" color="textSecondary">
+          <strong>
             Send{' '}
-            <strong>
-              {commafy(source.amount, 5)} {source.token.symbol}
-            </strong>{' '}
-            from {source.network.name} to {dest?.network?.name}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="subtitle2" color="textSecondary">
-            Estimated Received:
-          </Typography>
-          <Typography variant="subtitle2" color="textPrimary">
-            {estimatedReceived}
-          </Typography>
-        </div>
+            {commafy(source.amount, 5)}
+            {' '}<TokenIcon width="16px" inline src={source.token.image} alt={source.token._symbol} title={source.token._symbol} />
+            &thinsp;{source.token.symbol}
+          </strong>
+          <br />
+          <TokenIcon width="16px" inline src={source.network.imageUrl} alt={source.network.name} title={source.token.name} />
+          &thinsp;{source.network.name}
+          {' → '}
+          <TokenIcon width="16px" inline src={dest?.network?.imageUrl} alt={dest?.network?.name} title={dest?.token?.name} />
+          &thinsp;{dest?.network?.name}
+        </Typography>
+
+        <br />
+
+        <Grid container justifyContent="center" spacing={6}>
+          <Grid item>
+            <Typography variant="subtitle2" color="textSecondary">
+              Estimated Received
+            </Typography>
+            <Typography variant="subtitle2" color="textPrimary">
+              {estimatedReceived}
+            </Typography>
+          </Grid>
+
+
+          <Grid item>
+            <Typography variant="subtitle2" color="textSecondary">
+              Estimated Wait
+            </Typography>
+            <Typography variant="subtitle2" color="textPrimary">
+              {transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate)}
+            </Typography>
+          </Grid>
+        </Grid>
         {!!customRecipient && (
           <>
             <Typography variant="body1" color="textPrimary" className={styles.customRecipient}>

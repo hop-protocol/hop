@@ -8,7 +8,7 @@ import Address from 'src/models/Address'
 import { formatError } from 'src/utils/format'
 import { claimChainId } from './config'
 import { networkIdToSlug } from 'src/utils/networks'
-import { useInterval } from 'react-use'
+import { useInterval } from 'usehooks-ts'
 import { getProviderByNetworkName, getProvider } from 'src/utils/getProvider'
 import { reactAppNetwork } from 'src/config'
 

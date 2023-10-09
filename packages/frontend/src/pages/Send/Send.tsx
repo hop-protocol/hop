@@ -900,7 +900,7 @@ const Send: FC = () => {
 
       {isTokenDeprecated && fromNetwork?.isL1 && (
         <Box mb={4}>
-          <Alert severity="warning" text={(sourceToken.symbol ? ("The " + sourceToken.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
+          <Alert severity="error" text={(sourceToken.symbol ? ("The " + sourceToken.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>
       )}
 

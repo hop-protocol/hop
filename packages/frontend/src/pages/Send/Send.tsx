@@ -735,7 +735,8 @@ const Send: FC = () => {
       !manualError &&
       (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
-      !destinationChainPaused
+      !destinationChainPaused &&
+      !(isTokenDeprecated && (fromNetwork?.slug === 'ethereum'))
     )
   }, [
     needsApproval,
@@ -754,6 +755,8 @@ const Send: FC = () => {
     gnosisEnabled,
     isCorrectSignerNetwork,
     isSmartContractWallet,
+    isTokenDeprecated,
+    fromNetwork?.slug
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
@@ -895,7 +898,7 @@ const Send: FC = () => {
         </Box>
       )}
 
-      {isTokenDeprecated && (
+      {isTokenDeprecated && (fromNetwork?.slug === 'ethereum') && (
         <Box mb={4}>
           <Alert severity="warning" text={(sourceToken.symbol ? ("The " + sourceToken.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>

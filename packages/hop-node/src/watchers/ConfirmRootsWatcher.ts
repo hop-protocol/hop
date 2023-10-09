@@ -36,6 +36,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
   constructor (config: Config) {
     super(config)
     this.logger.debug('starting watcher')
+
     const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.l1MessengerWrapper
     if (!l1MessengerWrapperContract) {
       throw new Error(`Messenger wrapper contract not found for ${this.chainSlug}.${this.tokenSymbol}`)

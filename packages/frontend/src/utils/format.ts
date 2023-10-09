@@ -79,6 +79,8 @@ export function formatError(error: unknown, network?: Network): string {
     errMsg = `An RPC error occurred. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
     errMsg = `An RPC error occurred. Please check your wallet network settings are correct and refresh page to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
+  } else if (errMsg.includes('no matching key')) { // https://github.com/WalletConnect/walletconnect-monorepo/issues/1772
+    errMsg = `A WalletConnect error occurred. This may be an issue with the Wallet you are using. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

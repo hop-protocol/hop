@@ -50,6 +50,10 @@ import './verifyCommits'
 import './withdraw'
 import './withdrawalProof'
 
+// internal metrics
+import './metrics/bonderTxCost'
+import './metrics/bonderBalance'
+
 program.version(packageJson.version)
 program.parse(process.argv)
 

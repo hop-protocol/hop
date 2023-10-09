@@ -736,7 +736,7 @@ const Send: FC = () => {
       (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused &&
-      !(isTokenDeprecated && (fromNetwork?.slug === 'ethereum'))
+      !(isTokenDeprecated && fromNetwork?.isL1)
     )
   }, [
     needsApproval,
@@ -898,7 +898,7 @@ const Send: FC = () => {
         </Box>
       )}
 
-      {isTokenDeprecated && (fromNetwork?.slug === 'ethereum') && (
+      {isTokenDeprecated && fromNetwork?.isL1 && (
         <Box mb={4}>
           <Alert severity="warning" text={(sourceToken.symbol ? ("The " + sourceToken.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>

@@ -207,17 +207,27 @@ const ConvertContent: FC = () => {
   }
 
   const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
+  const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
-  const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true)
+  const [sendButtonActive, setSendButtonActive] = useState(validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !(specificRouteDeprecated))
 
-  const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
+  const [approvalButtonActive, setApprovalButtonActive] = useState(!needsTokenForFee && needsApproval && validFormFields && !(specificRouteDeprecated))
   const allowCustomRecipient = convertOption?.slug === 'hop-bridge'
+
+  useEffect(() => {
+    if (specificRouteDeprecated) {
+      setSendButtonActive(false)
+      setApprovalButtonActive(false)
+    } else {
+      setSendButtonActive(true)
+      setApprovalButtonActive(true)
+    }
+  }, [isTokenDeprecated, convertOption, sourceNetwork?.isL1])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {(unsupportedAsset || (assetWithoutAmm && convertOption instanceof AmmConvertOption) || (isTokenDeprecated && convertOption instanceof HopConvertOption)) ? (
+      {(unsupportedAsset || (assetWithoutAmm && convertOption instanceof AmmConvertOption)) ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
             {error}
@@ -272,7 +282,7 @@ const ConvertContent: FC = () => {
             )}
           </Box>
 
-          <div className={styles.details}>{details}</div>
+          {!error && <div className={styles.details}>{details}</div>}
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error">{manualWarning}</Alert>

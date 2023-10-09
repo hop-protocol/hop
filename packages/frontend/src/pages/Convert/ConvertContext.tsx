@@ -147,12 +147,12 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } else if (assetWithoutAmm && convertOption instanceof AmmConvertOption) {
       const { chain, tokenSymbol } = assetWithoutAmm
       setError(`${tokenSymbol} does not use an AMM on ${chain}`)
-    } else if (isTokenDeprecated && convertOption instanceof HopConvertOption) {
+    } else if (isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.slug === 'ethereum') {
       setError(`The ${selectedNetwork} bridge is deprecated. Only transfers from L2 to L1 are supported.`)
     } else {
       setError('')
     }
-  }, [isTokenDeprecated, unsupportedAsset, assetWithoutAmm, convertOption])
+  }, [isTokenDeprecated, unsupportedAsset, assetWithoutAmm, convertOption, sourceNetwork])
 
   const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
 
@@ -259,7 +259,6 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         return
       }
 
-      setError(undefined)
       setWarning(warning)
       setDestTokenAmount(formattedAmount)
       setAmountOutMin(_amountOutMin)

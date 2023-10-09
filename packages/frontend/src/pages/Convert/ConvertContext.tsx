@@ -12,7 +12,7 @@ import React, {
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { BigNumber } from 'ethers'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { Token } from '@hop-protocol/sdk'
 import find from 'lodash/find'
 import Network from 'src/models/Network'
@@ -58,6 +58,7 @@ type ConvertContextProps = {
   setError: (error?: string) => void
   setSourceTokenAmount: (value: string) => void
   setTx: (tx?: Transaction) => void
+  setViaParamValue: (viaParamValue: string) => void
   setWarning: (warning?: string) => void
   sourceBalance?: BigNumber
   sourceNetwork?: Network
@@ -68,6 +69,7 @@ type ConvertContextProps = {
   unsupportedAsset: any
   assetWithoutAmm: any
   validFormFields: boolean
+  viaParamValue: string
   warning?: ReactNode
   convertOption: ConvertOption
   destinationChainPaused: boolean
@@ -103,7 +105,9 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const { assetWithoutAmm, unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
-  const viaParamValue = queryParams.get('via') ?? 'amm'
+  const { via } = useParams()
+  const [viaParamValue, setViaParamValue] = useState<string>(via ?? 'amm')
+
   const convertOptions = [new AmmConvertOption(), new HopConvertOption()]
   const convertOption = useMemo(
     () => find(
@@ -494,10 +498,12 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
       value={{
         approveTokens,
         approving,
+        assetWithoutAmm,
         convertOption,
         convertOptions,
         convertTokens,
         destBalance,
+        destinationChainPaused,
         destNetwork,
         destToken,
         destTokenAmount,
@@ -514,6 +520,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         selectBothNetworks,
         setSourceTokenAmount,
         setTx,
+        setViaParamValue,
         setWarning,
         sourceBalance,
         sourceNetwork,
@@ -522,10 +529,9 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         switchDirection,
         tx,
         unsupportedAsset,
-        assetWithoutAmm,
         validFormFields,
-        warning,
-        destinationChainPaused
+        viaParamValue,
+        warning
       }}
     >
       {children}

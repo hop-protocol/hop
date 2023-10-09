@@ -1,5 +1,5 @@
-import React, { FC, ChangeEvent } from 'react'
-import { useNavigate, useLocation, useMatch } from 'react-router-dom'
+import React, { FC, ChangeEvent, useState, useEffect } from 'react'
+import { useNavigate, useLocation, useMatch, useParams } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
@@ -42,9 +42,16 @@ const useStyles = makeStyles(theme => ({
 const Convert: FC = () => {
   const styles = useStyles()
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
-  const { convertOptions, selectedNetwork, selectBothNetworks } = useConvert()
+  const { convertOptions, selectedNetwork, selectBothNetworks, viaParamValue, setViaParamValue } = useConvert()
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
+  const { via } = useParams()
+
+  useEffect(() => {
+    if (!via) {
+      navigate('/convert/amm')
+    }
+  }, [viaParamValue, navigate])
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
@@ -55,12 +62,10 @@ const Convert: FC = () => {
     }
   }
 
-  const queryParams = new URLSearchParams(search)
-  const viaParamValue = queryParams.get('via') || 'amm'
   const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
     const value = event.target.value as string
-    queryParams.set('via', value)
-    navigate(`${pathname}?${queryParams.toString()}`)
+    setViaParamValue(value)
+    navigate(`/convert/${value}${search}`)
   }
 
   return (

@@ -34,6 +34,8 @@ if (enabledTokens) {
   addresses.tokens = filteredAddresses
 }
 
+const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
+
 // TODO: mv to src/config/networks
 let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
 if (enabledChains) {
@@ -189,5 +191,6 @@ export {
   blocknativeDappid,
   stakingRewardsContracts,
   hopStakingRewardsContracts,
-  enabledChains
+  enabledChains,
+  deprecatedTokens
 }

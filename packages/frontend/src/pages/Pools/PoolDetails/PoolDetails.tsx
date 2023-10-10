@@ -132,7 +132,8 @@ export function PoolDetails () {
 
   const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(tokenSymbol)) ?? false
   const stakingEnabled = stakingRewards.length > 0
-  const selectedStakingContractAddress = stakingRewards[selectedStaking]?.stakingContractAddress
+  const selectedStakingContractAddress = stakingRewards[selectedStaking] ? stakingRewards[selectedStaking].stakingContractAddress : null
+
   const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract && hasBalance
 
   return (
@@ -267,7 +268,7 @@ export function PoolDetails () {
                       handleStakingChange={handleStakingChange}
                       isTokenDeprecated={isTokenDeprecated}
                       selectedStaking={selectedStaking}
-                      stakingContractAddress={stakingRewards[selectedStaking].stakingContractAddress}
+                      stakingContractAddress={selectedStakingContractAddress}
                       stakingEnabled={stakingEnabled}
                       stakingRewards={stakingRewards}
                       tokenSymbol={tokenSymbol}

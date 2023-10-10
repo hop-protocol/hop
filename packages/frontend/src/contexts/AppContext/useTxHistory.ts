@@ -76,8 +76,10 @@ const useTxHistory = (sdk: Hop): TxHistory => {
   }
 
   function addTransaction(tx: Transaction) {
-    const match = find(transactions, ['hash', tx.replaced])
-    filterSortAndSetTransactions(tx, transactions, match?.hash)
+    if (tx.destNetworkName && tx.destNetworkName !== tx.networkName) {
+      const match = find(transactions, ['hash', tx.replaced])
+      filterSortAndSetTransactions(tx, transactions, match?.hash)
+    }
   }
 
   function removeTransaction(tx: Transaction) {

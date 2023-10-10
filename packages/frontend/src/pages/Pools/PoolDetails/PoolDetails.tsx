@@ -14,6 +14,8 @@ import {
   BNMin,
   getTokenImage
 } from 'src/utils'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { stakingRewardTokens, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { useStyles } from './useStyles'
 import { TopPoolStats } from './TopPoolStats'
@@ -86,7 +88,7 @@ export function PoolDetails () {
   const { search } = useLocation()
   const { tab } = useParams<{ tab: string }>()
   const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
-  const [selectedStaking, setSelectedStaking] = useState('0')
+  const [selectedStaking, setSelectedStaking] = useState<string>('0')
   const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)
 
   function goToTab(value: string) {
@@ -99,7 +101,7 @@ export function PoolDetails () {
     goToTab(newValue)
   }
 
-  function handleStakingChange(event: ChangeEvent<{}>, newValue: string) {
+  function handleStakingChange(event: ChangeEvent<{}>, newValue: string): void {
     event.preventDefault()
     setSelectedStaking(newValue)
   }
@@ -128,8 +130,10 @@ export function PoolDetails () {
     })
   }
 
+  const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(tokenSymbol)) ?? false
   const stakingEnabled = stakingRewards.length > 0
-  const selectedStakingContractAddress = stakingRewards[selectedStaking]?.stakingContractAddress
+  const selectedStakingContractAddress = stakingRewards[selectedStaking] ? stakingRewards[selectedStaking].stakingContractAddress : null
+
   const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract && hasBalance
 
   return (
@@ -222,6 +226,7 @@ export function PoolDetails () {
                       depositAmountTotalDisplayFormatted={depositAmountTotalDisplayFormatted}
                       enoughBalance={enoughBalance}
                       isDepositing={isDepositing}
+                      isTokenDeprecated={isTokenDeprecated}
                       priceImpactFormatted={priceImpactFormatted}
                       selectedNetwork={selectedNetwork}
                       setToken0Amount={setToken0Amount}
@@ -258,58 +263,16 @@ export function PoolDetails () {
                       totalAmount={totalAmount}
                       walletConnected={walletConnected}
                   />}
-                  {selectedTab === 'stake' && (
-                    <>
-                      {stakingEnabled && (
-                        <>
-                        {stakingRewards.length > 0 && (
-                          <Box mb={2} display="flex" alignItems="center" className={styles.stakingTabsContainer}>
-                            <Box>
-                              <Typography variant="subtitle1">
-                                Earn
-                              </Typography>
-                            </Box>
-                            <Tabs value={selectedStaking} onChange={handleStakingChange}>
-                              {stakingRewards.map((stakingReward, index) => {
-                                const value = index.toString()
-                                const selected = selectedStaking === value
-                                return (
-                                  <Tab key={stakingReward.rewardTokenSymbol} label={<Box style={{
-                                    paddingLeft: '1rem',
-                                    paddingBottom: '1rem',
-                                    transition: 'translate(0, 5px)',
-                                  }} >
-                                  <Box display="flex" alignItems="center" data-selected={selected} className={styles.stakingTabButtonBox}>
-                                    <Box mr={0.5} display="flex" justifyItems="center" alignItems="center">
-                                      <img className={styles.stakingTabImage} src={stakingReward.rewardTokenImageUrl} alt={stakingReward.rewardTokenSymbol} title={stakingReward.rewardTokenSymbol} />
-                                    </Box>
-                                    <Typography variant="body2">
-                                      {stakingReward.rewardTokenSymbol}
-                                    </Typography>
-                                  </Box>
-                                  </Box>} value={value} />
-                                )
-                              })}
-                            </Tabs>
-                          </Box>
-                        )}
-
-                        <Box mb={4}>
-                          <StakeForm
-                            chainSlug={chainSlug}
-                            stakingContractAddress={stakingRewards[selectedStaking].stakingContractAddress}
-                            tokenSymbol={tokenSymbol}
-                          />
-                        </Box>
-                        </>
-                      )}
-                      {!stakingEnabled && (
-                        <Typography variant="body1">
-                          There is no staking available for this asset on this chain.
-                        </Typography>
-                      )}
-                    </>
-                  )}
+                  {selectedTab === 'stake' && <StakeForm
+                      chainSlug={chainSlug}
+                      handleStakingChange={handleStakingChange}
+                      isTokenDeprecated={isTokenDeprecated}
+                      selectedStaking={selectedStaking}
+                      stakingContractAddress={selectedStakingContractAddress}
+                      stakingEnabled={stakingEnabled}
+                      stakingRewards={stakingRewards}
+                      tokenSymbol={tokenSymbol}
+                  />}
                 </Box>
                 <Box>
                   <Alert severity="warning">{warning}</Alert>

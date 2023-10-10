@@ -715,9 +715,16 @@ const Send: FC = () => {
   }, [fromNetwork, toNetwork])
 
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
-  const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?.symbol)
 
-  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
+  const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?.symbol)
+  const specificRouteDeprecated = isTokenDeprecated && !toNetwork?.isL1
+
+  const checkApproveButtonActive = () => (!needsTokenForFee && !unsupportedAsset && needsApproval && !specificRouteDeprecated)
+  const [approveButtonActive, setApproveButtonActive] = useState(checkApproveButtonActive())
+
+  useEffect(() => {
+    setApproveButtonActive(checkApproveButtonActive())
+  }, [needsTokenForFee, unsupportedAsset, needsApproval, specificRouteDeprecated])
 
   const sendButtonActive = useMemo(() => {
     return !!(
@@ -736,7 +743,7 @@ const Send: FC = () => {
       (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused &&
-      !(isTokenDeprecated && fromNetwork?.isL1)
+      !specificRouteDeprecated
     )
   }, [
     needsApproval,
@@ -898,9 +905,9 @@ const Send: FC = () => {
         </Box>
       )}
 
-      {isTokenDeprecated && fromNetwork?.isL1 && (
+      {specificRouteDeprecated && (
         <Box mb={4}>
-          <Alert severity="error" text={(sourceToken.symbol ? ("The " + sourceToken.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
+          <Alert severity="error" text={(sourceToken?.symbol ? ("The " + sourceToken?.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>
       )}
 

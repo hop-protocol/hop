@@ -49,7 +49,7 @@ const Convert: FC = () => {
 
   useEffect(() => {
     if (!via) {
-      navigate('/convert/amm')
+      navigate(`/convert/${viaParamValue}${search}`)
     }
   }, [viaParamValue, navigate])
 

@@ -66,6 +66,7 @@ if (process.env.NODE_ENV !== 'test') {
   console.debug('config hop app network:', hopAppNetwork)
   console.debug('config chains (networks):', networks)
   console.debug('config addresses:', addresses.tokens)
+  console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
 }
 
 const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID

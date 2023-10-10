@@ -24,7 +24,6 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
   useTransactionReplacement,
@@ -146,7 +145,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(sourceToken, address)
   const { balance: destBalance, loading: loadingDestBalance } = useBalance(destToken, address)
 
-  const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
+  const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?._symbol ?? '')
 
   useEffect(() => {
     if (unsupportedAsset) {
@@ -155,12 +154,12 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } else if (assetWithoutAmm && convertOption instanceof AmmConvertOption) {
       const { chain, tokenSymbol } = assetWithoutAmm
       setError(`${tokenSymbol} does not use an AMM on ${chain}`)
-    } else if (isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.slug === 'ethereum') {
-      setError(`The ${selectedNetwork} bridge is deprecated. Only transfers from L2 to L1 are supported.`)
+    } else if (isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isLayer1) {
+      setError(`The ${sourceToken?._symbol} bridge is deprecated. Only transfers from L2 to L1 are supported.`)
     } else {
       setError('')
     }
-  }, [isTokenDeprecated, unsupportedAsset, assetWithoutAmm, convertOption, sourceNetwork])
+  }, [isTokenDeprecated, unsupportedAsset, assetWithoutAmm, convertOption, sourceNetwork, sourceToken])
 
   const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
 

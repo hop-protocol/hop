@@ -210,20 +210,22 @@ const ConvertContent: FC = () => {
   const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
-  const [sendButtonActive, setSendButtonActive] = useState(validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !(specificRouteDeprecated))
 
-  const [approvalButtonActive, setApprovalButtonActive] = useState(!needsTokenForFee && needsApproval && validFormFields && !(specificRouteDeprecated))
-  const allowCustomRecipient = convertOption?.slug === 'hop-bridge'
+  const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated)
+  const [sendButtonActive, setSendButtonActive] = useState(checkSendButtonActive())
 
   useEffect(() => {
-    if (specificRouteDeprecated) {
-      setSendButtonActive(false)
-      setApprovalButtonActive(false)
-    } else {
-      setSendButtonActive(true)
-      setApprovalButtonActive(true)
-    }
-  }, [isTokenDeprecated, convertOption, sourceNetwork?.isL1])
+    setSendButtonActive(checkSendButtonActive())
+  }, [validFormFields, unsupportedAsset, needsApproval, sendableWarning, error, manualWarning, gnosisEnabled, isCorrectSignerNetwork, specificRouteDeprecated])
+
+  const checkApprovalButtonActive = () => (!needsTokenForFee && needsApproval && validFormFields && !specificRouteDeprecated)
+  const [approvalButtonActive, setApprovalButtonActive] = useState(checkApprovalButtonActive())
+
+  useEffect(() => {
+    setApprovalButtonActive(checkApprovalButtonActive())
+  }, [needsTokenForFee, needsApproval, validFormFields, specificRouteDeprecated])
+
+  const allowCustomRecipient = convertOption?.slug === 'hop-bridge'
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

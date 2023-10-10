@@ -108,6 +108,10 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { via } = useParams()
   const [viaParamValue, setViaParamValue] = useState<string>(via ?? 'amm')
 
+  useEffect(() => {
+    setViaParamValue(via ?? 'amm')
+  }, [via])
+
   const convertOptions = [new AmmConvertOption(), new HopConvertOption()]
   const convertOption = useMemo(
     () => find(

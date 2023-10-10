@@ -44,6 +44,7 @@ import {
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
@@ -715,7 +716,15 @@ const Send: FC = () => {
 
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
 
-  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
+  const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?.symbol)
+  const specificRouteDeprecated = isTokenDeprecated && !toNetwork?.isL1
+
+  const checkApproveButtonActive = () => (!needsTokenForFee && !unsupportedAsset && needsApproval && !specificRouteDeprecated)
+  const [approveButtonActive, setApproveButtonActive] = useState(checkApproveButtonActive())
+
+  useEffect(() => {
+    setApproveButtonActive(checkApproveButtonActive())
+  }, [needsTokenForFee, unsupportedAsset, needsApproval, specificRouteDeprecated])
 
   const sendButtonActive = useMemo(() => {
     return !!(
@@ -733,7 +742,8 @@ const Send: FC = () => {
       !manualError &&
       (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
-      !destinationChainPaused
+      !destinationChainPaused &&
+      !specificRouteDeprecated
     )
   }, [
     needsApproval,
@@ -752,6 +762,8 @@ const Send: FC = () => {
     gnosisEnabled,
     isCorrectSignerNetwork,
     isSmartContractWallet,
+    isTokenDeprecated,
+    fromNetwork?.slug
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
@@ -890,6 +902,12 @@ const Send: FC = () => {
       {showLineaFeeWarning && (
         <Box mb={4}>
           <Alert severity="warning" text="The Linea chain is undergoing maintenance and Linea has increased the message relay fee to a high value. Please see Linea Discord for updates." />
+        </Box>
+      )}
+
+      {specificRouteDeprecated && (
+        <Box mb={4}>
+          <Alert severity="error" text={(sourceToken?.symbol ? ("The " + sourceToken?.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>
       )}
 

@@ -718,17 +718,13 @@ const Send: FC = () => {
 
   const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?.symbol)
   const specificRouteDeprecated = isTokenDeprecated && !toNetwork?.isL1
-  console.log({ specificRouteDeprecated, isTokenDeprecated, toNetwork })
 
-  const [approveButtonActive, setApproveButtonActive] = useState(!needsTokenForFee && !unsupportedAsset && needsApproval)
+  const checkApproveButtonActive = () => (!needsTokenForFee && !unsupportedAsset && needsApproval && !specificRouteDeprecated)
+  const [approveButtonActive, setApproveButtonActive] = useState(checkApproveButtonActive())
 
   useEffect(() => {
-    if (!specificRouteDeprecated && !needsTokenForFee && !unsupportedAsset && needsApproval) {
-      setApproveButtonActive(true)
-    } else {
-      setApproveButtonActive(false)
-    }
-  }, [specificRouteDeprecated, needsTokenForFee, unsupportedAsset, needsApproval])
+    setApproveButtonActive(checkApproveButtonActive())
+  }, [needsTokenForFee, unsupportedAsset, needsApproval, specificRouteDeprecated])
 
   const sendButtonActive = useMemo(() => {
     return !!(
@@ -911,7 +907,7 @@ const Send: FC = () => {
 
       {specificRouteDeprecated && (
         <Box mb={4}>
-          <Alert severity="error" text={(sourceToken.symbol ? ("The " + sourceToken.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
+          <Alert severity="error" text={(sourceToken?.symbol ? ("The " + sourceToken?.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>
       )}
 

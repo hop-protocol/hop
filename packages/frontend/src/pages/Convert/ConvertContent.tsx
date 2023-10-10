@@ -10,11 +10,14 @@ import TxStatusModal from 'src/components/modal/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
+import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import IconButton from '@material-ui/core/IconButton'
@@ -203,11 +206,25 @@ const ConvertContent: FC = () => {
     setCustomRecipient(value)
   }
 
-  const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
-  const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true)
+  const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
+  const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
-  const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
+  const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
+
+  const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated)
+  const [sendButtonActive, setSendButtonActive] = useState(checkSendButtonActive())
+
+  useEffect(() => {
+    setSendButtonActive(checkSendButtonActive())
+  }, [validFormFields, unsupportedAsset, needsApproval, sendableWarning, error, manualWarning, gnosisEnabled, isCorrectSignerNetwork, specificRouteDeprecated])
+
+  const checkApprovalButtonActive = () => (!needsTokenForFee && needsApproval && validFormFields && !specificRouteDeprecated)
+  const [approvalButtonActive, setApprovalButtonActive] = useState(checkApprovalButtonActive())
+
+  useEffect(() => {
+    setApprovalButtonActive(checkApprovalButtonActive())
+  }, [needsTokenForFee, needsApproval, validFormFields, specificRouteDeprecated])
+
   const allowCustomRecipient = convertOption?.slug === 'hop-bridge'
 
   return (
@@ -267,7 +284,7 @@ const ConvertContent: FC = () => {
             )}
           </Box>
 
-          <div className={styles.details}>{details}</div>
+          {!error && <div className={styles.details}>{details}</div>}
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error">{manualWarning}</Alert>

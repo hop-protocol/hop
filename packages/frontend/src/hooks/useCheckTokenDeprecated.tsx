@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 
 const useCheckTokenDeprecated = (token: string | undefined): boolean | null => {
   const [isTokenDeprecated, setIsTokenDeprecated] = useState<boolean | null>(null)
@@ -11,7 +12,7 @@ const useCheckTokenDeprecated = (token: string | undefined): boolean | null => {
 
     const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
 
-    setIsTokenDeprecated(deprecatedTokens.includes(token))
+    setIsTokenDeprecated(deprecatedTokens.includes(normalizeTokenSymbol(token)))
   }, [token])
 
   return isTokenDeprecated

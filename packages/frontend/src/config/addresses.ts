@@ -173,7 +173,8 @@ const hopStakingRewardsContracts = {
     optimism: {
       ETH: '0xd691E3f40692a28f0b8090D989cC29F24B59f945',
       USDC: '0xFCd39f8d53A74f99830849331AB433bBCe0e28E0'
-    }
+    },
+    // TODO: add Base
   }
 }
 

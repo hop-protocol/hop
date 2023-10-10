@@ -10,8 +10,9 @@ import React, {
   ChangeEvent,
 } from 'react'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { BigNumber } from 'ethers'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { Token } from '@hop-protocol/sdk'
 import find from 'lodash/find'
 import Network from 'src/models/Network'
@@ -23,9 +24,9 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
-  useQueryParams,
   useTransactionReplacement,
   useApprove,
   useBalance,
@@ -57,6 +58,7 @@ type ConvertContextProps = {
   setError: (error?: string) => void
   setSourceTokenAmount: (value: string) => void
   setTx: (tx?: Transaction) => void
+  setViaParamValue: (viaParamValue: string) => void
   setWarning: (warning?: string) => void
   sourceBalance?: BigNumber
   sourceNetwork?: Network
@@ -67,6 +69,7 @@ type ConvertContextProps = {
   unsupportedAsset: any
   assetWithoutAmm: any
   validFormFields: boolean
+  viaParamValue: string
   warning?: ReactNode
   convertOption: ConvertOption
   destinationChainPaused: boolean
@@ -75,13 +78,13 @@ type ConvertContextProps = {
 const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
 
 const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { queryParams } = useQueryParams()
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const { selectedBridge, txConfirm, sdk, settings } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
-  const [isConvertingToHToken, setIsConvertingToHToken] = useState(queryParams?.fromHToken !== 'true')
+  const queryParams = new URLSearchParams(search)
+  const [isConvertingToHToken, setIsConvertingToHToken] = useState<boolean>(queryParams.get('fromHToken') !== 'true')
   const switchDirection = () => setIsConvertingToHToken(direction => !direction)
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
@@ -102,10 +105,20 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const { assetWithoutAmm, unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
+  const { via } = useParams()
+  const [viaParamValue, setViaParamValue] = useState<string>(via ?? 'amm')
+
+  useEffect(() => {
+    setViaParamValue(via ?? 'amm')
+  }, [via])
+
   const convertOptions = [new AmmConvertOption(), new HopConvertOption()]
   const convertOption = useMemo(
-    () => find(convertOptions, option => pathname.includes(option.path)) || convertOptions[0],
-    [pathname]
+    () => find(
+      convertOptions,
+      option => pathname.includes(option.path) || option.path.includes(viaParamValue)
+    ) || convertOptions[0],
+    [pathname, viaParamValue]
   )
 
   const sourceNetwork = useMemo<Network | undefined>(() => {
@@ -133,6 +146,8 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(sourceToken, address)
   const { balance: destBalance, loading: loadingDestBalance } = useBalance(destToken, address)
 
+  const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
+
   useEffect(() => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
@@ -140,10 +155,12 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } else if (assetWithoutAmm && convertOption instanceof AmmConvertOption) {
       const { chain, tokenSymbol } = assetWithoutAmm
       setError(`${tokenSymbol} does not use an AMM on ${chain}`)
+    } else if (isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.slug === 'ethereum') {
+      setError(`The ${selectedNetwork} bridge is deprecated. Only transfers from L2 to L1 are supported.`)
     } else {
       setError('')
     }
-  }, [unsupportedAsset, assetWithoutAmm, convertOption])
+  }, [isTokenDeprecated, unsupportedAsset, assetWithoutAmm, convertOption, sourceNetwork])
 
   const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
 
@@ -250,7 +267,6 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         return
       }
 
-      setError(undefined)
       setWarning(warning)
       setDestTokenAmount(formattedAmount)
       setAmountOutMin(_amountOutMin)
@@ -486,10 +502,12 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
       value={{
         approveTokens,
         approving,
+        assetWithoutAmm,
         convertOption,
         convertOptions,
         convertTokens,
         destBalance,
+        destinationChainPaused,
         destNetwork,
         destToken,
         destTokenAmount,
@@ -506,6 +524,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         selectBothNetworks,
         setSourceTokenAmount,
         setTx,
+        setViaParamValue,
         setWarning,
         sourceBalance,
         sourceNetwork,
@@ -514,10 +533,9 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         switchDirection,
         tx,
         unsupportedAsset,
-        assetWithoutAmm,
         validFormFields,
-        warning,
-        destinationChainPaused
+        viaParamValue,
+        warning
       }}
     >
       {children}

@@ -29,7 +29,7 @@ class HopConvertOption extends ConvertOption {
 
     this.name = 'Hop Bridge'
     this.slug = 'hop-bridge'
-    this.path = '/hop'
+    this.path = 'hop'
   }
 
   async convert(

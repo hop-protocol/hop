@@ -2,7 +2,7 @@ import React from 'react'
 import Box from '@material-ui/core/Box'
 
 export function TokenIcon(props: any) {
-  let { src, alt = '', title = '', width, inline } = props
+  let { src, alt = '', title = '', width, inline, bgTransparent } = props
   if (!src) {
     return null
   }
@@ -19,7 +19,7 @@ export function TokenIcon(props: any) {
       background: showRing ? 'linear-gradient(99.85deg, #B32EFF -18.29%, #F2A498 109.86%)' : 'none',
     }}>
       <img width="100%" src={src} alt={alt} title={title} style={{
-        background: '#fff',
+        background: bgTransparent ? 'none' : '#fff',
         borderRadius: '50%'
       }} />
     </Box>

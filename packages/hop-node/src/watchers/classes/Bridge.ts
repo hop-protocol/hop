@@ -5,7 +5,12 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import {
+  Chain,
+  GasCostTransactionType,
+  HeadSyncKeySuffix,
+  SettlementGasLimitPerTx
+} from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -580,6 +585,25 @@ export default class Bridge extends ContractBase {
         options.syncCacheKey
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
+
+      const isHeadSync = syncCacheKey.endsWith(HeadSyncKeySuffix)
+      if (isHeadSync) {
+        // If a head sync does not have state or the state is stale, use the state of
+        // its finalized counterpart. The finalized counterpart is guaranteed to have updated
+        // state since the bonder performs a full sync before beginning any other operations.
+        // * The head sync will not have state upon fresh bonder sync.
+        // * The head sync will have stale data if they use the head syncer, turn it off
+        //   for some time, and then turn it back on again.
+        const finalizedStateKey = syncCacheKey.replace(HeadSyncKeySuffix, '')
+        const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
+
+        const doesHeadSyncDbExist = !!state?.latestBlockSynced
+        const isHeadSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
+        if (!doesHeadSyncDbExist || isHeadSyncDataStale) {
+          state = finalizedState
+          state.key = syncCacheKey
+        }
+      }
     }
 
     const blockValues: BlockValues = await this.getBlockValues(options, state)
@@ -648,22 +672,29 @@ export default class Bridge extends ContractBase {
   }
 
   private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State): Promise<BlockValues> => {
-    const { startBlockNumber, endBlockNumber } = options
+    const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    let blockNumberWithAcceptableFinality: number
 
-    if (getHasFinalizationBlockTag(this.chainSlug)) {
+    // TODO: Better state handling
+    const isHeadSync = syncCacheKey?.endsWith(HeadSyncKeySuffix)
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
+
+    let blockNumberWithAcceptableFinality: number
+    if (getHasFinalizationBlockTag(this.chainSlug) && !isHeadSync) {
       blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()
-      blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
+      if (isHeadSync) {
+        blockNumberWithAcceptableFinality = currentBlockNumber
+      } else {
+        blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
+      }
     }
-    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
-    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
@@ -674,7 +705,7 @@ export default class Bridge extends ContractBase {
     } else if (isInitialSync) {
       end = blockNumberWithAcceptableFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync) {
+    } else if (isSync || isHeadSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
       end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {

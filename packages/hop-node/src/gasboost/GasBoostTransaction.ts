@@ -12,6 +12,12 @@ import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import {
+  BlockHashValidationError,
+  EstimateGasError,
+  KmsSignerError,
+  NonceTooLowError
+} from 'src/types/error'
+import {
   Chain,
   InitialTxGasPriceMultiplier,
   MaxGasPriceMultiplier,
@@ -19,8 +25,6 @@ import {
   PriorityFeePerGasCap
 } from 'src/constants'
 import { EventEmitter } from 'events'
-
-import { EstimateGasError, KmsSignerError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import {
   blocknativeApiKey,
@@ -809,8 +813,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           isAlreadyKnown,
           isFeeTooLow,
           serverError,
-          kmsSignerError
+          kmsSignerError,
+          blockHashValidationError
         } = this.parseErrorString(err.message)
+
+        if (blockHashValidationError) {
+          throw new BlockHashValidationError(err.message)
+        }
 
         // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
         if (nonceTooLow) {
@@ -948,13 +957,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
     const serverError = /SERVER_ERROR/g.test(errMessage)
     const kmsSignerError = /Error signing message/g.test(errMessage)
+    const blockHashValidationError = /BHV:/g.test(errMessage)
+
     return {
       nonceTooLow,
       estimateGasFailed,
       isAlreadyKnown,
       isFeeTooLow,
       serverError,
-      kmsSignerError
+      kmsSignerError,
+      blockHashValidationError
     }
   }
 

@@ -1,9 +1,8 @@
-import { actionHandler, parseString, root } from '../shared'
 import getRpcProvider from 'src/utils/getRpcProvider'
-import { Chain } from 'src/constants'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 import { Interface, formatUnits } from 'ethers/lib/utils'
+import { actionHandler, parseString, root } from '../shared'
 import {
   hopAccountAddresses,
   possibleYears,
@@ -11,6 +10,7 @@ import {
   tokenDecimals,
   tokens
 } from 'src/cli/metrics/sharedMetrics'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 root
   .command('bonder-balance')
@@ -19,13 +19,13 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  /////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////
   // ************
   // 2020 is missing some Authereum addresses, like the relayers.
   // 2021 and beyond are accurate
   // A bonder's staked amount is not counted and should be manually added or derived
   // ************
-  /////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////
 
   let { year } = source
   year = Number(year)
@@ -47,15 +47,13 @@ async function main (source: any) {
   const coreAddresses = mainnetAddresses.bridges
   for (const hopAccountAddress of hopAccountAddresses) {
     for (const token in coreAddresses) {
-
       const tokenNetworkAddresses: any = coreAddresses[token]
       for (const chain in tokenNetworkAddresses) {
-
         // Get token addresses from core
-        const tokenAddresses = getTokenAddressesFromCore(chain, tokenNetworkAddresses[chain])
+        const tokenAddresses: string[] = getTokenAddressesFromCore(chain, tokenNetworkAddresses[chain])
 
         // Get the balance of each token
-        for (const index in tokenAddresses) {
+        for (const [index, tokenAddress] of tokenAddresses.entries()) {
           // When token bridges are inactive, we still want to check the balance of the canonical token
           if (Number(index) > 0 && tokenData.inactiveBridgeTokens[token]) continue
 
@@ -63,7 +61,6 @@ async function main (source: any) {
           const isLpToken = Number(index) === 2
           if (isLpToken && token === tokens.HOP) continue
 
-          const tokenAddress = tokenAddresses[index]
           const balance: BigNumber = await getBalance(chain, hopAccountAddress, tokenAddress, tokenData.blockNumbers[chain])
           const decimals = isLpToken ? 18 : tokenDecimals[token]
           const fmtBalance: number = Number(formatUnits(balance, decimals))
@@ -79,7 +76,7 @@ async function main (source: any) {
           }
 
           totalBalances[hopAccountAddress] = totalBalances[hopAccountAddress] + balanceUsd
-          if (tokenData.tokenPrice[token] !== 1) { 
+          if (tokenData.tokenPrice[token] !== 1) {
             totalBalancesLessStables[hopAccountAddress] = totalBalancesLessStables[hopAccountAddress] + balanceUsd
           }
           console.log(`Balance of ${token} on ${chain} for ${hopAccountAddress} is $${balanceUsd.toString()} (${fmtBalance}) (including stables)`)
@@ -109,7 +106,7 @@ async function main (source: any) {
         }
 
         totalBalances[hopAccountAddress] = totalBalances[hopAccountAddress] + balanceUsd
-        if (tokenData.tokenPrice[token] !== 1) { 
+        if (tokenData.tokenPrice[token] !== 1) {
           totalBalancesLessStables[hopAccountAddress] = totalBalancesLessStables[hopAccountAddress] + balanceUsd
         }
 
@@ -136,14 +133,14 @@ async function main (source: any) {
   }
 }
 
-function getTokenAddressesFromCore (chain: string, addresses: any) {
+function getTokenAddressesFromCore (chain: string, addresses: any): string[] {
   if (chain === Chain.Ethereum) {
-    return [addresses['l1CanonicalToken']]
+    return [addresses.l1CanonicalToken]
   } else {
     return [
-      addresses['l2CanonicalToken'],
-      addresses['l2HopBridgeToken'],
-      addresses['l2SaddleLpToken']
+      addresses.l2CanonicalToken,
+      addresses.l2HopBridgeToken,
+      addresses.l2SaddleLpToken
     ]
   }
 }
@@ -156,7 +153,7 @@ async function getBalance (chain: string, accountAddress: string, tokenAddress: 
   }
 }
 
-async function getEthBalance(chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {
+async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {
   const res = await getRpcProvider(chain)!.getBalance(accountAddress, blockNumber)
   return BigNumber.from(res)
 }
@@ -187,18 +184,18 @@ const arbitraryTokenAddresses: Record<string, Record<string, string>> = {
     [tokens.FRAX]: '0x853d955aCEf822Db058eb8505911ED77F175b99e',
     [tokens.WBTC]: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
     [tokens.SAFE]: '0x5aFE3855358E112B5647B952709E6165e1c1eEEe',
-    [tokens.GRT]: '0xc944E90C64B2c07662A292be6244BDf05Cda44a7',
+    [tokens.GRT]: '0xc944E90C64B2c07662A292be6244BDf05Cda44a7'
   },
   [Chain.Gnosis]: {
-    [tokens.GNO]: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb',
+    [tokens.GNO]: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
   },
   [Chain.Polygon]: {},
   [Chain.Optimism]: {
     [tokens.OP]: '0x4200000000000000000000000000000000000042',
-    [tokens.USDC]: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', // Circle USDC
+    [tokens.USDC]: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85' // Circle USDC
   },
   [Chain.Arbitrum]: {
-    [tokens.USDC]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // Circle USDC
+    [tokens.USDC]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // Circle USDC
   },
   [Chain.Nova]: {},
   [Chain.Base]: {}

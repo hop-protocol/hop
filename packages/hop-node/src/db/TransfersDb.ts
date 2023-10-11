@@ -16,6 +16,7 @@ interface BaseTransfer {
   destinationChainId?: number
   destinationChainSlug?: string
   isBondable?: boolean
+  isFinalized?: boolean
   isRelayable?: boolean
   isRelayed?: boolean
   isNotFound?: boolean
@@ -84,6 +85,7 @@ export type UnbondedSentTransfer = {
   transferNonce: string
   deadline: BigNumber
   transferSentIndex: number
+  isFinalized: boolean
 }
 
 export type UnrelayedSentTransfer = {
@@ -263,6 +265,27 @@ class TransfersDb extends BaseDb {
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
+  async migration () {
+    this.logger.debug('TransfersDb migration started')
+    const entries = await this.getKeyValues()
+    this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
+    const promises: Array<Promise<any>> = []
+
+    // For this migration, there is no prior concept of pre-finality in the DB, so all transfers are finalized
+    for (const { key, value } of entries) {
+      let shouldUpdate = false
+      if (value?.isFinalized === undefined) {
+        shouldUpdate = true
+        value.isFinalized = true
+      }
+      if (shouldUpdate) {
+        promises.push(this._update(key, value))
+      }
+    }
+    await Promise.all(promises)
+    this.logger.debug('TransfersDb migration complete')
+  }
+
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
     if (filter.sourceChainId) {
       if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
@@ -401,7 +424,8 @@ class TransfersDb extends BaseDb {
         item.transferId &&
         !item.transferRootId &&
         item.transferSentTxHash &&
-        !item.committed
+        !item.committed &&
+        item.isFinalized
       )
     })
 
@@ -442,6 +466,16 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      // Do not bond an unfinalized transaction unless proxy validation exists
+      // TODO: Add isProxyAndValidatorEnabled after merging with that branch
+      const isFinalityOk = true
+      // if (
+      //   !item.isFinalized &&
+      //   !isProxyAndValidatorEnabled(this.tokenSymbol, sourceChaiSlug, destinationChainSlug)
+      // ) {
+      //   isUnfinalizedTxOk = false
+      // }
+
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -449,6 +483,7 @@ class TransfersDb extends BaseDb {
         item.transferSentTxHash &&
         item.isBondable &&
         !item.isTransferSpent &&
+        isFinalityOk &&
         timestampOk
       )
     })

@@ -72,7 +72,8 @@ async function main (source: any) {
         destinationChainId: dbTransfer.destinationChainId!,
         amountOutMin: dbTransfer.amountOutMin!,
         deadline: dbTransfer.deadline!,
-        transferSentIndex: dbTransfer.transferSentIndex!
+        transferSentIndex: dbTransfer.transferSentIndex!,
+        isFinalized: dbTransfer.isFinalized!
       }
       await watcher.sendBondWithdrawalTx(txParams)
     } catch (err: any) {

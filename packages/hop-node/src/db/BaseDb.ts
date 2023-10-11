@@ -188,15 +188,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _update (key: string, data: any) {
-    try {
-      return await promiseTimeout(this._updateSingle(key, data), this.timeoutSeconds)
-    } catch (err: any) {
-      this.logger.error(`BaseDb._update error: ${err.message}, key: ${key}, data: ${JSON.stringify(data)}`)
-      if (err.message.includes('timedout')) {
-        this.handleTimeoutError(err)
-      }
-      throw err
-    }
+    return this._updateSingle(key, data)
   }
 
   async _updateSingle (key: string, data: any) {

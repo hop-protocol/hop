@@ -1,11 +1,9 @@
-import getRpcUrl from 'src/utils/getRpcUrl'
-import { actionHandler, parseString, root } from '../shared'
-import getRpcProvider from 'src/utils/getRpcProvider'
 import fetch from 'node-fetch'
+import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import { BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { nativeChainTokens } from 'src/constants'
 import { CoingeckoApiKey } from 'src/config'
+import { actionHandler, parseString, root } from '../shared'
 import {
   coingeckoCoinIds,
   hopAccountAddresses,
@@ -14,6 +12,8 @@ import {
   tokenDataForYear,
   tokenDecimals
 } from 'src/cli/metrics/sharedMetrics'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { nativeChainTokens } from 'src/constants'
 
 root
   .command('bonder-tx-cost')
@@ -38,7 +38,6 @@ async function main (source: any) {
 
   const tokenDataPriorYear = tokenDataForYear[year - 1]
   for (const hopAccountAddress of hopAccountAddresses) {
-
     for (const network of networks) {
       let perChainSpend = 0
       const startBlockNumber = tokenDataPriorYear.blockNumbers[network]
@@ -122,7 +121,7 @@ async function getGasCost (chain: string, txHash: string): Promise<number> {
 }
 
 async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> {
-  if (chain !== 'optimism' &&  chain!== 'base') {
+  if (chain !== 'optimism' && chain !== 'base') {
     return BigNumber.from(0)
   }
 

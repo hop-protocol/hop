@@ -20,7 +20,7 @@ export const tokens: Record<string, string> = {
   MAGIC: 'MAGIC',
   SAFE: 'SAFE',
   WBTC: 'WBTC',
-  GRT: 'GRT',
+  GRT: 'GRT'
 }
 
 // blockNumbers and tokenPrice correspond to the end of the year.
@@ -47,7 +47,7 @@ export const tokenDataForYear: any = {
       [tokens.MAGIC]: 0,
       [tokens.SAFE]: 0,
       [tokens.WBTC]: 28983.10,
-      [tokens.GRT]: 0.350831,
+      [tokens.GRT]: 0.350831
     },
     blockNumbers: {
       [Chain.Ethereum]: 11565018,
@@ -56,7 +56,7 @@ export const tokenDataForYear: any = {
       [Chain.Optimism]: 1,
       [Chain.Arbitrum]: 1,
       [Chain.Nova]: 1,
-      [Chain.Base]: 1,
+      [Chain.Base]: 1
     },
     inactiveBridgeTokens: {
       [tokens.ETH]: true,
@@ -68,7 +68,7 @@ export const tokenDataForYear: any = {
       [tokens.SNX]: true,
       [tokens.sUSD]: true,
       [tokens.rETH]: true,
-      [tokens.MAGIC]: true,
+      [tokens.MAGIC]: true
     }
   },
   2021: {
@@ -92,7 +92,7 @@ export const tokenDataForYear: any = {
       [tokens.MAGIC]: 2.25,
       [tokens.SAFE]: 0,
       [tokens.WBTC]: 46346.94,
-      [tokens.GRT]: 0.645377,
+      [tokens.GRT]: 0.645377
     },
     blockNumbers: {
       [Chain.Ethereum]: 13916165,
@@ -101,11 +101,11 @@ export const tokenDataForYear: any = {
       [Chain.Optimism]: 1806121,
       [Chain.Arbitrum]: 4221289,
       [Chain.Nova]: 1,
-      [Chain.Base]: 1,
+      [Chain.Base]: 1
     },
     inactiveBridgeTokens: {
       [tokens.rETH]: true,
-      [tokens.MAGIC]: true,
+      [tokens.MAGIC]: true
     }
   },
   2022: {
@@ -129,7 +129,7 @@ export const tokenDataForYear: any = {
       [tokens.MAGIC]: 0.491041,
       [tokens.SAFE]: 0,
       [tokens.WBTC]: 16530.6,
-      [tokens.GRT]: 0.056702,
+      [tokens.GRT]: 0.056702
     },
     blockNumbers: {
       [Chain.Ethereum]: 16308189,
@@ -138,11 +138,11 @@ export const tokenDataForYear: any = {
       [Chain.Optimism]: 58462111,
       [Chain.Arbitrum]: 50084141,
       [Chain.Nova]: 1,
-      [Chain.Base]: 1,
+      [Chain.Base]: 1
     },
     inactiveBridgeTokens: {
       [tokens.rETH]: true,
-      [tokens.MAGIC]: true,
+      [tokens.MAGIC]: true
     }
   }
 }
@@ -167,7 +167,7 @@ export const tokenDecimals: Record<string, number> = {
   [tokens.MAGIC]: 18,
   [tokens.SAFE]: 18,
   [tokens.WBTC]: 8,
-  [tokens.GRT]: 18,
+  [tokens.GRT]: 18
 }
 
 export const networks: string[] = [
@@ -177,7 +177,7 @@ export const networks: string[] = [
   Chain.Optimism,
   Chain.Arbitrum,
   Chain.Nova,
-  Chain.Base,
+  Chain.Base
 ]
 
 export const hopAccountAddresses: string[] = [
@@ -185,8 +185,8 @@ export const hopAccountAddresses: string[] = [
 ]
 
 export const coingeckoCoinIds: Record<string, string> = {
-  'ETH': 'ethereum',
-  'MATIC': 'matic-network'
+  ETH: 'ethereum',
+  MATIC: 'matic-network'
 }
 
 export const possibleYears: number[] = [

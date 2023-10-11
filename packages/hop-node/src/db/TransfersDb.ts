@@ -469,7 +469,7 @@ class TransfersDb extends BaseDb {
 
       // Do not bond an unfinalized transaction unless proxy validation exists
       // TODO: Add isProxyAndValidatorEnabled after merging with that branch
-      let isFinalityOk = true
+      const isFinalityOk = true
       // if (
       //   !item.isFinalized &&
       //   !isProxyAndValidatorEnabled(this.tokenSymbol, sourceChaiSlug, destinationChainSlug)

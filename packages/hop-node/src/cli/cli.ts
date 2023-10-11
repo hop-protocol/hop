@@ -51,8 +51,8 @@ import './withdraw'
 import './withdrawalProof'
 
 // internal metrics
-import './metrics/bonderTxCost'
 import './metrics/bonderBalance'
+import './metrics/bonderTxCost'
 
 program.version(packageJson.version)
 program.parse(process.argv)

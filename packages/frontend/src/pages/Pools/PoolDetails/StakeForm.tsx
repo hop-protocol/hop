@@ -137,6 +137,39 @@ export function StakeForm(props: Props) {
         <Box mb={4}>
           <Alert severity="warning" text={(normalizeTokenSymbol(tokenSymbol) ? ("The " + normalizeTokenSymbol(tokenSymbol)) : "This") + " bridge is deprecated. Only withdrawals from the AMM are supported."} />
         </Box>
+
+        {stakingRewards.length > 0 && (
+          <Box mb={2} display="flex" alignItems="center" className={styles.stakingTabsContainer}>
+            <Box>
+              <Typography variant="subtitle1">
+                Earned
+              </Typography>
+            </Box>
+            <Tabs value={selectedStaking} onChange={handleStakingChange}>
+              {stakingRewards.map((stakingReward, index) => {
+                const value = index.toString()
+                const selected = selectedStaking === value
+                return (
+                  <Tab key={stakingReward.rewardTokenSymbol} label={<Box style={{
+                    paddingLeft: '1rem',
+                    paddingBottom: '1rem',
+                    transition: 'translate(0, 5px)',
+                  }} >
+                  <Box display="flex" alignItems="center" data-selected={selected} className={styles.stakingTabButtonBox}>
+                    <Box mr={0.5} display="flex" justifyItems="center" alignItems="center">
+                      <img className={styles.stakingTabImage} src={stakingReward.rewardTokenImageUrl} alt={stakingReward.rewardTokenSymbol} title={stakingReward.rewardTokenSymbol} />
+                    </Box>
+                    <Typography variant="body2">
+                      {stakingReward.rewardTokenSymbol}
+                    </Typography>
+                  </Box>
+                  </Box>} value={value} />
+                )
+              })}
+            </Tabs>
+          </Box>
+        )}
+
         <Box mb={4}>
           <Box mb={1} display="flex" justifyContent="space-between">
             <BalanceText label="Staked" balanceFormatted={depositedAmountFormatted} />

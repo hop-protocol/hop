@@ -70,7 +70,6 @@ export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PEN
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
-export const CoingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
 // available liquidity watcher to have up-to-date info
@@ -463,27 +462,8 @@ export function getProxyAddressForChain (token: string, chainSlug: string): stri
   return address
 }
 
-export function getValidatorAddressForChain (token: string, chainSlug: string): string {
-  const address = config.addresses?.[token]?.[chainSlug]?.validator
-  if (!address || ShouldIgnoreProxy) {
-    throw new Error(`validator address ${address} not found for token ${token} on chain ${chainSlug}`)
-  }
-  return address
-}
-
 export function isProxyAddressForChain (token: string, chainSlug: string): boolean {
   return !!config.addresses?.[token]?.[chainSlug]?.proxy && !ShouldIgnoreProxy
-}
-
-export function isValidatorAddressForChain (token: string, chainSlug: string): boolean {
-  return !!config.addresses?.[token]?.[chainSlug]?.validator && !ShouldIgnoreProxy
-}
-
-export function doesProxyAndValidatorExistForChain (token: string, chainSlug: string): boolean {
-  return (
-    isProxyAddressForChain(token, chainSlug) &&
-    isValidatorAddressForChain(token, chainSlug)
-  )
 }
 
 export function getBridgeWriteContractAddress (token: string, chainSlug: string): string {

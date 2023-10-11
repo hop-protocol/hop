@@ -1,3 +1,4 @@
+import Logger from 'src/logger'
 import getChainBridge from 'src/chains/getChainBridge'
 import getDecodedValidationData from 'src/utils/getDecodedValidationData'
 import getEncodedValidationData from 'src/utils/getEncodedValidationData'
@@ -9,12 +10,11 @@ import {
   TimeToIncludeOnL1Sec,
   TimeToIncludeOnL2Sec
 } from 'src/constants'
+import { BonderTooEarlyError } from 'src/types/error'
 import { Contract, providers } from 'ethers'
 import { IChainBridge } from '../chains/IChainBridge'
+import { ShouldIgnoreBlockHashValidation, config as globalConfig } from 'src/config'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
-import { BonderTooEarlyError } from 'src/types/error'
-import { config as globalConfig, ShouldIgnoreBlockHashValidation } from 'src/config'
-import Logger from 'src/logger'
 
 export interface HiddenCalldataParams {
   tokenSymbol: string

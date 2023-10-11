@@ -3,24 +3,11 @@ import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import contracts from 'src/contracts'
-import getChainBridge from 'src/chains/getChainBridge'
-import getDecodedValidationData from 'src/utils/getDecodedValidationData'
-import getEncodedValidationData from 'src/utils/getEncodedValidationData'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
-import {
-  AvgBlockTimeSeconds,
-  BlockHashExpireBufferSec,
-  Chain,
-  GasCostTransactionType,
-  NumStoredBlockHashes,
-  TimeToIncludeOnL1Sec,
-  TimeToIncludeOnL2Sec,
-  TxError
-} from 'src/constants'
-import { BigNumber, Contract, providers } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import {
   BlockHashValidationError,
   BonderFeeTooLowError,
@@ -29,25 +16,27 @@ import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
 } from 'src/types/error'
-import { IChainBridge } from '../chains/IChainBridge'
+import {
+  GasCostTransactionType,
+  TxError
+} from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import {
   bondWithdrawalBatchSize,
-  isProxyAddressForChain,
   enableEmergencyMode,
   config as globalConfig,
+  isProxyAddressForChain,
   zeroAvailableCreditTest
 } from 'src/config'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
-import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
-import { promiseQueue } from 'src/utils/promiseQueue'
 import {
   getHiddenCalldataForDestinationChain,
   isBlockHashValidationEnabledForRoute
 } from 'src/validator/blockhashValidator'
+import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
+import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
+import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
   chainSlug: string

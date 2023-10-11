@@ -13,7 +13,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay, networkSlugToId } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
@@ -44,6 +44,7 @@ import {
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
@@ -111,6 +112,48 @@ const Send: FC = () => {
 
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
+
+  // use the values saved to localStorage for default network selection (if they exist)
+  useEffect(() => {
+    const fromNetworkString = localStorage.getItem('fromNetwork')
+    const savedFromNetwork = fromNetworkString ? JSON.parse(fromNetworkString) : ''
+
+    const toNetworkString = localStorage.getItem('toNetwork')
+    const savedToNetwork = toNetworkString ? JSON.parse(toNetworkString) : ''
+
+    if (savedFromNetwork) {
+      setFromNetwork(savedFromNetwork)
+    } else if (!queryParams.sourceNetwork) {
+      setFromNetwork(networks.find(network => network.chainId === networkSlugToId(ChainSlug.Ethereum)))
+    }
+
+    if (savedToNetwork) {
+      setToNetwork(savedToNetwork)
+    }
+  }, [])
+
+  // update localStorage on network change for persistent field values
+  useEffect(() => {
+    if (fromNetwork) {
+      localStorage.setItem('fromNetwork', JSON.stringify(fromNetwork))
+    }
+
+    if (toNetwork) {
+      localStorage.setItem('toNetwork', JSON.stringify(toNetwork))
+    }
+  }, [fromNetwork, toNetwork])
+
+  // update fromNetwork to be the connectedNetwork on load and change
+  useEffect(() => {
+    if (connectedNetworkId) {
+      setFromNetwork(networks.find(network => network.chainId === connectedNetworkId))
+    }
+
+    // ensure fromNetwork is not the same as toNetwork
+    if (queryParams.sourceNetwork && queryParams.sourceNetwork === queryParams.destNetwork) {
+      setToNetwork(undefined)
+    }
+  }, [connectedNetworkId])
 
   useEffect(() => {
     if (queryParams.amount && !Number.isNaN(Number(queryParams.amount))) {
@@ -673,7 +716,15 @@ const Send: FC = () => {
 
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
 
-  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
+  const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?.symbol)
+  const specificRouteDeprecated = isTokenDeprecated && !toNetwork?.isL1
+
+  const checkApproveButtonActive = () => (!needsTokenForFee && !unsupportedAsset && needsApproval && !specificRouteDeprecated)
+  const [approveButtonActive, setApproveButtonActive] = useState(checkApproveButtonActive())
+
+  useEffect(() => {
+    setApproveButtonActive(checkApproveButtonActive())
+  }, [needsTokenForFee, unsupportedAsset, needsApproval, specificRouteDeprecated])
 
   const sendButtonActive = useMemo(() => {
     return !!(
@@ -691,7 +742,8 @@ const Send: FC = () => {
       !manualError &&
       (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
-      !destinationChainPaused
+      !destinationChainPaused &&
+      !specificRouteDeprecated
     )
   }, [
     needsApproval,
@@ -710,6 +762,8 @@ const Send: FC = () => {
     gnosisEnabled,
     isCorrectSignerNetwork,
     isSmartContractWallet,
+    isTokenDeprecated,
+    fromNetwork?.slug
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
@@ -848,6 +902,12 @@ const Send: FC = () => {
       {showLineaFeeWarning && (
         <Box mb={4}>
           <Alert severity="warning" text="The Linea chain is undergoing maintenance and Linea has increased the message relay fee to a high value. Please see Linea Discord for updates." />
+        </Box>
+      )}
+
+      {specificRouteDeprecated && (
+        <Box mb={4}>
+          <Alert severity="error" text={(sourceToken?.symbol ? ("The " + sourceToken?.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
         </Box>
       )}
 

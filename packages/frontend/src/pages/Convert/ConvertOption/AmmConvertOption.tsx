@@ -17,7 +17,7 @@ class AmmConvertOption extends ConvertOption {
 
     this.name = 'AMM'
     this.slug = 'amm'
-    this.path = '/amm'
+    this.path = 'amm'
   }
 
   async getTargetAddress(

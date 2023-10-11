@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useInterval } from 'react-use'
+import { useInterval } from 'usehooks-ts'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Box from '@mui/material/Box'

@@ -13,7 +13,7 @@ import { Contract, providers } from 'ethers'
 import { IChainBridge } from '../chains/IChainBridge'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { BonderTooEarlyError } from 'src/types/error'
-import { config as globalConfig} from 'src/config'
+import { config as globalConfig, ShouldIgnoreBlockHashValidation } from 'src/config'
 import Logger from 'src/logger'
 
 export interface HiddenCalldataParams {
@@ -142,6 +142,10 @@ function getValidatorAddressForChain (token: string, chainSlug: string): string 
 }
 
 export function isBlockHashValidationEnabledForRoute (sourceChainSlug: string, destinationChainSlug: string): boolean {
+  if (ShouldIgnoreBlockHashValidation) {
+    return false
+  }
+
   // Both a source and dest chain must implement proxy validation
   // If the dest is L1, then only the source needs to implement proxy validation
 

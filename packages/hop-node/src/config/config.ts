@@ -55,6 +55,7 @@ export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WI
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
 export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
 export const ShouldIgnoreProxy = process.env.SHOULD_IGNORE_PROXY ?? false
+export const ShouldIgnoreBlockHashValidation = process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION ?? false
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY

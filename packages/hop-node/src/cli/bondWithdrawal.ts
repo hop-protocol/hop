@@ -74,7 +74,8 @@ async function main (source: any) {
         deadline: dbTransfer.deadline!,
         transferSentIndex: dbTransfer.transferSentIndex!,
         transferSentTxHash: dbTransfer.transferSentTxHash!,
-        transferSentBlockNumber: dbTransfer.transferSentBlockNumber!
+        transferSentBlockNumber: dbTransfer.transferSentBlockNumber!,
+        isFinalized: dbTransfer.isFinalized!
       }
       await watcher.sendBondWithdrawalTx(txParams)
     } catch (err: any) {

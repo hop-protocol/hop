@@ -22,6 +22,7 @@ import {
 } from 'src/constants'
 import { BigNumber, Contract, providers } from 'ethers'
 import {
+  BlockHashValidationError,
   BonderFeeTooLowError,
   BonderTooEarlyError,
   NonceTooLowError,
@@ -69,6 +70,7 @@ export type SendBondWithdrawalTxParams = {
   transferSentIndex: number
   transferSentTxHash: string
   transferSentBlockNumber: number
+  isFinalized: boolean
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
@@ -165,7 +167,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline,
       transferSentTxHash,
       transferSentBlockNumber,
-      transferSentIndex
+      transferSentIndex,
+      isFinalized
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
     logger.debug('processing bondWithdrawal')
@@ -173,10 +176,22 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('recipient:', recipient)
     logger.debug('transferNonce:', transferNonce)
     logger.debug('bonderFee:', bonderFee && this.bridge.formatUnits(bonderFee))
+    logger.debug('isFinalized:', isFinalized)
 
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
+
+    // TODO: Add isProxyAndValidatorEnabled after merging with that branch
+    // const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    // if (
+    //   !isFinalized &&
+    //   !isProxyAndValidatorEnabled(this.tokenSymbol, this.chainSlug, destinationChainSlug)
+    // ) {
+    //   logger.warn(`transfer id "${transferId}" is not finalized and proxy and validator are not set on ${destinationChainSlug}. marking item not found.`)
+    //   await this.db.transfers.update(transferId, { isNotFound: true })
+    //   return
+    // }
 
     logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
@@ -226,7 +241,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferSentTxHash
     )
     if (!sourceTx) {
-      logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. Cannot proceed`)
+      logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. marking item not found.`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
     if (!sourceTx.from) {
@@ -273,7 +289,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline,
         transferSentIndex,
         transferSentTxHash,
-        transferSentBlockNumber
+        transferSentBlockNumber,
+        isFinalized
       })
 
       const sentChain = attemptSwapDuringBondWithdrawal ? `destination chain ${destinationChainId}` : 'L1'
@@ -288,6 +305,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         await this.db.transfers.update(transferId, {
           isBondable: false
         })
+      }
+
+      if (err instanceof BlockHashValidationError) {
+        logger.error('blockHash validation failed. marking item not found')
+        await this.db.transfers.update(transferId, { isNotFound: true })
       }
 
       const isCallExceptionError = isFetchExecutionError(err.message)
@@ -361,12 +383,30 @@ class BondWithdrawalWatcher extends BaseWatcher {
       amountOutMin,
       deadline,
       transferSentTxHash,
-      transferSentBlockNumber
+      transferSentBlockNumber,
+      isFinalized
     } = params
     const logger = this.logger.create({ id: transferId })
 
-    logger.debug('performing preTransactionValidation')
-    await this.preTransactionValidation(params)
+    // TODO: Add isProxyAndValidatorEnabled after merging with that branch
+    // An unfinalized transfer without blockHash validation enabled should never be here.
+    // If it is, then it would need to go through a preTransactionValidation check since it is not
+    // performing the validation onchain with the proxy and validator contracts. However, unfinalized
+    // transactions are susceptible to reorgs and might fail the preTransactionValidation check, so we
+    // want to stop the transaction before the check takes place.
+    // if (!isFinalized && !isProxyAndValidatorEnabled(this.tokenSymbol, this.chainSlug, destinationChainSlug)) {
+    //   throw new BlockHashValidationError('sendBondWithdrawalTx: unfinalized transfer without blockHash validation enabled')
+    // }
+
+    // Unfinalized transfers should skip preTransactionValidation since they might be reorged
+    if (isFinalized) {
+      logger.debug('performing preTransactionValidation')
+      await this.preTransactionValidation(params)
+    } else {
+      // TODO: Add getHiddenCalldataForDestinationChain() logic in here
+      // TODO: Make sure this throws the BlockHashValidationError error
+      logger.debug('skipping preTransactionValidation')
+    }
 
     let hiddenCalldata: string | undefined
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)

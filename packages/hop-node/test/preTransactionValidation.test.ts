@@ -51,7 +51,8 @@ async function testBondWithdrawalWatcher (chain: string, token: string, transfer
     destinationChainId: dbTransfer.destinationChainId!,
     amountOutMin: dbTransfer.amountOutMin!,
     deadline: dbTransfer.deadline!,
-    transferSentIndex: dbTransfer.transferSentIndex!
+    transferSentIndex: dbTransfer.transferSentIndex!,
+    isFinalized: dbTransfer.isFinalized!
   })
 
   await shouldSucceed(watcher, txParams)

@@ -199,3 +199,5 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Nova]: 2,
   [Chain.PolygonZk]: 1
 }
+
+export const HeadSyncKeySuffix = 'HeadSync'

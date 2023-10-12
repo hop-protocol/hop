@@ -184,7 +184,7 @@ export function isValidatorAddressForChain (token: string, chainSlug: string): b
 }
 
 export function isBlockHashValidationEnabledForRoute (token: string, sourceChainSlug: string, destinationChainSlug: string): boolean {
-  if (isValidatorAddressForChain(token, destinationChainSlug)) {
+  if (!isValidatorAddressForChain(token, destinationChainSlug)) {
     return false
   }
 

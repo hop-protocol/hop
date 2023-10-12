@@ -471,7 +471,7 @@ class TransfersDb extends BaseDb {
           // set. We handle the race condition between a processing bond and a finalized event seen
           // by using an expedited delay for the first attempt (newly finalized) or the second attempt (finalized
           // while a bond was being processed).
-          const shouldExpediteDelay = item?.withdrawalBondBackoffIndex === 0  || item?.withdrawalBondBackoffIndex === 1
+          const shouldExpediteDelay = item?.withdrawalBondBackoffIndex === 0 || item?.withdrawalBondBackoffIndex === 1
           // The delay should be long enough that the bond is not attempted again before the onchain tx is sent and
           // confirmed.
           const delay = shouldExpediteDelay ? FiveMinutesMs : TxRetryDelayMs

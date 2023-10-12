@@ -286,7 +286,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
-      logger.error('sendBondWithdrawalTx error:', err.message)
+      logger.debug('sendBondWithdrawalTx error:', err.message)
       const isUnbondableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnbondableError) {
         logger.debug(`marking as unbondable due to error: ${err.message}`)
@@ -345,7 +345,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
       if (err instanceof BonderTooEarlyError) {
-        logger.error('bond attempted too early. trying again.')
+        logger.debug('bond attempted too early. trying again.')
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.BondTooEarly,

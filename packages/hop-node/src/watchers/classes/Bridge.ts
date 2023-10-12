@@ -111,8 +111,7 @@ export default class Bridge extends ContractBase {
   }
 
   async getStakerAddress (): Promise<string> {
-    const isProxy = isProxyAddressForChain(this.tokenSymbol, this.chainSlug)
-    if (isProxy) {
+    if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug)) {
       return getProxyAddressForChain(this.tokenSymbol, this.chainSlug)
     } else {
       return await (this.bridgeContract as Contract).signer.getAddress()

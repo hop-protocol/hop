@@ -600,7 +600,7 @@ class SyncWatcher extends BaseWatcher {
         logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxError: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
         dbData.isNotFound = undefined
         dbData.withdrawalBondTxError = undefined
-        dbData.withdrawalBondBackoffIndex = undefined
+        dbData.withdrawalBondBackoffIndex = 0
       }
 
       await this.db.transfers.update(transferId, dbData)

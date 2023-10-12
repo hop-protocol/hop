@@ -174,7 +174,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('processing bondWithdrawal. checking shouldIgnorePreFinalizedTx')
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
     const shouldIgnorePreFinalizedTx = !isFinalized && !this.isBlockHashValidationEnabled(destinationChainSlug)
-    logger.debug('processing bondWithdrawal. checking shouldIgnorePreFinalizedTx')
+    logger.debug(`processing bondWithdrawal. shouldIgnorePreFinalizedTx: ${shouldIgnorePreFinalizedTx}`)
     if (shouldIgnorePreFinalizedTx) {
       logger.warn('shouldIgnorePreFinalizedTx cannot bond preFinalizedTx. marking item not found')
       await this.db.transfers.update(transferId, { isNotFound: true })
@@ -296,7 +296,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       if (err instanceof BlockHashValidationError) {
-        logger.error('blockHash validation failed. marking item not found')
+        logger.debug('blockHash validation failed. marking item not found')
         await this.db.transfers.update(transferId, { isNotFound: true })
         return
       }
@@ -381,12 +381,19 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     // Unfinalized transfers should skip preTransactionValidation since they might be reorged
     let hiddenCalldata: string | undefined
-    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
     if (isFinalized) {
       logger.debug('performing preTransactionValidation')
       await this.preTransactionValidation(params)
     } else {
       logger.debug('attempting to bond unfinalized transfer. skipping preTransactionValidation')
+
+      // Redundantly verify that blockHashValidation is enabled. Unfinalized transactions should never be bonded
+      // without blockHashValidation enabled
+      const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+      if (!this.isBlockHashValidationEnabled(destinationChainSlug)) {
+        throw new BlockHashValidationError(`blockHash validation not enabled for transferId ${transferId}`)
+      }
+
       hiddenCalldata = await getHiddenCalldataForDestinationChain({
         tokenSymbol: this.tokenSymbol,
         sourceChainSlug: this.chainSlug,
@@ -602,7 +609,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   isBlockHashValidationEnabled (destinationChainSlug: string): boolean {
     return (
       isProxyAddressForChain(this.tokenSymbol, destinationChainSlug) &&
-      isBlockHashValidationEnabledForRoute(this.chainSlug, destinationChainSlug)
+      isBlockHashValidationEnabledForRoute(this.tokenSymbol, this.chainSlug, destinationChainSlug)
     )
   }
 }

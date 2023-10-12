@@ -1,6 +1,7 @@
 import buildInfo from 'src/.build-info.json'
 import isL1 from 'src/utils/isL1'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
+import normalizeEnvVarBool from './utils/normalizeEnvVarBool'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
@@ -56,8 +57,8 @@ export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
 export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
-export const ShouldIgnoreProxy = process.env.SHOULD_IGNORE_PROXY ?? false
-export const ShouldIgnoreBlockHashValidation = process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION ?? false
+export const ShouldIgnoreProxy = normalizeEnvVarBool(process.env.SHOULD_IGNORE_PROXY) ?? false
+export const ShouldIgnoreBlockHashValidation = normalizeEnvVarBool(process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION) ?? false
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY

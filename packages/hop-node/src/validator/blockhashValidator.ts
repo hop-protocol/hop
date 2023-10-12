@@ -179,8 +179,12 @@ function getValidatorAddressForChain (token: string, chainSlug: string): string 
   return globalConfig.addresses?.[token]?.[chainSlug]?.validator
 }
 
-export function isBlockHashValidationEnabledForRoute (sourceChainSlug: string, destinationChainSlug: string): boolean {
-  if (ShouldIgnoreBlockHashValidation) {
+export function isValidatorAddressForChain (token: string, chainSlug: string): boolean {
+  return !!globalConfig.addresses?.[token]?.[chainSlug]?.proxy && !ShouldIgnoreBlockHashValidation
+}
+
+export function isBlockHashValidationEnabledForRoute (token: string, sourceChainSlug: string, destinationChainSlug: string): boolean {
+  if (isValidatorAddressForChain(token, destinationChainSlug)) {
     return false
   }
 

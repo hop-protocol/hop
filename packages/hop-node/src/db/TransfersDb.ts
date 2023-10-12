@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, FiveMinutesMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -464,7 +464,18 @@ class TransfersDb extends BaseDb {
           }
           timestampOk = item.bondWithdrawalAttemptedAt + delayMs < Date.now()
         } else {
-          timestampOk = item.bondWithdrawalAttemptedAt + TxRetryDelayMs < Date.now()
+          // withdrawalBondBackoffIndex is set to 0 upon finalization. When this happens, we do not
+          // want to wait for the delay, since the retry might have been triggered before finalization
+          // which is no longer relevant and would cause the user to wait for the entire TxRetryDelayMs.
+          // Instead We wait a small amount of time to ensure withdrawalBondBackoffIndex is not
+          // set. We handle the race condition between a processing bond and a finalized event seen
+          // by using an expedited delay for the first attempt (newly finalized) or the second attempt (finalized
+          // while a bond was being processed).
+          const shouldExpediteDelay = item?.withdrawalBondBackoffIndex === 0  || item?.withdrawalBondBackoffIndex === 1
+          // The delay should be long enough that the bond is not attempted again before the onchain tx is sent and
+          // confirmed.
+          const delay = shouldExpediteDelay ? FiveMinutesMs : TxRetryDelayMs
+          timestampOk = item.bondWithdrawalAttemptedAt + delay < Date.now()
         }
       }
 

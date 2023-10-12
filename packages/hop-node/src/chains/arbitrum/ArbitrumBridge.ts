@@ -136,11 +136,8 @@ class ArbitrumBridge extends AbstractBridge implements IChainBridge {
     const numForwardLookingBlocks = 1000
     const l1BlockHead: number = await this.l1Wallet.provider!.getBlockNumber()
     const startBlockNumber = Number(l2TxReceipt.l1BlockNumber)
-    const endBlockNumber = startBlockNumber + Math.min(numForwardLookingBlocks, l1BlockHead - startBlockNumber, 0)
+    const endBlockNumber = Math.min(startBlockNumber + numForwardLookingBlocks, l1BlockHead)
     const sequencerBatchDeliveredEvents: any[] = await this._fetchSequencerBatchDeliveredEvents(startBlockNumber, endBlockNumber)
-    if (sequencerBatchDeliveredEvents.length === 0) {
-      throw new Error(`no sequencerBatchDeliveredEvents found for l2TxHash ${l2TxHash}`)
-    }
 
     // l1BatchNumbers uniqueness is enforced onchain, so we know that the first event with the
     // correct l1BatchNumber is the correct event.

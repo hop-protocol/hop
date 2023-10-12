@@ -87,7 +87,7 @@ async function _getL1InclusionTx (sourceChainSlug: string, txHash: string, logge
   }
 
   logger.debug('_getL1InclusionTx: retrieving l1InclusionBlock')
-  let l1InclusionTx: providers.TransactionReceipt | undefined 
+  let l1InclusionTx: providers.TransactionReceipt | undefined
   try {
     l1InclusionTx = await sourceChainBridge.getL1InclusionTx(txHash)
   } catch (err) {
@@ -108,7 +108,7 @@ async function _getL2InclusionTx (destChainSlug: string, txHash: string, logger:
   }
 
   logger.debug('_getL2InclusionTx: retrieving l2InclusionBlock')
-  let l2InclusionTx: providers.TransactionReceipt | undefined 
+  let l2InclusionTx: providers.TransactionReceipt | undefined
   try {
     l2InclusionTx = await destChainBridge.getL2InclusionTx(txHash)
   } catch (err) {

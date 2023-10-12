@@ -3,13 +3,13 @@ import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import contracts from 'src/contracts'
 import { BigNumber } from 'ethers'
-import { actionHandler, parseBool, parseNumber, parseString, root } from './shared'
+import { actionHandler, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 import {
-  getProxyAddressForChain
-
+  getProxyAddressForChain,
+  isProxyAddressForChain
 } from 'src/config'
 import { parseEther } from 'ethers/lib/utils'
 
@@ -21,7 +21,7 @@ import { main as unstake } from './unstake'
 
 interface GetClaimBalanceParams {
   bridge: L2Bridge | L1Bridge
-  proxyAddress: string
+  address: string
   chain: string
   token: string
 }
@@ -32,15 +32,13 @@ root
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
-  .option('--bypass-proxy [boolean]', 'Bypass the proxy and perform EOA bonder verification', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
-
   // NOTE: In order to run this, you must export the main function
   // in stake, unstake, and claimFromProxy
 
-  let { chain, token, amount, bypassProxy } = source
+  const { chain, token, amount } = source
 
   if (!amount) {
     throw new Error('amount is required. E.g. 100')
@@ -50,10 +48,6 @@ async function main (source: any) {
   }
   if (!chain) {
     throw new Error('chain is required')
-  }
-
-  if (!bypassProxy) {
-    bypassProxy = false
   }
 
   // Arbitrary watcher since only the bridge is needed
@@ -89,11 +83,15 @@ async function main (source: any) {
   console.log('unstaked')
 
   // Claim funds
-  const proxyAddress = getProxyAddressForChain(token, chain)
+  if (!isProxyAddressForChain(token, chain)) {
+    console.log('skipping claim since proxy is unused')
+    return
+  }
+  const address = getProxyAddressForChain(token, chain)
   const isL2 = chain !== Chain.Ethereum
   const getClaimBalanceParams = {
     bridge,
-    proxyAddress,
+    address,
     chain,
     token
   }
@@ -107,20 +105,19 @@ async function main (source: any) {
     throw new Error(`Claim failed: creditDiff: ${unitsDiff.toString()}, amountWei: ${amountWei.toString()}`)
   }
   console.log('claimed')
-
 }
 
 async function getClaimBalance (params: GetClaimBalanceParams): Promise<BigNumber> {
-  const { bridge, proxyAddress, chain, token } = params
+  const { bridge, address, chain, token } = params
   const isNativeSendOnL1 = nativeChainTokens[chain] === token && chain === Chain.Ethereum
   if (isNativeSendOnL1) {
-    return bridge.provider.getBalance(proxyAddress)
+    return bridge.provider.getBalance(address)
   }
 
   // For this command, we only deal with hTokens on l2
   const isHToken = true
   const tokenInstance = getTokenInstance(token, chain, isHToken)
-  return tokenInstance.tokenContract.balanceOf(proxyAddress)
+  return tokenInstance.tokenContract.balanceOf(address)
 }
 
 function getTokenInstance (token: string, chain: string, isHToken: boolean): Token {

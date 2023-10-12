@@ -35,54 +35,28 @@ export async function getHiddenCalldataForDestinationChain (input: HiddenCalldat
     throw new BlockHashValidationError(`missing input params: ${JSON.stringify(input)}`)
   }
 
-  const sourceChainBridge: IChainBridge = getChainBridge(sourceChainSlug)
-  if (typeof sourceChainBridge.getL1InclusionTx !== 'function') {
-    throw new BlockHashValidationError(`sourceChainBridge getL1InclusionTx not implemented for chain ${sourceChainSlug}`)
-  }
-
-  const isHashStoredAppx = await isBlockHashStoredAtBlockNumberAppx(l2BlockNumber, sourceChainSlug, destChainSlug)
-  if (!isHashStoredAppx) {
+  // This is an approximate since we don't have exact inclusion values yet. This is useful to avoid
+  // unnecessary calls for transactions that are far too old.
+  const didStateExpire = await didBlockHashStorageExpire(l2BlockNumber, sourceChainSlug, destChainSlug)
+  if (didStateExpire) {
     throw new BlockHashValidationError(`block hash for block number ${l2BlockNumber} is no longer stored at dest`)
   }
 
   logger.debug('getHiddenCalldataForDestinationChain: retrieving l1InclusionBlock')
-  let l1InclusionTx: providers.TransactionReceipt | undefined 
-  try {
-    l1InclusionTx = await sourceChainBridge.getL1InclusionTx(l2TxHash)
-  } catch (err) {
-    throw new BlockHashValidationError(`getL1InclusionTx error ${l2TxHash} on L1. err: ${err.message}`)
-  }
-  if (!l1InclusionTx) {
-    throw new BonderTooEarlyError(`l1InclusionTx not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
-  }
+  const l1InclusionTx: providers.TransactionReceipt = await getInclusionTx(sourceChainSlug, Chain.Ethereum, l2TxHash, logger)
 
   logger.debug(`getHiddenCalldataForDestinationChain: l1InclusionTx found ${l1InclusionTx.transactionHash}`)
-  let inclusionTxInfo: providers.TransactionReceipt| undefined
+  let inclusionTxReceipt: providers.TransactionReceipt
   if (destChainSlug === Chain.Ethereum) {
-    inclusionTxInfo = l1InclusionTx
+    inclusionTxReceipt = l1InclusionTx
   } else {
-    logger.debug(`getHiddenCalldataForDestinationChain: getting blockInfo for l1InclusionTx ${l1InclusionTx.transactionHash} on destination chain ${destChainSlug}`)
-    const destChainBridge: IChainBridge = getChainBridge(destChainSlug)
-    if (typeof destChainBridge.getL2InclusionTx !== 'function') {
-      throw new BlockHashValidationError(`destChainBridge getL2InclusionTx not implemented for chain ${destChainSlug}`)
-    }
-    try {
-      inclusionTxInfo = await destChainBridge.getL2InclusionTx(l1InclusionTx.transactionHash)
-    } catch (err) {
-      throw new BlockHashValidationError(`getL2InclusionTx error ${l1InclusionTx.transactionHash} on chain ${destChainSlug}. err: ${err.message}`)
-    }
+    inclusionTxReceipt = await getInclusionTx(Chain.Ethereum, destChainSlug, l1InclusionTx.transactionHash, logger)
   }
 
-  if (!inclusionTxInfo) {
-    throw new BonderTooEarlyError(`inclusionTxInfo not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
-  }
-  logger.debug(`getHiddenCalldataForDestinationChain: inclusionTxInfo on destination chain ${destChainSlug}`)
-
-  // TODO: Once inclusion watcher is implemented, move this to the top of this function so that the prior calls don't throw.
-  // Return if the blockHash is no longer stored at the destination
-  const isHashStored = await isBlockHashStoredAtBlockNumber(inclusionTxInfo.blockNumber, destChainSlug)
+  logger.debug(`getHiddenCalldataForDestinationChain: inclusionTxReceipt on destination chain ${destChainSlug}`)
+  const isHashStored = await isBlockHashStoredAtBlockNumber(inclusionTxReceipt.blockNumber, destChainSlug)
   if (!isHashStored) {
-    throw new BlockHashValidationError(`block hash for block number ${inclusionTxInfo.blockNumber} is no longer stored at dest`)
+    throw new BlockHashValidationError(`block hash for block number ${inclusionTxReceipt.blockNumber} is no longer stored at dest`)
   }
 
   const validatorAddress = getValidatorAddressForChain(tokenSymbol, destChainSlug)
@@ -91,12 +65,60 @@ export async function getHiddenCalldataForDestinationChain (input: HiddenCalldat
   }
   const hiddenCalldata: string = getEncodedValidationData(
     validatorAddress,
-    inclusionTxInfo.blockHash,
-    inclusionTxInfo.blockNumber
+    inclusionTxReceipt.blockHash,
+    inclusionTxReceipt.blockNumber
   )
 
   await validateHiddenCalldata(tokenSymbol, hiddenCalldata, destChainSlug)
   return hiddenCalldata.slice(2)
+}
+
+async function getInclusionTx (sourceChainSlug: string, destChainSlug: string, txHash: string, logger: Logger): Promise<providers.TransactionReceipt> {
+  if (destChainSlug === Chain.Ethereum) {
+    return _getL1InclusionTx(sourceChainSlug, txHash, logger)
+  }
+  return _getL2InclusionTx(destChainSlug, txHash, logger)
+}
+
+async function _getL1InclusionTx (sourceChainSlug: string, txHash: string, logger: Logger): Promise<providers.TransactionReceipt> {
+  const sourceChainBridge: IChainBridge = getChainBridge(sourceChainSlug)
+  if (typeof sourceChainBridge.getL1InclusionTx !== 'function') {
+    throw new BlockHashValidationError(`sourceChainBridge getL1InclusionTx not implemented for chain ${sourceChainSlug}`)
+  }
+
+  logger.debug('_getL1InclusionTx: retrieving l1InclusionBlock')
+  let l1InclusionTx: providers.TransactionReceipt | undefined 
+  try {
+    l1InclusionTx = await sourceChainBridge.getL1InclusionTx(txHash)
+  } catch (err) {
+    throw new BlockHashValidationError(`getL1InclusionTx error ${txHash} on L1. err: ${err.message}`)
+  }
+  if (!l1InclusionTx) {
+    throw new BonderTooEarlyError(`l1InclusionTx not found for txHash ${txHash}`)
+  }
+
+  return l1InclusionTx
+}
+
+async function _getL2InclusionTx (destChainSlug: string, txHash: string, logger: Logger): Promise<providers.TransactionReceipt> {
+  logger.debug(`_getL2InclusionTx: getting blockInfo for txHash ${txHash} on destination chain ${destChainSlug}`)
+  const destChainBridge: IChainBridge = getChainBridge(destChainSlug)
+  if (typeof destChainBridge.getL2InclusionTx !== 'function') {
+    throw new BlockHashValidationError(`destChainBridge getL2InclusionTx not implemented for chain ${destChainSlug}`)
+  }
+
+  logger.debug('_getL2InclusionTx: retrieving l2InclusionBlock')
+  let l2InclusionTx: providers.TransactionReceipt | undefined 
+  try {
+    l2InclusionTx = await destChainBridge.getL2InclusionTx(txHash)
+  } catch (err) {
+    throw new BlockHashValidationError(`getL2InclusionTx error ${txHash} on chain ${destChainSlug}. err: ${err.message}`)
+  }
+  if (!l2InclusionTx) {
+    throw new BonderTooEarlyError(`l2InclusionTx not found for txHash ${txHash}`)
+  }
+
+  return l2InclusionTx
 }
 
 async function isBlockHashStoredAtBlockNumber (blockNumber: number, chainSlug: string): Promise<boolean> {
@@ -135,7 +157,7 @@ async function validateHiddenCalldata (tokenSymbol: string, data: string, chainS
   }
 }
 
-async function isBlockHashStoredAtBlockNumberAppx (blockNumber: number, sourceChainSlug: string, destChainSlug: string): Promise<boolean> {
+async function didBlockHashStorageExpire (blockNumber: number, sourceChainSlug: string, destChainSlug: string): Promise<boolean> {
   // Get chain-specific constants
   const hashStorageTime = AvgBlockTimeSeconds[destChainSlug] * NumStoredBlockHashes
   const fullInclusionTime = TimeToIncludeOnL1Sec[sourceChainSlug] + TimeToIncludeOnL2Sec[destChainSlug]
@@ -148,9 +170,9 @@ async function isBlockHashStoredAtBlockNumberAppx (blockNumber: number, sourceCh
   // Compare values
   const currentTimestamp = (await sourceProvider.getBlock('latest')).timestamp
   if (currentTimestamp > expectedBondTime + hashStorageTime) {
-    return false
+    return true
   }
-  return true
+  return false
 }
 
 function getValidatorAddressForChain (token: string, chainSlug: string): string | undefined {

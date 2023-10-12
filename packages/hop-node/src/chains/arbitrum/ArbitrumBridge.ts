@@ -116,7 +116,17 @@ class ArbitrumBridge extends AbstractBridge implements IChainBridge {
     }
 
     // Use the nonRetryableProvider to avoid rateLimitRetry, since this call fails if the tx is not yet checkpointed
-    const l1BatchNumber: BigNumber = await this.nodeInterfaceContract.connect(this.nonRetryableProvider).findBatchContainingBlock(l2TxReceipt.blockNumber)
+    let l1BatchNumber: BigNumber
+    try {
+      // If the batch does not yet exist, this will throw with 'requested block x is after latest on-chain block y published in batch z'
+      l1BatchNumber = await this.nodeInterfaceContract.connect(this.nonRetryableProvider).findBatchContainingBlock(l2TxReceipt.blockNumber)
+    } catch (err) {
+      if (err.message.includes('is after latest on-chain block')) {
+        this.logger.debug(`l1BatchNumber not yet posted for l2TxHash ${l2TxHash}`)
+        return
+      }
+      throw err
+    }
     if (!l1BatchNumber) {
       throw new Error(`l1BatchNumber not found for l2TxHash ${l2TxHash}`)
     }
@@ -126,7 +136,7 @@ class ArbitrumBridge extends AbstractBridge implements IChainBridge {
     const numForwardLookingBlocks = 1000
     const l1BlockHead: number = await this.l1Wallet.provider!.getBlockNumber()
     const startBlockNumber = Number(l2TxReceipt.l1BlockNumber)
-    const endBlockNumber = startBlockNumber + Math.min(numForwardLookingBlocks, l1BlockHead - startBlockNumber)
+    const endBlockNumber = startBlockNumber + Math.min(numForwardLookingBlocks, l1BlockHead - startBlockNumber, 0)
     const sequencerBatchDeliveredEvents: any[] = await this._fetchSequencerBatchDeliveredEvents(startBlockNumber, endBlockNumber)
     if (sequencerBatchDeliveredEvents.length === 0) {
       throw new Error(`no sequencerBatchDeliveredEvents found for l2TxHash ${l2TxHash}`)
@@ -140,7 +150,7 @@ class ArbitrumBridge extends AbstractBridge implements IChainBridge {
       }
     }
 
-    throw new Error(`no sequencerBatchDeliveredEvents found for l2TxHash ${l2TxHash}`)
+    this.logger.debug(`no sequencerBatchDeliveredEvents found for l2TxHash ${l2TxHash}`)
   }
 
   // Needed to get Arbitrum-specific tx info from raw RPC call since ethers doesn't handle custom chain data

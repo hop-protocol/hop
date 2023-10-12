@@ -597,10 +597,10 @@ class SyncWatcher extends BaseWatcher {
       // is at block 256. In this case, the transferId will be marked as notFound and the
       // transfer will never be bonded. This is not handled, but if it ever occurs in practice, handle here.
       if (isFinalized) {
+        logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxError: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
         dbData.isNotFound = undefined
         dbData.withdrawalBondTxError = undefined
         dbData.withdrawalBondBackoffIndex = undefined
-        logger.debug('finalized transfer seen, resetting unfinalized non-happy path states')
       }
 
       await this.db.transfers.update(transferId, dbData)

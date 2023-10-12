@@ -455,7 +455,8 @@ class TransfersDb extends BaseDb {
         if (
           item.withdrawalBondTxError === TxError.BonderFeeTooLow ||
           item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync ||
-          item.withdrawalBondTxError === TxError.RpcServerError
+          item.withdrawalBondTxError === TxError.RpcServerError ||
+          item.withdrawalBondTxError === TxError.BondTooEarly
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
           if (delayMs > OneWeekMs) {
@@ -467,16 +468,6 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      // Do not bond an unfinalized transaction unless proxy validation exists
-      // TODO: Add isProxyAndValidatorEnabled after merging with that branch
-      const isFinalityOk = true
-      // if (
-      //   !item.isFinalized &&
-      //   !isProxyAndValidatorEnabled(this.tokenSymbol, sourceChaiSlug, destinationChainSlug)
-      // ) {
-      //   isUnfinalizedTxOk = false
-      // }
-
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -485,7 +476,6 @@ class TransfersDb extends BaseDb {
         item.isBondable &&
         item.transferSentBlockNumber &&
         !item.isTransferSpent &&
-        isFinalityOk &&
         timestampOk
       )
     })

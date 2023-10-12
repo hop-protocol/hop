@@ -45,7 +45,14 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     for (const inclusionTxHash of inclusionTxHashes) {
       const tx = await this.l2Wallet.provider!.getTransaction(inclusionTxHash)
       if (this.isL1BlockUpdateTx(tx)) {
-        return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
+        const setL1BlockValuesCalldata = this.l1BlockContract.interface.decodeFunctionData(
+          'setL1BlockValues',
+          tx.data
+        )
+        const l1BlockNumberFromCalldata: number = Number(setL1BlockValuesCalldata[0])
+        if (l1BlockNumberFromCalldata >= l1Tx.blockNumber) {
+          return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
+        }
       }
     }
   }
@@ -69,14 +76,19 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   private async _getInclusionTxHashes (config: GetInclusionTxHashes): Promise<string[]> {
-    const { destChainProvider, fromAddress, toAddress, startBlockNumber } = config
+    let { destChainProvider, fromAddress, toAddress, startBlockNumber } = config
 
     // Defined the from and to block numbers
     const destHeadBlockNumber = await destChainProvider.getBlockNumber()
 
     const searchLengthBlocks = 50
     let endBlockNumber = startBlockNumber + searchLengthBlocks
-    if (endBlockNumber > destHeadBlockNumber) {
+
+    // Handle case where blocks exceed current head
+    if (startBlockNumber > destHeadBlockNumber) {
+      startBlockNumber = destHeadBlockNumber
+      endBlockNumber = destHeadBlockNumber
+    } else if (endBlockNumber > destHeadBlockNumber) {
       endBlockNumber = destHeadBlockNumber
     }
 

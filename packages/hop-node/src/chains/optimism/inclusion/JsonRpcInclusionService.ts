@@ -92,7 +92,14 @@ class JsonRpcInclusionService extends InclusionService {
     const txs = (await this.l2Wallet.provider!.getBlockWithTransactions(l2InclusionBlockNumber)).transactions
     for (const tx of txs) {
       if (this.isL1BlockUpdateTx(tx)) {
-        return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
+        const setL1BlockValuesCalldata = this.l1BlockContract.interface.decodeFunctionData(
+          'setL1BlockValues',
+          tx.data
+        )
+        const l1BlockNumberFromCalldata: number = Number(setL1BlockValuesCalldata[0])
+        if (l1BlockNumberFromCalldata >= l1BlockNumber) {
+          return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
+        }
       }
     }
     throw new Error(`getL2InclusionTx: inclusion tx does not exist in block ${l2InclusionBlockNumber}`)

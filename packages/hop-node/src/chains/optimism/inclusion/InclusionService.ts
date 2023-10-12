@@ -54,7 +54,8 @@ abstract class InclusionService {
     const l1BlockAbi: string[] = [
       'function number() view returns (uint64)',
       'function sequenceNumber() view returns (uint64)',
-      'function timestamp() view returns (uint64)'
+      'function timestamp() view returns (uint64)',
+      'function setL1BlockValues(uint64, uint64, uint256, bytes32, uint64, bytes32, uint256, uint256)'
     ]
     this.l1BlockContract = new Contract(this.l1BlockAddress, l1BlockAbi, this.l2Wallet)
   }

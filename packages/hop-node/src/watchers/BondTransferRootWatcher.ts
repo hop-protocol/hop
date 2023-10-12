@@ -8,7 +8,7 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
 import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
-import { BonderTooEarlyError, PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
+import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -231,15 +231,6 @@ class BondTransferRootWatcher extends BaseWatcher {
         rootBondBackoffIndex++
         await this.db.transferRoots.update(transferRootId, {
           rootBondTxError: TxError.RedundantRpcOutOfSync,
-          rootBondBackoffIndex
-        })
-        return
-      }
-      if (err instanceof BonderTooEarlyError) {
-        logger.error('bond attempted too early. trying again.')
-        rootBondBackoffIndex++
-        await this.db.transferRoots.update(transferRootId, {
-          rootBondTxError: TxError.BondTooEarly,
           rootBondBackoffIndex
         })
         return

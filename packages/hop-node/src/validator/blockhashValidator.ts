@@ -10,7 +10,7 @@ import {
   TimeToIncludeOnL1Sec,
   TimeToIncludeOnL2Sec
 } from 'src/constants'
-import { BonderTooEarlyError } from 'src/types/error'
+import { BlockHashValidationError, BonderTooEarlyError } from 'src/types/error'
 import { Contract, providers } from 'ethers'
 import { IChainBridge } from '../chains/IChainBridge'
 import { ShouldIgnoreBlockHashValidation, config as globalConfig } from 'src/config'
@@ -32,21 +32,26 @@ export async function getHiddenCalldataForDestinationChain (input: HiddenCalldat
   const { tokenSymbol, sourceChainSlug, destChainSlug, l2TxHash, l2BlockNumber, logger } = input
 
   if (!tokenSymbol || !sourceChainSlug || !destChainSlug || !l2TxHash || !l2BlockNumber || !logger) {
-    throw new Error(`missing input params: ${JSON.stringify(input)}`)
+    throw new BlockHashValidationError(`missing input params: ${JSON.stringify(input)}`)
   }
 
   const sourceChainBridge: IChainBridge = getChainBridge(sourceChainSlug)
   if (typeof sourceChainBridge.getL1InclusionTx !== 'function') {
-    throw new Error(`sourceChainBridge getL1InclusionTx not implemented for chain ${sourceChainSlug}`)
+    throw new BlockHashValidationError(`sourceChainBridge getL1InclusionTx not implemented for chain ${sourceChainSlug}`)
   }
 
   const isHashStoredAppx = await isBlockHashStoredAtBlockNumberAppx(l2BlockNumber, sourceChainSlug, destChainSlug)
   if (!isHashStoredAppx) {
-    throw new Error(`block hash for block number ${l2BlockNumber} is no longer stored at dest`)
+    throw new BlockHashValidationError(`block hash for block number ${l2BlockNumber} is no longer stored at dest`)
   }
 
   logger.debug('getHiddenCalldataForDestinationChain: retrieving l1InclusionBlock')
-  const l1InclusionTx: providers.TransactionReceipt | undefined = await sourceChainBridge.getL1InclusionTx(l2TxHash)
+  let l1InclusionTx: providers.TransactionReceipt | undefined 
+  try {
+    l1InclusionTx = await sourceChainBridge.getL1InclusionTx(l2TxHash)
+  } catch (err) {
+    throw new BlockHashValidationError(`getL1InclusionTx error ${l2TxHash} on L1. err: ${err.message}`)
+  }
   if (!l1InclusionTx) {
     throw new BonderTooEarlyError(`l1InclusionTx not found for l2TxHash ${l2TxHash}, l2BlockNumber ${l2BlockNumber}`)
   }
@@ -59,9 +64,13 @@ export async function getHiddenCalldataForDestinationChain (input: HiddenCalldat
     logger.debug(`getHiddenCalldataForDestinationChain: getting blockInfo for l1InclusionTx ${l1InclusionTx.transactionHash} on destination chain ${destChainSlug}`)
     const destChainBridge: IChainBridge = getChainBridge(destChainSlug)
     if (typeof destChainBridge.getL2InclusionTx !== 'function') {
-      throw new Error(`destChainBridge getL2InclusionTx not implemented for chain ${destChainSlug}`)
+      throw new BlockHashValidationError(`destChainBridge getL2InclusionTx not implemented for chain ${destChainSlug}`)
     }
-    inclusionTxInfo = await destChainBridge.getL2InclusionTx(l1InclusionTx.transactionHash)
+    try {
+      inclusionTxInfo = await destChainBridge.getL2InclusionTx(l1InclusionTx.transactionHash)
+    } catch (err) {
+      throw new BlockHashValidationError(`getL2InclusionTx error ${l1InclusionTx.transactionHash} on chain ${destChainSlug}. err: ${err.message}`)
+    }
   }
 
   if (!inclusionTxInfo) {
@@ -73,12 +82,12 @@ export async function getHiddenCalldataForDestinationChain (input: HiddenCalldat
   // Return if the blockHash is no longer stored at the destination
   const isHashStored = await isBlockHashStoredAtBlockNumber(inclusionTxInfo.blockNumber, destChainSlug)
   if (!isHashStored) {
-    throw new Error(`block hash for block number ${inclusionTxInfo.blockNumber} is no longer stored at dest`)
+    throw new BlockHashValidationError(`block hash for block number ${inclusionTxInfo.blockNumber} is no longer stored at dest`)
   }
 
   const validatorAddress = getValidatorAddressForChain(tokenSymbol, destChainSlug)
   if (!validatorAddress) {
-    throw new Error(`validator address not found for chain ${destChainSlug}`)
+    throw new BlockHashValidationError(`validator address not found for chain ${destChainSlug}`)
   }
   const hiddenCalldata: string = getEncodedValidationData(
     validatorAddress,
@@ -107,15 +116,22 @@ async function validateHiddenCalldata (tokenSymbol: string, data: string, chainS
   const { blockHash, blockNumber } = getDecodedValidationData(data)
   const validatorAddress = getValidatorAddressForChain(tokenSymbol, chainSlug)
   if (!validatorAddress) {
-    throw new Error(`validator address not found for chain ${chainSlug}`)
+    throw new BlockHashValidationError(`validator address not found for chain ${chainSlug}`)
   }
 
   const provider: providers.Provider = getRpcProvider(chainSlug)!
   const validatorAbi = ['function isBlockHashValid(bytes32,uint256) view returns (bool)']
   const validatorContract = new Contract(validatorAddress, validatorAbi, provider)
   const isValid = await validatorContract.isBlockHashValid(blockHash, blockNumber)
+
+  // NOTE: There is a race condition here where the blockHash and blockNumber could be valid but isBlockHashValid
+  // returns false. This would happen if the check is performed near the head of the chain and the RPC call for
+  // isBlockHashValid is not yet at the head, even though the data will be correct when we get there. Since
+  // it is not trivial to know if the RPC call is at the head, we do not know if the data is truly invalid or if
+  // the data does not yet exist at that specific call. Because of this, we need to mark this as a BonderTooEarlyError
+  // instead of a BlockHashValidationError so that this is retried.
   if (!isValid) {
-    throw new Error(`blockHash ${blockHash} is not valid for blockNumber ${blockNumber} with validator ${validatorAddress}`)
+    throw new BonderTooEarlyError(`blockHash ${blockHash} is not valid for blockNumber ${blockNumber} with validator ${validatorAddress}`)
   }
 }
 

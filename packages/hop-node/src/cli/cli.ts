@@ -47,6 +47,7 @@ import './vault'
 import './verifyAwsSigner'
 import './verifyChainBalance'
 import './verifyCommits'
+import './verifyProxy'
 import './withdraw'
 import './withdrawalProof'
 

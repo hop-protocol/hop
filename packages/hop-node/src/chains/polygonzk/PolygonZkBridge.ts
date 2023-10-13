@@ -1,11 +1,11 @@
-import AbstractBridge from '../AbstractBridge'
+import AbstractChainBridge from '../AbstractChainBridge'
 import wait from 'src/utils/wait'
 import { IChainBridge } from '../IChainBridge'
 import { Signer, providers, utils } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
 
-class PolygonZkBridge extends AbstractBridge implements IChainBridge {
+class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   ready: boolean = false
   l1Provider: any
   l2Provider: any

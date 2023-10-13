@@ -1,4 +1,4 @@
-import AbstractBridge from '../AbstractBridge'
+import AbstractChainBridge from '../AbstractChainBridge'
 import fetch from 'node-fetch'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { IChainBridge } from '../IChainBridge'
@@ -6,7 +6,7 @@ import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
-class PolygonBridge extends AbstractBridge implements IChainBridge {
+class PolygonBridge extends AbstractChainBridge implements IChainBridge {
   ready: boolean = false
   apiUrl: string
   polygonMainnetChainId: number = 137

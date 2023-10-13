@@ -1,4 +1,4 @@
-import AbstractBridge from '../AbstractBridge'
+import AbstractChainBridge from '../AbstractChainBridge'
 import fetch from 'node-fetch'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
@@ -12,7 +12,7 @@ type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
 }
 
-class ArbitrumBridge extends AbstractBridge implements IChainBridge {
+class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
   nonRetryableProvider: providers.Provider
   nodeInterfaceContract: Contract
   sequencerInboxContract: Contract

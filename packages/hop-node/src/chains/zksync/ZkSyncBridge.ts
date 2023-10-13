@@ -1,4 +1,4 @@
-import AbstractBridge from '../AbstractBridge'
+import AbstractChainBridge from '../AbstractChainBridge'
 import { IChainBridge } from '../IChainBridge'
 import { Provider as ZkSyncProvider } from 'zksync-web3'
 import { config as globalConfig } from 'src/config'
@@ -55,7 +55,7 @@ const abi = [
   }
 ]
 
-class ZkSyncBridge extends AbstractBridge implements IChainBridge {
+class ZkSyncBridge extends AbstractChainBridge implements IChainBridge {
   zkSyncProvider: ZkSyncProvider
 
   constructor (chainSlug: string) {

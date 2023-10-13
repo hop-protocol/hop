@@ -1,4 +1,4 @@
-import AbstractBridge from '../AbstractBridge'
+import AbstractChainBridge from '../AbstractChainBridge'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { Contract, providers } from 'ethers'
@@ -15,7 +15,7 @@ const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslin
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class GnosisBridge extends AbstractBridge implements IChainBridge {
+class GnosisBridge extends AbstractChainBridge implements IChainBridge {
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB
 

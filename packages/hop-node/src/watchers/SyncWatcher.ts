@@ -449,7 +449,7 @@ class SyncWatcher extends BaseWatcher {
 
     let promises: EventPromise
     if (this.shouldSyncHead) {
-      // Sync finalized transfers first, then sync head
+      // Sync head first, then sync finalized transfers
       // If syncs are not done in this order, there is a race condition upon bonder startup
       // where a transfer might be marked finalized and then subsequently unfinalized. Ordering
       // these ensures that does not happen.

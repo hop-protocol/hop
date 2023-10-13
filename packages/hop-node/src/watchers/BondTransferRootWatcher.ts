@@ -12,7 +12,12 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { enableEmergencyMode, getFinalityTimeSeconds, getHasFinalizationBlockTag, config as globalConfig } from 'src/config'
+import {
+  enableEmergencyMode,
+  getFinalityTimeSeconds,
+  getHasFinalizationBlockTag,
+  config as globalConfig
+} from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -213,12 +218,13 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
+      let { rootBondBackoffIndex } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+      if (!rootBondBackoffIndex) {
+        rootBondBackoffIndex = 0
+      }
+
       if (err instanceof RedundantProviderOutOfSync) {
         logger.error('redundant provider out of sync. trying again.')
-        let { rootBondBackoffIndex } = await this.db.transferRoots.getByTransferRootId(transferRootId)
-        if (!rootBondBackoffIndex) {
-          rootBondBackoffIndex = 0
-        }
         rootBondBackoffIndex++
         await this.db.transferRoots.update(transferRootId, {
           rootBondTxError: TxError.RedundantRpcOutOfSync,

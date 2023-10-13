@@ -34,6 +34,8 @@ if (enabledTokens) {
   addresses.tokens = filteredAddresses
 }
 
+const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
+
 // TODO: mv to src/config/networks
 let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
 if (enabledChains) {
@@ -66,6 +68,7 @@ if (process.env.NODE_ENV !== 'test') {
   console.debug('config hop app network:', hopAppNetwork)
   console.debug('config chains (networks):', networks)
   console.debug('config addresses:', addresses.tokens)
+  console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
 }
 
 const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID
@@ -173,7 +176,8 @@ const hopStakingRewardsContracts = {
     optimism: {
       ETH: '0xd691E3f40692a28f0b8090D989cC29F24B59f945',
       USDC: '0xFCd39f8d53A74f99830849331AB433bBCe0e28E0'
-    }
+    },
+    // TODO: add Base
   }
 }
 
@@ -187,5 +191,6 @@ export {
   blocknativeDappid,
   stakingRewardsContracts,
   hopStakingRewardsContracts,
-  enabledChains
+  enabledChains,
+  deprecatedTokens
 }

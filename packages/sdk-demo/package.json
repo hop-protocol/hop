@@ -5,7 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
-    "@hop-protocol/sdk": "0.0.1-beta.536",
+    "@hop-protocol/sdk": "0.0.1-beta.539",
     "@mui/lab": "^5.0.0-alpha.84",
     "@mui/material": "^5.7.0",
     "@testing-library/jest-dom": "^5.16.4",
@@ -15,7 +15,7 @@
     "@types/node": "^16.11.35",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.4",
-    "assert": "^2.0.0",
+    "assert": "^2.1.0",
     "crypto-browserify": "^3.12.0",
     "dotenv": "^16.0.1",
     "ethers": "^5.6.6",
@@ -29,7 +29,8 @@
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "typescript": "^4.6.4",
-    "url": "^0.11.0",
+    "url": "^0.11.3",
+    "usehooks-ts": "^2.9.1",
     "wait": "^0.4.2",
     "web-vitals": "^2.1.4"
   },

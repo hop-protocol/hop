@@ -52,7 +52,9 @@ export { nativeChainTokens }
 export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Ethereum]: 12,
   [Chain.Polygon]: 2,
-  [Chain.Gnosis]: 6
+  [Chain.Gnosis]: 6,
+  [Chain.Optimism]: 2,
+  [Chain.Base]: 2
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -72,6 +74,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 export const DefaultBatchBlocks = 10000
 
 export const TenSecondsMs = 10 * 1000
+export const FiveMinutesMs = 5 * 60 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
 export const OneHourSeconds = 60 * 60
 export const OneHourMs = OneHourSeconds * 1000
@@ -97,7 +100,8 @@ export enum TxError {
   RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
   RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
-  RpcServerError = 'RPC_SERVER_ERROR'
+  RpcServerError = 'RPC_SERVER_ERROR',
+  BondTooEarly = 'BOND_TOO_EARLY',
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
@@ -161,6 +165,26 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.PolygonZk]: FinalityTag.Safe
 }
 
+export const NumStoredBlockHashes: number = 256
+
+// These values are currently the same on both mainnet and testnet but this might not always be the case
+export const TimeToIncludeOnL1Sec: Record<string, number> = {
+  [Chain.Optimism]: 120,
+  [Chain.Base]: 20
+}
+
+// These values are currently the same on both mainnet and testnet but this might not always be the case
+export const TimeToIncludeOnL2Sec: Record<string, number> = {
+  [Chain.Ethereum]: 0,
+  [Chain.Optimism]: 180,
+  [Chain.Base]: 90
+}
+
+export const L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {
+  [Chain.Optimism]: 6,
+  [Chain.Base]: 12
+}
+
 // Poll certain chains at a slower cadence if they are not widely used
 export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Ethereum]: 1,
@@ -172,3 +196,5 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Nova]: 2,
   [Chain.PolygonZk]: 1
 }
+
+export const HeadSyncKeySuffix = 'HeadSync'

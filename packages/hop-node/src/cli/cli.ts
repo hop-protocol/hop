@@ -9,9 +9,9 @@ import './bondTransferRoot'
 import './bondWithdrawal'
 import './bondedUnconfirmedRoots'
 import './challenger'
+import './claimFromProxy'
 import './commitTransfers'
 import './confirmRoot'
-import './contractState'
 import './dbDump'
 import './generateChainBalanceArchiveData'
 import './healthCheck'
@@ -46,8 +46,13 @@ import './vault'
 import './verifyAwsSigner'
 import './verifyChainBalance'
 import './verifyCommits'
+import './verifyProxy'
 import './withdraw'
 import './withdrawalProof'
+
+// internal metrics
+import './metrics/bonderBalance'
+import './metrics/bonderTxCost'
 
 program.version(packageJson.version)
 program.parse(process.argv)

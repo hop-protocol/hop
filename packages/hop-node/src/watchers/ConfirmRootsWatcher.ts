@@ -56,6 +56,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
       this.logger.debug('confirmRootsWatcher pollHandler completed')
     } catch (err) {
       this.logger.debug(`confirmRootsWatcher pollHandler error ${err.message}`)
+      console.trace(`confirmRootsWatcher pollHandler error ${err.message}`)
+      console.log(`confirmRootsWatcher pollHandler error ${err.message}`)
     }
   }
 

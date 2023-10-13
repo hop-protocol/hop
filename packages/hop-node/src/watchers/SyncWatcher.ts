@@ -444,16 +444,26 @@ class SyncWatcher extends BaseWatcher {
       return [this.getTransferSentToL2EventPromise()]
     }
 
-    if (!this.isL1) {
-      // Always sync the finalized transfers. Also sync head if enabled.
-      const promises: EventPromise = [this.getTransferSentEventPromise()]
-      if (this.shouldSyncHead) {
-        promises.push(this.getTransferSentEventPromise(true))
-      }
-      return promises
+    // TransferSent events do not exist on L1
+    if (this.isL1) return []
+
+    let promises: EventPromise
+    if (this.shouldSyncHead) {
+      // Sync finalized transfers first, then sync head
+      // If syncs are not done in this order, there is a race condition upon bonder startup
+      // where a transfer might be marked finalized and then subsequently unfinalized. Ordering
+      // these ensures that does not happen.
+      const syncPromises: EventPromise = [this.getTransferSentEventPromise(true)]
+      promises = [Promise.all(syncPromises).then(async () => {
+        await Promise.all([
+          this.getTransferSentEventPromise()
+        ])
+      })]
+    } else {
+      promises = [this.getTransferSentEventPromise()]
     }
 
-    return []
+    return promises
   }
 
   async handleTransferSentToL2Event (event: TransferSentToL2Event) {

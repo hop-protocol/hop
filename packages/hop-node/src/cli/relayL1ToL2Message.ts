@@ -1,4 +1,5 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import {
   getL1ToL2RelayWatcher
 } from 'src/watchers/watchers'
@@ -15,7 +16,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { chain, token, messageIndex, txHashes } = source
+  const { chain, token, messageIndex, txHashes } = source
 
   if (!chain) {
     throw new Error('Chain not found')
@@ -38,8 +39,10 @@ async function main (source: any) {
   }
 
   const chainId = chainSlugToId(chain)
-  messageIndex = messageIndex ?? 0
+  const relayL1ToL2MessageOpts: RelayL1ToL2MessageOpts = {
+    messageIndex: messageIndex ?? 0
+  }
   for (const txHash of txHashes) {
-    await watcher.sendRelayTx(chainId, txHash, messageIndex)
+    await watcher.sendRelayTx(chainId, txHash, relayL1ToL2MessageOpts)
   }
 }

@@ -11,7 +11,11 @@ import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber, constants } from 'ethers'
-import { Chain, GasCostTransactionType, MaxReorgCheckBackoffIndex } from 'src/constants'
+import {
+  Chain,
+  GasCostTransactionType,
+  MaxReorgCheckBackoffIndex
+} from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'

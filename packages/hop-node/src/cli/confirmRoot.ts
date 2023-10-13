@@ -1,15 +1,8 @@
-import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
-import BaseBridgeWatcher from 'src/watchers/BaseBridgeWatcher'
-import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
-import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
-import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
+import { IChainBridge } from '../chains/IChainBridge'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
-
-// Nova and Arbitrum One both use the same Arbitrum Bridge Watcher
-type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseBridgeWatcher | ArbitrumBridgeWatcher
 
 root
   .command('confirm-root')
@@ -100,14 +93,14 @@ async function main (source: any) {
     console.log('rootDatas', rootDatas)
     await watcher.confirmRootsViaWrapper(rootDatas)
   } else {
-    const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
+    const chainBridge: IChainBridge = watcher.watchers[chain]
     for (const dbTransferRoot of dbTransferRoots) {
       const commitTxHash = dbTransferRoot.commitTxHash
       if (!commitTxHash) {
         throw new Error('commitTxHash is required')
       }
       console.log('commitTxHash', commitTxHash)
-      await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
+      await chainBridge.relayL2ToL1Message(commitTxHash)
     }
   }
   console.log('done')

@@ -6,10 +6,12 @@ import wait from 'src/utils/wait'
 import { BigNumber, constants } from 'ethers'
 import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
+import { Interface } from 'ethers/lib/utils'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
+import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
 
 root
   .command('stake')
@@ -41,7 +43,8 @@ async function main (source: any) {
   const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
   if (shouldSendToL2) {
     const l1Bridge: L1Bridge = (await getBridge(token, Chain.Ethereum)) as L1Bridge
-    await sendTokensToL2(l1Bridge, parsedAmount, chain)
+    const l2Bridge: L2Bridge = bridge as L2Bridge
+    await sendTokensToL2(l1Bridge, l2Bridge, parsedAmount, chain)
     logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
     await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)
     logger.debug('Tokens received on L2.')
@@ -51,17 +54,17 @@ async function main (source: any) {
 }
 
 async function sendTokensToL2 (
-  bridge: L1Bridge,
+  l1Bridge: L1Bridge,
+  l2Bridge: L2Bridge,
   parsedAmount: BigNumber,
   chain: string
 ) {
-  const recipient = await bridge.getBonderAddress()
-  const spender = bridge.getAddress()
-  const token: Token | void = await getToken(bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
+  const token: Token | void = await getToken(l1Bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
 
   let tx
   if (token) {
     logger.debug('Approving L2 token send, if needed')
+    const spender = await token.contract.signer.getAddress()
     tx = await token.approve(spender, parsedAmount)
     await tx?.wait()
   }
@@ -70,7 +73,8 @@ async function sendTokensToL2 (
   const options: CanonicalTokenConvertOptions = {
     shouldSkipNearestCheck: true
   }
-  tx = await bridge.convertCanonicalTokenToHopToken(
+  const recipient = await l2Bridge.getBonderAddress()
+  tx = await l1Bridge.convertCanonicalTokenToHopToken(
     chainSlugToId(chain),
     parsedAmount,
     recipient,
@@ -100,7 +104,26 @@ async function stake (
   if (token) {
     logger.debug('Approving token stake, if needed')
     const spender = bridge.getAddress()
-    tx = await token.approve(spender, parsedAmount)
+    if (isProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)) {
+      // Send proxy the tokens since it does not pull them on stake
+      const proxyAddress = getProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
+      tx = await token.transfer(proxyAddress, parsedAmount)
+      await tx?.wait()
+
+      // Approve the bridge to spend proxy tokens
+      const abi = ['function approveToken(address,address,uint256)']
+      const iface = new Interface(abi)
+      const data = iface.encodeFunctionData(
+        'approveToken', [token.address, spender, parsedAmount]
+      )
+      tx = await token.contract.signer.sendTransaction({
+        to: proxyAddress,
+        data
+      })
+      await tx?.wait()
+    } else {
+      tx = await token.approve(spender, parsedAmount)
+    }
     await tx?.wait()
   }
 

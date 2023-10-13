@@ -132,7 +132,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
     if (config?.logging?.level) {
       const validLoggingLevels = ['debug', 'info', 'warn', 'error']
-      await validateKeys(validLoggingLevels, [config?.logging?.level])
+      validateKeys(validLoggingLevels, [config?.logging?.level])
     }
   }
 
@@ -328,7 +328,6 @@ export async function validateConfigValues (config?: Config) {
       }
     }
     if (hasFinalizationBlockTag == null) {
-      console.log(chain)
       throw new Error(`hasFinalizationBlockTag for chain "${chainSlug}" is required`)
     }
     if (maxGasPrice != null) {

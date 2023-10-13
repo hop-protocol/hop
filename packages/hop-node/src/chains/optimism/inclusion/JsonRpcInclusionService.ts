@@ -86,23 +86,17 @@ class JsonRpcInclusionService extends InclusionService {
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    const l1BlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
-    const l2InclusionBlockNumber = await this._traverseL2BlocksForInclusion(l1BlockNumber)
+    const l1TxBlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
+    const l2InclusionBlockNumber = await this._traverseL2BlocksForInclusion(l1TxBlockNumber)
 
     const txs = (await this.l2Wallet.provider!.getBlockWithTransactions(l2InclusionBlockNumber)).transactions
     for (const tx of txs) {
       if (this.isL1BlockUpdateTx(tx)) {
-        const setL1BlockValuesCalldata = this.l1BlockContract.interface.decodeFunctionData(
-          'setL1BlockValues',
-          tx.data
-        )
-        const l1BlockNumberFromCalldata: number = Number(setL1BlockValuesCalldata[0])
-        if (l1BlockNumberFromCalldata >= l1BlockNumber) {
+        if (this.doesL1BlockUpdateExceedL1BlockNumber(tx.data, l1TxBlockNumber)) {
           return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
         }
       }
     }
-    throw new Error(`getL2InclusionTx: inclusion tx does not exist in block ${l2InclusionBlockNumber}`)
   }
 
   private async _traverseL2BlocksForInclusion (l1BlockNumber: number): Promise<number> {

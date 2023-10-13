@@ -2,6 +2,8 @@ import InclusionService from './InclusionService'
 import fetch from 'node-fetch'
 import { IInclusionService, InclusionServiceConfig } from './IInclusionService'
 import { providers } from 'ethers'
+import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
+import isAlchemy from 'src/utils/isAlchemy'
 
 interface GetInclusionTxHashes {
   destChainProvider: providers.Provider
@@ -14,17 +16,17 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   constructor (config: InclusionServiceConfig) {
     super(config)
 
-    if (!this._isAlchemy(this.l1Wallet.provider!)) {
+    if (!isAlchemy(this.l1Wallet.provider!)) {
       throw new Error('l1 provider is not alchemy')
     }
-    if (!this._isAlchemy(this.l2Wallet.provider!)) {
+    if (!isAlchemy(this.l2Wallet.provider!)) {
       throw new Error('l2 provider is not alchemy')
     }
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    const l2Tx: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2Tx.blockNumber }))
+    const l2TxBlockNumber: number = (await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)).blockNumber
+    const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2TxBlockNumber }))
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(l1OriginBlockNum)
 
     for (const inclusionTxHash of inclusionTxHashes) {
@@ -36,8 +38,8 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    const l1Tx: providers.TransactionReceipt = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash))
-    const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1Tx.blockNumber)
+    const l1TxBlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
+    const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1TxBlockNumber)
 
     const l2StartBlockNumber = await this.getApproximateL2BlockNumberAtL1Timestamp(l1Block.timestamp)
     const inclusionTxHashes: string[] = await this._getL1lToL2InclusionTxHashes(l2StartBlockNumber)
@@ -45,12 +47,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     for (const inclusionTxHash of inclusionTxHashes) {
       const tx = await this.l2Wallet.provider!.getTransaction(inclusionTxHash)
       if (this.isL1BlockUpdateTx(tx)) {
-        const setL1BlockValuesCalldata = this.l1BlockContract.interface.decodeFunctionData(
-          'setL1BlockValues',
-          tx.data
-        )
-        const l1BlockNumberFromCalldata: number = Number(setL1BlockValuesCalldata[0])
-        if (l1BlockNumberFromCalldata >= l1Tx.blockNumber) {
+        if (this.doesL1BlockUpdateExceedL1BlockNumber(tx.data, l1TxBlockNumber)) {
           return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
         }
       }
@@ -111,7 +108,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
       params: [params]
     }
 
-    const rpcUrl = this._getRpcUrlFromProvider(destChainProvider)
+    const rpcUrl = getRpcUrlFromProvider(destChainProvider)
     const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: {
@@ -126,21 +123,6 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
       throw new Error(`alchemy_getAssetTransfers failed: ${JSON.stringify(jsonRes)}`)
     }
     return jsonRes.result.transfers.map((tx: any) => tx.hash)
-  }
-
-  private _getRpcUrlFromProvider (provider: providers.Provider): string {
-    return (provider as any)?.connection?.url ?? (provider as any).providers?.[0]?.connection?.url ?? ''
-  }
-
-  private _isAlchemy (providerOrUrl: providers.Provider | string): boolean {
-    let url
-    if (providerOrUrl instanceof providers.Provider) {
-      url = this._getRpcUrlFromProvider(providerOrUrl)
-    } else {
-      url = providerOrUrl
-    }
-
-    return url.includes('alchemy.com')
   }
 }
 

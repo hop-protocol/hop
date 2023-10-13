@@ -3,7 +3,7 @@ import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { Contract, providers } from 'ethers'
 import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
-import { IChainBridge } from '.././IChainBridge'
+import { IChainBridge } from '../IChainBridge'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
 import { getCanonicalAddressesForChain } from 'src/config'
@@ -23,15 +23,15 @@ class GnosisBridge extends AbstractChainBridge implements IChainBridge {
     super(chainSlug)
 
     // Get chain contracts
-    const GnosisCanonicalAddresses: GnosisCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    const l1AmbAddress = GnosisCanonicalAddresses?.l1AmbAddress
-    const l2AmbAddress = GnosisCanonicalAddresses?.l2AmbAddress
+    const canonicalAddresses: GnosisCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
+    const l1AmbAddress = canonicalAddresses?.l1AmbAddress
+    const l2AmbAddress = canonicalAddresses?.l2AmbAddress
     if (!l1AmbAddress || !l2AmbAddress) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
 
     this.l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, this.l1Wallet) as L1_xDaiAMB
-    this.l1Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L1_xDaiAMB
+    this.l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {

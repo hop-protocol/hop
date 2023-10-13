@@ -44,9 +44,9 @@ abstract class InclusionService {
     this.l1BlockAddress = '0x4200000000000000000000000000000000000015'
 
     // Addresses from config
-    const optimismSuperchainCanonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    this.batcherAddress = optimismSuperchainCanonicalAddresses.batcherAddress
-    this.batchInboxAddress = optimismSuperchainCanonicalAddresses.batchInboxAddress
+    const canonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
+    this.batcherAddress = canonicalAddresses?.batcherAddress
+    this.batchInboxAddress = canonicalAddresses?.batchInboxAddress
     if (!this.batcherAddress || !this.batchInboxAddress) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
@@ -169,6 +169,19 @@ abstract class InclusionService {
     ) {
       return true
     }
+    return false
+  }
+
+  doesL1BlockUpdateExceedL1BlockNumber (txData: string, l1BlockNumber: number): boolean {
+    const setL1BlockValuesCalldata = this.l1BlockContract.interface.decodeFunctionData(
+      'setL1BlockValues',
+      txData
+    )
+    const l1BlockNumberFromCalldata: number = Number(setL1BlockValuesCalldata[0])
+    if (l1BlockNumberFromCalldata >= l1BlockNumber) {
+      return true
+    }
+
     return false
   }
 }

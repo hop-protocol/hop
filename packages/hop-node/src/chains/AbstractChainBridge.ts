@@ -5,7 +5,7 @@ import { Chain } from 'src/constants'
 import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
 
-class AbstractChainBridge {
+abstract class AbstractChainBridge {
   logger: Logger
   chainSlug: string
   chainId: number

@@ -1,5 +1,5 @@
 import AbstractChainBridge from '../AbstractChainBridge'
-import { IChainBridge } from '.././IChainBridge'
+import { IChainBridge } from '../IChainBridge'
 import { providers } from 'ethers'
 
 class LineaBridge extends AbstractChainBridge implements IChainBridge {

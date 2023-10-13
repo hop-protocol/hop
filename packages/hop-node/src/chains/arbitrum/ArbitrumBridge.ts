@@ -4,7 +4,7 @@ import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
-import { IChainBridge, RelayL1ToL2MessageOpts } from '.././IChainBridge'
+import { IChainBridge, RelayL1ToL2MessageOpts } from '../IChainBridge'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { getCanonicalAddressesForChain } from 'src/config'
 
@@ -22,8 +22,8 @@ class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
     this.nonRetryableProvider = getNonRetryableRpcProvider(chainSlug)!
 
     // Addresses from config
-    const arbitrumSuperchainCanonicalAddresses: ArbitrumSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    const sequencerInboxAddress = arbitrumSuperchainCanonicalAddresses.sequencerInboxAddress
+    const canonicalAddresses: ArbitrumSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
+    const sequencerInboxAddress = canonicalAddresses?.sequencerInboxAddress
     if (!sequencerInboxAddress) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
@@ -115,9 +115,9 @@ class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
       throw new Error(`l2TxReceipt l1BlockNumber or blockNumber not found for tx hash ${l2TxHash}. l2TxReceipt: ${JSON.stringify(l2TxReceipt)}`)
     }
 
-    // Use the nonRetryableProvider to avoid rateLimitRetry, since this call fails if the tx is not yet checkpointed
     let l1BatchNumber: BigNumber
     try {
+      // Use the nonRetryableProvider to avoid rateLimitRetry, since this call fails if the tx is not yet checkpointed
       // If the batch does not yet exist, this will throw with 'requested block x is after latest on-chain block y published in batch z'
       l1BatchNumber = await this.nodeInterfaceContract.connect(this.nonRetryableProvider).findBatchContainingBlock(l2TxReceipt.blockNumber)
     } catch (err) {

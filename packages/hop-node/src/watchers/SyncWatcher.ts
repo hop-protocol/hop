@@ -601,6 +601,7 @@ class SyncWatcher extends BaseWatcher {
         dbData.isNotFound = undefined
         dbData.withdrawalBondTxError = undefined
         dbData.withdrawalBondBackoffIndex = 0
+        
       }
 
       await this.db.transfers.update(transferId, dbData)

@@ -165,9 +165,6 @@ export const FinalityTagForChain: Record<string, string> = {
   [Chain.PolygonZk]: FinalityTag.Safe
 }
 
-// Time buffer expected to account for the time between when blockHash validation logic is prepared
-// and when the transaction is sent
-export const BlockHashExpireBufferSec: number = 60
 export const NumStoredBlockHashes: number = 256
 
 // These values are currently the same on both mainnet and testnet but this might not always be the case

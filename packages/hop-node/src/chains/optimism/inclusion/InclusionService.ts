@@ -45,8 +45,8 @@ abstract class InclusionService {
 
     // Addresses from config
     const canonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    this.batcherAddress = canonicalAddresses?.batcherAddress
-    this.batchInboxAddress = canonicalAddresses?.batchInboxAddress
+    this.batcherAddress = canonicalAddresses?.batcherAddress ?? ''
+    this.batchInboxAddress = canonicalAddresses?.batchInboxAddress ?? ''
     if (!this.batcherAddress || !this.batchInboxAddress) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }

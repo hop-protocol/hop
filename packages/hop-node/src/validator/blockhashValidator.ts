@@ -4,7 +4,6 @@ import getDecodedValidationData from 'src/utils/getDecodedValidationData'
 import getEncodedValidationData from 'src/utils/getEncodedValidationData'
 import {
   AvgBlockTimeSeconds,
-  BlockHashExpireBufferSec,
   Chain,
   NumStoredBlockHashes,
   TimeToIncludeOnL1Sec,
@@ -122,6 +121,10 @@ async function _getL2InclusionTx (destChainSlug: string, txHash: string, logger:
 }
 
 async function isBlockHashStoredAtBlockNumber (blockNumber: number, chainSlug: string): Promise<boolean> {
+  // Time buffer expected to account for the time between when blockHash validation logic is prepared
+  // and when the transaction is sent. Just a roughly accurate value that is used for redundant validation
+  const BlockHashExpireBufferSec: number = 60
+
   // The current block should be within (256 - buffer) blocks of the decoded blockNumber
   const provider: providers.Provider = getRpcProvider(chainSlug)!
   const currentBlockNumber = await provider.getBlockNumber()

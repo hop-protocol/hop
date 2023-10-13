@@ -1,6 +1,7 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
+  ShouldIgnoreBlockHashValidation,
   ShouldIgnoreProxy,
   bondWithdrawalBatchSize,
   gitRev,
@@ -128,14 +129,18 @@ async function main (source: any) {
 
       const chainAddresses = globalConfig.addresses[token][k]
       if (
-        !chainAddresses?.proxy ||
-        !chainAddresses?.validator ||
-        ShouldIgnoreProxy
+        chainAddresses?.proxy &&
+        !ShouldIgnoreProxy
       ) {
-        continue
+        logger.info(`using proxy for ${token} on ${k}: ${chainAddresses.proxy}`)
       }
-      logger.info(`using proxy for ${token} on ${k}: ${chainAddresses.proxy}`)
-      logger.info(`using validator for ${token} on ${k}: ${chainAddresses.validator}`)
+
+      if (
+        chainAddresses?.validator &&
+        !ShouldIgnoreBlockHashValidation
+      ) {
+        logger.info(`using validator for ${token} on ${k}: ${chainAddresses.validator}`)
+      }
     }
   }
 

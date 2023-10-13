@@ -1,6 +1,7 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
+import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { IChainBridge } from '../IChainBridge'
@@ -76,7 +77,10 @@ class GnosisBridge extends AbstractChainBridge implements IChainBridge {
     }
     const packedSigs = this._packSignatures(sigs)
 
-    return this.l1Amb.executeSignatures(message, packedSigs)
+    const overrides: any = {
+      gasLimit: CanonicalMessengerRootConfirmationGasLimit
+    }
+    return this.l1Amb.executeSignatures(message, packedSigs, overrides)
   }
 
   private async _getValidSigEvent (l2TxHash: string) {

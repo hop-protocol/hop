@@ -4,6 +4,7 @@ import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
+import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { IChainBridge, RelayL1ToL2MessageOpts } from '../IChainBridge'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { getCanonicalAddressesForChain } from 'src/config'
@@ -82,7 +83,10 @@ class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
       throw new Error(`msg not found for tx hash ${l2TxHash}`)
     }
 
-    return msg.execute(this.l2Wallet.provider)
+    const overrides: any = {
+      gasLimit: CanonicalMessengerRootConfirmationGasLimit
+    }
+    return msg.execute(this.l2Wallet.provider, overrides)
   }
 
   private async _getL1ToL2Message (l1TxHash: string, messageIndex: number = 0, useNonRetryableProvider: boolean = false): Promise<IL1ToL2MessageWriter> {

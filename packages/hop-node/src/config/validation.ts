@@ -132,7 +132,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
     if (config?.logging?.level) {
       const validLoggingLevels = ['debug', 'info', 'warn', 'error']
-      await validateKeys(validLoggingLevels, [config?.logging?.level])
+      validateKeys(validLoggingLevels, [config?.logging?.level])
     }
   }
 

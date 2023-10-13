@@ -10,7 +10,7 @@ import { providers } from 'ethers'
 class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   csm: CrossChainMessenger
   derive: Derive = new Derive()
-  inclusionService: IInclusionService
+  inclusionService: IInclusionService | undefined
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -29,7 +29,11 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l2Wallet: this.l2Wallet,
       logger: this.logger
     }
-    this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
+    try {
+      this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
+    } catch (err) {
+      this.logger.error(`error creating inclusion service: ${err.message}`)
+    }
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
@@ -88,10 +92,12 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.inclusionService) return
     return this.inclusionService.getL1InclusionTx(l2TxHash)
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.inclusionService) return
     return this.inclusionService.getL2InclusionTx(l1TxHash)
   }
 }

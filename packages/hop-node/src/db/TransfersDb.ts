@@ -450,13 +450,13 @@ class TransfersDb extends BaseDb {
         return false
       }
 
+      // TODO: Clean all this up so the code is explicit and comments are not needed
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
         if (
           item.withdrawalBondTxError === TxError.BonderFeeTooLow ||
           item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync ||
-          item.withdrawalBondTxError === TxError.RpcServerError ||
-          item.withdrawalBondTxError === TxError.BondTooEarly
+          item.withdrawalBondTxError === TxError.RpcServerError
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
           if (delayMs > OneWeekMs) {

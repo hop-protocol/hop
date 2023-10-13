@@ -346,10 +346,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       if (err instanceof BonderTooEarlyError) {
         logger.debug('bond attempted too early. trying again.')
-        withdrawalBondBackoffIndex++
+        // This error implies that an inclusion tx has not yet been executed. We want to try again
+        // quickly since inclusion txs are on the order of seconds.
         await this.db.transfers.update(transferId, {
-          withdrawalBondTxError: TxError.BondTooEarly,
-          withdrawalBondBackoffIndex
+          bondWithdrawalAttemptedAt: 0
         })
         return
       }

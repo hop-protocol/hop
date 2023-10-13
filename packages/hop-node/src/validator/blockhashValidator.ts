@@ -90,7 +90,7 @@ async function _getL1InclusionTx (sourceChainSlug: string, txHash: string, logge
   try {
     l1InclusionTx = await sourceChainBridge.getL1InclusionTx(txHash)
   } catch (err) {
-    throw new BlockHashValidationError(`getL1InclusionTx error ${txHash} on L1. err: ${err.message}`)
+    throw new BlockHashValidationError(`getL1InclusionTx err ${txHash} on L1. err: ${err.message}`)
   }
   if (!l1InclusionTx) {
     throw new BonderTooEarlyError(`l1InclusionTx not found for txHash ${txHash}`)
@@ -111,7 +111,7 @@ async function _getL2InclusionTx (destChainSlug: string, txHash: string, logger:
   try {
     l2InclusionTx = await destChainBridge.getL2InclusionTx(txHash)
   } catch (err) {
-    throw new BlockHashValidationError(`getL2InclusionTx error ${txHash} on chain ${destChainSlug}. err: ${err.message}`)
+    throw new BlockHashValidationError(`getL2InclusionTx err ${txHash} on chain ${destChainSlug}. err: ${err.message}`)
   }
   if (!l2InclusionTx) {
     throw new BonderTooEarlyError(`l2InclusionTx not found for txHash ${txHash}`)

@@ -3,6 +3,7 @@ import fetch from 'node-fetch'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { IChainBridge } from '../IChainBridge'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
+import { defaultAbiCoder } from 'ethers/lib/utils'
 import { providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
@@ -104,7 +105,7 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
     // Get the messengerProxy address from the bridge state
     // function messengerProxy() view returns (address)
     const messengerProxySelector = '0xce2d280e'
-    const messengerProxyAddress = await this.l2Wallet.provider!.call({
+    let messengerProxyAddress = await this.l2Wallet.provider!.call({
       to: bridgeAddress,
       data: messengerProxySelector
     })
@@ -115,11 +116,17 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
 
     // Get the rootTunnel from the messengerProxy
     // function fxRootTunnel() view returns (address)
+    messengerProxyAddress = defaultAbiCoder.decode(['address'], messengerProxyAddress)[0]
     const fxRootTunnelSelector = '0x7f1e9cb0'
-    return this.l2Wallet.provider!.call({
+    const rootTunnelAddress = await this.l2Wallet.provider!.call({
       to: messengerProxyAddress,
       data: fxRootTunnelSelector
     })
+
+    if (!rootTunnelAddress) {
+      throw new Error(`root tunnel address not found for ${l2TxHash}`)
+    }
+    return defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
   }
 }
 

@@ -286,7 +286,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
-      logger.debug('sendBondWithdrawalTx error:', err.message)
+      logger.debug('sendBondWithdrawalTx err:', err.message)
       const isUnbondableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnbondableError) {
         logger.debug(`marking as unbondable due to error: ${err.message}`)

@@ -136,19 +136,26 @@ class ConfirmRootsWatcher extends BaseWatcher {
   }
 
   async checkConfirmableTransferRoots (transferRootId: string) {
+    console.log('debuggg - 0')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as ExitableTransferRoot
     if (!dbTransferRoot) {
       throw new Error(`transfer root db item not found, root id "${transferRootId}"`)
     }
 
+    console.log('debuggg - 1', JSON.stringify(dbTransferRoot))
     const { transferRootHash, destinationChainId, totalAmount, committedAt } = dbTransferRoot
 
+    console.log('debuggg - 2')
     const logger = this.logger.create({ root: transferRootId })
+    console.log('debuggg - 3', destinationChainId, transferRootId)
+    console.log('debuggg - 4', this.l1Bridge)
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
       destinationChainId,
       transferRootId
     )
+    console.log('debuggg - 5')
     if (isTransferRootIdConfirmed) {
+      console.log('debuggg - 5a')
       logger.warn('Transfer root already confirmed')
       await this.db.transferRoots.update(transferRootId, {
         confirmed: true
@@ -156,17 +163,21 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
+    console.log('debuggg - 6')
     if (this.dryMode || globalConfig.emergencyDryMode) {
       this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
       return
     }
 
+    console.log('debuggg - 7')
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
 
+    console.log('debuggg - 8')
     logger.debug(`handling confirmable transfer root ${transferRootHash}, destination ${destinationChainId}, amount ${totalAmount.toString()}, committedAt ${committedAt}`)
     try {
+      console.log('debuggg - 9')
       await this.confirmRootsViaWrapper({
         rootHashes: [transferRootHash],
         destinationChainIds: [destinationChainId],

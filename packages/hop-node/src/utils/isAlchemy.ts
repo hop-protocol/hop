@@ -1,5 +1,5 @@
-import { providers } from 'ethers'
 import getRpcUrlFromProvider from './getRpcUrlFromProvider'
+import { providers } from 'ethers'
 
 function isAlchemy (providerOrUrl: providers.Provider | string): boolean {
   let url

@@ -122,7 +122,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
-
     const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
 
     if (!tx) {

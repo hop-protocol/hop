@@ -73,7 +73,6 @@ class BondTransferRootWatcher extends BaseWatcher {
         committedAt,
         sourceChainId,
         transferIds,
-        commitTxHash,
         commitTxBlockNumber
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
@@ -97,7 +96,6 @@ class BondTransferRootWatcher extends BaseWatcher {
         committedAt,
         sourceChainId,
         transferIds,
-        commitTxHash,
         commitTxBlockNumber
       ))
     }
@@ -113,7 +111,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     committedAt: number,
     sourceChainId: number,
     transferIds: string[],
-    commitTxHash: string,
     commitTxBlockNumber: number
   ) {
     const logger = this.logger.create({ root: transferRootId })

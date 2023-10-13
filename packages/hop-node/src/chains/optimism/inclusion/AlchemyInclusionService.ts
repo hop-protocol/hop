@@ -1,9 +1,9 @@
 import InclusionService from './InclusionService'
 import fetch from 'node-fetch'
-import { IInclusionService, InclusionServiceConfig } from './IInclusionService'
-import { providers } from 'ethers'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import isAlchemy from 'src/utils/isAlchemy'
+import { IInclusionService, InclusionServiceConfig } from './IInclusionService'
+import { providers } from 'ethers'
 
 interface GetInclusionTxHashes {
   destChainProvider: providers.Provider

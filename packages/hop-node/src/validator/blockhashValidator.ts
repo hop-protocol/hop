@@ -45,17 +45,17 @@ export async function getHiddenCalldataForDestinationChain (input: HiddenCalldat
   const l1InclusionTx: providers.TransactionReceipt = await getInclusionTx(sourceChainSlug, Chain.Ethereum, l2TxHash, logger)
 
   logger.debug(`getHiddenCalldataForDestinationChain: l1InclusionTx found ${l1InclusionTx.transactionHash}`)
-  let inclusionTxReceipt: providers.TransactionReceipt
+  let inclusionTx: providers.TransactionReceipt
   if (destChainSlug === Chain.Ethereum) {
-    inclusionTxReceipt = l1InclusionTx
+    inclusionTx = l1InclusionTx
   } else {
-    inclusionTxReceipt = await getInclusionTx(Chain.Ethereum, destChainSlug, l1InclusionTx.transactionHash, logger)
+    inclusionTx = await getInclusionTx(Chain.Ethereum, destChainSlug, l1InclusionTx.transactionHash, logger)
   }
 
-  logger.debug(`getHiddenCalldataForDestinationChain: inclusionTxReceipt on destination chain ${destChainSlug}`)
-  const isHashStored = await isBlockHashStoredAtBlockNumber(inclusionTxReceipt.blockNumber, destChainSlug)
+  logger.debug(`getHiddenCalldataForDestinationChain: inclusionTx on destination chain ${destChainSlug}`)
+  const isHashStored = await isBlockHashStoredAtBlockNumber(inclusionTx.blockNumber, destChainSlug)
   if (!isHashStored) {
-    throw new BlockHashValidationError(`block hash for block number ${inclusionTxReceipt.blockNumber} is no longer stored at dest`)
+    throw new BlockHashValidationError(`block hash for block number ${inclusionTx.blockNumber} is no longer stored at dest`)
   }
 
   const validatorAddress = getValidatorAddressForChain(tokenSymbol, destChainSlug)
@@ -64,8 +64,8 @@ export async function getHiddenCalldataForDestinationChain (input: HiddenCalldat
   }
   const hiddenCalldata: string = getEncodedValidationData(
     validatorAddress,
-    inclusionTxReceipt.blockHash,
-    inclusionTxReceipt.blockNumber
+    inclusionTx.blockHash,
+    inclusionTx.blockNumber
   )
 
   await validateHiddenCalldata(tokenSymbol, hiddenCalldata, destChainSlug)
@@ -191,14 +191,12 @@ export function isBlockHashValidationEnabledForRoute (token: string, sourceChain
     return false
   }
 
-  // Both a source and dest chain must implement proxy validation
-  // If the dest is L1, then only the source needs to implement proxy validation
-
   const sourceChainBridge: IChainBridge = getChainBridge(sourceChainSlug)
   if (typeof sourceChainBridge.getL1InclusionTx !== 'function') {
     return false
   }
 
+  // If the dest is L1, then only the source needs to implement proxy validation
   if (destinationChainSlug === Chain.Ethereum) {
     return true
   }

@@ -382,7 +382,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     // Unfinalized transfers should skip preTransactionValidation since they might be reorged
     let hiddenCalldata: string | undefined
     if (isFinalized) {
-      logger.debug('performing preTransactionValidation')
+      logger.debug('attempting to bond unfinalized transfer. performing preTransactionValidation')
       await this.preTransactionValidation(params)
     } else {
       logger.debug('attempting to bond unfinalized transfer. skipping preTransactionValidation')

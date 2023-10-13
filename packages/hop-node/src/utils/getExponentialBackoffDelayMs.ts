@@ -1,5 +1,6 @@
 const getExponentialBackoffDelayMs = (backoffIndex: number): number => {
-  return (1 << backoffIndex) * 10 * 1000 // eslint-disable
+  // Used for tx retries. Must be long enough for a tx to be processed and confirmed onchain.
+  return (1 << backoffIndex) * 30 * 1000 // eslint-disable
 }
 
 export default getExponentialBackoffDelayMs

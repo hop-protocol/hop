@@ -4,6 +4,7 @@ import { staging as stagingAddresses } from '@hop-protocol/core/addresses'
 
 const addresses = stagingAddresses.bridges
 const bonders = stagingAddresses.bonders
+const canonicalAddresses = stagingAddresses.canonicalAddresses
 const networks: any = {}
 
 for (const chain in _networks) {
@@ -19,4 +20,4 @@ for (const chain in _networks) {
   networks[chain].subgraphUrl = network?.subgraphUrl
 }
 
-export { addresses, bonders, networks, metadata }
+export { addresses, bonders, canonicalAddresses, networks, metadata }

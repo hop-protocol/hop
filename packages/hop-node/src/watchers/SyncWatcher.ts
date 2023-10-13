@@ -44,7 +44,9 @@ import {
   SyncIntervalSec,
   getEnabledNetworks,
   getNetworkHeadSync,
+  getProxyAddressForChain,
   config as globalConfig,
+  isProxyAddressForChain,
   minEthBonderFeeBn,
   oruChains,
   wsEnabledChains
@@ -595,10 +597,10 @@ class SyncWatcher extends BaseWatcher {
       // is at block 256. In this case, the transferId will be marked as notFound and the
       // transfer will never be bonded. This is not handled, but if it ever occurs in practice, handle here.
       if (isFinalized) {
+        logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxError: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
         dbData.isNotFound = undefined
         dbData.withdrawalBondTxError = undefined
-        dbData.withdrawalBondBackoffIndex = undefined
-        logger.debug('finalized transfer seen, resetting unfinalized non-happy path states')
+        dbData.withdrawalBondBackoffIndex = 0
       }
 
       await this.db.transfers.update(transferId, dbData)
@@ -988,10 +990,18 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
-    const { from } = tx
-    logger.debug(`withdrawalBonder: ${from}`)
+
+    let bonder = tx.from
+    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    if (isProxyAddressForChain(this.tokenSymbol, destinationChainSlug)) {
+      const proxyAddress = getProxyAddressForChain(this.tokenSymbol, destinationChainSlug)
+      if (tx.to === proxyAddress) {
+        bonder = tx.to
+      }
+    }
+    logger.debug(`withdrawalBonder: ${bonder}`)
     await this.db.transfers.update(transferId, {
-      withdrawalBonder: from
+      withdrawalBonder: bonder
     })
   }
 
@@ -1120,7 +1130,14 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
-    const { from } = tx
+
+    let calculatedBonder: string = tx.from
+    if (isProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)) {
+      const proxyAddress = getProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)
+      if (tx.to === proxyAddress) {
+        calculatedBonder = tx.to
+      }
+    }
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
 
     if (!timestamp) {
@@ -1129,11 +1146,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    logger.debug(`bonder: ${from}`)
+    logger.debug(`bonder: ${calculatedBonder}`)
     logger.debug(`bondedAt: ${timestamp}`)
 
     await this.db.transferRoots.update(transferRootId, {
-      bonder: from,
+      bonder: calculatedBonder,
       bondedAt: timestamp
     })
   }
@@ -1636,11 +1653,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     this.logger.debug(`starting pollGasCost, chainSlug: ${this.chainSlug}`)
-    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
+    const bridgeContract = this.bridge.bridgeWriteContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const bonder = await this.bridge.getBonderAddress()
+    const staker = await this.bridge.getBonderAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 
@@ -1657,7 +1674,7 @@ class SyncWatcher extends BaseWatcher {
           transferNonce,
           bonderFee,
           {
-            from: bonder
+            from: staker
           }
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
@@ -1676,7 +1693,7 @@ class SyncWatcher extends BaseWatcher {
             amountOutMin,
             deadline,
             {
-              from: bonder
+              from: staker
             }
           ] as const
           const gasLimit = await l2BridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)

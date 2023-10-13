@@ -11,15 +11,29 @@ import { BigNumber, providers } from 'ethers'
 import {
   BlockHashValidationError,
   BonderFeeTooLowError,
+  BonderTooEarlyError,
   NonceTooLowError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync
 } from 'src/types/error'
-import { GasCostTransactionType, TxError } from 'src/constants'
+import {
+  GasCostTransactionType,
+  TxError
+} from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { bondWithdrawalBatchSize, enableEmergencyMode, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
+import {
+  bondWithdrawalBatchSize,
+  enableEmergencyMode,
+  config as globalConfig,
+  isProxyAddressForChain,
+  zeroAvailableCreditTest
+} from 'src/config'
+import {
+  getHiddenCalldataForDestinationChain,
+  isBlockHashValidationEnabledForRoute
+} from 'src/validator/blockhashValidator'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
@@ -43,6 +57,8 @@ export type SendBondWithdrawalTxParams = {
   amountOutMin: BigNumber
   deadline: BigNumber
   transferSentIndex: number
+  transferSentTxHash: string
+  transferSentBlockNumber: number
   isFinalized: boolean
 }
 
@@ -139,6 +155,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferNonce,
       deadline,
       transferSentTxHash,
+      transferSentBlockNumber,
       transferSentIndex,
       isFinalized
     } = dbTransfer
@@ -154,16 +171,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
-    // TODO: Add isProxyAndValidatorEnabled after merging with that branch
-    // const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    // if (
-    //   !isFinalized &&
-    //   !isProxyAndValidatorEnabled(this.tokenSymbol, this.chainSlug, destinationChainSlug)
-    // ) {
-    //   logger.warn(`transfer id "${transferId}" is not finalized and proxy and validator are not set on ${destinationChainSlug}. marking item not found.`)
-    //   await this.db.transfers.update(transferId, { isNotFound: true })
-    //   return
-    // }
+    logger.debug('processing bondWithdrawal. checking shouldIgnorePreFinalizedTx')
+    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    const shouldIgnorePreFinalizedTx = !isFinalized && !this.isBlockHashValidationEnabled(destinationChainSlug)
+    logger.debug(`processing bondWithdrawal. shouldIgnorePreFinalizedTx: ${shouldIgnorePreFinalizedTx}`)
+    if (shouldIgnorePreFinalizedTx) {
+      logger.warn('shouldIgnorePreFinalizedTx cannot bond preFinalizedTx. marking item not found')
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
 
     logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
@@ -260,6 +276,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amountOutMin,
         deadline,
         transferSentIndex,
+        transferSentTxHash,
+        transferSentBlockNumber,
         isFinalized
       })
 
@@ -268,7 +286,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
-      logger.error('sendBondWithdrawalTx error:', err.message)
+      logger.debug('sendBondWithdrawalTx error:', err.message)
       const isUnbondableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnbondableError) {
         logger.debug(`marking as unbondable due to error: ${err.message}`)
@@ -278,8 +296,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       if (err instanceof BlockHashValidationError) {
-        logger.error('blockHash validation failed. marking item not found')
+        logger.debug('blockHash validation failed. marking item not found')
         await this.db.transfers.update(transferId, { isNotFound: true })
+        return
       }
 
       const isCallExceptionError = isFetchExecutionError(err.message)
@@ -287,9 +306,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.CallException
         })
+        return
       }
+
+      let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
       if (err instanceof BonderFeeTooLowError) {
-        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.BonderFeeTooLow,
@@ -302,10 +323,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         await this.db.transfers.update(transferId, {
           bondWithdrawalAttemptedAt: 0
         })
+        return
       }
       if (err instanceof RedundantProviderOutOfSync) {
         logger.error('redundant provider out of sync. trying again.')
-        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.RedundantRpcOutOfSync,
@@ -316,10 +337,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const isRpcError = isFetchRpcServerError(err.message)
       if (isRpcError) {
         logger.error('rpc server error. trying again.')
-        let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.RpcServerError,
+          withdrawalBondBackoffIndex
+        })
+        return
+      }
+      if (err instanceof BonderTooEarlyError) {
+        logger.debug('bond attempted too early. trying again.')
+        withdrawalBondBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: TxError.BondTooEarly,
           withdrawalBondBackoffIndex
         })
         return
@@ -344,28 +373,42 @@ class BondWithdrawalWatcher extends BaseWatcher {
       attemptSwap,
       amountOutMin,
       deadline,
+      transferSentTxHash,
+      transferSentBlockNumber,
       isFinalized
     } = params
     const logger = this.logger.create({ id: transferId })
 
-    // TODO: Add isProxyAndValidatorEnabled after merging with that branch
-    // An unfinalized transfer without blockHash validation enabled should never be here.
-    // If it is, then it would need to go through a preTransactionValidation check since it is not
-    // performing the validation onchain with the proxy and validator contracts. However, unfinalized
-    // transactions are susceptible to reorgs and might fail the preTransactionValidation check, so we
-    // want to stop the transaction before the check takes place.
-    // if (!isFinalized && !isProxyAndValidatorEnabled(this.tokenSymbol, this.chainSlug, destinationChainSlug)) {
-    //   throw new BlockHashValidationError('sendBondWithdrawalTx: unfinalized transfer without blockHash validation enabled')
-    // }
-
     // Unfinalized transfers should skip preTransactionValidation since they might be reorged
+    let hiddenCalldata: string | undefined
     if (isFinalized) {
-      logger.debug('performing preTransactionValidation')
+      logger.debug('attempting to bond unfinalized transfer. performing preTransactionValidation')
       await this.preTransactionValidation(params)
     } else {
-      // TODO: Add getHiddenCalldataForDestinationChain() logic in here
-      // TODO: Make sure this throws the BlockHashValidationError error
-      logger.debug('skipping preTransactionValidation')
+      logger.debug('attempting to bond unfinalized transfer. skipping preTransactionValidation')
+
+      // Redundantly verify that blockHashValidation is enabled. Unfinalized transactions should never be bonded
+      // without blockHashValidation enabled
+      const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+      if (!this.isBlockHashValidationEnabled(destinationChainSlug)) {
+        throw new BlockHashValidationError(`blockHash validation not enabled for transferId ${transferId}`)
+      }
+
+      hiddenCalldata = await getHiddenCalldataForDestinationChain({
+        tokenSymbol: this.tokenSymbol,
+        sourceChainSlug: this.chainSlug,
+        destChainSlug: destinationChainSlug,
+        l2TxHash: transferSentTxHash,
+        l2BlockNumber: transferSentBlockNumber,
+        logger
+      })
+
+      // If hidden calldata is not present, bond the transfer at a later time when it is finalized
+      if (!hiddenCalldata) {
+        throw new BlockHashValidationError(`hiddenCalldata is falsy for unfinalized transferId ${transferId}`)
+      }
+
+      logger.debug(`hiddenCalldata: ${hiddenCalldata}`)
     }
 
     if (attemptSwap) {
@@ -381,7 +424,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline
+        deadline,
+        hiddenCalldata
       )
     } else {
       // Redundantly verify that both amountOutMin and deadline are 0
@@ -395,7 +439,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        bonderFee
+        bonderFee,
+        hiddenCalldata
       )
     }
   }
@@ -559,6 +604,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       throw new Error(`dbTransfer not found for transferId ${calculatedTransferId}`)
     }
     return dbTransfer
+  }
+
+  isBlockHashValidationEnabled (destinationChainSlug: string): boolean {
+    return (
+      isProxyAddressForChain(this.tokenSymbol, destinationChainSlug) &&
+      isBlockHashValidationEnabledForRoute(this.tokenSymbol, this.chainSlug, destinationChainSlug)
+    )
   }
 }
 

@@ -48,6 +48,8 @@
     "@aws-sdk/client-s3": "3.338.0",
     "@aws-sdk/client-ssm": "3.338.0",
     "@eth-optimism/sdk": "3.1.0",
+    "@ethereumjs/rlp": "^5.0.0",
+    "@ethereumjs/tx": "^5.0.0",
     "@ethersproject/hdnode": "5.0.9",
     "@fxportal/maticjs-fxportal": "1.1.1",
     "@hop-protocol/core": "0.0.1-beta.183",

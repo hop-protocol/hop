@@ -6,6 +6,7 @@ import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransfe
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, utils } from 'ethers'
 import { actionHandler, getSourceChains, parseString, root } from './shared'
+import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config/config'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 
@@ -84,7 +85,14 @@ async function main (source: any) {
         if (!bondData) continue
 
         tempAmt = tempAmt.add(bondData.amount)
-        const bonder = bondData.from
+
+        let bonder: string = bondData.from
+        if (isProxyAddressForChain(this.tokenSymbol, settlementChain)) {
+          const proxyAddress = getProxyAddressForChain(this.tokenSymbol, settlementChain)
+          if (bondData.transaction.to === proxyAddress) {
+            bonder = bondData.transaction.to
+          }
+        }
         if (!bondedAmountPerBonder[bonder]) {
           bondedAmountPerBonder[bonder] = BigNumber.from('0')
         }

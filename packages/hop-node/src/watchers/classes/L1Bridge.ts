@@ -10,7 +10,10 @@ import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
 import { Hop } from '@hop-protocol/sdk'
 import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/generated/L1_ERC20_Bridge'
-import { config as globalConfig } from 'src/config'
+import {
+  getBridgeWriteContractAddress,
+  config as globalConfig
+} from 'src/config'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
@@ -18,9 +21,13 @@ export default class L1Bridge extends Bridge {
   TransferBondChallenged: string = 'TransferBondChallenged'
   TransferSentToL2: string = 'TransferSentToL2'
   ChallengeResolved: string = 'ChallengeResolved'
+  l1BridgeWriteContract: L1BridgeContract | L1ERC20BridgeContract
 
   constructor (private readonly l1BridgeContract: L1BridgeContract | L1ERC20BridgeContract) {
     super(l1BridgeContract)
+
+    const bridgeWriteAddress = getBridgeWriteContractAddress(this.tokenSymbol, this.chainSlug)
+    this.l1BridgeWriteContract = this.l1BridgeContract.attach(bridgeWriteAddress)
   }
 
   static fromAddress (address: string): L1Bridge {
@@ -187,8 +194,8 @@ export default class L1Bridge extends Bridge {
       totalAmount,
       txOverrides
     ] as const
+    const tx = await this.l1BridgeWriteContract.bondTransferRoot(...payload)
 
-    const tx = await this.l1BridgeContract.bondTransferRoot(...payload)
     return tx
   }
 
@@ -197,7 +204,7 @@ export default class L1Bridge extends Bridge {
     totalAmount: BigNumber,
     destinationChainId: number
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.l1BridgeContract.challengeTransferBond(
+    const tx = await this.l1BridgeWriteContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
       destinationChainId,
@@ -212,7 +219,7 @@ export default class L1Bridge extends Bridge {
     totalAmount: BigNumber,
     destinationChainId: number
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.l1BridgeContract.resolveChallenge(
+    const tx = await this.l1BridgeWriteContract.resolveChallenge(
       transferRootHash,
       totalAmount,
       destinationChainId,
@@ -257,7 +264,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    return await this.l1BridgeContract.sendToL2(
+    return await this.l1BridgeWriteContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -310,7 +317,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    return await this.l1BridgeContract.sendToL2(
+    return await this.l1BridgeWriteContract.sendToL2(
       destinationChainId,
       recipient,
       amount,

@@ -34,8 +34,9 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     try {
-      const message = await this.csm.toCrossChainMessage(l1TxHash)
+      // Need an arbitrary value that will always succeed
       const gasLimit = 1000000
+      const message = await this.csm.toCrossChainMessage(l1TxHash)
       // Signer is needed to execute tx with SDK
       const txOpts: any = {
         signer: this.l2Wallet,

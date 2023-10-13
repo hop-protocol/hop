@@ -1,5 +1,6 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import fetch from 'node-fetch'
+import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { IChainBridge } from '../IChainBridge'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
@@ -46,7 +47,8 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
     const data = iface.encodeFunctionData('receiveMessage', [payload])
     return this.l1Wallet.sendTransaction({
       to: rootTunnelAddress,
-      data
+      data,
+      gasLimit: CanonicalMessengerRootConfirmationGasLimit
     })
   }
 

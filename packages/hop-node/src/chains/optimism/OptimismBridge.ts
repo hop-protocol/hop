@@ -89,7 +89,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       const overrides: any = {
         gasLimit: CanonicalMessengerRootConfirmationGasLimit
       }
-      return this.csm.finalizeMessage(l2TxHash, { overrides } )
+      return this.csm.finalizeMessage(l2TxHash, { overrides })
     }
 
     throw new Error(`state not handled for tx ${l2TxHash}`)

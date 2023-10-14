@@ -1,11 +1,11 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { BigNumber } from 'ethers'
-import { actionHandler, logger, parseNumber, parseString, root } from './shared'
+import { ShouldIgnoreProxy, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
+import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
-import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
 
 root
   .command('unstake')
@@ -13,16 +13,22 @@ root
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
+  .option('--ignore-proxy [boolean]', 'Ignore the proxy address', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, token, amount } = source
+  const { chain, token, amount, ignoreProxy } = source
 
   if (!amount) {
     throw new Error('amount is required. E.g. 100')
   }
   if (!chain) {
     throw new Error('chain is required')
+  }
+
+  if (ignoreProxy && !ShouldIgnoreProxy) {
+    logger.warn('In order to ignore the proxy address, please add the environment variable SHOULD_IGNORE_PROXY=true and run this again')
+    return
   }
 
   // Arbitrary watcher since only the bridge is needed

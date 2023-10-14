@@ -7,11 +7,11 @@ import { BigNumber, constants } from 'ethers'
 import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
 import { Interface } from 'ethers/lib/utils'
+import { ShouldIgnoreProxy, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
-import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
 
 root
   .command('stake')
@@ -20,10 +20,11 @@ root
   .option('--token <symbol>', 'Token', parseString)
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
   .option('--skip-send-to-l2 [boolean]', 'Stake hTokens that already exist on L2', parseBool)
+  .option('--ignore-proxy [boolean]', 'Ignore the proxy address', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, token, amount, skipSendToL2 } = source
+  const { chain, token, amount, skipSendToL2, ignoreProxy } = source
 
   if (!amount) {
     throw new Error('amount is required. E.g. 100')
@@ -31,6 +32,12 @@ async function main (source: any) {
   if (!chain) {
     throw new Error('chain is required')
   }
+
+  if (ignoreProxy && !ShouldIgnoreProxy) {
+    logger.warn('In order to ignore the proxy address, please add the environment variable SHOULD_IGNORE_PROXY=true and run this again')
+    return
+  }
+
   const bridge: L2Bridge | L1Bridge = await getBridge(token, chain)
   const parsedAmount: BigNumber = bridge.parseUnits(amount)
 

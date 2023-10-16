@@ -1,4 +1,4 @@
-import { ethers, Contract, providers, BigNumber } from 'ethers'
+import { ethers, providers, BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db, { getInstance } from './Db'
@@ -23,7 +23,7 @@ import {
   fetchTransferFromL1Completeds,
   fetchTransferEventsByTransferIds
 } from './theGraph'
-import { getPreRegenesisBondEvent, bridgeAbi } from './preregenesis'
+import { getPreRegenesisBondEvent } from './preregenesis'
 import { populateData } from './populateData'
 import { cache } from './cache'
 
@@ -1202,18 +1202,11 @@ export class TransferStats {
         }
         if (transferId && destinationChainId && token) {
           try {
-            const bridgeAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2Bridge || addresses?.bridges?.[token]?.[destinationChainSlug]?.l1Bridge
-            if (!bridgeAddress) {
-              throw new Error('bridge address not found')
-            }
-            const _provider = new providers.StaticJsonRpcProvider(rpcUrls[destinationChainSlug])
-            const contract = new Contract(bridgeAddress, bridgeAbi, _provider)
-            const logs = await contract.queryFilter(
-              contract.filters.WithdrawalBonded(transferId)
-            )
-            if (logs.length === 1) {
+            const destinationChainSlug = chainIdToSlug(destinationChainId)
+            const bonds = await fetchTransferBonds(destinationChainSlug, [transferId])
+            if (bonds.length === 1) {
               bonded = true
-              bondTransactionHash = logs[0].transactionHash
+              bondTransactionHash = bonds[0].transactionHash
             }
           } catch (err: any) {
             console.error('getTransferStatusForTxHash: queryFilter error:', err)

@@ -1,6 +1,7 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import Derive from './Derive'
+import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainBridge } from '../IChainBridge'
 import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
@@ -85,7 +86,10 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
 
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
       this.logger.info('sending finalizeMessage tx')
-      return this.csm.finalizeMessage(l2TxHash)
+      const overrides: any = {
+        gasLimit: CanonicalMessengerRootConfirmationGasLimit
+      }
+      return this.csm.finalizeMessage(l2TxHash, { overrides })
     }
 
     throw new Error(`state not handled for tx ${l2TxHash}`)

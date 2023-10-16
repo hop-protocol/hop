@@ -1,4 +1,5 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
+import getChainBridge from 'src/chains/getChainBridge'
 import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
 import { IChainBridge } from '../chains/IChainBridge'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
@@ -93,7 +94,7 @@ async function main (source: any) {
     console.log('rootDatas', rootDatas)
     await watcher.confirmRootsViaWrapper(rootDatas)
   } else {
-    const chainBridge: IChainBridge = watcher.watchers[chain]
+    const chainBridge: IChainBridge = getChainBridge(chain)
     for (const dbTransferRoot of dbTransferRoots) {
       const commitTxHash = dbTransferRoot.commitTxHash
       if (!commitTxHash) {

@@ -1,27 +1,18 @@
 import '../moduleAlias'
-import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
-import BaseBridgeWatcher from './BaseBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
-import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
-import LineaBridgeWatcher from './LineaBridgeWatcher'
-import NovaBridgeWatcher from './NovaBridgeWatcher'
-import OptimismBridgeWatcher from './OptimismBridgeWatcher'
-import PolygonBridgeWatcher from './PolygonBridgeWatcher'
-import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
-import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
-import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
+import getChainBridge from 'src/chains/getChainBridge'
 import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs } from 'src/constants'
+import { ChallengePeriodMs } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { getEnabledNetworks, config as globalConfig } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -38,69 +29,20 @@ export type ConfirmRootsData = {
   rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | PolygonZkBridgeWatcher | BaseBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
-
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
-  lastSeen: {[key: string]: number} = {}
-  watchers: {[chain: string]: Watcher} = {}
   l1MessengerWrapper: L1MessengerWrapper
 
   constructor (config: Config) {
-    super({
-      chainSlug: config.chainSlug,
-      tokenSymbol: config.tokenSymbol,
-      logColor: 'yellow',
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    })
+    super(config)
     this.logger.debug('starting watcher')
-    const enabledNetworks = getEnabledNetworks()
-    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    const watcherParams = {
-      chainSlug: config.chainSlug,
-      tokenSymbol: this.tokenSymbol,
-      l1BridgeContract: config.l1BridgeContract,
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    }
-
-    if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {
-      this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.Polygon && enabledNetworks.includes(Chain.Polygon)) {
-      this.watchers[Chain.Polygon] = new PolygonBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.Optimism && enabledNetworks.includes(Chain.Optimism)) {
-      this.watchers[Chain.Optimism] = new OptimismBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.Arbitrum && enabledNetworks.includes(Chain.Arbitrum)) {
-      this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.Nova && enabledNetworks.includes(Chain.Nova)) {
-      this.watchers[Chain.Nova] = new NovaBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.ZkSync && enabledNetworks.includes(Chain.ZkSync)) {
-      this.watchers[Chain.ZkSync] = new ZkSyncBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.Linea && enabledNetworks.includes(Chain.Linea)) {
-      this.watchers[Chain.Linea] = new LineaBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.ScrollZk && enabledNetworks.includes(Chain.ScrollZk)) {
-      this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
-      this.watchers[Chain.Base] = new BaseBridgeWatcher(watcherParams)
-    }
-    if (this.chainSlug === Chain.PolygonZk && enabledNetworks.includes(Chain.PolygonZk)) {
-      this.watchers[Chain.PolygonZk] = new PolygonZkBridgeWatcher(watcherParams)
-    }
 
     const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.l1MessengerWrapper
     if (!l1MessengerWrapperContract) {
       throw new Error(`Messenger wrapper contract not found for ${this.chainSlug}.${this.tokenSymbol}`)
     }
     this.l1MessengerWrapper = new L1MessengerWrapper(l1MessengerWrapperContract)
+    this.l1Bridge = new L1Bridge(config.l1BridgeContract)
 
     // confirmation watcher is less time sensitive than others
     this.pollIntervalMs = 10 * 60 * 1000
@@ -166,15 +108,30 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
-    const watcher = this.watchers[chainSlug]
-    if (!watcher) {
-      logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
+    const chainBridge = getChainBridge(this.chainSlug)
+    if (!chainBridge) {
+      logger.warn(`chainBridge for ${this.chainSlug} is not implemented yet`)
       return
     }
 
     logger.debug(`handling commit tx hash ${commitTxHash} to ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash, transferRootId, logger)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayL2ToL1Message`)
+      return
+    }
+
+    await this.db.transferRoots.update(transferRootId, {
+      sentConfirmTxAt: Date.now()
+    })
+    const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
+
+    if (!tx) {
+      throw new Error('tx relayL2ToL2Message tx found')
+    }
+
+    const msg = `sent chain ${this.chainSlug} confirmTransferRoot exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 
   async checkConfirmableTransferRoots (transferRootId: string) {

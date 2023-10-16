@@ -4,14 +4,16 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   Chain,
   ChainPollMultiplier,
   GasCostTransactionType,
+  HeadSyncKeySuffix,
   OneWeekMs,
   RelayableChains,
   TenMinutesMs
@@ -41,9 +43,13 @@ import {
   SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
+  getNetworkHeadSync,
+  getProxyAddressForChain,
   config as globalConfig,
+  isProxyAddressForChain,
   minEthBonderFeeBn,
-  oruChains
+  oruChains,
+  wsEnabledChains
 } from 'src/config'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -69,7 +75,11 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   isRelayableChainEnabled: boolean = false
+  shouldSyncHead: boolean
   ready: boolean = false
+  // Experimental: Websocket support
+  wsProvider: providers.WebSocketProvider
+  wsCache: Record<string, any> = {}
 
   constructor (config: Config) {
     super({
@@ -101,6 +111,16 @@ class SyncWatcher extends BaseWatcher {
         this.isRelayableChainEnabled = true
         break
       }
+    }
+
+    this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
+    this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
+
+    // TODO: This only works for Alchemy. Add WS url to config long term.
+    if (wsEnabledChains.includes(this.chainSlug)) {
+      const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
+      this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
+      this.initEventWebsockets()
     }
 
     this.init()
@@ -320,13 +340,18 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async getTransferSentEventPromise (): Promise<any> {
+  async getTransferSentEventPromise (isHeadSync: boolean = false): Promise<any> {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
+    let keyName = l2Bridge.TransferSent
+    if (isHeadSync) {
+      keyName += HeadSyncKeySuffix
+    }
+
     return l2Bridge.mapTransferSentEvents(
-      async event => this.handleTransferSentEvent(event),
-      this.getSyncOptions(l2Bridge.TransferSent)
+      async event => this.handleTransferSentEvent(event, isHeadSync),
+      this.getSyncOptions(keyName)
     )
   }
 
@@ -415,14 +440,30 @@ class SyncWatcher extends BaseWatcher {
 
   getTransferSentPromises (): EventPromise {
     // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
-    if (this.isL1) {
-      if (this.isRelayableChainEnabled) {
-        return [this.getTransferSentToL2EventPromise()]
-      }
-    } else {
-      return [this.getTransferSentEventPromise()]
+    if (this.isL1 && this.isRelayableChainEnabled) {
+      return [this.getTransferSentToL2EventPromise()]
     }
-    return []
+
+    // TransferSent events do not exist on L1
+    if (this.isL1) return []
+
+    let promises: EventPromise
+    if (this.shouldSyncHead) {
+      // Sync head first, then sync finalized transfers
+      // If syncs are not done in this order, there is a race condition upon bonder startup
+      // where a transfer might be marked finalized and then subsequently unfinalized. Ordering
+      // these ensures that does not happen.
+      const syncPromises: EventPromise = [this.getTransferSentEventPromise(true)]
+      promises = [Promise.all(syncPromises).then(async () => {
+        await Promise.all([
+          this.getTransferSentEventPromise()
+        ])
+      })]
+    } else {
+      promises = [this.getTransferSentEventPromise()]
+    }
+
+    return promises
   }
 
   async handleTransferSentToL2Event (event: TransferSentToL2Event) {
@@ -497,7 +538,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferSentEvent (event: TransferSentEvent) {
+  async handleTransferSentEvent (event: TransferSentEvent, isHeadSync: boolean) {
     const {
       transferId,
       chainId: destinationChainIdBn,
@@ -520,6 +561,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
       const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
+      const isFinalized = !isHeadSync
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -531,12 +573,13 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('deadline:', deadline.toString())
       logger.debug('transferSentIndex:', transferSentIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
+      logger.debug('isFinalized:', isFinalized)
 
       if (!isBondable) {
         logger.warn('transfer is unbondable', amountOutMin, deadline)
       }
 
-      await this.db.transfers.update(transferId, {
+      const dbData: Transfer = {
         transferId,
         destinationChainId,
         sourceChainId,
@@ -549,8 +592,34 @@ class SyncWatcher extends BaseWatcher {
         deadline,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
-        transferSentIndex
-      })
+        transferSentIndex,
+        isFinalized
+      }
+
+      // When a transfer is finalized, reset its error states. It might have been marked
+      // as notFound previously if there was weird behavior onchain after this
+      // transfer was seen at the head. If this is the case, the transfer would not have been
+      // bonded before finality and will need to be bonded now.
+
+      // NOTE: There is a rare race condition where an unfinalized transfer may be processed before
+      // the finalized transfer is seen but sent and fail onchain validation after the finalized
+      // transfer has been recorded. For example, if a reorg happens at block 255 and finalization
+      // is at block 256. In this case, the transferId will be marked as notFound and the
+      // transfer will never be bonded. This is not handled, but if it ever occurs in practice, handle here.
+      if (isFinalized) {
+        logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxError: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
+        dbData.isNotFound = undefined
+        dbData.withdrawalBondTxError = undefined
+        dbData.withdrawalBondBackoffIndex = 0
+      }
+
+      await this.db.transfers.update(transferId, dbData)
+
+      // Experimental: compare data against WS cache and clear the memory
+      if (this.wsCache[transferId]) {
+        this.compareWsCache(event)
+        delete this.wsCache[event.args.transferId]
+      }
 
       logger.debug('handleTransferSentEvent: stored transfer item')
     } catch (err) {
@@ -931,10 +1000,18 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
-    const { from } = tx
-    logger.debug(`withdrawalBonder: ${from}`)
+
+    let bonder = tx.from
+    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    if (isProxyAddressForChain(this.tokenSymbol, destinationChainSlug)) {
+      const proxyAddress = getProxyAddressForChain(this.tokenSymbol, destinationChainSlug)
+      if (tx.to === proxyAddress) {
+        bonder = tx.to
+      }
+    }
+    logger.debug(`withdrawalBonder: ${bonder}`)
     await this.db.transfers.update(transferId, {
-      withdrawalBonder: from
+      withdrawalBonder: bonder
     })
   }
 
@@ -1063,7 +1140,14 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
-    const { from } = tx
+
+    let calculatedBonder: string = tx.from
+    if (isProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)) {
+      const proxyAddress = getProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)
+      if (tx.to === proxyAddress) {
+        calculatedBonder = tx.to
+      }
+    }
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
 
     if (!timestamp) {
@@ -1072,11 +1156,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    logger.debug(`bonder: ${from}`)
+    logger.debug(`bonder: ${calculatedBonder}`)
     logger.debug(`bondedAt: ${timestamp}`)
 
     await this.db.transferRoots.update(transferRootId, {
-      bonder: from,
+      bonder: calculatedBonder,
       bondedAt: timestamp
     })
   }
@@ -1490,7 +1574,6 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash
     } = event.args
     const logger = this.logger.create({ id: transferId })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
 
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {
@@ -1580,11 +1663,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     this.logger.debug(`starting pollGasCost, chainSlug: ${this.chainSlug}`)
-    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
+    const bridgeContract = this.bridge.bridgeWriteContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const bonder = await this.bridge.getBonderAddress()
+    const staker = await this.bridge.getBonderAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 
@@ -1601,7 +1684,7 @@ class SyncWatcher extends BaseWatcher {
           transferNonce,
           bonderFee,
           {
-            from: bonder
+            from: staker
           }
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
@@ -1620,7 +1703,7 @@ class SyncWatcher extends BaseWatcher {
             amountOutMin,
             deadline,
             {
-              from: bonder
+              from: staker
             }
           ] as const
           const gasLimit = await l2BridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
@@ -1684,6 +1767,53 @@ class SyncWatcher extends BaseWatcher {
       return false
     } catch {
       return true
+    }
+  }
+
+  // Experimental: Websocket support methods
+
+  initWebsocket (contract: Contract, filter: EventFilter, cb: Function): void {
+    contract.on(filter, async (...event: any) => cb(event[event.length - 1]))
+    contract.on('error', async (...event: any) => this.handleWsError(event))
+  }
+
+  initEventWebsockets (): void {
+    if (this.isL1) return
+
+    const bridgeContract = this.bridge.bridgeContract.connect(this.wsProvider) as L2BridgeContract
+    const filter = bridgeContract.filters.TransferSent()
+    this.initWebsocket(
+      bridgeContract,
+      filter,
+      async (event: TransferSentEvent) => this.handleWsSuccess(event)
+    )
+  }
+
+  handleWsSuccess (event: TransferSentEvent): void {
+    const args = event.args
+    this.wsCache[args.transferId] = {
+      chainId: args.chainId,
+      recipient: args.recipient,
+      amount: args.amount,
+      transferNonce: args.transferNonce,
+      bonderFee: args.bonderFee,
+      amountOutMin: args.amountOutMin,
+      deadline: args.deadline,
+      index: args.index
+    }
+    this.logger.debug('handleWsSuccess: websocket event successfully logged', JSON.stringify(event))
+  }
+
+  handleWsError (event: any): void {
+    this.logger.error('handleWsError: websocket error occurred', JSON.stringify(event))
+  }
+
+  compareWsCache (event: TransferSentEvent): void {
+    const wsData = this.wsCache[event.args.transferId]
+    if (JSON.stringify(wsData) === JSON.stringify(event.args)) {
+      this.logger.error(`compareWsCache: websocket comparison to poller data failed for transferId ${event.args.transferId}. wsData: ${JSON.stringify(wsData)}, event: ${JSON.stringify(event)}`)
+    } else {
+      this.logger.debug(`compareWsCache: websocket comparison to poller data success for transferId ${event.args.transferId}`)
     }
   }
 }

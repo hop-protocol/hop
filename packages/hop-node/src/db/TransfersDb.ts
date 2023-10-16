@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, FiveMinutesMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -16,6 +16,7 @@ interface BaseTransfer {
   destinationChainId?: number
   destinationChainSlug?: string
   isBondable?: boolean
+  isFinalized?: boolean
   isRelayable?: boolean
   isRelayed?: boolean
   isNotFound?: boolean
@@ -84,6 +85,8 @@ export type UnbondedSentTransfer = {
   transferNonce: string
   deadline: BigNumber
   transferSentIndex: number
+  transferSentBlockNumber: number
+  isFinalized: boolean
 }
 
 export type UnrelayedSentTransfer = {
@@ -263,6 +266,27 @@ class TransfersDb extends BaseDb {
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
+  async migration () {
+    this.logger.debug('TransfersDb migration started')
+    const entries = await this.getKeyValues()
+    this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
+    const promises: Array<Promise<any>> = []
+
+    // For this migration, there is no prior concept of pre-finality in the DB, so all transfers are finalized
+    for (const { key, value } of entries) {
+      let shouldUpdate = false
+      if (value?.isFinalized === undefined) {
+        shouldUpdate = true
+        value.isFinalized = true
+      }
+      if (shouldUpdate) {
+        promises.push(this._update(key, value))
+      }
+    }
+    await Promise.all(promises)
+    this.logger.debug('TransfersDb migration complete')
+  }
+
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
     if (filter.sourceChainId) {
       if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
@@ -401,7 +425,8 @@ class TransfersDb extends BaseDb {
         item.transferId &&
         !item.transferRootId &&
         item.transferSentTxHash &&
-        !item.committed
+        !item.committed &&
+        item.isFinalized
       )
     })
 
@@ -425,6 +450,7 @@ class TransfersDb extends BaseDb {
         return false
       }
 
+      // TODO: Clean all this up so the code is explicit and comments are not needed
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
         if (
@@ -438,7 +464,18 @@ class TransfersDb extends BaseDb {
           }
           timestampOk = item.bondWithdrawalAttemptedAt + delayMs < Date.now()
         } else {
-          timestampOk = item.bondWithdrawalAttemptedAt + TxRetryDelayMs < Date.now()
+          // withdrawalBondBackoffIndex is set to 0 upon finalization. When this happens, we do not
+          // want to wait for the delay, since the retry might have been triggered before finalization
+          // which is no longer relevant and would cause the user to wait for the entire TxRetryDelayMs.
+          // Instead We wait a small amount of time to ensure withdrawalBondBackoffIndex is not
+          // set. We handle the race condition between a processing bond and a finalized event seen
+          // by using an expedited delay for the first attempt (newly finalized) or the second attempt (finalized
+          // while a bond was being processed).
+          const shouldExpediteDelay = item?.withdrawalBondBackoffIndex === 0 || item?.withdrawalBondBackoffIndex === 1
+          // The delay should be long enough that the bond is not attempted again before the onchain tx is sent and
+          // confirmed.
+          const delay = shouldExpediteDelay ? FiveMinutesMs : TxRetryDelayMs
+          timestampOk = item.bondWithdrawalAttemptedAt + delay < Date.now()
         }
       }
 
@@ -448,6 +485,7 @@ class TransfersDb extends BaseDb {
         !item.withdrawalBonded &&
         item.transferSentTxHash &&
         item.isBondable &&
+        item.transferSentBlockNumber &&
         !item.isTransferSpent &&
         timestampOk
       )

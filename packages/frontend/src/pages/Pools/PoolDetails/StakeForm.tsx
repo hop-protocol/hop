@@ -5,17 +5,25 @@ import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import InfoTooltip from 'src/components/InfoTooltip'
 import Typography from '@material-ui/core/Typography'
+import Tabs from '@material-ui/core/Tabs'
+import Tab from '@material-ui/core/Tab'
 import { BalanceText } from '../components/BalanceText'
 import { InputField } from '../components/InputField'
 import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { sanitizeNumericalString } from 'src/utils'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { useStaking } from '../useStaking'
 import { useStyles } from './useStyles'
 
 type Props = {
   chainSlug: string
+  handleStakingChange: (event: React.ChangeEvent<{}>, newValue: string) => void
+  isTokenDeprecated: boolean
+  selectedStaking: string
   stakingContractAddress: string
+  stakingEnabled: boolean
+  stakingRewards: any[]
   tokenSymbol: string
 }
 
@@ -23,7 +31,12 @@ export function StakeForm(props: Props) {
   const styles = useStyles()
   const {
     chainSlug,
+    handleStakingChange,
+    isTokenDeprecated,
+    selectedStaking,
     stakingContractAddress,
+    stakingEnabled,
+    stakingRewards,
     tokenSymbol,
   } = props
   const {
@@ -118,77 +131,177 @@ export function StakeForm(props: Props) {
     stakingAprDisplay = `${stakingAprFormatted} ${isRewardsExpired ? '(rewards ended)' : ''}`
   }
 
-  return (
-    <Box>
-      <Box mb={2}>
-        <Box mb={1} display="flex" justifyContent="space-between">
-          <BalanceText label="Staked" balanceFormatted={depositedAmountFormatted} />
-          <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceBn={userLpBalanceBn} onClick={handleUnstakedClick} />
+  if (isTokenDeprecated) {
+    return (
+      <>
+        <Box mb={4}>
+          <Alert severity="warning" text={(normalizeTokenSymbol(tokenSymbol) ? ("The " + normalizeTokenSymbol(tokenSymbol)) : "This") + " bridge is deprecated. Only withdrawals from the AMM are supported."} />
         </Box>
-        <InputField
-          tokenSymbol={lpTokenSymbol}
-          tokenImageUrl={lpTokenImageUrl}
-          value={amount}
-          onChange={handleInputChange}
-          disabled={formDisabled}
-        />
-      </Box>
-      {showOverallStats && (
-        <Box mb={1}>
-          <Box mb={2} display="flex" justifyContent="space-between">
+
+        {stakingRewards.length > 0 && (
+          <Box mb={2} display="flex" alignItems="center" className={styles.stakingTabsContainer}>
             <Box>
-              <Typography variant="body1" component="div">
-                APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />
+              <Typography variant="subtitle1">
+                Earned
               </Typography>
             </Box>
-            <Box>
-              <Typography variant="body1" component="div">
-                {stakingAprDisplay}
-              </Typography>
-            </Box>
-          </Box>
-          <Box mb={2} display="flex" justifyContent="space-between">
-            <Box>
-              <Typography variant="body1" component="div">
-                Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="body1">
-                {overallTotalStakedFormatted}
-              </Typography>
-            </Box>
-          </Box>
-          <Box mb={1} display="flex" justifyContent="space-between">
-            <Box>
-              <Typography variant="body1" component="div">
-                Total Rewards <InfoTooltip title="The total rewards being distributed per day" />
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="body1">
-                {overallTotalRewardsPerDayFormatted}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      )}
-      <Box mt={4} mb={1}>
-        <Button large highlighted fullWidth onClick={handleStakeClick} disabled={stakeButtonDisabled} loading={isStaking}>
-          {stakeButtonText}
-        </Button>
-        {canWithdraw && (
-          <Box mt={4}>
-            <Button text fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
-              Unstake
-            </Button>
+            <Tabs value={selectedStaking} onChange={handleStakingChange}>
+              {stakingRewards.map((stakingReward, index) => {
+                const value = index.toString()
+                const selected = selectedStaking === value
+                return (
+                  <Tab key={stakingReward.rewardTokenSymbol} label={<Box style={{
+                    paddingLeft: '1rem',
+                    paddingBottom: '1rem',
+                    transition: 'translate(0, 5px)',
+                  }} >
+                  <Box display="flex" alignItems="center" data-selected={selected} className={styles.stakingTabButtonBox}>
+                    <Box mr={0.5} display="flex" justifyItems="center" alignItems="center">
+                      <img className={styles.stakingTabImage} src={stakingReward.rewardTokenImageUrl} alt={stakingReward.rewardTokenSymbol} title={stakingReward.rewardTokenSymbol} />
+                    </Box>
+                    <Typography variant="body2">
+                      {stakingReward.rewardTokenSymbol}
+                    </Typography>
+                  </Box>
+                  </Box>} value={value} />
+                )
+              })}
+            </Tabs>
           </Box>
         )}
-      </Box>
-      <Box>
-        <Alert severity="warning">{warning}</Alert>
-        <Alert severity="error" onClose={handleErrorClose} text={error} />
-      </Box>
-    </Box>
-  )
+
+        <Box mb={4}>
+          <Box mb={1} display="flex" justifyContent="space-between">
+            <BalanceText label="Staked" balanceFormatted={depositedAmountFormatted} />
+            <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceBn={userLpBalanceBn} />
+          </Box>
+          <Box mt={4} mb={1}>
+            {canWithdraw && (
+              <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
+                Unstake
+              </Button>
+            )}
+          </Box>
+          <Box>
+            <Alert severity="warning">{warning}</Alert>
+            <Alert severity="error" onClose={handleErrorClose} text={error} />
+          </Box>
+        </Box>
+      </>
+    )
+  } else if (!stakingEnabled) {
+    return (
+      <Typography variant="body1">
+        There is no staking available for this asset on this chain.
+      </Typography>
+    )
+  } else {
+    return (
+      <>
+        {stakingRewards.length > 0 && (
+          <Box mb={2} display="flex" alignItems="center" className={styles.stakingTabsContainer}>
+            <Box>
+              <Typography variant="subtitle1">
+                Earn
+              </Typography>
+            </Box>
+            <Tabs value={selectedStaking} onChange={handleStakingChange}>
+              {stakingRewards.map((stakingReward, index) => {
+                const value = index.toString()
+                const selected = selectedStaking === value
+                return (
+                  <Tab key={stakingReward.rewardTokenSymbol} label={<Box style={{
+                    paddingLeft: '1rem',
+                    paddingBottom: '1rem',
+                    transition: 'translate(0, 5px)',
+                  }} >
+                  <Box display="flex" alignItems="center" data-selected={selected} className={styles.stakingTabButtonBox}>
+                    <Box mr={0.5} display="flex" justifyItems="center" alignItems="center">
+                      <img className={styles.stakingTabImage} src={stakingReward.rewardTokenImageUrl} alt={stakingReward.rewardTokenSymbol} title={stakingReward.rewardTokenSymbol} />
+                    </Box>
+                    <Typography variant="body2">
+                      {stakingReward.rewardTokenSymbol}
+                    </Typography>
+                  </Box>
+                  </Box>} value={value} />
+                )
+              })}
+            </Tabs>
+          </Box>
+        )}
+
+        <Box mb={4}>
+          <Box mb={2}>
+            <Box mb={1} display="flex" justifyContent="space-between">
+              <BalanceText label="Staked" balanceFormatted={depositedAmountFormatted} />
+              <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceBn={userLpBalanceBn} onClick={handleUnstakedClick} />
+            </Box>
+            <InputField
+              tokenSymbol={lpTokenSymbol}
+              tokenImageUrl={lpTokenImageUrl}
+              value={amount}
+              onChange={handleInputChange}
+              disabled={formDisabled}
+            />
+          </Box>
+          {showOverallStats && (
+            <Box mb={1}>
+              <Box mb={2} display="flex" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body1" component="div">
+                    APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="body1" component="div">
+                    {stakingAprDisplay}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box mb={2} display="flex" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body1" component="div">
+                    Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="body1">
+                    {overallTotalStakedFormatted}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box mb={1} display="flex" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body1" component="div">
+                    Total Rewards <InfoTooltip title="The total rewards being distributed per day" />
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="body1">
+                    {overallTotalRewardsPerDayFormatted}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
+          <Box mt={4} mb={1}>
+            <Button large highlighted fullWidth onClick={handleStakeClick} disabled={stakeButtonDisabled} loading={isStaking}>
+              {stakeButtonText}
+            </Button>
+            {canWithdraw && (
+              <Box mt={4}>
+                <Button text fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
+                  Unstake
+                </Button>
+              </Box>
+            )}
+          </Box>
+          <Box>
+            <Alert severity="warning">{warning}</Alert>
+            <Alert severity="error" onClose={handleErrorClose} text={error} />
+          </Box>
+        </Box>
+      </>
+    )
+  }
 }

@@ -28,10 +28,11 @@ const useStyles = makeStyles(theme => ({
 
 const TxPill = () => {
   const { accountDetails, txHistory } = useApp()
-  const { address } = useWeb3Context()
   const transactions = txHistory?.transactions
+  const transactionString = JSON.stringify(txHistory?.transactions)
+  const { address } = useWeb3Context()
   const styles = useStyles()
-  const [numPendingTxs, setNumPendingTxs] = useState(0)
+  const [numPendingTxs, setNumPendingTxs] = useState<number>(0)
   const { ensName, ensAvatar } = useEns(address?.toString())
 
   const handleClick = () => {
@@ -39,19 +40,19 @@ const TxPill = () => {
   }
 
   useEffect(() => {
-    if (transactions && transactions?.length > 0) {
-      const pts = transactions.filter(tx => tx.pending)
-      setNumPendingTxs(pts.length)
+    if (transactions && transactions.length > 0) {
+      const pendingTxs = transactions.filter(tx => tx.pendingDestinationConfirmation)
+      setNumPendingTxs(pendingTxs.length)
     } else {
       setNumPendingTxs(0)
     }
-  }, [transactions])
+  }, [transactionString])
 
   return (
     <div className={styles.root}>
       {numPendingTxs > 0 ? (
         <StyledButton flat onClick={handleClick}>
-          {numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
+          {numPendingTxs > 3 ? "3+" : numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
         </StyledButton>
       ) : (
         <StyledButton

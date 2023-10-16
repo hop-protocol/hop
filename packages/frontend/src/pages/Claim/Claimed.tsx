@@ -7,7 +7,7 @@ import { ReactComponent as discordIcon } from 'src/assets/logos/discord.svg'
 import Button from 'src/components/buttons/Button'
 import { ButtonLink } from 'src/components/Button'
 import Confetti from 'react-confetti'
-import useWindowSize from 'react-use/lib/useWindowSize'
+import { useWindowSize } from 'usehooks-ts'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 

@@ -160,12 +160,9 @@ const gnosis = gnosisModule({
 })
 const walletConnect = walletConnectModule({
   version: 2, // NOTE: version v1 will be sunset but MetaMask currently only supports v1
-  qrcodeModalOptions: {
-    mobileLinks: ['metamask', 'argent', 'trust', 'rainbow', 'imtoken', 'pillar']
-  },
-  connectFirstChainId: false,
-  projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce'
+  projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce',
   // requiredChains: [isGoerli ? 5 : 1]
+  optionalChains: getOnboardChains().map((chain: any) => Number(chain.id)) as number[]
 })
 
 const Web3Context = createContext<Props | undefined>(undefined)

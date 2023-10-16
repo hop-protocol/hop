@@ -7,7 +7,7 @@ const {
 const awsAccessKeyId = process.env.IPFS_DEPLOY_AWS_ACCESS_KEY_ID
 const awsSecretAccessKey = process.env.IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY
 const awsProfile = process.env.IPFS_DEPLOY_AWS_PROFILE
-const awsRegion = process.env.IPFS_DEPLOY_AWS_REGION || 'us-east-1'
+const awsRegion = process.env.IPFS_DEPLOY_AWS_REGION || 'us-east-1' // e.g. 'us-west-1'
 const hostZoneId = process.env.IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID
 const ipfsHash = (process.env.IPFS_HASH || '').trim()
 const host = (process.env.IPFS_DEPLOY_DNSLINK_HOST || '').trim() // e.g. '_dnslink.hop.exchange.'

@@ -1,15 +1,17 @@
 import buildInfo from 'src/.build-info.json'
+import isL1 from 'src/utils/isL1'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
+import normalizeEnvVarBool from './utils/normalizeEnvVarBool'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
-import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
+import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
 import {
   AvgBlockTimeSeconds,
   Chain,
   DefaultBatchBlocks,
   Network,
-  TenMinutesMs,
+  OneHourMs,
   TotalBlocks
 } from 'src/constants'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
@@ -49,10 +51,14 @@ export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = buildInfo.rev
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
-export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : TenMinutesMs
+
+// This value must be longer than the longest chain's finality
+export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
 export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
+export const ShouldIgnoreProxy = normalizeEnvVarBool(process.env.SHOULD_IGNORE_PROXY) ?? false
+export const ShouldIgnoreBlockHashValidation = normalizeEnvVarBool(process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION) ?? false
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -68,6 +74,7 @@ export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PEN
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
+export const wsEnabledChains = process.env.WS_ENABLED_CHAINS?.split(',') ?? []
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
 // available liquidity watcher to have up-to-date info
@@ -77,6 +84,7 @@ export const SyncCyclesPerFullSync = process.env.SYNC_CYCLES_PER_FULL_SYNC ? Num
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
+export const CoingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''
 
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
@@ -154,6 +162,7 @@ export type Config = {
   bonderPrivateKey: string
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
+  canonicalAddresses: CanonicalAddresses & {[network: string]: any}
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
@@ -181,8 +190,8 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, canonicalAddresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
@@ -190,6 +199,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
     network,
     addresses,
     bonders,
+    canonicalAddresses,
     networks,
     metadata,
     isMainnet
@@ -197,7 +207,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, bonders, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, canonicalAddresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -209,6 +219,7 @@ export const config: Config = {
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
   bonders,
+  canonicalAddresses,
   fees: {},
   routes: {},
   db: {
@@ -330,8 +341,19 @@ export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
   }
 }
 
+export const setNetworkHeadSync = (network: string, headSync: boolean) => {
+  network = normalizeNetwork(network)
+  if (config.networks[network]) {
+    config.networks[network].headSync = headSync
+  }
+}
+
 export const getNetworkMaxGasPrice = (network: string) => {
   return config.networks[network].maxGasPrice
+}
+
+export const getNetworkHeadSync = (network: string) => {
+  return config.networks[network].headSync ?? false
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
@@ -446,6 +468,35 @@ export function getFinalityTimeSeconds (chainSlug: string) {
 
 export function getHasFinalizationBlockTag (chainSlug: string) {
   return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
+}
+
+export function getProxyAddressForChain (token: string, chainSlug: string): string {
+  const address = config.addresses?.[token]?.[chainSlug]?.proxy
+  if (!address || ShouldIgnoreProxy) {
+    throw new Error(`Proxy address not found for token ${token} on chain ${chainSlug}`)
+  }
+  return address
+}
+
+export function isProxyAddressForChain (token: string, chainSlug: string): boolean {
+  return !!config.addresses?.[token]?.[chainSlug]?.proxy && !ShouldIgnoreProxy
+}
+
+export function getBridgeWriteContractAddress (token: string, chainSlug: string): string {
+  if (isProxyAddressForChain(token, chainSlug)) {
+    return getProxyAddressForChain(token, chainSlug)
+  }
+
+  const addresses = config.addresses?.[token]?.[chainSlug]
+  if (isL1(chainSlug)) {
+    return addresses.l1Bridge
+  } else {
+    return addresses.l2Bridge
+  }
+}
+
+export function getCanonicalAddressesForChain (chainSlug: string): any {
+  return config.canonicalAddresses?.[chainSlug]
 }
 
 export { Bonders }

@@ -58,7 +58,8 @@ const AppRoutes: FC = () => {
                 <Routes>
                   <Route path="/stats" element={<Stats />} />
                   <Route path="/send" element={<Send />} />
-                  <Route path="/convert/*" element={<Convert />} />
+                  <Route path="/convert" element={<Convert />} />
+                  <Route path="/convert/:via" element={<Convert />} />
                   <Route path="/pools" element={<PoolsOverview />} />
                   <Route path="/pool" element={<Navigate to="/pool/deposit" />} />
                   <Route path="/pool/:tab/*" element={<PoolDetails />} />

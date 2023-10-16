@@ -24,6 +24,9 @@ export default async function getBondedWithdrawal (chain: string, token: string,
         contractAddress
         token
         from
+        transaction {
+          to
+        }
       }
     }
   `

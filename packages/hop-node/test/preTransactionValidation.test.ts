@@ -1,11 +1,12 @@
-import { SendBondTransferRootTxParams } from '../src/watchers/BondTransferRootWatcher'
-import { SendBondWithdrawalTxParams } from '../src/watchers/BondWithdrawalWatcher'
-import { Transfer } from '../src/db/TransfersDb'
-import { TransferRoot } from '../src/db/TransferRootsDb'
+import '../src/moduleAlias'
+import { SendBondTransferRootTxParams } from 'src/watchers/BondTransferRootWatcher'
+import { SendBondWithdrawalTxParams } from 'src/watchers/BondWithdrawalWatcher'
+import { Transfer } from 'src/db/TransfersDb'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getBondTransferRootWatcher,
   getBondWithdrawalWatcher
-} from '../src/watchers/watchers'
+} from 'src/watchers/watchers'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
@@ -13,6 +14,7 @@ import {
 
 // Run this with
 // npx ts-node test/preTransactionValidation.test.ts
+// NOTE: import moduleAlias first to avoid errors
 
 // NOTE: These tests assume an updated DB and chain, token, transferId, and rootHash values.
 
@@ -49,7 +51,8 @@ async function testBondWithdrawalWatcher (chain: string, token: string, transfer
     destinationChainId: dbTransfer.destinationChainId!,
     amountOutMin: dbTransfer.amountOutMin!,
     deadline: dbTransfer.deadline!,
-    transferSentIndex: dbTransfer.transferSentIndex!
+    transferSentIndex: dbTransfer.transferSentIndex!,
+    isFinalized: dbTransfer.isFinalized!
   })
 
   await shouldSucceed(watcher, txParams)

@@ -1,6 +1,8 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
+  ShouldIgnoreBlockHashValidation,
+  ShouldIgnoreProxy,
   bondWithdrawalBatchSize,
   gitRev,
   config as globalConfig,
@@ -107,17 +109,39 @@ async function main (source: any) {
   }
   for (const k in globalConfig.networks) {
     if (!Object.keys(enabledNetworks).includes(k)) continue
-    const { waitConfirmations, rpcUrl, redundantRpcUrls, hasFinalizationBlockTag, subgraphUrl } = globalConfig.networks[k]
+    const { waitConfirmations, rpcUrl, redundantRpcUrls, hasFinalizationBlockTag, subgraphUrl, headSync } = globalConfig.networks[k]
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
     logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
     logger.info(`${k} hasFinalizationBlockTag: ${hasFinalizationBlockTag}`)
     logger.info(`${k} subgraphUrl: ${subgraphUrl}`)
+    logger.info(`${k} headSync: ${!!headSync}`)
   }
   if (globalConfig.bonders) {
     const bonders: any = globalConfig.bonders
     for (const token of tokens) {
       logger.info(`config bonders for ${token}: ${JSON.stringify(bonders?.[token])}`)
+    }
+  }
+
+  for (const token of tokens) {
+    for (const k in globalConfig.networks) {
+      if (!Object.keys(enabledNetworks).includes(k)) continue
+
+      const chainAddresses = globalConfig.addresses[token][k]
+      if (
+        chainAddresses?.proxy &&
+        !ShouldIgnoreProxy
+      ) {
+        logger.info(`using proxy for ${token} on ${k}: ${chainAddresses.proxy}`)
+      }
+
+      if (
+        chainAddresses?.validator &&
+        !ShouldIgnoreBlockHashValidation
+      ) {
+        logger.info(`using validator for ${token} on ${k}: ${chainAddresses.validator}`)
+      }
     }
   }
 

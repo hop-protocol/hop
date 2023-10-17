@@ -119,7 +119,7 @@ async function transferErc20FromProxy (
   const proxyContract = new Contract(proxyAddress, proxyAbi, wallet)
   const tokenAddress = tokenInstance.address
 
-  logger.debug(`sending tokens ${tokenAddress} from  proxy to EOA: attempting to send ${tokenInstance.formatUnits(parsedAmount)} to ${eoaAddress} on ${chain}`)
+  logger.debug(`sending tokens ${tokenAddress} from  proxy to EOA: attempting to send ${amount} to ${eoaAddress} on ${chain}`)
   const tx = await proxyContract.claimFunds(tokenAddress, parsedAmount)
 
   logger.info(`send tx: ${tx.hash}`)

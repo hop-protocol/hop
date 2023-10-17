@@ -2,6 +2,7 @@ import pgp from 'pg-promise'
 import { v4 as uuid } from 'uuid'
 import { postgresConfig } from './config'
 import { populateTransfer } from './utils/populateTransfer'
+import { DateTime } from 'luxon'
 
 const argv = require('minimist')(process.argv.slice(2))
 
@@ -779,17 +780,18 @@ class Db {
     return this.db.any(sql, queryParams)
   }
 
-  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, searchWindow: string) {
+  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, days = 1) {
     const sql = `
       SELECT bond_within_timestamp AS "bondWithinTimestamp"
-      FROM transfers 
+      FROM transfers
       WHERE source_chain_slug = $1
       AND destination_chain_slug = $2
-      AND to_timestamp(timestamp) >= (NOW() - INTERVAL $3) 
+      AND timestamp >= $3
       AND bond_within_timestamp > 0
     `
 
-    const queryParams = [sourceChainSlug, destinationChainSlug, searchWindow]
+    const timestamp = Number(DateTime.utc().minus({ days }).toSeconds())
+    const queryParams = [sourceChainSlug, destinationChainSlug, timestamp]
 
     return await this.db.any(sql, queryParams)
   }

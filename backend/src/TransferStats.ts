@@ -64,7 +64,11 @@ export class TransferStats {
     })
 
     this.init()
-      .catch((err: any) => console.error('init error', err))
+      .catch((err: any) => {
+        console.error('init error, exiting.', err)
+        console.trace()
+        process.exit(1)
+      })
       .then(() => console.log('init done'))
   }
 

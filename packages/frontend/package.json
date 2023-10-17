@@ -101,7 +101,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@aws-sdk/client-route-53": "^3.316.0",
+    "@aws-sdk/client-route-53": "3.316.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",

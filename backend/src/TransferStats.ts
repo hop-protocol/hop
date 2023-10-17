@@ -592,6 +592,10 @@ export class TransferStats {
   }
 
   async updateTransferDataForTransferId (transferId: string) {
+    if (cache.get(`notfound:${transferId}`)) {
+      return
+    }
+
     console.log('fetching data for transferId', transferId)
     const events = await this.getTransferIdEvents(transferId)
     const data = await this.normalizeTransferEvents(events)
@@ -1120,6 +1124,9 @@ export class TransferStats {
 
   // gets on-chain origin transfer data
   static async getTransferStatusForTxHash (transactionHash: string) {
+    if (cache.get(`notfound:${transactionHash}`)) {
+      return
+    }
     for (const chainSlug in rpcUrls) {
       const rpcUrl = rpcUrls[chainSlug]
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)
@@ -1144,7 +1151,9 @@ export class TransferStats {
       if (receipt) {
         const block = await provider.getBlock(receipt.blockNumber)
         if (!block) {
-          console.error('no block found for receipt', receipt)
+          console.error('no block found for receipt (possibly reorged)', receipt)
+          cache.put(`notfound:${transferId}`, true, 24 * 60 * 60 * 1000)
+          cache.put(`notfound:${transactionHash}`, true, 24 * 60 * 60 * 1000)
           continue
         }
         timestamp = block.timestamp
@@ -1213,7 +1222,7 @@ export class TransferStats {
               bondTransactionHash = bonds[0].transactionHash
             }
           } catch (err: any) {
-            console.error('getTransferStatusForTxHash: queryFilter error:', err)
+            console.error('fetchTransferBonds: error:', err)
           }
         }
         return {

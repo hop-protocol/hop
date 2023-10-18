@@ -19,7 +19,6 @@ import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts/static/L2_Pol
 import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
 import { L2_xDaiToken } from '@hop-protocol/core/contracts/static/L2_xDaiToken'
 import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
-import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
@@ -213,6 +212,9 @@ export class Base {
     this.fees = config.bonderFeeBps[network]
     this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
     this.relayerFeeEnabled = config.relayerFeeEnabled[network]
+    for (const chainSlug in this.relayerFeeEnabled) {
+      this.relayerFeeEnabled[chainSlug] = false
+    }
     if (this.network === NetworkSlug.Goerli) {
       this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
     }
@@ -245,6 +247,9 @@ export class Base {
         }
         if (data.relayerFeeEnabled) {
           this.relayerFeeEnabled = data.relayerFeeEnabled
+          for (const chainSlug in this.relayerFeeEnabled) {
+            this.relayerFeeEnabled[chainSlug] = false
+          }
         }
 
         if (!cached) {
@@ -716,15 +721,7 @@ export class Base {
   }
 
   public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
-    await this.fetchConfigFromS3()
-    destinationChain = this.toChainModel(destinationChain)
-    const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
-    if (!isFeeEnabled) {
-      return BigNumber.from(0)
-    }
-
-    const relayerFee = new RelayerFee()
-    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
+    return BigNumber.from(0)
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {

@@ -2072,6 +2072,10 @@ class HopBridge extends Base {
       // ToDo: Don't pass in sourceChain since it will always be L1
       throw new Error('sourceChain must be L1')
     }
+    if (relayerFee && relayerFee.toString() !== '0') {
+      throw new Error('relayerFee must be 0')
+    }
+
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
@@ -2115,6 +2119,8 @@ class HopBridge extends Base {
       value = bridgeWrapperData.value
     }
 
+    // Redundantly set relayerFee to 0
+    relayerFee = BigNumber.from(0)
     const txOptions = [
       destinationChainId,
       recipient,
@@ -2122,7 +2128,7 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       relayer,
-      relayerFee || BigNumber.from(0),
+      relayerFee,
       {
         ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
         value

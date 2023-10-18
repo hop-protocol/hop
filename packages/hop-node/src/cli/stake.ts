@@ -118,10 +118,10 @@ async function stake (
       await tx?.wait()
 
       // Approve the bridge to spend proxy tokens
-      const abi = ['function approveToken(address,address,uint256)']
+      const abi = ['function approveBridge(address,uint256)']
       const iface = new Interface(abi)
       const data = iface.encodeFunctionData(
-        'approveToken', [token.address, spender, parsedAmount]
+        'approveBridge', [token.address, parsedAmount]
       )
       tx = await token.contract.signer.sendTransaction({
         to: proxyAddress,

@@ -201,4 +201,4 @@ export const HeadSyncKeySuffix = 'HeadSync'
 // Optimism-chain resource metering is not accurate with all RPC providers. Because of this,
 // confirmations entering into an Optimism chain need a custom gasLimit to ensure the
 // tx is propagated to the chain.
-export const CanonicalMessengerRootConfirmationGasLimit = 1500000
+export const CanonicalMessengerRootConfirmationGasLimit: number = 1500000

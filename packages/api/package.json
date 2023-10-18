@@ -12,8 +12,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/core": "0.0.1-beta.186",
-    "@hop-protocol/sdk": "0.0.1-beta.545",
+    "@hop-protocol/core": "0.0.1-beta.187",
+    "@hop-protocol/sdk": "0.0.1-beta.546",
     "cors": "^2.8.5",
     "express": "^4.18.1",
     "express-rate-limit": "^6.7.0",

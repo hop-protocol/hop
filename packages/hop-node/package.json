@@ -53,7 +53,7 @@
     "@ethersproject/hdnode": "5.0.9",
     "@fxportal/maticjs-fxportal": "1.1.1",
     "@hop-protocol/core": "0.0.1-beta.186",
-    "@hop-protocol/sdk": "0.0.1-beta.542",
+    "@hop-protocol/sdk": "0.0.1-beta.543",
     "@maticnetwork/maticjs": "3.6.0",
     "@maticnetwork/maticjs-ethers": "1.0.3",
     "@slack/web-api": "6.7.2",

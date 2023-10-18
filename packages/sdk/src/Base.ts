@@ -661,6 +661,20 @@ export class Base {
     return bonder
   }
 
+  protected async _getStakerAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<string> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const staker = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.proxy
+    if (!staker) {
+      console.warn(`staker address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
+    }
+
+    return staker
+  }
+
   protected async _getMessengerWrapperAddress (token: TToken, destinationChain: TChain): Promise<string> {
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)

@@ -1186,7 +1186,6 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     try {
-      const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
       const isDestinationNativeToken = this.isNativeToken(destinationChain)
       if (!isDestinationNativeToken) {
         return false
@@ -1203,6 +1202,8 @@ class HopBridge extends Base {
         } else if (destinationChain.equals(Chain.PolygonZk)) {
           // TODO
         } else {
+          // A bonder is needed here since the bonder will have the native token to pay for funds and the staker won't
+          const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
           await destinationChain.provider.estimateGas({
             value: BigNumber.from('1'),
             from: bonderAddress,
@@ -1211,8 +1212,10 @@ class HopBridge extends Base {
         }
         return false
       } else {
+        // A staker is needed here since the staker will have a stake on the bridge and the bonder EOA will not
+        const stakerAddress = await this.getStakerOrBonderAddress(sourceChain, destinationChain)
         const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
-        populatedTx.from = bonderAddress
+        populatedTx.from = stakerAddress
         await destinationChain.provider.estimateGas(populatedTx)
         return false
       }
@@ -1262,7 +1265,7 @@ class HopBridge extends Base {
       destinationBridge = await this.getL2Bridge(destinationChain)
     }
     destinationBridge = destinationBridge.connect(destinationChain.provider)
-    const bonder = await this.getBonderAddress(sourceChain, destinationChain)
+    const bonder = await this.getStakerOrBonderAddress(sourceChain, destinationChain)
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
@@ -1420,6 +1423,13 @@ class HopBridge extends Base {
     // fetch on-chain if the data is not available from worker json file
     if (availableLiquidity == null) {
       availableLiquidity = await this.getAvailableLiquidity(destinationChain, bonder)
+      // It is impractical to coordinate upgrading the bonder to the proxy contract
+      // for all integrators, so we add the bonder and proxy stakes
+      const stakerAddress = await this.getStakerAddress(sourceChain, destinationChain)
+      if (stakerAddress) {
+        const stakerAvailableLiquidity = await this.getAvailableLiquidity(destinationChain, stakerAddress)
+        availableLiquidity = availableLiquidity.add(stakerAvailableLiquidity)
+      }
     }
 
     if (destinationChain.isL1) {
@@ -2504,6 +2514,18 @@ class HopBridge extends Base {
 
   async getBonderAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
     return await this._getBonderAddress(this.tokenSymbol, sourceChain, destinationChain)
+  }
+
+  async getStakerAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
+    return await this._getStakerAddress(this.tokenSymbol, sourceChain, destinationChain)
+  }
+
+  async getStakerOrBonderAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
+    let address = await this._getStakerAddress(this.tokenSymbol, sourceChain, destinationChain)
+    if (!address) {
+      address = await this._getBonderAddress(this.tokenSymbol, sourceChain, destinationChain)
+    }
+    return address
   }
 
   async getMessengerWrapperAddress (destinationChain: TChain): Promise<string> {

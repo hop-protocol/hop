@@ -3,3 +3,4 @@
 .netlify
 *.log
 1
+pgdata

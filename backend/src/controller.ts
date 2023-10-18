@@ -298,10 +298,12 @@ export class Controller {
       throw new Error('destinationChainSlug is required')
     }
 
-    let txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, '2 day')
+    let days = 2
+    let txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, days)
 
     if (txTimes.length < 1) {
-      txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, '4 day')
+      days = 4
+      txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, days)
 
       if (txTimes.length < 1) {
         throw new Error('No transfer data available for set periods and chains')

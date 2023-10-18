@@ -888,7 +888,8 @@ export class TransferStats {
       if (sourceChain !== 'ethereum') {
         continue
       }
-      const events = fromL1CompletedsMap[chainIdToSlug(x.destinationChain)]
+      const destChainSlug = chainIdToSlug(x.destinationChain)
+      const events = fromL1CompletedsMap[destChainSlug]
       if (events) {
         for (const event of events) {
           if (
@@ -901,9 +902,17 @@ export class TransferStats {
             Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= 1800 && Number(event.timestamp.toString()) - Number(x.timestamp.toString()) > 0
           ) {
             x.bonded = true
-            x.bonder = event.from
+
             x.bondTransactionHash = event.transactionHash
             x.bondedTimestamp = Number(event.timestamp)
+
+            // Use proxy if the proxy is the bonder
+            const proxyAddress = addresses?.bridges?.[x.token]?.[destChainSlug]?.proxy
+            if (proxyAddress) {
+              x.bonder = proxyAddress
+            } else {
+              x.bonder = event.from
+            }
             continue
           }
         }
@@ -920,16 +929,24 @@ export class TransferStats {
     if (data.length > 0) {
       const regenesisTimestamp = 1636531200
       for (const item of data) {
-        if (!item.bonded && item.timestamp < regenesisTimestamp && chainIdToSlug(item.destinationChain) === 'optimism' && chainIdToSlug(item.sourceChain) !== 'ethereum') {
+        const destChainSlug = chainIdToSlug(item.destinationChain)
+        if (!item.bonded && item.timestamp < regenesisTimestamp && destChainSlug === 'optimism' && chainIdToSlug(item.sourceChain) !== 'ethereum') {
           try {
             const event = await getPreRegenesisBondEvent(item.transferId, item.token)
             if (event) {
               const [receipt, block] = await Promise.all([event.getTransactionReceipt(), event.getBlock()])
               item.bonded = true
-              item.bonder = receipt.from
               item.bondTransactionHash = event.transactionHash
               item.bondedTimestamp = Number(block.timestamp)
               item.preregenesis = true
+
+              // Use proxy if the proxy is the bonder
+              const proxyAddress = addresses?.bridges?.[x.token]?.[destChainSlug]?.proxy
+              if (proxyAddress) {
+                item.bonder = proxyAddress
+              } else {
+                item.bonder = receipt.from
+              }
             }
           } catch (err) {
             console.error(err)

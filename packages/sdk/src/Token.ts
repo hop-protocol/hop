@@ -377,6 +377,8 @@ class Token extends Base {
   }
 
   private async getGasEstimateFromAddress (): Promise<string> {
+    // Only needs an EOA with funds to estimate gas. Proxy address is not required, so
+    // signer or bonder address is acceptable.
     let address = await this.getSignerAddress()
     if (!address) {
       address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)

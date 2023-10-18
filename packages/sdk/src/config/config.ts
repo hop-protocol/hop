@@ -46,13 +46,29 @@ const relayerFeeEnabled: {[network: string]: Record<string, boolean>} = {
   goerli: goerli.relayerFeeEnabled
 }
 
+const proxyEnabled: {[network: string]: {[token: string]: Record<string, boolean>}} = {
+  mainnet: mainnet.proxyEnabled,
+  staging: staging.proxyEnabled,
+  kovan: kovan.proxyEnabled,
+  goerli: goerli.proxyEnabled
+}
+
+const bridgeDeprecated: {[network: string]: Record<string, boolean>} = {
+  mainnet: mainnet.bridgeDeprecated,
+  staging: staging.bridgeDeprecated,
+  kovan: kovan.bridgeDeprecated,
+  goerli: goerli.bridgeDeprecated
+}
+
 const config = {
   addresses,
   chains,
   bonders,
   bonderFeeBps,
   destinationFeeGasPriceMultiplier,
-  relayerFeeEnabled
+  relayerFeeEnabled,
+  proxyEnabled,
+  bridgeDeprecated
 }
 
 export { metadata, config }

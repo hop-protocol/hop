@@ -1407,7 +1407,6 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
-    const bonder = await this.getBonderAddress(sourceChain, destinationChain)
     let [availableLiquidity, unbondedTransferRootAmount, tokenPrice] = await Promise.all([
       this.getBaseAvailableCreditIncludingVault(
         sourceChain,
@@ -1422,14 +1421,8 @@ class HopBridge extends Base {
 
     // fetch on-chain if the data is not available from worker json file
     if (availableLiquidity == null) {
+      const bonder = await this.getStakerOrBonderAddress(sourceChain, destinationChain)
       availableLiquidity = await this.getAvailableLiquidity(destinationChain, bonder)
-      // It is impractical to coordinate upgrading the bonder to the proxy contract
-      // for all integrators, so we add the bonder and proxy stakes
-      const stakerAddress = await this.getStakerAddress(sourceChain, destinationChain)
-      if (stakerAddress) {
-        const stakerAvailableLiquidity = await this.getAvailableLiquidity(destinationChain, stakerAddress)
-        availableLiquidity = availableLiquidity.add(stakerAvailableLiquidity)
-      }
     }
 
     if (destinationChain.isL1) {
@@ -2414,6 +2407,11 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
 
+    if (sourceChain.isL1) {
+      // Bonder fees are not relevant on L2
+      return BigNumber.from(0)
+    }
+
     let onChainBonderFeeAbsolutePromise : any
     if (token.canonicalSymbol === TokenModel.ETH) {
       if (Chain.Gnosis.equals(sourceChain) || Chain.Polygon.equals(sourceChain)) {
@@ -2522,12 +2520,13 @@ class HopBridge extends Base {
     return await this._getBonderAddress(this.tokenSymbol, sourceChain, destinationChain)
   }
 
-  async getStakerAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
-    return await this._getStakerAddress(this.tokenSymbol, sourceChain, destinationChain)
-  }
-
   async getStakerOrBonderAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
-    let address = await this._getStakerAddress(this.tokenSymbol, sourceChain, destinationChain)
+    const isStakerEnabled = await this.getProxyEnabled(this.tokenSymbol, destinationChain)
+    let address
+    if (isStakerEnabled) {
+      address = await this._getStakerAddress(this.tokenSymbol, sourceChain, destinationChain)
+    }
+
     if (!address) {
       address = await this._getBonderAddress(this.tokenSymbol, sourceChain, destinationChain)
     }

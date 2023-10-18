@@ -877,14 +877,23 @@ export class TransferStats {
     }
 
     for (const x of data) {
-      const bonds = bondsMap[chainIdToSlug(x.destinationChain)]
+      const destChainSlug = chainIdToSlug(x.destinationChain)
+      const bonds = bondsMap[destChainSlug]
       if (bonds) {
         for (const bond of bonds) {
           if (bond.transferId === x.transferId) {
             x.bonded = true
-            x.bonder = bond.from
             x.bondTransactionHash = bond.transactionHash
             x.bondedTimestamp = Number(bond.timestamp)
+
+            // Use proxy if the proxy is the bonder
+            const proxyAddress = addresses?.bridges?.[x.token]?.[destChainSlug]?.proxy
+            if (proxyAddress) {
+              x.bonder = proxyAddress
+            } else {
+              x.bonder = bond.from
+            }
+
             continue
           }
         }

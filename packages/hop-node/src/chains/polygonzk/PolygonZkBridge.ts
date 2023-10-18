@@ -1,7 +1,8 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import wait from 'src/utils/wait'
+import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { IChainBridge } from '../IChainBridge'
-import { Signer, providers, utils } from 'ethers'
+import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
 
@@ -88,14 +89,12 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
       throw new Error('expected deposit to be claimable')
     }
 
-    // As of Jun 2023, the SDK does not provide a claimMessage convenience function.
-    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
     const isParent = networkId === 0
     const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isParent, networkId)
 
-    const abi = ['function claimMessage(bytes32[32],uint32,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)']
-    const iface = new utils.Interface(abi)
-    const data = iface.encodeFunctionData('claimMessage', [
+    const zkEvmBridge = isParent ? this.zkEvmClient.rootChainBridge : this.zkEvmClient.childChainBridge
+
+    const claimMessageTx = await zkEvmBridge.claimMessage(
       claimPayload.smtProof,
       claimPayload.index,
       claimPayload.mainnetExitRoot,
@@ -105,13 +104,14 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
       claimPayload.destinationNetwork,
       claimPayload.destinationAddress,
       claimPayload.amount,
-      claimPayload.metadata
-    ])
+      claimPayload.metadata,
+      { gasLimit: CanonicalMessengerRootConfirmationGasLimit }
+    )
 
-    return wallet.sendTransaction({
-      to: this.messengerAddress,
-      data
-    })
+    const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
+    const provider = isParent ? this.l1Provider : this.l2Provider
+
+    return await provider.getTransaction(claimMessageTxHash)
   }
 
   private async _isCheckpointed (txHash: string, networkId: number): Promise<boolean> {

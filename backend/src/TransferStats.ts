@@ -949,7 +949,7 @@ export class TransferStats {
               item.preregenesis = true
 
               // Use proxy if the proxy is the bonder
-              const proxyAddress = addresses?.bridges?.[x.token]?.[destChainSlug]?.proxy
+              const proxyAddress = addresses?.bridges?.[item.token]?.[destChainSlug]?.proxy
               if (proxyAddress) {
                 item.bonder = proxyAddress
               } else {

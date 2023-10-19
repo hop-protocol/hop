@@ -54,22 +54,20 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
     }
     
     const message = messages[0]
-    // const txReceipt = await contract.getTransactionReceiptByMessageHash(message.messageHash)
-    
-    return await contract.claim(message)
+    const txReceipt = await contract.getTransactionReceiptByMessageHash(message.messageHash)
+    if (!txReceipt) {
+      throw new Error('could not get receipt from message')
+    }
 
-    /*
-      return await contract.contract.connect(wallet).claimMessage(
-        messageSender: message.messageSender, // "", // address of message sender
-        messageHash: message.messageHash, // "", // message hash
-        fee: message.fee, // BigNumber.from(1), // fee
-        destination: message.destination, // "", // destination address of message
-        value: message.value, // BigNumber.from(2), // value of message
-        calldata: message.calldata, // "0x", // call data
-        messageNonce: message.messageNonce, // BigNumber.from(1), // message nonce
-        // feeRecipient: txReceipt.feeRecipient // "0x", // address that will receive fees. by default it is the message sender
-      )
-    */
+    return await contract.contract.connect(wallet).claimMessage(
+      txReceipt.from,
+      txReceipt.to,
+      message.fee,
+      message.value,
+      message.messageSender,
+      message.calldata,
+      message.messageNonce
+    )
   }
 
   private async _isCheckpointed (txHash: string, contract: any): Promise<boolean> {
@@ -85,18 +83,3 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   }
 }
 export default LineaBridge
-
-
-/*
-  import AbstractChainBridge from '../AbstractChainBridge'
-  import { IChainBridge } from '../IChainBridge'
-  import { providers } from 'ethers'
-
-  class LineaBridge extends AbstractChainBridge implements IChainBridge {
-    async relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {
-      throw new Error('unimplemented')
-    }
-  }
-
-  export default LineaBridge
-*/

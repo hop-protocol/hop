@@ -452,15 +452,11 @@ class TransfersDb extends BaseDb {
 
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
-        // Transfer backoff index gets reset when the transfer is finalized.
-        // Retry quickly when that happens instead of waiting the entire TxRetryDelayMs
-        const isFirstBondAttemptAfterFinalization = item?.withdrawalBondBackoffIndex === 0  
-        const isBondError = (
+        if (
           item.withdrawalBondTxError === TxError.BonderFeeTooLow ||
           item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync ||
           item.withdrawalBondTxError === TxError.RpcServerError 
-        )
-        if (isFirstBondAttemptAfterFinalization || isBondError) {
+          ) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
           if (delayMs > OneWeekMs) {
             return false

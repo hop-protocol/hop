@@ -70,31 +70,34 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     await this._tilReady()
 
-    const networkId = 0
+    const isSourceTxOnL1 = true
     const signer = this.l2Wallet
-    return await this._relayXDomainMessage(l1TxHash, networkId, signer)
+    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer)
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     await this._tilReady()
 
-    const networkId = 1
+    const isSourceTxOnL1 = false
     const signer = this.l1Wallet
-    return this._relayXDomainMessage(l2TxHash, networkId, signer)
+    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer)
   }
 
-  private async _relayXDomainMessage (txHash: string, networkId: number, wallet: Signer): Promise<providers.TransactionResponse> {
-    const isRelayable = await this._isCheckpointed(txHash, networkId)
+  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
+    const isRelayable = await this._isCheckpointed(txHash, isSourceTxOnL1)
     if (!isRelayable) {
       throw new Error('expected deposit to be claimable')
     }
 
-    const isParent = networkId === 0
-    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isParent, networkId)
+    // The bridge to claim on will be on the opposite chain that the source tx is on
+    const zkEvmClaimBridge = isSourceTxOnL1 ? this.zkEvmClient.childChainBridge : this.zkEvmClient.rootChainBridge
 
-    const zkEvmBridge = isParent ? this.zkEvmClient.rootChainBridge : this.zkEvmClient.childChainBridge
+    // Get the payload to claim the tx
+    const networkId = await zkEvmClaimBridge.networkID()
+    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isSourceTxOnL1, networkId)
 
-    const claimMessageTx = await zkEvmBridge.claimMessage(
+    // Execute the claim tx
+    const claimMessageTx = await zkEvmClaimBridge.claimMessage(
       claimPayload.smtProof,
       claimPayload.index,
       claimPayload.mainnetExitRoot,
@@ -109,19 +112,14 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
     )
 
     const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
-    const provider = isParent ? this.l1Provider : this.l2Provider
-
-    return await provider.getTransaction(claimMessageTxHash)
+    return await wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
-  private async _isCheckpointed (txHash: string, networkId: number): Promise<boolean> {
-    if (networkId === 0) {
+  private async _isCheckpointed (txHash: string, isSourceTxOnL1: boolean): Promise<boolean> {
+    if (isSourceTxOnL1) {
       return this.zkEvmClient.isDepositClaimable(txHash)
-    } else if (networkId === 1) {
-      return this.zkEvmClient.isWithdrawExitable(txHash)
-    } else {
-      throw new Error('invalid networkId')
     }
+    return this.zkEvmClient.isWithdrawExitable(txHash)
   }
 }
 export default PolygonZkBridge

@@ -17,12 +17,12 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
     super(chainSlug)
 
     this.LineaSDK = new LineaSDK({
-      l1RpcUrl: "https://goerli.gateway.tenderly.co", // process.env.L1_RPC_URL ?? "", // L1 rpc url
-      l2RpcUrl: "https://rpc.goerli.linea.build", // process.env.L2_RPC_URL ?? "", // L2 rpc url
-      // l1SignerPrivateKey: this.l1Wallet // process.env.L1_SIGNER_PRIVATE_KEY ?? "", // L1 account private key (optional if you use mode = read-only)
-      // l2SignerPrivateKey: this.l2Wallet // process.env.L2_SIGNER_PRIVATE_KEY ?? "", // L2 account private key (optional if you use mode = read-only)
-      network: "linea-goerli", // network you want to interact with (either linea-mainnet or linea-goerli)
-      mode: "read-only", // contract wrapper class mode (read-only or read-write), read-only: only read contracts state, read-write: read contracts state and claim messages 
+      l1RpcUrl: 'https://goerli.gateway.tenderly.co', // process.env.L1_RPC_URL ?? "", // L1 rpc url
+      l2RpcUrl: 'https://rpc.goerli.linea.build', // process.env.L2_RPC_URL ?? "", // L2 rpc url
+      // l1SignerPrivateKey: process.env.L1_SIGNER_PRIVATE_KEY ?? "", // L1 account private key (optional if you use mode = read-only)
+      // l2SignerPrivateKey: process.env.L2_SIGNER_PRIVATE_KEY ?? "", // L2 account private key (optional if you use mode = read-only)
+      network: 'linea-goerli', // network you want to interact with (either linea-mainnet or linea-goerli)
+      mode: 'read-only', // contract wrapper class mode (read-only or read-write), read-only: only read contracts state, read-write: read contracts state and claim messages 
     })
   }
 
@@ -73,13 +73,10 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   private async _isCheckpointed (txHash: string, contract: any): Promise<boolean> {
     const messageStatus = await contract.getMessageStatus(txHash)
     
-    // if (messageStatus === 'isClaimable' || 'isExitable') {
-    //   return true
-    // } else {
-    //   return false
-    // }
-
-    return Promise.resolve(true)
+    if (messageStatus === 'CLAIMABLE') {
+      return true
+    }
+    return false
   }
 }
 export default LineaBridge

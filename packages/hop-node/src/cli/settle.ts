@@ -1,5 +1,6 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import {
   getSettleBondedWithdrawalsWatcher
@@ -39,7 +40,7 @@ async function main (source: any) {
 
   const watcher = await getSettleBondedWithdrawalsWatcher({ chain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   if (useDb) {

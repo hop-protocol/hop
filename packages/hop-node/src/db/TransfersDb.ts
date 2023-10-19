@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, FiveMinutesMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -455,8 +455,8 @@ class TransfersDb extends BaseDb {
         if (
           item.withdrawalBondTxError === TxError.BonderFeeTooLow ||
           item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync ||
-          item.withdrawalBondTxError === TxError.RpcServerError 
-          ) {
+          item.withdrawalBondTxError === TxError.RpcServerError
+        ) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
           if (delayMs > OneWeekMs) {
             return false

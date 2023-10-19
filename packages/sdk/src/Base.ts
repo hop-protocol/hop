@@ -744,7 +744,7 @@ export class Base {
     return proxyEnabled?.[destinationChain.slug] || false
   }
 
-  public async getBridgeDeprecated (token: TToken): Promise<boolean> {
+  public async getIsBridgeDeprecated (token: TToken): Promise<boolean> {
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
     if (!token) {

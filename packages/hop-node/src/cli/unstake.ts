@@ -78,7 +78,7 @@ export async function unstake (
   if (isProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)) {
     const proxyAddress = getProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
     if (receipt.to === proxyAddress) {
-      logger.debug('Please use the send-from-proxy command to send tokens from the proxy contract')
+      logger.debug('Please use the claim-from-proxy command to send tokens from the proxy contract')
     }
   }
 }

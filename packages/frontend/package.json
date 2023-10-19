@@ -13,8 +13,8 @@
     "@ethersproject/abi": "^5.7.0",
     "@gnosis.pm/safe-apps-react-sdk": "^4.6.2",
     "@gnosis.pm/safe-apps-sdk": "^7.8.0",
-    "@hop-protocol/core": "0.0.1-beta.184",
-    "@hop-protocol/sdk": "0.0.1-beta.540",
+    "@hop-protocol/core": "0.0.1-beta.187",
+    "@hop-protocol/sdk": "0.0.1-beta.547",
     "@material-ui/core": "4.12.4",
     "@material-ui/icons": "4.11.3",
     "@material-ui/lab": "4.0.0-alpha.60",
@@ -101,7 +101,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@aws-sdk/client-route-53": "^3.316.0",
+    "@aws-sdk/client-route-53": "3.316.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",

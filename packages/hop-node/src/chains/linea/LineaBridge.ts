@@ -10,7 +10,7 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   l2Wallet: Signer
   chainId: number
   apiUrl: string
-  lineaMainnetChainId: number = 59144
+  lineaMainnetChainId: number = 5 // 59144
   LineaSDK: LineaSDK
 
   constructor (chainSlug: string) {

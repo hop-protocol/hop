@@ -2068,6 +2068,9 @@ class HopBridge extends Base {
     if (relayerFee && relayerFee.toString() !== '0') {
       throw new Error('relayerFee must be 0')
     }
+    if (await this.getIsBridgeDeprecated(this.tokenSymbol)) {
+      throw new Error('This bridge is deprecated')
+    }
 
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline

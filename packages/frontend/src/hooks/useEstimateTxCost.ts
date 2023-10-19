@@ -100,7 +100,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         // RelayerFee amount does not matter for estimation
         let relayerFee : BigNumber | undefined
         if (fromNetwork.slug === ChainSlug.Ethereum) {
-          relayerFee = BigNumber.from('1')
+          relayerFee = BigNumber.from('0')
         }
 
 

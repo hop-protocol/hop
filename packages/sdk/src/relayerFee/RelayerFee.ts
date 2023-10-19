@@ -2,8 +2,6 @@ import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
 import { BigNumber } from 'ethers'
 import { Chain } from '../models'
 import { NetworkSlug } from '../constants'
-import { defaultRelayerFeeEth } from '../config'
-import { parseEther } from 'ethers/lib/utils'
 
 const RelayerFees = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
@@ -16,17 +14,17 @@ class RelayerFee {
     // that is less useful on testnets. Instead, we use a default value for testnets.
     if (network !== NetworkSlug.Mainnet) {
       if (token === 'ETH') {
-        return parseEther(defaultRelayerFeeEth)
+        return BigNumber.from(0)
       } else {
         return BigNumber.from('0')
       }
     }
 
     if (!RelayerFees[chainSlug]) {
-      return parseEther(defaultRelayerFeeEth)
+      return BigNumber.from(0)
     }
 
-    return (new RelayerFees[chainSlug](network, token, chainSlug)).getRelayCost()
+    return BigNumber.from(0)
   }
 }
 

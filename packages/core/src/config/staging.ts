@@ -16,5 +16,7 @@ export const config : Config = {
     gnosis: false,
     optimism: false,
     arbitrum: false
-  }
+  },
+  proxyEnabled: {},
+  bridgeDeprecated: {}
 }

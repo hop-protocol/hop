@@ -89,5 +89,10 @@ export const config : Config = {
     linea: false,
     scrollzk: false,
     polygonzk: false
+  },
+  proxyEnabled: {},
+  bridgeDeprecated: {
+    SNX: true,
+    sUSD: true
   }
 }

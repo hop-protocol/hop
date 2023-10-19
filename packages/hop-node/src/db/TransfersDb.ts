@@ -450,32 +450,24 @@ class TransfersDb extends BaseDb {
         return false
       }
 
-      // TODO: Clean all this up so the code is explicit and comments are not needed
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
-        if (
+        // Transfer backoff index gets reset when the transfer is finalized.
+        // Retry quickly when that happens instead of waiting the entire TxRetryDelayMs
+        const isFirstBondAttemptAfterFinalization = item?.withdrawalBondBackoffIndex === 0  
+        const isBondError = (
           item.withdrawalBondTxError === TxError.BonderFeeTooLow ||
           item.withdrawalBondTxError === TxError.RedundantRpcOutOfSync ||
-          item.withdrawalBondTxError === TxError.RpcServerError
-        ) {
+          item.withdrawalBondTxError === TxError.RpcServerError 
+        )
+        if (isFirstBondAttemptAfterFinalization || isBondError) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
           if (delayMs > OneWeekMs) {
             return false
           }
           timestampOk = item.bondWithdrawalAttemptedAt + delayMs < Date.now()
         } else {
-          // withdrawalBondBackoffIndex is set to 0 upon finalization. When this happens, we do not
-          // want to wait for the delay, since the retry might have been triggered before finalization
-          // which is no longer relevant and would cause the user to wait for the entire TxRetryDelayMs.
-          // Instead We wait a small amount of time to ensure withdrawalBondBackoffIndex is not
-          // set. We handle the race condition between a processing bond and a finalized event seen
-          // by using an expedited delay for the first attempt (newly finalized) or the second attempt (finalized
-          // while a bond was being processed).
-          const shouldExpediteDelay = item?.withdrawalBondBackoffIndex === 0 || item?.withdrawalBondBackoffIndex === 1
-          // The delay should be long enough that the bond is not attempted again before the onchain tx is sent and
-          // confirmed.
-          const delay = shouldExpediteDelay ? FiveMinutesMs : TxRetryDelayMs
-          timestampOk = item.bondWithdrawalAttemptedAt + delay < Date.now()
+          timestampOk = item.bondWithdrawalAttemptedAt + TxRetryDelayMs < Date.now()
         }
       }
 

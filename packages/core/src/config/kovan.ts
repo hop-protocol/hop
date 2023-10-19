@@ -17,5 +17,7 @@ export const config : Config = {
   relayerFeeEnabled: {
     gnosis: false,
     optimism: false
-  }
+  },
+  proxyEnabled: {},
+  bridgeDeprecated: {}
 }

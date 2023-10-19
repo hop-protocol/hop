@@ -19,7 +19,6 @@ import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts/static/L2_Pol
 import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
 import { L2_xDaiToken } from '@hop-protocol/core/contracts/static/L2_xDaiToken'
 import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
-import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
@@ -133,6 +132,8 @@ export class Base {
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
   relayerFeeEnabled: Record<string, boolean>
+  proxyEnabled: { [token: string]: Record<string, boolean>}
+  bridgeDeprecated: Record<string, boolean>
 
   baseExplorerUrl: string = 'https://explorer.hop.exchange'
   baseConfigUrl: string = defaultBaseConfigUrl
@@ -213,6 +214,11 @@ export class Base {
     this.fees = config.bonderFeeBps[network]
     this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
     this.relayerFeeEnabled = config.relayerFeeEnabled[network]
+    for (const chainSlug in this.relayerFeeEnabled) {
+      this.relayerFeeEnabled[chainSlug] = false
+    }
+    this.proxyEnabled = config.proxyEnabled[network]
+    this.bridgeDeprecated = config.bridgeDeprecated[network]
     if (this.network === NetworkSlug.Goerli) {
       this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
     }
@@ -245,6 +251,15 @@ export class Base {
         }
         if (data.relayerFeeEnabled) {
           this.relayerFeeEnabled = data.relayerFeeEnabled
+          for (const chainSlug in this.relayerFeeEnabled) {
+            this.relayerFeeEnabled[chainSlug] = false
+          }
+        }
+        if (data.proxyEnabled) {
+          this.proxyEnabled = data.proxyEnabled
+        }
+        if (data.bridgeDeprecated) {
+          this.bridgeDeprecated = data.bridgeDeprecated
         }
 
         if (!cached) {
@@ -661,6 +676,20 @@ export class Base {
     return bonder
   }
 
+  protected async _getStakerAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<string> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const staker = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.proxy
+    if (!staker) {
+      console.warn(`staker address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
+    }
+
+    return staker
+  }
+
   protected async _getMessengerWrapperAddress (token: TToken, destinationChain: TChain): Promise<string> {
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
@@ -701,16 +730,32 @@ export class Base {
     return this.destinationFeeGasPriceMultiplier
   }
 
-  public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
+  public async getProxyEnabled (token: TToken, destinationChain: TChain): Promise<boolean> {
     await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
-    const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
-    if (!isFeeEnabled) {
-      return BigNumber.from(0)
+    if (!token) {
+      throw new Error('token is required')
     }
+    if (!destinationChain) {
+      throw new Error('destinationChain is required')
+    }
+    const proxyEnabled = this.proxyEnabled?.[token?.canonicalSymbol]
+    return proxyEnabled?.[destinationChain.slug] || false
+  }
 
-    const relayerFee = new RelayerFee()
-    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
+  public async getIsBridgeDeprecated (token: TToken): Promise<boolean> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    if (!token) {
+      throw new Error('token is required')
+    }
+    const bridgeDeprecated = this.bridgeDeprecated?.[token?.canonicalSymbol]
+    return bridgeDeprecated || false
+  }
+
+  public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
+    return BigNumber.from(0)
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {

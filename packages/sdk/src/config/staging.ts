@@ -24,5 +24,16 @@ const bonders = stagingAddresses.bonders
 const bonderFeeBps = stagingConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = stagingConfig.destinationFeeGasPriceMultiplier
 const relayerFeeEnabled = stagingConfig.relayerFeeEnabled
+const proxyEnabled = stagingConfig.proxyEnabled
+const bridgeDeprecated = stagingConfig.bridgeDeprecated
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }
+export {
+  addresses,
+  chains,
+  bonders,
+  bonderFeeBps,
+  destinationFeeGasPriceMultiplier,
+  relayerFeeEnabled,
+  proxyEnabled,
+  bridgeDeprecated
+}

@@ -580,7 +580,7 @@ const Send: FC = () => {
   // Send tokens
   // ==============================================================================================
 
-  const { tx, setTx, send, sending, setIsGnosisSafeWallet } = useSendTransaction({
+  const { tx, setTx, send, sending, setIsGnosisSafeWallet, lastPathSent } = useSendTransaction({
     amountOutMin,
     customRecipient,
     deadline,
@@ -603,6 +603,17 @@ const Send: FC = () => {
       setFromTokenAmount('')
     }
   }, [tx])
+
+  const [currentPathSending, setCurrentPathSending] = useState(sending)
+
+  useEffect(() => {
+    const currentPath = `${fromNetwork?.slug}-${toNetwork?.slug}-${sourceToken?.symbol}`
+    if (currentPath !== lastPathSent) {
+      setCurrentPathSending(false)
+    } else {
+      setCurrentPathSending(sending)
+    }
+  }, [sending, lastPathSent, fromNetwork?.slug, toNetwork?.slug, sourceToken?.symbol])
 
   const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
     tx,
@@ -728,6 +739,7 @@ const Send: FC = () => {
   }, [needsTokenForFee, unsupportedAsset, needsApproval, specificRouteDeprecated])
 
   const sendButtonActive = useMemo(() => {
+    const currentPath = `${fromNetwork?.slug}-${toNetwork?.slug}-${sourceToken?.symbol}`
     return !!(
       !needsApproval &&
       !approveButtonActive &&
@@ -744,7 +756,8 @@ const Send: FC = () => {
       (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused &&
-      !specificRouteDeprecated
+      !specificRouteDeprecated &&
+      (!lastPathSent || (lastPathSent !== currentPath))
     )
   }, [
     needsApproval,
@@ -764,7 +777,10 @@ const Send: FC = () => {
     isCorrectSignerNetwork,
     isSmartContractWallet,
     isTokenDeprecated,
-    fromNetwork?.slug
+    fromNetwork?.slug,
+    toNetwork?.slug,
+    sourceToken?.symbol,
+    lastPathSent
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
@@ -944,7 +960,7 @@ const Send: FC = () => {
               startIcon={sendButtonActive && <SendIcon />}
               onClick={send}
               disabled={!sendButtonActive}
-              loading={sending}
+              loading={currentPathSending}
               large
               fullWidth
               highlighted

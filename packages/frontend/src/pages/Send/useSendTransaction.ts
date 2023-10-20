@@ -56,6 +56,7 @@ export function useSendTransaction (props: any) {
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
+  const [lastPathSent, setLastPathSent] = useState<string | null>(null)
   const { waitForTransaction, addTransaction, updateTransaction } =
     useTransactionReplacement(walletName)
   const parsedAmount = useMemo(() => {
@@ -157,6 +158,8 @@ export function useSendTransaction (props: any) {
           }
         })
       }
+
+      setLastPathSent(`${fromNetwork.slug}-${toNetwork.slug}-${sourceToken.symbol}`)
 
       setTx(txModel)
 
@@ -342,6 +345,7 @@ export function useSendTransaction (props: any) {
     sending,
     tx,
     setTx,
-    setIsGnosisSafeWallet
+    setIsGnosisSafeWallet,
+    lastPathSent
   }
 }

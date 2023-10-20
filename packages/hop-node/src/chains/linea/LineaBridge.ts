@@ -4,21 +4,17 @@ import { Signer, providers, BigNumber, Contract } from 'ethers'
 import { LineaSDK } from '@consensys/linea-sdk'
 
 class LineaBridge extends AbstractChainBridge implements IChainBridge {
-  l1Provider: any
-  l2Provider: any
   l1Wallet: Signer
   l2Wallet: Signer
-  chainId: number
-  apiUrl: string
-  lineaMainnetChainId: number = 5 // 59144
   LineaSDK: LineaSDK
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
+    // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     this.LineaSDK = new LineaSDK({
-      l1RpcUrl: 'https://goerli.gateway.tenderly.co', // process.env.L1_RPC_URL ?? "", // L1 rpc url
-      l2RpcUrl: 'https://rpc.goerli.linea.build', // process.env.L2_RPC_URL ?? "", // L2 rpc url
+      l1RpcUrl: process.env.L1_RPC_URL ?? "", // L1 rpc url
+      l2RpcUrl: process.env.L2_RPC_URL ?? "", // L2 rpc url
       // l1SignerPrivateKey: process.env.L1_SIGNER_PRIVATE_KEY ?? "", // L1 account private key (optional if you use mode = read-only)
       // l2SignerPrivateKey: process.env.L2_SIGNER_PRIVATE_KEY ?? "", // L2 account private key (optional if you use mode = read-only)
       network: 'linea-goerli', // network you want to interact with (either linea-mainnet or linea-goerli)
@@ -41,25 +37,32 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
-    const contract = isSourceTxOnL1 ? this.LineaSDK.getL2Contract() : this.LineaSDK.getL1Contract()
+    const l1Contract = this.LineaSDK.getL1Contract()
+    const l2Contract = this.LineaSDK.getL2Contract()
 
-    const isRelayable = await this._isCheckpointed(txHash, contract)
-    if (!isRelayable) {
-      throw new Error('expected deposit to be claimable')
-    }
+    const sourceBridge = isSourceTxOnL1 ? l1Contract : l2Contract
+    const destinationBridge = isSourceTxOnL1 ? l2Contract : l1Contract
 
-    const messages = await contract.getMessagesByTransactionHash(txHash)
+    const messages = await sourceBridge.getMessagesByTransactionHash(txHash)
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
     
     const message = messages[0]
-    const txReceipt = await contract.getTransactionReceiptByMessageHash(message.messageHash)
+    const messageHash = message.messageHash
+
+    const isRelayable = await this._isCheckpointed(messageHash, destinationBridge)
+    if (!isRelayable) {
+      throw new Error('expected deposit to be claimable')
+    }
+
+    const txReceipt = await destinationBridge.getTransactionReceiptByMessageHash(messageHash)
     if (!txReceipt) {
       throw new Error('could not get receipt from message')
     }
 
-    return await contract.contract.connect(wallet).claimMessage(
+    // return await contract.claim(message)
+    return await destinationBridge.contract.connect(wallet).claimMessage(
       txReceipt.from,
       txReceipt.to,
       message.fee,
@@ -70,8 +73,8 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
     )
   }
 
-  private async _isCheckpointed (txHash: string, contract: any): Promise<boolean> {
-    const messageStatus = await contract.getMessageStatus(txHash)
+  private async _isCheckpointed (messageHash: string, destinationBridge: any): Promise<boolean> {
+    const messageStatus = await destinationBridge.getMessageStatus(messageHash)
     
     if (messageStatus === 'CLAIMABLE') {
       return true

@@ -7,12 +7,13 @@ import wait from 'wait'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
-import { enabledChains, enabledTokens, rpcUrls, isGoerli, integrations } from './config'
+import { enabledChains, enabledTokens, network, rpcUrls, isGoerli, integrations } from './config'
 import { getTokenDecimals } from './utils/getTokenDecimals'
 import { chainIdToSlug } from './utils/chainIdToSlug'
 import { chainSlugToName } from './utils/chainSlugToName'
 import { chainSlugToId } from './utils/chainSlugToId'
 import { populateTransfer } from './utils/populateTransfer'
+import { getProxyAddress } from './utils/getProxyAddress'
 import { getPriceHistory } from './price'
 import {
   fetchTransfers,
@@ -887,7 +888,7 @@ export class TransferStats {
             x.bondedTimestamp = Number(bond.timestamp)
 
             // Use proxy if the proxy is the bonder
-            const proxyAddress = addresses?.bridges?.[x.token]?.[destChainSlug]?.proxy
+            const proxyAddress = getProxyAddress(network, x.token, destChainSlug)
             if (proxyAddress) {
               x.bonder = proxyAddress
             } else {
@@ -924,7 +925,7 @@ export class TransferStats {
             x.bondedTimestamp = Number(event.timestamp)
 
             // Use proxy if the proxy is the bonder
-            const proxyAddress = addresses?.bridges?.[x.token]?.[destChainSlug]?.proxy
+            const proxyAddress = getProxyAddress(network, x.token, destChainSlug)
             if (proxyAddress) {
               x.bonder = proxyAddress
             } else {
@@ -958,7 +959,7 @@ export class TransferStats {
               item.preregenesis = true
 
               // Use proxy if the proxy is the bonder
-              const proxyAddress = addresses?.bridges?.[item.token]?.[destChainSlug]?.proxy
+              const proxyAddress = getProxyAddress(network, item.token, destChainSlug)
               if (proxyAddress) {
                 item.bonder = proxyAddress
               } else {

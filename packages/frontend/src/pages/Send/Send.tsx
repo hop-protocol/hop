@@ -48,6 +48,7 @@ import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
+import ConnectWalletButton from 'src/components/header/ConnectWalletButton'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -920,37 +921,42 @@ const Send: FC = () => {
         </Box>
       )}
 
-      <ButtonsWrapper>
-        {!sendButtonActive && (
-          <Div mb={[3]} fullWidth={approveButtonActive}>
+      { address 
+       ? <ButtonsWrapper>
+          {!sendButtonActive && (
+            <Div mb={[3]} fullWidth={approveButtonActive}>
+              <Button
+                className={styles.button}
+                large
+                highlighted={!!needsApproval}
+                disabled={!approveButtonActive}
+                onClick={handleApprove}
+                loading={approving}
+                fullWidth
+              >
+                Approve
+              </Button>
+            </Div>
+          )}
+          <Div mb={[3]} fullWidth={sendButtonActive}>
             <Button
               className={styles.button}
+              startIcon={sendButtonActive && <SendIcon />}
+              onClick={send}
+              disabled={!sendButtonActive}
+              loading={sending}
               large
-              highlighted={!!needsApproval}
-              disabled={!approveButtonActive}
-              onClick={handleApprove}
-              loading={approving}
               fullWidth
+              highlighted
             >
-              Approve
+              Send
             </Button>
           </Div>
-        )}
-        <Div mb={[3]} fullWidth={sendButtonActive}>
-          <Button
-            className={styles.button}
-            startIcon={sendButtonActive && <SendIcon />}
-            onClick={send}
-            disabled={!sendButtonActive}
-            loading={sending}
-            large
-            fullWidth
-            highlighted
-          >
-            Send
-          </Button>
+        </ButtonsWrapper>
+      : <Div mb={[3]} fullWidth={true}>
+        <ConnectWalletButton mode={"dark"} />
         </Div>
-      </ButtonsWrapper>
+      }
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />

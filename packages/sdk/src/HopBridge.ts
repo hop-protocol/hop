@@ -503,7 +503,7 @@ class HopBridge extends Base {
       // a `from` address is required if using only provider (not signer)
       populatedTx.from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
     }
-    return sourceChain.provider.estimateGas({
+    return this.estimateGas(sourceChain.provider, {
       ...populatedTx,
       gasLimit: 500000
     })
@@ -1111,10 +1111,10 @@ class HopBridge extends Base {
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
     const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
-      this.priceFeed.getPriceByTokenSymbol(
+      this.getPriceByTokenSymbol(
         chainNativeToken.symbol
       ),
-      this.priceFeed.getPriceByTokenSymbol(
+      this.getPriceByTokenSymbol(
         canonicalToken.symbol
       ),
       this.getGasPrice(destinationChain.provider),
@@ -1178,11 +1178,13 @@ class HopBridge extends Base {
     destinationChain: TChain
   ) : Promise<BigNumber> {
     try {
+      const timeStart = Date.now()
       const [gasLimit, { data, to }] = await Promise.all([
         this.estimateBondWithdrawalGasLimit(sourceChain, destinationChain),
         this.populateBondWithdrawalTx(sourceChain, destinationChain)
       ])
       const l1FeeInWei = await this.estimateOptimismL1FeeFromData(gasLimit, data, to)
+      this.debugTimeLog('getOptimismL1Fee', timeStart)
       return l1FeeInWei
     } catch (err) {
       console.error(err)
@@ -1216,7 +1218,7 @@ class HopBridge extends Base {
         } else {
           // A bonder is needed here since the bonder will have the native token to pay for funds and the staker won't
           const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
-          await destinationChain.provider.estimateGas({
+          await this.estimateGas(destinationChain.provider, {
             value: BigNumber.from('1'),
             from: bonderAddress,
             to: recipient
@@ -1228,7 +1230,7 @@ class HopBridge extends Base {
         const stakerAddress = await this.getStakerOrBonderAddress(sourceChain, destinationChain)
         const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
         populatedTx.from = stakerAddress
-        await destinationChain.provider.estimateGas(populatedTx)
+        await this.estimateGas(destinationChain.provider, populatedTx)
         return false
       }
     } catch (err) {
@@ -1243,8 +1245,10 @@ class HopBridge extends Base {
   ): Promise<any> {
     destinationChain = this.toChainModel(destinationChain)
     try {
+      const timeStart = Date.now()
       const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain)
-      const estimatedGas = await destinationChain.provider.estimateGas(populatedTx)
+      const estimatedGas = await this.estimateGas(destinationChain.provider, populatedTx)
+      this.debugTimeLog('estimateBondWithdrawalGasLimit', timeStart)
       return estimatedGas
     } catch (err) {
       console.error(err, {
@@ -1299,9 +1303,13 @@ class HopBridge extends Base {
           from: bonder
         }
       ] as const
-      return (destinationBridge as L2_Bridge).populateTransaction.bondWithdrawalAndDistribute(
+      const timeStart = Date.now()
+      const populatedTx = await (destinationBridge as L2_Bridge).populateTransaction.bondWithdrawalAndDistribute(
         ...payload
       )
+      this.debugTimeLog('populateBondWithdrawalTx', timeStart)
+
+      return populatedTx
     } else {
       const payload = [
         recipient,
@@ -1312,9 +1320,12 @@ class HopBridge extends Base {
           from: bonder
         }
       ] as const
-      return destinationBridge.populateTransaction.bondWithdrawal(
+      const timeStart = Date.now()
+      const populatedTx = destinationBridge.populateTransaction.bondWithdrawal(
         ...payload
       )
+      this.debugTimeLog('populateBondWithdrawalTx', timeStart)
+      return populatedTx
     }
   }
 
@@ -1431,7 +1442,7 @@ class HopBridge extends Base {
         sourceChain,
         destinationChain
       ),
-      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
+      this.getPriceByTokenSymbol(token.canonicalSymbol)
     ])
 
     // fetch on-chain if the data is not available from worker json file
@@ -1787,7 +1798,7 @@ class HopBridge extends Base {
     const token = this.toTokenModel(this.tokenSymbol)
     const [tvl, tokenPrice] = await Promise.all([
       this.getTvl(chain),
-      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
+      this.getPriceByTokenSymbol(token.canonicalSymbol)
     ])
     if (tvl.lte(0)) {
       return 0
@@ -2476,7 +2487,7 @@ class HopBridge extends Base {
     }
 
     const [tokenPrice, onChainBonderFeeAbsolute] = await Promise.all([
-      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol),
+      this.getPriceByTokenSymbol(token.canonicalSymbol),
       onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
     ])
     this.debugTimeLog('getBonderFeeAbsolute', timeStart)
@@ -2912,6 +2923,13 @@ class HopBridge extends Base {
     }
 
     throw new Error('getScrollZkRelayFee not implemented for "mainnet" network')
+  }
+
+  async getPriceByTokenSymbol (tokenSymbol: string) {
+    const timeStart = Date.now()
+    const price = await this.priceFeed.getPriceByTokenSymbol(tokenSymbol)
+    this.debugTimeLog('getPriceByTokenSymbol', timeStart)
+    return price
   }
 }
 

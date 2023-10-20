@@ -1251,7 +1251,7 @@ describe.skip('debugTimeLogs', () => {
     fs.writeFileSync('/tmp/debugTimeLogs.json', JSON.stringify(logs, null, 2))
 
     // generate chart:
-    // cd scripts
+    // cd scripts/
     // python generate_chart_from_file.py /tmp/debugTimeLogs.json
-  }, 10 * 60 * 1000)
+  }, 60 * 60 * 1000)
 })

@@ -977,7 +977,7 @@ export class Base {
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
-    const gasPrice = await chain.provider.getGasPrice()
+    const gasPrice = await this.getGasPrice(chain.provider)
     const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
       .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
     const serializedTx = serializeTransaction({
@@ -987,7 +987,9 @@ export class Base {
       to,
       data
     })
+    const timeStart = Date.now()
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
     return l1FeeInWei
   }
 
@@ -1101,8 +1103,18 @@ export class Base {
   }
 
   getGasPrice = rateLimitRetry(async (signerOrProvider: TProvider): Promise<BigNumber> => {
-    return signerOrProvider.getGasPrice()
+    const timeStart = Date.now()
+    const gasPrice = await signerOrProvider.getGasPrice()
+    this.debugTimeLog('getGasPrice', timeStart)
+    return gasPrice
   })
+
+  async estimateGas (signerOrProvider: TProvider, tx: any): Promise<BigNumber> {
+    const timeStart = Date.now()
+    const gasLimit = await signerOrProvider.estimateGas(tx)
+    this.debugTimeLog('estimateGas', timeStart)
+    return gasLimit
+  }
 
   debugTimeLog (label: string, timeStart: number) {
     if (this.debugTimeLogsEnabled) {

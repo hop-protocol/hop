@@ -2,6 +2,7 @@ import { CoinCodex } from './CoinCodex'
 import { CoinGecko } from './CoinGecko'
 import { Coinbase } from './Coinbase'
 import { Coinpaprika } from './Coinpaprika'
+import { promiseTimeout } from '../utils/promiseTimeout'
 
 const cache: {
   [tokenSymbol: string]: Promise<any>
@@ -23,6 +24,7 @@ export class PriceFeed {
   cacheTimeMs = 5 * 60 * 1000
   apiKeys: ApiKeys = {}
   services: Service[] = []
+  timeoutMs: number = 5 * 1000
 
   aliases: { [tokenSymbol: string]: string } = {
     WETH: 'ETH',
@@ -61,7 +63,7 @@ export class PriceFeed {
         return cache[tokenSymbol]
       }
     }
-    const promise = this._getPriceByTokenSymbol(tokenSymbol)
+    const promise = promiseTimeout(this._getPriceByTokenSymbol(tokenSymbol), this.timeoutMs)
     cache[tokenSymbol] = promise
     cacheTimestamps[tokenSymbol] = Date.now()
     return promise

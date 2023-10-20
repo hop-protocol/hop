@@ -1226,3 +1226,32 @@ describe.skip('WithdrawalProof', () => {
     expect(proof).toBeTruthy()
   }, 10 * 1000)
 })
+
+describe.skip('debugTimeLogs', () => {
+  it('should console log debug time logs', async () => {
+    const sdk = new Hop({
+      network: 'mainnet',
+      debugTimeLogsEnabled: true,
+      debugTimeLogsCacheEnabled: true
+    })
+
+    const iterations = 100
+    for (let i = 0; i < iterations; i++) {
+      const bridge = sdk.bridge('USDC')
+      const amountIn = '1000000000'
+      const sourceChain = 'arbitrum'
+      const destinationChain = 'optimism'
+      const sendData = await bridge.getSendData(amountIn, sourceChain, destinationChain)
+      expect(sendData).toBeTruthy()
+    }
+
+    const logs = sdk.getDebugTimeLogs()
+    expect(logs.length > 0).toBeTruthy()
+    const fs = require('fs')
+    fs.writeFileSync('/tmp/debugTimeLogs.json', JSON.stringify(logs, null, 2))
+
+    // generate chart:
+    // cd scripts
+    // python generate_chart_from_file.py /tmp/debugTimeLogs.json
+  }, 10 * 60 * 1000)
+})

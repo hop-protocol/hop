@@ -172,6 +172,13 @@ export function RewardsWidget(props: Props) {
                       </Box>
                     )}
                   </Box>
+                  { withdrawn &&
+                    <Box mb={2} style={{ opacity: 0, userSelect: 'none', pointerEvents: 'none' }}>
+                      <Typography variant="body2" color="secondary" component="div">
+                        --
+                      </Typography>
+                    </Box>
+                  }
                 </Box>
                 <Box mb={2}>
                   <Button variant="contained" href={txHistoryLink} fullWidth large target="_blank" rel="noopener noreferrer" disabled={!showCountdown}>Tx History →</Button>

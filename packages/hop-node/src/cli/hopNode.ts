@@ -1,4 +1,5 @@
 import OsWatcher from 'src/watchers/OsWatcher'
+import { DoesSupportCustomFinality } from 'src/constants'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
   ShouldIgnoreBlockHashValidation,
@@ -10,7 +11,6 @@ import {
   slackChannel,
   slackUsername
 } from 'src/config'
-import { DoesSupportCustomFinality } from 'src/constants'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { computeAddress } from 'ethers/lib/utils'

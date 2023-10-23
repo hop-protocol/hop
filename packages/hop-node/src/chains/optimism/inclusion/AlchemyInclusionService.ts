@@ -1,8 +1,9 @@
 import InclusionService from './InclusionService'
 import fetch from 'node-fetch'
+import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
-import isAlchemy from 'src/utils/isAlchemy'
 import { IInclusionService, InclusionServiceConfig } from './IInclusionService'
+import { RootProviderName } from 'src/constants'
 import { providers } from 'ethers'
 
 interface GetInclusionTxHashes {
@@ -20,15 +21,27 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   constructor (config: InclusionServiceConfig) {
     super(config)
 
-    if (!isAlchemy(this.l1Wallet.provider!)) {
-      throw new Error('l1 provider is not alchemy')
-    }
-    if (!isAlchemy(this.l2Wallet.provider!)) {
-      throw new Error('l2 provider is not alchemy')
-    }
-
     // TODO: Remove this when generalizing this class since it is Optimism-specific
     this.maxNumL1BlocksWithoutInclusion = 50
+
+    // Async init
+    this.init()
+      .catch(err => {
+        this.logger.error('init error:', err)
+        throw new Error(`init error: ${err.message}`)
+      })
+  }
+
+  async init () {
+    const l1RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l1Wallet.provider!)
+    if (l1RpcProviderName !== RootProviderName.Alchemy) {
+      throw new Error('l1 provider is not alchemy')
+    }
+
+    const l2RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l2Wallet.provider!)
+    if (l2RpcProviderName !== RootProviderName.Alchemy) {
+      throw new Error('l2 provider is not alchemy')
+    }
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {

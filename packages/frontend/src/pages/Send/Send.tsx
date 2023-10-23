@@ -61,6 +61,7 @@ const Send: FC = () => {
     selectedBridge,
     setSelectedBridge,
     settings,
+    theme
   } = useApp()
   const { slippageTolerance, deadline } = settings
   const { checkConnectedNetworkId, address, connectedNetworkId } = useWeb3Context()
@@ -969,9 +970,11 @@ const Send: FC = () => {
             </Button>
           </Div>
         </ButtonsWrapper>
-      : <Div mb={[3]} fullWidth={true}>
-        <ConnectWalletButton mode={"dark"} />
-        </Div>
+      : <ButtonsWrapper>
+          <Div mb={[3]} fullWidth>
+            <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
+          </Div>
+        </ButtonsWrapper>
       }
 
       <Flex mt={1}>

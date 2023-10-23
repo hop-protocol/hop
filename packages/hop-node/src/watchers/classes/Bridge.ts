@@ -23,9 +23,9 @@ import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
   getBridgeWriteContractAddress,
-  getHasFinalizationBlockTag,
   getProxyAddressForChain,
   config as globalConfig,
+  hasFinalizationBlockTag,
   isProxyAddressForChain
 } from 'src/config'
 
@@ -700,7 +700,7 @@ export default class Bridge extends ContractBase {
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
 
     let blockNumberWithAcceptableFinality: number
-    if (getHasFinalizationBlockTag(this.chainSlug) && !isHeadSync) {
+    if (hasFinalizationBlockTag(this.chainSlug) && !isHeadSync) {
       blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
     } else {
       const currentBlockNumber = await this.getBlockNumber()

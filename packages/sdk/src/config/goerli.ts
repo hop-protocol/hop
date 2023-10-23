@@ -15,7 +15,7 @@ for (const chain in networks) {
   chains[chain].rpcUrl = network?.publicRpcUrl
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
   chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
-  chains[chain].hasFinalizationBlockTag = network?.hasFinalizationBlockTag
+  chains[chain].finalizationBlockTag = network?.finalizationBlockTag
   chains[chain].subgraphUrl = network?.subgraphUrl
 }
 

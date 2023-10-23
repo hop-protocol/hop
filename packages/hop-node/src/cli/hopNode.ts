@@ -10,6 +10,7 @@ import {
   slackChannel,
   slackUsername
 } from 'src/config'
+import { DoesSupportCustomFinality } from 'src/constants'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { computeAddress } from 'ethers/lib/utils'
@@ -113,7 +114,7 @@ async function main (source: any) {
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
     logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
-    logger.info(`${k} finalizationBlockTag: ${finalizationBlockTag}`)
+    logger.info(`${k} finalizationBlockTag: ${finalizationBlockTag} (custom: ${DoesSupportCustomFinality[k]})`)
     logger.info(`${k} subgraphUrl: ${subgraphUrl}`)
     logger.info(`${k} headSync: ${!!headSync}`)
   }

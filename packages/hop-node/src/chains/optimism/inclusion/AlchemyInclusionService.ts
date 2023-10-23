@@ -10,9 +10,13 @@ interface GetInclusionTxHashes {
   fromAddress: string
   toAddress: string
   startBlockNumber: number
+  endBlockNumber?: number
 }
 
+// TODO: This is specific to Optimism but should be made more generic for other chains if they begin to need this functionality.
 class AlchemyInclusionService extends InclusionService implements IInclusionService {
+  private readonly maxNumL1BlocksWithoutInclusion: number
+
   constructor (config: InclusionServiceConfig) {
     super(config)
 
@@ -22,6 +26,9 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     if (!isAlchemy(this.l2Wallet.provider!)) {
       throw new Error('l2 provider is not alchemy')
     }
+
+    // TODO: Remove this when generalizing this class since it is Optimism-specific
+    this.maxNumL1BlocksWithoutInclusion = 50
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
@@ -54,39 +61,50 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     }
   }
 
-  private async _getL2ToL1InclusionTxHashes (startBlockNumber: number): Promise<string[]> {
+  async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
+    const startBlockNumber = l1BlockNumber - this.maxNumL1BlocksWithoutInclusion
+    const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
+    return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
+  }
+
+  async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
+    const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
+    const latestL2TxHash: string = transactionHashes?.[transactionHashes.length - 1]
+    if (!latestL2TxHash) {
+      return
+    }
+    return this.l2Wallet.provider!.getTransactionReceipt(latestL2TxHash)
+  }
+
+  private async _getL2ToL1InclusionTxHashes (startBlockNumber: number, endBlockNumber?: number): Promise<string[]> {
     return this._getInclusionTxHashes({
       destChainProvider: this.l1Wallet.provider!,
       fromAddress: this.batcherAddress,
       toAddress: this.batchInboxAddress,
-      startBlockNumber
+      startBlockNumber,
+      endBlockNumber
     })
   }
 
-  private async _getL1lToL2InclusionTxHashes (startBlockNumber: number): Promise<string[]> {
+  private async _getL1lToL2InclusionTxHashes (startBlockNumber: number, endBlockNumber?: number): Promise<string[]> {
     return this._getInclusionTxHashes({
       destChainProvider: this.l2Wallet.provider!,
       fromAddress: this.l1BlockSetterAddress,
       toAddress: this.l1BlockAddress,
-      startBlockNumber
+      startBlockNumber,
+      endBlockNumber
     })
   }
 
   private async _getInclusionTxHashes (config: GetInclusionTxHashes): Promise<string[]> {
-    let { destChainProvider, fromAddress, toAddress, startBlockNumber } = config
+    let { destChainProvider, fromAddress, toAddress, startBlockNumber, endBlockNumber } = config
 
-    // Defined the from and to block numbers
-    const destHeadBlockNumber = await destChainProvider.getBlockNumber()
+    if (!endBlockNumber) {
+      endBlockNumber = await this._getEndBlockNumber(destChainProvider, startBlockNumber)
+    }
 
-    const searchLengthBlocks = 50
-    let endBlockNumber = startBlockNumber + searchLengthBlocks
-
-    // Handle case where blocks exceed current head
-    if (startBlockNumber > destHeadBlockNumber) {
-      startBlockNumber = destHeadBlockNumber
-      endBlockNumber = destHeadBlockNumber
-    } else if (endBlockNumber > destHeadBlockNumber) {
-      endBlockNumber = destHeadBlockNumber
+    if (startBlockNumber > endBlockNumber) {
+      throw new Error('startBlockNumber must be less than endBlockNumber')
     }
 
     // Make call
@@ -123,6 +141,23 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
       throw new Error(`alchemy_getAssetTransfers failed: ${JSON.stringify(jsonRes)}`)
     }
     return jsonRes.result.transfers.map((tx: any) => tx.hash)
+  }
+
+  private async _getEndBlockNumber (destChainProvider: providers.Provider, startBlockNumber: number): Promise<number> {
+    // Defined the from and to block numbers
+    const destHeadBlockNumber = await destChainProvider.getBlockNumber()
+
+    let endBlockNumber = startBlockNumber + this.maxNumL1BlocksWithoutInclusion
+
+    // Handle case where blocks exceed current head
+    if (startBlockNumber > destHeadBlockNumber) {
+      startBlockNumber = destHeadBlockNumber
+      endBlockNumber = destHeadBlockNumber
+    } else if (endBlockNumber > destHeadBlockNumber) {
+      endBlockNumber = destHeadBlockNumber
+    }
+
+    return endBlockNumber
   }
 }
 

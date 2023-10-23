@@ -14,7 +14,7 @@ import {
   OneHourMs,
   TotalBlocks
 } from 'src/constants'
-import { Bps, ChainSlug } from '@hop-protocol/core/config'
+import { Bps, ChainSlug, FinalityBlockTag } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
@@ -454,7 +454,7 @@ export function enableEmergencyMode () {
 }
 
 export function getFinalityTimeSeconds (chainSlug: string) {
-  if (getHasFinalizationBlockTag(chainSlug)) {
+  if (hasFinalizationBlockTag(chainSlug)) {
     throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
   }
   const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
@@ -464,10 +464,6 @@ export function getFinalityTimeSeconds (chainSlug: string) {
     throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
   }
   return avgBlockTimeSeconds * waitConfirmations
-}
-
-export function getHasFinalizationBlockTag (chainSlug: string) {
-  return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
 }
 
 export function getProxyAddressForChain (token: string, chainSlug: string): string {
@@ -497,6 +493,18 @@ export function getBridgeWriteContractAddress (token: string, chainSlug: string)
 
 export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
+}
+
+export function getFinalizationBlockTag (chainSlug: string): FinalityBlockTag {
+  const finalizationBlockTag = networks?.[chainSlug]?.finalizationBlockTag
+  if (!finalizationBlockTag) {
+    throw new Error(`Finalization block tag not found for chain ${chainSlug}`)
+  }
+  return finalizationBlockTag
+}
+
+export function hasFinalizationBlockTag (chainSlug: string): boolean {
+  return !!networks?.[chainSlug]?.finalizationBlockTag
 }
 
 export { Bonders }

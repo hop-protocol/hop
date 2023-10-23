@@ -2,6 +2,7 @@ import { Chain } from 'src/constants'
 import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
 import { URL } from 'url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
+import { FinalityBlockTag } from '@hop-protocol/core/config'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()
@@ -304,7 +305,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, hasFinalizationBlockTag, headSync } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, finalizationBlockTag, headSync } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -327,15 +328,17 @@ export async function validateConfigValues (config?: Config) {
         throw new Error(`waitConfirmations for chain "${chainSlug}" must be greater than 0`)
       }
     }
-    if (hasFinalizationBlockTag == null) {
-      throw new Error(`hasFinalizationBlockTag for chain "${chainSlug}" is required`)
-    }
     if (maxGasPrice != null) {
       if (typeof maxGasPrice !== 'number') {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be a number`)
       }
       if (maxGasPrice <= 0) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
+      }
+    }
+    if (finalizationBlockTag != null) {
+      if (!Object.values(FinalityBlockTag).includes(finalizationBlockTag as FinalityBlockTag)) {
+        throw new Error(`finalizationBlockTag for chain "${chainSlug}" must be a valid FinalityBlockTag`)
       }
     }
     if (headSync != null) {

@@ -939,7 +939,7 @@ const Send: FC = () => {
       )}
 
       { address 
-       ? <ButtonsWrapper>
+      ? <ButtonsWrapper>
           {!sendButtonActive && (
             <Div mb={[3]} fullWidth={approveButtonActive}>
               <Button

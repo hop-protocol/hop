@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -57,7 +58,6 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { promiseQueue } from 'src/utils/promiseQueue'
-import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 
 type Config = {
   chainSlug: string

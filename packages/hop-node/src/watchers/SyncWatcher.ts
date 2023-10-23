@@ -12,10 +12,12 @@ import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   Chain,
   ChainPollMultiplier,
+  DoesRootProviderSupportWs,
   GasCostTransactionType,
   HeadSyncKeySuffix,
   OneWeekMs,
   RelayableChains,
+  RootProviderName,
   TenMinutesMs
 } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -55,6 +57,7 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { promiseQueue } from 'src/utils/promiseQueue'
+import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 
 type Config = {
   chainSlug: string
@@ -119,8 +122,17 @@ class SyncWatcher extends BaseWatcher {
     // TODO: This only works for Alchemy. Add WS url to config long term.
     if (wsEnabledChains.includes(this.chainSlug)) {
       const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
-      this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
-      this.initEventWebsockets()
+
+      // getRpcRootProviderName is async but since we are only attempting with the URL, we know there
+      // will be no async calls, so we can use promise chaining in the constructor without awaiting
+      const onlyAttemptUrl = true
+      getRpcRootProviderName(wsProviderUrl, onlyAttemptUrl).then((rpcProviderName: RootProviderName | undefined) => {
+        if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
+          this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
+          this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
+          this.initEventWebsockets()
+        }
+      })
     }
 
     this.init()

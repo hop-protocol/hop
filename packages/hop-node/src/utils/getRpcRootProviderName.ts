@@ -17,10 +17,14 @@ enum rpcRootProviderErrorString {
   Quiknode = 'Method eth_unsupportedCall is not supported'
 }
 
-async function getRpcRootProviderName (providerOrUrl: providers.Provider | string): Promise<RootProviderName | undefined> {
+async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
   let providerName: RootProviderName | undefined = getRootProviderFromUrl(providerOrUrl)
   if (providerName) {
     return providerName
+  }
+
+  if (onlyAttemptUrl) {
+    return
   }
 
   // Call this last since it makes an RPC call

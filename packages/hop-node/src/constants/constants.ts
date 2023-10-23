@@ -200,3 +200,10 @@ export enum RootProviderName {
   Infura = 'infura',
   Quiknode = 'quiknode'
 }
+
+export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
+  [RootProviderName.Local]: false,
+  [RootProviderName.Alchemy]: true,
+  [RootProviderName.Infura]: false,
+  [RootProviderName.Quiknode]: true
+}

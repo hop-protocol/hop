@@ -1,10 +1,11 @@
 import { providers } from 'ethers'
+import { IAbstractChainBridge } from './IAbstractChainBridge'
 
 export type RelayL1ToL2MessageOpts = {
   messageIndex?: number
 }
 
-export interface IChainBridge {
+export interface IChainBridge extends IAbstractChainBridge {
   // Relay
   relayL1ToL2Message?(l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse>
   relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse>

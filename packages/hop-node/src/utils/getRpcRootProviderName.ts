@@ -23,11 +23,11 @@ async function getRpcRootProviderName (providerOrUrl: providers.Provider | strin
     return providerName
   }
 
+  // This is useful if you want this function to be synchronous and not make any RPC calls
   if (onlyAttemptUrl) {
     return
   }
 
-  // Call this last since it makes an RPC call
   providerName = await isCallErrorAlchemy(providerOrUrl)
   if (providerName) {
     return providerName

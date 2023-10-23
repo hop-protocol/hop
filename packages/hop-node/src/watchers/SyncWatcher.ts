@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -12,10 +13,12 @@ import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   Chain,
   ChainPollMultiplier,
+  DoesRootProviderSupportWs,
   GasCostTransactionType,
   HeadSyncKeySuffix,
   OneWeekMs,
   RelayableChains,
+  RootProviderName,
   TenMinutesMs
 } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -119,8 +122,17 @@ class SyncWatcher extends BaseWatcher {
     // TODO: This only works for Alchemy. Add WS url to config long term.
     if (wsEnabledChains.includes(this.chainSlug)) {
       const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
-      this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
-      this.initEventWebsockets()
+
+      // getRpcRootProviderName is async but since we are only attempting with the URL, we know there
+      // will be no async calls, so we can use promise chaining in the constructor without awaiting
+      const onlyAttemptUrl = true
+      getRpcRootProviderName(wsProviderUrl, onlyAttemptUrl).then((rpcProviderName: RootProviderName | undefined) => {
+        if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
+          this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
+          this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
+          this.initEventWebsockets()
+        }
+      })
     }
 
     this.init()

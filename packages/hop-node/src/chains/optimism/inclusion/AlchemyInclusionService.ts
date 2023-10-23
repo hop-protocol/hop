@@ -1,8 +1,9 @@
 import InclusionService from './InclusionService'
 import fetch from 'node-fetch'
+import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
-import isAlchemy from 'src/utils/isAlchemy'
 import { IInclusionService, InclusionServiceConfig } from './IInclusionService'
+import { RootProviderName } from 'src/constants'
 import { providers } from 'ethers'
 
 interface GetInclusionTxHashes {
@@ -16,22 +17,43 @@ interface GetInclusionTxHashes {
 // TODO: This is specific to Optimism but should be made more generic for other chains if they begin to need this functionality.
 class AlchemyInclusionService extends InclusionService implements IInclusionService {
   private readonly maxNumL1BlocksWithoutInclusion: number
+  private isInitialized: boolean
 
   constructor (config: InclusionServiceConfig) {
     super(config)
 
-    if (!isAlchemy(this.l1Wallet.provider!)) {
-      throw new Error('l1 provider is not alchemy')
-    }
-    if (!isAlchemy(this.l2Wallet.provider!)) {
-      throw new Error('l2 provider is not alchemy')
-    }
-
     // TODO: Remove this when generalizing this class since it is Optimism-specific
     this.maxNumL1BlocksWithoutInclusion = 50
+
+    // Async init
+    this.init()
+      .then(() => {
+        this.isInitialized = true
+        this.logger.debug('AlchemyInclusionService initialized')
+      })
+      .catch(() => {
+        this.isInitialized = false
+        this.logger.warn('Unable to initialize AlchemyInclusionService')
+      })
+  }
+
+  async init () {
+    const l1RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l1Wallet.provider!)
+    if (l1RpcProviderName !== RootProviderName.Alchemy) {
+      this.logger.debug(`l1 provider is not alchemy, it is ${l1RpcProviderName}`)
+      throw new Error('l1 provider is not alchemy')
+    }
+
+    const l2RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l2Wallet.provider!)
+    if (l2RpcProviderName !== RootProviderName.Alchemy) {
+      this.logger.debug(`l2 provider is not alchemy, it is ${l2RpcProviderName}`)
+      throw new Error('l2 provider is not alchemy')
+    }
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.isInitialized) return
+
     const l2TxBlockNumber: number = (await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)).blockNumber
     const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2TxBlockNumber }))
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(l1OriginBlockNum)
@@ -45,6 +67,8 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.isInitialized) return
+
     const l1TxBlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
     const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1TxBlockNumber)
 
@@ -62,12 +86,16 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.isInitialized) return
+
     const startBlockNumber = l1BlockNumber - this.maxNumL1BlocksWithoutInclusion
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
     return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
   }
 
   async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.isInitialized) return
+
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
     const latestL2TxHash: string = transactionHashes?.[transactionHashes.length - 1]
     if (!latestL2TxHash) {

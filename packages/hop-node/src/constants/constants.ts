@@ -192,3 +192,18 @@ export const HeadSyncKeySuffix = 'HeadSync'
 // confirmations entering into an Optimism chain need a custom gasLimit to ensure the
 // tx is propagated to the chain.
 export const CanonicalMessengerRootConfirmationGasLimit: number = 1500000
+
+// Quicknode endpoints are spelled without the c, so we will use that spelling
+export enum RootProviderName {
+  Local = 'local',
+  Alchemy = 'alchemy',
+  Infura = 'infura',
+  Quiknode = 'quiknode'
+}
+
+export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
+  [RootProviderName.Local]: false,
+  [RootProviderName.Alchemy]: true,
+  [RootProviderName.Infura]: false,
+  [RootProviderName.Quiknode]: true
+}

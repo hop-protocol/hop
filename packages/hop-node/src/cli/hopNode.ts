@@ -1,4 +1,5 @@
 import OsWatcher from 'src/watchers/OsWatcher'
+import { DoesSupportCustomFinality } from 'src/constants'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
   ShouldIgnoreBlockHashValidation,
@@ -113,7 +114,7 @@ async function main (source: any) {
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
     logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
-    logger.info(`${k} finalizationBlockTag: ${finalizationBlockTag}`)
+    logger.info(`${k} finalizationBlockTag: ${finalizationBlockTag} (custom: ${!!DoesSupportCustomFinality[k]})`)
     logger.info(`${k} subgraphUrl: ${subgraphUrl}`)
     logger.info(`${k} headSync: ${!!headSync}`)
   }

@@ -30,11 +30,8 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l2Wallet: this.l2Wallet,
       logger: this.logger
     }
-    try {
-      this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
-    } catch (err) {
-      this.logger.error(`error creating inclusion service: ${err.message}`)
-    }
+
+    this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {

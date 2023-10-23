@@ -15,8 +15,8 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   enableEmergencyMode,
   getFinalityTimeSeconds,
-  hasFinalizationBlockTag,
-  config as globalConfig
+  config as globalConfig,
+  hasFinalizationBlockTag
 } from 'src/config'
 
 type Config = {

@@ -1,6 +1,7 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
+import getChainBridge from 'src/chains/getChainBridge'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import {
@@ -9,11 +10,10 @@ import {
   MinGnosisGasPrice,
   MinPolygonGasPrice
 } from 'src/constants'
-import { FinalityBlockTag } from '@hop-protocol/core/config'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
+import { FinalityBlockTag } from '@hop-protocol/core/config'
 import { getFinalizationBlockTag, config as globalConfig } from 'src/config'
-import getChainBridge from 'src/chains/getChainBridge'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 

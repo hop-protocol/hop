@@ -1,8 +1,8 @@
 import { Chain } from 'src/constants'
 import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
+import { FinalityBlockTag } from '@hop-protocol/core/config'
 import { URL } from 'url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
-import { FinalityBlockTag } from '@hop-protocol/core/config'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()

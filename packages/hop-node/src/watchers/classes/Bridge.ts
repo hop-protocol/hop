@@ -23,9 +23,9 @@ import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
   getBridgeWriteContractAddress,
-  hasFinalizationBlockTag,
   getProxyAddressForChain,
   config as globalConfig,
+  hasFinalizationBlockTag,
   isProxyAddressForChain
 } from 'src/config'
 

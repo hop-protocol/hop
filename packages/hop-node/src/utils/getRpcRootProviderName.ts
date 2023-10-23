@@ -18,7 +18,7 @@ enum rpcRootProviderErrorString {
 }
 
 async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
-  let providerName: RootProviderName | undefined = getRootProviderFromUrl(providerOrUrl)
+  let providerName: RootProviderName | undefined = getRootProviderNameFromUrl(providerOrUrl)
   if (providerName) {
     return providerName
   }
@@ -28,13 +28,13 @@ async function getRpcRootProviderName (providerOrUrl: providers.Provider | strin
     return
   }
 
-  providerName = await isCallErrorAlchemy(providerOrUrl)
+  providerName = await getRootProviderNameFromRpcCall(providerOrUrl)
   if (providerName) {
     return providerName
   }
 }
 
-function getRootProviderFromUrl (providerOrUrl: providers.Provider | string): RootProviderName | undefined {
+function getRootProviderNameFromUrl (providerOrUrl: providers.Provider | string): RootProviderName | undefined {
   let url
   if (providerOrUrl instanceof providers.Provider) {
     url = getRpcUrlFromProvider(providerOrUrl)
@@ -50,7 +50,7 @@ function getRootProviderFromUrl (providerOrUrl: providers.Provider | string): Ro
   }
 }
 
-async function isCallErrorAlchemy (providerOrUrl: providers.Provider | string): Promise<RootProviderName | undefined> {
+async function getRootProviderNameFromRpcCall (providerOrUrl: providers.Provider | string): Promise<RootProviderName | undefined> {
   const callTimeout: number = 2_000
   const query = {
     id: 1,

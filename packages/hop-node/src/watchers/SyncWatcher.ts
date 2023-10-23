@@ -119,7 +119,7 @@ class SyncWatcher extends BaseWatcher {
     this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
     this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
 
-    // TODO: This only works for Alchemy. Add WS url to config long term.
+    // TODO: This only works for Alchemy and Quiknode. Add WS url to config long term.
     if (wsEnabledChains.includes(this.chainSlug)) {
       const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
 

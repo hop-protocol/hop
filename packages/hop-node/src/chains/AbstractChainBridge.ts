@@ -4,8 +4,9 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
+import { IAbstractChainBridge } from './IAbstractChainBridge'
 
-abstract class AbstractChainBridge {
+abstract class AbstractChainBridge implements IAbstractChainBridge {
   logger: Logger
   chainSlug: string
   chainId: number
@@ -32,6 +33,10 @@ abstract class AbstractChainBridge {
     // Set up signers
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(chainSlug)
+  }
+
+  getLogger (): Logger {
+    return this.logger
   }
 }
 

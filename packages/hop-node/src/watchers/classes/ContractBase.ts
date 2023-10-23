@@ -9,7 +9,7 @@ import {
   MinGnosisGasPrice,
   MinPolygonGasPrice
 } from 'src/constants'
-import { FinalityTag } from '@hop-protocol/core/config'
+import { FinalityBlockTag } from '@hop-protocol/core/config'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { getFinalizationBlockTag, config as globalConfig } from 'src/config'
@@ -80,18 +80,19 @@ export default class ContractBase extends EventEmitter {
   }
 
   getFinalizedBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock(FinalityTag.Finalized)
+    const block = await this.contract.provider.getBlock(FinalityBlockTag.Finalized)
     return Number(block.number)
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
     const provider = this.contract.provider
-    const block = await provider.getBlock(FinalityTag.Safe)
+    const block = await provider.getBlock(FinalityBlockTag.Safe)
     return Number(block.number)
   }
 
   // This needs to be able to return undefined since custom finality may require
-  // multiple calls that may fail. If it fails, we fallback to finalized or safe.
+  // multiple calls that may fail. If it fails, the consumer of this method should
+  // fallback to finalized or safe.
   getCustomFinalityBlockNumber = async (): Promise<number | undefined> => {
     const chainBridge = getChainBridge(this.chainSlug)
     if (!chainBridge?.getCustomSafeBlockNumber) {
@@ -110,9 +111,9 @@ export default class ContractBase extends EventEmitter {
     }
 
     const finalizationBlockTag = getFinalizationBlockTag(this.chainSlug)
-    if (finalizationBlockTag === FinalityTag.Finalized) {
+    if (finalizationBlockTag === FinalityBlockTag.Finalized) {
       return await this.getFinalizedBlockNumber()
-    } else if (finalizationBlockTag === FinalityTag.Safe) {
+    } else if (finalizationBlockTag === FinalityBlockTag.Safe) {
       return await this.getSafeBlockNumber()
     } else {
       throw new Error(`unknown finality tag for chain ${this.chainSlug}`)

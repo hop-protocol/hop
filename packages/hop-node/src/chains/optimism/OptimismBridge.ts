@@ -108,7 +108,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   async getCustomSafeBlockNumber (): Promise<number | undefined> {
     if (
       !this.inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
-      !this.inclusionService?.getLatestL2TxFromL1Channel
+      !this.inclusionService?.getLatestL2TxFromL1ChannelTx
     ) {
       return
     }
@@ -121,7 +121,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     }
 
     // Derive the L2 block number from the L1 inclusion tx
-    const latestSafeL2Tx = await this.inclusionService.getLatestL2TxFromL1Channel(l1InclusionTx.transactionHash)
+    const latestSafeL2Tx = await this.inclusionService.getLatestL2TxFromL1ChannelTx(l1InclusionTx.transactionHash)
     return latestSafeL2Tx?.blockNumber
   }
 }

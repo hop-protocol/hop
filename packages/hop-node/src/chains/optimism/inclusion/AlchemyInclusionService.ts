@@ -67,7 +67,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
   }
 
-  async getLatestL2TxFromL1Channel (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
+  async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
     const latestL2TxHash: string = transactionHashes?.[transactionHashes.length - 1]
     if (!latestL2TxHash) {

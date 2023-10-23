@@ -30,7 +30,7 @@ export enum AssetSymbol {
   // FRAX = 'FRAX',
 }
 
-export const enum FinalityTag {
+export enum FinalityBlockTag {
   Latest = 'latest',
   Safe = 'safe',
   Finalized = 'finalized',

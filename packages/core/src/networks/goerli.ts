@@ -1,4 +1,4 @@
-import { FinalityTag } from '../config/types'
+import { FinalityBlockTag } from '../config/types'
 import { Networks } from './types'
 import { chains } from '../metadata'
 
@@ -11,7 +11,7 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
     waitConfirmations: 1,
-    finalizationBlockTag: FinalityTag.Safe,
+    finalizationBlockTag: FinalityBlockTag.Safe,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
   },
   polygon: {
@@ -34,7 +34,7 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli-optimism.etherscan.io'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityTag.Finalized,
+    finalizationBlockTag: FinalityBlockTag.Finalized,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli'
   },
   arbitrum: {
@@ -46,7 +46,7 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli.arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityTag.Safe,
+    finalizationBlockTag: FinalityBlockTag.Safe,
     subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
   },
   zksync: {
@@ -89,7 +89,7 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityTag.Finalized,
+    finalizationBlockTag: FinalityBlockTag.Finalized,
     subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
   },
   polygonzk: {
@@ -101,6 +101,6 @@ export const networks: Networks = {
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
     nativeBridgeUrl: 'https://public.zkevm-test.net',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityTag.Safe
+    finalizationBlockTag: FinalityBlockTag.Safe
   }
 }

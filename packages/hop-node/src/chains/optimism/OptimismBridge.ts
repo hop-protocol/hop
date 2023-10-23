@@ -104,6 +104,26 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     if (!this.inclusionService) return
     return this.inclusionService.getL2InclusionTx(l1TxHash)
   }
+
+  async getCustomSafeBlockNumber (): Promise<number | undefined> {
+    if (
+      !this.inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
+      !this.inclusionService?.getLatestL2TxFromL1Channel
+    ) {
+      return
+    }
+
+    // Get the latest checkpoint on L1
+    const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
+    const l1InclusionTx = await this.inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
+    if (!l1InclusionTx) {
+      return
+    }
+
+    // Derive the L2 block number from the L1 inclusion tx
+    const latestSafeL2Tx = await this.inclusionService.getLatestL2TxFromL1Channel(l1InclusionTx.transactionHash)
+    return latestSafeL2Tx?.blockNumber
+  }
 }
 
 export default OptimismBridge

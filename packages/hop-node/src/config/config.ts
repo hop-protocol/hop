@@ -495,12 +495,16 @@ export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
 }
 
-export function getFinalizationBlockTag (chainSlug: string): string | undefined {
-  return networks?.[chainSlug]?.finalizationBlockTag
+export function getFinalizationBlockTag (chainSlug: string): string {
+  const finalizationBlockTag = networks?.[chainSlug]?.finalizationBlockTag
+  if (!finalizationBlockTag) {
+    throw new Error(`Finalization block tag not found for chain ${chainSlug}`)
+  }
+  return finalizationBlockTag
 }
 
 export function hasFinalizationBlockTag (chainSlug: string): boolean {
-  return !!getFinalizationBlockTag(chainSlug)
+  return !!networks?.[chainSlug]?.finalizationBlockTag
 }
 
 export { Bonders }

@@ -9,7 +9,7 @@ import {
   MinGnosisGasPrice,
   MinPolygonGasPrice
 } from 'src/constants'
-import { FinalityTag } from '@hop-protocol/core/networks'
+import { FinalityTag } from '@hop-protocol/core/config'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { getFinalizationBlockTag, config as globalConfig } from 'src/config'
@@ -90,10 +90,29 @@ export default class ContractBase extends EventEmitter {
     return Number(block.number)
   }
 
+  // This needs to be able to return undefined since custom finality may require
+  // multiple calls that may fail. If it fails, we fallback to finalized or safe.
+  getCustomFinalityBlockNumber = async (): Promise<number | undefined> => {
+    const chainBridge = getChainBridge(this.chainSlug)
+    if (!chainBridge?.getCustomSafeBlockNumber) {
+      throw new Error(`getCustomFinalityBlockNumber not implemented for chain ${this.chainSlug}`)
+    }
+    return chainBridge.getCustomSafeBlockNumber()
+  }
+
   getBlockNumberWithAcceptableFinality = async (): Promise<number> => {
-    if (FinalityTagForChain[this.chainSlug] === FinalityTag.Finalized) {
+    // Try custom block number first and fallback to finalized or safe
+    if (DoesSupportCustomFinality[this.chainSlug]) {
+      const blockNumber = await this.getCustomFinalityBlockNumber()
+      if (blockNumber) {
+        return blockNumber
+      }
+    }
+
+    const finalizationBlockTag = getFinalizationBlockTag(this.chainSlug)
+    if (finalizationBlockTag === FinalityTag.Finalized) {
       return await this.getFinalizedBlockNumber()
-    } else if (FinalityTagForChain[this.chainSlug] === FinalityTag.Safe) {
+    } else if (finalizationBlockTag === FinalityTag.Safe) {
       return await this.getSafeBlockNumber()
     } else {
       throw new Error(`unknown finality tag for chain ${this.chainSlug}`)

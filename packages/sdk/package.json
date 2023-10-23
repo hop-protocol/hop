@@ -52,6 +52,7 @@
     "isomorphic-fetch": "3.0.0",
     "luxon": "2.5.0",
     "merkletreejs": "0.2.32",
+    "p-queue": "6.6.2",
     "web3": "1.7.5"
   },
   "devDependencies": {

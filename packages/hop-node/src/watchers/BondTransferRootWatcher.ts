@@ -116,16 +116,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
 
-    // Check for finality of the commit tx. The sync watcher only waits for safe, but since
-    // transfer root bonds are not time sensitive, we can wait for finality.
-    if (hasFinalizationBlockTag(this.chainSlug)) {
-      const blockNumberWithAcceptableFinality = await this.bridge.getBlockNumberWithAcceptableFinality()
-      if (blockNumberWithAcceptableFinality < commitTxBlockNumber) {
-        logger.debug(`chain has not yet reached finality. final block number: ${blockNumberWithAcceptableFinality}, commit block number: ${commitTxBlockNumber}`)
-        return
-      }
-    }
-
     // ORUs finality is checked above, since they aren't constant time. This check is for non-oru chains.
     // In practice, non-ORUs should not be bonded. This check is needed for the edge-case in which non-ORU roots are bonded.
     const minTransferRootBondDelaySeconds = await l1Bridge.getMinTransferRootBondDelaySeconds()

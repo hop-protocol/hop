@@ -304,7 +304,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, hasFinalizationBlockTag, headSync } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, headSync } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -326,9 +326,6 @@ export async function validateConfigValues (config?: Config) {
       if (waitConfirmations <= 0) {
         throw new Error(`waitConfirmations for chain "${chainSlug}" must be greater than 0`)
       }
-    }
-    if (hasFinalizationBlockTag == null) {
-      throw new Error(`hasFinalizationBlockTag for chain "${chainSlug}" is required`)
     }
     if (maxGasPrice != null) {
       if (typeof maxGasPrice !== 'number') {

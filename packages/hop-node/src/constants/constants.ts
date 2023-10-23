@@ -150,19 +150,9 @@ export const OruExitTimeMs: Record<string, number> = {
   [Chain.PolygonZk]: OneHourMs
 }
 
-export const FinalityTag: Record<string, string> = {
-  Safe: 'safe',
-  Finalized: 'finalized'
-}
-
-export const FinalityTagForChain: Record<string, string> = {
-  [Chain.Ethereum]: FinalityTag.Safe,
-  [Chain.Optimism]: FinalityTag.Finalized,
-  [Chain.Arbitrum]: FinalityTag.Safe,
-  [Chain.Gnosis]: FinalityTag.Finalized,
-  [Chain.Base]: FinalityTag.Finalized,
-  [Chain.Nova]: FinalityTag.Safe,
-  [Chain.PolygonZk]: FinalityTag.Safe
+export const DoesSupportCustomFinality: Record<string, boolean> = {
+  [Chain.Optimism]: true,
+  [Chain.Base]: true
 }
 
 export const NumStoredBlockHashes: number = 256

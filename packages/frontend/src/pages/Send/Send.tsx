@@ -758,7 +758,7 @@ const Send: FC = () => {
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused &&
       !specificRouteDeprecated &&
-      (!lastPathSent || (lastPathSent !== currentPath))
+      (lastPathSent !== currentPath || ((lastPathSent === currentPath) && !currentPathSending))
     )
   }, [
     needsApproval,

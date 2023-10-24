@@ -8,6 +8,12 @@ import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusio
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 
+// Use global cache to avoid re-fetching the same block number with multiple workers
+let cachedCustomSafeBlockNumber = {
+  l1BlockNumberCacheKey: 0,
+  l2BlockNumberCustomSafe: 0
+}
+
 class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   csm: CrossChainMessenger
   derive: Derive = new Derive()
@@ -107,21 +113,46 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       !this.inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
       !this.inclusionService?.getLatestL2TxFromL1ChannelTx
     ) {
-      this.logger.warn('getCustomSafeBlockNumber: includeService not available')
+      this.logger.error('getCustomSafeBlockNumber: includeService not available')
       return
     }
 
-    // Get the latest checkpoint on L1
+    // Use a cache since the granularity of finality updates on l1 is on the order of minutes
     const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
+    if (!this._isCacheExpired(l1SafeBlock.number)) {
+      return cachedCustomSafeBlockNumber.l2BlockNumberCustomSafe
+    }
+
+    // Get the latest checkpoint on L1
     const l1InclusionTx = await this.inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
     if (!l1InclusionTx) {
-      this.logger.warn(`getCustomSafeBlockNumber: no L1 inclusion tx found before block ${l1SafeBlock.number}`)
+      this.logger.error(`getCustomSafeBlockNumber: no L1 inclusion tx found before block ${l1SafeBlock.number}`)
       return
     }
 
     // Derive the L2 block number from the L1 inclusion tx
     const latestSafeL2Tx = await this.inclusionService.getLatestL2TxFromL1ChannelTx(l1InclusionTx.transactionHash)
-    return latestSafeL2Tx?.blockNumber
+    const customSafeBlockNumber = latestSafeL2Tx?.blockNumber
+    if (!customSafeBlockNumber) {
+      this.logger.error(`getCustomSafeBlockNumber: no L2 tx found for L1 inclusion tx ${l1InclusionTx.transactionHash}`)
+      return
+    }
+
+    this._updateCache(l1SafeBlock.number, customSafeBlockNumber)
+    return customSafeBlockNumber
+  }
+
+  private _isCacheExpired(l1BlockNumber: number): boolean {
+    const cacheExpirationBlocks = 5
+    const lastCachedBlockNumber = cachedCustomSafeBlockNumber.l1BlockNumberCacheKey
+    return l1BlockNumber - lastCachedBlockNumber > cacheExpirationBlocks
+  }
+
+  private _updateCache(l1BlockNumber: number, l2BlockNumber: number): void {
+    cachedCustomSafeBlockNumber = {
+      l1BlockNumberCacheKey: l1BlockNumber,
+      l2BlockNumberCustomSafe: l2BlockNumber
+    }
   }
 }
 

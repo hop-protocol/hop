@@ -99,6 +99,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
     const latestL2TxHash: string = transactionHashes?.[transactionHashes.length - 1]
     if (!latestL2TxHash) {
+      this.logger.debug(`no L2 tx found for L1 inclusion tx ${l1InclusionTx}`)
       return
     }
     return this.l2Wallet.provider!.getTransactionReceipt(latestL2TxHash)

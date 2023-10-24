@@ -107,6 +107,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       !this.inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
       !this.inclusionService?.getLatestL2TxFromL1ChannelTx
     ) {
+      this.logger.warn('getCustomSafeBlockNumber: includeService not available')
       return
     }
 
@@ -114,6 +115,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
     const l1InclusionTx = await this.inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
     if (!l1InclusionTx) {
+      this.logger.warn(`getCustomSafeBlockNumber: no L1 inclusion tx found before block ${l1SafeBlock.number}`)
       return
     }
 

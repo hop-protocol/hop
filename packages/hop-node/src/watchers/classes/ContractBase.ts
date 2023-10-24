@@ -102,13 +102,12 @@ export default class ContractBase extends EventEmitter {
     if (!customSafeBlockNumber) {
       // Log warning if custom finality is not available. If this log is occurring on
       // each loop, something is wrong with the custom finality logic and should be addressed
-      chainBridge.getLogger().warn(`custom finality not available for chain ${this.chainSlug}`)
+      chainBridge.getLogger().error(`custom finality not available for chain ${this.chainSlug}`)
     }
     return customSafeBlockNumber
   }
 
   getBlockNumberWithAcceptableFinality = async (): Promise<number> => {
-    // Try custom block number first and fallback to finalized or safe
     if (DoesSupportCustomFinality[this.chainSlug]) {
       const blockNumber = await this.getCustomFinalityBlockNumber()
       if (blockNumber) {

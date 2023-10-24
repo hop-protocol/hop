@@ -8,9 +8,8 @@ import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusio
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 
-// Use global cache to avoid re-fetching the same block number with multiple instances
 type CachedCustomSafeBlockNumber = {
-  l1BlockNumberCacheKey: number
+  lastCacheTimestampMs: number
   l2BlockNumberCustomSafe: number
 }
 
@@ -32,7 +31,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     })
 
     this.customSafeBlockNumberCache = {
-      l1BlockNumberCacheKey: 0,
+      lastCacheTimestampMs: 0,
       l2BlockNumberCustomSafe: 0
     }
 
@@ -124,18 +123,22 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     }
 
     // Use a cache since the granularity of finality updates on l1 is on the order of minutes
-    const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
-    const lastCacheValue = this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
-    if (this._hasCacheBeenSet(lastCacheValue) && !this._isCacheExpired(l1SafeBlock.number)) {
-      this.logger.info(`getCustomSafeBlockNumber: using cached value ${lastCacheValue} for l1 block number ${l1SafeBlock.number}`)
-      return this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
+    if (
+      this._hasCacheBeenSet() &&
+      !this._isCacheExpired()
+    ) {
+      const cacheValue = this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
+      this.logger.info(`getCustomSafeBlockNumber: using cached value ${cacheValue}`)
+      return cacheValue
     }
 
     // Always update the cache with the latest block number. If the following calls fail, the cache
     // will never be updated and we will get into a loop.
-    this._updateCache(l1SafeBlock.number)
+    const now = Date.now()
+    this._updateCache(now)
 
     // Get the latest checkpoint on L1
+    const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
     const l1InclusionTx = await this.inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
     if (!l1InclusionTx) {
       this.logger.error(`getCustomSafeBlockNumber: no L1 inclusion tx found before block ${l1SafeBlock.number}`)
@@ -150,23 +153,24 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       return
     }
 
-    this._updateCache(l1SafeBlock.number, customSafeBlockNumber)
+    this._updateCache(now, customSafeBlockNumber)
     return customSafeBlockNumber
   }
 
-  private _hasCacheBeenSet (lastCacheValue: number): boolean {
-    return lastCacheValue !== 0
+  private _hasCacheBeenSet (): boolean {
+    return this.customSafeBlockNumberCache.l2BlockNumberCustomSafe !== 0
   }
 
-  private _isCacheExpired (l1BlockNumber: number): boolean {
-    const cacheExpirationBlocks = 5
-    const lastCachedBlockNumber = this.customSafeBlockNumberCache.l1BlockNumberCacheKey
-    return l1BlockNumber - lastCachedBlockNumber > cacheExpirationBlocks
+  private _isCacheExpired (): boolean {
+    const now = Date.now()
+    const cacheExpirationTimeMs = 60 * 1000
+    const lastCacheTimestampMs = this.customSafeBlockNumberCache.lastCacheTimestampMs
+    return now - lastCacheTimestampMs > cacheExpirationTimeMs
   }
 
-  private _updateCache (l1BlockNumber: number, l2BlockNumber?: number): void {
+  private _updateCache (lastCacheTimestampMs: number, l2BlockNumber?: number): void {
     this.customSafeBlockNumberCache = {
-      l1BlockNumberCacheKey: l1BlockNumber,
+      lastCacheTimestampMs: lastCacheTimestampMs,
       l2BlockNumberCustomSafe: l2BlockNumber ?? this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
     }
   }

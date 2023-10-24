@@ -17,31 +17,35 @@ enum rpcRootProviderErrorString {
   Quiknode = 'Method eth_unsupportedCall is not supported'
 }
 
+const cache: Record<string, RootProviderName> = {}
+
 async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
+  // Cache by top-level URL
+  const url = getUrlFromProviderOrUrl(providerOrUrl)
+  if (cache[url]) {
+    return cache[url]
+  }
+
   let providerName: RootProviderName | undefined = getRootProviderNameFromUrl(providerOrUrl)
   if (providerName) {
     return providerName
   }
 
   // This is useful if you want this function to be synchronous and not make any RPC calls
-  if (onlyAttemptUrl) {
+  const isWsProvider = url.includes('wss://')
+  if (isWsProvider || onlyAttemptUrl) {
     return
   }
 
   providerName = await getRootProviderNameFromRpcCall(providerOrUrl)
   if (providerName) {
+    cache[url] = providerName
     return providerName
   }
 }
 
 function getRootProviderNameFromUrl (providerOrUrl: providers.Provider | string): RootProviderName | undefined {
-  let url
-  if (providerOrUrl instanceof providers.Provider) {
-    url = getRpcUrlFromProvider(providerOrUrl)
-  } else {
-    url = providerOrUrl
-  }
-
+  const url = getUrlFromProviderOrUrl(providerOrUrl)
   const entries = Object.entries(RootProviderName)
   for (const [key, value] of entries) {
     if (url.includes(value)) {
@@ -91,6 +95,14 @@ async function getRootProviderNameFromRpcCall (providerOrUrl: providers.Provider
     if (errMessage.includes(value)) {
       return RootProviderName[key as keyof typeof RootProviderName]
     }
+  }
+}
+
+function getUrlFromProviderOrUrl (providerOrUrl: providers.Provider | string): string {
+  if (providerOrUrl instanceof providers.Provider) {
+    return getRpcUrlFromProvider(providerOrUrl)
+  } else {
+    return providerOrUrl
   }
 }
 

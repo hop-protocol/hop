@@ -101,7 +101,6 @@ async function main (source: any) {
       if (!commitTxHash) {
         throw new Error('commitTxHash is required')
       }
-      console.log('commitTxHash', commitTxHash)
       await chainBridge.relayL2ToL1Message(commitTxHash)
     }
   }

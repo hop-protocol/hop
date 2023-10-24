@@ -123,8 +123,7 @@ class SyncWatcher extends BaseWatcher {
     if (wsEnabledChains.includes(this.chainSlug)) {
       const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
 
-      // getRpcRootProviderName is async but since we are only attempting with the URL, we know there
-      // will be no async calls, so we can use promise chaining in the constructor without awaiting
+      // onlyAttemptUrl makes this synchronous so no need to await
       const onlyAttemptUrl = true
       getRpcRootProviderName(wsProviderUrl, onlyAttemptUrl).then((rpcProviderName: RootProviderName | undefined) => {
         if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {

@@ -8,7 +8,6 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
-  getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityRoutes,
@@ -103,25 +102,25 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
 
     let baseAvailableCredit = await this.getOnchainBaseAvailableCredit(destinationWatcher, bonder)
-    this.logger.debug(`baseAvailableCredit; bonder: ${bonder}, chain: ${destinationChain}, balance: ${baseAvailableCredit.toString()}`)
+    this.logger.debug(`calculateAvailableCredit: baseAvailableCredit; bonder: ${bonder}, chain: ${destinationChain}, balance: ${baseAvailableCredit.toString()}`)
     const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
-    this.logger.debug(`on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
+    this.logger.debug(`calculateAvailableCredit: on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
     let baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
     let availableCredit = baseAvailableCreditIncludingVault
     const isToL1 = destinationChain === Chain.Ethereum
     if (isToL1) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
-      this.logger.debug(`availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, pendingAmount: ${pendingAmount.toString()}`)
+      this.logger.debug(`calculateAvailableCredit: availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, pendingAmount: ${pendingAmount.toString()}`)
 
       const unbondedTransferRootAmounts = await this.getOruToAllUnbondedTransferRootAmounts()
       availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
-      this.logger.debug(`availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, unbondedTransferRootAmounts: ${unbondedTransferRootAmounts.toString()}`)
+      this.logger.debug(`calculateAvailableCredit: availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, unbondedTransferRootAmounts: ${unbondedTransferRootAmounts.toString()}`)
     }
 
     if (modifiedLiquidityRoutes?.length > 0) {
       const shouldDisableRoute = this.shouldDisableRoute(modifiedLiquidityRoutes, destinationChain)
-      this.logger.debug(`modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
+      this.logger.debug(`calculateAvailableCredit: modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
       if (shouldDisableRoute) {
         availableCredit = BigNumber.from('0')
         baseAvailableCredit = BigNumber.from('0')
@@ -198,8 +197,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getBonderAddress (destinationChain: string): Promise<string> {
-    const routeBonder = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
-    return (routeBonder || await this.bridge.getBonderAddress())?.toLowerCase()
+    const watcher = this.getSiblingWatcherByChainSlug(destinationChain)
+    return (await watcher.bridge.getStakerAddress())?.toLowerCase()
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {

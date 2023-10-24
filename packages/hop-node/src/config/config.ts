@@ -306,16 +306,6 @@ export const setConfigBonders = (bonders: Bonders) => {
   config.bonders = bonders
 }
 
-export const getConfigBondersForToken = (token: string) => {
-  return (config.bonders as any)?.[token]
-}
-
-export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
-  const bonders = getConfigBondersForToken(token)
-  const bonder = bonders?.[sourceChain]?.[destinationChain]
-  return bonder
-}
-
 export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }

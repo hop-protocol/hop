@@ -264,8 +264,12 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     this.logger.debug('syncing available credit: start')
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
+      console.log('20231023 - 0', this.chainSlug, this.tokenSymbol)
       const sourceChain = this.chainSlug
+      console.log('20231023 - 1', this.chainSlug, this.tokenSymbol, sourceChain)
       const destinationChain = this.chainIdToSlug(destinationChainId)
+      console.log('20231023 - 2', this.chainSlug, this.tokenSymbol, destinationChain)
+      console.log('20231023 - 3', this.chainSlug, this.tokenSymbol, this.hasSiblingWatcher(destinationChainId))
       const shouldSkip = (
         sourceChain === Chain.Ethereum ||
         sourceChain === destinationChain ||

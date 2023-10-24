@@ -126,33 +126,33 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.getIsBonder(stakerAddress)
   }
 
-  getCredit = async (): Promise<BigNumber> => {
+  getCredit = async (address?: string): Promise<BigNumber> => {
     console.log('20231023c - 0', this.chainSlug, this.tokenSymbol)
-    const stakerAddress = await this.getStakerAddress()
+    const stakerAddress = address ?? (await this.getStakerAddress())
     console.log('20231023c - 1', this.chainSlug, this.tokenSymbol, stakerAddress)
     console.log('20231023c - 2', this.chainSlug, this.tokenSymbol, this.bridgeContract)
     return this.bridgeContract.getCredit(stakerAddress)
   }
 
-  getDebit = async (): Promise<BigNumber> => {
+  getDebit = async (address?: string): Promise<BigNumber> => {
     console.log('20231023d - 0', this.chainSlug, this.tokenSymbol)
-    const stakerAddress = await this.getStakerAddress()
+    const stakerAddress = address ?? (await this.getStakerAddress())
     console.log('20231023d - 1', this.chainSlug, this.tokenSymbol, stakerAddress)
     console.log('20231023d - 2', this.chainSlug, this.tokenSymbol, this.bridgeContract)
     return this.bridgeContract.getDebitAndAdditionalDebit(stakerAddress)
   }
 
-  getRawDebit = async (): Promise<BigNumber> => {
-    const stakerAddress = await this.getStakerAddress()
+  getRawDebit = async (address?: string): Promise<BigNumber> => {
+    const stakerAddress = address ?? await this.getStakerAddress()
     const debit = await this.bridgeContract.getRawDebit(stakerAddress)
     return debit
   }
 
-  async getBaseAvailableCredit (): Promise<BigNumber> {
+  async getBaseAvailableCredit (address?: string): Promise<BigNumber> {
     console.log('20231023b - 0', this.chainSlug, this.tokenSymbol)
     const [credit, debit] = await Promise.all([
-      this.getCredit(),
-      this.getDebit()
+      this.getCredit(address),
+      this.getDebit(address)
     ])
 
     console.log('20231023b - 1', this.chainSlug, this.tokenSymbol, credit.toString(), debit.toString())

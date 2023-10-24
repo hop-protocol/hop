@@ -119,7 +119,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (isUnbondable) {
         logger.warn(
           `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
-          `withdrawalBondTxError: ${withdrawalBondTxError}`
+          `withdrawalBondTxErr: ${withdrawalBondTxError}`
         )
         logger.debug('db poll completed')
         return

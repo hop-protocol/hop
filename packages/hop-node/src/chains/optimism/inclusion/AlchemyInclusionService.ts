@@ -38,18 +38,17 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async init () {
-    return 
-    // const l1RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l1Wallet.provider!)
-    // if (l1RpcProviderName !== RootProviderName.Alchemy) {
-    //   this.logger.debug(`l1 provider is not alchemy, it is ${l1RpcProviderName}`)
-    //   throw new Error('l1 provider is not alchemy')
-    // }
+    const l1RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l1Wallet.provider!)
+    if (l1RpcProviderName !== RootProviderName.Alchemy) {
+      this.logger.debug(`l1 provider is not alchemy, it is ${l1RpcProviderName}`)
+      throw new Error('l1 provider is not alchemy')
+    }
 
-    // const l2RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l2Wallet.provider!)
-    // if (l2RpcProviderName !== RootProviderName.Alchemy) {
-    //   this.logger.debug(`l2 provider is not alchemy, it is ${l2RpcProviderName}`)
-    //   throw new Error('l2 provider is not alchemy')
-    // }
+    const l2RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l2Wallet.provider!)
+    if (l2RpcProviderName !== RootProviderName.Alchemy) {
+      this.logger.debug(`l2 provider is not alchemy, it is ${l2RpcProviderName}`)
+      throw new Error('l2 provider is not alchemy')
+    }
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
@@ -87,16 +86,10 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
-    // TODO: Remove these
-    this.logger.debug('20231023 - 0', l1BlockNumber)
     if (!this.isInitialized) return
 
-    this.logger.debug('20231023 - 1', l1BlockNumber)
     const startBlockNumber = l1BlockNumber - this.maxNumL1BlocksWithoutInclusion
-    this.logger.debug('20231023 - 2', startBlockNumber)
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
-    this.logger.debug('20231023 - 3', inclusionTxHashes.length)
-    this.logger.debug('20231023 - 4', inclusionTxHashes[inclusionTxHashes.length - 1])
     return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
   }
 

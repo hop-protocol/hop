@@ -123,10 +123,10 @@ class BaseDb extends EventEmitter {
       })
 
     this.pollBatchQueue()
-    this.migration()
+    this._migration()
       .then(() => {
         this.ready = true
-        this.logger.debug('ready')
+        this.logger.debug('db ready')
       })
       .catch(err => {
         this.logger.error(err)
@@ -134,9 +134,52 @@ class BaseDb extends EventEmitter {
       })
   }
 
-  async migration () {
-    // Optional migration,
-    // Implement in child class
+  // To add a migration, implement the shouldMigrate and migration functions in the child class.
+  // Migrations are memory intensive. Ensure there is no unintentionally memory overflow.
+  // * Use stream instead of storing all entries at once
+  // * Bypass the mutex
+  async _migration(): Promise<void> {
+    // Explicitly set the migration flag in the child
+    if (!this.shouldMigrate()) return
+
+    // Perform migration
+    return await new Promise((resolve, reject) => {
+      const s = this.db.createReadStream({})
+      s.on('data', async (key: any, value: any) => {
+        // the parameter types depend on what key/value enabled options were used
+        if (typeof key === 'object') {
+          value = key.value
+          key = key.key
+        }
+        // ignore this key that used previously to track unique ids
+        if (key === 'ids') {
+          return
+        }
+
+        // Call the child class migration function
+        return await this.migration(key, value)
+      })
+        .on('end', () => {
+          this.logger.debug('DB migration complete')
+          s.destroy()
+          resolve()
+        })
+        .on('error', (err: any) => {
+          this.logger.error('DB migration error:', err)
+          s.destroy()
+          reject(err)
+        })
+      })
+  }
+
+  shouldMigrate(): boolean | void {
+    // Optional
+    // Must be implemented in child class to perform migration
+  }
+
+  async migration (key: string, value: any): Promise<void> {
+    // Optional
+    // Must be implemented in child class to perform migration
   }
 
   protected async tilReady (): Promise<boolean> {

@@ -266,6 +266,19 @@ class TransfersDb extends BaseDb {
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
+
+  shouldMigrate () {
+    return true
+  }
+
+  async migration (key: string, value: any): Promise<void> {
+    if (value?.isFinalized === undefined) {
+      const { value: updatedValue } = await this._getUpdateData(key, value)
+      updatedValue.isFinalized = true
+      return this.db.put(key, updatedValue)
+    }
+  }
+
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
     if (filter.sourceChainId) {
       if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {

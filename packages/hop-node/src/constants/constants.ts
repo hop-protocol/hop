@@ -151,8 +151,8 @@ export const OruExitTimeMs: Record<string, number> = {
 }
 
 export const DoesSupportCustomFinality: Record<string, boolean> = {
-  [Chain.Optimism]: false,
-  [Chain.Base]: false
+  [Chain.Optimism]: true,
+  [Chain.Base]: true
 }
 
 export const NumStoredBlockHashes: number = 256

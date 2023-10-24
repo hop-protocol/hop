@@ -2,6 +2,7 @@ import InclusionService from './InclusionService'
 import fetch from 'node-fetch'
 import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
+import wait from 'src/utils/wait'
 import { IInclusionService, InclusionServiceConfig } from './IInclusionService'
 import { RootProviderName } from 'src/constants'
 import { providers } from 'ethers'
@@ -18,6 +19,7 @@ interface GetInclusionTxHashes {
 class AlchemyInclusionService extends InclusionService implements IInclusionService {
   private readonly maxNumL1BlocksWithoutInclusion: number
   private isInitialized: boolean
+  private ready: boolean
 
   constructor (config: InclusionServiceConfig) {
     super(config)
@@ -35,24 +37,41 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
         this.isInitialized = false
         this.logger.warn('Unable to initialize AlchemyInclusionService')
       })
+      .finally(() => {
+        this.ready = true
+      })
   }
 
   async init () {
-    const l1RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l1Wallet.provider!)
-    if (l1RpcProviderName !== RootProviderName.Alchemy) {
-      this.logger.debug(`l1 provider is not alchemy, it is ${l1RpcProviderName}`)
-      throw new Error('l1 provider is not alchemy')
+    const [l1RpcProviderName, l2RpcProviderName] = await Promise.all([
+      getRpcRootProviderName(this.l1Wallet.provider!),
+      getRpcRootProviderName(this.l2Wallet.provider!)
+    ])
+    if (
+      l1RpcProviderName !== RootProviderName.Alchemy ||
+      l2RpcProviderName !== RootProviderName.Alchemy
+    ) {
+      this.logger.debug(`provider is not alchemy, l1: ${l1RpcProviderName}, l2: ${l2RpcProviderName}`)
+      throw new Error('provider is not alchemy')
     }
+  }
 
-    const l2RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l2Wallet.provider!)
-    if (l2RpcProviderName !== RootProviderName.Alchemy) {
-      this.logger.debug(`l2 provider is not alchemy, it is ${l2RpcProviderName}`)
-      throw new Error('l2 provider is not alchemy')
+  private async _isReadyAndInitialized (): Promise<boolean> {
+    while (true) {
+      if (!this.isInitialized) {
+        return false
+      }
+
+      if (this.ready && this.isInitialized) {
+        return true
+      }
+
+      await wait(100)
     }
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.isInitialized) return
+    if (!this._isReadyAndInitialized()) return
 
     const l2TxBlockNumber: number = (await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)).blockNumber
     const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2TxBlockNumber }))
@@ -67,7 +86,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.isInitialized) return
+    if (!this._isReadyAndInitialized()) return
 
     const l1TxBlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
     const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1TxBlockNumber)
@@ -86,7 +105,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.isInitialized) return
+    if (!this._isReadyAndInitialized()) return
 
     const startBlockNumber = l1BlockNumber - this.maxNumL1BlocksWithoutInclusion
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
@@ -94,7 +113,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.isInitialized) return
+    if (!this._isReadyAndInitialized()) return
 
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
     const latestL2TxHash: string = transactionHashes?.[transactionHashes.length - 1]

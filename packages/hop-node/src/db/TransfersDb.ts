@@ -266,7 +266,6 @@ class TransfersDb extends BaseDb {
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
-
   shouldMigrate () {
     return true
   }

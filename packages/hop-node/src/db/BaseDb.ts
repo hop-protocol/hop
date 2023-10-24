@@ -138,7 +138,7 @@ class BaseDb extends EventEmitter {
   // Migrations are memory intensive. Ensure there is no unintentionally memory overflow.
   // * Use stream instead of storing all entries at once
   // * Bypass the mutex
-  async _migration(): Promise<void> {
+  async _migration (): Promise<void> {
     // Explicitly set the migration flag in the child
     if (!this.shouldMigrate()) return
 
@@ -169,10 +169,10 @@ class BaseDb extends EventEmitter {
           s.destroy()
           reject(err)
         })
-      })
+    })
   }
 
-  shouldMigrate(): boolean | void {
+  shouldMigrate (): boolean | void {
     // Optional
     // Must be implemented in child class to perform migration
   }

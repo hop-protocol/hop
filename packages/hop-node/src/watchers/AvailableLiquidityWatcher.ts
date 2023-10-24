@@ -336,7 +336,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
     console.log('20231023a - 3', this.chainSlug, this.tokenSymbol, bonder)
     const destinationBridge = destinationWatcher.bridge
-    console.log('20231023a - 4', this.chainSlug, this.tokenSymbol, bonder, JSON.stringify(destinationBridge))
+    console.log('20231023a - 4', this.chainSlug, this.tokenSymbol, bonder, destinationBridge)
     console.log('20231023a - 5', this.chainSlug, this.tokenSymbol, bonder, destinationBridge?.address)
     const onchainBaseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
     console.log('20231023a - 6', this.chainSlug, this.tokenSymbol, bonder, onchainBaseAvailableCredit.toString())

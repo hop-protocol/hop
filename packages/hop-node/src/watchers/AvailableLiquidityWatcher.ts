@@ -103,6 +103,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
 
     let baseAvailableCredit = await this.getOnchainBaseAvailableCredit(destinationWatcher, bonder)
+    this.logger.debug(`baseAvailableCredit; bonder: ${bonder}, chain: ${destinationChain}, balance: ${baseAvailableCredit.toString()}`)
     const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
     this.logger.debug(`on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
     let baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
@@ -111,9 +112,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     if (isToL1) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
+      this.logger.debug(`availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, pendingAmount: ${pendingAmount.toString()}`)
 
       const unbondedTransferRootAmounts = await this.getOruToAllUnbondedTransferRootAmounts()
       availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
+      this.logger.debug(`availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, unbondedTransferRootAmounts: ${unbondedTransferRootAmounts.toString()}`)
     }
 
     if (modifiedLiquidityRoutes?.length > 0) {
@@ -324,6 +327,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
     const getNewData = this.shouldGetNewCacheData(cacheKey, this.cacheTimeSec)
     if (!getNewData) {
+      this.logger.debug(`getOnchainBaseAvailableCredit, using cache. key: ${cacheKey}, value: ${cache[cacheKey]}`)
       return cache[cacheKey]
     }
 

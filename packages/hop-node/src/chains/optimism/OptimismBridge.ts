@@ -9,10 +9,11 @@ import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 
 // Use global cache to avoid re-fetching the same block number with multiple instances
-let cachedCustomSafeBlockNumber = {
-  l1BlockNumberCacheKey: 0,
-  l2BlockNumberCustomSafe: 0
+type CachedCustomSafeBlockNumber = {
+  l1BlockNumberCacheKey: number
+  l2BlockNumberCustomSafe: number
 }
+const customSafeBlockNumberCache: Record<string, CachedCustomSafeBlockNumber> = {}
 
 class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   csm: CrossChainMessenger
@@ -29,6 +30,13 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet
     })
+
+    if (!customSafeBlockNumberCache[this.chainSlug]) {
+      customSafeBlockNumberCache[this.chainSlug] = {
+        l1BlockNumberCacheKey: 0,
+        l2BlockNumberCustomSafe: 0
+      }
+    }
 
     const inclusionServiceConfig: InclusionServiceConfig = {
       chainSlug: this.chainSlug,
@@ -120,7 +128,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     // Use a cache since the granularity of finality updates on l1 is on the order of minutes
     const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
     if (!this._isCacheExpired(l1SafeBlock.number)) {
-      return cachedCustomSafeBlockNumber.l2BlockNumberCustomSafe
+      return customSafeBlockNumberCache[this.chainSlug].l2BlockNumberCustomSafe
     }
 
     // Always update the cache with the latest block number. If the following calls fail, the cache
@@ -148,14 +156,14 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
 
   private _isCacheExpired (l1BlockNumber: number): boolean {
     const cacheExpirationBlocks = 5
-    const lastCachedBlockNumber = cachedCustomSafeBlockNumber.l1BlockNumberCacheKey
+    const lastCachedBlockNumber = customSafeBlockNumberCache[this.chainSlug].l1BlockNumberCacheKey
     return l1BlockNumber - lastCachedBlockNumber > cacheExpirationBlocks
   }
 
   private _updateCache (l1BlockNumber: number, l2BlockNumber?: number): void {
-    cachedCustomSafeBlockNumber = {
+    customSafeBlockNumberCache[this.chainSlug] = {
       l1BlockNumberCacheKey: l1BlockNumber,
-      l2BlockNumberCustomSafe: l2BlockNumber ?? cachedCustomSafeBlockNumber.l2BlockNumberCustomSafe
+      l2BlockNumberCustomSafe: l2BlockNumber ?? customSafeBlockNumberCache[this.chainSlug].l2BlockNumberCustomSafe
     }
   }
 }

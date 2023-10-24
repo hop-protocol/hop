@@ -33,7 +33,7 @@ async function getRpcRootProviderName (providerOrUrl: providers.Provider | strin
 
   // This is useful if you want this function to be synchronous and not make any RPC calls
   const isWsProvider = url.includes('wss://')
-  if (onlyAttemptUrl || isWsProvider) {
+  if (isWsProvider || onlyAttemptUrl) {
     return
   }
 

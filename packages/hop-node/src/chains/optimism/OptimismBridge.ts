@@ -13,12 +13,12 @@ type CachedCustomSafeBlockNumber = {
   l1BlockNumberCacheKey: number
   l2BlockNumberCustomSafe: number
 }
-const customSafeBlockNumberCache: Record<string, CachedCustomSafeBlockNumber> = {}
 
 class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   csm: CrossChainMessenger
   derive: Derive = new Derive()
   inclusionService: IInclusionService | undefined
+  private customSafeBlockNumberCache: CachedCustomSafeBlockNumber
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -31,11 +31,9 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l2SignerOrProvider: this.l2Wallet
     })
 
-    if (!customSafeBlockNumberCache[this.chainSlug]) {
-      customSafeBlockNumberCache[this.chainSlug] = {
-        l1BlockNumberCacheKey: 0,
-        l2BlockNumberCustomSafe: 0
-      }
+    this.customSafeBlockNumberCache = {
+      l1BlockNumberCacheKey: 0,
+      l2BlockNumberCustomSafe: 0
     }
 
     const inclusionServiceConfig: InclusionServiceConfig = {
@@ -127,9 +125,10 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
 
     // Use a cache since the granularity of finality updates on l1 is on the order of minutes
     const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
-    if (!this._isCacheExpired(l1SafeBlock.number)) {
-      this.logger.info(`getCustomSafeBlockNumber: using cached value ${customSafeBlockNumberCache[this.chainSlug].l2BlockNumberCustomSafe}`)
-      return customSafeBlockNumberCache[this.chainSlug].l2BlockNumberCustomSafe
+    const lastCacheValue = this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
+    if (this._hasCacheBeenSet(lastCacheValue) && !this._isCacheExpired(l1SafeBlock.number)) {
+      this.logger.info(`getCustomSafeBlockNumber: using cached value ${lastCacheValue} for l1 block number ${l1SafeBlock.number}`)
+      return this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
     }
 
     // Always update the cache with the latest block number. If the following calls fail, the cache
@@ -155,16 +154,20 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     return customSafeBlockNumber
   }
 
+  private _hasCacheBeenSet (lastCacheValue: number): boolean {
+    return lastCacheValue !== 0
+  }
+
   private _isCacheExpired (l1BlockNumber: number): boolean {
     const cacheExpirationBlocks = 5
-    const lastCachedBlockNumber = customSafeBlockNumberCache[this.chainSlug].l1BlockNumberCacheKey
+    const lastCachedBlockNumber = this.customSafeBlockNumberCache.l1BlockNumberCacheKey
     return l1BlockNumber - lastCachedBlockNumber > cacheExpirationBlocks
   }
 
   private _updateCache (l1BlockNumber: number, l2BlockNumber?: number): void {
-    customSafeBlockNumberCache[this.chainSlug] = {
+    this.customSafeBlockNumberCache = {
       l1BlockNumberCacheKey: l1BlockNumber,
-      l2BlockNumberCustomSafe: l2BlockNumber ?? customSafeBlockNumberCache[this.chainSlug].l2BlockNumberCustomSafe
+      l2BlockNumberCustomSafe: l2BlockNumber ?? this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
     }
   }
 }

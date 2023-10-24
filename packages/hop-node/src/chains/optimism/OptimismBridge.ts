@@ -128,6 +128,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     // Use a cache since the granularity of finality updates on l1 is on the order of minutes
     const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
     if (!this._isCacheExpired(l1SafeBlock.number)) {
+      this.logger.info(`getCustomSafeBlockNumber: using cached value ${customSafeBlockNumberCache[this.chainSlug].l2BlockNumberCustomSafe}`)
       return customSafeBlockNumberCache[this.chainSlug].l2BlockNumberCustomSafe
     }
 

@@ -86,10 +86,15 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
+    this.logger.debug('20231023 - 0', l1BlockNumber)
     if (!this.isInitialized) return
 
+    this.logger.debug('20231023 - 1', l1BlockNumber)
     const startBlockNumber = l1BlockNumber - this.maxNumL1BlocksWithoutInclusion
+    this.logger.debug('20231023 - 2', startBlockNumber)
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
+    this.logger.debug('20231023 - 3', inclusionTxHashes.length)
+    this.logger.debug('20231023 - 4', inclusionTxHashes[inclusionTxHashes.length - 1])
     return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
   }
 

@@ -38,17 +38,18 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async init () {
-    const l1RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l1Wallet.provider!)
-    if (l1RpcProviderName !== RootProviderName.Alchemy) {
-      this.logger.debug(`l1 provider is not alchemy, it is ${l1RpcProviderName}`)
-      throw new Error('l1 provider is not alchemy')
-    }
+    return 
+    // const l1RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l1Wallet.provider!)
+    // if (l1RpcProviderName !== RootProviderName.Alchemy) {
+    //   this.logger.debug(`l1 provider is not alchemy, it is ${l1RpcProviderName}`)
+    //   throw new Error('l1 provider is not alchemy')
+    // }
 
-    const l2RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l2Wallet.provider!)
-    if (l2RpcProviderName !== RootProviderName.Alchemy) {
-      this.logger.debug(`l2 provider is not alchemy, it is ${l2RpcProviderName}`)
-      throw new Error('l2 provider is not alchemy')
-    }
+    // const l2RpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(this.l2Wallet.provider!)
+    // if (l2RpcProviderName !== RootProviderName.Alchemy) {
+    //   this.logger.debug(`l2 provider is not alchemy, it is ${l2RpcProviderName}`)
+    //   throw new Error('l2 provider is not alchemy')
+    // }
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
@@ -86,6 +87,7 @@ class AlchemyInclusionService extends InclusionService implements IInclusionServ
   }
 
   async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
+    // TODO: Remove these
     this.logger.debug('20231023 - 0', l1BlockNumber)
     if (!this.isInitialized) return
 

@@ -267,12 +267,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     this.logger.debug('syncing available credit: start')
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
-      console.log('20231023 - 0', this.chainSlug, this.tokenSymbol)
       const sourceChain = this.chainSlug
-      console.log('20231023 - 1', this.chainSlug, this.tokenSymbol, sourceChain)
       const destinationChain = this.chainIdToSlug(destinationChainId)
-      console.log('20231023 - 2', this.chainSlug, this.tokenSymbol, destinationChain)
-      console.log('20231023 - 3', this.chainSlug, this.tokenSymbol, this.hasSiblingWatcher(destinationChainId))
       const shouldSkip = (
         sourceChain === Chain.Ethereum ||
         sourceChain === destinationChain ||
@@ -324,25 +320,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getOnchainBaseAvailableCredit (destinationWatcher: any, bonder?: string): Promise<BigNumber> {
-    console.log('20231023a - 0', this.chainSlug, this.tokenSymbol, bonder)
     const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
-    console.log('20231023a - 1', this.chainSlug, this.tokenSymbol, bonder, cacheKey)
     const getNewData = this.shouldGetNewCacheData(cacheKey, this.cacheTimeSec)
-    console.log('20231023a - 2', this.chainSlug, this.tokenSymbol, bonder, getNewData)
     if (!getNewData) {
       this.logger.debug(`getOnchainBaseAvailableCredit, using cache. key: ${cacheKey}, value: ${cache[cacheKey]}`)
       return cache[cacheKey]
     }
 
-    console.log('20231023a - 3', this.chainSlug, this.tokenSymbol, bonder)
     const destinationBridge = destinationWatcher.bridge
-    console.log('20231023a - 4', this.chainSlug, this.tokenSymbol, bonder, destinationBridge)
-    console.log('20231023a - 5', this.chainSlug, this.tokenSymbol, bonder, destinationBridge?.address)
     const onchainBaseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
-    console.log('20231023a - 6', this.chainSlug, this.tokenSymbol, bonder, onchainBaseAvailableCredit.toString())
 
     this.updateCache(cacheKey, onchainBaseAvailableCredit)
-    console.log('20231023a - 7', this.chainSlug, this.tokenSymbol, bonder, onchainBaseAvailableCredit.toString())
     return onchainBaseAvailableCredit
   }
 

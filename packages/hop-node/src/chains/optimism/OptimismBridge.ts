@@ -123,6 +123,10 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       return cachedCustomSafeBlockNumber.l2BlockNumberCustomSafe
     }
 
+    // Always update the cache with the latest block number. If the following calls fail, the cache
+    // will never be updated and we will get into a loop.
+    this._updateCache(l1SafeBlock.number)
+
     // Get the latest checkpoint on L1
     const l1InclusionTx = await this.inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
     if (!l1InclusionTx) {
@@ -148,10 +152,10 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     return l1BlockNumber - lastCachedBlockNumber > cacheExpirationBlocks
   }
 
-  private _updateCache (l1BlockNumber: number, l2BlockNumber: number): void {
+  private _updateCache (l1BlockNumber: number, l2BlockNumber?: number): void {
     cachedCustomSafeBlockNumber = {
       l1BlockNumberCacheKey: l1BlockNumber,
-      l2BlockNumberCustomSafe: l2BlockNumber
+      l2BlockNumberCustomSafe: l2BlockNumber ?? cachedCustomSafeBlockNumber.l2BlockNumberCustomSafe
     }
   }
 }

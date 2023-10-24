@@ -1,5 +1,5 @@
-import { providers } from 'ethers'
 import { IAbstractChainBridge } from './IAbstractChainBridge'
+import { providers } from 'ethers'
 
 export type RelayL1ToL2MessageOpts = {
   messageIndex?: number

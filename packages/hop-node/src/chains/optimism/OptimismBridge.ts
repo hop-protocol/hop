@@ -8,7 +8,7 @@ import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusio
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 
-// Use global cache to avoid re-fetching the same block number with multiple workers
+// Use global cache to avoid re-fetching the same block number with multiple instances
 let cachedCustomSafeBlockNumber = {
   l1BlockNumberCacheKey: 0,
   l2BlockNumberCustomSafe: 0
@@ -142,13 +142,13 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     return customSafeBlockNumber
   }
 
-  private _isCacheExpired(l1BlockNumber: number): boolean {
+  private _isCacheExpired (l1BlockNumber: number): boolean {
     const cacheExpirationBlocks = 5
     const lastCachedBlockNumber = cachedCustomSafeBlockNumber.l1BlockNumberCacheKey
     return l1BlockNumber - lastCachedBlockNumber > cacheExpirationBlocks
   }
 
-  private _updateCache(l1BlockNumber: number, l2BlockNumber: number): void {
+  private _updateCache (l1BlockNumber: number, l2BlockNumber: number): void {
     cachedCustomSafeBlockNumber = {
       l1BlockNumberCacheKey: l1BlockNumber,
       l2BlockNumberCustomSafe: l2BlockNumber

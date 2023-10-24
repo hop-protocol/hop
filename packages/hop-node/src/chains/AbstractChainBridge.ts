@@ -2,9 +2,9 @@ import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
+import { IAbstractChainBridge } from './IAbstractChainBridge'
 import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
-import { IAbstractChainBridge } from './IAbstractChainBridge'
 
 abstract class AbstractChainBridge implements IAbstractChainBridge {
   logger: Logger

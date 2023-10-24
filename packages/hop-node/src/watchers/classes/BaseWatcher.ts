@@ -178,6 +178,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   hasSiblingWatcher (chainId: number): boolean {
+    console.log('20231023 - 4 --', chainId, this.siblingWatchers)
+    console.log('20231023 - 5 --', chainId, this.siblingWatchers[chainId])
     return this.siblingWatchers && !!this.siblingWatchers[chainId]
   }
 

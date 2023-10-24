@@ -111,9 +111,12 @@ export default class Bridge extends ContractBase {
   }
 
   async getStakerAddress (): Promise<string> {
+      console.log('20231023e - 0', this.chainSlug, this.tokenSymbol)
     if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug)) {
+        console.log('20231023f - 0', this.chainSlug, this.tokenSymbol)
       return getProxyAddressForChain(this.tokenSymbol, this.chainSlug)
     } else {
+      console.log('20231023f - g', this.chainSlug, this.tokenSymbol)
       return await (this.bridgeContract as Contract).signer.getAddress()
     }
   }
@@ -124,12 +127,18 @@ export default class Bridge extends ContractBase {
   }
 
   getCredit = async (): Promise<BigNumber> => {
+    console.log('20231023c - 0', this.chainSlug, this.tokenSymbol)
     const stakerAddress = await this.getStakerAddress()
+    console.log('20231023c - 1', this.chainSlug, this.tokenSymbol, stakerAddress)
+    console.log('20231023c - 2', this.chainSlug, this.tokenSymbol, this.bridgeContract)
     return this.bridgeContract.getCredit(stakerAddress)
   }
 
   getDebit = async (): Promise<BigNumber> => {
+    console.log('20231023d - 0', this.chainSlug, this.tokenSymbol)
     const stakerAddress = await this.getStakerAddress()
+    console.log('20231023d - 1', this.chainSlug, this.tokenSymbol, stakerAddress)
+    console.log('20231023d - 2', this.chainSlug, this.tokenSymbol, this.bridgeContract)
     return this.bridgeContract.getDebitAndAdditionalDebit(stakerAddress)
   }
 
@@ -140,11 +149,13 @@ export default class Bridge extends ContractBase {
   }
 
   async getBaseAvailableCredit (): Promise<BigNumber> {
+    console.log('20231023b - 0', this.chainSlug, this.tokenSymbol)
     const [credit, debit] = await Promise.all([
       this.getCredit(),
       this.getDebit()
     ])
 
+    console.log('20231023b - 1', this.chainSlug, this.tokenSymbol, credit.toString(), debit.toString())
     return credit.sub(debit)
   }
 

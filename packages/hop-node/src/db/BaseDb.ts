@@ -307,9 +307,6 @@ class BaseDb extends EventEmitter {
     try {
       return await this.db.get(key)
     } catch (err: any) {
-      if (err.message.includes('timedout')) {
-        this.handleTimeoutError(err)
-      }
       throw err
     }
   }
@@ -330,9 +327,6 @@ class BaseDb extends EventEmitter {
     try {
       return this.db.getMany(keys)
     } catch (err: any) {
-      if (err.message.includes('timedout')) {
-        this.handleTimeoutError(err)
-      }
       throw err
     }
   }
@@ -410,12 +404,6 @@ class BaseDb extends EventEmitter {
     if (this.listeners(Event.Error).length > 0) {
       this.emit(Event.Error, err)
     }
-  }
-
-  private handleTimeoutError (err: Error) {
-    console.trace()
-    this.logger.error(`BaseDb timeout error: ${err.message}. Possible reasons: mutex is hanging, db might be corrupt, lock rever released. exiting process to trigger restart and db reconnection...`)
-    process.exit(1)
   }
 }
 

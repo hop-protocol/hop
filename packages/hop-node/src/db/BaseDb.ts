@@ -135,7 +135,7 @@ class BaseDb extends EventEmitter {
   }
 
   // To add a migration, implement the shouldMigrate and migration functions in the child class.
-  // Migrations are memory intensive. Ensure there is no unintentionally memory overflow.
+  // Migrations are memory intensive. Ensure there is no unintentional memory overflow.
   // * Use stream instead of storing all entries at once
   // * Bypass the mutex
   async _migration (): Promise<void> {

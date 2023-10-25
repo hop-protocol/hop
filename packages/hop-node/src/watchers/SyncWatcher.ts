@@ -119,20 +119,6 @@ class SyncWatcher extends BaseWatcher {
     this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
     this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
 
-    // TODO: This only works for Alchemy and Quiknode. Add WS url to config long term.
-    if (wsEnabledChains.includes(this.chainSlug)) {
-      const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
-
-      // onlyAttemptUrl makes this synchronous so no need to await
-      const onlyAttemptUrl = true
-      getRpcRootProviderName(wsProviderUrl, onlyAttemptUrl).then((rpcProviderName: RootProviderName | undefined) => {
-        if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
-          this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
-          this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
-          this.initEventWebsockets()
-        }
-      })
-    }
 
     this.init()
       .catch(err => {
@@ -148,6 +134,17 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`syncing from syncFromDate with timestamp ${timestamp}`)
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
       this.logger.debug(`syncing from syncFromDate with blockNumber ${this.customStartBlockNumber}`)
+    }
+
+    // TODO: This only works for Alchemy and Quiknode. Add WS url to config long term.
+    if (wsEnabledChains.includes(this.chainSlug)) {
+      const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
+      const rpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(wsProviderUrl)
+      if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
+        this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
+        this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
+        this.initEventWebsockets()
+      }
     }
 
     this.ready = true

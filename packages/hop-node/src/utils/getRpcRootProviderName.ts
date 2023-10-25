@@ -40,7 +40,7 @@ async function getRpcRootProviderName (providerOrUrl: providers.Provider | strin
     url = url.replace('wss://', 'https://')
   }
 
-  providerName = await getRootProviderNameFromRpcCall(providerOrUrl)
+  providerName = await getRootProviderNameFromRpcCall(url)
   if (providerName) {
     cache[url] = providerName
     return providerName
@@ -57,20 +57,13 @@ function getRootProviderNameFromUrl (providerOrUrl: providers.Provider | string)
   }
 }
 
-async function getRootProviderNameFromRpcCall (providerOrUrl: providers.Provider | string): Promise<RootProviderName | undefined> {
+async function getRootProviderNameFromRpcCall (url: string): Promise<RootProviderName | undefined> {
   const callTimeout: number = 2_000
   const query = {
     id: 1,
     jsonrpc: '2.0',
     method: unsupportedCallMethod,
     params: []
-  }
-
-  let url
-  if (providerOrUrl instanceof providers.Provider) {
-    url = getRpcUrlFromProvider(providerOrUrl)
-  } else {
-    url = providerOrUrl
   }
 
   let res

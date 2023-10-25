@@ -304,11 +304,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _get (key: string): Promise<any> {
-    try {
-      return await this.db.get(key)
-    } catch (err: any) {
-      throw err
-    }
+    return await this.db.get(key)
   }
 
   async getById (id: string, defaultValue: any = null) {
@@ -324,11 +320,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _getMany (keys: string[]): Promise<any[]> {
-    try {
-      return this.db.getMany(keys)
-    } catch (err: any) {
-      throw err
-    }
+    return this.db.getMany(keys)
   }
 
   async batchGetByIds (ids: string[], defaultValue: any = null) {

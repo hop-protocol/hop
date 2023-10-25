@@ -497,6 +497,16 @@ export function hasFinalizationBlockTag (chainSlug: string): boolean {
   return !!networks?.[chainSlug]?.finalizationBlockTag
 }
 
+export const getConfigBondersForToken = (token: string) => {
+  return (config.bonders as any)?.[token]
+}
+
+export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
+  const bonders = getConfigBondersForToken(token)
+  const bonder = bonders?.[sourceChain]?.[destinationChain]
+  return bonder
+}
+
 export { Bonders }
 export * from './validation'
 export * from './fileOps'

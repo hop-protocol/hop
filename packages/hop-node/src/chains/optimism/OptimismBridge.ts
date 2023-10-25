@@ -169,9 +169,10 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   private _updateCache (lastCacheTimestampMs: number, l2BlockNumber?: number): void {
+    const l2BlockNumberCustomSafe: number = l2BlockNumber ?? this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
     this.customSafeBlockNumberCache = {
-      lastCacheTimestampMs: lastCacheTimestampMs,
-      l2BlockNumberCustomSafe: l2BlockNumber ?? this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
+      lastCacheTimestampMs,
+      l2BlockNumberCustomSafe
     }
   }
 }

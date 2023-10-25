@@ -45,6 +45,7 @@ import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
+import useCurrentPathSending from 'src/hooks/useCurrentPathSending'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
@@ -605,16 +606,7 @@ const Send: FC = () => {
     }
   }, [tx])
 
-  const [currentPathSending, setCurrentPathSending] = useState(sending)
-
-  useEffect(() => {
-    const currentPath = `${fromNetwork?.slug}-${toNetwork?.slug}-${sourceToken?.symbol}`
-    if (currentPath !== lastPathSent) {
-      setCurrentPathSending(false)
-    } else {
-      setCurrentPathSending(sending)
-    }
-  }, [sending, lastPathSent, fromNetwork?.slug, toNetwork?.slug, sourceToken?.symbol])
+  const currentPathSending = useCurrentPathSending(lastPathSent, sending, fromTokenAmount, fromNetwork?.slug, toNetwork?.slug, sourceToken?.symbol)
 
   const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
     tx,
@@ -740,7 +732,6 @@ const Send: FC = () => {
   }, [needsTokenForFee, unsupportedAsset, needsApproval, specificRouteDeprecated])
 
   const sendButtonActive = useMemo(() => {
-    const currentPath = `${fromNetwork?.slug}-${toNetwork?.slug}-${sourceToken?.symbol}`
     return !!(
       !needsApproval &&
       !approveButtonActive &&
@@ -758,7 +749,7 @@ const Send: FC = () => {
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused &&
       !specificRouteDeprecated &&
-      (lastPathSent !== currentPath || ((lastPathSent === currentPath) && !currentPathSending))
+      !currentPathSending
     )
   }, [
     needsApproval,
@@ -780,8 +771,7 @@ const Send: FC = () => {
     isTokenDeprecated,
     fromNetwork?.slug,
     toNetwork?.slug,
-    sourceToken?.symbol,
-    lastPathSent
+    sourceToken?.symbol
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol

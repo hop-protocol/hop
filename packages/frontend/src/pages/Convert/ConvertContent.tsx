@@ -14,6 +14,7 @@ import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
+import useCurrentPathSending from 'src/hooks/useCurrentPathSending'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
@@ -21,6 +22,7 @@ import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import IconButton from '@material-ui/core/IconButton'
+import ConnectWalletButton from 'src/components/header/ConnectWalletButton'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -127,6 +129,7 @@ const useStyles = makeStyles(theme => ({
 const ConvertContent: FC = () => {
   const styles = useStyles()
   const {
+    address,
     approveTokens,
     approving,
     convertTokens,
@@ -136,6 +139,7 @@ const ConvertContent: FC = () => {
     destTokenAmount,
     details,
     error,
+    lastPathSent,
     loadingDestBalance,
     loadingSourceBalance,
     needsApproval,
@@ -211,12 +215,14 @@ const ConvertContent: FC = () => {
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
 
-  const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated)
+  const currentPathSending = useCurrentPathSending(lastPathSent, sending, sourceTokenAmount, sourceNetwork?.slug, destNetwork?.slug, sourceToken?.symbol)
+
+  const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated && !currentPathSending)
   const [sendButtonActive, setSendButtonActive] = useState(checkSendButtonActive())
 
   useEffect(() => {
     setSendButtonActive(checkSendButtonActive())
-  }, [validFormFields, unsupportedAsset, needsApproval, sendableWarning, error, manualWarning, gnosisEnabled, isCorrectSignerNetwork, specificRouteDeprecated])
+  }, [validFormFields, unsupportedAsset, needsApproval, sendableWarning, error, manualWarning, gnosisEnabled, isCorrectSignerNetwork, specificRouteDeprecated, currentPathSending])
 
   const checkApprovalButtonActive = () => (!needsTokenForFee && needsApproval && validFormFields && !specificRouteDeprecated)
   const [approvalButtonActive, setApprovalButtonActive] = useState(checkApprovalButtonActive())
@@ -300,37 +306,44 @@ const ConvertContent: FC = () => {
           )}
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
-          <ButtonsWrapper>
-            {!sendButtonActive && (
-              <Div mb={[3]} fullWidth={approvalButtonActive}>
+          { address 
+          ? <ButtonsWrapper>
+              {!sendButtonActive && (
+                <Div mb={[3]} fullWidth={approvalButtonActive}>
+                  <Button
+                    className={styles.button}
+                    large
+                    highlighted={!!needsApproval}
+                    disabled={!approvalButtonActive}
+                    onClick={handleApprove}
+                    loading={approving}
+                    fullWidth
+                  >
+                    Approve
+                  </Button>
+                </Div>
+              )}
+
+              <Div mb={[3]} fullWidth={sendButtonActive}>
                 <Button
                   className={styles.button}
+                  onClick={handleSend}
+                  disabled={!sendButtonActive}
+                  loading={currentPathSending}
                   large
-                  highlighted={!!needsApproval}
-                  disabled={!approvalButtonActive}
-                  onClick={handleApprove}
-                  loading={approving}
+                  highlighted
                   fullWidth
                 >
-                  Approve
+                  Convert
                 </Button>
               </Div>
-            )}
-
-            <Div mb={[3]} fullWidth={sendButtonActive}>
-              <Button
-                className={styles.button}
-                onClick={handleSend}
-                disabled={!sendButtonActive}
-                loading={sending}
-                large
-                highlighted
-                fullWidth
-              >
-                Convert
-              </Button>
-            </Div>
-          </ButtonsWrapper>
+            </ButtonsWrapper>
+          : <ButtonsWrapper>
+              <Div mb={[3]} fullWidth>
+                <ConnectWalletButton fullWidth large />
+              </Div>
+            </ButtonsWrapper>
+          }
         </>
       )}
     </Box>

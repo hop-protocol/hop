@@ -6,6 +6,7 @@ import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
 import { getBonderFeeWithId } from 'src/utils'
 import { createTransaction } from 'src/utils/createTransaction'
+import { getLastPathSent } from 'src/utils/getLastPathSent'
 import { amountToBN, formatError } from 'src/utils/format'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { useTransactionReplacement } from 'src/hooks'
@@ -159,7 +160,7 @@ export function useSendTransaction (props: any) {
         })
       }
 
-      setLastPathSent(`${fromNetwork.slug}-${toNetwork.slug}-${sourceToken.symbol}`)
+      setLastPathSent(getLastPathSent(fromNetwork.slug, toNetwork.slug, sourceToken.symbol, fromTokenAmount))
 
       setTx(txModel)
 

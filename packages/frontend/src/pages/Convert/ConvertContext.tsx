@@ -16,6 +16,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import { Token } from '@hop-protocol/sdk'
 import find from 'lodash/find'
 import Network from 'src/models/Network'
+import Address from 'src/models/Address'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -24,6 +25,7 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
+import { getLastPathSent } from 'src/utils/getLastPathSent'
 import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
   useTransactionReplacement,
@@ -36,6 +38,7 @@ import {
 import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
+  address: Address | undefined
   approveTokens: () => void
   approving: boolean
   convertOptions: ConvertOption[]
@@ -46,6 +49,7 @@ type ConvertContextProps = {
   destTokenAmount?: string
   details?: ReactNode
   error?: string
+  lastPathSent: string | null
   loadingDestBalance: boolean
   loadingSourceBalance: boolean
   needsApproval?: boolean
@@ -89,6 +93,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [sending, setSending] = useState<boolean>(false)
+  const [lastPathSent, setLastPathSent] = useState<string | null>(null)
   const [approving, setApproving] = useState<boolean>(false)
   const [sourceToken, setSourceToken] = useState<Token>()
   const { approve, checkApproval } = useApprove(sourceToken)
@@ -433,6 +438,8 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         },
       })
 
+      setLastPathSent(getLastPathSent(sourceNetwork.slug, destNetwork.slug, sourceToken._symbol, sourceTokenAmount))
+
       if (tx?.hash && sourceNetwork?.name) {
         const txModelArgs = {
           networkName: sourceNetwork.slug,
@@ -499,6 +506,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <ConvertContext.Provider
       value={{
+        address,
         approveTokens,
         approving,
         assetWithoutAmm,
@@ -512,6 +520,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         destTokenAmount,
         details,
         error,
+        lastPathSent,
         loadingDestBalance,
         loadingSourceBalance,
         needsApproval,

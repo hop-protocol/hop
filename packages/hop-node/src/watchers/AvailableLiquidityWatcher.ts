@@ -99,7 +99,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const destinationWatcher = this.getSiblingWatcherByChainSlug(destinationChain)
     if (!destinationWatcher) {
-      throw new Error(`no destination watcher for ${destinationChain}`)
+      throw new Error(`no destination watcher for chain ${destinationChain}`)
     }
 
     let baseAvailableCredit = await this.getOnchainBaseAvailableCredit(destinationWatcher, bonder)

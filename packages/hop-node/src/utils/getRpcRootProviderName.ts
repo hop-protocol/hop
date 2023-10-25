@@ -21,7 +21,7 @@ const cache: Record<string, RootProviderName> = {}
 
 async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
   // Cache by top-level URL
-  const url = getUrlFromProviderOrUrl(providerOrUrl)
+  let url = getUrlFromProviderOrUrl(providerOrUrl)
   if (cache[url]) {
     return cache[url]
   }
@@ -32,12 +32,15 @@ async function getRpcRootProviderName (providerOrUrl: providers.Provider | strin
   }
 
   // This is useful if you want this function to be synchronous and not make any RPC calls
-  const isWsProvider = url.includes('wss://')
-  if (isWsProvider || onlyAttemptUrl) {
+  if (onlyAttemptUrl) {
     return
   }
 
-  providerName = await getRootProviderNameFromRpcCall(providerOrUrl)
+  if (url.includes('wss://')) {
+    url = url.replace('wss://', 'https://')
+  }
+
+  providerName = await getRootProviderNameFromRpcCall(url)
   if (providerName) {
     cache[url] = providerName
     return providerName
@@ -54,20 +57,13 @@ function getRootProviderNameFromUrl (providerOrUrl: providers.Provider | string)
   }
 }
 
-async function getRootProviderNameFromRpcCall (providerOrUrl: providers.Provider | string): Promise<RootProviderName | undefined> {
+async function getRootProviderNameFromRpcCall (url: string): Promise<RootProviderName | undefined> {
   const callTimeout: number = 2_000
   const query = {
     id: 1,
     jsonrpc: '2.0',
     method: unsupportedCallMethod,
     params: []
-  }
-
-  let url
-  if (providerOrUrl instanceof providers.Provider) {
-    url = getRpcUrlFromProvider(providerOrUrl)
-  } else {
-    url = providerOrUrl
   }
 
   let res

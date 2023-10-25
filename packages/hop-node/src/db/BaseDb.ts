@@ -157,7 +157,11 @@ class BaseDb extends EventEmitter {
         }
 
         // Call the child class migration function
-        return await this.migration(key, value)
+        try {
+          await this.migration(key, value)
+        } catch (err) {
+          s.emit('error', err)
+        }
       })
         .on('end', () => {
           this.logger.debug('DB migration complete')

@@ -12,7 +12,6 @@ import { EventEmitter } from 'events'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
-import { promiseTimeout } from 'src/utils/promiseTimeout'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -60,7 +59,6 @@ class BaseDb extends EventEmitter {
   batchSize: number = 10
   batchTimeLimit: number = 2 * 1000
   batchQueue: QueueItem[] = []
-  timeoutSeconds: number = 10 * 1000
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -135,7 +133,7 @@ class BaseDb extends EventEmitter {
   }
 
   // To add a migration, implement the shouldMigrate and migration functions in the child class.
-  // Migrations are memory intensive. Ensure there is no unintentionally memory overflow.
+  // Migrations are memory intensive. Ensure there is no unintentional memory overflow.
   // * Use stream instead of storing all entries at once
   // * Bypass the mutex
   async _migration (): Promise<void> {
@@ -307,7 +305,7 @@ class BaseDb extends EventEmitter {
 
   async _get (key: string): Promise<any> {
     try {
-      return await promiseTimeout(this.db.get(key), this.timeoutSeconds)
+      return await this.db.get(key)
     } catch (err: any) {
       if (err.message.includes('timedout')) {
         this.handleTimeoutError(err)
@@ -330,7 +328,7 @@ class BaseDb extends EventEmitter {
 
   async _getMany (keys: string[]): Promise<any[]> {
     try {
-      return await promiseTimeout(this.db.getMany(keys), this.timeoutSeconds)
+      return this.db.getMany(keys)
     } catch (err: any) {
       if (err.message.includes('timedout')) {
         this.handleTimeoutError(err)

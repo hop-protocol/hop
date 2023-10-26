@@ -14,7 +14,7 @@ import {
   OneHourMs,
   TotalBlocks
 } from 'src/constants'
-import { Bps, ChainSlug, FinalityBlockTag } from '@hop-protocol/core/config'
+import { Bps, ChainSlug, BlockFinalityState } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
@@ -485,7 +485,7 @@ export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
 }
 
-export function getFinalizationBlockTag (chainSlug: string): FinalityBlockTag {
+export function getFinalizationBlockTag (chainSlug: string): BlockFinalityState {
   const finalizationBlockTag = networks?.[chainSlug]?.finalizationBlockTag
   if (!finalizationBlockTag) {
     throw new Error(`Finalization block tag not found for chain ${chainSlug}`)

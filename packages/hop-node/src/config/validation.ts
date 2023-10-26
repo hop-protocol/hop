@@ -1,6 +1,6 @@
 import { Chain } from 'src/constants'
 import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
-import { FinalityBlockTag } from '@hop-protocol/core/config'
+import { BlockFinalityState } from '@hop-protocol/core/config'
 import { URL } from 'url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 
@@ -337,8 +337,8 @@ export async function validateConfigValues (config?: Config) {
       }
     }
     if (finalizationBlockTag != null) {
-      if (!Object.values(FinalityBlockTag).includes(finalizationBlockTag as FinalityBlockTag)) {
-        throw new Error(`finalizationBlockTag for chain "${chainSlug}" must be a valid FinalityBlockTag`)
+      if (!Object.values(BlockFinalityState).includes(finalizationBlockTag as BlockFinalityState)) {
+        throw new Error(`BlockFinalityState for chain "${chainSlug}" must be a valid BlockFinalityState`)
       }
     }
     if (headSync != null) {

@@ -12,7 +12,7 @@ import {
 } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { FinalityBlockTag } from '@hop-protocol/core/config'
+import { BlockFinalityState } from '@hop-protocol/core/config'
 import { getFinalizationBlockTag, config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}

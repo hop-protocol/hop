@@ -13,6 +13,7 @@ export const config : Config = {
       optimism: 0
     }
   },
+  bonderTotalStake: {},
   destinationFeeGasPriceMultiplier: 1,
   relayerFeeEnabled: {
     gnosis: false,

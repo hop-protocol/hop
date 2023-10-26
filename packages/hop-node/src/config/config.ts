@@ -14,6 +14,7 @@ import {
   OneHourMs,
   TotalBlocks
 } from 'src/constants'
+import { BonderConfig } from 'src/config/types'
 import { Bps, ChainSlug, FinalityBlockTag } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
@@ -163,6 +164,7 @@ export type Config = {
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
   canonicalAddresses: CanonicalAddresses & {[network: string]: any}
+  bonderConfig: BonderConfig
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
@@ -190,8 +192,8 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, canonicalAddresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
@@ -200,6 +202,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
     addresses,
     bonders,
     canonicalAddresses,
+    bonderConfig,
     networks,
     metadata,
     isMainnet
@@ -207,7 +210,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, bonders, canonicalAddresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, canonicalAddresses, bonderConfig, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -220,6 +223,7 @@ export const config: Config = {
   metadata,
   bonders,
   canonicalAddresses,
+  bonderConfig,
   fees: {},
   routes: {},
   db: {
@@ -505,6 +509,10 @@ export const getConfigBonderForRoute = (token: string, sourceChain: string, dest
   const bonders = getConfigBondersForToken(token)
   const bonder = bonders?.[sourceChain]?.[destinationChain]
   return bonder
+}
+
+export const getBonderTotalStake = (token: string): number | undefined => {
+  return (config.bonderConfig?.totalStake as any)?.[token]
 }
 
 export { Bonders }

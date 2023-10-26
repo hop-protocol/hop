@@ -5,7 +5,6 @@ import S3Upload from 'src/aws/s3Upload'
 import getTokenMetadata from 'src/utils/getTokenMetadata'
 import { BigNumber } from 'ethers'
 import {
-  BonderTotalStakeAmount,
   Chain,
   DefaultBondThreshold,
   TenMinutesMs
@@ -16,6 +15,7 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import {
+  getBonderTotalStake,
   getConfigBonderForRoute,
   getEnabledNetworks,
   getProxyAddressForChain,
@@ -469,9 +469,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   async getDbAvailableCreditWithThreshold (destinationChainId: number): Promise<BigNumber> {
     this.logger.debug(`getDbAvailableCreditWithThreshold, destinationChainId: ${destinationChainId}`)
 
+    const bonderTotalStake: number | undefined = getBonderTotalStake(this.tokenSymbol)
     const tokenMetadata = getTokenMetadata(this.tokenSymbol)
-    if (!BonderTotalStakeAmount?.[this.tokenSymbol] || !tokenMetadata?.decimals) {
-      this.logger.debug(`getDbAvailableCreditWithThreshold, no BonderTotalStakeAmount for ${this.tokenSymbol} or no decimals for ${this.tokenSymbol}`)
+    if (!bonderTotalStake || !tokenMetadata?.decimals) {
+      this.logger.debug(`getDbAvailableCreditWithThreshold, no bonderTotalStake for ${this.tokenSymbol} or no decimals for ${this.tokenSymbol}`)
       return BigNumber.from(0)
     }
 
@@ -483,8 +484,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
     this.logger.debug(`getDbAvailableCreditWithThreshold ${this.tokenSymbol}: inFlightAmount: ${formatUnits(inFlightAmount, tokenMetadata.decimals)}, transfers: ${JSON.stringify(transfers)}`)
 
-    const bonderStake = parseUnits(BonderTotalStakeAmount[this.tokenSymbol].toString(), tokenMetadata.decimals)
-    const bonderStakeWithThreshold = bonderStake.mul(DefaultBondThreshold).div(100)
+    const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), tokenMetadata.decimals)
+    const bonderStakeWithThreshold = bonderTotalStakeWei.mul(DefaultBondThreshold).div(100)
     const availableCreditWithThreshold = bonderStakeWithThreshold.sub(inFlightAmount)
 
     if (availableCreditWithThreshold.lt(0)) {

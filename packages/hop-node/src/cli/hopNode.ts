@@ -125,6 +125,17 @@ async function main (source: any) {
     }
   }
 
+  if (globalConfig?.bonderConfig) {
+    const totalStake = globalConfig.bonderConfig?.totalStake
+    if (totalStake) {
+      for (const token of tokens) {
+        if (token in totalStake) {
+          logger.info(`bonder total stake for ${token}: ${(totalStake as any)[token]}`)
+        }
+      }
+    }
+  }
+
   for (const token of tokens) {
     for (const k in globalConfig.networks) {
       if (!Object.keys(enabledNetworks).includes(k)) continue

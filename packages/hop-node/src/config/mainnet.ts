@@ -1,10 +1,13 @@
+import { BonderConfig } from 'src/config/types'
 import { mainnet as _networks } from '@hop-protocol/core/networks'
+import { mainnet as config } from '@hop-protocol/core/config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { mainnet as metadata } from '@hop-protocol/core/metadata'
 
 const addresses = mainnetAddresses.bridges
 const bonders = mainnetAddresses.bonders
 const canonicalAddresses = mainnetAddresses.canonicalAddresses
+const bonderConfig: BonderConfig = {}
 const networks: any = {}
 
 for (const chain in _networks) {
@@ -18,6 +21,8 @@ for (const chain in _networks) {
   networks[chain].waitConfirmations = network?.waitConfirmations
   networks[chain].finalizationBlockTag = network?.finalizationBlockTag
   networks[chain].subgraphUrl = network?.subgraphUrl
+
+  bonderConfig.totalStake = config.bonderTotalStake
 }
 
-export { addresses, bonders, canonicalAddresses, networks, metadata }
+export { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata }

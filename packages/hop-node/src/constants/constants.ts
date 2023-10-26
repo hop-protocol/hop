@@ -207,3 +207,5 @@ export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
   [RootProviderName.Infura]: false,
   [RootProviderName.Quiknode]: true
 }
+
+export const DefaultBondThreshold = 5

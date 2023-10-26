@@ -10,6 +10,7 @@ export const config : Config = {
       arbitrum: 14
     }
   },
+  bonderTotalStake: {},
   destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
     polygon: false,

@@ -5,16 +5,7 @@ import S3Upload from 'src/aws/s3Upload'
 import getTokenMetadata from 'src/utils/getTokenMetadata'
 import { BigNumber } from 'ethers'
 import {
-  Chain,
-  DefaultBondThreshold,
-  TenMinutesMs
-} from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Transfer } from 'src/db/TransfersDb'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import {
+  BondThreshold,
   getBonderTotalStake,
   getConfigBonderForRoute,
   getEnabledNetworks,
@@ -22,6 +13,15 @@ import {
   config as globalConfig, isProxyAddressForChain
   , modifiedLiquidityRoutes, oruChains
 } from 'src/config'
+import {
+  Chain,
+  TenMinutesMs
+} from 'src/constants'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { Transfer } from 'src/db/TransfersDb'
+import { TransferRoot } from 'src/db/TransferRootsDb'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 type Config = {
   chainSlug: string
@@ -485,7 +485,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     this.logger.debug(`getDbAvailableCreditWithThreshold ${this.tokenSymbol}: inFlightAmount: ${formatUnits(inFlightAmount, tokenMetadata.decimals)}, transfers: ${JSON.stringify(transfers)}`)
 
     const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), tokenMetadata.decimals)
-    const bonderStakeWithThreshold = bonderTotalStakeWei.mul(DefaultBondThreshold).div(100)
+    const bonderStakeWithThreshold = bonderTotalStakeWei.mul(BondThreshold).div(100)
     const availableCreditWithThreshold = bonderStakeWithThreshold.sub(inFlightAmount)
 
     if (availableCreditWithThreshold.lt(0)) {

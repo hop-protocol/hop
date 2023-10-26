@@ -1,4 +1,4 @@
-import { ChainSlug, BlockFinalityState } from '../config/types'
+import { ChainSlug, FinalityState } from '../config/types'
 
 export type Network = {
   name: string
@@ -9,7 +9,7 @@ export type Network = {
   explorerUrls: string[]
   nativeBridgeUrl?: string
   waitConfirmations: number
-  finalizationBlockTag?: BlockFinalityState
+  finalizationBlockTag?: FinalityState
   subgraphUrl?: string
   etherscanApiUrl?: string
 }

@@ -587,7 +587,7 @@ class TransfersDb extends BaseDb {
     return relayBackoffIndex
   }
 
-  async getInFlightTransfers(): Promise<Transfer[]> {
+  async getInFlightTransfers (): Promise<Transfer[]> {
     await this.tilReady()
 
     // Unbonded should not be in flight for more than 1 hour
@@ -597,15 +597,19 @@ class TransfersDb extends BaseDb {
     })
 
     return transfersFromHour.filter((transfer: Transfer) => {
+      if (!transfer?.sourceChainId || !transfer?.transferId || !transfer?.isBondable) {
+        return false
+      }
+
       // L1 to L2 transfers are not bonded by the bonder so they are not considered in flight.
       // Checking bonderFeeTooLow could be a false positive since the bonder bonds relative to the current gas price.
-      const sourceChainSlug = chainIdToSlug(transfer?.sourceChainId!)
+      const sourceChainSlug = chainIdToSlug(transfer.sourceChainId)
       return (
         sourceChainSlug !== Chain.Ethereum &&
         transfer.transferId &&
         transfer.isBondable &&
-        !transfer.withdrawalBonded &&
-        !transfer.isTransferSpent
+        !transfer?.withdrawalBonded &&
+        !transfer?.isTransferSpent
       )
     })
   }

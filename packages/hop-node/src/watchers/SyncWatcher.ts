@@ -119,7 +119,6 @@ class SyncWatcher extends BaseWatcher {
     this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
     this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
 
-
     this.init()
       .catch(err => {
         this.logger.error('init error:', err)

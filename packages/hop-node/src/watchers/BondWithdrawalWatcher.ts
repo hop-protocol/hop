@@ -222,8 +222,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    await this.withdrawFromVaultIfNeeded(destinationChainId, amount)
-
     logger.debug('checkTransferId sourceL2Bridge.getTransaction')
     const sourceTx = await sourceL2Bridge.getTransaction(
       transferSentTxHash
@@ -451,35 +449,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
   }
 
-  async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
-    if (!globalConfig.vault[this.tokenSymbol]?.[this.chainIdToSlug(destinationChainId)]?.autoWithdraw) {
-      return
-    }
-
-    return await this.mutex.runExclusive(async () => {
-      let availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-      if (zeroAvailableCreditTest) {
-        availableCredit = BigNumber.from(0)
-      }
-      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
-      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
-      if (shouldWithdraw) {
-        try {
-          const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`
-          this.notifier.info(msg)
-          this.logger.info(msg)
-          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
-          await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
-        } catch (err) {
-          const errMsg = `withdrawFromVaultAndStake error: ${err.message}`
-          this.notifier.error(errMsg)
-          this.logger.error(errMsg)
-          throw err
-        }
-      }
-    })
-  }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
     const logger = this.logger.create({ id: txParams.transferId })

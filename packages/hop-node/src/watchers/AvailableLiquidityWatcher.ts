@@ -61,7 +61,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private availableCreditWithThreshold: BigNumber = BigNumber.from(0)
   private lastCalculated: { [destinationChain: string]: number } = {}
   private pollCount: number = 0
-  private readonly pollTimeSec: number = 15 * 60
+  private readonly pollTimeSec: number = 1 * 60
   private readonly cacheTimeSec: number = 30
   private lastCacheTimestampSec: Record<string, number> = {}
   s3Upload: S3Upload

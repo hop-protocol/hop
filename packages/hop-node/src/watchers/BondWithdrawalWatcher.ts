@@ -28,7 +28,6 @@ import {
   enableEmergencyMode,
   config as globalConfig,
   isProxyAddressForChain,
-  zeroAvailableCreditTest
 } from 'src/config'
 import {
   getHiddenCalldataForDestinationChain,
@@ -437,16 +436,27 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   getTransfersWithinAvailableLiquidity (dbTransfers: UnbondedSentTransfer[]): UnbondedSentTransfer[] {
     let transfers: UnbondedSentTransfer[] = []
+
     let availableLiquidityWithThreshold: BigNumber = this.availableLiquidityWatcher.getAvailableCreditWithThreshold()
+    let availableLiquidityPerChain: Record<number, BigNumber> = {}
     for (const dbTransfer of dbTransfers) {
       const { transferId, destinationChainId, amount, withdrawalBondTxError } = dbTransfer
       const logger = this.logger.create({ id: transferId })
 
+      if (!destinationChainId || !amount) {
+        logger.warn(`getTransfersWithinAvailableLiquidity: destinationChainId: ${destinationChainId}, amount: ${amount}`)
+        continue
+      }
+
+      if (!availableLiquidityPerChain?.[destinationChainId]) {
+        availableLiquidityPerChain[destinationChainId] = this.getAvailableCreditForTransfer(destinationChainId)
+      }
+
       // Is there enough overall credit to bond
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
-      const enoughCredit = availableCredit.gte(amount!)
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      const enoughCredit = availableCredit.gte(amount)
       if (!enoughCredit) {
-        logger.warn(`getTransfersWithinAvailableLiquidity: invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`)
+        logger.warn(`getTransfersWithinAvailableLiquidity: invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`)
         continue
       }
 
@@ -458,14 +468,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       // If the transfer has not been finalized, is it within the bond threshold
-      const isWithinBondThreshold = !dbTransfer?.isFinalized && amount!.lte(availableLiquidityWithThreshold)
+      const isWithinBondThreshold = !dbTransfer?.isFinalized && amount.lte(availableLiquidityWithThreshold)
       if (!isWithinBondThreshold) {
         logger.warn(`getTransfersWithinAvailableLiquidity: isWithinBondThreshold is false`)
         continue
       } else {
-        availableLiquidityWithThreshold = availableLiquidityWithThreshold.sub(amount!)
+        availableLiquidityWithThreshold = availableLiquidityWithThreshold.sub(amount)
       }
 
+      availableLiquidityPerChain[destinationChainId] = availableLiquidityPerChain[destinationChainId].sub(amount)
       transfers.push(dbTransfer)
     }
 

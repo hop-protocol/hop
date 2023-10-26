@@ -40,7 +40,7 @@ type S3JsonData = {
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
-    availableCreditWithThreshold: {[chain: string]: string}
+    availableCreditWithThreshold: BigNumber
   }
 }
 
@@ -58,7 +58,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
-  private availableCreditWithThreshold: { [destinationChain: string]: BigNumber } = {}
+  private availableCreditWithThreshold: BigNumber = BigNumber.from(0)
   private lastCalculated: { [destinationChain: string]: number } = {}
   private pollCount: number = 0
   private readonly pollTimeSec: number = 15 * 60
@@ -220,7 +220,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     this.availableCredit[destinationChain] = availableCredit
     this.baseAvailableCredit[destinationChain] = baseAvailableCredit
     this.baseAvailableCreditIncludingVault[destinationChain] = baseAvailableCreditIncludingVault
-    this.availableCreditWithThreshold[destinationChain] = availableCreditWithThreshold
+    this.availableCreditWithThreshold = availableCreditWithThreshold
     this.vaultBalance[destinationChain] = vaultBalance
     if (!bonderVaultBalance[bonder]) {
       bonderVaultBalance[bonder] = {}
@@ -406,9 +406,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return baseAvailableCreditIncludingVault
   }
 
-  public getAvailableCreditWithThreshold (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    const availableCreditWithThreshold = this.availableCreditWithThreshold[destinationChain]
+  public getAvailableCreditWithThreshold () {
+    const availableCreditWithThreshold = this.availableCreditWithThreshold
     if (!availableCreditWithThreshold) {
       return BigNumber.from(0)
     }
@@ -534,7 +533,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
       data.bonderVaultBalance = bonderVaultBalance
-      data.availableCreditWithThreshold[sourceChain] = watcher.availableCreditWithThreshold
+      data.availableCreditWithThreshold = watcher.availableCreditWithThreshold
     }
 
     s3JsonData[this.tokenSymbol] = data

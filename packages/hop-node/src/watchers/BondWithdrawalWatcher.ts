@@ -86,44 +86,30 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
+    let dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       this.logger.debug('no unbonded transfer db items to check')
       return
     }
 
-    this.logger.info(
-      `total unbonded transfers db items: ${dbTransfers.length}`
-    )
+    const numUnbondedSentTransfers = dbTransfers.length
+    this.logger.info(`total unbonded transfers db items: ${numUnbondedSentTransfers}`)
+
+    // Do this outside of parallelization since this relies on all transfers being processed
+    dbTransfers = this.getTransfersWithinAvailableLiquidity(dbTransfers)
+    if (dbTransfers.length < numUnbondedSentTransfers) {
+      this.logger.info(`${numUnbondedSentTransfers - dbTransfers.length} unbonded transfers db items are not within available liquidity`)
+    }
 
     const listSize = 100
     const batchedDbTransfers = dbTransfers.slice(0, listSize)
 
-    this.logger.info(
-      `checking unbonded transfers db items ${batchedDbTransfers.length} (out of ${dbTransfers.length})`
-    )
+    this.logger.info(`checking unbonded transfers db items ${batchedDbTransfers.length} (out of ${dbTransfers.length})`)
 
     await promiseQueue(batchedDbTransfers, async (dbTransfer: Transfer, i: number) => {
-      const {
-        transferId,
-        destinationChainId,
-        amount,
-        withdrawalBondTxError
-      } = dbTransfer
+      const { transferId } = dbTransfer
       const logger = this.logger.create({ id: transferId })
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} start`)
-      logger.debug('checking db poll')
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
-      const notEnoughCredit = availableCredit.lt(amount!)
-      const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
-      if (isUnbondable) {
-        logger.warn(
-          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
-          `withdrawalBondTxErr: ${withdrawalBondTxError}`
-        )
-        logger.debug('db poll completed')
-        return
-      }
 
       try {
         logger.debug('checkTransferId start')
@@ -449,6 +435,42 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
   }
 
+  getTransfersWithinAvailableLiquidity (dbTransfers: UnbondedSentTransfer[]): UnbondedSentTransfer[] {
+    let transfers: UnbondedSentTransfer[] = []
+    let availableLiquidityWithThreshold: BigNumber = this.availableLiquidityWatcher.getAvailableCreditWithThreshold()
+    for (const dbTransfer of dbTransfers) {
+      const { transferId, destinationChainId, amount, withdrawalBondTxError } = dbTransfer
+      const logger = this.logger.create({ id: transferId })
+
+      // Is there enough overall credit to bond
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
+      const enoughCredit = availableCredit.gte(amount!)
+      if (!enoughCredit) {
+        logger.warn(`getTransfersWithinAvailableLiquidity: invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`)
+        continue
+      }
+
+      // Is the bonder unable to bond it because the transfer amount is too high
+      const isBondableAmount = withdrawalBondTxError !== TxError.NotEnoughLiquidity
+      if (!isBondableAmount) {
+        logger.warn(`getTransfersWithinAvailableLiquidity: isBondableAmount is false`)
+        continue
+      }
+
+      // If the transfer has not been finalized, is it within the bond threshold
+      const isWithinBondThreshold = !dbTransfer?.isFinalized && amount!.lte(availableLiquidityWithThreshold)
+      if (!isWithinBondThreshold) {
+        logger.warn(`getTransfersWithinAvailableLiquidity: isWithinBondThreshold is false`)
+        continue
+      } else {
+        availableLiquidityWithThreshold = availableLiquidityWithThreshold.sub(amount!)
+      }
+
+      transfers.push(dbTransfer)
+    }
+
+    return transfers
+  }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
     const logger = this.logger.create({ id: txParams.transferId })

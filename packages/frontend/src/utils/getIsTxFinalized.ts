@@ -5,7 +5,7 @@ import { ChainFinalityTag } from '@hop-protocol/core/config/types'
 export async function getIsTxFinalized (
   txBlockNumber: number | undefined,
   chainSlug: string
-) {
+): Promise<boolean> {
   if (!txBlockNumber) return false
 
   const provider = getProviderByNetworkName(chainSlug)

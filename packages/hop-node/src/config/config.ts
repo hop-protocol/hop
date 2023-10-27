@@ -19,7 +19,6 @@ import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
 import * as mainnetConfig from './mainnet'
-import * as testConfig from './test'
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')
 
@@ -173,7 +172,6 @@ export type Config = {
 }
 
 const networkConfigs: {[key: string]: any} = {
-  test: testConfig,
   goerli: goerliConfig,
   mainnet: mainnetConfig
 }

@@ -25,7 +25,6 @@ import {
   getBridgeWriteContractAddress,
   getProxyAddressForChain,
   config as globalConfig,
-  hasFinalizationBlockTag,
   isProxyAddressForChain
 } from 'src/config'
 
@@ -699,18 +698,7 @@ export default class Bridge extends ContractBase {
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
 
-    let blockNumberWithAcceptableFinality: number
-    if (hasFinalizationBlockTag(this.chainSlug) && !isHeadSync) {
-      blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
-    } else {
-      const currentBlockNumber = await this.getBlockNumber()
-      if (isHeadSync) {
-        blockNumberWithAcceptableFinality = currentBlockNumber
-      } else {
-        blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
-      }
-    }
-
+    const syncBlockNumber: number = await this.getSyncBlockNumber(isHeadSync)
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = end - startBlockNumber
@@ -718,13 +706,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = blockNumberWithAcceptableFinality
+      end = syncBlockNumber
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
     } else if (isSync || isHeadSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
+      end = Math.max(syncBlockNumber, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = blockNumberWithAcceptableFinality
+      end = syncBlockNumber
       totalBlocksInBatch = totalBlocks!
     }
 
@@ -761,6 +749,13 @@ export default class Bridge extends ContractBase {
     key: string
   ) => {
     return `${chainId}:${address}:${key}`
+  }
+
+  private getSyncBlockNumber = async (isHeadSync?: boolean): Promise<number> => {
+    if (isHeadSync) {
+      return this.getSyncHeadBlockNumber()
+    }
+    return this.getSafeBlockNumber()
   }
 
   shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {

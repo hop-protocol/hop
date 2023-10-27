@@ -1,13 +1,12 @@
 import { providers } from 'ethers'
 import { FinalityState } from '@hop-protocol/core/config'
-import { IFinalityStrategy } from './IFinalityStrategy'
+import { IFinalityStrategy } from '../IFinalityStrategy'
+import { Chain } from 'src/constants'
+import { HopChainFinalityStrategy } from './HopChainFinalityStrategy'
 
-export default class CollateralizedFinalityStrategy implements IFinalityStrategy {
-  private readonly provider: providers.Provider
-
+export class HopGnosisFinalityStrategy extends HopChainFinalityStrategy implements IFinalityStrategy {
   constructor (provider: providers.Provider) {
-    this.provider = provider
-    throw new Error('Not yet implemented')
+    super(provider, Chain.Gnosis)
   }
 
   getBlockNumber = async (): Promise<number> => {
@@ -25,6 +24,8 @@ export default class CollateralizedFinalityStrategy implements IFinalityStrategy
   }
 
   getSyncHeadBlockNumber = async (): Promise<number> => {
-    return this.getBlockNumber()
+    const blockNumber: number = await this.provider.getBlockNumber()
+    const syncHeadConfirmations = 12
+    return blockNumber - syncHeadConfirmations
   }
 }

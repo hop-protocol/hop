@@ -22,4 +22,8 @@ export default class DefaultFinalityStrategy implements IFinalityStrategy {
     const block = await this.provider.getBlock(FinalityState.Finalized)
     return Number(block.number)
   }
+
+  getSyncHeadBlockNumber = async (): Promise<number> => {
+    return this.getBlockNumber()
+  }
 }

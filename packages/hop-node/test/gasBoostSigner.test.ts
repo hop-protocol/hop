@@ -55,7 +55,7 @@ describe.skip('GasBoostSigner', () => {
     expect(confirmed).toBeTruthy()
     expect(boosted).toBeTruthy()
   }, 10 * 60 * 1000)
-  it.skip('sendTransaction - kovan', async () => {
+  it.skip('sendTransaction - mainnet', async () => {
     const provider = getRpcProvider('ethereum')
     expectDefined(provider)
     expectDefined(privateKey)
@@ -204,7 +204,7 @@ describe.skip('GasBoostSigner', () => {
     expect((tx as GasBoostTransaction).txHash).toBeTruthy()
     expect((tx as GasBoostTransaction).txHash).not.toBe(reorgedTxHash)
   }, 10 * 60 * 1000)
-  it.skip('sendTransaction - kovan - uses market maxFeePerGas for boosted tx', async () => {
+  it.skip('sendTransaction - mainnet - uses market maxFeePerGas for boosted tx', async () => {
     const provider = getRpcProvider('ethereum')
     expectDefined(provider)
     expectDefined(privateKey)

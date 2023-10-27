@@ -2,9 +2,7 @@ import { chains } from '@hop-protocol/core/metadata'
 
 export enum Network {
   Mainnet = 'mainnet',
-  Staging = 'staging',
-  Goerli = 'goerli',
-  Kovan = 'kovan',
+  Goerli = 'goerli'
 }
 
 // TODO: read from core

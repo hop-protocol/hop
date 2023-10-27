@@ -19,9 +19,7 @@ import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
-import * as kovanConfig from './kovan'
 import * as mainnetConfig from './mainnet'
-import * as stagingConfig from './staging'
 import * as testConfig from './test'
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')
@@ -177,22 +175,12 @@ export type Config = {
 
 const networkConfigs: {[key: string]: any} = {
   test: testConfig,
-  kovan: kovanConfig,
   goerli: goerliConfig,
-  mainnet: mainnetConfig,
-  staging: stagingConfig
-}
-
-const normalizeNetwork = (network: string) => {
-  if (network === Network.Staging) {
-    return Network.Mainnet
-  }
-  return network
+  mainnet: mainnetConfig
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'networks' | 'metadata' | 'isMainnet'> => {
   const { addresses, bonders, canonicalAddresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
-  network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
   return {
@@ -292,7 +280,7 @@ export const setConfigByNetwork = (network: string) => {
   const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
   config.addresses = addresses
-  config.network = normalizeNetwork(network)
+  config.network = network
   config.networks = networks
   config.metadata = metadata
 }
@@ -311,28 +299,24 @@ export const setBonderPrivateKey = (privateKey: string) => {
 }
 
 export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
   }
 }
 
 export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].redundantRpcUrls = redundantRpcUrls
   }
 }
 
 export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].maxGasPrice = maxGasPrice
   }
 }
 
 export const setNetworkHeadSync = (network: string, headSync: boolean) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].headSync = headSync
   }

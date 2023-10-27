@@ -45,7 +45,7 @@ class Hop extends Base {
   /**
    * @desc Instantiates Hop SDK.
    * Returns a new Hop SDK instance.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @param signer - Ethers `Signer` for signing transactions.
    * @returns New Hop SDK instance.
    * @example

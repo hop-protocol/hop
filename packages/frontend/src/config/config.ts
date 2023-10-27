@@ -77,14 +77,14 @@ export const transferTimes = {
 
 export const WaitConfirmations: Record<string, number> = {
   ethereum: 32,
-  gnosis: 40,
+  gnosis: 40, // Gnosis safe at 5.5 sec per block
   polygon: 128,
-  optimism: 222,
-  arbitrum: 1776,
+  optimism: 222, // Optimism Safe + L1 Safe at 2 sec per block
+  arbitrum: 1776, // Arbitrum Safe at 250 msec per block
   zksync: 1,
   linea: 1,
   scrollzk: 1,
-  nova: 1776,
-  base: 222,
+  nova: 1776, // Arbitrum Safe at 250 msec per block
+  base: 222, // Optimism Safe + L1 Safe at 2 sec per block
   polygonzk: 1
 }

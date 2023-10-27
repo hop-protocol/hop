@@ -1,6 +1,6 @@
-import { providers } from 'ethers'
 import { FinalityState } from '@hop-protocol/core/config'
 import { IFinalityStrategy } from './IFinalityStrategy'
+import { providers } from 'ethers'
 
 export default class CollateralizedFinalityStrategy implements IFinalityStrategy {
   private readonly provider: providers.Provider

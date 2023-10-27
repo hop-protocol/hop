@@ -1,9 +1,9 @@
-import { providers } from 'ethers'
-import { FinalityState } from '@hop-protocol/core/config'
-import { IFinalityStrategy } from '../IFinalityStrategy'
-import { Chain } from 'src/constants'
 import getChainBridge from 'src/chains/getChainBridge'
+import { Chain } from 'src/constants'
+import { FinalityState } from '@hop-protocol/core/config'
 import { HopChainFinalityStrategy } from './HopChainFinalityStrategy'
+import { IFinalityStrategy } from '../IFinalityStrategy'
+import { providers } from 'ethers'
 
 export class HopOptimismFinalityStrategy extends HopChainFinalityStrategy implements IFinalityStrategy {
   constructor (provider: providers.Provider) {
@@ -27,7 +27,7 @@ export class HopOptimismFinalityStrategy extends HopChainFinalityStrategy implem
     return this.getBlockNumber()
   }
 
-  private _getSafeBlockNumber = async (): Promise<number> => {
+  private readonly _getSafeBlockNumber = async (): Promise<number> => {
     const chainBridge = getChainBridge(this.chainSlug)
     if (!chainBridge?.getCustomSafeBlockNumber) {
       throw new Error(`getCustomFinalityBlockNumber not implemented for chain ${this.chainSlug}`)

@@ -1,9 +1,9 @@
-import { providers } from 'ethers'
-import { Chain } from 'src/constants'
-import { IFinalityStrategy } from './strategies/IFinalityStrategy'
+import CollateralizedFinalityStrategy from './strategies/CollateralizedFinalityStrategy'
 import DefaultFinalityStrategy from './strategies/DefaultFinalityStrategy'
 import HopFinalityStrategy from './strategies/HopFinalityStrategy'
-import CollateralizedFinalityStrategy from './strategies/CollateralizedFinalityStrategy'
+import { Chain } from 'src/constants'
+import { IFinalityStrategy } from './strategies/IFinalityStrategy'
+import { providers } from 'ethers'
 
 // TODO: Generalize this outside of this class after adding more strategies. This service should
 // accept the entire strategy from the consumer, not just tye type.
@@ -13,7 +13,7 @@ enum FinalityStrategyType {
   Collateralized = 'collateralized'
 }
 
-const finalityServiceMap: Record<FinalityStrategyType, new (provider: providers.Provider, chainSlug?: string) => IFinalityStrategy> = { 
+const finalityServiceMap: Record<FinalityStrategyType, new (provider: providers.Provider, chainSlug?: string) => IFinalityStrategy> = {
   [FinalityStrategyType.Default]: DefaultFinalityStrategy,
   [FinalityStrategyType.Hop]: HopFinalityStrategy,
   [FinalityStrategyType.Collateralized]: CollateralizedFinalityStrategy
@@ -30,7 +30,7 @@ export class FinalityService implements IFinalityStrategy {
     this.strategy = this.getStrategy(finalityStrategyType)
   }
 
-  private getStrategy = (finalityStrategyType: FinalityStrategyType): IFinalityStrategy => {
+  private readonly getStrategy = (finalityStrategyType: FinalityStrategyType): IFinalityStrategy => {
     const strategyConstructor = finalityServiceMap[finalityStrategyType]
     if (!strategyConstructor) {
       throw new Error(`FinalityStrategyType ${finalityStrategyType} is not supported`)

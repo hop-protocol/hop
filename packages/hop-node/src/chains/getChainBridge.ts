@@ -35,7 +35,7 @@ export default function getChainBridge (chainSlug: string): IChainBridge {
     return chainWatchers[chainSlug]
   }
 
-  let chainWatcher: IChainBridge = new chainToBridgeMap[chainSlug](chainSlug)
+  const chainWatcher: IChainBridge = new chainToBridgeMap[chainSlug](chainSlug)
   chainWatchers[chainSlug] = chainWatcher
   return chainWatcher
 }

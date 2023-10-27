@@ -11,8 +11,8 @@ import {
 } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { config as globalConfig } from 'src/config'
 import { FinalityService } from 'src/finality/FinalityService'
+import { config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 

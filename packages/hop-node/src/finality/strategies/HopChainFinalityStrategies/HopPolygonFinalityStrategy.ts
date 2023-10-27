@@ -1,7 +1,7 @@
-import { providers } from 'ethers'
-import { IFinalityStrategy } from '../IFinalityStrategy'
 import { Chain } from 'src/constants'
 import { HopChainFinalityStrategy } from './HopChainFinalityStrategy'
+import { IFinalityStrategy } from '../IFinalityStrategy'
+import { providers } from 'ethers'
 
 export class HopPolygonFinalityStrategy extends HopChainFinalityStrategy implements IFinalityStrategy {
   constructor (provider: providers.Provider) {

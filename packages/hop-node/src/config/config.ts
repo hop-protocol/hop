@@ -6,6 +6,7 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
+import { Bps, ChainFinalityTag, ChainSlug } from '@hop-protocol/core/config'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -13,7 +14,6 @@ import {
   OneHourMs,
   TotalBlocks
 } from 'src/constants'
-import { Bps, ChainSlug, ChainFinalityTag } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'

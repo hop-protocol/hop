@@ -751,7 +751,7 @@ export default class Bridge extends ContractBase {
     return `${chainId}:${address}:${key}`
   }
 
-  private getSyncBlockNumber = async (isHeadSync?: boolean): Promise<number> => {
+  private readonly getSyncBlockNumber = async (isHeadSync?: boolean): Promise<number> => {
     if (isHeadSync) {
       return this.getSyncHeadBlockNumber()
     }

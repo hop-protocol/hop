@@ -1,13 +1,13 @@
-import { providers } from 'ethers'
-import { IFinalityStrategy } from './IFinalityStrategy'
 import { Chain } from 'src/constants'
+import { IFinalityStrategy } from './IFinalityStrategy'
+import { providers } from 'ethers'
 
-import { HopGnosisFinalityStrategy } from './HopChainFinalityStrategies/HopGnosisFinalityStrategy'
-import { HopPolygonFinalityStrategy } from './HopChainFinalityStrategies/HopPolygonFinalityStrategy'
-import { HopOptimismFinalityStrategy } from './HopChainFinalityStrategies/HopOptimismFinalityStrategy'
 import { HopArbitrumFinalityStrategy } from './HopChainFinalityStrategies/HopArbitrumFinalityStrategy'
+import { HopGnosisFinalityStrategy } from './HopChainFinalityStrategies/HopGnosisFinalityStrategy'
+import { HopOptimismFinalityStrategy } from './HopChainFinalityStrategies/HopOptimismFinalityStrategy'
+import { HopPolygonFinalityStrategy } from './HopChainFinalityStrategies/HopPolygonFinalityStrategy'
 
-const hopChainFinalityStrategyMap: Record<string, new (provider: providers.Provider) => IFinalityStrategy> = { 
+const hopChainFinalityStrategyMap: Record<string, new (provider: providers.Provider) => IFinalityStrategy> = {
   [Chain.Polygon]: HopPolygonFinalityStrategy,
   [Chain.Gnosis]: HopGnosisFinalityStrategy,
   [Chain.Optimism]: HopOptimismFinalityStrategy,
@@ -25,7 +25,7 @@ export default class HopFinalityStrategy implements IFinalityStrategy {
     this.strategy = this.getStrategy(chainSlug)
   }
 
-  private getStrategy = (chainSlug: Chain): IFinalityStrategy => {
+  private readonly getStrategy = (chainSlug: Chain): IFinalityStrategy => {
     const strategyConstructor = hopChainFinalityStrategyMap[chainSlug]
     if (!strategyConstructor) {
       throw new Error(`hopChainFinalityStrategyMap for chainSlug ${chainSlug} is not supported`)

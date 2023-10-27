@@ -1,8 +1,8 @@
-import { providers } from 'ethers'
-import { FinalityState } from '@hop-protocol/core/config'
-import { IFinalityStrategy } from '../IFinalityStrategy'
 import { Chain } from 'src/constants'
+import { FinalityState } from '@hop-protocol/core/config'
 import { HopChainFinalityStrategy } from './HopChainFinalityStrategy'
+import { IFinalityStrategy } from '../IFinalityStrategy'
+import { providers } from 'ethers'
 
 export class HopGnosisFinalityStrategy extends HopChainFinalityStrategy implements IFinalityStrategy {
   constructor (provider: providers.Provider) {

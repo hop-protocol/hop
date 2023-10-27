@@ -31,6 +31,10 @@ function TransactionStatus(props) {
     }
 
     if (showConfirmations) {
+      if (!confirmations) {
+        return setText(`• / ${networkWaitConfirmations} L1 Confirmations`)
+      }
+
       if (confirmations && networkWaitConfirmations) {
         setText(`${confirmations} / ${networkWaitConfirmations} Confirmations`)
       }

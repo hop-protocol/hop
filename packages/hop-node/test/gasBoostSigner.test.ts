@@ -171,7 +171,7 @@ describe.skip('GasBoostSigner', () => {
     const wallet = new Wallet(privateKey, provider)
     const signer = new GasBoostSigner(wallet, store, {
       timeTilBoostMs: 5 * 1000,
-      reorgWaitConfirmations: 2
+      reorgConfirmationBlocks: 2
     })
     const recipient = await signer.getAddress()
     const tx = await signer.sendTransaction({

@@ -157,18 +157,6 @@ export default class ContractBase extends EventEmitter {
     return getBumpedGasPrice(gasPrice, multiplier)
   }
 
-  get waitConfirmations () {
-    const chainConfig = globalConfig.networks[this.chainSlug]
-    if (!chainConfig) {
-      throw new Error(`config for chain ${this.chainSlug} not found`)
-    }
-    const { waitConfirmations } = chainConfig
-    if (waitConfirmations <= 0) {
-      throw new Error('expected waitConfirmations to be > 0')
-    }
-    return waitConfirmations
-  }
-
   async txOverrides (): Promise<TxOverrides> {
     const txOptions: TxOverrides = {}
     if (globalConfig.isMainnet) {

@@ -73,7 +73,7 @@ export type Options = {
   maxGasPriceGwei: number
   priorityFeePerGasCap: number
   compareMarketGasPrice: boolean
-  reorgWaitConfirmations: number
+  reorgConfirmationBlocks: number
   maxPriorityFeeConfidenceLevel: number
 }
 
@@ -120,7 +120,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
   logId: string
 
-  reorgWaitConfirmations: number = 1
+  reorgConfirmationBlocks: number = 1
   originalTxParams: providers.TransactionRequest
 
   type?: number
@@ -568,8 +568,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (typeof options.compareMarketGasPrice === 'boolean') {
       this.compareMarketGasPrice = options.compareMarketGasPrice
     }
-    if (options.reorgWaitConfirmations) {
-      this.reorgWaitConfirmations = options.reorgWaitConfirmations
+    if (options.reorgConfirmationBlocks) {
+      this.reorgConfirmationBlocks = options.reorgConfirmationBlocks
     }
     if (options.maxPriorityFeeConfidenceLevel) {
       this.maxPriorityFeeConfidenceLevel = options.maxPriorityFeeConfidenceLevel
@@ -975,15 +975,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     while (true) {
       try {
         const confirmedBlockNumber = this.receipt!.blockNumber
-        const waitConfirmationsBlockNumber = confirmedBlockNumber + this.reorgWaitConfirmations
+        const reorgConfirmationBlockNumber = confirmedBlockNumber + this.reorgConfirmationBlocks
         const { number: headBlockNumber } = await this.signer.provider!.getBlock('latest')
-        if (headBlockNumber >= waitConfirmationsBlockNumber) {
+        if (headBlockNumber >= reorgConfirmationBlockNumber) {
           this.logger.debug('checking for tx receipt to see if reorg occurred')
           const receipt = await this.signer.provider!.getTransactionReceipt(this.hash)
           if (receipt) {
-            this.logger.debug(`no reorg; receipt found after waiting reorgWaitConfirmations (${this.reorgWaitConfirmations})`)
+            this.logger.debug(`no reorg; receipt found after waiting reorgConfirmationBlockNumber (${this.reorgConfirmationBlockNumber})`)
           } else {
-            this.logger.debug(`no transaction receipt found after waiting reorgWaitConfirmations (${this.reorgWaitConfirmations})`)
+            this.logger.debug(`no transaction receipt found after waiting reorgConfirmationBlockNumber (${this.reorgConfirmationBlockNumber})`)
             this.emit(State.Reorg, this.hash)
             this.rebroadcastInitialTx()
           }

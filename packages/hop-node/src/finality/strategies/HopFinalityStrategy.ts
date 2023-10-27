@@ -10,10 +10,10 @@ export default class HopFinalityStrategy implements IFinalityStrategy {
 
   constructor (provider: providers.Provider, chainSlug: Chain) {
     this.provider = provider
-    this.strategy = this._getStrategy(chainSlug)
+    this.strategy = this.getStrategy(chainSlug)
   }
 
-  private _getStrategy = (chainSlug: Chain): IFinalityStrategy => {
+  private getStrategy = (chainSlug: Chain): IFinalityStrategy => {
     if (chainSlug === Chain.Optimism) {
       return new HopOptimismFinalityStrategy(this.provider)
     } else {

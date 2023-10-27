@@ -22,17 +22,18 @@ export class FinalityService {
   private readonly chainSlug: Chain
   private readonly strategy: IFinalityStrategy
 
-  constructor (provider: providers.Provider, chainSlug: Chain, finalityStrategyType?: FinalityStrategyType) {
+  constructor (provider: providers.Provider, chainSlug: Chain, finalityStrategyType: FinalityStrategyType = FinalityStrategyType.Default) {
     this.provider = provider
     this.chainSlug = chainSlug
-    this.strategy = this._getStrategy(finalityStrategyType)
+    this.strategy = this.getStrategy(finalityStrategyType)
   }
 
-  private _getStrategy = (finalityStrategyType?: FinalityStrategyType): IFinalityStrategy => {
-    if (!finalityStrategyType) {
-      return new DefaultFinalityStrategy(this.provider)
+  private getStrategy = (finalityStrategyType: FinalityStrategyType): IFinalityStrategy => {
+    const strategyConstructor = finalityServiceMap[finalityStrategyType]
+    if (!strategyConstructor) {
+      throw new Error(`FinalityStrategyType ${finalityStrategyType} is not supported`)
     }
-    return new finalityServiceMap[finalityStrategyType](this.provider, this.chainSlug)
+    return new strategyConstructor(this.provider, this.chainSlug)
   }
 
   getBlockNumber = async (): Promise<number> => {

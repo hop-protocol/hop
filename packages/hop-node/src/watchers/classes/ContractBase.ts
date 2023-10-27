@@ -1,11 +1,11 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
-import getChainBridge from 'src/chains/getChainBridge'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import {
   Chain,
+  CustomFinalityStrategyForChain,
   MinGnosisGasPrice,
   MinPolygonGasPrice
 } from 'src/constants'
@@ -34,7 +34,11 @@ export default class ContractBase extends EventEmitter {
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
-    this.finalityService = new FinalityService(this.chainSlug, this.contract.provider, custom)
+    this.finalityService = new FinalityService(
+      this.contract.provider,
+      this.chainSlug,
+      CustomFinalityStrategyForChain?.[this.chainSlug]
+    )
   }
 
   getChainId = async (): Promise<number> => {

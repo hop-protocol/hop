@@ -11,7 +11,6 @@ const enum FinalityStrategyType {
   Collateralized = 'collateralized'
 }
 
-// Mapping chain slugs to bridge constructors
 const finalityServiceMap: Record<FinalityStrategyType, new (provider: providers.Provider, chainSlug?: string) => IFinalityStrategy> = { 
   [FinalityStrategyType.Default]: DefaultFinalityStrategy,
   [FinalityStrategyType.Hop]: HopFinalityStrategy,

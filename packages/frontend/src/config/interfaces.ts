@@ -36,6 +36,5 @@ export type Networks = {
     fallbackRpcUrls: string[]
     explorerUrl: string
     nativeBridgeUrl?: string
-    waitConfirmations?: number
   }
 }

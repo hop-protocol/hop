@@ -23,7 +23,6 @@ export const allNetworks = Object.keys(networks).map(key => {
     nativeTokenSymbol: meta.nativeTokenSymbol,
     isLayer1: meta.isLayer1,
     nativeBridgeUrl: net.nativeBridgeUrl,
-    waitConfirmations: net.waitConfirmations,
     explorerUrl: net.explorerUrl
   })
 })

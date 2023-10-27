@@ -5,57 +5,46 @@ import { chains } from '../metadata'
 export const BaseChainData: { [key in ChainSlug]: Partial<Network> } = {
   ethereum: {
     name: chains.ethereum.name,
-    image: chains.ethereum.image,
-    waitConfirmations: 32
+    image: chains.ethereum.image
   },
   gnosis: {
     name: chains.gnosis.name,
-    image: chains.gnosis.image,
-    waitConfirmations: 40
+    image: chains.gnosis.image
   },
   polygon: {
     name: chains.polygon.name,
-    image: chains.polygon.image,
-    waitConfirmations: 128
+    image: chains.polygon.image
   },
   optimism: {
     name: chains.optimism.name,
-    image: chains.optimism.image,
-    waitConfirmations: 222
+    image: chains.optimism.image
   },
   arbitrum: {
     name: chains.arbitrum.name,
-    image: chains.arbitrum.image,
-    waitConfirmations: 1776
+    image: chains.arbitrum.image
   },
   zksync: {
     name: chains.zksync.name,
-    image: chains.zksync.image,
-    waitConfirmations: 1
+    image: chains.zksync.image
   },
   linea: {
     name: chains.linea.name,
-    image: chains.linea.image,
-    waitConfirmations: 1
+    image: chains.linea.image
   },
   scrollzk: {
     name: chains.scrollzk.name,
-    image: chains.scrollzk.image,
-    waitConfirmations: 1
+    image: chains.scrollzk.image
   },
   nova: {
     name: chains.nova.name,
-    image: chains.nova.image,
-    waitConfirmations: 1776
+    image: chains.nova.image
   },
   base: {
     name: chains.base.name,
-    image: chains.base.image,
-    waitConfirmations: 222
+    image: chains.base.image
   },
   polygonzk: {
     name: chains.polygonzk.name,
-    image: chains.polygonzk.image,
-    waitConfirmations: 1
+    image: chains.polygonzk.image
   }
 }

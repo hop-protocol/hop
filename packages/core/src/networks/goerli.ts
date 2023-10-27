@@ -9,7 +9,6 @@ export const networks: Networks = {
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
-    waitConfirmations: BaseChainData.ethereum.waitConfirmations,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
   },
   polygon: {
@@ -20,7 +19,6 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge',
-    waitConfirmations: BaseChainData.polygon.waitConfirmations,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mumbai'
   },
   optimism: {
@@ -31,7 +29,6 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
-    waitConfirmations: BaseChainData.optimism.waitConfirmations,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli'
   },
   arbitrum: {
@@ -42,7 +39,6 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
-    waitConfirmations: BaseChainData.arbitrum.waitConfirmations,
     subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
   },
   zksync: {
@@ -52,8 +48,7 @@ export const networks: Networks = {
     publicRpcUrl: 'https://zksync2-testnet.zksync.dev',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
-    nativeBridgeUrl: '',
-    waitConfirmations: BaseChainData.zksync.waitConfirmations
+    nativeBridgeUrl: ''
   },
   linea: {
     name: BaseChainData.linea.name,
@@ -63,7 +58,6 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
-    waitConfirmations: BaseChainData.linea.waitConfirmations,
     subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
   },
   scrollzk: {
@@ -73,8 +67,7 @@ export const networks: Networks = {
     publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
-    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
-    waitConfirmations: BaseChainData.scrollzk.waitConfirmations
+    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge'
   },
   base: {
     name: BaseChainData.base.name,
@@ -84,7 +77,6 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
-    waitConfirmations: BaseChainData.base.waitConfirmations,
     subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
   },
   polygonzk: {
@@ -94,7 +86,6 @@ export const networks: Networks = {
     publicRpcUrl: 'https://rpc.public.zkevm-test.net',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
-    nativeBridgeUrl: 'https://public.zkevm-test.net',
-    waitConfirmations: BaseChainData.polygonzk.waitConfirmations
+    nativeBridgeUrl: 'https://public.zkevm-test.net'
   }
 }

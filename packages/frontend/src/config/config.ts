@@ -74,3 +74,17 @@ export const transferTimes = {
     polygonzkevm: 25
   },
 }
+
+export const WaitConfirmations: Record<string, number> = {
+  ethereum: 32,
+  gnosis: 40,
+  polygon: 128,
+  optimism: 222,
+  arbitrum: 1776,
+  zksync: 1,
+  linea: 1,
+  scrollzk: 1,
+  nova: 1776,
+  base: 222,
+  polygonzk: 1
+}

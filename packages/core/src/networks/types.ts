@@ -8,7 +8,6 @@ export type Network = {
   fallbackPublicRpcUrls?: string[]
   explorerUrls: string[]
   nativeBridgeUrl?: string
-  waitConfirmations: number
   subgraphUrl?: string
   etherscanApiUrl?: string
 }

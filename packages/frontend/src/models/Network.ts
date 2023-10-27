@@ -1,5 +1,6 @@
 import * as ethers from 'ethers'
 import { getProvider } from 'src/utils'
+import { ChainFinalityTag } from '@hop-protocol/core/config/types'
 
 export type Networkish = Network | string | undefined
 
@@ -17,7 +18,7 @@ export type NetworkProps = {
   nativeBridgeUrl?: string
   waitConfirmations?: number
   explorerUrl: string
-  hasFinalizationBlockTag: boolean
+  finalityTags: ChainFinalityTag
 }
 
 class Network {
@@ -35,7 +36,7 @@ class Network {
   readonly nativeBridgeUrl: string | undefined
   readonly waitConfirmations?: number
   readonly explorerUrl: string
-  readonly hasFinalizationBlockTag: boolean
+  readonly finalityTags: ChainFinalityTag
 
   constructor(props: NetworkProps) {
     this.name = props.name
@@ -53,7 +54,7 @@ class Network {
     this.nativeBridgeUrl = props.nativeBridgeUrl
     this.waitConfirmations = props.waitConfirmations
     this.explorerUrl = props.explorerUrl
-    this.hasFinalizationBlockTag = props.hasFinalizationBlockTag
+    this.finalityTags = props.finalityTags
   }
 
   toString() {

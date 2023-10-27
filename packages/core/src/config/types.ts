@@ -13,8 +13,8 @@ export enum ChainSlug {
 }
 
 export enum Superchains {
-  optimism = ChainSlug.optimism,
-  arbitrum = ChainSlug.arbitrum
+  optimism = 'optimism',
+  arbitrum = 'arbitrum'
 }
 
 export enum AssetSymbol {
@@ -38,9 +38,7 @@ export enum AssetSymbol {
 export enum FinalityState {
   Latest = 'latest',
   Safe = 'safe',
-  Finalized = 'finalized',
-  HopSafe = 'hopSafe',
-  HopFinalized = 'hopFinalized',
+  Finalized = 'finalized'
 }
 
 // Thi can be either a finalized state or a block number to look back from head

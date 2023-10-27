@@ -24,7 +24,7 @@ for (const chainSlug in _networks) {
     explorerUrl: _networks[chainSlug].explorerUrls[0],
     nativeBridgeUrl: _networks[chainSlug].nativeBridgeUrl,
     waitConfirmations: _networks[chainSlug].waitConfirmations,
-    hasFinalizationBlockTag: _networks[chainSlug].hasFinalizationBlockTag
+    finalityTags: _networks[chainSlug].finalityTags
   }
 }
 

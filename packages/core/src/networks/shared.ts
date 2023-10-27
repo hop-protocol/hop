@@ -3,12 +3,12 @@ import { Network } from './types'
 import { chains } from '../metadata'
 
 const SuperchainFinalityTags: Record<Superchains, ChainFinalityTag> = {
-  optimism: {
+  [ChainSlug.optimism]: {
     latest: FinalityState.Latest,
-    safe: FinalityState.HopSafe,
+    safe: FinalityState.Finalized,
     finalized: FinalityState.Finalized
   },
-  arbitrum: {
+  [ChainSlug.arbitrum]: {
     latest: FinalityState.Latest,
     safe: FinalityState.Safe,
     finalized: FinalityState.Finalized
@@ -46,12 +46,12 @@ export const BaseChainData: { [key in ChainSlug]: Partial<Network> } = {
   optimism: {
     name: chains.optimism.name,
     image: chains.optimism.image,
-    finalityTags: SuperchainFinalityTags.optimism
+    finalityTags: SuperchainFinalityTags[ChainSlug.optimism]
   },
   arbitrum: {
     name: chains.arbitrum.name,
     image: chains.arbitrum.image,
-    finalityTags: SuperchainFinalityTags.arbitrum
+    finalityTags: SuperchainFinalityTags[ChainSlug.arbitrum]
   },
   zksync: {
     name: chains.zksync.name,
@@ -83,12 +83,12 @@ export const BaseChainData: { [key in ChainSlug]: Partial<Network> } = {
   nova: {
     name: chains.nova.name,
     image: chains.nova.image,
-    finalityTags: SuperchainFinalityTags.arbitrum
+    finalityTags: SuperchainFinalityTags[ChainSlug.arbitrum]
   },
   base: {
     name: chains.base.name,
     image: chains.base.image,
-    finalityTags: SuperchainFinalityTags.optimism
+    finalityTags: SuperchainFinalityTags[ChainSlug.optimism]
   },
   polygonzk: {
     name: chains.polygonzk.name,

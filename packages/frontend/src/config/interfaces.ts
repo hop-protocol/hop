@@ -1,5 +1,5 @@
 import { Bridges, Bonders } from '@hop-protocol/core/addresses'
-
+import { ChainFinalityTag } from '@hop-protocol/core/config/types'
 export interface IProposalDetail {
   target: string
   functionSig: string
@@ -38,6 +38,6 @@ export type Networks = {
     explorerUrl: string
     nativeBridgeUrl?: string
     waitConfirmations?: number
-    hasFinalizationBlockTag: boolean
+    finalityTags: ChainFinalityTag
   }
 }

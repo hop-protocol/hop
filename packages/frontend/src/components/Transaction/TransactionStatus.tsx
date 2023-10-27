@@ -4,7 +4,8 @@ import Check from '@material-ui/icons/Check'
 import Link from '@material-ui/core/Link'
 import { Div, Flex } from '../ui'
 import { Text } from '../ui/Text'
-import { getHasFinalizationBlockTag, networkSlugToName } from 'src/utils'
+import { getFinalityTags, networkSlugToName } from 'src/utils'
+import { ChainFinalityTag } from '@hop-protocol/core/config/types'
 
 function TransactionStatus(props) {
   const {
@@ -33,7 +34,8 @@ function TransactionStatus(props) {
     if (showConfirmations) {
       // If the chain relies on L1 finality, do not show a confirmation number since that is L2 confirmations.
       // The modal will still show the accurate time to finality.
-      if (!confirmations || getHasFinalizationBlockTag(networkName)) {
+      const finalityTags: ChainFinalityTag = getFinalityTags(networkName)
+      if (!confirmations || typeof finalityTags.finalized !== 'number') {
         return setText(`• / ${networkWaitConfirmations} L1 Confirmations`)
       }
 

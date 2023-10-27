@@ -7,14 +7,13 @@ import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
 import {
-  AvgBlockTimeSeconds,
   Chain,
   DefaultBatchBlocks,
   Network,
   OneHourMs,
   TotalBlocks
 } from 'src/constants'
-import { Bps, ChainSlug, FinalityState } from '@hop-protocol/core/config'
+import { Bps, ChainSlug, ChainFinalityTag } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
@@ -427,19 +426,6 @@ export function enableEmergencyMode () {
   config.emergencyDryMode = true
 }
 
-export function getFinalityTimeSeconds (chainSlug: string) {
-  if (hasFinalizationBlockTag(chainSlug)) {
-    throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
-  }
-  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
-  const waitConfirmations: number = networks?.[chainSlug]?.waitConfirmations
-
-  if (!avgBlockTimeSeconds || !waitConfirmations) {
-    throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
-  }
-  return avgBlockTimeSeconds * waitConfirmations
-}
-
 export function getProxyAddressForChain (token: string, chainSlug: string): string {
   const address = config.addresses?.[token]?.[chainSlug]?.proxy
   if (!address || ShouldIgnoreProxy) {
@@ -469,16 +455,12 @@ export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
 }
 
-export function getFinalizationBlockTag (chainSlug: string): FinalityState {
-  const finalizationBlockTag = networks?.[chainSlug]?.finalizationBlockTag
-  if (!finalizationBlockTag) {
-    throw new Error(`Finalization block tag not found for chain ${chainSlug}`)
+export function getFinalityTags (chainSlug: string): ChainFinalityTag {
+  const finalityTags = networks?.[chainSlug]?.finalityTags
+  if (!finalityTags) {
+    throw new Error(`finalityTags not found for chain ${chainSlug}`)
   }
-  return finalizationBlockTag
-}
-
-export function hasFinalizationBlockTag (chainSlug: string): boolean {
-  return !!networks?.[chainSlug]?.finalizationBlockTag
+  return finalityTags
 }
 
 export const getConfigBondersForToken = (token: string) => {

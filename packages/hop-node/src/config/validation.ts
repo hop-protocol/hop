@@ -1,6 +1,6 @@
 import { Chain } from 'src/constants'
 import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
-import { FinalityState } from '@hop-protocol/core/config'
+import { FinalityTag } from '@hop-protocol/core/config'
 import { URL } from 'url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 
@@ -305,7 +305,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, finalizationBlockTag, headSync } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, finalityTags, headSync } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -336,10 +336,8 @@ export async function validateConfigValues (config?: Config) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
       }
     }
-    if (finalizationBlockTag != null) {
-      if (!Object.values(FinalityState).includes(finalizationBlockTag as FinalityState)) {
-        throw new Error(`FinalityState for chain "${chainSlug}" must be a valid FinalityState`)
-      }
+    if (finalityTags == null) {
+      throw new Error(`FinalityTag for chain "${chainSlug}" is required`)
     }
     if (headSync != null) {
       if (typeof headSync !== 'boolean') {

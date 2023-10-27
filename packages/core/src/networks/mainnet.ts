@@ -1,10 +1,10 @@
-import { BaseChainData } from './shared'
 import { Networks } from './types'
+import { chains } from '../metadata'
 
 export const networks: Networks = {
   ethereum: {
-    name: BaseChainData.ethereum.name,
-    image: BaseChainData.ethereum.image,
+    name: chains.ethereum.name,
+    image: chains.ethereum.image,
     networkId: 1,
     publicRpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
@@ -15,8 +15,8 @@ export const networks: Networks = {
     etherscanApiUrl: 'https://api.etherscan.io'
   },
   arbitrum: {
-    name: BaseChainData.arbitrum.name,
-    image: BaseChainData.arbitrum.image,
+    name: chains.arbitrum.name,
+    image: chains.arbitrum.image,
     networkId: 42161,
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [
@@ -29,8 +29,8 @@ export const networks: Networks = {
     etherscanApiUrl: 'https://api.arbiscan.io'
   },
   optimism: {
-    name: BaseChainData.optimism.name,
-    image: BaseChainData.optimism.image,
+    name: chains.optimism.name,
+    image: chains.optimism.image,
     networkId: 10,
     publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
@@ -43,8 +43,8 @@ export const networks: Networks = {
     etherscanApiUrl: 'https://api-optimistic.etherscan.io'
   },
   gnosis: {
-    name: BaseChainData.gnosis.name,
-    image: BaseChainData.gnosis.image,
+    name: chains.gnosis.name,
+    image: chains.gnosis.image,
     networkId: 100,
     publicRpcUrl: 'https://rpc.gnosis.gateway.fm',
     fallbackPublicRpcUrls: [
@@ -57,8 +57,8 @@ export const networks: Networks = {
     etherscanApiUrl: 'https://api.gnosisscan.io'
   },
   polygon: {
-    name: BaseChainData.polygon.name,
-    image: BaseChainData.polygon.image,
+    name: chains.polygon.name,
+    image: chains.polygon.image,
     networkId: 137,
     publicRpcUrl: 'https://polygon-rpc.com',
     fallbackPublicRpcUrls: [
@@ -70,8 +70,8 @@ export const networks: Networks = {
     etherscanApiUrl: 'https://api.polygonscan.com'
   },
   nova: {
-    name: BaseChainData.nova.name,
-    image: BaseChainData.nova.image,
+    name: chains.nova.name,
+    image: chains.nova.image,
     networkId: 42170,
     publicRpcUrl: 'https://nova.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
@@ -81,8 +81,8 @@ export const networks: Networks = {
     etherscanApiUrl: 'https://api-nova.arbiscan.io'
   },
   base: {
-    name: BaseChainData.base.name,
-    image: BaseChainData.base.image,
+    name: chains.base.name,
+    image: chains.base.image,
     networkId: 8453,
     publicRpcUrl: 'https://mainnet.base.org',
     fallbackPublicRpcUrls: [],
@@ -93,8 +93,8 @@ export const networks: Networks = {
   }
   /*
   zksync: {
-    name: BaseChainData.zksync.name,
-    image: BaseChainData.zksync.image,
+    name: chains.zksync.name,
+    image: chains.zksync.image,
     networkId: 324,
     publicRpcUrl: 'https://zksync2-mainnet.zksync.io',
     fallbackPublicRpcUrls: [],
@@ -102,8 +102,8 @@ export const networks: Networks = {
     nativeBridgeUrl: ''
   }
   linea: {
-    name: BaseChainData.linea.name,
-    image: BaseChainData.linea.image,
+    name: chains.linea.name,
+    image: chains.linea.image,
     networkId: 0,
     publicRpcUrl: '',
     fallbackPublicRpcUrls: [],

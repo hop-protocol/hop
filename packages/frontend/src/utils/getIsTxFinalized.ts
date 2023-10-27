@@ -1,6 +1,5 @@
-import { getFinalityTags } from 'src/utils'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { ChainFinalityTag } from '@hop-protocol/core/config/types'
+import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
 export async function getIsTxFinalized (
   txBlockNumber: number | undefined,
@@ -9,14 +8,7 @@ export async function getIsTxFinalized (
   if (!txBlockNumber) return false
 
   const provider = getProviderByNetworkName(chainSlug)
-  const finalityTag: ChainFinalityTag = getFinalityTags(chainSlug)
-
-  if (typeof finalityTag.finalized === 'number') {
-    const latestBlock = await provider.getBlock('latest')
-    const waitConfirmations = finalityTag.finalized
-    return waitConfirmations ? latestBlock.number - txBlockNumber > waitConfirmations : false
-  }
-
-  const finalizedBlock = await provider.getBlock(finalityTag.finalized)
-  return txBlockNumber < finalizedBlock.number
+  const latestBlock = await provider.getBlock('latest')
+  const waitConfirmations = getNetworkWaitConfirmations(chainSlug)
+  return waitConfirmations ? latestBlock.number - txBlockNumber > waitConfirmations : false
 }

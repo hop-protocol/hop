@@ -912,14 +912,6 @@ describe.skip('Apr', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.skip('getWaitConfirmations', () => {
-  it('should return waitConfirmations', () => {
-    const hop = new Hop('mainnet')
-    const bridge = hop.bridge('USDC')
-    expect(bridge.getWaitConfirmations('polygon')).toBe(256)
-  })
-})
-
 describe.skip('getExplorerUrl', () => {
   it('should return explorer url for transfer id', () => {
     const hop = new Hop('mainnet')

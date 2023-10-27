@@ -6,7 +6,7 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
-import { Bps, ChainFinalityTag, ChainSlug } from '@hop-protocol/core/config'
+import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -451,14 +451,6 @@ export function getBridgeWriteContractAddress (token: string, chainSlug: string)
 
 export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
-}
-
-export function getFinalityTags (chainSlug: string): ChainFinalityTag {
-  const finalityTags = networks?.[chainSlug]?.finalityTags
-  if (!finalityTags) {
-    throw new Error(`finalityTags not found for chain ${chainSlug}`)
-  }
-  return finalityTags
 }
 
 export const getConfigBondersForToken = (token: string) => {

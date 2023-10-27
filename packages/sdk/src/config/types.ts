@@ -1,5 +1,3 @@
-import { ChainFinalityTag } from '@hop-protocol/core/config'
-
 interface Chain {
   name: string
   chainId: number
@@ -7,7 +5,6 @@ interface Chain {
   fallbackRpcUrls?: string[]
   explorerUrl: string
   waitConfirmations: number
-  finalityTags: ChainFinalityTag
   subgraphUrl: string
 }
 

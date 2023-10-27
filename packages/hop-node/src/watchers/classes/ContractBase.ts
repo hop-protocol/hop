@@ -6,14 +6,13 @@ import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import {
   Chain,
-  DoesSupportCustomFinality,
   MinGnosisGasPrice,
   MinPolygonGasPrice
 } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { FinalityState } from '@hop-protocol/core/config'
-import { getFinalizationBlockTag, config as globalConfig } from 'src/config'
+import { config as globalConfig } from 'src/config'
+import { FinalityService } from 'src/finality/FinalityService'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 
@@ -21,6 +20,7 @@ export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: Chain
+  private readonly finalityService: FinalityService
 
   constructor (contract: Contract) {
     super()
@@ -34,6 +34,7 @@ export default class ContractBase extends EventEmitter {
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+    this.finalityService = new FinalityService(this.chainSlug, this.contract.provider, custom)
   }
 
   getChainId = async (): Promise<number> => {
@@ -76,53 +77,15 @@ export default class ContractBase extends EventEmitter {
   }
 
   getBlockNumber = async (): Promise<number> => {
-    return await this.contract.provider.getBlockNumber()
-  }
-
-  getFinalizedBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock(FinalityBlockTag.Finalized)
-    return Number(block.number)
+    return this.finalityService.getBlockNumber()
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    const provider = this.contract.provider
-    const block = await provider.getBlock(FinalityBlockTag.Safe)
-    return Number(block.number)
+    return this.finalityService.getSafeBlockNumber()
   }
 
-  // This needs to be able to return undefined since custom finality may require
-  // multiple calls that may fail. If it fails, the consumer of this method should
-  // fallback to finalized or safe.
-  getCustomFinalityBlockNumber = async (): Promise<number | undefined> => {
-    const chainBridge = getChainBridge(this.chainSlug)
-    if (!chainBridge?.getCustomSafeBlockNumber) {
-      throw new Error(`getCustomFinalityBlockNumber not implemented for chain ${this.chainSlug}`)
-    }
-    const customSafeBlockNumber = await chainBridge.getCustomSafeBlockNumber()
-    if (!customSafeBlockNumber) {
-      // Log warning if custom finality is not available. If this log is occurring on
-      // each loop, something is wrong with the custom finality logic and should be addressed
-      chainBridge.getLogger().error(`custom finality not available for chain ${this.chainSlug}`)
-    }
-    return customSafeBlockNumber
-  }
-
-  getBlockNumberWithAcceptableFinality = async (): Promise<number> => {
-    if (DoesSupportCustomFinality[this.chainSlug]) {
-      const blockNumber = await this.getCustomFinalityBlockNumber()
-      if (blockNumber) {
-        return blockNumber
-      }
-    }
-
-    const finalizationBlockTag = getFinalizationBlockTag(this.chainSlug)
-    if (finalizationBlockTag === FinalityBlockTag.Finalized) {
-      return await this.getFinalizedBlockNumber()
-    } else if (finalizationBlockTag === FinalityBlockTag.Safe) {
-      return await this.getSafeBlockNumber()
-    } else {
-      throw new Error(`unknown finality tag for chain ${this.chainSlug}`)
-    }
+  getFinalizedBlockNumber = async (): Promise<number> => {
+    return this.finalityService.getFinalizedBlockNumber()
   }
 
   getTransactionBlockNumber = async (txHash: string): Promise<number> => {

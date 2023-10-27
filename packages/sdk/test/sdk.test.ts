@@ -1235,7 +1235,7 @@ describe.skip('debugTimeLogs', () => {
     const sdk = new Hop({
       network: 'mainnet',
       debugTimeLogsEnabled: true,
-      debugTimeLogsCacheEnabled: true,
+      debugTimeLogsCacheEnabled: true
 
       // fill in
 

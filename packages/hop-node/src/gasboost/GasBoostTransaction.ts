@@ -981,9 +981,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           this.logger.debug('checking for tx receipt to see if reorg occurred')
           const receipt = await this.signer.provider!.getTransactionReceipt(this.hash)
           if (receipt) {
-            this.logger.debug(`no reorg; receipt found after waiting reorgConfirmationBlockNumber (${this.reorgConfirmationBlockNumber})`)
+            this.logger.debug(`no reorg; receipt found after waiting reorgConfirmationBlocks (${this.reorgConfirmationBlocks})`)
           } else {
-            this.logger.debug(`no transaction receipt found after waiting reorgConfirmationBlockNumber (${this.reorgConfirmationBlockNumber})`)
+            this.logger.debug(`no transaction receipt found after waiting reorgConfirmationBlocks (${this.reorgConfirmationBlocks})`)
             this.emit(State.Reorg, this.hash)
             this.rebroadcastInitialTx()
           }

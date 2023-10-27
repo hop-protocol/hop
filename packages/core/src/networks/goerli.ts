@@ -1,106 +1,109 @@
-import { FinalityState } from '../config/types'
+import { BaseChainData } from './shared'
 import { Networks } from './types'
-import { chains } from '../metadata'
 
 export const networks: Networks = {
   ethereum: {
-    name: chains.ethereum.name,
-    image: chains.ethereum.image,
+    name: BaseChainData.ethereum.name,
+    image: BaseChainData.ethereum.image,
     networkId: 5,
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
     waitConfirmations: 1,
-    finalizationBlockTag: FinalityState.Safe,
+    finalityTags: BaseChainData.ethereum.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
   },
   polygon: {
-    name: chains.polygon.name,
-    image: chains.polygon.image,
+    name: BaseChainData.polygon.name,
+    image: BaseChainData.polygon.image,
     networkId: 80001,
     publicRpcUrl: 'https://rpc.ankr.com/polygon_mumbai',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge',
     waitConfirmations: 64,
+    finalityTags: BaseChainData.polygon.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mumbai'
   },
   optimism: {
-    name: chains.optimism.name,
-    image: chains.optimism.image,
+    name: BaseChainData.optimism.name,
+    image: BaseChainData.optimism.image,
     networkId: 420,
     publicRpcUrl: 'https://goerli.optimism.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Finalized,
+    finalityTags: BaseChainData.optimism.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli'
   },
   arbitrum: {
-    name: chains.arbitrum.name,
-    image: chains.arbitrum.image,
+    name: BaseChainData.arbitrum.name,
+    image: BaseChainData.arbitrum.image,
     networkId: 421613,
     publicRpcUrl: 'https://goerli-rollup.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Safe,
+    finalityTags: BaseChainData.arbitrum.finalityTags,
     subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
   },
   zksync: {
-    name: chains.zksync.name,
-    image: chains.zksync.image,
+    name: BaseChainData.zksync.name,
+    image: BaseChainData.zksync.image,
     networkId: 280,
     publicRpcUrl: 'https://zksync2-testnet.zksync.dev',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
     nativeBridgeUrl: '',
+    finalityTags: BaseChainData.zksync.finalityTags,
     waitConfirmations: 64
   },
   linea: {
-    name: chains.linea.name,
-    image: chains.linea.image,
+    name: BaseChainData.linea.name,
+    image: BaseChainData.linea.image,
     networkId: 59140,
     publicRpcUrl: 'https://rpc.goerli.linea.build',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
+    finalityTags: BaseChainData.linea.finalityTags,
     waitConfirmations: 64,
     subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
   },
   scrollzk: {
-    name: chains.scrollzk.name,
-    image: chains.scrollzk.image,
+    name: BaseChainData.scrollzk.name,
+    image: BaseChainData.scrollzk.image,
     networkId: 534354,
     publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
     nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
+    finalityTags: BaseChainData.scrollzk.finalityTags,
     waitConfirmations: 64
   },
   base: {
-    name: chains.base.name,
-    image: chains.base.image,
+    name: BaseChainData.base.name,
+    image: BaseChainData.base.image,
     networkId: 84531,
     publicRpcUrl: 'https://goerli.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
+    finalityTags: BaseChainData.base.finalityTags,
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Finalized,
     subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
   },
   polygonzk: {
-    name: chains.polygonzk.name,
-    image: chains.polygonzk.image,
+    name: BaseChainData.polygonzk.name,
+    image: BaseChainData.polygonzk.image,
     networkId: 1442,
     publicRpcUrl: 'https://rpc.public.zkevm-test.net',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
     nativeBridgeUrl: 'https://public.zkevm-test.net',
-    waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Safe
+    finalityTags: BaseChainData.polygonzk.finalityTags,
+    waitConfirmations: 64
   }
 }

@@ -1,11 +1,10 @@
-import { FinalityState } from '../config/types'
+import { BaseChainData } from './shared'
 import { Networks } from './types'
-import { chains } from '../metadata'
 
 export const networks: Networks = {
   ethereum: {
-    name: chains.ethereum.name,
-    image: chains.ethereum.image,
+    name: BaseChainData.ethereum.name,
+    image: BaseChainData.ethereum.image,
     networkId: 1,
     publicRpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
@@ -13,13 +12,13 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://etherscan.io'],
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Safe,
+    finalityTags: BaseChainData.ethereum.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet',
     etherscanApiUrl: 'https://api.etherscan.io'
   },
   arbitrum: {
-    name: chains.arbitrum.name,
-    image: chains.arbitrum.image,
+    name: BaseChainData.arbitrum.name,
+    image: BaseChainData.arbitrum.image,
     networkId: 42161,
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [
@@ -29,13 +28,13 @@ export const networks: Networks = {
     explorerUrls: ['https://arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Safe,
+    finalityTags: BaseChainData.arbitrum.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum',
     etherscanApiUrl: 'https://api.arbiscan.io'
   },
   optimism: {
-    name: chains.optimism.name,
-    image: chains.optimism.image,
+    name: BaseChainData.optimism.name,
+    image: BaseChainData.optimism.image,
     networkId: 10,
     publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
@@ -45,13 +44,13 @@ export const networks: Networks = {
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Finalized,
+    finalityTags: BaseChainData.optimism.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism',
     etherscanApiUrl: 'https://api-optimistic.etherscan.io'
   },
   gnosis: {
-    name: chains.gnosis.name,
-    image: chains.gnosis.image,
+    name: BaseChainData.gnosis.name,
+    image: BaseChainData.gnosis.image,
     networkId: 100,
     publicRpcUrl: 'https://rpc.gnosis.gateway.fm',
     fallbackPublicRpcUrls: [
@@ -61,13 +60,13 @@ export const networks: Networks = {
     explorerUrls: ['https://gnosisscan.io'],
     nativeBridgeUrl: 'https://omni.xdaichain.com',
     waitConfirmations: 20,
-    finalizationBlockTag: FinalityState.Finalized,
+    finalityTags: BaseChainData.gnosis.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-xdai',
     etherscanApiUrl: 'https://api.gnosisscan.io'
   },
   polygon: {
-    name: chains.polygon.name,
-    image: chains.polygon.image,
+    name: BaseChainData.polygon.name,
+    image: BaseChainData.polygon.image,
     networkId: 137,
     publicRpcUrl: 'https://polygon-rpc.com',
     fallbackPublicRpcUrls: [
@@ -75,54 +74,57 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge',
+    finalityTags: BaseChainData.polygon.finalityTags,
     waitConfirmations: 256,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-polygon',
     etherscanApiUrl: 'https://api.polygonscan.com'
   },
   nova: {
-    name: chains.nova.name,
-    image: chains.nova.image,
+    name: BaseChainData.nova.name,
+    image: BaseChainData.nova.image,
     networkId: 42170,
     publicRpcUrl: 'https://nova.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://nova.arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Safe,
+    finalityTags: BaseChainData.nova.finalityTags,
     subgraphUrl: 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-nova',
     etherscanApiUrl: 'https://api-nova.arbiscan.io'
   },
   base: {
-    name: chains.base.name,
-    image: chains.base.image,
+    name: BaseChainData.base.name,
+    image: BaseChainData.base.image,
     networkId: 8453,
     publicRpcUrl: 'https://mainnet.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     waitConfirmations: 64,
-    finalizationBlockTag: FinalityState.Finalized,
+    finalityTags: BaseChainData.base.finalityTags,
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-base',
     etherscanApiUrl: 'https://api.basescan.org'
   }
   /*
   zksync: {
-    name: chains.zksync.name,
-    image: chains.zksync.image,
+    name: BaseChainData.zksync.name,
+    image: BaseChainData.zksync.image,
     networkId: 324,
     publicRpcUrl: 'https://zksync2-mainnet.zksync.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.zksync.io'],
+    finalityTags: BaseChainData.zksync.finalityTags,
     nativeBridgeUrl: '',
     waitConfirmations: 1
   }
   linea: {
-    name: chains.linea.name,
-    image: chains.linea.image,
+    name: BaseChainData.linea.name,
+    image: BaseChainData.linea.image,
     networkId: 0,
     publicRpcUrl: '',
     fallbackPublicRpcUrls: [],
     explorerUrls: [''],
+    finalityTags: BaseChainData.linea.finalityTags,
     nativeBridgeUrl: '',
     waitConfirmations: 1
   }

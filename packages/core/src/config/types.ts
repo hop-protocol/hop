@@ -12,6 +12,11 @@ export enum ChainSlug {
   polygonzk = 'polygonzk'
 }
 
+export enum Superchains {
+  optimism = ChainSlug.optimism,
+  arbitrum = ChainSlug.arbitrum
+}
+
 export enum AssetSymbol {
   USDC = 'USDC',
   USDT = 'USDT',
@@ -34,6 +39,17 @@ export enum FinalityState {
   Latest = 'latest',
   Safe = 'safe',
   Finalized = 'finalized',
+  HopSafe = 'hopSafe',
+  HopFinalized = 'hopFinalized',
+}
+
+// Thi can be either a finalized state or a block number to look back from head
+export type FinalityTag = FinalityState | number
+
+export type ChainFinalityTag = {
+  latest: FinalityTag,
+  safe: FinalityTag,
+  finalized: FinalityTag
 }
 
 export type Bps = {

@@ -24,6 +24,6 @@ export class HopArbitrumFinalityStrategy extends HopChainFinalityStrategy implem
   }
 
   getSyncHeadBlockNumber = async (): Promise<number> => {
-    return this.getSafeBlockNumber()
+    return this.getBlockNumber()
   }
 }

@@ -1,34 +1,23 @@
+import FinalityStrategies from './strategies'
 import { Chain } from 'src/constants'
-import { IFinalityStrategy, Strategies, Strategy } from './strategies/IFinalityStrategy'
+import {
+  FinalityStrategyType,
+  IFinalityStrategy,
+  Strategies,
+  Strategy
+} from './strategies/IFinalityStrategy'
 import { providers } from 'ethers'
-
-import BonderFinalityStrategies from './strategies/bonder'
-import CollateralizedFinalityStrategies from './strategies/collateralized'
-import DefaultFinalityStrategies from './strategies/default'
-import ThresholdFinalityStrategies from './strategies/threshold'
-
-export enum FinalityStrategyType {
-  Bonder = 'bonder',
-  Collateralized = 'collateralized',
-  Default = 'default',
-  Threshold = 'threshold'
-}
 
 export class FinalityService implements IFinalityStrategy {
   private readonly strategy: IFinalityStrategy
-  private static readonly strategyTypeMap: Record<FinalityStrategyType, Strategies> = {
-    [FinalityStrategyType.Bonder]: BonderFinalityStrategies,
-    [FinalityStrategyType.Collateralized]: CollateralizedFinalityStrategies,
-    [FinalityStrategyType.Default]: DefaultFinalityStrategies,
-    [FinalityStrategyType.Threshold]: ThresholdFinalityStrategies
-  }
+  static FinalityStrategyType = FinalityStrategyType
 
   constructor (
     provider: providers.Provider,
     chainSlug: Chain,
     finalityStrategyType: FinalityStrategyType = FinalityStrategyType.Default
   ) {
-    const strategies: Strategies | undefined = FinalityService.strategyTypeMap[finalityStrategyType]
+    const strategies: Strategies | undefined = FinalityStrategies[finalityStrategyType]
     if (!strategies) {
       throw new Error(`FinalityStrategyType ${finalityStrategyType} is not supported`)
     }

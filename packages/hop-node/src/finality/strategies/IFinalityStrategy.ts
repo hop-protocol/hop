@@ -1,13 +1,12 @@
 import { Chain } from 'src/constants'
 import { providers } from 'ethers'
 
-// TODO: Can chains be more specific?
-
-export type Strategy = new (provider: providers.Provider, chainSlug: Chain) => any
-
-export type Strategies = Partial<{
-  [value in Chain]: Strategy
-}>
+export enum FinalityStrategyType {
+  Bonder = 'bonder',
+  Collateralized = 'collateralized',
+  Default = 'default',
+  Threshold = 'threshold'
+}
 
 export interface IFinalityStrategy {
   getBlockNumber(): Promise<number>
@@ -15,3 +14,9 @@ export interface IFinalityStrategy {
   getFinalizedBlockNumber(): Promise<number>
   getSyncHeadBlockNumber(): Promise<number>
 }
+
+export type Strategy = new (provider: providers.Provider, chainSlug: Chain) => IFinalityStrategy
+
+export type Strategies = Partial<{
+  [value in Chain]: Strategy
+}>

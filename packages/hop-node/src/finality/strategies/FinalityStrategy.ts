@@ -4,7 +4,7 @@ import { providers } from 'ethers'
 
 // Default values to be overridden by child classes if desired
 
-export abstract class ChainFinalityStrategy {
+export abstract class FinalityStrategy {
   readonly provider: providers.Provider
   readonly chainSlug: Chain
 

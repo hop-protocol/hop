@@ -1,20 +1,20 @@
-import { ArbitrumFinalityStrategy } from './ArbitrumFinalityStrategy'
-import { EthereumFinalityStrategy } from './EthereumFinalityStrategy'
-import { GnosisFinalityStrategy } from './GnosisFinalityStrategy'
-import { OptimismFinalityStrategy } from './OptimismFinalityStrategy'
-import { PolygonFinalityStrategy } from './PolygonFinalityStrategy'
+import { ArbitrumStrategy } from './ArbitrumStrategy'
+import { EthereumStrategy } from './EthereumStrategy'
+import { GnosisStrategy } from './GnosisStrategy'
+import { OptimismStrategy } from './OptimismStrategy'
+import { PolygonStrategy } from './PolygonStrategy'
 
 import { Chain } from 'src/constants'
-import { ChainFinalityStrategy } from '../IFinalityStrategy'
+import { Strategies } from '../IFinalityStrategy'
 
-const BonderStrategiesMap: ChainFinalityStrategy = {
-  [Chain.Ethereum]: EthereumFinalityStrategy,
-  [Chain.Polygon]: PolygonFinalityStrategy,
-  [Chain.Gnosis]: GnosisFinalityStrategy,
-  [Chain.Optimism]: OptimismFinalityStrategy,
-  [Chain.Base]: OptimismFinalityStrategy,
-  [Chain.Arbitrum]: ArbitrumFinalityStrategy,
-  [Chain.Nova]: ArbitrumFinalityStrategy
+const BonderStrategiesMap: Strategies = {
+  [Chain.Ethereum]: EthereumStrategy,
+  [Chain.Polygon]: PolygonStrategy,
+  [Chain.Gnosis]: GnosisStrategy,
+  [Chain.Optimism]: OptimismStrategy,
+  [Chain.Base]: OptimismStrategy,
+  [Chain.Arbitrum]: ArbitrumStrategy,
+  [Chain.Nova]: ArbitrumStrategy
 }
 
 export default BonderStrategiesMap

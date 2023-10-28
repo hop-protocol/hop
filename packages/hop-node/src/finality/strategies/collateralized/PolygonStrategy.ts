@@ -1,13 +1,7 @@
-import { Chain } from 'src/constants'
-import { ChainFinalityStrategy } from '../ChainFinalityStrategy'
+import { FinalityStrategy } from '../FinalityStrategy'
 import { IFinalityStrategy } from '../IFinalityStrategy'
-import { providers } from 'ethers'
 
-export class PolygonFinalityStrategy extends ChainFinalityStrategy implements IFinalityStrategy {
-  constructor (provider: providers.Provider) {
-    super(provider, Chain.Polygon)
-  }
-
+export class PolygonStrategy extends FinalityStrategy implements IFinalityStrategy {
   getSafeBlockNumber = async (): Promise<number> => {
     const confirmations = 128
     return this.getProbabilisticBlockNumber(confirmations)
@@ -19,6 +13,7 @@ export class PolygonFinalityStrategy extends ChainFinalityStrategy implements IF
   }
 
   getSyncHeadBlockNumber = async (): Promise<number> => {
-    return this.getSafeBlockNumber()
+    const confirmations = 32
+    return this.getProbabilisticBlockNumber(confirmations)
   }
 }

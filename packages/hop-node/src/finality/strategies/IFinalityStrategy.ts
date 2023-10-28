@@ -3,9 +3,9 @@ import { providers } from 'ethers'
 
 // TODO: Can chains be more specific?
 
-export type Strategy = new (provider: providers.Provider) => any
+export type Strategy = new (provider: providers.Provider, chainSlug: Chain) => any
 
-export type ChainFinalityStrategy = Partial<{
+export type Strategies = Partial<{
   [value in Chain]: Strategy
 }>
 

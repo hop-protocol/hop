@@ -1,14 +1,8 @@
-import { Chain } from 'src/constants'
-import { ChainFinalityStrategy } from '../ChainFinalityStrategy'
+import { FinalityStrategy } from '../FinalityStrategy'
 import { IFinalityStrategy } from '../IFinalityStrategy'
 import { getCustomOptimismSafeBlockNumber } from '../utils'
-import { providers } from 'ethers'
 
-export class OptimismFinalityStrategy extends ChainFinalityStrategy implements IFinalityStrategy {
-  constructor (provider: providers.Provider) {
-    super(provider, Chain.Optimism)
-  }
-
+export class OptimismStrategy extends FinalityStrategy implements IFinalityStrategy {
   getSafeBlockNumber = async (): Promise<number> => {
     const blockNumber = await getCustomOptimismSafeBlockNumber(this.chainSlug)
     if (blockNumber) {

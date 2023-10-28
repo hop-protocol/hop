@@ -4,7 +4,7 @@ import DefaultFinalityStrategies from './default'
 import ThresholdFinalityStrategies from './threshold'
 import { FinalityStrategyType, Strategies } from './IFinalityStrategy'
 
-export const FinalityStrategies: Record<FinalityStrategyType, Strategies> = {
+const FinalityStrategies: Record<FinalityStrategyType, Strategies> = {
   [FinalityStrategyType.Bonder]: BonderFinalityStrategies,
   [FinalityStrategyType.Collateralized]: CollateralizedFinalityStrategies,
   [FinalityStrategyType.Default]: DefaultFinalityStrategies,

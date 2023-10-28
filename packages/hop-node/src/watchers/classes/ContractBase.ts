@@ -5,7 +5,7 @@ import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import {
   Chain,
-  CustomFinalityStrategyForChain,
+  FinalityStrategyType,
   MinGnosisGasPrice,
   MinPolygonGasPrice
 } from 'src/constants'
@@ -37,7 +37,7 @@ export default class ContractBase extends EventEmitter {
     this.finalityService = new FinalityService(
       this.contract.provider,
       this.chainSlug,
-      CustomFinalityStrategyForChain?.[this.chainSlug]
+      FinalityStrategyType.Hop
     )
   }
 

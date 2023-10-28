@@ -212,8 +212,3 @@ export enum FinalityStrategyType {
   Hop = 'hop',
   Collateralized = 'collateralized'
 }
-
-export const CustomFinalityStrategyForChain: Record<string, FinalityStrategyType> = {
-  [Chain.Optimism]: FinalityStrategyType.Hop,
-  [Chain.Base]: FinalityStrategyType.Hop
-}

@@ -3,11 +3,13 @@ import { IFinalityStrategy } from './IFinalityStrategy'
 import { providers } from 'ethers'
 
 import { HopArbitrumFinalityStrategy } from './HopChainFinalityStrategies/HopArbitrumFinalityStrategy'
+import { HopEthereumFinalityStrategy } from './HopChainFinalityStrategies/HopEthereumFinalityStrategy'
 import { HopGnosisFinalityStrategy } from './HopChainFinalityStrategies/HopGnosisFinalityStrategy'
 import { HopOptimismFinalityStrategy } from './HopChainFinalityStrategies/HopOptimismFinalityStrategy'
 import { HopPolygonFinalityStrategy } from './HopChainFinalityStrategies/HopPolygonFinalityStrategy'
 
 const hopChainFinalityStrategyMap: Record<string, new (provider: providers.Provider) => IFinalityStrategy> = {
+  [Chain.Ethereum]: HopEthereumFinalityStrategy,
   [Chain.Polygon]: HopPolygonFinalityStrategy,
   [Chain.Gnosis]: HopGnosisFinalityStrategy,
   [Chain.Optimism]: HopOptimismFinalityStrategy,

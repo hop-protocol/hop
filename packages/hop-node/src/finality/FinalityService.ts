@@ -1,41 +1,41 @@
-import CollateralizedFinalityStrategy from './strategies/CollateralizedFinalityStrategy'
-import DefaultFinalityStrategy from './strategies/DefaultFinalityStrategy'
-import HopFinalityStrategy from './strategies/HopFinalityStrategy'
 import { Chain } from 'src/constants'
-import { IFinalityStrategy } from './strategies/IFinalityStrategy'
+import { ChainFinalityStrategy, IFinalityStrategy, Strategy } from './strategies/IFinalityStrategy'
 import { providers } from 'ethers'
 
-// TODO: Generalize this outside of this class after adding more strategies. This service should
-// accept the entire strategy from the consumer, not just tye type.
-enum FinalityStrategyType {
-  Default = 'default',
-  Hop = 'hop',
-  Collateralized = 'collateralized'
-}
+import BonderChainStrategies from './strategies/bonder'
+import CollateralizedChainStrategies from './strategies/collateralized'
+import DefaultChainStrategies from './strategies/default'
+import ThresholdChainStrategies from './strategies/threshold'
 
-const finalityServiceMap: Record<FinalityStrategyType, new (provider: providers.Provider, chainSlug?: string) => IFinalityStrategy> = {
-  [FinalityStrategyType.Default]: DefaultFinalityStrategy,
-  [FinalityStrategyType.Hop]: HopFinalityStrategy,
-  [FinalityStrategyType.Collateralized]: CollateralizedFinalityStrategy
+export enum FinalityStrategyType {
+  Bonder = 'bonder',
+  Collateralized = 'collateralized',
+  Default = 'default',
+  Threshold = 'threshold'
 }
 
 export class FinalityService implements IFinalityStrategy {
-  private readonly provider: providers.Provider
-  private readonly chainSlug: Chain
   private readonly strategy: IFinalityStrategy
-
-  constructor (provider: providers.Provider, chainSlug: Chain, finalityStrategyType: FinalityStrategyType = FinalityStrategyType.Default) {
-    this.provider = provider
-    this.chainSlug = chainSlug
-    this.strategy = this.getStrategy(finalityStrategyType)
+  // TODO: Custom type??
+  private static readonly strategyTypeMap: Record<FinalityStrategyType, ChainFinalityStrategy> = {
+    [FinalityStrategyType.Bonder]: BonderChainStrategies,
+    [FinalityStrategyType.Collateralized]: CollateralizedChainStrategies,
+    [FinalityStrategyType.Default]: DefaultChainStrategies,
+    [FinalityStrategyType.Threshold]: ThresholdChainStrategies
   }
 
-  private readonly getStrategy = (finalityStrategyType: FinalityStrategyType): IFinalityStrategy => {
-    const strategyConstructor = finalityServiceMap[finalityStrategyType]
-    if (!strategyConstructor) {
+  constructor (provider: providers.Provider, chainSlug: Chain, finalityStrategyType: FinalityStrategyType = FinalityStrategyType.Default) {
+    const strategies: ChainFinalityStrategy | undefined = FinalityService.strategyTypeMap[finalityStrategyType]
+    if (!strategies) {
       throw new Error(`FinalityStrategyType ${finalityStrategyType} is not supported`)
     }
-    return new strategyConstructor(this.provider, this.chainSlug)
+
+    const strategyConstructor: Strategy | undefined = strategies[chainSlug]
+    if (!strategyConstructor) {
+      throw new Error(`Chain strategy for ${chainSlug} is not supported`)
+    }
+
+    this.strategy = new strategyConstructor(provider)
   }
 
   getBlockNumber = async (): Promise<number> => {

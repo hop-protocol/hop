@@ -1,13 +1,16 @@
+import { Chain } from 'src/constants'
 import { FinalityState } from '@hop-protocol/core/config'
-import { IFinalityStrategy } from './IFinalityStrategy'
 import { providers } from 'ethers'
 
-export default class CollateralizedFinalityStrategy implements IFinalityStrategy {
-  private readonly provider: providers.Provider
+// Default values to be overridden by child classes if desired
 
-  constructor (provider: providers.Provider) {
+export abstract class ChainFinalityStrategy {
+  readonly provider: providers.Provider
+  readonly chainSlug: Chain
+
+  constructor (provider: providers.Provider, chainSlug: Chain) {
     this.provider = provider
-    throw new Error('Not yet implemented')
+    this.chainSlug = chainSlug
   }
 
   getBlockNumber = async (): Promise<number> => {
@@ -25,6 +28,11 @@ export default class CollateralizedFinalityStrategy implements IFinalityStrategy
   }
 
   getSyncHeadBlockNumber = async (): Promise<number> => {
-    return this.getBlockNumber()
+    return this.getFinalizedBlockNumber()
+  }
+
+  getProbabilisticBlockNumber = async (confirmations: number): Promise<number> => {
+    const blockNumber: number = await this.getBlockNumber()
+    return blockNumber - confirmations
   }
 }

@@ -205,10 +205,3 @@ export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
   [RootProviderName.Infura]: false,
   [RootProviderName.Quiknode]: true
 }
-
-// This is not DRY with FinalityService. The FinalityService should have more strategies before generalizing it.
-export enum FinalityStrategyType {
-  Default = 'default',
-  Hop = 'hop',
-  Collateralized = 'collateralized'
-}

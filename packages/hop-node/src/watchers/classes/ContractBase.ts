@@ -5,13 +5,12 @@ import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import {
   Chain,
-  FinalityStrategyType,
   MinGnosisGasPrice,
   MinPolygonGasPrice
 } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { FinalityService } from 'src/finality/FinalityService'
+import { FinalityService, FinalityStrategyType } from 'src/finality/FinalityService'
 import { config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
@@ -37,7 +36,7 @@ export default class ContractBase extends EventEmitter {
     this.finalityService = new FinalityService(
       this.contract.provider,
       this.chainSlug,
-      FinalityStrategyType.Hop
+      FinalityStrategyType.Bonder
     )
   }
 

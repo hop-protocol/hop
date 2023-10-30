@@ -92,7 +92,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   getSyncHeadBlockNumber = async (): Promise<number> => {
-    return this.finalityService.getSyncHeadBlockNumber()
+    return this.finalityService.getCustomBlockNumber()
   }
 
   getTransactionBlockNumber = async (txHash: string): Promise<number> => {

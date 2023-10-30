@@ -27,7 +27,7 @@ export abstract class FinalityStrategy {
     return Number(block.number)
   }
 
-  getSyncHeadBlockNumber = async (): Promise<number> => {
+  getCustomBlockNumber = async (): Promise<number> => {
     return this.getFinalizedBlockNumber()
   }
 

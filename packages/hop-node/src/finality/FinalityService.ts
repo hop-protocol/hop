@@ -42,7 +42,7 @@ export class FinalityService implements IFinalityStrategy {
     return this.strategy.getFinalizedBlockNumber()
   }
 
-  getSyncHeadBlockNumber = async (): Promise<number> => {
-    return this.strategy.getSyncHeadBlockNumber()
+  getCustomBlockNumber = async (): Promise<number> => {
+    return this.strategy.getCustomBlockNumber()
   }
 }

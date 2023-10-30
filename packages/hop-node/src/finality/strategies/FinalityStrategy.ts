@@ -31,7 +31,7 @@ export abstract class FinalityStrategy {
     return this.getFinalizedBlockNumber()
   }
 
-  getProbabilisticBlockNumber = async (confirmations: number): Promise<number> => {
+  protected getProbabilisticBlockNumber = async (confirmations: number): Promise<number> => {
     const blockNumber: number = await this.getBlockNumber()
     return blockNumber - confirmations
   }

@@ -12,7 +12,7 @@ export interface IFinalityStrategy {
   getBlockNumber(): Promise<number>
   getSafeBlockNumber(): Promise<number>
   getFinalizedBlockNumber(): Promise<number>
-  getCustomBlockNumber(): Promise<number>
+  getCustomBlockNumber?(): Promise<number>
 }
 
 export type Strategy = new (provider: providers.Provider, chainSlug: Chain) => IFinalityStrategy

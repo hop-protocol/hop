@@ -43,6 +43,9 @@ export class FinalityService implements IFinalityStrategy {
   }
 
   getCustomBlockNumber = async (): Promise<number> => {
+    if (!this.strategy.getCustomBlockNumber) {
+      throw new Error('Custom block number is not supported')
+    }
     return this.strategy.getCustomBlockNumber()
   }
 }

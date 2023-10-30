@@ -11,8 +11,4 @@ export class PolygonStrategy extends FinalityStrategy implements IFinalityStrate
     const confirmations = 256
     return this.getProbabilisticBlockNumber(confirmations)
   }
-
-  getCustomBlockNumber = async (): Promise<number> => {
-    return this.getSafeBlockNumber()
-  }
 }

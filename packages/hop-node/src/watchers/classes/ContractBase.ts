@@ -92,6 +92,9 @@ export default class ContractBase extends EventEmitter {
   }
 
   getSyncBlockNumber = async (): Promise<number> => {
+    if (!this.finalityService.isCustomBlockNumberImplemented()) {
+      throw new Error('Custom block number is not supported')
+    }
     return this.finalityService.getCustomBlockNumber()
   }
 

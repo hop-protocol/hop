@@ -6,9 +6,10 @@ import {
   Strategies,
   Strategy
 } from './strategies/IFinalityStrategy'
+import { IFinalityService } from './IFinalityService'
 import { providers } from 'ethers'
 
-export class FinalityService implements IFinalityStrategy {
+export class FinalityService implements IFinalityService {
   private readonly strategy: IFinalityStrategy
   static FinalityStrategyType = FinalityStrategyType
 
@@ -43,9 +44,13 @@ export class FinalityService implements IFinalityStrategy {
   }
 
   getCustomBlockNumber = async (): Promise<number> => {
-    if (!this.strategy.getCustomBlockNumber) {
+    if (!this.isCustomBlockNumberImplemented()) {
       throw new Error('Custom block number is not supported')
     }
-    return this.strategy.getCustomBlockNumber()
+    return this.strategy.getCustomBlockNumber!()
+  }
+
+  isCustomBlockNumberImplemented = (): boolean => {
+    return !!this.strategy.getCustomBlockNumber
   }
 }

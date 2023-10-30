@@ -698,7 +698,13 @@ export default class Bridge extends ContractBase {
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
 
-    const syncBlockNumber: number = await this.getSyncBlockNumber(isHeadSync)
+    let syncBlockNumber: number
+    if (isHeadSync) {
+      syncBlockNumber = await this.getSyncBlockNumber()
+    } else {
+      syncBlockNumber = await this.getSafeBlockNumber()
+    }
+
     if (startBlockNumber && endBlockNumber) {
       end = endBlockNumber
       totalBlocksInBatch = end - startBlockNumber
@@ -749,13 +755,6 @@ export default class Bridge extends ContractBase {
     key: string
   ) => {
     return `${chainId}:${address}:${key}`
-  }
-
-  private readonly getSyncBlockNumber = async (isHeadSync?: boolean): Promise<number> => {
-    if (isHeadSync) {
-      return this.getSyncBlockNumber()
-    }
-    return this.getSafeBlockNumber()
   }
 
   shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {

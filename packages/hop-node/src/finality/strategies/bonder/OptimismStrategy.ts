@@ -15,6 +15,6 @@ export class OptimismStrategy extends FinalityStrategy implements IFinalityStrat
   }
 
   getCustomBlockNumber = async (): Promise<number> => {
-    return this.getBlockNumber()
+    return this.getSafeBlockNumber()
   }
 }

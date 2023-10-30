@@ -753,7 +753,7 @@ export default class Bridge extends ContractBase {
 
   private readonly getSyncBlockNumber = async (isHeadSync?: boolean): Promise<number> => {
     if (isHeadSync) {
-      return this.getSyncHeadBlockNumber()
+      return this.getSyncBlockNumber()
     }
     return this.getSafeBlockNumber()
   }

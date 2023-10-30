@@ -91,7 +91,7 @@ export default class ContractBase extends EventEmitter {
     return this.finalityService.getFinalizedBlockNumber()
   }
 
-  getSyncHeadBlockNumber = async (): Promise<number> => {
+  getSyncBlockNumber = async (): Promise<number> => {
     return this.finalityService.getCustomBlockNumber()
   }
 

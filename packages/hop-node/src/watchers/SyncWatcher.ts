@@ -568,7 +568,10 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
       const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
-      const isFinalized = !isHeadSync
+      // isFinalized must be undefined if isHeadSync is not explicitly false
+      // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
+      // should never happen unless RPC providers return out of order events
+      const isFinalized = isHeadSync === false ? true : undefined
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -607,12 +610,6 @@ class SyncWatcher extends BaseWatcher {
       // as notFound previously if there was weird behavior onchain after this
       // transfer was seen at the head. If this is the case, the transfer would not have been
       // bonded before finality and will need to be bonded now.
-
-      // NOTE: There is a rare race condition where an unfinalized transfer may be processed before
-      // the finalized transfer is seen but sent and fail onchain validation after the finalized
-      // transfer has been recorded. For example, if a reorg happens at block 255 and finalization
-      // is at block 256. In this case, the transferId will be marked as notFound and the
-      // transfer will never be bonded. This is not handled, but if it ever occurs in practice, handle here.
       if (isFinalized) {
         logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxErr: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
         dbData.isNotFound = undefined

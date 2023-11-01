@@ -345,9 +345,10 @@ class SyncWatcher extends BaseWatcher {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
+    const customSyncKeySuffix = l2Bridge.getCustomSyncKeySuffix()
     let keyName = l2Bridge.TransferSent
-    if (isCustomSync) {
-      keyName += l2Bridge.getCustomSyncKeySuffix()
+    if (isCustomSync && customSyncKeySuffix) {
+      keyName += customSyncKeySuffix
     }
 
     return l2Bridge.mapTransferSentEvents(
@@ -566,7 +567,7 @@ class SyncWatcher extends BaseWatcher {
       // isFinalized must be undefined if isCustomSync is not explicitly false
       // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
       // should never happen unless RPC providers return out of order events
-      const isFinalized = isCustomSync === false ? true : undefined
+      const isFinalized = !isCustomSync ? true : undefined
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)

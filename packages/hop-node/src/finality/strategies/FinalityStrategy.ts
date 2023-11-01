@@ -1,11 +1,11 @@
 import { Chain } from 'src/constants'
 import { FinalityState } from '@hop-protocol/core/config'
-import { providers } from 'ethers'
 import { IFinalityStrategy } from './IFinalityStrategy'
+import { providers } from 'ethers'
 
 // Default values to be overridden by child classes if desired
 
-export abstract class FinalityStrategy implements IFinalityStrategy  {
+export abstract class FinalityStrategy implements IFinalityStrategy {
   protected readonly provider: providers.Provider
   protected readonly chainSlug: Chain
 

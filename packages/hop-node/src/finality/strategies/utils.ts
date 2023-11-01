@@ -1,11 +1,10 @@
-
 import getChainBridge from 'src/chains/getChainBridge'
 import { Chain } from 'src/constants'
 
 export async function getCustomOptimismSafeBlockNumber (chainSlug: Chain): Promise<number | undefined> {
   const chainBridge = getChainBridge(chainSlug)
   if (!chainBridge?.getCustomSafeBlockNumber) {
-    throw new Error(`getCustomFinalityBlockNumber not implemented for chain ${this.chainSlug}`)
+    throw new Error(`getCustomOptimismSafeBlockNumber not implemented for chain ${this.chainSlug}`)
   }
 
   try {

@@ -6,12 +6,13 @@ import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import {
   Chain,
   MinGnosisGasPrice,
-  MinPolygonGasPrice
+  MinPolygonGasPrice,
+  SyncType
 } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { FinalityService } from 'src/finality/FinalityService'
-import { config as globalConfig } from 'src/config'
+import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 
@@ -33,11 +34,20 @@ export default class ContractBase extends EventEmitter {
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+
+    // TODO: Remove as any when bonder finality logic is independent
+    const syncType = getNetworkCustomSyncType(this.chainSlug) ?? SyncType.Bonder
     this.finalityService = new FinalityService(
       this.contract.provider,
       this.chainSlug,
-      FinalityService.FinalityStrategyType.Bonder
+      syncType as any
     )
+
+    if (syncType !== SyncType.Bonder) {
+      if (!this.finalityService.isCustomBlockNumberImplemented()) {
+        throw new Error(`getCustomSafeBlockNumber not implemented for chain ${this.chainSlug}`)
+      }
+    }
   }
 
   getChainId = async (): Promise<number> => {

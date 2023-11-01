@@ -9,10 +9,10 @@ import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/c
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import {
   Chain,
-  CustomSyncType,
   DefaultBatchBlocks,
   Network,
   OneHourMs,
+  SyncType,
   TotalBlocks
 } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
@@ -314,7 +314,7 @@ export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
   }
 }
 
-export const setNetworkCustomSyncType = (network: string, customSyncType: CustomSyncType) => {
+export const setNetworkCustomSyncType = (network: string, customSyncType: SyncType) => {
   if (config.networks[network]) {
     config.networks[network].customSyncType = customSyncType
   }
@@ -324,8 +324,8 @@ export const getNetworkMaxGasPrice = (network: string) => {
   return config.networks[network].maxGasPrice
 }
 
-export const getNetworkCustomSyncType = (network: string): CustomSyncType => {
-  return config.networks[network].customSyncType ?? CustomSyncType.Bonder
+export const getNetworkCustomSyncType = (network: string): SyncType | undefined => {
+  return config.networks[network]?.customSyncType
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {

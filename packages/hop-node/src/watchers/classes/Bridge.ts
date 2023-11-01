@@ -7,7 +7,6 @@ import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
-  CustomSyncType,
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from 'src/constants'
@@ -760,14 +759,11 @@ export default class Bridge extends ContractBase {
   }
 
   public getCustomSyncKeySuffix = (): string | undefined => {
-    if (this.shouldPerformCustomSync()) {
-      return getNetworkCustomSyncType(this.chainSlug)
-    }
+    return getNetworkCustomSyncType(this.chainSlug)
   }
 
   public shouldPerformCustomSync = (): boolean => {
-    // Bonder type is default
-    return getNetworkCustomSyncType(this.chainSlug) !== CustomSyncType.Bonder
+    return !!getNetworkCustomSyncType(this.chainSlug)
   }
 
   shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {

@@ -206,8 +206,8 @@ export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
 }
 
 // TODO: When bonder-specific strategies are isolated from the finality dir, use a new
-// CustomSyncType const defined there
-export enum CustomSyncType {
+// SyncType const defined there
+export enum SyncType {
   Bonder = 'bonder',
   Collateralized = 'collateralized',
   Threshold = 'threshold'

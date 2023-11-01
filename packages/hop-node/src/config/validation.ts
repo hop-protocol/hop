@@ -1,4 +1,4 @@
-import { Chain, CustomSyncType } from 'src/constants'
+import { Chain, SyncType } from 'src/constants'
 import {
   Config,
   FileConfig,
@@ -335,8 +335,8 @@ export async function validateConfigValues (config?: Config) {
       }
     }
     if (customSyncType != null) {
-      if (!Object.values(CustomSyncType).includes(customSyncType as CustomSyncType)) {
-        throw new Error(`customSyncType for chain "${chainSlug}" must be of type CustomSyncType`)
+      if (!Object.values(SyncType).includes(customSyncType as SyncType)) {
+        throw new Error(`customSyncType for chain "${chainSlug}" must be of type SyncType`)
       }
     }
     if (redundantRpcUrls && redundantRpcUrls.length > 0) {

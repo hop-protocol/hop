@@ -1,5 +1,12 @@
-import { Chain } from 'src/constants'
-import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
+import { Chain, CustomSyncType } from 'src/constants'
+import {
+  Config,
+  FileConfig,
+  Watchers,
+  getAllChains,
+  getAllTokens,
+  getEnabledTokens
+} from 'src/config'
 import { URL } from 'url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 
@@ -104,7 +111,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   for (const key in config.chains) {
     const chain = config.chains[key]
-    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'headSync']
+    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'customSyncType']
     const chainKeys = Object.keys(chain)
     validateKeys(validChainConfigKeys, chainKeys)
   }
@@ -304,7 +311,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, redundantRpcUrls, headSync } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, customSyncType } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -327,9 +334,9 @@ export async function validateConfigValues (config?: Config) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
       }
     }
-    if (headSync != null) {
-      if (typeof headSync !== 'boolean') {
-        throw new Error(`headSync for chain "${chainSlug}" must be a boolean`)
+    if (customSyncType != null) {
+      if (!Object.values(CustomSyncType).includes(customSyncType as CustomSyncType)) {
+        throw new Error(`customSyncType for chain "${chainSlug}" must be of type CustomSyncType`)
       }
     }
     if (redundantRpcUrls && redundantRpcUrls.length > 0) {

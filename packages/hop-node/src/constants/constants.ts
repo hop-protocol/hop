@@ -185,7 +185,6 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.PolygonZk]: 1
 }
 
-export const HeadSyncKeySuffix = 'HeadSync'
 // Optimism-chain resource metering is not accurate with all RPC providers. Because of this,
 // confirmations entering into an Optimism chain need a custom gasLimit to ensure the
 // tx is propagated to the chain.
@@ -204,4 +203,12 @@ export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
   [RootProviderName.Alchemy]: true,
   [RootProviderName.Infura]: false,
   [RootProviderName.Quiknode]: true
+}
+
+// TODO: When bonder-specific strategies are isolated from the finality dir, use a new
+// CustomSyncType const defined there
+export enum CustomSyncType {
+  Bonder = 'bonder',
+  Collateralized = 'collateralized',
+  Threshold = 'threshold'
 }

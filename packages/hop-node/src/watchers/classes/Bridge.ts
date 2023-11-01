@@ -759,7 +759,11 @@ export default class Bridge extends ContractBase {
   }
 
   public getCustomSyncKeySuffix = (): string | undefined => {
-    return getNetworkCustomSyncType(this.chainSlug)
+    const customSyncType = getNetworkCustomSyncType(this.chainSlug)
+    if (!customSyncType) {
+      return
+    }
+    return '_' + customSyncType
   }
 
   public shouldPerformCustomSync = (): boolean => {

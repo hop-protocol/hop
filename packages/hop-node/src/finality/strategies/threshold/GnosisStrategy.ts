@@ -3,7 +3,7 @@ import { IFinalityStrategy } from '../IFinalityStrategy'
 
 export class GnosisStrategy extends FinalityStrategy implements IFinalityStrategy {
   getCustomBlockNumber = async (): Promise<number> => {
-    const confirmations = 16
+    const confirmations = 12
     return this.getProbabilisticBlockNumber(confirmations)
   }
 }

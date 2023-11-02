@@ -39,20 +39,6 @@ export const addresses: Addresses = {
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygonzk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
-      },
-      polygonzk: {
-        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        base: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
-      }
-    },
-    HOP: {
-      ethereum: {
-        optimism: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
-      },
-      optimism: {
-        ethereum: '0xB47dE784aB8702eC35c5eAb225D6f6cE476DdD28'
       }
     }
   },
@@ -98,18 +84,6 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xB87aC009F61Fa214f196e232fD14A6f8AE422FA1',
         l2SaddleLpToken: '0x6Ad03376a15819c80b267038E2E4c00D35Cf8f67',
         bridgeDeployedBlockNumber: 1551608
-      },
-      polygonzk: {
-        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x4928e03EA425919FCCb2774da5353D13D91bC15E',
-        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l2CanonicalToken: '0x0EEFEe679a77dC411579e520ef7535d526cED1d6',
-        l2Bridge: '0x3Aa637D6853f1d9A9354FE4301Ab852A88b237e7',
-        l2HopBridgeToken: '0x3749C4f034022c39ecafFaBA182555d4508caCCC',
-        l2AmmWrapper: '0x3bFd91538Abc560C0C6F42755FcE2C714d13fB1a',
-        l2SaddleSwap: '0x4b95e110178D51ef406C225462748A3F739d99Da',
-        l2SaddleLpToken: '0x9879ECbcda0b6856A1D8619B843dcC74C1844a30',
-        bridgeDeployedBlockNumber: 1497593
       }
     }
   }

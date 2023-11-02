@@ -597,7 +597,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           reject(err)
         })
       const listeners = (this as any)._events
-      this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "${State.Error}": ${listeners?.[State.Error]?.length}`)
+      this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "Err": ${listeners?.[State.Error]?.length}`)
     })
   }
 

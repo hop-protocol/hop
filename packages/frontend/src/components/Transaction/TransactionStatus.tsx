@@ -5,6 +5,7 @@ import Link from '@material-ui/core/Link'
 import { Div, Flex } from '../ui'
 import { Text } from '../ui/Text'
 import { networkSlugToName } from 'src/utils'
+import { l1Network } from 'src/config/networks'
 
 function TransactionStatus(props) {
   const {
@@ -31,7 +32,7 @@ function TransactionStatus(props) {
     }
 
     if (showConfirmations) {
-      if (!confirmations) {
+      if (!confirmations || l1Network?.isLayer1) {
         return setText(`• / ${networkWaitConfirmations} Confirmations`)
       }
 

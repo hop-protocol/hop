@@ -140,7 +140,7 @@ Class reprensenting Hop
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'goerli') |
 | `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
 | `chainProviders?` | `ChainProviders` | - |
 

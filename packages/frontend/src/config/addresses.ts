@@ -1,16 +1,12 @@
 import { mainnetAddresses, mainnetNetworks } from './mainnet'
-import { addresses as kovanAddresses, networks as kovanNetworks } from './kovan'
 import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
 import { Slug } from '@hop-protocol/sdk'
 import { gitRevision } from './config'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
-let hopAppNetwork = reactAppNetwork
-if (reactAppNetwork === Slug.staging) {
-  hopAppNetwork = Slug.mainnet
-}
-let addresses: any = kovanAddresses
-let networks = kovanNetworks
+const hopAppNetwork = reactAppNetwork
+let addresses: any
+let networks: any
 const isMainnet = hopAppNetwork === Slug.mainnet
 const isGoerli = hopAppNetwork === Slug.goerli
 
@@ -20,6 +16,8 @@ if (isMainnet) {
 } else if (hopAppNetwork === Slug.goerli) {
   addresses = goerliAddresses
   networks = goerliNetworks
+} else {
+  throw new Error(`Invalid network: ${hopAppNetwork}`)
 }
 
 let enabledTokens: string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS

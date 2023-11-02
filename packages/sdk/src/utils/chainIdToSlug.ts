@@ -17,5 +17,5 @@ export function chainIdToSlug (network: string, chainId: number | string) {
     }
   }
 
-  return { 1: 'ethereum', 4: 'rinkeby', 5: 'goerli', 42: 'kovan' }[chainId] || ''
+  return { 1: 'ethereum', 5: 'goerli' }[chainId] || ''
 }

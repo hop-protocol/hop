@@ -6,7 +6,7 @@ import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransfe
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, utils } from 'ethers'
 import { actionHandler, getSourceChains, parseString, root } from './shared'
-import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config/config'
+import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 

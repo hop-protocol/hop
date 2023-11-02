@@ -82,3 +82,5 @@ async function getUnrelayedL1ToL2Transfers (
 
   return inFlightL1ToL2Transfers
 }
+
+export const WatcherNotFoundError = 'Watcher not found. This is likely because the specified chain is not in your config file. Alternatively, your core package might not have the chain\'s addresses. If they exist, you need to reinstall or link the core package.'

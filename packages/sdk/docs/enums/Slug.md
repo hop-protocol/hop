@@ -9,7 +9,6 @@
 - [ethereum](Slug.md#ethereum)
 - [gnosis](Slug.md#gnosis)
 - [goerli](Slug.md#goerli)
-- [kovan](Slug.md#kovan)
 - [linea](Slug.md#linea)
 - [mainnet](Slug.md#mainnet)
 - [nova](Slug.md#nova)
@@ -49,12 +48,6 @@ ___
 ### <a id="goerli" name="goerli"></a> goerli
 
 • **goerli** = ``"goerli"``
-
-___
-
-### <a id="kovan" name="kovan"></a> kovan
-
-• **kovan** = ``"kovan"``
 
 ___
 

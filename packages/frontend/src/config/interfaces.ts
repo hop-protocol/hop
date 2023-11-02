@@ -1,5 +1,4 @@
 import { Bridges, Bonders } from '@hop-protocol/core/addresses'
-
 export interface IProposalDetail {
   target: string
   functionSig: string
@@ -37,7 +36,5 @@ export type Networks = {
     fallbackRpcUrls: string[]
     explorerUrl: string
     nativeBridgeUrl?: string
-    waitConfirmations?: number
-    hasFinalizationBlockTag: boolean
   }
 }

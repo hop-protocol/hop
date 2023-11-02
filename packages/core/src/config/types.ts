@@ -30,6 +30,12 @@ export enum AssetSymbol {
   // FRAX = 'FRAX',
 }
 
+export enum FinalityState {
+  Latest = 'latest',
+  Safe = 'safe',
+  Finalized = 'finalized'
+}
+
 export type Bps = {
   [key in ChainSlug]: number
 }
@@ -42,8 +48,22 @@ type RelayerFee = {
   [key in ChainSlug]: boolean
 }
 
+export type EnabledStatus = {
+  [key in ChainSlug]: boolean
+}
+
+export type ProxyEnabled = {
+  [key in AssetSymbol]: Partial<EnabledStatus>
+}
+
+export type BridgeDeprecated = {
+  [key in AssetSymbol]: boolean
+}
+
 export type Config = {
   bonderFeeBps: Partial<Fees>
   destinationFeeGasPriceMultiplier: number
   relayerFeeEnabled: Partial<RelayerFee>
+  proxyEnabled: Partial<ProxyEnabled>
+  bridgeDeprecated: Partial<BridgeDeprecated>
 }

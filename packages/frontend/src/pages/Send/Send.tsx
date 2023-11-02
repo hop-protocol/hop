@@ -331,10 +331,8 @@ const Send: FC = () => {
         </>
       )
       if (!isAvailable) {
-        if (hopAppNetwork !== 'staging') {
-          setIsLiquidityAvailable(false)
-          return setNoLiquidityWarning(warningMessage)
-        }
+        setIsLiquidityAvailable(false)
+        return setNoLiquidityWarning(warningMessage)
       } else {
         setIsLiquidityAvailable(true)
         setNoLiquidityWarning('')

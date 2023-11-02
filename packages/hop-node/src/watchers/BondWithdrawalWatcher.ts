@@ -59,7 +59,7 @@ export type SendBondWithdrawalTxParams = {
   transferSentIndex: number
   transferSentTxHash: string
   transferSentBlockNumber: number
-  isFinalized: boolean
+  isFinalized?: boolean
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {

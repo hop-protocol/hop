@@ -17,7 +17,7 @@ import { getChainSlugFromName } from '../src/utils'
 import { promiseQueue } from '../src/utils/promiseQueue'
 
 describe.skip('sdk setup', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it('should return version', () => {
     expect(hop.version).toBe(pkg.version)
@@ -25,7 +25,7 @@ describe.skip('sdk setup', () => {
 })
 
 describe.skip('hop bridge token transfers', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it(
     'send token from L1 -> L2',
@@ -330,7 +330,7 @@ describe.skip('tx watcher', () => {
 })
 
 describe.skip('canonical bridge transfers', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it(
     'deposit token from L1 -> Gnosis L2 canonical bridge',
@@ -401,7 +401,7 @@ describe.skip('canonical bridge transfers', () => {
 })
 
 describe.skip('liqudity provider', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it('should add liqudity on Gnosis', async () => {
     const bridge = hop.bridge(Token.USDC)
@@ -912,14 +912,6 @@ describe.skip('Apr', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.skip('getWaitConfirmations', () => {
-  it('should return waitConfirmations', () => {
-    const hop = new Hop('mainnet')
-    const bridge = hop.bridge('USDC')
-    expect(bridge.getWaitConfirmations('polygon')).toBe(256)
-  })
-})
-
 describe.skip('getExplorerUrl', () => {
   it('should return explorer url for transfer id', () => {
     const hop = new Hop('mainnet')
@@ -1235,7 +1227,7 @@ describe.skip('debugTimeLogs', () => {
     const sdk = new Hop({
       network: 'mainnet',
       debugTimeLogsEnabled: true,
-      debugTimeLogsCacheEnabled: true,
+      debugTimeLogsCacheEnabled: true
 
       // fill in
 

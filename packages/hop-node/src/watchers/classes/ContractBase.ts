@@ -1,19 +1,18 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
-import getChainBridge from 'src/chains/getChainBridge'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import {
   Chain,
-  DoesSupportCustomFinality,
   MinGnosisGasPrice,
-  MinPolygonGasPrice
+  MinPolygonGasPrice,
+  SyncType
 } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { FinalityBlockTag } from '@hop-protocol/core/config'
-import { getFinalizationBlockTag, config as globalConfig } from 'src/config'
+import { FinalityService } from 'src/finality/FinalityService'
+import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 
@@ -21,6 +20,7 @@ export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: Chain
+  private readonly finalityService: FinalityService
 
   constructor (contract: Contract) {
     super()
@@ -34,6 +34,20 @@ export default class ContractBase extends EventEmitter {
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+
+    // TODO: Remove as any when bonder finality logic is independent
+    const syncType = getNetworkCustomSyncType(this.chainSlug) ?? SyncType.Bonder
+    this.finalityService = new FinalityService(
+      this.contract.provider,
+      this.chainSlug,
+      syncType as any
+    )
+
+    if (syncType !== SyncType.Bonder) {
+      if (!this.finalityService.isCustomBlockNumberImplemented()) {
+        throw new Error(`getCustomSafeBlockNumber not implemented for chain ${this.chainSlug}`)
+      }
+    }
   }
 
   getChainId = async (): Promise<number> => {
@@ -76,53 +90,22 @@ export default class ContractBase extends EventEmitter {
   }
 
   getBlockNumber = async (): Promise<number> => {
-    return await this.contract.provider.getBlockNumber()
-  }
-
-  getFinalizedBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock(FinalityBlockTag.Finalized)
-    return Number(block.number)
+    return this.finalityService.getBlockNumber()
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    const provider = this.contract.provider
-    const block = await provider.getBlock(FinalityBlockTag.Safe)
-    return Number(block.number)
+    return this.finalityService.getSafeBlockNumber()
   }
 
-  // This needs to be able to return undefined since custom finality may require
-  // multiple calls that may fail. If it fails, the consumer of this method should
-  // fallback to finalized or safe.
-  getCustomFinalityBlockNumber = async (): Promise<number | undefined> => {
-    const chainBridge = getChainBridge(this.chainSlug)
-    if (!chainBridge?.getCustomSafeBlockNumber) {
-      throw new Error(`getCustomFinalityBlockNumber not implemented for chain ${this.chainSlug}`)
-    }
-    const customSafeBlockNumber = await chainBridge.getCustomSafeBlockNumber()
-    if (!customSafeBlockNumber) {
-      // Log warning if custom finality is not available. If this log is occurring on
-      // each loop, something is wrong with the custom finality logic and should be addressed
-      chainBridge.getLogger().error(`custom finality not available for chain ${this.chainSlug}`)
-    }
-    return customSafeBlockNumber
+  getFinalizedBlockNumber = async (): Promise<number> => {
+    return this.finalityService.getFinalizedBlockNumber()
   }
 
-  getBlockNumberWithAcceptableFinality = async (): Promise<number> => {
-    if (DoesSupportCustomFinality[this.chainSlug]) {
-      const blockNumber = await this.getCustomFinalityBlockNumber()
-      if (blockNumber) {
-        return blockNumber
-      }
+  getSyncBlockNumber = async (): Promise<number> => {
+    if (!this.finalityService.isCustomBlockNumberImplemented()) {
+      throw new Error('Custom block number is not supported')
     }
-
-    const finalizationBlockTag = getFinalizationBlockTag(this.chainSlug)
-    if (finalizationBlockTag === FinalityBlockTag.Finalized) {
-      return await this.getFinalizedBlockNumber()
-    } else if (finalizationBlockTag === FinalityBlockTag.Safe) {
-      return await this.getSafeBlockNumber()
-    } else {
-      throw new Error(`unknown finality tag for chain ${this.chainSlug}`)
-    }
+    return this.finalityService.getCustomBlockNumber()
   }
 
   getTransactionBlockNumber = async (txHash: string): Promise<number> => {
@@ -184,18 +167,6 @@ export default class ContractBase extends EventEmitter {
   protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
     const gasPrice = await this.getGasPrice()
     return getBumpedGasPrice(gasPrice, multiplier)
-  }
-
-  get waitConfirmations () {
-    const chainConfig = globalConfig.networks[this.chainSlug]
-    if (!chainConfig) {
-      throw new Error(`config for chain ${this.chainSlug} not found`)
-    }
-    const { waitConfirmations } = chainConfig
-    if (waitConfirmations <= 0) {
-      throw new Error('expected waitConfirmations to be > 0')
-    }
-    return waitConfirmations
   }
 
   async txOverrides (): Promise<TxOverrides> {

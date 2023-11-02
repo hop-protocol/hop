@@ -50,9 +50,6 @@ const getProvider = memoize((network: string, chain: string) => {
   }
   const rpcUrl = config.chains[network][chain].rpcUrl
   if (!rpcUrl) {
-    if (network === NetworkSlug.Staging) {
-      network = NetworkSlug.Mainnet
-    }
     return providers.getDefaultProvider(network)
   }
 
@@ -154,7 +151,7 @@ export class Base {
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @returns New Base class instance.
    */
   constructor (
@@ -991,19 +988,6 @@ export class Base {
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
     this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
     return l1FeeInWei
-  }
-
-  getWaitConfirmations (chain: TChain):number {
-    chain = this.toChainModel(chain)
-    if (!chain) {
-      throw new Error(`chain "${chain}" not found`)
-    }
-    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
-    if (waitConfirmations === undefined) {
-      throw new Error(`waitConfirmations for chain "${chain}" not found`)
-    }
-
-    return waitConfirmations
   }
 
   getExplorerUrl (): string {

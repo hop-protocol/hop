@@ -4,8 +4,6 @@ interface Chain {
   rpcUrl: string
   fallbackRpcUrls?: string[]
   explorerUrl: string
-  waitConfirmations: number
-  finalizationBlockTag: boolean
   subgraphUrl: string
 }
 

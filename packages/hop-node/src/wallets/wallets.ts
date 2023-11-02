@@ -37,14 +37,12 @@ export const constructSigner = memoize((network: string, privateKey: string): Si
   const db = getGasBoostDb(network)
   const signer = new GasBoostSigner(wallet, db)
   const maxGasPriceGwei = getNetworkMaxGasPrice(network)
-  const { waitConfirmations: reorgWaitConfirmations } = globalConfig.networks[network]!
   signer.setOptions({
     gasPriceMultiplier,
     initialTxGasPriceMultiplier,
     maxGasPriceGwei,
     priorityFeePerGasCap,
     timeTilBoostMs,
-    reorgWaitConfirmations,
     maxPriorityFeeConfidenceLevel
   })
   return signer

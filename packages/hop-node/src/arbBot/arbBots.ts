@@ -38,7 +38,7 @@ export async function startArbBots (options?: Options) {
       slippageTolerance,
       pollIntervalSeconds,
       ammDepositThresholdAmount,
-      waitConfirmations
+      reorgConfirmationBlocks
     } = conf
 
     console.log(`arb bot "${label}" enabled: ${!!conf.enabled}`)
@@ -60,7 +60,7 @@ export async function startArbBots (options?: Options) {
         slippageTolerance,
         pollIntervalSeconds,
         ammDepositThresholdAmount,
-        waitConfirmations,
+        reorgConfirmationBlocks,
         privateKey
       }).start()
     )

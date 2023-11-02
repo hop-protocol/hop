@@ -8,7 +8,6 @@ import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
-  HeadSyncKeySuffix,
   SettlementGasLimitPerTx
 } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
@@ -23,7 +22,7 @@ import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
   getBridgeWriteContractAddress,
-  getHasFinalizationBlockTag,
+  getNetworkCustomSyncType,
   getProxyAddressForChain,
   config as globalConfig,
   isProxyAddressForChain
@@ -123,26 +122,26 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.getIsBonder(stakerAddress)
   }
 
-  getCredit = async (): Promise<BigNumber> => {
-    const stakerAddress = await this.getStakerAddress()
+  getCredit = async (address?: string): Promise<BigNumber> => {
+    const stakerAddress = address ?? (await this.getStakerAddress())
     return this.bridgeContract.getCredit(stakerAddress)
   }
 
-  getDebit = async (): Promise<BigNumber> => {
-    const stakerAddress = await this.getStakerAddress()
+  getDebit = async (address?: string): Promise<BigNumber> => {
+    const stakerAddress = address ?? (await this.getStakerAddress())
     return this.bridgeContract.getDebitAndAdditionalDebit(stakerAddress)
   }
 
-  getRawDebit = async (): Promise<BigNumber> => {
-    const stakerAddress = await this.getStakerAddress()
+  getRawDebit = async (address?: string): Promise<BigNumber> => {
+    const stakerAddress = address ?? await this.getStakerAddress()
     const debit = await this.bridgeContract.getRawDebit(stakerAddress)
     return debit
   }
 
-  async getBaseAvailableCredit (): Promise<BigNumber> {
+  async getBaseAvailableCredit (address?: string): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
-      this.getCredit(),
-      this.getDebit()
+      this.getCredit(address),
+      this.getDebit(address)
     ])
 
     return credit.sub(debit)
@@ -601,20 +600,20 @@ export default class Bridge extends ContractBase {
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
 
-      const isHeadSync = syncCacheKey.endsWith(HeadSyncKeySuffix)
-      if (isHeadSync) {
+      const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+      if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
         // If a head sync does not have state or the state is stale, use the state of
         // its finalized counterpart. The finalized counterpart is guaranteed to have updated
         // state since the bonder performs a full sync before beginning any other operations.
         // * The head sync will not have state upon fresh bonder sync.
         // * The head sync will have stale data if they use the head syncer, turn it off
         //   for some time, and then turn it back on again.
-        const finalizedStateKey = syncCacheKey.replace(HeadSyncKeySuffix, '')
+        const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
         const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
 
-        const doesHeadSyncDbExist = !!state?.latestBlockSynced
-        const isHeadSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
-        if (!doesHeadSyncDbExist || isHeadSyncDataStale) {
+        const doesCustomSyncDbExist = !!state?.latestBlockSynced
+        const isCustomSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
+        if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
           state = finalizedState
           state.key = syncCacheKey
         }
@@ -695,20 +694,16 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
 
     // TODO: Better state handling
-    const isHeadSync = syncCacheKey?.endsWith(HeadSyncKeySuffix)
-    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
-    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
+    const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+    const isCustomSync = customSyncKeySuffix && syncCacheKey?.endsWith(customSyncKeySuffix)
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isCustomSync
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isCustomSync
 
-    let blockNumberWithAcceptableFinality: number
-    if (getHasFinalizationBlockTag(this.chainSlug) && !isHeadSync) {
-      blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
+    let syncBlockNumber: number
+    if (isCustomSync) {
+      syncBlockNumber = await this.getSyncBlockNumber()
     } else {
-      const currentBlockNumber = await this.getBlockNumber()
-      if (isHeadSync) {
-        blockNumberWithAcceptableFinality = currentBlockNumber
-      } else {
-        blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
-      }
+      syncBlockNumber = await this.getSafeBlockNumber()
     }
 
     if (startBlockNumber && endBlockNumber) {
@@ -718,13 +713,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = blockNumberWithAcceptableFinality
+      end = syncBlockNumber
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync || isHeadSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
+    } else if (isSync || isCustomSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+      end = Math.max(syncBlockNumber, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = blockNumberWithAcceptableFinality
+      end = syncBlockNumber
       totalBlocksInBatch = totalBlocks!
     }
 
@@ -761,6 +756,18 @@ export default class Bridge extends ContractBase {
     key: string
   ) => {
     return `${chainId}:${address}:${key}`
+  }
+
+  public getCustomSyncKeySuffix = (): string | undefined => {
+    const customSyncType = getNetworkCustomSyncType(this.chainSlug)
+    if (!customSyncType) {
+      return
+    }
+    return '_' + customSyncType
+  }
+
+  public shouldPerformCustomSync = (): boolean => {
+    return !!getNetworkCustomSyncType(this.chainSlug)
   }
 
   shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {

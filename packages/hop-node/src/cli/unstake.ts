@@ -2,6 +2,7 @@ import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { BigNumber } from 'ethers'
 import { ShouldIgnoreProxy, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
@@ -34,7 +35,7 @@ async function main (source: any) {
   // Arbitrary watcher since only the bridge is needed
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
-    throw new Error('Watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
   const bridge: L2Bridge | L1Bridge = watcher.bridge
   const parsedAmount: BigNumber = bridge.parseUnits(amount)

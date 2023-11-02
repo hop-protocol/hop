@@ -38,7 +38,7 @@ class CanonicalBridge extends Base {
   /**
    * @desc Instantiates Canonical Token Bridge.
    * Returns a new Canonical Token Bridge instance.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @param signer - Ethers `Signer` for signing transactions.
    * @param token - Token symbol or model
    * @param chain - Chain model
@@ -49,7 +49,7 @@ class CanonicalBridge extends Base {
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
+   *const bridge = new CanonicalBridge('goerli', signer, 'USDC', Chain.Optimism)
    *```
    */
   constructor (

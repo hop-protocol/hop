@@ -32,7 +32,7 @@ class Token extends Base {
   // TODO: clean up and remove unused parameters.
   /**
    * @desc Instantiates Token class.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @param chain - Chain
    * @param address - Token address.
    * @param decimals - Token decimals.

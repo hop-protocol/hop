@@ -91,5 +91,8 @@ export const config : Config = {
     polygonzk: false
   },
   proxyEnabled: {},
-  bridgeDeprecated: {}
+  bridgeDeprecated: {
+    SNX: true,
+    sUSD: true
+  }
 }

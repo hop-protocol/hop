@@ -144,7 +144,7 @@ Class reprensenting Canonical Token Bridge.
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `CanonicalBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `networkOrOptionsObject` | `string` \| `CanonicalBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'goerli') |
 | `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
 | `token?` | [`TToken`](../modules.md#ttoken) | Token symbol or model |
 | `chain?` | [`TChain`](../modules.md#tchain) | Chain model |
@@ -162,7 +162,7 @@ import { CanonicalHop, Chain } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
 
 const signer = new Wallet(privateKey)
-const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
+const bridge = new CanonicalBridge('goerli', signer, 'USDC', Chain.Optimism)
 ```
 
 #### Overrides

@@ -34,12 +34,6 @@ export const metadata: Metadata = {
       image: chains.ethereum.image,
       nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
-    kovan: {
-      name: 'Kovan',
-      isLayer1: true,
-      image: chains.ethereum.image,
-      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
-    },
     goerli: {
       name: 'Goerli',
       isLayer1: true,

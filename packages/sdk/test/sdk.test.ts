@@ -1,9 +1,11 @@
 import Token from '../src/models/Token'
+import fs from 'fs'
 import { BigNumber, Wallet, constants, providers } from 'ethers'
 import {
   Chain,
   Hop
 } from '../src/index'
+import { Swap__factory } from '@hop-protocol/core/contracts/factories/generated/Swap__factory'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'
@@ -12,9 +14,10 @@ import pkg from '../package.json'
 import { FallbackProvider } from '../src/provider'
 import { fetchJsonOrThrow } from '../src/utils/fetchJsonOrThrow'
 import { getChainSlugFromName } from '../src/utils'
+import { promiseQueue } from '../src/utils/promiseQueue'
 
 describe.skip('sdk setup', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it('should return version', () => {
     expect(hop.version).toBe(pkg.version)
@@ -22,7 +25,7 @@ describe.skip('sdk setup', () => {
 })
 
 describe.skip('hop bridge token transfers', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it(
     'send token from L1 -> L2',
@@ -327,7 +330,7 @@ describe.skip('tx watcher', () => {
 })
 
 describe.skip('canonical bridge transfers', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it(
     'deposit token from L1 -> Gnosis L2 canonical bridge',
@@ -398,7 +401,7 @@ describe.skip('canonical bridge transfers', () => {
 })
 
 describe.skip('liqudity provider', () => {
-  const hop = new Hop('kovan')
+  const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
   it('should add liqudity on Gnosis', async () => {
     const bridge = hop.bridge(Token.USDC)
@@ -909,14 +912,6 @@ describe.skip('Apr', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.skip('getWaitConfirmations', () => {
-  it('should return waitConfirmations', () => {
-    const hop = new Hop('mainnet')
-    const bridge = hop.bridge('USDC')
-    expect(bridge.getWaitConfirmations('polygon')).toBe(256)
-  })
-})
-
 describe.skip('getExplorerUrl', () => {
   it('should return explorer url for transfer id', () => {
     const hop = new Hop('mainnet')
@@ -1225,4 +1220,83 @@ describe.skip('WithdrawalProof', () => {
     console.log(proof)
     expect(proof).toBeTruthy()
   }, 10 * 1000)
+})
+
+describe.skip('debugTimeLogs', () => {
+  it('should console log debug time logs and return array with times', async () => {
+    const sdk = new Hop({
+      network: 'mainnet',
+      debugTimeLogsEnabled: true,
+      debugTimeLogsCacheEnabled: true
+
+      // fill in
+
+      // chainProviders: {
+      //   ethereum: new providers.StaticJsonRpcProvider('redacted'),
+      //   arbitrum: new providers.StaticJsonRpcProvider('redacted'),
+      //   optimism: new providers.StaticJsonRpcProvider('redacted'),
+      //   base: new providers.StaticJsonRpcProvider('redacted'),
+      //   gnosis: new providers.StaticJsonRpcProvider('redacted'),
+      //   nova: new providers.StaticJsonRpcProvider('redacted')
+      // }
+    })
+
+    const iterations = 100
+    for (let i = 0; i < iterations; i++) {
+      const bridge = sdk.bridge('ETH')
+      const amountIn = '1000000000'
+      const sourceChain = 'base'
+      const destinationChain = 'ethereum'
+      const sendData = await bridge.getSendData(amountIn, sourceChain, destinationChain)
+      expect(sendData).toBeTruthy()
+    }
+
+    const logs = sdk.getDebugTimeLogs()
+    expect(logs.length > 0).toBeTruthy()
+    fs.writeFileSync('/tmp/debugTimeLogs.json', JSON.stringify(logs, null, 2))
+
+    // generate chart:
+    // cd scripts/
+    // python generate_chart_from_file.py /tmp/debugTimeLogs.json
+    // open debugTimeLogs.png
+  }, 60 * 60 * 1000)
+  it('should calculate swap and add time to array', async () => {
+    const sdk = new Hop('mainnet')
+    const logs: any[] = []
+    const iterations = 100
+    const concurrency = 6
+    await promiseQueue(new Array(iterations), async (item: any, i: number) => {
+      console.log(`processing #${i}`)
+      const sourceChain = 'arbitrum'
+      const tokenSymbol = 'ETH'
+      const rpcUrl = 'redacted' // fill in
+      const saddleSwapAddress = sdk.getL2SaddleSwapAddress(
+        tokenSymbol,
+        sourceChain
+      )
+      const amountIn = '1000000000'
+      const fromIndex = 1
+      const toIndex = 0
+      const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+      const saddleSwap = Swap__factory.connect(saddleSwapAddress, provider)
+      const timeStart = Date.now()
+      const swapData = await saddleSwap.calculateSwap(fromIndex, toIndex, amountIn)
+      console.log(swapData)
+      expect(swapData).toBeTruthy()
+      const now = Date.now()
+      const durationMs = now - timeStart
+      if (durationMs > 2 * 2000) {
+        console.warn(`slow ${Math.floor(durationMs / 1000)}s`)
+      }
+      logs.push({ label: 'calculateSwap', duration: durationMs, timestamp: now })
+    }, { concurrency })
+
+    expect(logs.length > 0).toBeTruthy()
+    fs.writeFileSync('/tmp/debugTimeLogs.json', JSON.stringify(logs, null, 2))
+
+    // generate chart:
+    // cd scripts/
+    // python generate_chart_from_file.py /tmp/debugTimeLogs.json
+    // open debugTimeLogs.png
+  }, 60 * 60 * 1000)
 })

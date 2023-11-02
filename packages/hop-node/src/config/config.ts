@@ -6,23 +6,20 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
+import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import {
-  AvgBlockTimeSeconds,
   Chain,
   DefaultBatchBlocks,
   Network,
   OneHourMs,
+  SyncType,
   TotalBlocks
 } from 'src/constants'
-import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
-import * as kovanConfig from './kovan'
 import * as mainnetConfig from './mainnet'
-import * as stagingConfig from './staging'
-import * as testConfig from './test'
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')
 
@@ -176,23 +173,12 @@ export type Config = {
 }
 
 const networkConfigs: {[key: string]: any} = {
-  test: testConfig,
-  kovan: kovanConfig,
   goerli: goerliConfig,
-  mainnet: mainnetConfig,
-  staging: stagingConfig
-}
-
-const normalizeNetwork = (network: string) => {
-  if (network === Network.Staging) {
-    return Network.Mainnet
-  }
-  return network
+  mainnet: mainnetConfig
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'networks' | 'metadata' | 'isMainnet'> => {
   const { addresses, bonders, canonicalAddresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
-  network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
   return {
@@ -292,7 +278,7 @@ export const setConfigByNetwork = (network: string) => {
   const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
   config.addresses = addresses
-  config.network = normalizeNetwork(network)
+  config.network = network
   config.networks = networks
   config.metadata = metadata
 }
@@ -306,45 +292,31 @@ export const setConfigBonders = (bonders: Bonders) => {
   config.bonders = bonders
 }
 
-export const getConfigBondersForToken = (token: string) => {
-  return (config.bonders as any)?.[token]
-}
-
-export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
-  const bonders = getConfigBondersForToken(token)
-  const bonder = bonders?.[sourceChain]?.[destinationChain]
-  return bonder
-}
-
 export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
 export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
   }
 }
 
 export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].redundantRpcUrls = redundantRpcUrls
   }
 }
 
 export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].maxGasPrice = maxGasPrice
   }
 }
 
-export const setNetworkHeadSync = (network: string, headSync: boolean) => {
-  network = normalizeNetwork(network)
+export const setNetworkCustomSyncType = (network: string, customSyncType: SyncType) => {
   if (config.networks[network]) {
-    config.networks[network].headSync = headSync
+    config.networks[network].customSyncType = customSyncType
   }
 }
 
@@ -352,8 +324,8 @@ export const getNetworkMaxGasPrice = (network: string) => {
   return config.networks[network].maxGasPrice
 }
 
-export const getNetworkHeadSync = (network: string) => {
-  return config.networks[network].headSync ?? false
+export const getNetworkCustomSyncType = (network: string): SyncType | undefined => {
+  return config.networks[network]?.customSyncType
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
@@ -453,23 +425,6 @@ export function enableEmergencyMode () {
   config.emergencyDryMode = true
 }
 
-export function getFinalityTimeSeconds (chainSlug: string) {
-  if (getHasFinalizationBlockTag(chainSlug)) {
-    throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
-  }
-  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
-  const waitConfirmations: number = networks?.[chainSlug]?.waitConfirmations
-
-  if (!avgBlockTimeSeconds || !waitConfirmations) {
-    throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
-  }
-  return avgBlockTimeSeconds * waitConfirmations
-}
-
-export function getHasFinalizationBlockTag (chainSlug: string) {
-  return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
-}
-
 export function getProxyAddressForChain (token: string, chainSlug: string): string {
   const address = config.addresses?.[token]?.[chainSlug]?.proxy
   if (!address || ShouldIgnoreProxy) {
@@ -497,6 +452,16 @@ export function getBridgeWriteContractAddress (token: string, chainSlug: string)
 
 export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
+}
+
+export const getConfigBondersForToken = (token: string) => {
+  return (config.bonders as any)?.[token]
+}
+
+export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
+  const bonders = getConfigBondersForToken(token)
+  const bonder = bonders?.[sourceChain]?.[destinationChain]
+  return bonder
 }
 
 export { Bonders }

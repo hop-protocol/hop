@@ -1,4 +1,5 @@
 import { SendBondTransferRootTxParams } from 'src/watchers/BondTransferRootWatcher'
+import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondTransferRootWatcher
 } from 'src/watchers/watchers'
@@ -37,7 +38,7 @@ async function main (source: any) {
 
   const watcher = await getBondTransferRootWatcher({ chain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   for (const rootHash of rootHashes) {

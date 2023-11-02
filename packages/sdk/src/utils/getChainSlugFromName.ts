@@ -25,10 +25,8 @@ export function getChainSlugFromName (name: string) {
     slug = ChainSlug.Base
   }
   if (
-    slug === NetworkSlug.Kovan ||
     slug === NetworkSlug.Goerli ||
     slug === NetworkSlug.Mainnet ||
-    slug === NetworkSlug.Staging ||
     slug === ChainSlug.Ethereum
   ) {
     slug = ChainSlug.Ethereum

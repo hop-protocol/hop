@@ -23,7 +23,7 @@ import {
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
-  setNetworkHeadSync,
+  setNetworkCustomSyncType,
   setNetworkMaxGasPrice,
   setNetworkRedundantRpcUrls,
   setNetworkRpcUrl,
@@ -178,7 +178,7 @@ export async function setGlobalConfigFromConfigFile (
   for (const k in config.chains) {
     const v = config.chains[k]
     if (v instanceof Object) {
-      const { rpcUrl, maxGasPrice, redundantRpcUrls, headSync } = v
+      const { rpcUrl, maxGasPrice, redundantRpcUrls, customSyncType } = v
       if (rpcUrl) {
         setNetworkRpcUrl(k, rpcUrl)
       }
@@ -188,8 +188,8 @@ export async function setGlobalConfigFromConfigFile (
       if (redundantRpcUrls && redundantRpcUrls.length > 0) {
         setNetworkRedundantRpcUrls(k, redundantRpcUrls)
       }
-      if (headSync) {
-        setNetworkHeadSync(k, headSync)
+      if (customSyncType) {
+        setNetworkCustomSyncType(k, customSyncType)
       }
     }
   }

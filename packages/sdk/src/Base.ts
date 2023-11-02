@@ -27,6 +27,7 @@ import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 import { promiseTimeout } from './utils/promiseTimeout'
+import { rateLimitRetry } from './utils/rateLimitRetry'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -49,9 +50,6 @@ const getProvider = memoize((network: string, chain: string) => {
   }
   const rpcUrl = config.chains[network][chain].rpcUrl
   if (!rpcUrl) {
-    if (network === NetworkSlug.Staging) {
-      network = NetworkSlug.Mainnet
-    }
     return providers.getDefaultProvider(network)
   }
 
@@ -108,6 +106,9 @@ export type BaseConstructorOptions = {
   signer?: TProvider,
   chainProviders?: ChainProviders
   blocklist?: Record<string, boolean> | string[] | null
+  debugTimeLogsEnabled?: boolean
+  debugTimeLogsCacheEnabled?: boolean
+  debugTimeLogsCache?: any[]
 } & ConfigFileOptions
 
 const defaultBaseConfigUrl = 'https://assets.hop.exchange'
@@ -143,10 +144,14 @@ export class Base {
   customAvailableLiquidityJsonUrl: string = ''
   blocklist: Record<string, boolean> | null = null
 
+  debugTimeLogsEnabled: boolean = false
+  debugTimeLogsCacheEnabled: boolean = false
+  debugTimeLogsCache: any[] = []
+
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @returns New Base class instance.
    */
   constructor (
@@ -185,6 +190,15 @@ export class Base {
             this.blocklist[address.toLowerCase()] = true
           }
         }
+      }
+      if (options.debugTimeLogsEnabled) {
+        this.debugTimeLogsEnabled = options.debugTimeLogsEnabled
+      }
+      if (options.debugTimeLogsCacheEnabled) {
+        this.debugTimeLogsCacheEnabled = options.debugTimeLogsCacheEnabled
+      }
+      if (options.debugTimeLogsCache) {
+        this.debugTimeLogsCache = options.debugTimeLogsCache
       }
     } else {
       network = networkOrOptionsObject as string
@@ -430,7 +444,7 @@ export class Base {
    *```
    */
   public async getBumpedGasPrice (signer: TProvider, percent: number): Promise<BigNumber> {
-    const gasPrice = await signer.getGasPrice()
+    const gasPrice = await this.getGasPrice(signer)
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
@@ -704,6 +718,7 @@ export class Base {
   }
 
   public async getFeeBps (token: TToken, destinationChain: TChain): Promise<number> {
+    const timeStart = Date.now()
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
@@ -719,6 +734,7 @@ export class Base {
     }
 
     const feeBps = fees[destinationChain.slug] || 0
+    this.debugTimeLog('getFeeBps', timeStart)
     return feeBps
   }
 
@@ -958,7 +974,7 @@ export class Base {
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
-    const gasPrice = await chain.provider.getGasPrice()
+    const gasPrice = await this.getGasPrice(chain.provider)
     const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
       .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
     const serializedTx = serializeTransaction({
@@ -968,21 +984,10 @@ export class Base {
       to,
       data
     })
+    const timeStart = Date.now()
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
     return l1FeeInWei
-  }
-
-  getWaitConfirmations (chain: TChain):number {
-    chain = this.toChainModel(chain)
-    if (!chain) {
-      throw new Error(`chain "${chain}" not found`)
-    }
-    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
-    if (waitConfirmations === undefined) {
-      throw new Error(`waitConfirmations for chain "${chain}" not found`)
-    }
-
-    return waitConfirmations
   }
 
   getExplorerUrl (): string {
@@ -1079,6 +1084,42 @@ export class Base {
       return
     }
     return data
+  }
+
+  getGasPrice = rateLimitRetry(async (signerOrProvider: TProvider): Promise<BigNumber> => {
+    const timeStart = Date.now()
+    const gasPrice = await signerOrProvider.getGasPrice()
+    this.debugTimeLog('getGasPrice', timeStart)
+    return gasPrice
+  })
+
+  async estimateGas (signerOrProvider: TProvider, tx: any): Promise<BigNumber> {
+    const timeStart = Date.now()
+    const gasLimit = await signerOrProvider.estimateGas(tx)
+    this.debugTimeLog('estimateGas', timeStart)
+    return gasLimit
+  }
+
+  debugTimeLog (label: string, timeStart: number) {
+    if (this.debugTimeLogsEnabled) {
+      const now = Date.now()
+      const durationMs = now - timeStart
+      const duration = `${durationMs / 1000}s`
+      console.debug(`debugTimeLog ${label} ${duration} ${now}`)
+      if (durationMs > 2 * 1000) {
+        console.warn(`debugTimeLog slow ${label} ${duration} ${now}`)
+      }
+      if (this.debugTimeLogsCacheEnabled) {
+        this.debugTimeLogsCache.push({ label, duration: durationMs, timestamp: now })
+      }
+    }
+  }
+
+  getDebugTimeLogs () {
+    if (!this.debugTimeLogsCacheEnabled) {
+      console.warn('debugTimeLogsCacheEnabled is false')
+    }
+    return this.debugTimeLogsCache
   }
 }
 

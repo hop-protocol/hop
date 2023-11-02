@@ -12,7 +12,6 @@ import { EventEmitter } from 'events'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
-import { promiseTimeout } from 'src/utils/promiseTimeout'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -60,7 +59,6 @@ class BaseDb extends EventEmitter {
   batchSize: number = 10
   batchTimeLimit: number = 2 * 1000
   batchQueue: QueueItem[] = []
-  timeoutSeconds: number = 10 * 1000
 
   constructor (prefix: string, _namespace?: string) {
     super()
@@ -123,10 +121,10 @@ class BaseDb extends EventEmitter {
       })
 
     this.pollBatchQueue()
-    this.migration()
+    this._migration()
       .then(() => {
         this.ready = true
-        this.logger.debug('ready')
+        this.logger.debug('db ready')
       })
       .catch(err => {
         this.logger.error(err)
@@ -134,9 +132,57 @@ class BaseDb extends EventEmitter {
       })
   }
 
-  async migration () {
-    // Optional migration,
-    // Implement in child class
+  // To add a migration, implement the shouldMigrate and migration functions in the child class.
+  // Migrations are memory intensive. Ensure there is no unintentional memory overflow.
+  // * Use stream instead of storing all entries at once
+  // * Bypass the mutex
+  async _migration (): Promise<void> {
+    // Check if migration is needed
+    if (!this.shouldMigrate()) return
+
+    // Perform migration
+    return await new Promise((resolve, reject) => {
+      const s = this.db.createReadStream({})
+      s.on('data', async (key: any, value: any) => {
+        // the parameter types depend on what key/value enabled options were used
+        if (typeof key === 'object') {
+          value = key.value
+          key = key.key
+        }
+        // ignore this key that used previously to track unique ids
+        if (key === 'ids') {
+          return
+        }
+
+        // Call the child class migration function
+        try {
+          await this.migration(key, value)
+        } catch (err) {
+          s.emit('error', err)
+        }
+      })
+        .on('end', () => {
+          this.logger.debug('DB migration complete')
+          s.destroy()
+          resolve()
+        })
+        .on('error', (err: any) => {
+          this.logger.error('DB migration error:', err)
+          s.destroy()
+          reject(err)
+        })
+    })
+  }
+
+  shouldMigrate (): boolean {
+    // Optional
+    // Must return true in child class to perform migration
+    return false
+  }
+
+  async migration (key: string, value: any): Promise<void> {
+    // Optional
+    // Must be implemented in child class to perform migration
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -258,14 +304,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _get (key: string): Promise<any> {
-    try {
-      return await promiseTimeout(this.db.get(key), this.timeoutSeconds)
-    } catch (err: any) {
-      if (err.message.includes('timedout')) {
-        this.handleTimeoutError(err)
-      }
-      throw err
-    }
+    return await this.db.get(key)
   }
 
   async getById (id: string, defaultValue: any = null) {
@@ -281,14 +320,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _getMany (keys: string[]): Promise<any[]> {
-    try {
-      return await promiseTimeout(this.db.getMany(keys), this.timeoutSeconds)
-    } catch (err: any) {
-      if (err.message.includes('timedout')) {
-        this.handleTimeoutError(err)
-      }
-      throw err
-    }
+    return this.db.getMany(keys)
   }
 
   async batchGetByIds (ids: string[], defaultValue: any = null) {
@@ -364,12 +396,6 @@ class BaseDb extends EventEmitter {
     if (this.listeners(Event.Error).length > 0) {
       this.emit(Event.Error, err)
     }
-  }
-
-  private handleTimeoutError (err: Error) {
-    console.trace()
-    this.logger.error(`BaseDb timeout error: ${err.message}. Possible reasons: mutex is hanging, db might be corrupt, lock rever released. exiting process to trigger restart and db reconnection...`)
-    process.exit(1)
   }
 }
 

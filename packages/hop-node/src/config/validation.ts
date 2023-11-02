@@ -1,5 +1,12 @@
-import { Chain } from 'src/constants'
-import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
+import { Chain, SyncType } from 'src/constants'
+import {
+  Config,
+  FileConfig,
+  Watchers,
+  getAllChains,
+  getAllTokens,
+  getEnabledTokens
+} from 'src/config'
 import { URL } from 'url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 
@@ -104,7 +111,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   for (const key in config.chains) {
     const chain = config.chains[key]
-    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'headSync']
+    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'customSyncType']
     const chainKeys = Object.keys(chain)
     validateKeys(validChainConfigKeys, chainKeys)
   }
@@ -304,7 +311,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, hasFinalizationBlockTag, headSync } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, customSyncType } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -319,17 +326,6 @@ export async function validateConfigValues (config?: Config) {
     } catch (err) {
       throw new Error(`rpc url "${rpcUrl}" is invalid`)
     }
-    if (waitConfirmations != null) {
-      if (typeof waitConfirmations !== 'number') {
-        throw new Error(`waitConfirmations for chain "${chainSlug}" must be a number`)
-      }
-      if (waitConfirmations <= 0) {
-        throw new Error(`waitConfirmations for chain "${chainSlug}" must be greater than 0`)
-      }
-    }
-    if (hasFinalizationBlockTag == null) {
-      throw new Error(`hasFinalizationBlockTag for chain "${chainSlug}" is required`)
-    }
     if (maxGasPrice != null) {
       if (typeof maxGasPrice !== 'number') {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be a number`)
@@ -338,9 +334,9 @@ export async function validateConfigValues (config?: Config) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
       }
     }
-    if (headSync != null) {
-      if (typeof headSync !== 'boolean') {
-        throw new Error(`headSync for chain "${chainSlug}" must be a boolean`)
+    if (customSyncType != null) {
+      if (!Object.values(SyncType).includes(customSyncType as SyncType)) {
+        throw new Error(`customSyncType for chain "${chainSlug}" must be of type SyncType`)
       }
     }
     if (redundantRpcUrls && redundantRpcUrls.length > 0) {

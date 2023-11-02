@@ -2,9 +2,7 @@ import { BigNumber } from 'ethers'
 
 export enum NetworkSlug {
   Mainnet = 'mainnet',
-  Staging = 'staging',
-  Goerli = 'goerli',
-  Kovan = 'kovan'
+  Goerli = 'goerli'
 }
 
 // mainnet chain ids
@@ -51,9 +49,7 @@ export enum ChainSlug {
 
 export enum Slug {
   ethereum = 'ethereum',
-  kovan = 'kovan',
   goerli = 'goerli',
-  staging = 'staging',
   mainnet = 'mainnet',
   arbitrum = 'arbitrum',
   optimism = 'optimism',

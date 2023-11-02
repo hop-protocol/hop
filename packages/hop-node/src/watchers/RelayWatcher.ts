@@ -346,7 +346,7 @@ class RelayWatcher extends BaseWatcher {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
     }
 
-    if (typeof chainWatcher.relayL1ToL2Message !== 'function') {
+    if (!chainWatcher?.relayL1ToL2Message) {
       throw new Error(`RelayWatcher: sendRelayTx: no relayL1ToL2Message function for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
     }
 

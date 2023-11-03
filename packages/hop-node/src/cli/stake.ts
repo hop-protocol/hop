@@ -8,6 +8,7 @@ import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
 import { Interface } from 'ethers/lib/utils'
 import { ShouldIgnoreProxy, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
@@ -199,7 +200,7 @@ async function getBridge (token: string, chain: string): Promise<L2Bridge | L1Br
   // Arbitrary watcher since only the bridge is needed
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
-    throw new Error('Watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   return watcher.bridge

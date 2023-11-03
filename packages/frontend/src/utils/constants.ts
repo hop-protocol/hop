@@ -3,18 +3,12 @@ import Network from 'src/models/Network'
 
 export declare enum NetworkId {
   MAINNET = 1,
-  ROPSTEN = 3,
-  RINKEBY = 4,
-  GOERLI = 5,
-  KOVAN = 42,
+  GOERLI = 5
 }
 
 export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
   1: '',
-  3: 'ropsten.',
-  4: 'rinkeby.',
-  5: 'goerli.',
-  42: 'kovan.',
+  5: 'goerli.'
 }
 
 export const L1_NETWORK = ChainSlug.Ethereum

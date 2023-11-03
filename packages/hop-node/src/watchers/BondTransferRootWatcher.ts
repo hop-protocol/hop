@@ -14,8 +14,6 @@ import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/err
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   enableEmergencyMode,
-  getFinalityTimeSeconds,
-  getHasFinalizationBlockTag,
   config as globalConfig
 } from 'src/config'
 
@@ -116,24 +114,8 @@ class BondTransferRootWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
 
-    // Check for finality of the commit tx. The sync watcher only waits for safe, but since
-    // transfer root bonds are not time sensitive, we can wait for finality.
-    if (getHasFinalizationBlockTag(this.chainSlug)) {
-      const blockNumberWithAcceptableFinality = await this.bridge.getBlockNumberWithAcceptableFinality()
-      if (blockNumberWithAcceptableFinality < commitTxBlockNumber) {
-        logger.debug(`chain has not yet reached finality. final block number: ${blockNumberWithAcceptableFinality}, commit block number: ${commitTxBlockNumber}`)
-        return
-      }
-    }
-
-    // ORUs finality is checked above, since they aren't constant time. This check is for non-oru chains.
-    // In practice, non-ORUs should not be bonded. This check is needed for the edge-case in which non-ORU roots are bonded.
     const minTransferRootBondDelaySeconds = await l1Bridge.getMinTransferRootBondDelaySeconds()
-    let chainFinalityTimeSec: number = 0
-    if (!getHasFinalizationBlockTag(this.chainSlug)) {
-      chainFinalityTimeSec = getFinalityTimeSeconds(this.chainSlug)
-    }
-    const delaySeconds = Math.max(minTransferRootBondDelaySeconds, chainFinalityTimeSec) + BondTransferRootDelayBufferSeconds
+    const delaySeconds = minTransferRootBondDelaySeconds + BondTransferRootDelayBufferSeconds
     const delayMs = delaySeconds * 1000
     const committedAtMs = committedAt * 1000
     const delta = Date.now() - committedAtMs - delayMs

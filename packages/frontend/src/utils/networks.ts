@@ -2,7 +2,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { CanonicalToken, ChainId, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
 import { Signer, providers } from 'ethers'
 import { find } from 'lodash'
-import { networks } from 'src/config'
+import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
 import Network from 'src/models/Network'
 
@@ -63,7 +63,7 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     }
   }
 
-  return { 1: 'ethereum', 4: 'rinkeby', 5: 'goerli', 42: 'kovan' }[networkId] || ''
+  return { 1: 'ethereum', 5: 'goerli' }[networkId] || ''
 }
 
 export const networkIdToName = (networkId: string | number) => {
@@ -81,11 +81,18 @@ export const networkIdNativeTokenSymbol = (networkId: string | number) => {
   return CanonicalToken.ETH
 }
 
-export function getNetworkWaitConfirmations(tChain: TChain) {
+export function getNetworkWaitConfirmations(tChain: TChain): number {
+  let waitConfirmations: number
   if (typeof tChain === 'string') {
-    return networks[tChain].waitConfirmations
+    waitConfirmations = WaitConfirmations?.[tChain]
+  } else {
+    waitConfirmations = WaitConfirmations?.[tChain.slug]
   }
-  return networks[tChain.slug].waitConfirmations
+
+  if (!waitConfirmations) {
+    throw new Error(`Wait confirmations not found for ${tChain}`)
+  }
+  return waitConfirmations
 }
 
 export function isLayer1(chain: Network | ChainSlug | undefined) {

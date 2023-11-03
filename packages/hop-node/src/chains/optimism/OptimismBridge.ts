@@ -8,10 +8,16 @@ import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusio
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 
+type CachedCustomSafeBlockNumber = {
+  lastCacheTimestampMs: number
+  l2BlockNumberCustomSafe: number
+}
+
 class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   csm: CrossChainMessenger
   derive: Derive = new Derive()
   inclusionService: IInclusionService | undefined
+  private customSafeBlockNumberCache: CachedCustomSafeBlockNumber
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -24,17 +30,19 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l2SignerOrProvider: this.l2Wallet
     })
 
+    this.customSafeBlockNumberCache = {
+      lastCacheTimestampMs: 0,
+      l2BlockNumberCustomSafe: 0
+    }
+
     const inclusionServiceConfig: InclusionServiceConfig = {
       chainSlug: this.chainSlug,
       l1Wallet: this.l1Wallet,
       l2Wallet: this.l2Wallet,
       logger: this.logger
     }
-    try {
-      this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
-    } catch (err) {
-      this.logger.error(`error creating inclusion service: ${err.message}`)
-    }
+
+    this.inclusionService = new AlchemyInclusionService(inclusionServiceConfig)
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
@@ -103,6 +111,69 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     if (!this.inclusionService) return
     return this.inclusionService.getL2InclusionTx(l1TxHash)
+  }
+
+  async getCustomSafeBlockNumber (): Promise<number | undefined> {
+    if (
+      !this.inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
+      !this.inclusionService?.getLatestL2TxFromL1ChannelTx
+    ) {
+      this.logger.error('getCustomSafeBlockNumber: includeService not available')
+      return
+    }
+
+    // Use a cache since the granularity of finality updates on l1 is on the order of minutes
+    if (
+      this._hasCacheBeenSet() &&
+      !this._isCacheExpired()
+    ) {
+      const cacheValue = this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
+      this.logger.info(`getCustomSafeBlockNumber: using cached value ${cacheValue}`)
+      return cacheValue
+    }
+
+    // Always update the cache with the latest block number. If the following calls fail, the cache
+    // will never be updated and we will get into a loop.
+    const now = Date.now()
+    this._updateCache(now)
+
+    // Get the latest checkpoint on L1
+    const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
+    const l1InclusionTx = await this.inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
+    if (!l1InclusionTx) {
+      this.logger.error(`getCustomSafeBlockNumber: no L1 inclusion tx found before block ${l1SafeBlock.number}`)
+      return
+    }
+
+    // Derive the L2 block number from the L1 inclusion tx
+    const latestSafeL2Tx = await this.inclusionService.getLatestL2TxFromL1ChannelTx(l1InclusionTx.transactionHash)
+    const customSafeBlockNumber = latestSafeL2Tx?.blockNumber
+    if (!customSafeBlockNumber) {
+      this.logger.error(`getCustomSafeBlockNumber: no L2 tx found for L1 inclusion tx ${l1InclusionTx.transactionHash}`)
+      return
+    }
+
+    this._updateCache(now, customSafeBlockNumber)
+    return customSafeBlockNumber
+  }
+
+  private _hasCacheBeenSet (): boolean {
+    return this.customSafeBlockNumberCache.l2BlockNumberCustomSafe !== 0
+  }
+
+  private _isCacheExpired (): boolean {
+    const now = Date.now()
+    const cacheExpirationTimeMs = 60 * 1000
+    const lastCacheTimestampMs = this.customSafeBlockNumberCache.lastCacheTimestampMs
+    return now - lastCacheTimestampMs > cacheExpirationTimeMs
+  }
+
+  private _updateCache (lastCacheTimestampMs: number, l2BlockNumber?: number): void {
+    const l2BlockNumberCustomSafe: number = l2BlockNumber ?? this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
+    this.customSafeBlockNumberCache = {
+      lastCacheTimestampMs,
+      l2BlockNumberCustomSafe
+    }
   }
 }
 

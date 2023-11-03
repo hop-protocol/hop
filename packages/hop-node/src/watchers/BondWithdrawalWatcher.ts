@@ -59,7 +59,7 @@ export type SendBondWithdrawalTxParams = {
   transferSentIndex: number
   transferSentTxHash: string
   transferSentBlockNumber: number
-  isFinalized: boolean
+  isFinalized?: boolean
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
@@ -119,7 +119,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (isUnbondable) {
         logger.warn(
           `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
-          `withdrawalBondTxError: ${withdrawalBondTxError}`
+          `withdrawalBondTxErr: ${withdrawalBondTxError}`
         )
         logger.debug('db poll completed')
         return

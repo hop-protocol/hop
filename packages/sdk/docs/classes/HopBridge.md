@@ -220,7 +220,7 @@ Class representing Hop bridge.
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `HopBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `networkOrOptionsObject` | `string` \| `HopBridgeConstructorOptions` | L1 network name (e.g. 'mainnet', 'goerli') |
 | `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |
 | `token?` | [`TToken`](../modules.md#ttoken) | Token symbol or model |
 | `chainProviders?` | `ChainProviders` | - |
@@ -237,7 +237,7 @@ import { HopBridge, Chain, Token } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
 
 const signer = new Wallet(privateKey)
-const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
+const bridge = new HopBridge('goerli', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
 ```
 
 #### Overrides

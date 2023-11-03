@@ -30,6 +30,12 @@ export enum AssetSymbol {
   // FRAX = 'FRAX',
 }
 
+export enum FinalityState {
+  Latest = 'latest',
+  Safe = 'safe',
+  Finalized = 'finalized'
+}
+
 export type Bps = {
   [key in ChainSlug]: number
 }

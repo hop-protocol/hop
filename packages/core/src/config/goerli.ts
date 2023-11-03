@@ -68,7 +68,7 @@ export const config : Config = {
     }
   },
   bonderTotalStake: {
-    ETH: 100,
+    ETH: 1000,
     HOP: 100,
     USDC: 100,
     USDT: 100,

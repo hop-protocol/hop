@@ -492,14 +492,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // Is the bonder unable to bond it because the transfer amount is too high
       const isBondableAmount = withdrawalBondTxError !== TxError.NotEnoughLiquidity
       if (!isBondableAmount) {
-        logger.warn('filterTransfersBySyncTypeThreshold: isBondableAmount is false')
+        logger.warn(`filterTransfersBySyncTypeThreshold: isBondableAmount false, withdrawalBondTxError: ${withdrawalBondTxError}`)
         continue
       }
 
       // If the transfer has not been finalized, is it within the bond threshold
       const isWithinBondThreshold = amount.lte(remainingAmountWithinThreshold)
       if (!isWithinBondThreshold) {
-        logger.warn('filterTransfersBySyncTypeThreshold: isWithinBondThreshold is false')
+        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${amount.toString()}, remainingAmountWithinThreshold:, ${remainingAmountWithinThreshold.toString()}`)
         continue
       } else {
         remainingAmountWithinThreshold = remainingAmountWithinThreshold.sub(amount)

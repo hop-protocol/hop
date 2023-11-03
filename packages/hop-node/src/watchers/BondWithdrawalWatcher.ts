@@ -33,7 +33,6 @@ import {
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { getHiddenCalldataForDestinationChain } from 'src/validator/blockhashValidator'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { parseUnits } from 'ethers/lib/utils'
@@ -371,28 +370,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferId })
 
     // Unfinalized transfers should skip preTransactionValidation since they might be reorged
-    let hiddenCalldata: string | undefined
     if (isFinalized) {
       logger.debug('attempting to bond unfinalized transfer. performing preTransactionValidation')
       await this.preTransactionValidation(params)
     } else {
       logger.debug('attempting to bond unfinalized transfer. skipping preTransactionValidation')
-      const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-      hiddenCalldata = await getHiddenCalldataForDestinationChain({
-        tokenSymbol: this.tokenSymbol,
-        sourceChainSlug: this.chainSlug,
-        destChainSlug: destinationChainSlug,
-        l2TxHash: transferSentTxHash,
-        l2BlockNumber: transferSentBlockNumber,
-        logger
-      })
-
-      // If hidden calldata is not present, bond the transfer at a later time when it is finalized
-      if (!hiddenCalldata) {
-        throw new BlockHashValidationError(`hiddenCalldata is falsy for unfinalized transferId ${transferId}`)
-      }
-
-      logger.debug(`hiddenCalldata: ${hiddenCalldata}`)
     }
 
     if (attemptSwap) {
@@ -408,8 +390,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline,
-        hiddenCalldata
+        deadline
       )
     } else {
       // Redundantly verify that both amountOutMin and deadline are 0
@@ -423,8 +404,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        bonderFee,
-        hiddenCalldata
+        bonderFee
       )
     }
   }

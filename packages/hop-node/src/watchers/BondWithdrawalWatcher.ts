@@ -23,8 +23,7 @@ import {
   enableEmergencyMode,
   getBonderTotalStake,
   getNetworkCustomSyncType,
-  config as globalConfig,
-  isProxyAddressForChain
+  config as globalConfig
 } from 'src/config'
 import {
   GasCostTransactionType,
@@ -34,10 +33,7 @@ import {
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import {
-  getHiddenCalldataForDestinationChain,
-  isBlockHashValidationEnabledForRoute
-} from 'src/validator/blockhashValidator'
+import { getHiddenCalldataForDestinationChain } from 'src/validator/blockhashValidator'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { parseUnits } from 'ethers/lib/utils'
@@ -103,9 +99,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     // Do this outside of parallelization since this relies on all transfers being processed
     const syncType = getNetworkCustomSyncType(this.chainSlug)
     dbTransfers = await this.filterTransfersBySyncType(dbTransfers, syncType)
-    if (dbTransfers.length < numUnbondedSentTransfers) {
-      this.logger.info(`${numUnbondedSentTransfers - dbTransfers.length} unbonded transfers db items filtered out by syncType ${syncType} (out of ${numUnbondedSentTransfers})`)
-    }
+    this.logger.info(`${numUnbondedSentTransfers - dbTransfers.length} out of ${numUnbondedSentTransfers} unbonded transfers db items filtered out by syncType ${syncType}`)
 
     const listSize = 100
     const batchedDbTransfers = dbTransfers.slice(0, listSize)
@@ -113,9 +107,26 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.info(`checking unbonded transfers db items ${batchedDbTransfers.length} (out of ${dbTransfers.length})`)
 
     await promiseQueue(batchedDbTransfers, async (dbTransfer: Transfer, i: number) => {
-      const { transferId } = dbTransfer
+      const {
+        transferId,
+        destinationChainId,
+        amount,
+        withdrawalBondTxError
+      } = dbTransfer
       const logger = this.logger.create({ id: transferId })
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} start`)
+      logger.debug('checking db poll')
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
+      const notEnoughCredit = availableCredit.lt(amount!)
+      const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
+      if (isUnbondable) {
+        logger.warn(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
+          `withdrawalBondTxErr: ${withdrawalBondTxError}`
+        )
+        logger.debug('db poll completed')
+        return
+      }
 
       try {
         logger.debug('checkTransferId start')
@@ -162,16 +173,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
-
-    logger.debug('processing bondWithdrawal. checking shouldIgnorePreFinalizedTx')
-    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    const shouldIgnorePreFinalizedTx = !isFinalized && !this.isBlockHashValidationEnabled(destinationChainSlug)
-    logger.debug(`processing bondWithdrawal. shouldIgnorePreFinalizedTx: ${shouldIgnorePreFinalizedTx}`)
-    if (shouldIgnorePreFinalizedTx) {
-      logger.warn('shouldIgnorePreFinalizedTx cannot bond preFinalizedTx. marking item not found')
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
-    }
 
     logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
@@ -376,14 +377,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await this.preTransactionValidation(params)
     } else {
       logger.debug('attempting to bond unfinalized transfer. skipping preTransactionValidation')
-
-      // Redundantly verify that blockHashValidation is enabled. Unfinalized transactions should never be bonded
-      // without blockHashValidation enabled
       const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-      if (!this.isBlockHashValidationEnabled(destinationChainSlug)) {
-        throw new BlockHashValidationError(`blockHash validation not enabled for transferId ${transferId}`)
-      }
-
       hiddenCalldata = await getHiddenCalldataForDestinationChain({
         tokenSymbol: this.tokenSymbol,
         sourceChainSlug: this.chainSlug,
@@ -452,6 +446,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   private async filterTransfersBySyncTypeBonder (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
+    // Bonder sync type returns all finalized transfers
     return dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
   }
 
@@ -663,13 +658,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       throw new Error(`dbTransfer not found for transferId ${calculatedTransferId}`)
     }
     return dbTransfer
-  }
-
-  isBlockHashValidationEnabled (destinationChainSlug: string): boolean {
-    return (
-      isProxyAddressForChain(this.tokenSymbol, destinationChainSlug) &&
-      isBlockHashValidationEnabledForRoute(this.tokenSymbol, this.chainSlug, destinationChainSlug)
-    )
   }
 }
 

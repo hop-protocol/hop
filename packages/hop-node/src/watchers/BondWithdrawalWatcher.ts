@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
+import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
@@ -17,24 +18,29 @@ import {
   RedundantProviderOutOfSync
 } from 'src/types/error'
 import {
+  BondThreshold,
+  bondWithdrawalBatchSize,
+  enableEmergencyMode,
+  getBonderTotalStake,
+  getNetworkCustomSyncType,
+  config as globalConfig,
+  isProxyAddressForChain
+} from 'src/config'
+import {
   GasCostTransactionType,
+  SyncType,
   TxError
 } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import {
-  bondWithdrawalBatchSize,
-  enableEmergencyMode,
-  config as globalConfig,
-  isProxyAddressForChain,
-} from 'src/config'
-import {
   getHiddenCalldataForDestinationChain,
   isBlockHashValidationEnabledForRoute
 } from 'src/validator/blockhashValidator'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
+import { parseUnits } from 'ethers/lib/utils'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -95,9 +101,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.info(`total unbonded transfers db items: ${numUnbondedSentTransfers}`)
 
     // Do this outside of parallelization since this relies on all transfers being processed
-    dbTransfers = this.getTransfersWithinAvailableLiquidity(dbTransfers)
+    const syncType = getNetworkCustomSyncType(this.chainSlug)
+    dbTransfers = await this.filterTransfersBySyncType(dbTransfers, syncType)
     if (dbTransfers.length < numUnbondedSentTransfers) {
-      this.logger.info(`${numUnbondedSentTransfers - dbTransfers.length} unbonded transfers db items are not within available liquidity`)
+      this.logger.info(`${numUnbondedSentTransfers - dbTransfers.length} unbonded transfers db items filtered out by syncType ${syncType} (out of ${numUnbondedSentTransfers})`)
     }
 
     const listSize = 100
@@ -434,17 +441,45 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
   }
 
-  getTransfersWithinAvailableLiquidity (dbTransfers: UnbondedSentTransfer[]): UnbondedSentTransfer[] {
-    let transfers: UnbondedSentTransfer[] = []
+  private async filterTransfersBySyncType (dbTransfers: UnbondedSentTransfer[], syncType?: SyncType): Promise<UnbondedSentTransfer[]> {
+    if (syncType === SyncType.Bonder) {
+      return this.filterTransfersBySyncTypeBonder(dbTransfers)
+    } else if (syncType === SyncType.Threshold) {
+      return this.filterTransfersBySyncTypeThreshold(dbTransfers)
+    } else {
+      throw new Error(`Invalid syncType: ${syncType}`)
+    }
+  }
 
-    let availableLiquidityWithThreshold: BigNumber = this.availableLiquidityWatcher.getAvailableCreditWithThreshold()
-    let availableLiquidityPerChain: Record<number, BigNumber> = {}
-    for (const dbTransfer of dbTransfers) {
-      const { transferId, destinationChainId, amount, withdrawalBondTxError } = dbTransfer
+  private async filterTransfersBySyncTypeBonder (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
+    return dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
+  }
+
+  private async filterTransfersBySyncTypeThreshold (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
+    // Threshold sync type returns all unfinalized transfers within the threshold plus all finalized transfers
+    const finalizedTransfers: UnbondedSentTransfer[] = await this.filterTransfersBySyncTypeBonder(dbTransfers)
+
+    const inFlightAmount: BigNumber = await this.getInFlightAmount()
+    const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
+    const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
+    if (amountWithinThreshold.lt(0)) {
+      return finalizedTransfers
+    }
+
+    const unfinalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => !dbTransfer.isFinalized)
+    if (!unfinalizedTransfers.length) {
+      return finalizedTransfers
+    }
+
+    const availableLiquidityPerChain: Record<string, BigNumber> = {}
+    let remainingAmountWithinThreshold: BigNumber = amountWithinThreshold
+    const transfersWithinThreshold: UnbondedSentTransfer[] = []
+    for (const unfinalizedTransfer of unfinalizedTransfers) {
+      const { transferId, destinationChainId, amount, withdrawalBondTxError } = unfinalizedTransfer
       const logger = this.logger.create({ id: transferId })
 
       if (!destinationChainId || !amount) {
-        logger.warn(`getTransfersWithinAvailableLiquidity: destinationChainId: ${destinationChainId}, amount: ${amount}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: destinationChainId: ${destinationChainId}, amount: ${amount}`)
         continue
       }
 
@@ -453,34 +488,56 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       // Is there enough overall credit to bond
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-      const enoughCredit = availableCredit.gte(amount)
+      const enoughCredit = availableLiquidityPerChain[destinationChainId].gte(amount)
       if (!enoughCredit) {
-        logger.warn(`getTransfersWithinAvailableLiquidity: invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${amount.toString()}`)
         continue
       }
 
       // Is the bonder unable to bond it because the transfer amount is too high
       const isBondableAmount = withdrawalBondTxError !== TxError.NotEnoughLiquidity
       if (!isBondableAmount) {
-        logger.warn(`getTransfersWithinAvailableLiquidity: isBondableAmount is false`)
+        logger.warn('filterTransfersBySyncTypeThreshold: isBondableAmount is false')
         continue
       }
 
       // If the transfer has not been finalized, is it within the bond threshold
-      const isWithinBondThreshold = !dbTransfer?.isFinalized && amount.lte(availableLiquidityWithThreshold)
+      const isWithinBondThreshold = amount.lte(remainingAmountWithinThreshold)
       if (!isWithinBondThreshold) {
-        logger.warn(`getTransfersWithinAvailableLiquidity: isWithinBondThreshold is false`)
+        logger.warn('filterTransfersBySyncTypeThreshold: isWithinBondThreshold is false')
         continue
       } else {
-        availableLiquidityWithThreshold = availableLiquidityWithThreshold.sub(amount)
+        remainingAmountWithinThreshold = remainingAmountWithinThreshold.sub(amount)
       }
 
       availableLiquidityPerChain[destinationChainId] = availableLiquidityPerChain[destinationChainId].sub(amount)
-      transfers.push(dbTransfer)
+      transfersWithinThreshold.push(unfinalizedTransfer)
     }
 
-    return transfers
+    return [
+      ...finalizedTransfers,
+      ...transfersWithinThreshold
+    ]
+  }
+
+  private async getInFlightAmount (): Promise<BigNumber> {
+    const inFlightTransfers: Transfer[] = await this.db.transfers.getInFlightTransfers()
+    let inFlightAmount = BigNumber.from(0)
+    for (const inFlightTransfer of inFlightTransfers) {
+      if (!inFlightTransfer.amount) continue
+      inFlightAmount = inFlightAmount.add(inFlightTransfer.amount)
+    }
+    return inFlightAmount
+  }
+
+  private getBonderRiskAmount (): BigNumber {
+    const bonderTotalStake: number | undefined = getBonderTotalStake(this.tokenSymbol)
+    if (!bonderTotalStake) {
+      return BigNumber.from(0)
+    }
+
+    const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
+    return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {

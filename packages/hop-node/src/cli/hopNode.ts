@@ -10,7 +10,6 @@ import {
   slackChannel,
   slackUsername
 } from 'src/config'
-import { DoesSupportCustomFinality } from 'src/constants'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'

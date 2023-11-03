@@ -160,7 +160,7 @@ Class representing AMM contract
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `AmmConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `networkOrOptionsObject` | `string` \| `AmmConstructorOptions` | L1 network name (e.g. 'mainnet', 'goerli') |
 | `tokenSymbol?` | `string` | Token model |
 | `chain?` | [`TChain`](../modules.md#tchain) | Chain model |
 | `signer?` | [`TProvider`](../modules.md#tprovider) | Ethers `Signer` for signing transactions. |

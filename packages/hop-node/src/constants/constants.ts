@@ -2,9 +2,7 @@ import { chains } from '@hop-protocol/core/metadata'
 
 export enum Network {
   Mainnet = 'mainnet',
-  Staging = 'staging',
-  Goerli = 'goerli',
-  Kovan = 'kovan',
+  Goerli = 'goerli'
 }
 
 // TODO: read from core
@@ -187,7 +185,6 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.PolygonZk]: 1
 }
 
-export const HeadSyncKeySuffix = 'HeadSync'
 // Optimism-chain resource metering is not accurate with all RPC providers. Because of this,
 // confirmations entering into an Optimism chain need a custom gasLimit to ensure the
 // tx is propagated to the chain.
@@ -209,3 +206,10 @@ export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
 }
 
 export const DefaultBondThreshold = 5
+// TODO: When bonder-specific strategies are isolated from the finality dir, use a new
+// SyncType const defined there
+export enum SyncType {
+  Bonder = 'bonder',
+  Collateralized = 'collateralized',
+  Threshold = 'threshold'
+}

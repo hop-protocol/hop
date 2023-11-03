@@ -15,7 +15,6 @@ import {
   ChainPollMultiplier,
   DoesRootProviderSupportWs,
   GasCostTransactionType,
-  HeadSyncKeySuffix,
   OneWeekMs,
   RelayableChains,
   RootProviderName,
@@ -46,7 +45,6 @@ import {
   SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
-  getNetworkHeadSync,
   getProxyAddressForChain,
   config as globalConfig,
   isProxyAddressForChain,
@@ -78,7 +76,6 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   isRelayableChainEnabled: boolean = false
-  shouldSyncHead: boolean
   ready: boolean = false
   // Experimental: Websocket support
   wsProvider: providers.WebSocketProvider
@@ -115,9 +112,6 @@ class SyncWatcher extends BaseWatcher {
         break
       }
     }
-
-    this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
-    this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
 
     this.init()
       .catch(err => {
@@ -347,17 +341,18 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async getTransferSentEventPromise (isHeadSync: boolean = false): Promise<any> {
+  async getTransferSentEventPromise (isCustomSync: boolean = false): Promise<any> {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
+    const customSyncKeySuffix = l2Bridge.getCustomSyncKeySuffix()
     let keyName = l2Bridge.TransferSent
-    if (isHeadSync) {
-      keyName += HeadSyncKeySuffix
+    if (isCustomSync && customSyncKeySuffix) {
+      keyName += customSyncKeySuffix
     }
 
     return l2Bridge.mapTransferSentEvents(
-      async event => this.handleTransferSentEvent(event, isHeadSync),
+      async event => this.handleTransferSentEvent(event, isCustomSync),
       this.getSyncOptions(keyName)
     )
   }
@@ -455,8 +450,9 @@ class SyncWatcher extends BaseWatcher {
     if (this.isL1) return []
 
     let promises: EventPromise
-    if (this.shouldSyncHead) {
-      // Sync head first, then sync finalized transfers
+    const isCustomSync = this.bridge.shouldPerformCustomSync()
+    if (isCustomSync) {
+      // Custom sync first, then sync finalized transfers
       // If syncs are not done in this order, there is a race condition upon bonder startup
       // where a transfer might be marked finalized and then subsequently unfinalized. Ordering
       // these ensures that does not happen.
@@ -545,7 +541,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferSentEvent (event: TransferSentEvent, isHeadSync: boolean) {
+  async handleTransferSentEvent (event: TransferSentEvent, isCustomSync: boolean) {
     const {
       transferId,
       chainId: destinationChainIdBn,
@@ -568,7 +564,10 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
       const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
-      const isFinalized = !isHeadSync
+      // isFinalized must be undefined if isCustomSync is not explicitly false
+      // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
+      // should never happen unless RPC providers return out of order events
+      const isFinalized = !isCustomSync ? true : undefined
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -607,12 +606,6 @@ class SyncWatcher extends BaseWatcher {
       // as notFound previously if there was weird behavior onchain after this
       // transfer was seen at the head. If this is the case, the transfer would not have been
       // bonded before finality and will need to be bonded now.
-
-      // NOTE: There is a rare race condition where an unfinalized transfer may be processed before
-      // the finalized transfer is seen but sent and fail onchain validation after the finalized
-      // transfer has been recorded. For example, if a reorg happens at block 255 and finalization
-      // is at block 256. In this case, the transferId will be marked as notFound and the
-      // transfer will never be bonded. This is not handled, but if it ever occurs in practice, handle here.
       if (isFinalized) {
         logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxErr: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
         dbData.isNotFound = undefined

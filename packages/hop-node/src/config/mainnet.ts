@@ -18,8 +18,6 @@ for (const chain in _networks) {
   networks[chain].name = network?.name
   networks[chain].chainId = network?.networkId
   networks[chain].rpcUrl = network?.publicRpcUrl
-  networks[chain].waitConfirmations = network?.waitConfirmations
-  networks[chain].finalizationBlockTag = network?.finalizationBlockTag
   networks[chain].subgraphUrl = network?.subgraphUrl
 
   bonderConfig.totalStake = config.bonderTotalStake

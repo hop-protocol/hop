@@ -9,9 +9,8 @@ import {
   getBonderTotalStake,
   getConfigBonderForRoute,
   getEnabledNetworks,
-  getProxyAddressForChain,
-  config as globalConfig, isProxyAddressForChain
-  , modifiedLiquidityRoutes, oruChains
+  config as globalConfig,
+  modifiedLiquidityRoutes, oruChains
 } from 'src/config'
 import {
   Chain,
@@ -229,29 +228,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getBonderAddress (destinationChain: string): Promise<string> {
-    // TODO: This should be better
-    // If uploading to S3, do not use the bridge's bonder since that falls back to the signer, which
-    // would not be correct. Instead, use the proxy or the route bonder.
     const routeBonder = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
-    if (this.s3Upload) {
-      let stakerAddress
-      if (isProxyAddressForChain(this.tokenSymbol, destinationChain)) {
-        stakerAddress = getProxyAddressForChain(this.tokenSymbol, destinationChain)
-      }
-
-      if (!stakerAddress) {
-        stakerAddress = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
-      }
-
-      if (!stakerAddress) {
-        throw new Error(`no bonder address for ${this.tokenSymbol} ${this.chainSlug}→${destinationChain}`)
-      }
-
-      return stakerAddress
-    }
-
-    const watcher = this.getSiblingWatcherByChainSlug(destinationChain)
-    return (routeBonder || await watcher.bridge.getStakerAddress())?.toLowerCase()
+    return (routeBonder || await this.bridge.getBonderAddress())?.toLowerCase()
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {

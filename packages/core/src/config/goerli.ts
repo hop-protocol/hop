@@ -67,6 +67,14 @@ export const config : Config = {
       base: 500
     }
   },
+  bonderTotalStake: {
+    ETH: 100,
+    HOP: 100,
+    USDC: 100,
+    USDT: 100,
+    DAI: 100,
+    UNI: 100
+  },
   destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
     polygon: true,

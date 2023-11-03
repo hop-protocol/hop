@@ -205,6 +205,7 @@ export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
   [RootProviderName.Quiknode]: true
 }
 
+export const DefaultBondThreshold = 5
 // TODO: When bonder-specific strategies are isolated from the finality dir, use a new
 // SyncType const defined there
 export enum SyncType {

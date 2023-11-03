@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -585,6 +585,33 @@ class TransfersDb extends BaseDb {
     }
 
     return relayBackoffIndex
+  }
+
+  async getInFlightTransfers (): Promise<Transfer[]> {
+    await this.tilReady()
+
+    // Unbonded should not be in flight for more than 1 hour
+    const fromUnix = Math.floor((Date.now() - OneHourMs) / 1000)
+    const transfersFromHour: Transfer[] = await this.getTransfers({
+      fromUnix
+    })
+
+    return transfersFromHour.filter((transfer: Transfer) => {
+      if (!transfer?.sourceChainId || !transfer?.transferId || !transfer?.isBondable) {
+        return false
+      }
+
+      // L1 to L2 transfers are not bonded by the bonder so they are not considered in flight.
+      // Checking bonderFeeTooLow could be a false positive since the bonder bonds relative to the current gas price.
+      const sourceChainSlug = chainIdToSlug(transfer.sourceChainId)
+      return (
+        sourceChainSlug !== Chain.Ethereum &&
+        transfer.transferId &&
+        transfer.isBondable &&
+        !transfer?.withdrawalBonded &&
+        !transfer?.isTransferSpent
+      )
+    })
   }
 }
 

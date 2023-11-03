@@ -1,6 +1,6 @@
 import OsWatcher from 'src/watchers/OsWatcher'
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
+  BondThreshold,
   ShouldIgnoreBlockHashValidation,
   ShouldIgnoreProxy,
   bondWithdrawalBatchSize,
@@ -10,6 +10,7 @@ import {
   slackChannel,
   slackUsername
 } from 'src/config'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { computeAddress } from 'ethers/lib/utils'
@@ -121,6 +122,18 @@ async function main (source: any) {
     const bonders: any = globalConfig.bonders
     for (const token of tokens) {
       logger.info(`config bonders for ${token}: ${JSON.stringify(bonders?.[token])}`)
+    }
+  }
+
+  if (globalConfig?.bonderConfig) {
+    logger.info(`using bond threshold: ${BondThreshold}`)
+    const totalStake = globalConfig.bonderConfig?.totalStake
+    if (totalStake) {
+      for (const token of tokens) {
+        if (token in totalStake) {
+          logger.info(`bonder total stake for ${token}: ${(totalStake as any)[token]}`)
+        }
+      }
     }
   }
 

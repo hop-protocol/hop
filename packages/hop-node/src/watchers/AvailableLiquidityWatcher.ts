@@ -2,25 +2,17 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import S3Upload from 'src/aws/s3Upload'
-import getTokenMetadata from 'src/utils/getTokenMetadata'
 import { BigNumber } from 'ethers'
+import { Chain, TenMinutesMs } from 'src/constants'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
-  BondThreshold,
-  getBonderTotalStake,
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityRoutes, oruChains
 } from 'src/config'
-import {
-  Chain,
-  TenMinutesMs
-} from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Transfer } from 'src/db/TransfersDb'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 type Config = {
   chainSlug: string
@@ -39,7 +31,6 @@ type S3JsonData = {
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
-    availableCreditWithThreshold: BigNumber
   }
 }
 
@@ -57,10 +48,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
-  private availableCreditWithThreshold: BigNumber = BigNumber.from(0)
   private lastCalculated: { [destinationChain: string]: number } = {}
   private pollCount: number = 0
-  private readonly pollTimeSec: number = 1 * 60
+  private readonly pollTimeSec: number = 15 * 60
   private readonly cacheTimeSec: number = 30
   private lastCacheTimestampSec: Record<string, number> = {}
   s3Upload: S3Upload
@@ -128,9 +118,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       this.logger.debug(`calculateAvailableCredit: availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, unbondedTransferRootAmounts: ${unbondedTransferRootAmounts.toString()}`)
     }
 
-    let availableCreditWithThreshold = await this.getDbAvailableCreditWithThreshold(destinationChainId)
-    this.logger.debug(`calculateAvailableCredit: availableCreditWithThreshold; bonder: ${bonder}, availableCreditWithThreshold: ${availableCreditWithThreshold.toString()}`)
-
     if (modifiedLiquidityRoutes?.length > 0) {
       const shouldDisableRoute = this.shouldDisableRoute(modifiedLiquidityRoutes, destinationChain)
       this.logger.debug(`calculateAvailableCredit: modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
@@ -138,7 +125,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         availableCredit = BigNumber.from('0')
         baseAvailableCredit = BigNumber.from('0')
         baseAvailableCreditIncludingVault = BigNumber.from('0')
-        availableCreditWithThreshold = BigNumber.from('0')
       }
     }
 
@@ -154,17 +140,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       baseAvailableCreditIncludingVault = BigNumber.from(0)
     }
 
-    if (availableCreditWithThreshold.lt(0)) {
-      availableCreditWithThreshold = BigNumber.from(0)
-    }
-
-    return {
-      availableCredit,
-      baseAvailableCredit,
-      baseAvailableCreditIncludingVault,
-      availableCreditWithThreshold,
-      vaultBalance
-    }
+    return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }
   }
 
   async calculatePendingAmount (destinationChainId: number) {
@@ -209,17 +185,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const bonder = await this.getBonderAddress(destinationChain)
-    const {
-      availableCredit,
-      baseAvailableCredit,
-      baseAvailableCreditIncludingVault,
-      availableCreditWithThreshold,
-      vaultBalance
-    } = await this.calculateAvailableCredit(destinationChainId, bonder)
+    const { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
     this.baseAvailableCredit[destinationChain] = baseAvailableCredit
     this.baseAvailableCreditIncludingVault[destinationChain] = baseAvailableCreditIncludingVault
-    this.availableCreditWithThreshold = availableCreditWithThreshold
     this.vaultBalance[destinationChain] = vaultBalance
     if (!bonderVaultBalance[bonder]) {
       bonderVaultBalance[bonder] = {}
@@ -384,15 +353,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return baseAvailableCreditIncludingVault
   }
 
-  public getAvailableCreditWithThreshold () {
-    const availableCreditWithThreshold = this.availableCreditWithThreshold
-    if (!availableCreditWithThreshold) {
-      return BigNumber.from(0)
-    }
-
-    return availableCreditWithThreshold
-  }
-
   public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
@@ -443,43 +403,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return vaultBalance
   }
 
-  async getDbAvailableCreditWithThreshold (destinationChainId: number): Promise<BigNumber> {
-    this.logger.debug(`getDbAvailableCreditWithThreshold, destinationChainId: ${destinationChainId}`)
-
-    const bonderTotalStake: number | undefined = getBonderTotalStake(this.tokenSymbol)
-    const tokenMetadata = getTokenMetadata(this.tokenSymbol)
-    if (!bonderTotalStake || !tokenMetadata?.decimals) {
-      this.logger.debug(`getDbAvailableCreditWithThreshold, no bonderTotalStake for ${this.tokenSymbol} or no decimals for ${this.tokenSymbol}`)
-      return BigNumber.from(0)
-    }
-
-    const transfers: Transfer[] = await this.db.transfers.getInFlightTransfers()
-    let inFlightAmount = BigNumber.from(0)
-    for (const transfer of transfers) {
-      if (!transfer.amount) continue
-      inFlightAmount = inFlightAmount.add(transfer.amount)
-    }
-    this.logger.debug(`getDbAvailableCreditWithThreshold ${this.tokenSymbol}: inFlightAmount: ${formatUnits(inFlightAmount, tokenMetadata.decimals)}, transfers: ${JSON.stringify(transfers)}`)
-
-    const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), tokenMetadata.decimals)
-    const bonderStakeWithThreshold = bonderTotalStakeWei.mul(BondThreshold).div(100)
-    const availableCreditWithThreshold = bonderStakeWithThreshold.sub(inFlightAmount)
-
-    if (availableCreditWithThreshold.lt(0)) {
-      this.logger.debug(`getDbAvailableCreditWithThreshold, availableCreditWithThreshold: ${availableCreditWithThreshold.toString()} less than 0`)
-      return BigNumber.from(0)
-    }
-
-    // A bonder can have low credit but still bond with threshold, since the low credit is not in-flight values
-    const availableCredit = this.getEffectiveAvailableCredit(destinationChainId)
-    if (availableCredit.lt(availableCreditWithThreshold)) {
-      this.logger.debug(`getDbAvailableCreditWithThreshold, availableCredit: ${availableCredit.toString()} less than availableCreditWithThreshold: ${availableCreditWithThreshold.toString()}`)
-      return availableCredit
-    }
-
-    return availableCreditWithThreshold
-  }
-
   async uploadToS3 () {
     if (!this.s3Upload) {
       return
@@ -492,8 +415,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       bonderVaultBalance: {},
       availableCredit: {},
       pendingAmounts: {},
-      unbondedTransferRootAmounts: {},
-      availableCreditWithThreshold: {}
+      unbondedTransferRootAmounts: {}
     }
     for (const chainId in this.siblingWatchers) {
       const sourceChain = this.chainIdToSlug(Number(chainId))
@@ -511,7 +433,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
       data.bonderVaultBalance = bonderVaultBalance
-      data.availableCreditWithThreshold = watcher.availableCreditWithThreshold
     }
 
     s3JsonData[this.tokenSymbol] = data

@@ -84,6 +84,18 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xB87aC009F61Fa214f196e232fD14A6f8AE422FA1',
         l2SaddleLpToken: '0x6Ad03376a15819c80b267038E2E4c00D35Cf8f67',
         bridgeDeployedBlockNumber: 1551608
+      },
+      linea: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0xa91405Ee423a27C305A6B5f4B54d5B8bB2E8728D',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0x2C1b868d6596a18e32E61B901E4060C872647b6C',
+        l2Bridge: '0x893246FACF345c99e4235E5A7bbEE7404c988b96',
+        l2HopBridgeToken: '0x8212Fb83CF51C5bd1333b5f063222E338C86F064',
+        l2AmmWrapper: '0x30ca9afabA0DA59F507756cA43619f96f176d214',
+        l2SaddleSwap: '0x1Be8d7851d64BC296e9E941F414f9a6635b5D830',
+        l2SaddleLpToken: '0x5f6Eb0641D6Bcd7352cC628B42e72901d5336822',
+        bridgeDeployedBlockNumber: 1904158
       }
     }
   }

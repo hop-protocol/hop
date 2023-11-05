@@ -124,6 +124,7 @@ export enum GasCostTransactionType {
 export const RelayableChains: string[] = [
   Chain.Arbitrum,
   Chain.Nova,
+  Chain.Linea,
   Chain.PolygonZk
 ]
 
@@ -145,6 +146,7 @@ export const OruExitTimeMs: Record<string, number> = {
   [Chain.Base]: OneHourMs,
   [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs,
   [Chain.Nova]: OneWeekMs + ValidatorExitBufferMs,
+  [Chain.Linea]: OneHourMs * 12,
   [Chain.PolygonZk]: OneHourMs
 }
 
@@ -182,6 +184,7 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Arbitrum]: 1,
   [Chain.Base]: 1,
   [Chain.Nova]: 2,
+  [Chain.Linea]: 1,
   [Chain.PolygonZk]: 1
 }
 

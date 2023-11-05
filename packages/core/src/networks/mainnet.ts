@@ -92,6 +92,16 @@ export const networks: Networks = {
     etherscanApiUrl: 'https://api.basescan.org'
   }
   /*
+  linea: {
+    name: chains.linea.name,
+    image: chains.linea.image,
+    networkId: 59144,
+    publicRpcUrl: 'https://rpc.linea.build',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://lineascan.build/'],
+    nativeBridgeUrl: 'https://bridge.linea.build/',
+    subgraphUrl: 'TODO'
+  }
   zksync: {
     name: chains.zksync.name,
     image: chains.zksync.image,
@@ -99,15 +109,6 @@ export const networks: Networks = {
     publicRpcUrl: 'https://zksync2-mainnet.zksync.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.zksync.io'],
-    nativeBridgeUrl: ''
-  }
-  linea: {
-    name: chains.linea.name,
-    image: chains.linea.image,
-    networkId: 0,
-    publicRpcUrl: '',
-    fallbackPublicRpcUrls: [],
-    explorerUrls: [''],
     nativeBridgeUrl: ''
   }
   */

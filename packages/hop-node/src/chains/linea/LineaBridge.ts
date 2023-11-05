@@ -1,24 +1,24 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import { IChainBridge } from '../IChainBridge'
-import { Signer, providers, BigNumber, Contract } from 'ethers'
 import { LineaSDK } from '@consensys/linea-sdk'
+import { Signer, providers } from 'ethers'
 
 class LineaBridge extends AbstractChainBridge implements IChainBridge {
   l1Wallet: Signer
   l2Wallet: Signer
   LineaSDK: LineaSDK
+  // TODO: More native way of doing this
+  lineaMainnetChainId: number = 59144
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     this.LineaSDK = new LineaSDK({
-      l1RpcUrl: process.env.L1_RPC_URL ?? "", // L1 rpc url
-      l2RpcUrl: process.env.L2_RPC_URL ?? "", // L2 rpc url
-      // l1SignerPrivateKey: process.env.L1_SIGNER_PRIVATE_KEY ?? "", // L1 account private key (optional if you use mode = read-only)
-      // l2SignerPrivateKey: process.env.L2_SIGNER_PRIVATE_KEY ?? "", // L2 account private key (optional if you use mode = read-only)
-      network: 'linea-goerli', // network you want to interact with (either linea-mainnet or linea-goerli)
-      mode: 'read-only', // contract wrapper class mode (read-only or read-write), read-only: only read contracts state, read-write: read contracts state and claim messages 
+      l1RpcUrl: process.env.L1_RPC_URL ?? '',
+      l2RpcUrl: process.env.L2_RPC_URL ?? '',
+      network: this.chainId === this.lineaMainnetChainId ? 'linea-mainnet' : 'linea-goerli',
+      mode: 'read-only'
     })
   }
 
@@ -47,7 +47,7 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
-    
+
     const message = messages[0]
     const messageHash = message.messageHash
 
@@ -75,7 +75,6 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
 
   private async _isCheckpointed (messageHash: string, destinationBridge: any): Promise<boolean> {
     const messageStatus = await destinationBridge.getMessageStatus(messageHash)
-    
     if (messageStatus === 'CLAIMABLE') {
       return true
     }

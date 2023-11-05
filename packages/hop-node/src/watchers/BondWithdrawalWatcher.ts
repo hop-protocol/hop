@@ -33,9 +33,9 @@ import {
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
-import { parseUnits } from 'ethers/lib/utils'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -57,8 +57,6 @@ export type SendBondWithdrawalTxParams = {
   amountOutMin: BigNumber
   deadline: BigNumber
   transferSentIndex: number
-  transferSentTxHash: string
-  transferSentBlockNumber: number
   isFinalized?: boolean
 }
 
@@ -157,7 +155,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferNonce,
       deadline,
       transferSentTxHash,
-      transferSentBlockNumber,
       transferSentIndex,
       isFinalized
     } = dbTransfer
@@ -266,8 +263,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amountOutMin,
         deadline,
         transferSentIndex,
-        transferSentTxHash,
-        transferSentBlockNumber,
         isFinalized
       })
 
@@ -363,8 +358,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       attemptSwap,
       amountOutMin,
       deadline,
-      transferSentTxHash,
-      transferSentBlockNumber,
       isFinalized
     } = params
     const logger = this.logger.create({ id: transferId })
@@ -434,15 +427,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
     // Threshold sync type returns all unfinalized transfers within the threshold plus all finalized transfers
     const finalizedTransfers: UnbondedSentTransfer[] = await this.filterTransfersBySyncTypeBonder(dbTransfers)
 
+    const decimals = getTokenDecimals(this.tokenSymbol)
     const inFlightAmount: BigNumber = await this.getInFlightAmount()
     const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
     const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
     if (amountWithinThreshold.lt(0)) {
+      this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${formatUnits(inFlightAmount, decimals)})`)
       return finalizedTransfers
     }
 
     const unfinalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => !dbTransfer.isFinalized)
     if (!unfinalizedTransfers.length) {
+      this.logger.debug('filterTransfersBySyncTypeThreshold: no unfinalized transfers')
       return finalizedTransfers
     }
 
@@ -465,7 +461,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // Is there enough overall credit to bond
       const enoughCredit = availableLiquidityPerChain[destinationChainId].gte(amount)
       if (!enoughCredit) {
-        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${amount.toString()}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${formatUnits(amount, decimals)}`)
         continue
       }
 
@@ -479,7 +475,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // If the transfer has not been finalized, is it within the bond threshold
       const isWithinBondThreshold = amount.lte(remainingAmountWithinThreshold)
       if (!isWithinBondThreshold) {
-        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${amount.toString()}, remainingAmountWithinThreshold:, ${remainingAmountWithinThreshold.toString()}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${formatUnits(amount, decimals)}, remainingAmountWithinThreshold:, ${formatUnits(remainingAmountWithinThreshold, decimals)}`)
         continue
       } else {
         remainingAmountWithinThreshold = remainingAmountWithinThreshold.sub(amount)

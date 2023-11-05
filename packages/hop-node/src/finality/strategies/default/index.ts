@@ -1,9 +1,9 @@
 import { ArbitrumStrategy } from './ArbitrumStrategy'
 import { EthereumStrategy } from './EthereumStrategy'
 import { GnosisStrategy } from './GnosisStrategy'
+import { LineaStrategy } from './LineaStrategy'
 import { OptimismStrategy } from './OptimismStrategy'
 import { PolygonStrategy } from './PolygonStrategy'
-import { LineaStrategy } from './LineaStrategy'
 
 import { Chain } from 'src/constants'
 import { Strategies } from '../IFinalityStrategy'

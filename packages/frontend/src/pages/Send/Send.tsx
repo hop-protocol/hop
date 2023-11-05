@@ -700,9 +700,9 @@ const Send: FC = () => {
 
   useEffect(() => {
     // comment this out when warning not needed anymore
-    if (isGoerli && fromNetwork?.slug === ChainSlug.Ethereum && toNetwork?.slug === ChainSlug.Linea) {
-      return setManualError('Error: Transfers to Linea are currently disabled while Linea undergoes maintenance. Please check Linea discord for more updates.')
-    }
+    // if (isGoerli && fromNetwork?.slug === ChainSlug.Ethereum && toNetwork?.slug === ChainSlug.Linea) {
+    //   return setManualError('Error: Transfers to Linea are currently disabled while Linea undergoes maintenance. Please check Linea discord for more updates.')
+    // }
     setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 

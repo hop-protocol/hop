@@ -175,8 +175,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    await this.withdrawFromVaultIfNeeded(destinationChainId, bondAmount)
-
     logger.debug(
       `attempting to bond transfer root id ${transferRootId} with destination chain ${destinationChainId}`
     )
@@ -246,33 +244,6 @@ class BondTransferRootWatcher extends BaseWatcher {
   getAvailableCreditForBond (destinationChainId: number) {
     const baseAvailableCredit = this.availableLiquidityWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
     return baseAvailableCredit
-  }
-
-  async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
-    if (!globalConfig.vault[this.tokenSymbol]?.[this.chainIdToSlug(destinationChainId)]?.autoWithdraw) {
-      return
-    }
-
-    return await this.mutex.runExclusive(async () => {
-      const availableCredit = this.getAvailableCreditForBond(destinationChainId)
-      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
-      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
-      if (shouldWithdraw) {
-        try {
-          const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`
-          this.notifier.info(msg)
-          this.logger.info(msg)
-          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
-          await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
-        } catch (err) {
-          const errMsg = `withdrawFromVaultAndStake error: ${err.message}`
-          this.notifier.error(errMsg)
-          this.logger.error(errMsg)
-          throw err
-        }
-      }
-    })
   }
 
   async preTransactionValidation (txParams: SendBondTransferRootTxParams): Promise<void> {

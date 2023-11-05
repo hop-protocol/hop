@@ -198,5 +198,6 @@ const arbitraryTokenAddresses: Record<string, Record<string, string>> = {
     [tokens.USDC]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // Circle USDC
   },
   [Chain.Nova]: {},
-  [Chain.Base]: {}
+  [Chain.Base]: {},
+  [Chain.Linea]: {}
 }

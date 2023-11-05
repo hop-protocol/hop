@@ -17,7 +17,8 @@ export const transferTimes = {
     gnosis: 20,
     nova: 10,
     polygonzkevm: 20,
-    base: 2
+    base: 2,
+    linea: 20
   },
   optimism: {
     ethereum: 25,
@@ -26,7 +27,8 @@ export const transferTimes = {
     gnosis: 25,
     nova: 25,
     polygonzkevm: 25,
-    base: 25
+    base: 25,
+    linea: 25
   },
   arbitrum: {
     ethereum: 12,
@@ -35,7 +37,8 @@ export const transferTimes = {
     gnosis: 12,
     nova: 12,
     polygonzkevm: 12,
-    base: 12
+    base: 12,
+    linea: 12
   },
   polygon: {
     ethereum: 10,
@@ -44,7 +47,8 @@ export const transferTimes = {
     gnosis: 10,
     nova: 10,
     polygonzkevm: 10,
-    base: 10
+    base: 10,
+    linea: 10
   },
   gnosis: {
     ethereum: 4,
@@ -53,7 +57,8 @@ export const transferTimes = {
     polygon: 4,
     nova: 4,
     polygonzkevm: 4,
-    base: 4
+    base: 4,
+    linea: 4
   },
   nova: {
     ethereum: 12,
@@ -62,7 +67,8 @@ export const transferTimes = {
     polygon: 12,
     gnosis: 12,
     polygonzkevm: 12,
-    base: 12
+    base: 12,
+    linea: 12
   },
   base: {
     ethereum: 25,
@@ -71,8 +77,19 @@ export const transferTimes = {
     polygon: 25,
     gnosis: 25,
     nova: 25,
-    polygonzkevm: 25
+    polygonzkevm: 25,
+    linea: 25
   },
+  linea: {
+    ethereum: 20,
+    optimism: 20,
+    arbitrum: 20,
+    polygon: 20,
+    gnosis: 20,
+    nova: 20,
+    polygonzkevm: 20,
+    base: 20
+  }
 }
 
 export const WaitConfirmations: Record<string, number> = {
@@ -82,7 +99,7 @@ export const WaitConfirmations: Record<string, number> = {
   optimism: 222, // Optimism Safe + L1 Safe at 2 sec per block
   arbitrum: 1776, // Arbitrum Safe at 250 msec per block
   zksync: 1,
-  linea: 1,
+  linea: 75,
   scrollzk: 1,
   nova: 1776, // Arbitrum Safe at 250 msec per block
   base: 222, // Optimism Safe + L1 Safe at 2 sec per block

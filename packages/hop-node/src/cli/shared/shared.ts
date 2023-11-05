@@ -126,7 +126,8 @@ export function getSourceChains (token: string, settlementChain: string | null =
         chain === Chain.Arbitrum ||
         chain === Chain.Nova ||
         chain === Chain.Optimism ||
-        chain === Chain.Base
+        chain === Chain.Base ||
+        chain === Chain.Linea
       ) continue
     }
 

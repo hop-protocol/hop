@@ -462,8 +462,7 @@ export default class Bridge extends ContractBase {
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
-    bonderFee: BigNumber,
-    hiddenCalldata?: string
+    bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -485,12 +484,7 @@ export default class Bridge extends ContractBase {
       txOverrides
     ] as const
 
-    const populatedTx = await this.bridgeWriteContract.populateTransaction.bondWithdrawal(...payload)
-    if (hiddenCalldata) {
-      populatedTx.data = populatedTx.data! + hiddenCalldata
-    }
-    const tx = await this.bridgeWriteContract.signer.sendTransaction(populatedTx)
-
+    const tx = await this.bridgeWriteContract.bondWithdrawal(...payload)
     return tx
   }
 

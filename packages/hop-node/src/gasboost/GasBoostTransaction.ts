@@ -438,7 +438,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.chainSlug === Chain.Optimism ||
       this.chainSlug === Chain.Base ||
       this.chainSlug === Chain.Arbitrum ||
-      this.chainSlug === Chain.Nova
+      this.chainSlug === Chain.Nova ||
+      this.chainSlug === Chain.Linea
     ) {
       try {
         return await this.getOruMaxFeePerGas(this.chainSlug)

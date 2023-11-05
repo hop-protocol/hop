@@ -60,8 +60,13 @@ export type BridgeDeprecated = {
   [key in AssetSymbol]: boolean
 }
 
+export type TotalStake = {
+  [key in AssetSymbol]: number
+}
+
 export type Config = {
   bonderFeeBps: Partial<Fees>
+  bonderTotalStake: Partial<TotalStake>
   destinationFeeGasPriceMultiplier: number
   relayerFeeEnabled: Partial<RelayerFee>
   proxyEnabled: Partial<ProxyEnabled>

@@ -8,6 +8,7 @@ import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
 import { Interface } from 'ethers/lib/utils'
 import { ShouldIgnoreProxy, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
@@ -118,10 +119,10 @@ async function stake (
       await tx?.wait()
 
       // Approve the bridge to spend proxy tokens
-      const abi = ['function approveToken(address,address,uint256)']
+      const abi = ['function approveBridge(address,uint256)']
       const iface = new Interface(abi)
       const data = iface.encodeFunctionData(
-        'approveToken', [token.address, spender, parsedAmount]
+        'approveBridge', [token.address, parsedAmount]
       )
       tx = await token.contract.signer.sendTransaction({
         to: proxyAddress,
@@ -199,7 +200,7 @@ async function getBridge (token: string, chain: string): Promise<L2Bridge | L1Br
   // Arbitrary watcher since only the bridge is needed
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
-    throw new Error('Watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   return watcher.bridge

@@ -67,6 +67,14 @@ export const config : Config = {
       base: 500
     }
   },
+  bonderTotalStake: {
+    ETH: 1000,
+    HOP: 100,
+    USDC: 100,
+    USDT: 100,
+    DAI: 100,
+    UNI: 100
+  },
   destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
     polygon: true,
@@ -77,5 +85,74 @@ export const config : Config = {
     scrollzk: true,
     base: true,
     polygonzk: true
+  },
+  proxyEnabled: {
+    ETH: {
+      ethereum: false,
+      polygon: false,
+      gnosis: false,
+      optimism: false,
+      arbitrum: false,
+      zksync: false,
+      linea: false,
+      scrollzk: false,
+      base: false,
+      polygonzk: false
+    },
+    HOP: {
+      ethereum: false,
+      polygon: false,
+      gnosis: false,
+      optimism: false,
+      arbitrum: false,
+      zksync: false,
+      linea: false,
+      scrollzk: false,
+      base: false
+    },
+    USDC: {
+      ethereum: false,
+      polygon: false,
+      gnosis: false,
+      optimism: false,
+      arbitrum: false,
+      zksync: false,
+      linea: false,
+      scrollzk: false,
+      base: false
+    },
+    USDT: {
+      ethereum: false,
+      polygon: false,
+      optimism: false,
+      arbitrum: false,
+      zksync: false,
+      linea: false,
+      scrollzk: false,
+      base: false
+    },
+    DAI: {
+      ethereum: false,
+      polygon: false,
+      optimism: false,
+      arbitrum: false,
+      zksync: false,
+      linea: false,
+      scrollzk: false,
+      base: false
+    },
+    UNI: {
+      ethereum: false,
+      polygon: false,
+      optimism: false,
+      arbitrum: false,
+      zksync: false,
+      linea: false,
+      scrollzk: false,
+      base: false
+    }
+  },
+  bridgeDeprecated: {
+    USDC: true
   }
 }

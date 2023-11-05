@@ -2,9 +2,7 @@ import { chains } from '@hop-protocol/core/metadata'
 
 export enum Network {
   Mainnet = 'mainnet',
-  Staging = 'staging',
-  Goerli = 'goerli',
-  Kovan = 'kovan',
+  Goerli = 'goerli'
 }
 
 // TODO: read from core
@@ -126,6 +124,7 @@ export enum GasCostTransactionType {
 export const RelayableChains: string[] = [
   Chain.Arbitrum,
   Chain.Nova,
+  Chain.Linea,
   Chain.PolygonZk
 ]
 
@@ -147,22 +146,13 @@ export const OruExitTimeMs: Record<string, number> = {
   [Chain.Base]: OneHourMs,
   [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs,
   [Chain.Nova]: OneWeekMs + ValidatorExitBufferMs,
+  [Chain.Linea]: OneHourMs * 12,
   [Chain.PolygonZk]: OneHourMs
 }
 
-export const FinalityTag: Record<string, string> = {
-  Safe: 'safe',
-  Finalized: 'finalized'
-}
-
-export const FinalityTagForChain: Record<string, string> = {
-  [Chain.Ethereum]: FinalityTag.Safe,
-  [Chain.Optimism]: FinalityTag.Finalized,
-  [Chain.Arbitrum]: FinalityTag.Safe,
-  [Chain.Gnosis]: FinalityTag.Finalized,
-  [Chain.Base]: FinalityTag.Finalized,
-  [Chain.Nova]: FinalityTag.Safe,
-  [Chain.PolygonZk]: FinalityTag.Safe
+export const DoesSupportCustomFinality: Record<string, boolean> = {
+  [Chain.Optimism]: true,
+  [Chain.Base]: true
 }
 
 export const NumStoredBlockHashes: number = 256
@@ -194,11 +184,35 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Arbitrum]: 1,
   [Chain.Base]: 1,
   [Chain.Nova]: 2,
+  [Chain.Linea]: 1,
   [Chain.PolygonZk]: 1
 }
 
-export const HeadSyncKeySuffix = 'HeadSync'
 // Optimism-chain resource metering is not accurate with all RPC providers. Because of this,
 // confirmations entering into an Optimism chain need a custom gasLimit to ensure the
 // tx is propagated to the chain.
 export const CanonicalMessengerRootConfirmationGasLimit: number = 1500000
+
+// Quicknode endpoints are spelled without the c, so we will use that spelling
+export enum RootProviderName {
+  Local = 'local',
+  Alchemy = 'alchemy',
+  Infura = 'infura',
+  Quiknode = 'quiknode'
+}
+
+export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
+  [RootProviderName.Local]: false,
+  [RootProviderName.Alchemy]: true,
+  [RootProviderName.Infura]: false,
+  [RootProviderName.Quiknode]: true
+}
+
+export const DefaultBondThreshold = 5
+// TODO: When bonder-specific strategies are isolated from the finality dir, use a new
+// SyncType const defined there
+export enum SyncType {
+  Bonder = 'bonder',
+  Collateralized = 'collateralized',
+  Threshold = 'threshold'
+}

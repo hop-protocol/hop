@@ -1,6 +1,6 @@
 import OsWatcher from 'src/watchers/OsWatcher'
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
+  BondThreshold,
   ShouldIgnoreBlockHashValidation,
   ShouldIgnoreProxy,
   bondWithdrawalBatchSize,
@@ -10,6 +10,7 @@ import {
   slackChannel,
   slackUsername
 } from 'src/config'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { computeAddress } from 'ethers/lib/utils'
@@ -109,18 +110,30 @@ async function main (source: any) {
   }
   for (const k in globalConfig.networks) {
     if (!Object.keys(enabledNetworks).includes(k)) continue
-    const { waitConfirmations, rpcUrl, redundantRpcUrls, hasFinalizationBlockTag, subgraphUrl, headSync } = globalConfig.networks[k]
-    logger.info(`${k} wait confirmations: ${waitConfirmations}`)
+    const { rpcUrl, redundantRpcUrls, subgraphUrl, customSyncType } = globalConfig.networks[k]
     logger.info(`${k} rpc: ${rpcUrl}`)
     logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
-    logger.info(`${k} hasFinalizationBlockTag: ${hasFinalizationBlockTag}`)
     logger.info(`${k} subgraphUrl: ${subgraphUrl}`)
-    logger.info(`${k} headSync: ${!!headSync}`)
+    if (customSyncType) {
+      logger.info(`${k} customSyncType: ${customSyncType}`)
+    }
   }
   if (globalConfig.bonders) {
     const bonders: any = globalConfig.bonders
     for (const token of tokens) {
       logger.info(`config bonders for ${token}: ${JSON.stringify(bonders?.[token])}`)
+    }
+  }
+
+  if (globalConfig?.bonderConfig) {
+    logger.info(`using bond threshold: ${BondThreshold}`)
+    const totalStake = globalConfig.bonderConfig?.totalStake
+    if (totalStake) {
+      for (const token of tokens) {
+        if (token in totalStake) {
+          logger.info(`bonder total stake for ${token}: ${(totalStake as any)[token]}`)
+        }
+      }
     }
   }
 

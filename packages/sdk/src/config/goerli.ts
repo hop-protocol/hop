@@ -14,8 +14,6 @@ for (const chain in networks) {
   chains[chain].chainId = network?.networkId
   chains[chain].rpcUrl = network?.publicRpcUrl
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
-  chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
-  chains[chain].hasFinalizationBlockTag = network?.hasFinalizationBlockTag
   chains[chain].subgraphUrl = network?.subgraphUrl
 }
 
@@ -24,5 +22,16 @@ const bonders = goerliAddresses.bonders
 const bonderFeeBps = goerliConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = goerliConfig.destinationFeeGasPriceMultiplier
 const relayerFeeEnabled = goerliConfig.relayerFeeEnabled
+const proxyEnabled = goerliConfig.proxyEnabled
+const bridgeDeprecated = goerliConfig.bridgeDeprecated
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }
+export {
+  addresses,
+  chains,
+  bonders,
+  bonderFeeBps,
+  destinationFeeGasPriceMultiplier,
+  relayerFeeEnabled,
+  proxyEnabled,
+  bridgeDeprecated
+}

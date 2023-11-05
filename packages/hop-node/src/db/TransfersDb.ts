@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, FiveMinutesMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -266,25 +266,16 @@ class TransfersDb extends BaseDb {
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
-  async migration () {
-    this.logger.debug('TransfersDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
-    const promises: Array<Promise<any>> = []
+  shouldMigrate (): boolean {
+    return true
+  }
 
-    // For this migration, there is no prior concept of pre-finality in the DB, so all transfers are finalized
-    for (const { key, value } of entries) {
-      let shouldUpdate = false
-      if (value?.isFinalized === undefined) {
-        shouldUpdate = true
-        value.isFinalized = true
-      }
-      if (shouldUpdate) {
-        promises.push(this._update(key, value))
-      }
+  async migration (key: string, value: any): Promise<void> {
+    if (value?.isFinalized === undefined) {
+      const { value: updatedValue } = await this._getUpdateData(key, value)
+      updatedValue.isFinalized = true
+      return this.db.put(key, updatedValue)
     }
-    await Promise.all(promises)
-    this.logger.debug('TransfersDb migration complete')
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
@@ -450,7 +441,6 @@ class TransfersDb extends BaseDb {
         return false
       }
 
-      // TODO: Clean all this up so the code is explicit and comments are not needed
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
         if (
@@ -464,18 +454,7 @@ class TransfersDb extends BaseDb {
           }
           timestampOk = item.bondWithdrawalAttemptedAt + delayMs < Date.now()
         } else {
-          // withdrawalBondBackoffIndex is set to 0 upon finalization. When this happens, we do not
-          // want to wait for the delay, since the retry might have been triggered before finalization
-          // which is no longer relevant and would cause the user to wait for the entire TxRetryDelayMs.
-          // Instead We wait a small amount of time to ensure withdrawalBondBackoffIndex is not
-          // set. We handle the race condition between a processing bond and a finalized event seen
-          // by using an expedited delay for the first attempt (newly finalized) or the second attempt (finalized
-          // while a bond was being processed).
-          const shouldExpediteDelay = item?.withdrawalBondBackoffIndex === 0 || item?.withdrawalBondBackoffIndex === 1
-          // The delay should be long enough that the bond is not attempted again before the onchain tx is sent and
-          // confirmed.
-          const delay = shouldExpediteDelay ? FiveMinutesMs : TxRetryDelayMs
-          timestampOk = item.bondWithdrawalAttemptedAt + delay < Date.now()
+          timestampOk = item.bondWithdrawalAttemptedAt + TxRetryDelayMs < Date.now()
         }
       }
 
@@ -606,6 +585,33 @@ class TransfersDb extends BaseDb {
     }
 
     return relayBackoffIndex
+  }
+
+  async getInFlightTransfers (): Promise<Transfer[]> {
+    await this.tilReady()
+
+    // Unbonded should not be in flight for more than 1 hour
+    const fromUnix = Math.floor((Date.now() - OneHourMs) / 1000)
+    const transfersFromHour: Transfer[] = await this.getTransfers({
+      fromUnix
+    })
+
+    return transfersFromHour.filter((transfer: Transfer) => {
+      if (!transfer?.sourceChainId || !transfer?.transferId || !transfer?.isBondable) {
+        return false
+      }
+
+      // L1 to L2 transfers are not bonded by the bonder so they are not considered in flight.
+      // Checking bonderFeeTooLow could be a false positive since the bonder bonds relative to the current gas price.
+      const sourceChainSlug = chainIdToSlug(transfer.sourceChainId)
+      return (
+        sourceChainSlug !== Chain.Ethereum &&
+        transfer.transferId &&
+        transfer.isBondable &&
+        !transfer?.withdrawalBonded &&
+        !transfer?.isTransferSpent
+      )
+    })
   }
 }
 

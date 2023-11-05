@@ -32,7 +32,7 @@ class Token extends Base {
   // TODO: clean up and remove unused parameters.
   /**
    * @desc Instantiates Token class.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @param chain - Chain
    * @param address - Token address.
    * @param decimals - Token decimals.
@@ -377,6 +377,8 @@ class Token extends Base {
   }
 
   private async getGasEstimateFromAddress (): Promise<string> {
+    // Only needs an EOA with funds to estimate gas. Proxy address is not required, so
+    // signer or bonder address is acceptable.
     let address = await this.getSignerAddress()
     if (!address) {
       address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)

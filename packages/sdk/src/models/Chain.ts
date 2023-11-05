@@ -64,9 +64,7 @@ export class Chain {
 function newChain (chain: NetworkSlug | ChainSlug | string, chainId?: number) {
   if (
     chain === NetworkSlug.Mainnet ||
-    chain === NetworkSlug.Staging ||
-    chain === NetworkSlug.Goerli ||
-    chain === NetworkSlug.Kovan
+    chain === NetworkSlug.Goerli
   ) {
     chain = ChainSlug.Ethereum
   }

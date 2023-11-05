@@ -77,6 +77,18 @@ export const config : Config = {
       nova: 20
     }
   },
+  bonderTotalStake: {
+    USDC: 2338333,
+    USDT: 649805,
+    DAI: 1500000,
+    MATIC: 766730,
+    ETH: 7959,
+    HOP: 4500000,
+    SNX: 250000,
+    sUSD: 400000,
+    rETH: 550,
+    MAGIC: 1000000
+  },
   destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
     polygon: false,
@@ -89,5 +101,10 @@ export const config : Config = {
     linea: false,
     scrollzk: false,
     polygonzk: false
+  },
+  proxyEnabled: {},
+  bridgeDeprecated: {
+    SNX: true,
+    sUSD: true
   }
 }

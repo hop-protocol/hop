@@ -35,7 +35,11 @@ abstract class InclusionService {
     this.chainSlug = config.chainSlug
     this.l1Wallet = config.l1Wallet
     this.l2Wallet = config.l2Wallet
+    const prefix = `${this.chainSlug}`
+    const tag = this.constructor.name
     this.logger = new Logger({
+      tag,
+      prefix,
       color: 'blue'
     })
 

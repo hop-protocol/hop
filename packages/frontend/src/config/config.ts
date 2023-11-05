@@ -99,7 +99,7 @@ export const WaitConfirmations: Record<string, number> = {
   optimism: 222, // Optimism Safe + L1 Safe at 2 sec per block
   arbitrum: 1776, // Arbitrum Safe at 250 msec per block
   zksync: 1,
-  linea: 100,
+  linea: 75,
   scrollzk: 1,
   nova: 1776, // Arbitrum Safe at 250 msec per block
   base: 222, // Optimism Safe + L1 Safe at 2 sec per block

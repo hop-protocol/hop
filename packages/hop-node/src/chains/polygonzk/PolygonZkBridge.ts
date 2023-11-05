@@ -1,6 +1,5 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import wait from 'src/utils/wait'
-import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { IChainBridge } from '../IChainBridge'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
@@ -68,58 +67,60 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    throw new Error('not implemented')
+    // await this._tilReady()
 
-    const isSourceTxOnL1 = true
-    const signer = this.l2Wallet
-    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer)
+    // const isSourceTxOnL1 = true
+    // const signer = this.l2Wallet
+    // return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer)
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    throw new Error('not implemented')
+    // await this._tilReady()
 
-    const isSourceTxOnL1 = false
-    const signer = this.l1Wallet
-    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer)
+    // const isSourceTxOnL1 = false
+    // const signer = this.l1Wallet
+    // return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer)
   }
 
-  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
-    const isRelayable = await this._isCheckpointed(txHash, isSourceTxOnL1)
-    if (!isRelayable) {
-      throw new Error('expected deposit to be claimable')
-    }
+  // private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
+  //   const isRelayable = await this._isCheckpointed(txHash, isSourceTxOnL1)
+  //   if (!isRelayable) {
+  //     throw new Error('expected deposit to be claimable')
+  //   }
 
-    // The bridge to claim on will be on the opposite chain that the source tx is on
-    const zkEvmClaimBridge = isSourceTxOnL1 ? this.zkEvmClient.childChainBridge : this.zkEvmClient.rootChainBridge
+  //   // The bridge to claim on will be on the opposite chain that the source tx is on
+  //   const zkEvmClaimBridge = isSourceTxOnL1 ? this.zkEvmClient.childChainBridge : this.zkEvmClient.rootChainBridge
 
-    // Get the payload to claim the tx
-    const networkId = await zkEvmClaimBridge.networkID()
-    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isSourceTxOnL1, networkId)
+  //   // Get the payload to claim the tx
+  //   const networkId = await zkEvmClaimBridge.networkID()
+  //   const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isSourceTxOnL1, networkId)
 
-    // Execute the claim tx
-    const claimMessageTx = await zkEvmClaimBridge.claimMessage(
-      claimPayload.smtProof,
-      claimPayload.index,
-      claimPayload.mainnetExitRoot,
-      claimPayload.rollupExitRoot,
-      claimPayload.originNetwork,
-      claimPayload.originTokenAddress,
-      claimPayload.destinationNetwork,
-      claimPayload.destinationAddress,
-      claimPayload.amount,
-      claimPayload.metadata,
-      { gasLimit: CanonicalMessengerRootConfirmationGasLimit }
-    )
+  //   // Execute the claim tx
+  //   const claimMessageTx = await zkEvmClaimBridge.claimMessage(
+  //     claimPayload.smtProof,
+  //     claimPayload.index,
+  //     claimPayload.mainnetExitRoot,
+  //     claimPayload.rollupExitRoot,
+  //     claimPayload.originNetwork,
+  //     claimPayload.originTokenAddress,
+  //     claimPayload.destinationNetwork,
+  //     claimPayload.destinationAddress,
+  //     claimPayload.amount,
+  //     claimPayload.metadata,
+  //     { gasLimit: CanonicalMessengerRootConfirmationGasLimit }
+  //   )
 
-    const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
-    return await wallet.provider!.getTransaction(claimMessageTxHash)
-  }
+  //   const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
+  //   return await wallet.provider!.getTransaction(claimMessageTxHash)
+  // }
 
-  private async _isCheckpointed (txHash: string, isSourceTxOnL1: boolean): Promise<boolean> {
-    if (isSourceTxOnL1) {
-      return this.zkEvmClient.isDepositClaimable(txHash)
-    }
-    return this.zkEvmClient.isWithdrawExitable(txHash)
-  }
+  // private async _isCheckpointed (txHash: string, isSourceTxOnL1: boolean): Promise<boolean> {
+  //   if (isSourceTxOnL1) {
+  //     return this.zkEvmClient.isDepositClaimable(txHash)
+  //   }
+  //   return this.zkEvmClient.isWithdrawExitable(txHash)
+  // }
 }
 export default PolygonZkBridge

@@ -52,7 +52,8 @@ export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Polygon]: 2,
   [Chain.Gnosis]: 6,
   [Chain.Optimism]: 2,
-  [Chain.Base]: 2
+  [Chain.Base]: 2,
+  [Chain.Linea]: 12
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {

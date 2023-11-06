@@ -1,7 +1,8 @@
 import AbstractChainBridge from '../AbstractChainBridge'
+import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { IChainBridge } from '../IChainBridge'
 import { LineaSDK } from '@consensys/linea-sdk'
-import { Signer, providers } from 'ethers'
+import { Signer, constants, providers } from 'ethers'
 
 class LineaBridge extends AbstractChainBridge implements IChainBridge {
   l1Wallet: Signer
@@ -15,8 +16,8 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
 
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     this.LineaSDK = new LineaSDK({
-      l1RpcUrl: process.env.L1_RPC_URL ?? '',
-      l2RpcUrl: process.env.L2_RPC_URL ?? '',
+      l1RpcUrl: getRpcUrlFromProvider(this.l1Wallet.provider!),
+      l2RpcUrl: getRpcUrlFromProvider(this.l2Wallet.provider!),
       network: this.chainId === this.lineaMainnetChainId ? 'linea-mainnet' : 'linea-goerli',
       mode: 'read-only'
     })
@@ -37,6 +38,7 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
+    // TODO: Add types to this and the bridge. Maybe define these in parent methods and pass thru
     const l1Contract = this.LineaSDK.getL1Contract()
     const l2Contract = this.LineaSDK.getL2Contract()
 
@@ -56,23 +58,25 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
       throw new Error('expected deposit to be claimable')
     }
 
-    const txReceipt = await destinationBridge.getTransactionReceiptByMessageHash(messageHash)
+    const txReceipt = await sourceBridge.getTransactionReceiptByMessageHash(messageHash)
     if (!txReceipt) {
       throw new Error('could not get receipt from message')
     }
 
-    // return await contract.claim(message)
+    // When the fee recipient is the zero address, the fee is sent to the msg.sender
+    const feeRecipient = constants.AddressZero
     return await destinationBridge.contract.connect(wallet).claimMessage(
-      txReceipt.from,
-      txReceipt.to,
+      message.messageSender,
+      message.destination,
       message.fee,
       message.value,
-      message.messageSender,
+      feeRecipient,
       message.calldata,
       message.messageNonce
     )
   }
 
+  // TODO: Add types to this and the bridge
   private async _isCheckpointed (messageHash: string, destinationBridge: any): Promise<boolean> {
     const messageStatus = await destinationBridge.getMessageStatus(messageHash)
     if (messageStatus === 'CLAIMABLE') {

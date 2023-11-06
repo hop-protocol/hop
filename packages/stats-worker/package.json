@@ -25,8 +25,8 @@
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-s3": "3.316.0",
-    "@hop-protocol/core": "0.0.1-beta.194",
-    "@hop-protocol/sdk": "0.0.1-beta.555",
+    "@hop-protocol/core": "0.0.1-beta.195",
+    "@hop-protocol/sdk": "0.0.1-beta.556",
     "@pinata/sdk": "1.1.26",
     "@types/isomorphic-fetch": "^0.0.36",
     "comment-json": "4.2.2",

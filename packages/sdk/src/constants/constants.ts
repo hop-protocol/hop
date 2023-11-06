@@ -14,7 +14,8 @@ export enum ChainId {
   Gnosis = 100,
   Nova = 42170,
   ZkSync = 324,
-  Base = 8453
+  Base = 8453,
+  Linea = 59144
 }
 
 // TODO: read from core package
@@ -111,7 +112,8 @@ export enum BondTransferGasLimit {
   Optimism = '350000',
   Arbitrum = '2500000',
   Nova = '2500000',
-  Base= '350000',
+  Base = '350000',
+  Linea = '350000'
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {

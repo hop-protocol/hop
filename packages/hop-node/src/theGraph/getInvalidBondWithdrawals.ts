@@ -101,7 +101,7 @@ async function getTransfers (chain: string, transferIds: string[]) {
 }
 
 export async function getInvalidBondWithdrawals (startDate: number, endDate: number) {
-  const chains = ['ethereum', 'polygon', 'gnosis', 'arbitrum', 'optimism', 'nova', 'base']
+  const chains = ['ethereum', 'polygon', 'gnosis', 'arbitrum', 'optimism', 'nova', 'base', 'linea']
   const bonds: Record<string, any> = {}
   const transfers: Record<string, any> = {}
   for (const chain of chains) {

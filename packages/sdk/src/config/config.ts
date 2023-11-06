@@ -67,7 +67,8 @@ export const etherscanApiKeys: Record<string, string> = {
   arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY ?? '',
   gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY ?? '',
   nova: process.env.ETHERSCAN_NOVA_API_KEY ?? '',
-  base: process.env.ETHERSCAN_BASE_API_KEY ?? ''
+  base: process.env.ETHERSCAN_BASE_API_KEY ?? '',
+  linea: process.env.ETHERSCAN_LINEA_API_KEY ?? ''
 }
 
 export const etherscanApiUrls: Record<string, string> = {
@@ -77,7 +78,8 @@ export const etherscanApiUrls: Record<string, string> = {
   arbitrum: 'https://api.arbiscan.io',
   gnosis: 'https://api.gnosisscan.io',
   nova: 'https://api-nova.arbiscan.io',
-  base: 'https://api.basescan.org'
+  base: 'https://api.basescan.org',
+  linea: 'https://api.lineascan.build'
 }
 
 export const defaultRelayerFeeEth: string = '0.01'

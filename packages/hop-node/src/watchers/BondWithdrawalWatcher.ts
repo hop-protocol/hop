@@ -15,7 +15,8 @@ import {
   BonderTooEarlyError,
   NonceTooLowError,
   PossibleReorgDetected,
-  RedundantProviderOutOfSync
+  RedundantProviderOutOfSync,
+  UnfinalizedTransferBondError
 } from 'src/types/error'
 import {
   BondThreshold,
@@ -338,6 +339,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
         })
         return
       }
+      if (err instanceof UnfinalizedTransferBondError) {
+        logger.error('unfinalized transfer bond error. trying again.')
+        withdrawalBondBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: TxError.UnfinalizedTransferBondError,
+          withdrawalBondBackoffIndex
+        })
+        return
+      }
       if (err instanceof PossibleReorgDetected) {
         logger.error('possible reorg detected. turning off writes.')
         enableEmergencyMode()
@@ -362,13 +372,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
 
-    // Unfinalized transfers should skip preTransactionValidation since they might be reorged
-    if (isFinalized) {
-      logger.debug('attempting to bond unfinalized transfer. performing preTransactionValidation')
-      await this.preTransactionValidation(params)
-    } else {
-      logger.debug('attempting to bond unfinalized transfer. skipping preTransactionValidation')
-    }
+    logger.debug('attempting to bond unfinalized transfer')
+    await this.preTransactionValidation(params, isFinalized)
 
     if (attemptSwap) {
       logger.debug(
@@ -511,18 +516,27 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 
-  async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
+  // TODO: Clean this up since there is now a concept of finalized transfers and unfinalized transfers
+  async preTransactionValidation (txParams: SendBondWithdrawalTxParams, isFinalized?: boolean): Promise<void> {
     const logger = this.logger.create({ id: txParams.transferId })
 
-    // Perform this check as late as possible before the transaction is sent
-    logger.debug('validating db existence')
-    await this.validateDbExistence(txParams)
-    logger.debug('validating transferSent index')
-    await this.validateTransferSentIndex(txParams)
-    logger.debug('validating uniqueness')
-    await this.validateUniqueness(txParams)
-    logger.debug('validating logs with redundant rpcs')
-    await this.validateLogsWithRedundantRpcs(txParams)
+    try {
+      // Perform this check as late as possible before the transaction is sent
+      logger.debug('validating db existence')
+      await this.validateDbExistence(txParams)
+      logger.debug('validating transferSent index')
+      await this.validateTransferSentIndex(txParams)
+      logger.debug('validating uniqueness')
+      await this.validateUniqueness(txParams)
+      logger.debug('validating logs with redundant rpcs')
+      await this.validateLogsWithRedundantRpcs(txParams)
+    } catch (err) {
+      // Unfinalized transfers are not necessarily a reorg. Try again
+      if (!isFinalized && err instanceof PossibleReorgDetected) {
+        throw new UnfinalizedTransferBondError(err.message)
+      }
+      throw err
+    }
   }
 
   async validateDbExistence (txParams: SendBondWithdrawalTxParams): Promise<void> {

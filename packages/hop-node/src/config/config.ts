@@ -61,7 +61,7 @@ const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.PolygonZk])
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.PolygonZk, Chain.Linea])
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop`
@@ -92,7 +92,8 @@ export const etherscanApiKeys: Record<string, string> = {
   [Chain.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
   [Chain.Gnosis]: process.env.XDAI_API_KEY ?? '',
   [Chain.Nova]: process.env.NOVA_API_KEY ?? '',
-  [Chain.Base]: process.env.BASE_API_KEY ?? ''
+  [Chain.Base]: process.env.BASE_API_KEY ?? '',
+  [Chain.Linea]: process.env.LINEA_API_KEY ?? ''
 }
 export const etherscanApiUrls: Record<string, string> = {
   [Chain.Ethereum]: 'https://api.etherscan.io',
@@ -101,7 +102,8 @@ export const etherscanApiUrls: Record<string, string> = {
   [Chain.Arbitrum]: 'https://api.arbiscan.io',
   [Chain.Gnosis]: 'https://api.gnosisscan.io',
   [Chain.Nova]: 'https://api-nova.arbiscan.io',
-  [Chain.Base]: 'https://api.basescan.org'
+  [Chain.Base]: 'https://api.basescan.org',
+  [Chain.Linea]: 'https://api.lineascan.build'
 }
 
 type SyncConfig = {

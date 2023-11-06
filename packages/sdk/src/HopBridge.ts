@@ -1154,6 +1154,7 @@ class HopBridge extends Base {
       destinationChain.equals(Chain.Optimism) ||
       destinationChain.equals(Chain.Arbitrum) ||
       destinationChain.equals(Chain.Nova) ||
+      destinationChain.equals(Chain.Linea) ||
       destinationChain.equals(Chain.Base)
     ) {
       const multiplier = parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
@@ -1263,6 +1264,8 @@ class HopBridge extends Base {
         bondTransferGasLimit = BondTransferGasLimit.Nova
       } else if (destinationChain.equals(Chain.Base)) {
         bondTransferGasLimit = BondTransferGasLimit.Base
+      } else if (destinationChain.equals(Chain.Linea)) {
+        bondTransferGasLimit = BondTransferGasLimit.Linea
       }
       return BigNumber.from(bondTransferGasLimit)
     }
@@ -2859,16 +2862,6 @@ class HopBridge extends Base {
   }
 
   private async getRelayFeeEth (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
-    if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.Linea)) {
-          return this.getLineaRelayFee(sourceChain, destinationChain)
-        }
-        if (destinationChain.equals(Chain.ScrollZk)) {
-          return this.getScrollZkRelayFee(sourceChain, destinationChain)
-        }
-      }
-    }
     return BigNumber.from(0)
   }
 

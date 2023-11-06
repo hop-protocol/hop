@@ -858,27 +858,7 @@ export class Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.Linea)) {
-          let hopL1BridgeWrapperAddress
-          if (token.symbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '0xd9e10C6b1bd26dE4E2749ce8aFe8Dd64294BcBF5'
-          } else if (token.symbol === TokenModel.HOP) {
-            hopL1BridgeWrapperAddress = '0x9051Dc48d27dAb53DbAB9E844f8E48c469603938'
-          } else if (token.symbol === TokenModel.USDC) {
-            hopL1BridgeWrapperAddress = '0x889CD829cE211c92b31fDFE1d75299482839ea2b'
-          } else if (token.symbol === TokenModel.USDT) {
-            hopL1BridgeWrapperAddress = '0x53B94FAf104A484ff4E7c66bFe311fd48ce3D887'
-          } else if (token.symbol === TokenModel.DAI) {
-            hopL1BridgeWrapperAddress = '0xAa1603822b43e592e33b58d34B4423E1bcD8b4dC'
-          } else if (token.symbol === TokenModel.UNI) {
-            hopL1BridgeWrapperAddress = '0x9D3A7fB18CA7F1237F977Dc5572883f8b24F5638'
-          }
-          return hopL1BridgeWrapperAddress
-        }
-      }
-    }
+    // Implement if there is an L1 bridge wrapper
   }
 
   async fetchBonderAvailableLiquidityDataWithIpfsFallback (): Promise<any> {

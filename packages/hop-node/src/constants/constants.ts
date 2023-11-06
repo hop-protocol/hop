@@ -52,7 +52,8 @@ export const AvgBlockTimeSeconds: Record<string, number> = {
   [Chain.Polygon]: 2,
   [Chain.Gnosis]: 6,
   [Chain.Optimism]: 2,
-  [Chain.Base]: 2
+  [Chain.Base]: 2,
+  [Chain.Linea]: 12
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -100,6 +101,7 @@ export enum TxError {
   RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
   RpcServerError = 'RPC_SERVER_ERROR',
   BondTooEarly = 'BOND_TOO_EARLY',
+  UnfinalizedTransferBondError= 'UNFINALIZED_TRANSFER_BOND_ERROR',
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
@@ -124,6 +126,7 @@ export enum GasCostTransactionType {
 export const RelayableChains: string[] = [
   Chain.Arbitrum,
   Chain.Nova,
+  Chain.Linea,
   Chain.PolygonZk
 ]
 
@@ -145,6 +148,7 @@ export const OruExitTimeMs: Record<string, number> = {
   [Chain.Base]: OneHourMs,
   [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs,
   [Chain.Nova]: OneWeekMs + ValidatorExitBufferMs,
+  [Chain.Linea]: OneHourMs * 12,
   [Chain.PolygonZk]: OneHourMs
 }
 
@@ -182,6 +186,7 @@ export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Arbitrum]: 1,
   [Chain.Base]: 1,
   [Chain.Nova]: 2,
+  [Chain.Linea]: 1,
   [Chain.PolygonZk]: 1
 }
 

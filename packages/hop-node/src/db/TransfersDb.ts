@@ -518,7 +518,8 @@ class TransfersDb extends BaseDb {
       if (item.relayAttemptedAt) {
         if (
           item.relayTxError === TxError.RelayerFeeTooLow ||
-          item.withdrawalBondTxError === TxError.RpcServerError
+          item.withdrawalBondTxError === TxError.RpcServerError ||
+          item.withdrawalBondTxError === TxError.UnfinalizedTransferBondError
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
           if (delayMs > OneWeekMs) {

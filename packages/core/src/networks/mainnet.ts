@@ -90,8 +90,7 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-base',
     etherscanApiUrl: 'https://api.basescan.org'
-  }
-  /*
+  },
   linea: {
     name: chains.linea.name,
     image: chains.linea.image,
@@ -100,8 +99,9 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://lineascan.build/'],
     nativeBridgeUrl: 'https://bridge.linea.build/',
-    subgraphUrl: 'TODO'
+    subgraphUrl: 'https://linea.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea'
   }
+  /*
   zksync: {
     name: chains.zksync.name,
     image: chains.zksync.image,

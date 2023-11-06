@@ -151,7 +151,8 @@ export const addresses: Addresses = {
         gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       optimism: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -159,7 +160,8 @@ export const addresses: Addresses = {
         gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       arbitrum: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -167,7 +169,8 @@ export const addresses: Addresses = {
         gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       gnosis: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -175,7 +178,8 @@ export const addresses: Addresses = {
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       polygon: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -183,7 +187,8 @@ export const addresses: Addresses = {
         gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       nova: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -191,7 +196,8 @@ export const addresses: Addresses = {
         gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       base: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -199,7 +205,17 @@ export const addresses: Addresses = {
         gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+      },
+      linea: {
+        ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       }
     },
     HOP: {
@@ -696,6 +712,18 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x0ce6c85cF43553DE10FC56cecA0aef6Ff0DD444d',
         l2SaddleLpToken: '0xe9605BEc1c5C3E81F974F80b8dA9fBEFF4845d4D',
         bridgeDeployedBlockNumber: 1397238
+      },
+      linea: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x789Ac91519a3344E4845E12870F3364E7Df26D23',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
+        l2Bridge: '0xCbb852A6274e03fA00fb4895dE0463f66dF27a11',
+        l2HopBridgeToken: '0xDc38c5aF436B9652225f92c370A011C673FA7Ba5',
+        l2AmmWrapper: '0xC8A4FB931e8D77df8497790381CA7d228E68a41b',
+        l2SaddleSwap: '0x2935173357c010F8B56c8719a44f9FbdDa90f67c',
+        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
+        bridgeDeployedBlockNumber: 794342
       }
     },
     HOP: {

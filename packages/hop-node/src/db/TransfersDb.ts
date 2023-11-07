@@ -509,7 +509,7 @@ class TransfersDb extends BaseDb {
       // TODO: This is temp. Rm.
       const lineaRelayTime = 4 * FiveMinutesMs
       if (item.destinationChainSlug === Chain.Linea) {
-        if ((item.transferSentTimestamp * 1000) + lineaRelayTime < Date.now()) {
+        if ((item.transferSentTimestamp * 1000) + lineaRelayTime > Date.now()) {
           return false
         }
       }

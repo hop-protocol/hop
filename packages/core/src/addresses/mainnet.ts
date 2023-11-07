@@ -722,7 +722,7 @@ export const addresses: Addresses = {
         l2HopBridgeToken: '0xDc38c5aF436B9652225f92c370A011C673FA7Ba5',
         l2AmmWrapper: '0xC8A4FB931e8D77df8497790381CA7d228E68a41b',
         l2SaddleSwap: '0x2935173357c010F8B56c8719a44f9FbdDa90f67c',
-        l2SaddleLpToken: '0x0000000000000000000000000000000000000000',
+        l2SaddleLpToken: '0x7689674c3EcEC55086b08A3cEA785de2848d8C87',
         bridgeDeployedBlockNumber: 794342
       }
     },

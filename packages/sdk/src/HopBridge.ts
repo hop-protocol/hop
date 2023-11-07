@@ -2798,59 +2798,6 @@ class HopBridge extends Base {
     return BigNumber.from(0)
   }
 
-  private async getLineaRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
-    if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        const timeStart = Date.now()
-        const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-        const lineaL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
-        const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
-        const callResult = await provider.call({ to: lineaL1BridgeAddress, data: minimumFeeMethodId })
-        const relayFee = BigNumber.from(callResult)
-        this.debugTimeLog('getLineaRelayFee', timeStart)
-        return relayFee
-      } else {
-        throw new Error('getLineaRelayFee: not implemented for non L1')
-      }
-    }
-  }
-
-  private async getScrollZkRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
-    if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        const timeStart = Date.now()
-        const l2GasPriceOracle = '0x37D61987d0281Fb17DE079C9B8E56B367b1800c4'
-        const provider = sourceChain.provider
-        const feeMethodId = ethers.utils.id('l2BaseFee()').slice(0, 10)
-        const callResult = await provider.call({
-          to: l2GasPriceOracle,
-          data: feeMethodId
-        })
-        const baseFee = BigNumber.from(callResult)
-        const gasLimit = 2000000
-        const fee = baseFee.mul(gasLimit)
-        this.debugTimeLog('getScrollZkRelayFee', timeStart)
-        return fee
-      } else {
-        const timeStart = Date.now()
-        const l1GasPriceOracle = '0x5300000000000000000000000000000000000002'
-        const provider = sourceChain.provider
-        const feeMethodId = ethers.utils.id('l1BaseFee()').slice(0, 10)
-        const callResult = await provider.call({
-          to: l1GasPriceOracle,
-          data: feeMethodId
-        })
-        const baseFee = BigNumber.from(callResult)
-        const gasLimit = 2000000
-        const fee = baseFee.mul(gasLimit)
-        this.debugTimeLog('getScrollZkRelayFee', timeStart)
-        return fee
-      }
-    }
-
-    throw new Error('getScrollZkRelayFee not implemented for "mainnet" network')
-  }
-
   async getPriceByTokenSymbol (tokenSymbol: string) {
     const timeStart = Date.now()
     const price = await this.priceFeed.getPriceByTokenSymbol(tokenSymbol)

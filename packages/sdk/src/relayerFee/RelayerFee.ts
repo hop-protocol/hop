@@ -4,7 +4,6 @@ import { BigNumber } from 'ethers'
 import { Chain } from '../models'
 import { LineaRelayerFee } from './LineaRelayerFee'
 
-
 const RelayerFees = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
   [Chain.Nova.slug]: ArbitrumRelayerFee,

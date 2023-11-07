@@ -2055,9 +2055,6 @@ class HopBridge extends Base {
       // ToDo: Don't pass in sourceChain since it will always be L1
       throw new Error('sourceChain must be L1')
     }
-    if (relayerFee && relayerFee.toString() !== '0') {
-      throw new Error('relayerFee must be 0')
-    }
     if (await this.getIsBridgeDeprecated(this.tokenSymbol)) {
       throw new Error('This bridge is deprecated')
     }
@@ -2098,8 +2095,6 @@ class HopBridge extends Base {
 
     const value = isNativeToken ? amount : undefined
 
-    // Redundantly set relayerFee to 0
-    relayerFee = BigNumber.from(0)
     const txOptions = [
       destinationChainId,
       recipient,
@@ -2107,7 +2102,7 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       relayer,
-      relayerFee,
+      relayerFee || BigNumber.from(0),
       {
         ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
         value

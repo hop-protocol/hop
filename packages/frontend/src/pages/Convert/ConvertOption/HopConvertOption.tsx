@@ -165,7 +165,7 @@ class HopConvertOption extends ConvertOption {
 
     const bridge = sdk.bridge(l1TokenSymbol)
     if (sourceNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1BridgeWrapperOrL1Bridge(sourceNetwork.slug, destNetwork?.slug)
+      const l1Bridge = await bridge.getL1Bridge()
       return l1Bridge.address
     } else {
       const l2Bridge = await bridge.getL2Bridge(sourceNetwork.slug)

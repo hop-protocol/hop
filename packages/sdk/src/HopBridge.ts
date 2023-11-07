@@ -138,7 +138,7 @@ class HopBridge extends Base {
   /**
    * @desc Instantiates Hop Bridge.
    * Returns a new Hop Bridge instance.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @param signer - Ethers `Signer` for signing transactions.
    * @param token - Token symbol or model
    * @returns HopBridge SDK instance.
@@ -148,7 +148,7 @@ class HopBridge extends Base {
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
+   *const bridge = new HopBridge('goerli', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
    *```
    */
   constructor (
@@ -1154,6 +1154,7 @@ class HopBridge extends Base {
       destinationChain.equals(Chain.Optimism) ||
       destinationChain.equals(Chain.Arbitrum) ||
       destinationChain.equals(Chain.Nova) ||
+      destinationChain.equals(Chain.Linea) ||
       destinationChain.equals(Chain.Base)
     ) {
       const multiplier = parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
@@ -1263,6 +1264,8 @@ class HopBridge extends Base {
         bondTransferGasLimit = BondTransferGasLimit.Nova
       } else if (destinationChain.equals(Chain.Base)) {
         bondTransferGasLimit = BondTransferGasLimit.Base
+      } else if (destinationChain.equals(Chain.Linea)) {
+        bondTransferGasLimit = BondTransferGasLimit.Linea
       }
       return BigNumber.from(bondTransferGasLimit)
     }
@@ -2859,16 +2862,6 @@ class HopBridge extends Base {
   }
 
   private async getRelayFeeEth (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
-    if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.Linea)) {
-          return this.getLineaRelayFee(sourceChain, destinationChain)
-        }
-        if (destinationChain.equals(Chain.ScrollZk)) {
-          return this.getScrollZkRelayFee(sourceChain, destinationChain)
-        }
-      }
-    }
     return BigNumber.from(0)
   }
 

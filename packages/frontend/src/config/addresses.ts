@@ -1,16 +1,12 @@
 import { mainnetAddresses, mainnetNetworks } from './mainnet'
-import { addresses as kovanAddresses, networks as kovanNetworks } from './kovan'
 import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
 import { Slug } from '@hop-protocol/sdk'
 import { gitRevision } from './config'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
-let hopAppNetwork = reactAppNetwork
-if (reactAppNetwork === Slug.staging) {
-  hopAppNetwork = Slug.mainnet
-}
-let addresses: any = kovanAddresses
-let networks = kovanNetworks
+const hopAppNetwork = reactAppNetwork
+let addresses: any
+let networks: any
 const isMainnet = hopAppNetwork === Slug.mainnet
 const isGoerli = hopAppNetwork === Slug.goerli
 
@@ -20,6 +16,8 @@ if (isMainnet) {
 } else if (hopAppNetwork === Slug.goerli) {
   addresses = goerliAddresses
   networks = goerliNetworks
+} else {
+  throw new Error(`Invalid network: ${hopAppNetwork}`)
 }
 
 let enabledTokens: string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
@@ -95,6 +93,9 @@ const stakingRewardsContracts = {
     },
     arbitrum: {
       rETH: '0x3D4cAD734B464Ed6EdCF6254C2A3e5fA5D449b32', // RPL rewards
+    },
+    linea: {
+      ETH: '0xa50395bdEaca7062255109fedE012eFE63d6D402', // WETH rewards
     }
   }
 }
@@ -122,6 +123,9 @@ export const stakingRewardTokens = {
     },
     arbitrum: {
       '0x3d4cad734b464ed6edcf6254c2a3e5fa5d449b32': 'RPL'
+    },
+    linea: {
+      '0xa50395bdeaca7062255109fede012efe63d6d402': 'WETH'
     }
   }
 }

@@ -37,7 +37,7 @@ export type Options = {
   slippageTolerance?: number
   pollIntervalSeconds?: number
   ammDepositThresholdAmount?: number
-  waitConfirmations?: number
+  reorgConfirmationBlocks?: number
 }
 
 export class ArbBot {
@@ -56,7 +56,7 @@ export class ArbBot {
   pollIntervalMs: number = 60 * 1000
   ammDepositThresholdAmount: number = 10
   amount: BigNumber = parseUnits('100', 18)
-  waitConfirmations: number = 1
+  reorgConfirmationBlocks: number = 1
   l1ChainProvider: any
   l2ChainProvider: any
   l2ChainWriteProvider: any
@@ -85,7 +85,7 @@ export class ArbBot {
       this.ammDepositThresholdAmount = Number(process.env.ARB_BOT_AMM_THRESHOLD_AMOUNT)
     }
     if (process.env.ARB_BOT_WAIT_CONFIRMATIONS) {
-      this.waitConfirmations = Number(process.env.ARB_BOT_WAIT_CONFIRMATIONS)
+      this.reorgConfirmationBlocks = Number(process.env.ARB_BOT_REORG_CONFIRMATION_BLOCKS)
     }
 
     if (options?.dryMode) {
@@ -112,8 +112,8 @@ export class ArbBot {
     if (options?.ammDepositThresholdAmount) {
       this.ammDepositThresholdAmount = options.ammDepositThresholdAmount
     }
-    if (options?.waitConfirmations) {
-      this.waitConfirmations = options.waitConfirmations
+    if (options?.reorgConfirmationBlocks) {
+      this.reorgConfirmationBlocks = options.reorgConfirmationBlocks
     }
 
     this.l1ChainId = this.network === 'mainnet' ? 1 : 5
@@ -150,7 +150,7 @@ export class ArbBot {
     this.logger.log('amount:', this.bridge.formatUnits(this.amount))
     this.logger.log('pollIntervalMs:', this.pollIntervalMs)
     this.logger.log('slippageTolerance:', this.slippageTolerance)
-    this.logger.log('waitConfirmations:', this.waitConfirmations)
+    this.logger.log('reorgConfirmationBlocks:', this.reorgConfirmationBlocks)
 
     const privateKey = process.env.ARB_BOT_PRIVATE_KEY ?? options?.privateKey
 
@@ -205,7 +205,7 @@ export class ArbBot {
     for (const transfer of unwithdrawnTransfers) {
       const tx = await this.withdrawTransferOnL1(transfer.transactionHash)
       this.logger.info('l1 withdraw tx:', tx?.hash)
-      await tx?.wait(this.waitConfirmations)
+      await tx?.wait(this.reorgConfirmationBlocks)
     }
 
     this.logger.log('pollUnwithdrawnTransfers() end')
@@ -218,18 +218,18 @@ export class ArbBot {
     if (shouldWithdraw) {
       const tx1 = await this.withdrawAmmHTokens()
       this.logger.info('withdraw amm hTokens tx:', tx1?.hash)
-      await tx1?.wait(this.waitConfirmations)
+      await tx1?.wait(this.reorgConfirmationBlocks)
     }
 
     const shouldSendHTokensToL1 = await this.checkShouldSendHTokensToL1()
     if (shouldSendHTokensToL1) {
       const tx2 = await this.sendHTokensToL1()
       this.logger.info('send hTokens to L1 tx:', tx2?.hash)
-      await tx2?.wait(this.waitConfirmations)
+      await tx2?.wait(this.reorgConfirmationBlocks)
 
       const tx3 = await this.commitTransfersToL1()
       this.logger.info('l2 commit transfers tx:', tx3?.hash)
-      await tx3?.wait(this.waitConfirmations)
+      await tx3?.wait(this.reorgConfirmationBlocks)
       if (!this.dryMode) {
         await wait(5 * 60 * 1000) // wait for theGraph to index event
       }
@@ -238,7 +238,7 @@ export class ArbBot {
       if (shouldBondRoot && tx3?.hash) {
         // const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
         // this.logger.info('l1 bond transfer root tx:', tx4?.hash)
-        // await tx4?.wait(this.waitConfirmations)
+        // await tx4?.wait(this.reorgConfirmationBlocks)
       } else {
         if (!this.dryMode) {
           await wait(24 * 60 * 60 * 1000) // wait for transferRoot to be bonded
@@ -249,7 +249,7 @@ export class ArbBot {
         await wait(5 * 60 * 1000) // wait for root bond to be indexed by the graph
         const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
         this.logger.info('l1 withdraw tx:', tx5?.hash)
-        await tx5?.wait(this.waitConfirmations)
+        await tx5?.wait(this.reorgConfirmationBlocks)
       }
     }
 
@@ -257,7 +257,7 @@ export class ArbBot {
     if (shouldSendTokensToL2) {
       const tx6 = await this.l1CanonicalBridgeSendToL2()
       this.logger.info('l1 canonical send to l2 tx:', tx6?.hash)
-      await tx6?.wait(this.waitConfirmations)
+      await tx6?.wait(this.reorgConfirmationBlocks)
     }
     this.logger.log('pollAmmWithdraw() end')
   }
@@ -270,7 +270,7 @@ export class ArbBot {
     if (arrived && token.isNativeToken) {
       const tx7 = await this.wrapEthToWethOnL2()
       this.logger.info('l2 wrap eth tx:', tx7?.hash)
-      await tx7?.wait(this.waitConfirmations)
+      await tx7?.wait(this.reorgConfirmationBlocks)
     }
 
     this.logger.log('amm deposit loop poll')
@@ -295,7 +295,7 @@ export class ArbBot {
     }
     const tx8 = await this.depositAmmCanonicalTokens()
     this.logger.info('l2 amm deposit canonical tokens tx:', tx8?.hash)
-    await tx8?.wait(this.waitConfirmations)
+    await tx8?.wait(this.reorgConfirmationBlocks)
 
     this.logger.log('pollAmmDeposit() end')
   }
@@ -367,7 +367,7 @@ export class ArbBot {
       } else {
         const tx = await lpToken.approve(spender, constants.MaxUint256)
         this.logger.log('amm withdraw approval tx:', tx.hash)
-        await tx.wait(this.waitConfirmations)
+        await tx.wait(this.reorgConfirmationBlocks)
       }
     }
 
@@ -419,7 +419,7 @@ export class ArbBot {
         const tx = await this.bridge
           .connect(this.ammSigner.connect(this.l2ChainWriteProvider))
           .sendApproval(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
-        await tx.wait(this.waitConfirmations)
+        await tx.wait(this.reorgConfirmationBlocks)
       }
     }
 
@@ -694,7 +694,7 @@ export class ArbBot {
         } else {
           const tx = await token.approve(spender)
           this.logger.log('lineal1CanonicalBridgeSendToL2 approval tx:', tx.hash)
-          await tx.wait(this.waitConfirmations)
+          await tx.wait(this.reorgConfirmationBlocks)
         }
       }
 
@@ -800,7 +800,7 @@ export class ArbBot {
         } else {
           const tx = await token.approve(spender)
           this.logger.log('optimisml1CanonicalBridgeSendToL2 approval tx:', tx.hash)
-          await tx.wait(this.waitConfirmations)
+          await tx.wait(this.reorgConfirmationBlocks)
         }
       }
 
@@ -860,7 +860,7 @@ export class ArbBot {
         } else {
           const tx = await token.approve(spender)
           this.logger.log('arbitruml1CanonicalBridgeSendToL2 approval tx:', tx.hash)
-          await tx.wait(this.waitConfirmations)
+          await tx.wait(this.reorgConfirmationBlocks)
         }
       }
 
@@ -926,7 +926,7 @@ export class ArbBot {
         } else {
           const tx = await token.approve(spender)
           this.logger.log('polygonl1CanonicalBridgeSendToL2 approval tx:', tx.hash)
-          await tx.wait(this.waitConfirmations)
+          await tx.wait(this.reorgConfirmationBlocks)
         }
       }
 
@@ -1071,7 +1071,7 @@ export class ArbBot {
       } else {
         const tx = await token.approve(spender)
         this.logger.log('amm deposit approval tx:', tx.hash)
-        await tx.wait(this.waitConfirmations)
+        await tx.wait(this.reorgConfirmationBlocks)
       }
     }
 

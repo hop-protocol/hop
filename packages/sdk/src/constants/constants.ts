@@ -2,9 +2,7 @@ import { BigNumber } from 'ethers'
 
 export enum NetworkSlug {
   Mainnet = 'mainnet',
-  Staging = 'staging',
-  Goerli = 'goerli',
-  Kovan = 'kovan'
+  Goerli = 'goerli'
 }
 
 // mainnet chain ids
@@ -16,7 +14,8 @@ export enum ChainId {
   Gnosis = 100,
   Nova = 42170,
   ZkSync = 324,
-  Base = 8453
+  Base = 8453,
+  Linea = 59144
 }
 
 // TODO: read from core package
@@ -51,9 +50,7 @@ export enum ChainSlug {
 
 export enum Slug {
   ethereum = 'ethereum',
-  kovan = 'kovan',
   goerli = 'goerli',
-  staging = 'staging',
   mainnet = 'mainnet',
   arbitrum = 'arbitrum',
   optimism = 'optimism',
@@ -115,7 +112,8 @@ export enum BondTransferGasLimit {
   Optimism = '350000',
   Arbitrum = '2500000',
   Nova = '2500000',
-  Base= '350000',
+  Base = '350000',
+  Linea = '350000'
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {

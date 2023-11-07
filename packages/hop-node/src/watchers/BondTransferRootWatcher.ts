@@ -14,9 +14,7 @@ import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/err
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   enableEmergencyMode,
-  getFinalityTimeSeconds,
-  config as globalConfig,
-  hasFinalizationBlockTag
+  config as globalConfig
 } from 'src/config'
 
 type Config = {
@@ -116,14 +114,8 @@ class BondTransferRootWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
 
-    // ORUs finality is checked above, since they aren't constant time. This check is for non-oru chains.
-    // In practice, non-ORUs should not be bonded. This check is needed for the edge-case in which non-ORU roots are bonded.
     const minTransferRootBondDelaySeconds = await l1Bridge.getMinTransferRootBondDelaySeconds()
-    let chainFinalityTimeSec: number = 0
-    if (!hasFinalizationBlockTag(this.chainSlug)) {
-      chainFinalityTimeSec = getFinalityTimeSeconds(this.chainSlug)
-    }
-    const delaySeconds = Math.max(minTransferRootBondDelaySeconds, chainFinalityTimeSec) + BondTransferRootDelayBufferSeconds
+    const delaySeconds = minTransferRootBondDelaySeconds + BondTransferRootDelayBufferSeconds
     const delayMs = delaySeconds * 1000
     const committedAtMs = committedAt * 1000
     const delta = Date.now() - committedAtMs - delayMs
@@ -182,8 +174,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondTransferRoot`)
       return
     }
-
-    await this.withdrawFromVaultIfNeeded(destinationChainId, bondAmount)
 
     logger.debug(
       `attempting to bond transfer root id ${transferRootId} with destination chain ${destinationChainId}`
@@ -254,33 +244,6 @@ class BondTransferRootWatcher extends BaseWatcher {
   getAvailableCreditForBond (destinationChainId: number) {
     const baseAvailableCredit = this.availableLiquidityWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
     return baseAvailableCredit
-  }
-
-  async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
-    if (!globalConfig.vault[this.tokenSymbol]?.[this.chainIdToSlug(destinationChainId)]?.autoWithdraw) {
-      return
-    }
-
-    return await this.mutex.runExclusive(async () => {
-      const availableCredit = this.getAvailableCreditForBond(destinationChainId)
-      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
-      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
-      if (shouldWithdraw) {
-        try {
-          const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`
-          this.notifier.info(msg)
-          this.logger.info(msg)
-          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
-          await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
-        } catch (err) {
-          const errMsg = `withdrawFromVaultAndStake error: ${err.message}`
-          this.notifier.error(errMsg)
-          this.logger.error(errMsg)
-          throw err
-        }
-      }
-    })
   }
 
   async preTransactionValidation (txParams: SendBondTransferRootTxParams): Promise<void> {

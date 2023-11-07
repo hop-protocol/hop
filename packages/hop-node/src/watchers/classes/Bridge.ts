@@ -8,7 +8,6 @@ import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
-  HeadSyncKeySuffix,
   SettlementGasLimitPerTx
 } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
@@ -23,9 +22,9 @@ import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
   getBridgeWriteContractAddress,
+  getNetworkCustomSyncType,
   getProxyAddressForChain,
   config as globalConfig,
-  hasFinalizationBlockTag,
   isProxyAddressForChain
 } from 'src/config'
 
@@ -463,8 +462,7 @@ export default class Bridge extends ContractBase {
     recipient: string,
     amount: BigNumber,
     transferNonce: string,
-    bonderFee: BigNumber,
-    hiddenCalldata?: string
+    bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -486,12 +484,7 @@ export default class Bridge extends ContractBase {
       txOverrides
     ] as const
 
-    const populatedTx = await this.bridgeWriteContract.populateTransaction.bondWithdrawal(...payload)
-    if (hiddenCalldata) {
-      populatedTx.data = populatedTx.data! + hiddenCalldata
-    }
-    const tx = await this.bridgeWriteContract.signer.sendTransaction(populatedTx)
-
+    const tx = await this.bridgeWriteContract.bondWithdrawal(...payload)
     return tx
   }
 
@@ -601,20 +594,20 @@ export default class Bridge extends ContractBase {
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
 
-      const isHeadSync = syncCacheKey.endsWith(HeadSyncKeySuffix)
-      if (isHeadSync) {
+      const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+      if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
         // If a head sync does not have state or the state is stale, use the state of
         // its finalized counterpart. The finalized counterpart is guaranteed to have updated
         // state since the bonder performs a full sync before beginning any other operations.
         // * The head sync will not have state upon fresh bonder sync.
         // * The head sync will have stale data if they use the head syncer, turn it off
         //   for some time, and then turn it back on again.
-        const finalizedStateKey = syncCacheKey.replace(HeadSyncKeySuffix, '')
+        const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
         const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
 
-        const doesHeadSyncDbExist = !!state?.latestBlockSynced
-        const isHeadSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
-        if (!doesHeadSyncDbExist || isHeadSyncDataStale) {
+        const doesCustomSyncDbExist = !!state?.latestBlockSynced
+        const isCustomSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
+        if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
           state = finalizedState
           state.key = syncCacheKey
         }
@@ -695,20 +688,16 @@ export default class Bridge extends ContractBase {
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
 
     // TODO: Better state handling
-    const isHeadSync = syncCacheKey?.endsWith(HeadSyncKeySuffix)
-    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
-    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isHeadSync
+    const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+    const isCustomSync = customSyncKeySuffix && syncCacheKey?.endsWith(customSyncKeySuffix)
+    const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isCustomSync
+    const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber && !isCustomSync
 
-    let blockNumberWithAcceptableFinality: number
-    if (hasFinalizationBlockTag(this.chainSlug) && !isHeadSync) {
-      blockNumberWithAcceptableFinality = await this.getBlockNumberWithAcceptableFinality()
+    let syncBlockNumber: number
+    if (isCustomSync) {
+      syncBlockNumber = await this.getSyncBlockNumber()
     } else {
-      const currentBlockNumber = await this.getBlockNumber()
-      if (isHeadSync) {
-        blockNumberWithAcceptableFinality = currentBlockNumber
-      } else {
-        blockNumberWithAcceptableFinality = currentBlockNumber - this.waitConfirmations
-      }
+      syncBlockNumber = await this.getSafeBlockNumber()
     }
 
     if (startBlockNumber && endBlockNumber) {
@@ -718,13 +707,13 @@ export default class Bridge extends ContractBase {
       end = endBlockNumber
       totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
-      end = blockNumberWithAcceptableFinality
+      end = syncBlockNumber
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync || isHeadSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-      end = Math.max(blockNumberWithAcceptableFinality, state?.latestBlockSynced ?? 0)
+    } else if (isSync || isCustomSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+      end = Math.max(syncBlockNumber, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
-      end = blockNumberWithAcceptableFinality
+      end = syncBlockNumber
       totalBlocksInBatch = totalBlocks!
     }
 
@@ -761,6 +750,18 @@ export default class Bridge extends ContractBase {
     key: string
   ) => {
     return `${chainId}:${address}:${key}`
+  }
+
+  public getCustomSyncKeySuffix = (): string | undefined => {
+    const customSyncType = getNetworkCustomSyncType(this.chainSlug)
+    if (!customSyncType) {
+      return
+    }
+    return '_' + customSyncType
+  }
+
+  public shouldPerformCustomSync = (): boolean => {
+    return !!getNetworkCustomSyncType(this.chainSlug)
   }
 
   shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {

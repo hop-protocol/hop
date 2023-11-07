@@ -50,9 +50,6 @@ const getProvider = memoize((network: string, chain: string) => {
   }
   const rpcUrl = config.chains[network][chain].rpcUrl
   if (!rpcUrl) {
-    if (network === NetworkSlug.Staging) {
-      network = NetworkSlug.Mainnet
-    }
     return providers.getDefaultProvider(network)
   }
 
@@ -154,7 +151,7 @@ export class Base {
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @returns New Base class instance.
    */
   constructor (
@@ -658,14 +655,6 @@ export class Base {
       txOptions.gasLimit = MinPolygonGasLimit
     }
 
-    if (sourceChain.equals(Chain.Linea)) {
-      const gasPriceMultiplier = 2
-      txOptions.gasPrice = await this.getBumpedGasPrice(
-        this.signer,
-        gasPriceMultiplier
-      )
-    }
-
     // Post-bedrock L1 to L2 message transactions don't estimate correctly
     // TODO: Remove this when estimation is fixed
     if (sourceChain.equals(Chain.Ethereum) && (destinationChain?.equals(Chain.Optimism) || destinationChain?.equals(Chain.Base))) {
@@ -861,27 +850,7 @@ export class Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.Linea)) {
-          let hopL1BridgeWrapperAddress
-          if (token.symbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '0xd9e10C6b1bd26dE4E2749ce8aFe8Dd64294BcBF5'
-          } else if (token.symbol === TokenModel.HOP) {
-            hopL1BridgeWrapperAddress = '0x9051Dc48d27dAb53DbAB9E844f8E48c469603938'
-          } else if (token.symbol === TokenModel.USDC) {
-            hopL1BridgeWrapperAddress = '0x889CD829cE211c92b31fDFE1d75299482839ea2b'
-          } else if (token.symbol === TokenModel.USDT) {
-            hopL1BridgeWrapperAddress = '0x53B94FAf104A484ff4E7c66bFe311fd48ce3D887'
-          } else if (token.symbol === TokenModel.DAI) {
-            hopL1BridgeWrapperAddress = '0xAa1603822b43e592e33b58d34B4423E1bcD8b4dC'
-          } else if (token.symbol === TokenModel.UNI) {
-            hopL1BridgeWrapperAddress = '0x9D3A7fB18CA7F1237F977Dc5572883f8b24F5638'
-          }
-          return hopL1BridgeWrapperAddress
-        }
-      }
-    }
+    // Implement if there is an L1 bridge wrapper
   }
 
   async fetchBonderAvailableLiquidityDataWithIpfsFallback (): Promise<any> {
@@ -991,19 +960,6 @@ export class Base {
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
     this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
     return l1FeeInWei
-  }
-
-  getWaitConfirmations (chain: TChain):number {
-    chain = this.toChainModel(chain)
-    if (!chain) {
-      throw new Error(`chain "${chain}" not found`)
-    }
-    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
-    if (waitConfirmations === undefined) {
-      throw new Error(`waitConfirmations for chain "${chain}" not found`)
-    }
-
-    return waitConfirmations
   }
 
   getExplorerUrl (): string {

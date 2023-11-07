@@ -10,6 +10,7 @@ function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
     (sourceChain === ChainSlug.Arbitrum && tokenSymbol === 'ETH') ||
     (sourceChain === ChainSlug.Optimism && tokenSymbol === 'ETH') ||
     (sourceChain === ChainSlug.Nova && tokenSymbol === 'ETH') ||
+    (sourceChain === ChainSlug.Linea && tokenSymbol === 'ETH') ||
     (sourceChain === ChainSlug.Base && tokenSymbol === 'ETH') ||
     (sourceChain === ChainSlug.Ethereum && tokenSymbol === 'ETH')
   ) {
@@ -30,11 +31,6 @@ const useAvailableLiquidity = (
   const { isLoading, data, error } = useQuery(
     [queryKey, tokenSymbol, sourceChain, destinationChain],
     async () => {
-      // disable deposits into Linea since Linea chain is undergoing maintenance.
-      if (isGoerli && sourceChain !== ChainSlug.Ethereum && destinationChain === ChainSlug.Linea) {
-        return BigNumber.from(0)
-      }
-
       if (sourceChain && destinationChain && tokenSymbol) {
         const liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
         const shouldDisableNativeAssetTransfers =

@@ -1,12 +1,6 @@
-import {
-  mainnet as _mainnetAddresses,
-  staging as stagingAddresses,
-} from '@hop-protocol/core/addresses'
+import { mainnet as _mainnetAddresses } from '@hop-protocol/core/addresses'
 import { mainnet as _mainnetNetworks } from '@hop-protocol/core/networks'
 import { HopAddresses, Networks } from './interfaces'
-
-const isStaging = process.env.REACT_APP_NETWORK === 'staging'
-const _addresses = isStaging ? stagingAddresses : _mainnetAddresses
 
 export const mainnetAddresses: HopAddresses = {
   governance: {
@@ -15,8 +9,8 @@ export const mainnetAddresses: HopAddresses = {
     stakingRewards: '',
     governorAlpha: '',
   },
-  tokens: _addresses.bridges,
-  bonders: _addresses.bonders,
+  tokens: _mainnetAddresses.bridges,
+  bonders: _mainnetAddresses.bonders,
 }
 
 const _networks = _mainnetNetworks as any
@@ -28,9 +22,7 @@ for (const chainSlug in _networks) {
     rpcUrl: _networks[chainSlug].publicRpcUrl,
     fallbackRpcUrls: _networks[chainSlug].fallbackPublicRpcUrls,
     explorerUrl: _networks[chainSlug].explorerUrls[0],
-    nativeBridgeUrl: _networks[chainSlug].nativeBridgeUrl,
-    waitConfirmations: _networks[chainSlug].waitConfirmations,
-    hasFinalizationBlockTag: _networks[chainSlug].hasFinalizationBlockTag
+    nativeBridgeUrl: _networks[chainSlug].nativeBridgeUrl
   }
 }
 

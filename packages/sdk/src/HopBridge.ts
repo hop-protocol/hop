@@ -680,6 +680,13 @@ class HopBridge extends Base {
       const isNativeToken = this.isNativeToken(sourceChain)
       const value = isNativeToken ? tokenAmount : undefined
 
+      if (
+        relayer &&
+        relayer === '0x0000000000000000000000000000000000000000' &&
+        bonderFee.gt(0)
+      ) {
+        throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
+      }
       const txOptions = [
         destinationChain.chainId,
         recipient,
@@ -2095,6 +2102,14 @@ class HopBridge extends Base {
 
     const value = isNativeToken ? amount : undefined
 
+    if (
+      relayer &&
+      relayer === '0x0000000000000000000000000000000000000000' &&
+      relayerFee &&
+      BigNumber.from(relayerFee).gt(0)
+    ) {
+      throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
+    }
     const txOptions = [
       destinationChainId,
       recipient,

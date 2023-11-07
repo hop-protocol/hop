@@ -242,9 +242,6 @@ export class Base {
     if (!this.configFileFetchEnabled) {
       return
     }
-    if (this.network === 'goerli') {
-      return
-    }
     try {
       let cached = s3FileCache[this.network]
       const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()

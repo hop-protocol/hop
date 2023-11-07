@@ -841,18 +841,6 @@ export class Base {
     }
   }
 
-  public getL1BridgeWrapperAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
-    if (!(token && sourceChain && destinationChain)) {
-      return
-    }
-
-    token = this.toTokenModel(token)
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-
-    // Implement if there is an L1 bridge wrapper
-  }
-
   async fetchBonderAvailableLiquidityDataWithIpfsFallback (): Promise<any> {
     try {
       return await this.fetchBonderAvailableLiquidityData()

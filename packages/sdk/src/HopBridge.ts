@@ -532,11 +532,6 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
 
     if (sourceChain.equals(Chain.Ethereum)) {
-      const l1BridgeWrapperAddress = this.getL1BridgeWrapperAddress(this.tokenSymbol, sourceChain, destinationChain)
-      if (l1BridgeWrapperAddress) {
-        return l1BridgeWrapperAddress
-      }
-
       return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
     }
 
@@ -675,7 +670,7 @@ class HopBridge extends Base {
         throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer fee is disabled')
       }
 
-      let l1Bridge = await this.getL1Bridge(sourceChain.provider)
+      const l1Bridge = await this.getL1Bridge(sourceChain.provider)
 
       const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
       if (isPaused) {
@@ -683,13 +678,7 @@ class HopBridge extends Base {
       }
 
       const isNativeToken = this.isNativeToken(sourceChain)
-      let value = isNativeToken ? tokenAmount : undefined
-
-      const bridgeWrapperData = await this.getBridgeWrapperData(sourceChain, destinationChain, value)
-      if (bridgeWrapperData) {
-        l1Bridge = bridgeWrapperData.l1BridgeWrapper
-        value = bridgeWrapperData.value
-      }
+      const value = isNativeToken ? tokenAmount : undefined
 
       const txOptions = [
         destinationChain.chainId,
@@ -724,45 +713,6 @@ class HopBridge extends Base {
 
       const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
       return l2Bridge.populateTransaction.send(...txOptions)
-    }
-  }
-
-  private async getBridgeWrapperData (sourceChain: TChain, destinationChain?: TChain, value?: BigNumberish): Promise<any> {
-    if (!(sourceChain && destinationChain)) {
-      return
-    }
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-    if (this.network === NetworkSlug.Goerli) {
-      const l1BridgeWrapperAddress = this.getL1BridgeWrapperAddress(this.tokenSymbol, sourceChain, destinationChain)
-
-      if (l1BridgeWrapperAddress) {
-        const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-        const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(l1BridgeWrapperAddress, provider)
-        const relayFee = await this.getLineaRelayFee(sourceChain, destinationChain)
-        value = BigNumber.from(value || 0).add(relayFee)
-
-        return {
-          l1BridgeWrapper,
-          value
-        }
-      }
-    } else if (destinationChain.equals(Chain.ScrollZk)) {
-      let l1BridgeWrapperAddress = ''
-      if (this.tokenSymbol === TokenModel.ETH) {
-        l1BridgeWrapperAddress = '' // TODO
-      }
-      if (l1BridgeWrapperAddress) {
-        const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-        const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(l1BridgeWrapperAddress, provider)
-        const relayFee = await this.getScrollZkRelayFee(sourceChain, destinationChain)
-        value = BigNumber.from(value || 0).add(relayFee)
-
-        return {
-          l1BridgeWrapper,
-          value
-        }
-      }
     }
   }
 
@@ -1703,16 +1653,6 @@ class HopBridge extends Base {
     return L1_ERC20_Bridge__factory.connect(bridgeAddress, provider)
   }
 
-  async getL1BridgeWrapperOrL1Bridge (sourceChain: TChain, destinationChain?: TChain): Promise<any> {
-    const bridgeWrapperData = await this.getBridgeWrapperData(sourceChain, destinationChain)
-    if (bridgeWrapperData) {
-      const l1Bridge = bridgeWrapperData.l1BridgeWrapper
-      return l1Bridge
-    }
-
-    return this.getL1Bridge()
-  }
-
   /**
    * @desc Returns Hop L2 Bridge Ethers contract instance.
    * @param chain - Chain model.
@@ -2137,8 +2077,7 @@ class HopBridge extends Base {
     if (checkAllowance) {
       await this.checkConnectedChain(this.signer, sourceChain)
       l1Bridge = await this.getL1Bridge(this.signer)
-      const l1BridgeWrapper = this.getL1BridgeWrapperAddress(this.tokenSymbol, sourceChain, destinationChain)
-      const spender = l1BridgeWrapper || l1Bridge.address
+      const spender = l1Bridge.address
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
         const allowance = await l1Token.allowance(spender)
@@ -2157,13 +2096,7 @@ class HopBridge extends Base {
       throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
     }
 
-    let value = isNativeToken ? amount : undefined
-
-    const bridgeWrapperData = await this.getBridgeWrapperData(sourceChain, destinationChain, value)
-    if (bridgeWrapperData) {
-      l1Bridge = bridgeWrapperData.l1BridgeWrapper
-      value = bridgeWrapperData.value
-    }
+    const value = isNativeToken ? amount : undefined
 
     // Redundantly set relayerFee to 0
     relayerFee = BigNumber.from(0)

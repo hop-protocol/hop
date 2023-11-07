@@ -264,6 +264,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
+    // TODO: Add check for relayer !== '0' when relayerFee
     return await this.l1BridgeWriteContract.sendToL2(
       destinationChainId,
       recipient,
@@ -317,6 +318,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
+    // TODO: Add check for relayer !== '0' when relayerFee
     return await this.l1BridgeWriteContract.sendToL2(
       destinationChainId,
       recipient,

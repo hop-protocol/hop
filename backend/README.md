@@ -44,10 +44,11 @@ OPTIMISM_RPC=
 ARBITRUM_RPC=
 NOVA_RPC=
 BASE_RPC=
+LINEA_RPC=
 
 # (optional) example
 ENABLED_TOKENS=USDC,USDT,DAI,MATIC,ETH,WBTC,HOP,SNX,sUSD,rETH,MAGIC
-ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base
+ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base,linea
 ```
 
 ## Adding new tokens or chains

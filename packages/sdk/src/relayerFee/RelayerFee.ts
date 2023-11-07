@@ -24,7 +24,12 @@ class RelayerFee extends AbstractRelayerFee {
   }
 
   async getRelayCost (): Promise<BigNumber> {
-    return this.relayerFee.getRelayCost()
+    // TODO: Remove redundancy
+    try {
+      return this.relayerFee.getRelayCost()
+    } catch {
+      return BigNumber.from(0)
+    }
   }
 }
 

@@ -765,8 +765,8 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    const relayerFee = new RelayerFee()
-    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
+    const relayerFee = new RelayerFee(this.network, destinationChain.slug, tokenSymbol)
+    return relayerFee.getRelayCost()
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {

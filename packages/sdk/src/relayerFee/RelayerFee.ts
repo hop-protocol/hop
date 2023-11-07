@@ -11,15 +11,21 @@ const RelayerFees = {
   [Chain.Linea.slug]: LineaRelayerFee
 }
 
-// Returns data in ETH
+class RelayerFee extends AbstractRelayerFee {
+  relayerFee: any
 
-class RelayerFee {
-  async getRelayCost (network: string, chainSlug: string, token: string): Promise<BigNumber> {
-    if (!RelayerFees[chainSlug]) {
-      return BigNumber.from('0')
+  constructor (network: string, chain: string, token: string) {
+    super(network, chain, token)
+
+    const relayerFeeConstructor: any | undefined = RelayerFees?.[chain]
+    if (!relayerFeeConstructor) {
+      throw new Error(`Relayer fee not implemented for network ${network}, chain ${chain}, token ${token}`)
     }
+    this.relayerFee = new relayerFeeConstructor(network, chain, token)
+  }
 
-    return (new RelayerFees[chainSlug](network, chainSlug, token)).getRelayCost()
+  async getRelayCost (): Promise<BigNumber> {
+    return this.relayerFee.getRelayCost()
   }
 }
 

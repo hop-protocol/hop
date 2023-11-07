@@ -655,14 +655,6 @@ export class Base {
       txOptions.gasLimit = MinPolygonGasLimit
     }
 
-    if (sourceChain.equals(Chain.Linea)) {
-      const gasPriceMultiplier = 2
-      txOptions.gasPrice = await this.getBumpedGasPrice(
-        this.signer,
-        gasPriceMultiplier
-      )
-    }
-
     // Post-bedrock L1 to L2 message transactions don't estimate correctly
     // TODO: Remove this when estimation is fixed
     if (sourceChain.equals(Chain.Ethereum) && (destinationChain?.equals(Chain.Optimism) || destinationChain?.equals(Chain.Base))) {

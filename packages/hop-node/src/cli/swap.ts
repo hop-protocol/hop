@@ -281,7 +281,8 @@ const wrappedTokenAddresses: Record<string, string> = {
   nova: '0x722E8BdD2ce80A4422E880164f2079488e115365',
   polygon: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
   gnosis: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
-  base: '0x4200000000000000000000000000000000000006'
+  base: '0x4200000000000000000000000000000000000006',
+  linea: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f'
 }
 
 const wrappedNativeToNative: Record<string, string> = {

@@ -1,6 +1,7 @@
 import { ArbitrumStrategy } from './ArbitrumStrategy'
 import { EthereumStrategy } from './EthereumStrategy'
 import { GnosisStrategy } from './GnosisStrategy'
+import { LineaStrategy } from './LineaStrategy'
 import { OptimismStrategy } from './OptimismStrategy'
 import { PolygonStrategy } from './PolygonStrategy'
 
@@ -14,7 +15,8 @@ const ThresholdStrategiesMap: Strategies = {
   [Chain.Optimism]: OptimismStrategy,
   [Chain.Base]: OptimismStrategy,
   [Chain.Arbitrum]: ArbitrumStrategy,
-  [Chain.Nova]: ArbitrumStrategy
+  [Chain.Nova]: ArbitrumStrategy,
+  [Chain.Linea]: LineaStrategy
 }
 
 export default ThresholdStrategiesMap

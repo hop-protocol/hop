@@ -90,6 +90,16 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-base',
     etherscanApiUrl: 'https://api.basescan.org'
+  },
+  linea: {
+    name: chains.linea.name,
+    image: chains.linea.image,
+    networkId: 59144,
+    publicRpcUrl: 'https://rpc.linea.build',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://lineascan.build/'],
+    nativeBridgeUrl: 'https://bridge.linea.build/',
+    subgraphUrl: 'https://linea.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea'
   }
   /*
   zksync: {
@@ -99,15 +109,6 @@ export const networks: Networks = {
     publicRpcUrl: 'https://zksync2-mainnet.zksync.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.zksync.io'],
-    nativeBridgeUrl: ''
-  }
-  linea: {
-    name: chains.linea.name,
-    image: chains.linea.image,
-    networkId: 0,
-    publicRpcUrl: '',
-    fallbackPublicRpcUrls: [],
-    explorerUrls: [''],
     nativeBridgeUrl: ''
   }
   */

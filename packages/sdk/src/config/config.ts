@@ -81,5 +81,3 @@ export const etherscanApiUrls: Record<string, string> = {
   base: 'https://api.basescan.org',
   linea: 'https://api.lineascan.build'
 }
-
-export const defaultRelayerFeeEth: string = '0.01'

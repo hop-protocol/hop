@@ -1,12 +1,11 @@
 import { BigNumber } from 'ethers'
 import { IRelayerFee } from './IRelayerFee'
 
-export class ArbitrumRelayerFee implements IRelayerFee {
+export class LineaRelayerFee implements IRelayerFee {
   network: string
   chain: string
   token: string
 
-  constructor (network: string, token: string, chain: string) {
   constructor (network: string, chain: string, token: string) {
     this.network = network
     this.chain = chain

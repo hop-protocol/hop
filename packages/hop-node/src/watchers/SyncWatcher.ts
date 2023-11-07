@@ -1714,8 +1714,14 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.includes(this.chainSlug)) {
-          const relayerFee = new RelayerFee()
-          const gasCost = await relayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
+          let gasCost: BigNumber
+          try {
+            const relayerFee = new RelayerFee(globalConfig.network, this.chainSlug, this.tokenSymbol)
+            gasCost = await relayerFee.getRelayCost()
+          } catch (err) {
+            logger.error(`pollGasCost error getting relayerFee: ${err.message}`)
+            gasCost = BigNumber.from('0')
+          }
           logger.debug('pollGasCost got relayGasCost')
           estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })
         }

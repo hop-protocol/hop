@@ -134,6 +134,7 @@ export class Base {
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
   relayerFeeEnabled: Record<string, boolean>
+  relayerFeeWei: Record<string, string>
   proxyEnabled: { [token: string]: Record<string, boolean>}
   bridgeDeprecated: Record<string, boolean>
 
@@ -229,6 +230,7 @@ export class Base {
     this.fees = config.bonderFeeBps[network]
     this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
     this.relayerFeeEnabled = config.relayerFeeEnabled[network]
+    this.relayerFeeWei = config.relayerFeeWei[network]
     this.proxyEnabled = config.proxyEnabled[network]
     this.bridgeDeprecated = config.bridgeDeprecated[network]
     if (this.network === NetworkSlug.Goerli) {
@@ -263,6 +265,9 @@ export class Base {
         }
         if (data.relayerFeeEnabled) {
           this.relayerFeeEnabled = data.relayerFeeEnabled
+        }
+        if (data.relayerFeeWei) {
+          this.relayerFeeWei = data.relayerFeeWei
         }
         if (data.proxyEnabled) {
           this.proxyEnabled = data.proxyEnabled
@@ -765,7 +770,8 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    const relayerFee = new RelayerFee(this.network, destinationChain.slug, tokenSymbol)
+    const configRelayerFee = this.relayerFeeWei?.[destinationChain.slug] ?? '0'
+    const relayerFee = new RelayerFee(this.network, destinationChain.slug, tokenSymbol, configRelayerFee)
     return relayerFee.getRelayCost()
   }
 

@@ -86,6 +86,9 @@ export const config : Config = {
     base: true,
     polygonzk: true
   },
+  relayerFeeWei: {
+    linea: '1000000000000000'
+  },
   proxyEnabled: {
     ETH: {
       ethereum: false,

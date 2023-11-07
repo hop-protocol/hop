@@ -1,11 +1,15 @@
-export abstract class AbstractRelayerFee {
-  private readonly network: string
-  private readonly chain: string
-  private readonly token: string
+import { BigNumber } from 'ethers'
 
-  constructor (network: string, chain: string, token: string) {
+export abstract class AbstractRelayerFee {
+  readonly network: string
+  readonly chain: string
+  readonly token: string
+  readonly configRelayerFeeWei: BigNumber
+
+  constructor (network: string, chain: string, token: string, configRelayerFeeWei?: string) {
     this.network = network
     this.chain = chain
     this.token = token
+    this.configRelayerFeeWei = configRelayerFeeWei ? BigNumber.from(configRelayerFeeWei) : BigNumber.from(0)
   }
 }

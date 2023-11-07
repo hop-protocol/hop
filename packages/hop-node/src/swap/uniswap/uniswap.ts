@@ -232,7 +232,7 @@ export async function swap (config: SwapInput) {
   let routeToken1: any = pool.token1
 
   const token0Symbol = await token0.symbol()
-  const ethNativeChains: string[] = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+  const ethNativeChains: string[] = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
   const isToken0ETH = ethNativeChains.includes(chain) && ['ETH', 'WETH'].includes(token0Symbol)
   const isToken0MATIC = chain === Chain.Polygon && ['MATIC', 'WMATIC'].includes(token0Symbol)
   const isToken0Native = isToken0ETH || isToken0MATIC

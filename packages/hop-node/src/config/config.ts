@@ -6,10 +6,12 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
+import { BonderConfig } from 'src/config/types'
 import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import {
   Chain,
   DefaultBatchBlocks,
+  DefaultBondThreshold,
   Network,
   OneHourMs,
   SyncType,
@@ -53,14 +55,13 @@ export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
-export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
 export const ShouldIgnoreProxy = normalizeEnvVarBool(process.env.SHOULD_IGNORE_PROXY) ?? false
 export const ShouldIgnoreBlockHashValidation = normalizeEnvVarBool(process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION) ?? false
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.PolygonZk])
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.PolygonZk, Chain.Linea])
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop`
@@ -72,6 +73,7 @@ export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 export const wsEnabledChains = process.env.WS_ENABLED_CHAINS?.split(',') ?? []
+export const BondThreshold = normalizeEnvVarNumber(process.env.BOND_THRESHOLD) ?? DefaultBondThreshold
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
 // available liquidity watcher to have up-to-date info
@@ -90,7 +92,8 @@ export const etherscanApiKeys: Record<string, string> = {
   [Chain.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
   [Chain.Gnosis]: process.env.XDAI_API_KEY ?? '',
   [Chain.Nova]: process.env.NOVA_API_KEY ?? '',
-  [Chain.Base]: process.env.BASE_API_KEY ?? ''
+  [Chain.Base]: process.env.BASE_API_KEY ?? '',
+  [Chain.Linea]: process.env.LINEA_API_KEY ?? ''
 }
 export const etherscanApiUrls: Record<string, string> = {
   [Chain.Ethereum]: 'https://api.etherscan.io',
@@ -99,7 +102,8 @@ export const etherscanApiUrls: Record<string, string> = {
   [Chain.Arbitrum]: 'https://api.arbiscan.io',
   [Chain.Gnosis]: 'https://api.gnosisscan.io',
   [Chain.Nova]: 'https://api-nova.arbiscan.io',
-  [Chain.Base]: 'https://api.basescan.org'
+  [Chain.Base]: 'https://api.basescan.org',
+  [Chain.Linea]: 'https://api.lineascan.build'
 }
 
 type SyncConfig = {
@@ -160,6 +164,7 @@ export type Config = {
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
   canonicalAddresses: CanonicalAddresses & {[network: string]: any}
+  bonderConfig: BonderConfig
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
@@ -177,8 +182,8 @@ const networkConfigs: {[key: string]: any} = {
   mainnet: mainnetConfig
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, canonicalAddresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   const isMainnet = network === Network.Mainnet
 
   return {
@@ -186,6 +191,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
     addresses,
     bonders,
     canonicalAddresses,
+    bonderConfig,
     networks,
     metadata,
     isMainnet
@@ -193,7 +199,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, bonders, canonicalAddresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, canonicalAddresses, bonderConfig, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -206,6 +212,7 @@ export const config: Config = {
   metadata,
   bonders,
   canonicalAddresses,
+  bonderConfig,
   fees: {},
   routes: {},
   db: {
@@ -462,6 +469,10 @@ export const getConfigBonderForRoute = (token: string, sourceChain: string, dest
   const bonders = getConfigBondersForToken(token)
   const bonder = bonders?.[sourceChain]?.[destinationChain]
   return bonder
+}
+
+export const getBonderTotalStake = (token: string): number | undefined => {
+  return (config.bonderConfig?.totalStake as any)?.[token]
 }
 
 export { Bonders }

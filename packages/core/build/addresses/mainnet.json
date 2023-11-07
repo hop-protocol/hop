@@ -393,6 +393,9 @@
       ],
       "base": [
         "0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7"
+      ],
+      "linea": [
+        "0xa50395bdEaca7062255109fedE012eFE63d6D402"
       ]
     },
     "SNX": {

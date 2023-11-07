@@ -157,6 +157,13 @@ export const tokens: Tokens = {
     decimals: 18,
     image: MAGICImage,
     coingeckoId: 'magic'
+  },
+  WETH: {
+    symbol: 'WETH',
+    name: 'Wrapped Ether',
+    decimals: 18,
+    image: ETHImage,
+    coingeckoId: 'weth'
   }
   /*
   FRAX: {

@@ -10,7 +10,7 @@ export interface Token {
 
 export type Tokens = {
   [key in AssetSymbol]: Token
-} & { ARB: Token } & { XDAI: Token } & { OP: Token } & { GNO: Token } & { RPL: Token } & { MAGIC: Token }
+} & { ARB: Token } & { XDAI: Token } & { OP: Token } & { GNO: Token } & { RPL: Token } & { MAGIC: Token } & { WETH: Token }
 
 export interface Chain {
   name: string

@@ -93,6 +93,9 @@ const stakingRewardsContracts = {
     },
     arbitrum: {
       rETH: '0x3D4cAD734B464Ed6EdCF6254C2A3e5fA5D449b32', // RPL rewards
+    },
+    linea: {
+      ETH: '0xa50395bdEaca7062255109fedE012eFE63d6D402', // WETH rewards
     }
   }
 }
@@ -120,6 +123,9 @@ export const stakingRewardTokens = {
     },
     arbitrum: {
       '0x3d4cad734b464ed6edcf6254c2a3e5fa5d449b32': 'RPL'
+    },
+    linea: {
+      '0xa50395bdeaca7062255109fede012efe63d6d402': 'WETH'
     }
   }
 }

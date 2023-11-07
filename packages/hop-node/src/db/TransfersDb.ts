@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, FiveMinutesMs, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -490,15 +490,21 @@ class TransfersDb extends BaseDb {
         return false
       }
 
-      if (item?.sourceChainSlug !== Chain.Ethereum) {
+      if (!item?.sourceChainId) {
         return false
       }
 
-      if (!item?.destinationChainSlug) {
+      const sourceChainSlug = chainIdToSlug(item.sourceChainId)
+      if (sourceChainSlug !== Chain.Ethereum) {
         return false
       }
 
-      if (!RelayableChains.includes(item.destinationChainSlug)) {
+      if (!item?.destinationChainId) {
+        return false
+      }
+
+      const destinationChainSlug = chainIdToSlug(item.destinationChainId)
+      if (!RelayableChains.includes(destinationChainSlug)) {
         return false
       }
 
@@ -506,11 +512,20 @@ class TransfersDb extends BaseDb {
         return false
       }
 
+      // TODO: This is temp. Rm.
+      const lineaRelayTime = 4 * FiveMinutesMs
+      if (item.destinationChainSlug === Chain.Linea) {
+        if ((item.transferSentTimestamp * 1000) + lineaRelayTime > Date.now()) {
+          return false
+        }
+      }
+
       let timestampOk = true
       if (item.relayAttemptedAt) {
         if (
           item.relayTxError === TxError.RelayerFeeTooLow ||
-          item.withdrawalBondTxError === TxError.RpcServerError
+          item.withdrawalBondTxError === TxError.RpcServerError ||
+          item.withdrawalBondTxError === TxError.UnfinalizedTransferBondError
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
           if (delayMs > OneWeekMs) {
@@ -531,7 +546,6 @@ class TransfersDb extends BaseDb {
         !item.isRelayed &&
         !item.transferFromL1Complete &&
         item.transferSentLogIndex &&
-        item.transferSentTimestamp &&
         timestampOk
       )
     })

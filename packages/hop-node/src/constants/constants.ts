@@ -101,6 +101,7 @@ export enum TxError {
   RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
   RpcServerError = 'RPC_SERVER_ERROR',
   BondTooEarly = 'BOND_TOO_EARLY',
+  UnfinalizedTransferBondError= 'UNFINALIZED_TRANSFER_BOND_ERROR',
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95

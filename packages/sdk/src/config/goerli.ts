@@ -22,6 +22,7 @@ const bonders = goerliAddresses.bonders
 const bonderFeeBps = goerliConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = goerliConfig.destinationFeeGasPriceMultiplier
 const relayerFeeEnabled = goerliConfig.relayerFeeEnabled
+const relayerFeeWei = goerliConfig.relayerFeeWei
 const proxyEnabled = goerliConfig.proxyEnabled
 const bridgeDeprecated = goerliConfig.bridgeDeprecated
 
@@ -32,6 +33,7 @@ export {
   bonderFeeBps,
   destinationFeeGasPriceMultiplier,
   relayerFeeEnabled,
+  relayerFeeWei,
   proxyEnabled,
   bridgeDeprecated
 }

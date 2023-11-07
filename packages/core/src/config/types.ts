@@ -44,7 +44,11 @@ export type Fees = {
   [key in AssetSymbol]: Partial<Bps>
 }
 
-type RelayerFee = {
+type RelayerFeeWei = {
+  [key in ChainSlug]: string
+}
+
+type RelayerFeeEnabled = {
   [key in ChainSlug]: boolean
 }
 
@@ -68,7 +72,8 @@ export type Config = {
   bonderFeeBps: Partial<Fees>
   bonderTotalStake: Partial<TotalStake>
   destinationFeeGasPriceMultiplier: number
-  relayerFeeEnabled: Partial<RelayerFee>
+  relayerFeeWei: Partial<RelayerFeeWei>
+  relayerFeeEnabled: Partial<RelayerFeeEnabled>
   proxyEnabled: Partial<ProxyEnabled>
   bridgeDeprecated: Partial<BridgeDeprecated>
 }

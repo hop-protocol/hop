@@ -251,7 +251,7 @@ export class HealthCheckWatcher {
   incompleteSettlementsMinTimeToWaitHours: number = 4
 
   chainsIgnoredByBonder: Record<string, string[]> = {
-    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon', 'nova', 'base']
+    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon', 'nova', 'base', 'linea']
   }
 
   enabledChecks: EnabledChecks = {
@@ -691,7 +691,7 @@ export class HealthCheckWatcher {
 
     // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
     const l1Chains: string[] = [Chain.Ethereum]
-    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base]
+    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base, Chain.Linea]
     result = result.map((x: any) => {
       const isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
@@ -741,8 +741,8 @@ export class HealthCheckWatcher {
 
   private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
-    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
+    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
     const tokens = getEnabledTokens()
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
@@ -875,7 +875,7 @@ export class HealthCheckWatcher {
     const outOfSyncTimestamp = Math.floor(now.minus({ minutes: this.healthCheckFinalityTimeMinutes }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
 
-    // Note: Nova and Base are unsupported here since there is no index-node subgraph for these chains
+    // Note: Nova, Base, and Linea are unsupported here since there is no index-node subgraph for these chains
     const result: any = []
     for (const chain of chains) {
       const provider = getRpcProvider(chain)!
@@ -902,7 +902,7 @@ export class HealthCheckWatcher {
   async getMissedEvents (): Promise<MissedEvent[]> {
     return []
     // const missedEvents: MissedEvent[] = []
-    // const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+    // const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
     // const tokens = getEnabledTokens()
     // const now = DateTime.now().toUTC()
     // const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })

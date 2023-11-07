@@ -1,30 +1,35 @@
+import { AbstractRelayerFee } from './AbstractRelayerFee'
 import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
 import { BigNumber } from 'ethers'
 import { Chain } from '../models'
-import { NetworkSlug } from '../constants'
+import { LineaRelayerFee } from './LineaRelayerFee'
 
 const RelayerFees = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
-  [Chain.Nova.slug]: ArbitrumRelayerFee
+  [Chain.Nova.slug]: ArbitrumRelayerFee,
+  [Chain.Linea.slug]: LineaRelayerFee
 }
 
-class RelayerFee {
-  async getRelayCost (network: string, chainSlug: string, token: string): Promise<BigNumber> {
-    // Relayer fees shouldn't be calculated for non-mainnet chains since some fee calculations rely on chain-specific data
-    // that is less useful on testnets. Instead, we use a default value for testnets.
-    if (network !== NetworkSlug.Mainnet) {
-      if (token === 'ETH') {
-        return BigNumber.from(0)
-      } else {
-        return BigNumber.from('0')
-      }
-    }
+class RelayerFee extends AbstractRelayerFee {
+  relayerFee: any
 
-    if (!RelayerFees[chainSlug]) {
+  constructor (network: string, chain: string, token: string, configRelayerFee?: string) {
+    super(network, chain, token, configRelayerFee)
+
+    const relayerFeeConstructor: any | undefined = RelayerFees?.[chain]
+    if (!relayerFeeConstructor) {
+      throw new Error(`Relayer fee not implemented for network ${network}, chain ${chain}, token ${token}`)
+    }
+    this.relayerFee = new relayerFeeConstructor(network, chain, token, this.configRelayerFeeWei)
+  }
+
+  async getRelayCost (): Promise<BigNumber> {
+    // TODO: Remove redundancy
+    try {
+      return this.relayerFee.getRelayCost()
+    } catch {
       return BigNumber.from(0)
     }
-
-    return BigNumber.from(0)
   }
 }
 

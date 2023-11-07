@@ -7,3 +7,4 @@ export class RedundantProviderOutOfSync extends Error {}
 export class KmsSignerError extends Error {}
 export class BonderTooEarlyError extends Error {}
 export class BlockHashValidationError extends Error {}
+export class UnfinalizedTransferBondError extends Error {}

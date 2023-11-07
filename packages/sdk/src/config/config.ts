@@ -32,6 +32,11 @@ const relayerFeeEnabled: {[network: string]: Record<string, boolean>} = {
   goerli: goerli.relayerFeeEnabled
 }
 
+const relayerFeeWei: {[network: string]: Record<string, string>} = {
+  mainnet: mainnet.relayerFeeWei,
+  goerli: goerli.relayerFeeWei
+}
+
 const proxyEnabled: {[network: string]: {[token: string]: Record<string, boolean>}} = {
   mainnet: mainnet.proxyEnabled,
   goerli: goerli.proxyEnabled
@@ -49,6 +54,7 @@ const config = {
   bonderFeeBps,
   destinationFeeGasPriceMultiplier,
   relayerFeeEnabled,
+  relayerFeeWei,
   proxyEnabled,
   bridgeDeprecated
 }
@@ -81,5 +87,3 @@ export const etherscanApiUrls: Record<string, string> = {
   base: 'https://api.basescan.org',
   linea: 'https://api.lineascan.build'
 }
-
-export const defaultRelayerFeeEth: string = '0.01'

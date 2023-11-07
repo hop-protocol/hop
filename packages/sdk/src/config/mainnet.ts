@@ -23,6 +23,7 @@ const bonders = mainnetAddresses.bonders
 const bonderFeeBps = mainnetConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = mainnetConfig.destinationFeeGasPriceMultiplier
 const relayerFeeEnabled = mainnetConfig.relayerFeeEnabled
+const relayerFeeWei = mainnetConfig.relayerFeeWei
 const proxyEnabled = mainnetConfig.proxyEnabled
 const bridgeDeprecated = mainnetConfig.bridgeDeprecated
 
@@ -33,6 +34,7 @@ export {
   bonderFeeBps,
   destinationFeeGasPriceMultiplier,
   relayerFeeEnabled,
+  relayerFeeWei,
   proxyEnabled,
   bridgeDeprecated
 }

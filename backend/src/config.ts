@@ -60,7 +60,8 @@ export const transferTimes = {
     polygon: 20,
     gnosis: 20,
     nova: 10,
-    base: 2
+    base: 2,
+    linea: 20
   },
   optimism: {
     ethereum: 25,
@@ -68,7 +69,8 @@ export const transferTimes = {
     polygon: 25,
     gnosis: 25,
     nova: 25,
-    base: 25
+    base: 25,
+    linea: 25
   },
   arbitrum: {
     ethereum: 12,
@@ -76,7 +78,8 @@ export const transferTimes = {
     polygon: 12,
     gnosis: 12,
     nova: 12,
-    base: 12
+    base: 12,
+    linea: 12
   },
   polygon: {
     ethereum: 10,
@@ -84,7 +87,8 @@ export const transferTimes = {
     arbitrum: 10,
     gnosis: 10,
     nova: 10,
-    base: 10
+    base: 10,
+    linea: 10
   },
   gnosis: {
     ethereum: 4,
@@ -92,7 +96,8 @@ export const transferTimes = {
     arbitrum: 4,
     polygon: 4,
     nova: 4,
-    base: 4
+    base: 4,
+    linea: 4
   },
   nova: {
     ethereum: 12,
@@ -100,7 +105,8 @@ export const transferTimes = {
     arbitrum: 12,
     polygon: 12,
     gnosis: 12,
-    base: 12
+    base: 12,
+    linea: 12
   },
   base: {
     ethereum: 25,
@@ -108,7 +114,17 @@ export const transferTimes = {
     arbitrum: 25,
     polygon: 25,
     gnosis: 25,
-    nova: 25
+    nova: 25,
+    linea: 25
+  },
+  linea: {
+    ethereum: 25,
+    optimism: 25,
+    arbitrum: 25,
+    polygon: 25,
+    gnosis: 25,
+    nova: 25,
+    base: 25
   },
   scroll: {
     ethereum: 1,

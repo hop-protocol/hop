@@ -13,7 +13,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 ```sh
 # (optional) specify tokens/chains to display on dropdowns
 NEXT_PUBLIC_ENABLED_TOKENS=USDC,USDT,DAI,MATIC,ETH,WBTC,HOP,SNX,sUSD,rETH,MAGIC
-NEXT_PUBLIC_ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base
+NEXT_PUBLIC_ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base,linea
 ```
 
 ## Getting Started

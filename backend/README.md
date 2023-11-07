@@ -73,8 +73,8 @@ Update `@hop-protocol/core` version and push. By default all chains and tokens f
 | ---- | ----------- | ------- | ------- |
 | `page` | Page | `1` | number |
 | `perPage` | Per page | `25` | number from 1-100 |
-| `source` | Source chain slug | `ethereum` | `ethereum`, `gnosis`, `polygon`, `optimism`, `arbitrum`, `nova`, `base` |
-| `destination` | Destination chain slug | `arbitrum` | `ethereum`, `gnosis`, `polygon`, `optimism`, `arbitrum`, `nova`, `base` |
+| `source` | Source chain slug | `ethereum` | `ethereum`, `gnosis`, `polygon`, `optimism`, `arbitrum`, `nova`, `base`, `linea` |
+| `destination` | Destination chain slug | `arbitrum` | `ethereum`, `gnosis`, `polygon`, `optimism`, `arbitrum`, `nova`, `base`, `linea` |
 | `token` | Token | `USDC` | `USDC`, `USDT`, `DAI`, `MATIC`, `ETH`, `HOP`, `SNX`, `sUSD`, `rETH`, `MAGIC` |
 | `bonded` | Bonded status | `true` | `true`, `false` |
 | `bonder` | Bonder address | `0x123...` | address |

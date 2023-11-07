@@ -373,7 +373,8 @@ export const addresses: Addresses = {
         '0xC61bA16e864eFbd06a9fe30Aab39D18B8F63710a', // GNO
         '0x712F0cf37Bdb8299D0666727F73a5cAbA7c1c24c' // HOP
       ],
-      base: ['0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7'] // HOP
+      base: ['0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7'], // HOP
+      linea: ['0xa50395bdEaca7062255109fedE012eFE63d6D402'] // WETH
     },
     SNX: {
       optimism: [

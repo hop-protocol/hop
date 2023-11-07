@@ -102,6 +102,9 @@ export const config : Config = {
     scrollzk: false,
     polygonzk: false
   },
+  relayerFeeWei: {
+    linea: '0'
+  },
   proxyEnabled: {},
   bridgeDeprecated: {
     SNX: true,

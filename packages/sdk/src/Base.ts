@@ -771,8 +771,12 @@ export class Base {
     }
 
     const configRelayerFee = this.relayerFeeWei?.[destinationChain.slug] ?? '0'
-    const relayerFee = new RelayerFee(this.network, destinationChain.slug, tokenSymbol, configRelayerFee)
-    return relayerFee.getRelayCost()
+    try {
+      const relayerFee = new RelayerFee(this.network, destinationChain.slug, tokenSymbol, configRelayerFee)
+      return relayerFee.getRelayCost()
+    } catch (err) {
+      return BigNumber.from(0)
+    }
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {

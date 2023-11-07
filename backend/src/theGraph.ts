@@ -22,7 +22,7 @@ export async function _queryFetch (url: string, query: string, variables?: any) 
   })
   const jsonRes = await res.json()
   if (jsonRes.errors?.length) {
-    console.log('error query:', query)
+    console.log('error query:', query, variables, url)
     throw new Error(jsonRes.errors[0].message)
   }
   return jsonRes.data

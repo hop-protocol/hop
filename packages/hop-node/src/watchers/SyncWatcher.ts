@@ -1034,7 +1034,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    
+
     // TODO: Clean this up. getParamsFromMultipleSettleEventTransaction should be an event since it can be called in batch
     const tx = await destinationBridge.getTransactionReceipt(withdrawalBondSettledTxHash)
     let params

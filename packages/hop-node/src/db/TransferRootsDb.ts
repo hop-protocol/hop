@@ -668,7 +668,6 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-
       // TODO: This is temp. Rm.
       const lineaRelayTime = 5 * FiveMinutesMs
       if (destinationChain === Chain.Linea) {

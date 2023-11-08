@@ -7,8 +7,8 @@ import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 
 export const populateBonderStats = (item: any) => {
   return {
-    chain: item.network.imageUrl,
-    token: item.token.imageUrl,
+    chain: item.network?.imageUrl,
+    token: item.token?.imageUrl,
     bonder: item.bonder,
     credit: item.credit,
     debit: item.debit,
@@ -107,6 +107,8 @@ function BonderStats() {
     []
   )
 
+  const error = bonderStats?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
     <Container fontSize={[0, 1, 2]}>
       <SortableTable
@@ -114,6 +116,7 @@ function BonderStats() {
         columns={columns}
         populateDataFn={populateBonderStats}
         loading={fetchingBonderStats}
+        error={error}
       />
     </Container>
   )

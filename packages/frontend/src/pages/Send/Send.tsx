@@ -48,6 +48,7 @@ import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
+import ConnectWalletButton from 'src/components/header/ConnectWalletButton'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -60,6 +61,7 @@ const Send: FC = () => {
     selectedBridge,
     setSelectedBridge,
     settings,
+    theme
   } = useApp()
   const { slippageTolerance, deadline } = settings
   const { checkConnectedNetworkId, address, connectedNetworkId } = useWeb3Context()
@@ -754,7 +756,9 @@ const Send: FC = () => {
     isCorrectSignerNetwork,
     isSmartContractWallet,
     isTokenDeprecated,
-    fromNetwork?.slug
+    fromNetwork?.slug,
+    toNetwork?.slug,
+    sourceToken?.symbol
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
@@ -904,37 +908,43 @@ const Send: FC = () => {
         </Box>
       )}
 
-      <ButtonsWrapper>
-        {!sendButtonActive && (
-          <Div mb={[3]} fullWidth={approveButtonActive}>
+      { address
+      ? <ButtonsWrapper>
+          {!sendButtonActive && (
+            <Div mb={[3]} fullWidth={approveButtonActive}>
+              <Button
+                className={styles.button}
+                large
+                highlighted={!!needsApproval}
+                disabled={!approveButtonActive}
+                onClick={handleApprove}
+                loading={approving}
+                fullWidth
+              >
+                Approve
+              </Button>
+            </Div>
+          )}
+          <Div mb={[3]} fullWidth={sendButtonActive}>
             <Button
               className={styles.button}
+              startIcon={sendButtonActive && <SendIcon />}
+              onClick={send}
+              disabled={!sendButtonActive}
               large
-              highlighted={!!needsApproval}
-              disabled={!approveButtonActive}
-              onClick={handleApprove}
-              loading={approving}
               fullWidth
+              highlighted
             >
-              Approve
+              Send
             </Button>
           </Div>
-        )}
-        <Div mb={[3]} fullWidth={sendButtonActive}>
-          <Button
-            className={styles.button}
-            startIcon={sendButtonActive && <SendIcon />}
-            onClick={send}
-            disabled={!sendButtonActive}
-            loading={sending}
-            large
-            fullWidth
-            highlighted
-          >
-            Send
-          </Button>
-        </Div>
-      </ButtonsWrapper>
+        </ButtonsWrapper>
+      : <ButtonsWrapper>
+          <Div mb={[3]} fullWidth>
+            <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
+          </Div>
+        </ButtonsWrapper>
+      }
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />

@@ -146,6 +146,12 @@ export const integrations : Record<string, string> = {
   '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
   '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae': 'lifi',
   '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask',
+  '0x0439e60F02a8900a951603950d8D4527f400C3f1': 'metamask', // mainnet
+  '0xB90357f2b86dbfD59c3502215d4060f71DF8ca0e': 'metamask', // optimism
+  '0xa20ECbC821fB54064aa7B5C6aC81173b8b34Df71': 'metamask', // base
+  '0x23981fC34e69eeDFE2BD9a0a9fCb0719Fe09DbFC': 'metamask', // arbitrum
+  '0x3A0b42cE6166abB05d30DdF12E726c95a83D7a16': 'metamask', // polygon
+  '0xE3d0d2607182Af5B24f5C3C2E4990A053aDd64e3': 'metamask', // linea
   '0xf26055894aeaae23d136defaa355a041a43d7dfd': 'chainhop',
   '0xf762c3fc745948ff49a3da00ccdc6b755e44305e': 'chainhop',
   '0xf80dd9cef747710b0bb6a113405eb6bc394ce050': 'chainhop',

@@ -1,11 +1,9 @@
-import wallets from 'src/wallets'
-import { actionHandler, logger, parseString, root } from './shared'
-import { BigNumber, Wallet } from 'ethers'
-import {
-  config as globalConfig,
-} from 'src/config'
 import getRpcProvider from 'src/utils/getRpcProvider'
-
+import { BigNumber, Wallet } from 'ethers'
+import { actionHandler, logger, parseString, root } from './shared'
+import {
+  config as globalConfig
+} from 'src/config'
 
 root
   .command('send-to-self')
@@ -39,7 +37,6 @@ async function main (source: any) {
     nonce: nonce ? BigNumber.from(nonce) : undefined
   }
 
-
   logger.info(`sending to self on ${fromChain} with gas price ${gasPriceWei} and nonce ${nonce}`)
   const tx = await wallet.sendTransaction({
     value: BigNumber.from(0),
@@ -49,5 +46,5 @@ async function main (source: any) {
   })
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
-  logger.debug(`send complete`)
+  logger.debug('send complete')
 }

@@ -6,11 +6,11 @@ import { CellWrapper, SortableTable } from 'src/components/Table'
 
 export const populatePendingAmountStats = (item: any) => {
   return {
-    source: item.sourceNetwork.imageUrl,
-    destination: item.destinationNetwork.imageUrl,
+    source: item.sourceNetwork?.imageUrl,
+    destination: item.destinationNetwork?.imageUrl,
     pendingAmount: item.formattedPendingAmount,
     tokenDecimals: item.token.decimals,
-    availableLiquidity: formatTokenString(item.availableLiquidity.toString(), item.token.decimals),
+    availableLiquidity: formatTokenString(item.availableLiquidity?.toString(), item.token?.decimals),
     token: item.token.imageUrl,
   }
 }
@@ -71,6 +71,8 @@ const PendingAmountStats: FC = () => {
     []
   )
 
+  const error = pendingAmounts?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
     <Div fontSize={[0, 1, 2]}>
       <SortableTable
@@ -78,6 +80,7 @@ const PendingAmountStats: FC = () => {
         columns={columns}
         populateDataFn={populatePendingAmountStats}
         loading={fetchingPendingAmounts}
+        error={error}
       />
     </Div>
   )

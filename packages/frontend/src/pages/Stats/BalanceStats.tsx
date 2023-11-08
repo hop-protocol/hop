@@ -8,7 +8,7 @@ import ethLogo from 'src/assets/logos/eth.svg'
 
 export const populatePoolStats = (item: any) => {
   return {
-    chain: item.network.imageUrl,
+    chain: item.network?.imageUrl,
     name: item.name,
     address: item.address,
     balance: commafy(item.balance),
@@ -65,6 +65,8 @@ const BalanceStats: FC = () => {
     []
   )
 
+  const error = balances?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
     <Div fontSize={[0, 1, 2]}>
       <SortableTable
@@ -72,6 +74,7 @@ const BalanceStats: FC = () => {
         columns={columns}
         populateDataFn={populatePoolStats}
         loading={fetchingBalances}
+        error={error}
       />
     </Div>
   )

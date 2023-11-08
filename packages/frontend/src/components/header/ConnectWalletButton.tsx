@@ -30,7 +30,9 @@ function setLightModeStyles() {
   moreButton?.addEventListener('click', setWalletButtonStyles)
 }
 
-function ConnectWalletButton({ mode }) {
+function ConnectWalletButton(props) {
+  const { mode, fullWidth, large } = props
+
   const { requestWallet } = useWeb3Context()
   const { isDarkMode } = useThemeMode()
 
@@ -51,6 +53,8 @@ function ConnectWalletButton({ mode }) {
       boxShadow={isDarkMode ? 'top' : 'bottom'}
       fontSize={[0, 0, 1, 2]}
       minWidth="12rem"
+      fullWidth={fullWidth}
+      large={large}
     >
       Connect a Wallet
     </StyledButton>

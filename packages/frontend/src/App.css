@@ -2,6 +2,10 @@
   font-size: 62.5%;
 }
 
+::-webkit-details-marker {
+  display: none;
+}
+
 body {
   margin: 0;
   padding: 0;

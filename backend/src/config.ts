@@ -137,8 +137,7 @@ export const transferTimes = {
   }
 }
 
-// note: keep the addresses lowercased
-export const integrations : Record<string, string> = {
+const _integrationsMap : Record<string, string> = {
   '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket', // socket registry
   '0x8b14984de0ddd2e080d8679febe2f5c94b975af8': 'socket', // socket registry
   '0xc9b6f5eeabb099bbbfb130b78249e81f70efc946': 'socket', // socket registry
@@ -146,18 +145,25 @@ export const integrations : Record<string, string> = {
   '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
   '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae': 'lifi',
   '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask',
-  '0x0439e60F02a8900a951603950d8D4527f400C3f1': 'metamask', // mainnet
-  '0xB90357f2b86dbfD59c3502215d4060f71DF8ca0e': 'metamask', // optimism
-  '0xa20ECbC821fB54064aa7B5C6aC81173b8b34Df71': 'metamask', // base
-  '0x23981fC34e69eeDFE2BD9a0a9fCb0719Fe09DbFC': 'metamask', // arbitrum
-  '0x3A0b42cE6166abB05d30DdF12E726c95a83D7a16': 'metamask', // polygon
-  '0xE3d0d2607182Af5B24f5C3C2E4990A053aDd64e3': 'metamask', // linea
+  '0x0439e60f02a8900a951603950d8d4527f400c3f1': 'metamask', // mainnet
+  '0xb90357f2b86dbfd59c3502215d4060f71df8ca0e': 'metamask', // optimism
+  '0xa20ecbc821fb54064aa7b5c6ac81173b8b34df71': 'metamask', // base
+  '0x23981fc34e69eedfe2bd9a0a9fcb0719fe09dbfc': 'metamask', // arbitrum
+  '0x3a0b42ce6166abb05d30ddf12e726c95a83d7a16': 'metamask', // polygon
+  '0xe3d0d2607182af5b24f5c3c2e4990a053add64e3': 'metamask', // linea
   '0xf26055894aeaae23d136defaa355a041a43d7dfd': 'chainhop',
   '0xf762c3fc745948ff49a3da00ccdc6b755e44305e': 'chainhop',
   '0xf80dd9cef747710b0bb6a113405eb6bc394ce050': 'chainhop',
   '0x696c91cdc3e79a74785c2cdd07ccc1bf0bc7b788': 'chainhop',
   '0x777777773491ff5cef6bb758f3baa9d70886909c': 'viaprotocol' // via protocol
 }
+
+const integrations : Record<string, string> = {}
+for (const addr in _integrationsMap) {
+  integrations[addr.toLowerCase()] = _integrationsMap[addr]
+}
+
+export { integrations }
 
 console.log('network:', network)
 console.log('enabledTokens:', enabledTokens)

@@ -45,7 +45,6 @@ import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
-import useCurrentPathSending from 'src/hooks/useCurrentPathSending'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
@@ -582,7 +581,7 @@ const Send: FC = () => {
   // Send tokens
   // ==============================================================================================
 
-  const { tx, setTx, send, sending, setIsGnosisSafeWallet, lastPathSent } = useSendTransaction({
+  const { tx, setTx, send, sending, setIsGnosisSafeWallet } = useSendTransaction({
     amountOutMin,
     customRecipient,
     deadline,
@@ -605,8 +604,6 @@ const Send: FC = () => {
       setFromTokenAmount('')
     }
   }, [tx])
-
-  const currentPathSending = useCurrentPathSending(lastPathSent, sending, fromTokenAmount, fromNetwork?.slug, toNetwork?.slug, sourceToken?.symbol)
 
   const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
     tx,
@@ -748,8 +745,7 @@ const Send: FC = () => {
       (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? (isSmartContractWallet && isCorrectSignerNetwork && !!customRecipient) : (isSmartContractWallet ? !!customRecipient : true)) &&
       !destinationChainPaused &&
-      !specificRouteDeprecated &&
-      !currentPathSending
+      !specificRouteDeprecated
     )
   }, [
     needsApproval,
@@ -928,7 +924,7 @@ const Send: FC = () => {
         </Box>
       )}
 
-      { address 
+      { address
       ? <ButtonsWrapper>
           {!sendButtonActive && (
             <Div mb={[3]} fullWidth={approveButtonActive}>
@@ -951,7 +947,6 @@ const Send: FC = () => {
               startIcon={sendButtonActive && <SendIcon />}
               onClick={send}
               disabled={!sendButtonActive}
-              loading={currentPathSending}
               large
               fullWidth
               highlighted

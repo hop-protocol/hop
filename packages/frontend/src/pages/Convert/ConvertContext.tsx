@@ -25,7 +25,6 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
-import { getLastPathSent } from 'src/utils/getLastPathSent'
 import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
   useTransactionReplacement,
@@ -49,7 +48,6 @@ type ConvertContextProps = {
   destTokenAmount?: string
   details?: ReactNode
   error?: string
-  lastPathSent: string | null
   loadingDestBalance: boolean
   loadingSourceBalance: boolean
   needsApproval?: boolean
@@ -93,7 +91,6 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
   const [sending, setSending] = useState<boolean>(false)
-  const [lastPathSent, setLastPathSent] = useState<string | null>(null)
   const [approving, setApproving] = useState<boolean>(false)
   const [sourceToken, setSourceToken] = useState<Token>()
   const { approve, checkApproval } = useApprove(sourceToken)
@@ -422,7 +419,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
             throw new Error('Missing convert param')
           }
 
-          return convertOption.convert(
+          const tx = await convertOption.convert(
             sdk,
             signer,
             sourceNetwork,
@@ -435,10 +432,11 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
             bonderFee,
             customRecipient
           )
+
+          await tx?.wait()
+          return tx
         },
       })
-
-      setLastPathSent(getLastPathSent(sourceNetwork.slug, destNetwork.slug, sourceToken._symbol, sourceTokenAmount))
 
       if (tx?.hash && sourceNetwork?.name) {
         const txModelArgs = {
@@ -520,7 +518,6 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         destTokenAmount,
         details,
         error,
-        lastPathSent,
         loadingDestBalance,
         loadingSourceBalance,
         needsApproval,

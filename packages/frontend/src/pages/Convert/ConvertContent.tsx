@@ -14,7 +14,6 @@ import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
-import useCurrentPathSending from 'src/hooks/useCurrentPathSending'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
@@ -139,7 +138,6 @@ const ConvertContent: FC = () => {
     destTokenAmount,
     details,
     error,
-    lastPathSent,
     loadingDestBalance,
     loadingSourceBalance,
     needsApproval,
@@ -215,14 +213,12 @@ const ConvertContent: FC = () => {
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
 
-  const currentPathSending = useCurrentPathSending(lastPathSent, sending, sourceTokenAmount, sourceNetwork?.slug, destNetwork?.slug, sourceToken?.symbol)
-
-  const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated && !currentPathSending)
+  const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated)
   const [sendButtonActive, setSendButtonActive] = useState(checkSendButtonActive())
 
   useEffect(() => {
     setSendButtonActive(checkSendButtonActive())
-  }, [validFormFields, unsupportedAsset, needsApproval, sendableWarning, error, manualWarning, gnosisEnabled, isCorrectSignerNetwork, specificRouteDeprecated, currentPathSending])
+  }, [validFormFields, unsupportedAsset, needsApproval, sendableWarning, error, manualWarning, gnosisEnabled, isCorrectSignerNetwork, specificRouteDeprecated])
 
   const checkApprovalButtonActive = () => (!needsTokenForFee && needsApproval && validFormFields && !specificRouteDeprecated)
   const [approvalButtonActive, setApprovalButtonActive] = useState(checkApprovalButtonActive())
@@ -306,7 +302,7 @@ const ConvertContent: FC = () => {
           )}
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
-          { address 
+          { address
           ? <ButtonsWrapper>
               {!sendButtonActive && (
                 <Div mb={[3]} fullWidth={approvalButtonActive}>
@@ -329,7 +325,6 @@ const ConvertContent: FC = () => {
                   className={styles.button}
                   onClick={handleSend}
                   disabled={!sendButtonActive}
-                  loading={currentPathSending}
                   large
                   highlighted
                   fullWidth

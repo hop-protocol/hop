@@ -6,6 +6,7 @@ import { Chain, ChainPollMultiplier } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TxRetryDelayMs, getEnabledNetworks, config as globalConfig, pendingCountCommitThreshold } from 'src/config'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 
 type Config = {
   chainSlug: string
@@ -128,10 +129,15 @@ class CommitTransfersWatcher extends BaseWatcher {
     const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
+    // TODO: Handle this more globally (not each chain)
     let pendingCountOk = false
-    if (this.chainSlug === Chain.Polygon) {
+    if (
+      this.chainSlug === Chain.Polygon ||
+      chainIdToSlug(destinationChainId ) === Chain.Linea
+    ) {
       pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)
     }
+
     const pendingAmountOk = totalPendingAmount.gte(minThresholdAmount)
     const canCommit = pendingAmountOk || pendingCountOk
     this.logger.debug(

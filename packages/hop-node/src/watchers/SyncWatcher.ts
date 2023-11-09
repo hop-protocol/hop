@@ -1756,8 +1756,7 @@ class SyncWatcher extends BaseWatcher {
         if (RelayableChains.includes(this.chainSlug)) {
           let gasCost: BigNumber
           try {
-            const relayerFee = new RelayerFee(globalConfig.network, this.chainSlug, this.tokenSymbol)
-            gasCost = await relayerFee.getRelayCost()
+            gasCost = await RelayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
           } catch (err) {
             logger.error(`pollGasCost error getting relayerFee: ${err.message}`)
             gasCost = BigNumber.from('0')

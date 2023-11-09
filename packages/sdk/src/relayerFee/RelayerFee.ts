@@ -1,35 +1,28 @@
-import { AbstractRelayerFee } from './AbstractRelayerFee'
 import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
 import { BigNumber } from 'ethers'
 import { Chain } from '../models'
+import { IRelayerFee } from './IRelayerFee'
 import { LineaRelayerFee } from './LineaRelayerFee'
 
-const RelayerFees = {
+type RelayerFeeClass = new (network: string, chain: string, token: string, customRelayerFee?: string) => IRelayerFee
+
+const RelayerFees: Record<string, RelayerFeeClass> = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
   [Chain.Nova.slug]: ArbitrumRelayerFee,
   [Chain.Linea.slug]: LineaRelayerFee
 }
 
-class RelayerFee extends AbstractRelayerFee {
-  relayerFee: any
-
-  constructor (network: string, chain: string, token: string, configRelayerFee?: string) {
-    super(network, chain, token, configRelayerFee)
-
-    const relayerFeeConstructor: any | undefined = RelayerFees?.[chain]
+class RelayerFee {
+  /**
+   * @returns {BigNumber} The cost of in Wei
+   */
+  static getRelayCost = async (network: string, chain: string, token: string, customRelayerFee?: string): Promise<BigNumber> => {
+    const relayerFeeConstructor: RelayerFeeClass | undefined = RelayerFees?.[chain]
     if (!relayerFeeConstructor) {
       throw new Error(`Relayer fee not implemented for network ${network}, chain ${chain}, token ${token}`)
     }
-    this.relayerFee = new relayerFeeConstructor(network, chain, token, this.configRelayerFeeWei)
-  }
-
-  async getRelayCost (): Promise<BigNumber> {
-    // TODO: Remove redundancy
-    try {
-      return this.relayerFee.getRelayCost()
-    } catch {
-      return BigNumber.from(0)
-    }
+    const relayerFee = new relayerFeeConstructor(network, chain, token, customRelayerFee)
+    return relayerFee.getRelayCost()
   }
 }
 

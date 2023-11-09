@@ -769,8 +769,7 @@ export class Base {
 
     const configRelayerFee = this.relayerFeeWei?.[destinationChain.slug] ?? '0'
     try {
-      const relayerFee = new RelayerFee(this.network, destinationChain.slug, tokenSymbol, configRelayerFee)
-      return relayerFee.getRelayCost()
+      return RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol, configRelayerFee)
     } catch (err) {
       return BigNumber.from(0)
     }

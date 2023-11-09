@@ -63,6 +63,10 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
       throw new Error('could not get receipt from message')
     }
 
+    // Gas estimation does not work sometimes, so manual limit is needed
+    // https://lineascan.build/tx/0x8e3c6d7bd3b7d39154c9463535a576db1a1e4d1e99d3a6526feb5bde26a926c0#internal
+    const gasLimit = 500000
+    const txOverrides = { gasLimit }
     // When the fee recipient is the zero address, the fee is sent to the msg.sender
     const feeRecipient = constants.AddressZero
     return await destinationBridge.contract.connect(wallet).claimMessage(
@@ -72,7 +76,8 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
       message.value,
       feeRecipient,
       message.calldata,
-      message.messageNonce
+      message.messageNonce,
+      txOverrides
     )
   }
 

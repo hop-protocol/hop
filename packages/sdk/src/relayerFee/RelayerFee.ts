@@ -4,7 +4,7 @@ import { Chain } from '../models'
 import { IRelayerFee } from './IRelayerFee'
 import { LineaRelayerFee } from './LineaRelayerFee'
 
-type RelayerFeeClass = new (network: string, chain: string, token: string, customRelayerFee?: string) => IRelayerFee
+type RelayerFeeClass = new (network: string, chain: string, token: string) => IRelayerFee
 
 const RelayerFees: Record<string, RelayerFeeClass> = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
@@ -16,12 +16,12 @@ class RelayerFee {
   /**
    * @returns {BigNumber} The cost of in Wei
    */
-  static getRelayCost = async (network: string, chain: string, token: string, customRelayerFee?: string): Promise<BigNumber> => {
+  static getRelayCost = async (network: string, chain: string, token: string): Promise<BigNumber> => {
     const relayerFeeConstructor: RelayerFeeClass | undefined = RelayerFees?.[chain]
     if (!relayerFeeConstructor) {
       throw new Error(`Relayer fee not implemented for network ${network}, chain ${chain}, token ${token}`)
     }
-    const relayerFee = new relayerFeeConstructor(network, chain, token, customRelayerFee)
+    const relayerFee = new relayerFeeConstructor(network, chain, token)
     return relayerFee.getRelayCost()
   }
 }

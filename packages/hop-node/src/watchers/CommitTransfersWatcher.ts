@@ -6,7 +6,13 @@ import { BigNumber } from 'ethers'
 import { Chain, ChainPollMultiplier } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { TxRetryDelayMs, getEnabledNetworks, config as globalConfig, pendingCountCommitThreshold } from 'src/config'
+import {
+  TxRetryDelayMs,
+  getEnabledNetworks,
+  config as globalConfig,
+  pendingCountCommitThreshold,
+  shouldUsePendingCountCommitThreshold
+} from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -129,12 +135,10 @@ class CommitTransfersWatcher extends BaseWatcher {
     const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
-    // TODO: Handle this more globally (not each chain)
+
+    const usePendingCountCommitThreshold = shouldUsePendingCountCommitThreshold(this.chainSlug, chainIdToSlug(destinationChainId))
     let pendingCountOk = false
-    if (
-      this.chainSlug === Chain.Polygon ||
-      chainIdToSlug(destinationChainId) === Chain.Linea
-    ) {
+    if (usePendingCountCommitThreshold) {
       pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)
     }
 
@@ -144,14 +148,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       `destinationChainId: ${destinationChainId}, pendingAmountOk: ${pendingAmountOk}, pendingCountOk: ${pendingCountOk}`
     )
     if (!canCommit) {
-      // TODO: Handle this more globally (not each chain)
-      if (
-        !pendingCountOk &&
-        (
-          this.chainSlug === Chain.Polygon ||
-          chainIdToSlug(destinationChainId) === Chain.Linea
-        )
-      ) {
+      if (!pendingCountOk && usePendingCountCommitThreshold) {
         this.logger.warn(
           `destinationChainId: ${destinationChainId}, pending count has not yet reached threshold of ${pendingCountCommitThreshold}`
         )
@@ -199,6 +196,14 @@ class CommitTransfersWatcher extends BaseWatcher {
 
   getMinThresholdAmount (destinationChainId: number) {
     return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
+  }
+
+
+  shouldUsePendingCountCommitThreshold = (sourceChain: string, destinationChain: string): boolean => {
+    return (
+      sourceChain === Chain.Polygon ||
+      destinationChain === Chain.Linea
+    )
   }
 }
 

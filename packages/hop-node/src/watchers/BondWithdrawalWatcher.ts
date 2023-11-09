@@ -516,7 +516,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 
-  // TODO: Clean this up since there is now a concept of finalized transfers and unfinalized transfers
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams, isFinalized?: boolean): Promise<void> {
     const logger = this.logger.create({ id: txParams.transferId })
 
@@ -530,6 +529,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await this.validateUniqueness(txParams)
       logger.debug('validating logs with redundant rpcs')
       await this.validateLogsWithRedundantRpcs(txParams)
+      logger.debug('validated transaction')
     } catch (err) {
       // Unfinalized transfers are not necessarily a reorg. Try again
       if (!isFinalized && err instanceof PossibleReorgDetected) {

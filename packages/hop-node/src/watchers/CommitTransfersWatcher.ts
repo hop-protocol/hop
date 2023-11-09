@@ -149,7 +149,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         !pendingCountOk &&
         (
           this.chainSlug === Chain.Polygon ||
-          this.chainSlug === Chain.Linea
+          chainIdToSlug(destinationChainId) === Chain.Linea
         )
       ) {
         this.logger.warn(

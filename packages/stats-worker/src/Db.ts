@@ -111,7 +111,7 @@ class Db {
           base_block_number INTEGER,
           base_canonical_amount NUMERIC,
           base_hToken_amount NUMERIC,
-          base_native_amount NUMERIC
+          base_native_amount NUMERIC,
           linea_block_number INTEGER,
           linea_canonical_amount NUMERIC,
           linea_hToken_amount NUMERIC,

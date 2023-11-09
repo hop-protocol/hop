@@ -1238,16 +1238,14 @@ class BonderStats {
     let nativeTokenDebt =
       dbData.polygonNativeAmount * dbData.maticPriceUsd +
       dbData.gnosisNativeAmount * dbData.xdaiPriceUsd +
-      (
-        dbData.ethereumNativeAmount +
+      (dbData.ethereumNativeAmount +
         dbData.optimismNativeAmount +
         dbData.arbitrumNativeAmount +
         dbData.arbitrumAliasAmount +
         dbData.arbitrumMessengerWrapperAmount +
         (dbData.novaNativeAmount || 0) +
         (dbData.baseNativeAmount || 0) +
-        (dbData.lineaNativeAmount || 0)
-      ) *
+        (dbData.lineaNativeAmount || 0)) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1255,16 +1253,14 @@ class BonderStats {
         (dbData.polygonNativeAmount * dbData.maticPriceUsd) /
           dbData.ethPriceUsd +
         (dbData.gnosisNativeAmount * dbData.xdaiPriceUsd) / dbData.ethPriceUsd +
-        (
-          dbData.ethereumNativeAmount +
+        (dbData.ethereumNativeAmount +
           dbData.optimismNativeAmount +
           dbData.arbitrumNativeAmount +
           dbData.arbitrumAliasAmount +
           dbData.arbitrumMessengerWrapperAmount +
           (dbData.novaNativeAmount || 0) +
           (dbData.baseNativeAmount || 0) +
-          (dbData.lineaNativeAmount || 0)
-        )
+          (dbData.lineaNativeAmount || 0))
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt

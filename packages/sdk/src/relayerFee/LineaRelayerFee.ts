@@ -4,6 +4,6 @@ import { IRelayerFee } from './IRelayerFee'
 
 export class LineaRelayerFee extends AbstractRelayerFee implements IRelayerFee {
   getRelayCost = async (): Promise<BigNumber> => {
-    return this.customRelayerFee
+    return BigNumber.from(0)
   }
 }

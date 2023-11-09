@@ -767,9 +767,12 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    const configRelayerFee = this.relayerFeeWei?.[destinationChain.slug] ?? '0'
+    const customRelayerFee = this.relayerFeeWei?.[destinationChain.slug]
+    if (customRelayerFee) {
+      return BigNumber.from(customRelayerFee)
+    }
     try {
-      return RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol, configRelayerFee)
+      return RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
     } catch (err) {
       return BigNumber.from(0)
     }

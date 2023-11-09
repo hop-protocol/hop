@@ -2427,7 +2427,7 @@ class HopBridge extends Base {
       }
     }
 
-    if (this.network === NetworkSlug.Goerli) {
+    if (this.network !== NetworkSlug.Mainnet) {
       const l2Bridge = await this.getL2Bridge(sourceChain)
       onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
     }

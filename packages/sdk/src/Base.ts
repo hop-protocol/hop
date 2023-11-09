@@ -6,7 +6,7 @@ import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/static/Arbitru
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinGoerliGasLimit, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { ChainSlug, Errors, NetworkSlug } from './constants'
 import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L1_OptimismTokenBridge'
 import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
 import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts/static/L1_PolygonPosRootChainManager'
@@ -24,6 +24,8 @@ import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { getMinGasLimit } from './utils/getMinGasLimit'
+import { getMinGasPrice } from './utils/getMinGasPrice'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
@@ -46,15 +48,15 @@ const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
-  if (!config.chains[network]?.[chain]) {
+  if (!config[network]?.chains[chain]) {
     throw new Error(`config for chain not found: ${network} ${chain}`)
   }
-  const rpcUrl = config.chains[network][chain].rpcUrl
+  const rpcUrl = config[network].chains[chain].rpcUrl
   if (!rpcUrl) {
     return providers.getDefaultProvider(network)
   }
 
-  const fallbackRpcUrls = config.chains[network][chain].fallbackRpcUrls ?? []
+  const fallbackRpcUrls = config[network].chains[chain].fallbackRpcUrls ?? []
   const rpcUrls = [rpcUrl, ...fallbackRpcUrls]
 
   const provider = getProviderFromUrl(rpcUrls)
@@ -224,17 +226,17 @@ export class Base {
       this.chainProviders = chainProviders
     }
 
-    this.chains = config.chains[network]
-    this.addresses = config.addresses[network]
-    this.bonders = config.bonders[network]
-    this.fees = config.bonderFeeBps[network]
-    this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
-    this.relayerFeeEnabled = config.relayerFeeEnabled[network]
-    this.relayerFeeWei = config.relayerFeeWei[network]
-    this.proxyEnabled = config.proxyEnabled[network]
-    this.bridgeDeprecated = config.bridgeDeprecated[network]
-    if (this.network === NetworkSlug.Goerli) {
-      this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
+    this.chains = config[network].chains
+    this.addresses = config[network].addresses
+    this.bonders = config[network].bonders
+    this.fees = config[network].bonderFeeBps
+    this.destinationFeeGasPriceMultiplier = config[network].destinationFeeGasPriceMultiplier
+    this.relayerFeeEnabled = config[network].relayerFeeEnabled
+    this.relayerFeeWei = config[network].relayerFeeWei
+    this.proxyEnabled = config[network].proxyEnabled
+    this.bridgeDeprecated = config[network].bridgeDeprecated
+    if (this.network !== NetworkSlug.Mainnet) {
+      this.baseExplorerUrl = `https://${this.network}.explorer.hop.exchange`
     }
   }
 
@@ -350,7 +352,7 @@ export class Base {
   }
 
   get supportedNetworks (): string[] {
-    return Object.keys(this.chains || config.chains)
+    return Object.keys(this.chains || config)
   }
 
   isValidNetwork (network: string): boolean {
@@ -643,23 +645,20 @@ export class Base {
       )
     }
 
-    // Not all Polygon nodes follow recommended 30 Gwei gasPrice
-    // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    if (sourceChain.equals(Chain.Polygon)) {
-      if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
-        txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
-      }
-      txOptions.gasLimit = MinPolygonGasLimit
+    const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
+    if (minGasPrice) {
+      txOptions.gasPrice = BigNumber.from(minGasPrice)
+    }
+
+    const minGasLimit = getMinGasLimit(this.network, sourceChain.slug)
+    if (minGasLimit) {
+      txOptions.gasLimit = BigNumber.from(minGasLimit)
     }
 
     // Post-bedrock L1 to L2 message transactions don't estimate correctly
     // TODO: Remove this when estimation is fixed
     if (sourceChain.equals(Chain.Ethereum) && (destinationChain?.equals(Chain.Optimism) || destinationChain?.equals(Chain.Base))) {
       txOptions.gasLimit = 500000
-    }
-
-    if (this.network === NetworkSlug.Goerli) {
-      txOptions.gasLimit = MinGoerliGasLimit
     }
 
     return txOptions
@@ -977,14 +976,14 @@ export class Base {
   }
 
   async getTransferStatus (transferIdOrTxHash: string):Promise<any> {
-    const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
+    const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
     const json = await fetchJsonOrThrow(url)
     return json.data ?? null
   }
 
   async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string):Promise<any> {
-    const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
+    const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
     const json = await fetchJsonOrThrow(url, (9 * 1000))
     return json.data ?? null

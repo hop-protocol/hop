@@ -10,6 +10,11 @@ export type Network = {
   nativeBridgeUrl?: string
   subgraphUrl?: string
   etherscanApiUrl?: string
+  isRollup?: boolean
+  txOverrides?: {
+    minGasPrice?: number
+    minGasLimit?: number
+  }
 }
 
 export type Networks = Partial<{

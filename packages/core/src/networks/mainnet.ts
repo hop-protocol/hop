@@ -26,7 +26,8 @@ export const networks: Networks = {
     explorerUrls: ['https://arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum',
-    etherscanApiUrl: 'https://api.arbiscan.io'
+    etherscanApiUrl: 'https://api.arbiscan.io',
+    isRollup: true
   },
   optimism: {
     name: chains.optimism.name,
@@ -40,7 +41,8 @@ export const networks: Networks = {
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism',
-    etherscanApiUrl: 'https://api-optimistic.etherscan.io'
+    etherscanApiUrl: 'https://api-optimistic.etherscan.io',
+    isRollup: true
   },
   gnosis: {
     name: chains.gnosis.name,
@@ -67,7 +69,13 @@ export const networks: Networks = {
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-polygon',
-    etherscanApiUrl: 'https://api.polygonscan.com'
+    etherscanApiUrl: 'https://api.polygonscan.com',
+    txOverrides: {
+      // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+      // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+      minGasPrice: 30_000_000_000,
+      minGasLimit: 1_000_000
+    }
   },
   nova: {
     name: chains.nova.name,
@@ -78,7 +86,8 @@ export const networks: Networks = {
     explorerUrls: ['https://nova.arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     subgraphUrl: 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-nova',
-    etherscanApiUrl: 'https://api-nova.arbiscan.io'
+    etherscanApiUrl: 'https://api-nova.arbiscan.io',
+    isRollup: true
   },
   base: {
     name: chains.base.name,
@@ -89,7 +98,8 @@ export const networks: Networks = {
     explorerUrls: ['https://basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-base',
-    etherscanApiUrl: 'https://api.basescan.org'
+    etherscanApiUrl: 'https://api.basescan.org',
+    isRollup: true
   },
   linea: {
     name: chains.linea.name,
@@ -99,7 +109,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://lineascan.build/'],
     nativeBridgeUrl: 'https://bridge.linea.build/',
-    subgraphUrl: 'https://linea.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea'
+    subgraphUrl: 'https://linea.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea',
+    isRollup: true
   }
   /*
   zksync: {
@@ -109,7 +120,8 @@ export const networks: Networks = {
     publicRpcUrl: 'https://zksync2-mainnet.zksync.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.zksync.io'],
-    nativeBridgeUrl: ''
+    nativeBridgeUrl: '',
+    isRollup: true
   }
   */
 }

@@ -144,7 +144,14 @@ class CommitTransfersWatcher extends BaseWatcher {
       `destinationChainId: ${destinationChainId}, pendingAmountOk: ${pendingAmountOk}, pendingCountOk: ${pendingCountOk}`
     )
     if (!canCommit) {
-      if (!pendingCountOk && this.chainSlug === Chain.Polygon) {
+      // TODO: Handle this more globally (not each chain)
+      if (
+        !pendingCountOk &&
+        (
+          this.chainSlug === Chain.Polygon ||
+          this.chainSlug === Chain.Linea
+        )
+      ) {
         this.logger.warn(
           `destinationChainId: ${destinationChainId}, pending count has not yet reached threshold of ${pendingCountCommitThreshold}`
         )

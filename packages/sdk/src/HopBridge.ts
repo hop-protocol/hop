@@ -2116,7 +2116,7 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       relayer,
-      relayerFee
+      relayerFee,
       {
         ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
         value

@@ -94,6 +94,18 @@ async function getTransfers (chain: string, transferIds: string[]) {
       transferIds: _transferIds
     })
 
+    // Temp: rm after gnosis is solved
+    if (chain === 'gnosis') {
+      for (const transfer of data.transferSents) {
+        console.log('gnosisDebug - transferIds', i, data.transferSents.length, transfer)
+      }
+      if (data.transferSents.length) {
+        for (const sents of data.transferSents) {
+          console.log('gnosisDebug - sents', i, data.transferSents.length, JSON.stringify(sents))
+        }
+      }
+    }
+
     items = items.concat(data.transferSents || [])
   }
 

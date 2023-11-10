@@ -1,5 +1,4 @@
 import BaseWatcher from './classes/BaseWatcher'
-import { GasCostEstimationRes } from './classes/Bridge'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
@@ -23,6 +22,7 @@ import {
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
+import { GasCostEstimationRes } from './classes/Bridge'
 import {
   L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
@@ -148,7 +148,7 @@ class SyncWatcher extends BaseWatcher {
     this.started = true
     try {
       await Promise.all([
-        this.pollGasCost(),
+        this.pollGasCost()
         // this.pollSync()
       ])
     } catch (err) {

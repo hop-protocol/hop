@@ -148,8 +148,8 @@ class SyncWatcher extends BaseWatcher {
     this.started = true
     try {
       await Promise.all([
-        this.pollGasCost()
-        // this.pollSync()
+        this.pollGasCost(),
+        this.pollSync()
       ])
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)

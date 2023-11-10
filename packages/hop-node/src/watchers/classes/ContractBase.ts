@@ -3,10 +3,16 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
-import { Chain, FinalityTag, FinalityTagForChain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
+import {
+  Chain,
+  MinGnosisGasPrice,
+  MinPolygonGasPrice,
+  SyncType
+} from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { config as globalConfig } from 'src/config'
+import { FinalityService } from 'src/finality/FinalityService'
+import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 
@@ -14,6 +20,7 @@ export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
   public chainSlug: Chain
+  private readonly finalityService: FinalityService
 
   constructor (contract: Contract) {
     super()
@@ -27,6 +34,20 @@ export default class ContractBase extends EventEmitter {
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+
+    // TODO: Remove as any when bonder finality logic is independent
+    const syncType = getNetworkCustomSyncType(this.chainSlug) ?? SyncType.Bonder
+    this.finalityService = new FinalityService(
+      this.contract.provider,
+      this.chainSlug,
+      syncType as any
+    )
+
+    if (syncType !== SyncType.Bonder) {
+      if (!this.finalityService.isCustomBlockNumberImplemented()) {
+        throw new Error(`getCustomSafeBlockNumber not implemented for chain ${this.chainSlug}`)
+      }
+    }
   }
 
   getChainId = async (): Promise<number> => {
@@ -69,28 +90,22 @@ export default class ContractBase extends EventEmitter {
   }
 
   getBlockNumber = async (): Promise<number> => {
-    return await this.contract.provider.getBlockNumber()
-  }
-
-  getFinalizedBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock(FinalityTag.Finalized)
-    return Number(block.number)
+    return this.finalityService.getBlockNumber()
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    const provider = this.contract.provider
-    const block = await provider.getBlock(FinalityTag.Safe)
-    return Number(block.number)
+    return this.finalityService.getSafeBlockNumber()
   }
 
-  getBlockNumberWithAcceptableFinality = async (): Promise<number> => {
-    if (FinalityTagForChain[this.chainSlug] === FinalityTag.Finalized) {
-      return await this.getFinalizedBlockNumber()
-    } else if (FinalityTagForChain[this.chainSlug] === FinalityTag.Safe) {
-      return await this.getSafeBlockNumber()
-    } else {
-      throw new Error(`unknown finality tag for chain ${this.chainSlug}`)
+  getFinalizedBlockNumber = async (): Promise<number> => {
+    return this.finalityService.getFinalizedBlockNumber()
+  }
+
+  getSyncBlockNumber = async (): Promise<number> => {
+    if (!this.finalityService.isCustomBlockNumberImplemented()) {
+      throw new Error('Custom block number is not supported')
     }
+    return this.finalityService.getCustomBlockNumber()
   }
 
   getTransactionBlockNumber = async (txHash: string): Promise<number> => {
@@ -154,18 +169,6 @@ export default class ContractBase extends EventEmitter {
     return getBumpedGasPrice(gasPrice, multiplier)
   }
 
-  get waitConfirmations () {
-    const chainConfig = globalConfig.networks[this.chainSlug]
-    if (!chainConfig) {
-      throw new Error(`config for chain ${this.chainSlug} not found`)
-    }
-    const { waitConfirmations } = chainConfig
-    if (waitConfirmations <= 0) {
-      throw new Error('expected waitConfirmations to be > 0')
-    }
-    return waitConfirmations
-  }
-
   async txOverrides (): Promise<TxOverrides> {
     const txOptions: TxOverrides = {}
     if (globalConfig.isMainnet) {
@@ -192,11 +195,11 @@ export default class ContractBase extends EventEmitter {
     } else {
       if (this.chainSlug === Chain.Gnosis) {
         txOptions.gasPrice = 50_000_000_000
-        txOptions.gasLimit = 5_000_000
+        txOptions.gasLimit = 10_000_000
       } else if (this.chainSlug === Chain.Polygon) {
-        txOptions.gasLimit = 5_000_000
+        txOptions.gasLimit = 10_000_000
       } else if (this.chainSlug === Chain.Linea) {
-        txOptions.gasLimit = 5_000_000
+        txOptions.gasLimit = 10_000_000
       }
     }
 

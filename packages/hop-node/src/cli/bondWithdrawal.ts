@@ -1,6 +1,7 @@
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { SendBondWithdrawalTxParams } from 'src/watchers/BondWithdrawalWatcher'
 import { Transfer } from 'src/db/TransfersDb'
+import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
@@ -44,7 +45,7 @@ async function main (source: any) {
 
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   for (const transferId of transferIds) {
@@ -73,8 +74,6 @@ async function main (source: any) {
         amountOutMin: dbTransfer.amountOutMin!,
         deadline: dbTransfer.deadline!,
         transferSentIndex: dbTransfer.transferSentIndex!,
-        transferSentTxHash: dbTransfer.transferSentTxHash!,
-        transferSentBlockNumber: dbTransfer.transferSentBlockNumber!,
         isFinalized: dbTransfer.isFinalized!
       }
       await watcher.sendBondWithdrawalTx(txParams)

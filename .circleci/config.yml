@@ -179,11 +179,8 @@ workflows:
               only:
                 - production-bonder
                 - mainnet-bonder
-                - staging-bonder
                 - develop-bonder
                 - goerli-bonder
-                - kovan-bonder
-                - rinkeby-bonder
               ignore: /.*/
       - build_stats_worker:
           filters:

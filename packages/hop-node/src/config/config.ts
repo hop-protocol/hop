@@ -6,23 +6,22 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
+import { BonderConfig } from 'src/config/types'
+import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import {
-  AvgBlockTimeSeconds,
   Chain,
   DefaultBatchBlocks,
+  DefaultBondThreshold,
   Network,
   OneHourMs,
+  SyncType,
   TotalBlocks
 } from 'src/constants'
-import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
-import * as kovanConfig from './kovan'
 import * as mainnetConfig from './mainnet'
-import * as stagingConfig from './staging'
-import * as testConfig from './test'
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')
 
@@ -54,16 +53,15 @@ export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
-export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
+export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 5
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
-export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
 export const ShouldIgnoreProxy = normalizeEnvVarBool(process.env.SHOULD_IGNORE_PROXY) ?? false
 export const ShouldIgnoreBlockHashValidation = normalizeEnvVarBool(process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION) ?? false
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.PolygonZk])
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.PolygonZk, Chain.Linea])
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop`
@@ -75,6 +73,7 @@ export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 export const wsEnabledChains = process.env.WS_ENABLED_CHAINS?.split(',') ?? []
+export const BondThreshold = normalizeEnvVarNumber(process.env.BOND_THRESHOLD) ?? DefaultBondThreshold
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
 // available liquidity watcher to have up-to-date info
@@ -93,7 +92,8 @@ export const etherscanApiKeys: Record<string, string> = {
   [Chain.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
   [Chain.Gnosis]: process.env.XDAI_API_KEY ?? '',
   [Chain.Nova]: process.env.NOVA_API_KEY ?? '',
-  [Chain.Base]: process.env.BASE_API_KEY ?? ''
+  [Chain.Base]: process.env.BASE_API_KEY ?? '',
+  [Chain.Linea]: process.env.LINEA_API_KEY ?? ''
 }
 export const etherscanApiUrls: Record<string, string> = {
   [Chain.Ethereum]: 'https://api.etherscan.io',
@@ -102,7 +102,8 @@ export const etherscanApiUrls: Record<string, string> = {
   [Chain.Arbitrum]: 'https://api.arbiscan.io',
   [Chain.Gnosis]: 'https://api.gnosisscan.io',
   [Chain.Nova]: 'https://api-nova.arbiscan.io',
-  [Chain.Base]: 'https://api.basescan.org'
+  [Chain.Base]: 'https://api.basescan.org',
+  [Chain.Linea]: 'https://api.lineascan.build'
 }
 
 type SyncConfig = {
@@ -163,6 +164,7 @@ export type Config = {
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
   canonicalAddresses: CanonicalAddresses & {[network: string]: any}
+  bonderConfig: BonderConfig
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
@@ -176,23 +178,12 @@ export type Config = {
 }
 
 const networkConfigs: {[key: string]: any} = {
-  test: testConfig,
-  kovan: kovanConfig,
   goerli: goerliConfig,
-  mainnet: mainnetConfig,
-  staging: stagingConfig
+  mainnet: mainnetConfig
 }
 
-const normalizeNetwork = (network: string) => {
-  if (network === Network.Staging) {
-    return Network.Mainnet
-  }
-  return network
-}
-
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, canonicalAddresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
-  network = normalizeNetwork(network)
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   const isMainnet = network === Network.Mainnet
 
   return {
@@ -200,6 +191,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
     addresses,
     bonders,
     canonicalAddresses,
+    bonderConfig,
     networks,
     metadata,
     isMainnet
@@ -207,7 +199,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, bonders, canonicalAddresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, canonicalAddresses, bonderConfig, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -220,6 +212,7 @@ export const config: Config = {
   metadata,
   bonders,
   canonicalAddresses,
+  bonderConfig,
   fees: {},
   routes: {},
   db: {
@@ -292,7 +285,7 @@ export const setConfigByNetwork = (network: string) => {
   const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
   config.addresses = addresses
-  config.network = normalizeNetwork(network)
+  config.network = network
   config.networks = networks
   config.metadata = metadata
 }
@@ -306,45 +299,31 @@ export const setConfigBonders = (bonders: Bonders) => {
   config.bonders = bonders
 }
 
-export const getConfigBondersForToken = (token: string) => {
-  return (config.bonders as any)?.[token]
-}
-
-export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
-  const bonders = getConfigBondersForToken(token)
-  const bonder = bonders?.[sourceChain]?.[destinationChain]
-  return bonder
-}
-
 export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
 export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
   }
 }
 
 export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].redundantRpcUrls = redundantRpcUrls
   }
 }
 
 export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
-  network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].maxGasPrice = maxGasPrice
   }
 }
 
-export const setNetworkHeadSync = (network: string, headSync: boolean) => {
-  network = normalizeNetwork(network)
+export const setNetworkCustomSyncType = (network: string, customSyncType: SyncType) => {
   if (config.networks[network]) {
-    config.networks[network].headSync = headSync
+    config.networks[network].customSyncType = customSyncType
   }
 }
 
@@ -352,8 +331,8 @@ export const getNetworkMaxGasPrice = (network: string) => {
   return config.networks[network].maxGasPrice
 }
 
-export const getNetworkHeadSync = (network: string) => {
-  return config.networks[network].headSync ?? false
+export const getNetworkCustomSyncType = (network: string): SyncType | undefined => {
+  return config.networks[network]?.customSyncType
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
@@ -453,23 +432,6 @@ export function enableEmergencyMode () {
   config.emergencyDryMode = true
 }
 
-export function getFinalityTimeSeconds (chainSlug: string) {
-  if (getHasFinalizationBlockTag(chainSlug)) {
-    throw new Error('Finality is variable and not constant time. Retrieve finality status from an RPC call.')
-  }
-  const avgBlockTimeSeconds: number = AvgBlockTimeSeconds?.[chainSlug]
-  const waitConfirmations: number = networks?.[chainSlug]?.waitConfirmations
-
-  if (!avgBlockTimeSeconds || !waitConfirmations) {
-    throw new Error(`Cannot get finality time for ${chainSlug}, avgBlockTimeSeconds: ${avgBlockTimeSeconds}, waitConfirmations: ${waitConfirmations}`)
-  }
-  return avgBlockTimeSeconds * waitConfirmations
-}
-
-export function getHasFinalizationBlockTag (chainSlug: string) {
-  return networks?.[chainSlug]?.hasFinalizationBlockTag ?? false
-}
-
 export function getProxyAddressForChain (token: string, chainSlug: string): string {
   const address = config.addresses?.[token]?.[chainSlug]?.proxy
   if (!address || ShouldIgnoreProxy) {
@@ -497,6 +459,20 @@ export function getBridgeWriteContractAddress (token: string, chainSlug: string)
 
 export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
+}
+
+export const getConfigBondersForToken = (token: string) => {
+  return (config.bonders as any)?.[token]
+}
+
+export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
+  const bonders = getConfigBondersForToken(token)
+  const bonder = bonders?.[sourceChain]?.[destinationChain]
+  return bonder
+}
+
+export const getBonderTotalStake = (token: string): number | undefined => {
+  return (config.bonderConfig?.totalStake as any)?.[token]
 }
 
 export { Bonders }

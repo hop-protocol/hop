@@ -14,8 +14,6 @@ for (const chain in networks) {
   chains[chain].chainId = network?.networkId
   chains[chain].rpcUrl = network?.publicRpcUrl
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
-  chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
-  chains[chain].hasFinalizationBlockTag = network?.hasFinalizationBlockTag
   chains[chain].fallbackRpcUrls = network?.fallbackPublicRpcUrls ?? []
   chains[chain].subgraphUrl = network?.subgraphUrl
 }
@@ -25,5 +23,18 @@ const bonders = mainnetAddresses.bonders
 const bonderFeeBps = mainnetConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = mainnetConfig.destinationFeeGasPriceMultiplier
 const relayerFeeEnabled = mainnetConfig.relayerFeeEnabled
+const relayerFeeWei = mainnetConfig.relayerFeeWei
+const proxyEnabled = mainnetConfig.proxyEnabled
+const bridgeDeprecated = mainnetConfig.bridgeDeprecated
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }
+export {
+  addresses,
+  chains,
+  bonders,
+  bonderFeeBps,
+  destinationFeeGasPriceMultiplier,
+  relayerFeeEnabled,
+  relayerFeeWei,
+  proxyEnabled,
+  bridgeDeprecated
+}

@@ -9,6 +9,7 @@ import InfoTooltip from 'src/components/InfoTooltip'
 import { useRewards } from './useRewards'
 import { makeStyles } from '@material-ui/core/styles'
 import LargeTextField from 'src/components/LargeTextField'
+import { utils } from 'ethers'
 
 interface Props {
   rewardsContractAddress: string
@@ -42,7 +43,7 @@ export const useStyles = makeStyles(theme => ({
 export function RewardsWidget(props: Props) {
   const styles = useStyles()
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title, description } = props
-  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, tokenImageUrl, txHistoryLink, repoUrl, countdown, inputValue, handleInputChange } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
+  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, tokenImageUrl, txHistoryLink, repoUrl, countdown, inputValue, handleInputChange, withdrawn } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
 
   const claimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(claimableAmount, tokenDecimals)).toFixed(2) : ''
   const unclaimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(unclaimableAmount, tokenDecimals)).toFixed(2) : ''
@@ -122,6 +123,13 @@ export function RewardsWidget(props: Props) {
                       {claimableAmountDisplay} {tokenSymbol}
                     </Typography>
                   </Box>
+                  { withdrawn &&
+                    <Box mb={2}>
+                      <Typography variant="body2" color="secondary" component="div">
+                        Total claimed: { parseFloat(utils.formatEther(withdrawn)).toFixed(2) }
+                      </Typography>
+                    </Box>
+                  }
                 </Box>
                 <Box mb={2}>
                   <Button variant="contained" onClick={claim} loading={claiming} disabled={claiming || claimableAmount.eq(0)} highlighted={claimableAmount.gt(0)} fullWidth large>Claim</Button>
@@ -164,6 +172,13 @@ export function RewardsWidget(props: Props) {
                       </Box>
                     )}
                   </Box>
+                  { withdrawn &&
+                    <Box mb={2} style={{ opacity: 0, userSelect: 'none', pointerEvents: 'none' }}>
+                      <Typography variant="body2" color="secondary" component="div">
+                        --
+                      </Typography>
+                    </Box>
+                  }
                 </Box>
                 <Box mb={2}>
                   <Button variant="contained" href={txHistoryLink} fullWidth large target="_blank" rel="noopener noreferrer" disabled={!showCountdown}>Tx History →</Button>

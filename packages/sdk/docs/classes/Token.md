@@ -159,7 +159,7 @@ Class reprensenting ERC20 Token
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `TokenConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `networkOrOptionsObject` | `string` \| `TokenConstructorOptions` | L1 network name (e.g. 'mainnet', 'goerli') |
 | `chain?` | [`TChain`](../modules.md#tchain) | Chain |
 | `address?` | `string` | Token address. |
 | `decimals?` | `number` | Token decimals. |

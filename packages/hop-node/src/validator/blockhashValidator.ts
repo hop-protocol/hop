@@ -81,7 +81,7 @@ async function getInclusionTx (sourceChainSlug: string, destChainSlug: string, t
 
 async function _getL1InclusionTx (sourceChainSlug: string, txHash: string, logger: Logger): Promise<providers.TransactionReceipt> {
   const sourceChainBridge: IChainBridge = getChainBridge(sourceChainSlug)
-  if (typeof sourceChainBridge.getL1InclusionTx !== 'function') {
+  if (!sourceChainBridge?.getL1InclusionTx) {
     throw new BlockHashValidationError(`sourceChainBridge getL1InclusionTx not implemented for chain ${sourceChainSlug}`)
   }
 
@@ -102,7 +102,7 @@ async function _getL1InclusionTx (sourceChainSlug: string, txHash: string, logge
 async function _getL2InclusionTx (destChainSlug: string, txHash: string, logger: Logger): Promise<providers.TransactionReceipt> {
   logger.debug(`_getL2InclusionTx: getting blockInfo for txHash ${txHash} on destination chain ${destChainSlug}`)
   const destChainBridge: IChainBridge = getChainBridge(destChainSlug)
-  if (typeof destChainBridge.getL2InclusionTx !== 'function') {
+  if (!destChainBridge?.getL2InclusionTx) {
     throw new BlockHashValidationError(`destChainBridge getL2InclusionTx not implemented for chain ${destChainSlug}`)
   }
 
@@ -192,7 +192,7 @@ export function isBlockHashValidationEnabledForRoute (token: string, sourceChain
   }
 
   const sourceChainBridge: IChainBridge = getChainBridge(sourceChainSlug)
-  if (typeof sourceChainBridge.getL1InclusionTx !== 'function') {
+  if (!sourceChainBridge?.getL1InclusionTx) {
     return false
   }
 
@@ -202,7 +202,7 @@ export function isBlockHashValidationEnabledForRoute (token: string, sourceChain
   }
 
   const destinationChainBridge: IChainBridge = getChainBridge(destinationChainSlug)
-  if (typeof destinationChainBridge.getL2InclusionTx !== 'function') {
+  if (!destinationChainBridge?.getL2InclusionTx) {
     return false
   }
 

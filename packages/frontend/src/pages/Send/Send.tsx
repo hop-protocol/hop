@@ -48,6 +48,7 @@ import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
 import IconButton from '@material-ui/core/IconButton'
+import ConnectWalletButton from 'src/components/header/ConnectWalletButton'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -60,6 +61,7 @@ const Send: FC = () => {
     selectedBridge,
     setSelectedBridge,
     settings,
+    theme
   } = useApp()
   const { slippageTolerance, deadline } = settings
   const { checkConnectedNetworkId, address, connectedNetworkId } = useWeb3Context()
@@ -331,10 +333,8 @@ const Send: FC = () => {
         </>
       )
       if (!isAvailable) {
-        if (hopAppNetwork !== 'staging') {
-          setIsLiquidityAvailable(false)
-          return setNoLiquidityWarning(warningMessage)
-        }
+        setIsLiquidityAvailable(false)
+        return setNoLiquidityWarning(warningMessage)
       } else {
         setIsLiquidityAvailable(true)
         setNoLiquidityWarning('')
@@ -384,7 +384,6 @@ const Send: FC = () => {
       const insufficientRelayFeeFunds = sourceToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN.gt(fromBalance.sub(relayFeeEth))
       const notEnoughBonderFee = estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)
       const estimatedReceivedLow = estimatedReceived?.lte(0)
-      const lineaWarning = isGoerli && toNetwork?.slug === 'linea'
 
       if (noLiquidityWarning) {
         message = noLiquidityWarning
@@ -404,8 +403,6 @@ const Send: FC = () => {
         message = 'Warning: More than 50% of amount will go towards bonder fee'
       } else if (slippageToleranceTooLowWarning) {
         message = `Warning: Swap at destination might fail due to slippage tolerance used (${slippageTolerance}%). Try increasing slippage if you don't want to receive h${sourceToken?.symbol}.`
-      } else if (lineaWarning) {
-        message = `Warning: Linea is experiencing RPC issues and deposits will be highly delayed.`
       }
 
       setWarning(message)
@@ -701,10 +698,6 @@ const Send: FC = () => {
   }, [gnosisEnabled, isSmartContractWallet, fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   useEffect(() => {
-    // comment this out when warning not needed anymore
-    if (isGoerli && fromNetwork?.slug === ChainSlug.Ethereum && toNetwork?.slug === ChainSlug.Linea) {
-      return setManualError('Error: Transfers to Linea are currently disabled while Linea undergoes maintenance. Please check Linea discord for more updates.')
-    }
     setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
@@ -763,12 +756,13 @@ const Send: FC = () => {
     isCorrectSignerNetwork,
     isSmartContractWallet,
     isTokenDeprecated,
-    fromNetwork?.slug
+    fromNetwork?.slug,
+    toNetwork?.slug,
+    sourceToken?.symbol
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
-  const showLineaFeeWarning = isGoerli && fromNetwork?.slug === ChainSlug.Ethereum && toNetwork?.slug === ChainSlug.Linea && relayFeeEth > 100
 
   return (
     <Flex column alignCenter>
@@ -899,12 +893,6 @@ const Send: FC = () => {
         </div>
       </div>
 
-      {showLineaFeeWarning && (
-        <Box mb={4}>
-          <Alert severity="warning" text="The Linea chain is undergoing maintenance and Linea has increased the message relay fee to a high value. Please see Linea Discord for updates." />
-        </Box>
-      )}
-
       {specificRouteDeprecated && (
         <Box mb={4}>
           <Alert severity="error" text={(sourceToken?.symbol ? ("The " + sourceToken?.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
@@ -920,37 +908,43 @@ const Send: FC = () => {
         </Box>
       )}
 
-      <ButtonsWrapper>
-        {!sendButtonActive && (
-          <Div mb={[3]} fullWidth={approveButtonActive}>
+      { address
+      ? <ButtonsWrapper>
+          {!sendButtonActive && (
+            <Div mb={[3]} fullWidth={approveButtonActive}>
+              <Button
+                className={styles.button}
+                large
+                highlighted={!!needsApproval}
+                disabled={!approveButtonActive}
+                onClick={handleApprove}
+                loading={approving}
+                fullWidth
+              >
+                Approve
+              </Button>
+            </Div>
+          )}
+          <Div mb={[3]} fullWidth={sendButtonActive}>
             <Button
               className={styles.button}
+              startIcon={sendButtonActive && <SendIcon />}
+              onClick={send}
+              disabled={!sendButtonActive}
               large
-              highlighted={!!needsApproval}
-              disabled={!approveButtonActive}
-              onClick={handleApprove}
-              loading={approving}
               fullWidth
+              highlighted
             >
-              Approve
+              Send
             </Button>
           </Div>
-        )}
-        <Div mb={[3]} fullWidth={sendButtonActive}>
-          <Button
-            className={styles.button}
-            startIcon={sendButtonActive && <SendIcon />}
-            onClick={send}
-            disabled={!sendButtonActive}
-            loading={sending}
-            large
-            fullWidth
-            highlighted
-          >
-            Send
-          </Button>
-        </Div>
-      </ButtonsWrapper>
+        </ButtonsWrapper>
+      : <ButtonsWrapper>
+          <Div mb={[3]} fullWidth>
+            <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
+          </Div>
+        </ButtonsWrapper>
+      }
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />

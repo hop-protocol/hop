@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
+import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
@@ -14,26 +15,26 @@ import {
   BonderTooEarlyError,
   NonceTooLowError,
   PossibleReorgDetected,
-  RedundantProviderOutOfSync
+  RedundantProviderOutOfSync,
+  UnfinalizedTransferBondError
 } from 'src/types/error'
 import {
+  BondThreshold,
+  bondWithdrawalBatchSize,
+  enableEmergencyMode,
+  getBonderTotalStake,
+  getNetworkCustomSyncType,
+  config as globalConfig
+} from 'src/config'
+import {
   GasCostTransactionType,
+  SyncType,
   TxError
 } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import {
-  bondWithdrawalBatchSize,
-  enableEmergencyMode,
-  config as globalConfig,
-  isProxyAddressForChain,
-  zeroAvailableCreditTest
-} from 'src/config'
-import {
-  getHiddenCalldataForDestinationChain,
-  isBlockHashValidationEnabledForRoute
-} from 'src/validator/blockhashValidator'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
@@ -57,9 +58,7 @@ export type SendBondWithdrawalTxParams = {
   amountOutMin: BigNumber
   deadline: BigNumber
   transferSentIndex: number
-  transferSentTxHash: string
-  transferSentBlockNumber: number
-  isFinalized: boolean
+  isFinalized?: boolean
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
@@ -86,22 +85,24 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
+    let dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       this.logger.debug('no unbonded transfer db items to check')
       return
     }
 
-    this.logger.info(
-      `total unbonded transfers db items: ${dbTransfers.length}`
-    )
+    const numUnbondedSentTransfers = dbTransfers.length
+    this.logger.info(`total unbonded transfers db items: ${numUnbondedSentTransfers}`)
+
+    // Do this outside of parallelization since this relies on all transfers being processed
+    const syncType = getNetworkCustomSyncType(this.chainSlug)
+    dbTransfers = await this.filterTransfersBySyncType(dbTransfers, syncType)
+    this.logger.info(`${numUnbondedSentTransfers - dbTransfers.length} out of ${numUnbondedSentTransfers} unbonded transfers db items filtered out by syncType ${syncType}`)
 
     const listSize = 100
     const batchedDbTransfers = dbTransfers.slice(0, listSize)
 
-    this.logger.info(
-      `checking unbonded transfers db items ${batchedDbTransfers.length} (out of ${dbTransfers.length})`
-    )
+    this.logger.info(`checking unbonded transfers db items ${batchedDbTransfers.length} (out of ${dbTransfers.length})`)
 
     await promiseQueue(batchedDbTransfers, async (dbTransfer: Transfer, i: number) => {
       const {
@@ -119,7 +120,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (isUnbondable) {
         logger.warn(
           `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
-          `withdrawalBondTxError: ${withdrawalBondTxError}`
+          `withdrawalBondTxErr: ${withdrawalBondTxError}`
         )
         logger.debug('db poll completed')
         return
@@ -155,7 +156,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferNonce,
       deadline,
       transferSentTxHash,
-      transferSentBlockNumber,
       transferSentIndex,
       isFinalized
     } = dbTransfer
@@ -170,16 +170,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
-
-    logger.debug('processing bondWithdrawal. checking shouldIgnorePreFinalizedTx')
-    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    const shouldIgnorePreFinalizedTx = !isFinalized && !this.isBlockHashValidationEnabled(destinationChainSlug)
-    logger.debug(`processing bondWithdrawal. shouldIgnorePreFinalizedTx: ${shouldIgnorePreFinalizedTx}`)
-    if (shouldIgnorePreFinalizedTx) {
-      logger.warn('shouldIgnorePreFinalizedTx cannot bond preFinalizedTx. marking item not found')
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
-    }
 
     logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
@@ -221,8 +211,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondWithdrawalWatcher`)
       return
     }
-
-    await this.withdrawFromVaultIfNeeded(destinationChainId, amount)
 
     logger.debug('checkTransferId sourceL2Bridge.getTransaction')
     const sourceTx = await sourceL2Bridge.getTransaction(
@@ -276,8 +264,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amountOutMin,
         deadline,
         transferSentIndex,
-        transferSentTxHash,
-        transferSentBlockNumber,
         isFinalized
       })
 
@@ -353,6 +339,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
         })
         return
       }
+      if (err instanceof UnfinalizedTransferBondError) {
+        logger.error('unfinalized transfer bond error. trying again.')
+        withdrawalBondBackoffIndex++
+        await this.db.transfers.update(transferId, {
+          withdrawalBondTxError: TxError.UnfinalizedTransferBondError,
+          withdrawalBondBackoffIndex
+        })
+        return
+      }
       if (err instanceof PossibleReorgDetected) {
         logger.error('possible reorg detected. turning off writes.')
         enableEmergencyMode()
@@ -373,43 +368,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       attemptSwap,
       amountOutMin,
       deadline,
-      transferSentTxHash,
-      transferSentBlockNumber,
       isFinalized
     } = params
     const logger = this.logger.create({ id: transferId })
 
-    // Unfinalized transfers should skip preTransactionValidation since they might be reorged
-    let hiddenCalldata: string | undefined
-    if (isFinalized) {
-      logger.debug('attempting to bond unfinalized transfer. performing preTransactionValidation')
-      await this.preTransactionValidation(params)
-    } else {
-      logger.debug('attempting to bond unfinalized transfer. skipping preTransactionValidation')
-
-      // Redundantly verify that blockHashValidation is enabled. Unfinalized transactions should never be bonded
-      // without blockHashValidation enabled
-      const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-      if (!this.isBlockHashValidationEnabled(destinationChainSlug)) {
-        throw new BlockHashValidationError(`blockHash validation not enabled for transferId ${transferId}`)
-      }
-
-      hiddenCalldata = await getHiddenCalldataForDestinationChain({
-        tokenSymbol: this.tokenSymbol,
-        sourceChainSlug: this.chainSlug,
-        destChainSlug: destinationChainSlug,
-        l2TxHash: transferSentTxHash,
-        l2BlockNumber: transferSentBlockNumber,
-        logger
-      })
-
-      // If hidden calldata is not present, bond the transfer at a later time when it is finalized
-      if (!hiddenCalldata) {
-        throw new BlockHashValidationError(`hiddenCalldata is falsy for unfinalized transferId ${transferId}`)
-      }
-
-      logger.debug(`hiddenCalldata: ${hiddenCalldata}`)
-    }
+    logger.debug('attempting to bond unfinalized transfer')
+    await this.preTransactionValidation(params, isFinalized)
 
     if (attemptSwap) {
       logger.debug(
@@ -424,8 +388,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        deadline,
-        hiddenCalldata
+        deadline
       )
     } else {
       // Redundantly verify that both amountOutMin and deadline are 0
@@ -439,8 +402,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         recipient,
         amount,
         transferNonce,
-        bonderFee,
-        hiddenCalldata
+        bonderFee
       )
     }
   }
@@ -451,48 +413,130 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
   }
 
-  async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
-    if (!globalConfig.vault[this.tokenSymbol]?.[this.chainIdToSlug(destinationChainId)]?.autoWithdraw) {
-      return
+  private async filterTransfersBySyncType (dbTransfers: UnbondedSentTransfer[], syncType?: SyncType): Promise<UnbondedSentTransfer[]> {
+    if (syncType === SyncType.Bonder) {
+      return this.filterTransfersBySyncTypeBonder(dbTransfers)
+    } else if (syncType === SyncType.Threshold) {
+      return this.filterTransfersBySyncTypeThreshold(dbTransfers)
+    } else {
+      throw new Error(`Invalid syncType: ${syncType}`)
     }
-
-    return await this.mutex.runExclusive(async () => {
-      let availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-      if (zeroAvailableCreditTest) {
-        availableCredit = BigNumber.from(0)
-      }
-      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
-      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
-      if (shouldWithdraw) {
-        try {
-          const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`
-          this.notifier.info(msg)
-          this.logger.info(msg)
-          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
-          await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
-        } catch (err) {
-          const errMsg = `withdrawFromVaultAndStake error: ${err.message}`
-          this.notifier.error(errMsg)
-          this.logger.error(errMsg)
-          throw err
-        }
-      }
-    })
   }
 
-  async preTransactionValidation (txParams: SendBondWithdrawalTxParams): Promise<void> {
+  private async filterTransfersBySyncTypeBonder (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
+    // Bonder sync type returns all finalized transfers
+    return dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
+  }
+
+  private async filterTransfersBySyncTypeThreshold (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
+    // Threshold sync type returns all unfinalized transfers within the threshold plus all finalized transfers
+    const finalizedTransfers: UnbondedSentTransfer[] = await this.filterTransfersBySyncTypeBonder(dbTransfers)
+
+    const decimals = getTokenDecimals(this.tokenSymbol)
+    const inFlightAmount: BigNumber = await this.getInFlightAmount()
+    const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
+    const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
+    if (amountWithinThreshold.lt(0)) {
+      this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${formatUnits(inFlightAmount, decimals)})`)
+      return finalizedTransfers
+    }
+
+    const unfinalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => !dbTransfer.isFinalized)
+    if (!unfinalizedTransfers.length) {
+      this.logger.debug('filterTransfersBySyncTypeThreshold: no unfinalized transfers')
+      return finalizedTransfers
+    }
+
+    const availableLiquidityPerChain: Record<string, BigNumber> = {}
+    let remainingAmountWithinThreshold: BigNumber = amountWithinThreshold
+    const transfersWithinThreshold: UnbondedSentTransfer[] = []
+    for (const unfinalizedTransfer of unfinalizedTransfers) {
+      const { transferId, destinationChainId, amount, withdrawalBondTxError } = unfinalizedTransfer
+      const logger = this.logger.create({ id: transferId })
+
+      if (!destinationChainId || !amount) {
+        logger.warn(`filterTransfersBySyncTypeThreshold: destinationChainId: ${destinationChainId}, amount: ${amount}`)
+        continue
+      }
+
+      if (!availableLiquidityPerChain?.[destinationChainId]) {
+        availableLiquidityPerChain[destinationChainId] = this.getAvailableCreditForTransfer(destinationChainId)
+      }
+
+      // Is there enough overall credit to bond
+      const enoughCredit = availableLiquidityPerChain[destinationChainId].gte(amount)
+      if (!enoughCredit) {
+        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${formatUnits(amount, decimals)}`)
+        continue
+      }
+
+      // Is the bonder unable to bond it because the transfer amount is too high
+      const isBondableAmount = withdrawalBondTxError !== TxError.NotEnoughLiquidity
+      if (!isBondableAmount) {
+        logger.warn(`filterTransfersBySyncTypeThreshold: isBondableAmount false, withdrawalBondTxError: ${withdrawalBondTxError}`)
+        continue
+      }
+
+      // If the transfer has not been finalized, is it within the bond threshold
+      const isWithinBondThreshold = amount.lte(remainingAmountWithinThreshold)
+      if (!isWithinBondThreshold) {
+        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${formatUnits(amount, decimals)}, remainingAmountWithinThreshold:, ${formatUnits(remainingAmountWithinThreshold, decimals)}`)
+        continue
+      } else {
+        remainingAmountWithinThreshold = remainingAmountWithinThreshold.sub(amount)
+      }
+
+      availableLiquidityPerChain[destinationChainId] = availableLiquidityPerChain[destinationChainId].sub(amount)
+      transfersWithinThreshold.push(unfinalizedTransfer)
+    }
+
+    return [
+      ...finalizedTransfers,
+      ...transfersWithinThreshold
+    ]
+  }
+
+  private async getInFlightAmount (): Promise<BigNumber> {
+    const inFlightTransfers: Transfer[] = await this.db.transfers.getInFlightTransfers()
+    let inFlightAmount = BigNumber.from(0)
+    for (const inFlightTransfer of inFlightTransfers) {
+      if (!inFlightTransfer.amount) continue
+      inFlightAmount = inFlightAmount.add(inFlightTransfer.amount)
+    }
+    return inFlightAmount
+  }
+
+  private getBonderRiskAmount (): BigNumber {
+    const bonderTotalStake: number | undefined = getBonderTotalStake(this.tokenSymbol)
+    if (!bonderTotalStake) {
+      return BigNumber.from(0)
+    }
+
+    const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
+    return bonderTotalStakeWei.mul(BondThreshold).div(100)
+  }
+
+  async preTransactionValidation (txParams: SendBondWithdrawalTxParams, isFinalized?: boolean): Promise<void> {
     const logger = this.logger.create({ id: txParams.transferId })
 
-    // Perform this check as late as possible before the transaction is sent
-    logger.debug('validating db existence')
-    await this.validateDbExistence(txParams)
-    logger.debug('validating transferSent index')
-    await this.validateTransferSentIndex(txParams)
-    logger.debug('validating uniqueness')
-    await this.validateUniqueness(txParams)
-    logger.debug('validating logs with redundant rpcs')
-    await this.validateLogsWithRedundantRpcs(txParams)
+    try {
+      // Perform this check as late as possible before the transaction is sent
+      logger.debug('validating db existence')
+      await this.validateDbExistence(txParams)
+      logger.debug('validating transferSent index')
+      await this.validateTransferSentIndex(txParams)
+      logger.debug('validating uniqueness')
+      await this.validateUniqueness(txParams)
+      logger.debug('validating logs with redundant rpcs')
+      await this.validateLogsWithRedundantRpcs(txParams)
+      logger.debug('validated transaction')
+    } catch (err) {
+      // Unfinalized transfers are not necessarily a reorg. Try again
+      if (!isFinalized && err instanceof PossibleReorgDetected) {
+        throw new UnfinalizedTransferBondError(err.message)
+      }
+      throw err
+    }
   }
 
   async validateDbExistence (txParams: SendBondWithdrawalTxParams): Promise<void> {
@@ -604,13 +648,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       throw new Error(`dbTransfer not found for transferId ${calculatedTransferId}`)
     }
     return dbTransfer
-  }
-
-  isBlockHashValidationEnabled (destinationChainSlug: string): boolean {
-    return (
-      isProxyAddressForChain(this.tokenSymbol, destinationChainSlug) &&
-      isBlockHashValidationEnabledForRoute(this.tokenSymbol, this.chainSlug, destinationChainSlug)
-    )
   }
 }
 

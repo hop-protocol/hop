@@ -3,13 +3,13 @@ import { Config } from './types'
 export const config : Config = {
   bonderFeeBps: {
     USDC: {
-      ethereum: 7,
-      polygon: 7,
-      gnosis: 7,
-      optimism: 7,
-      arbitrum: 7,
-      nova: 7,
-      base: 7
+      ethereum: 10,
+      polygon: 10,
+      gnosis: 10,
+      optimism: 10,
+      arbitrum: 10,
+      nova: 10,
+      base: 10
     },
     USDT: {
       ethereum: 20,
@@ -77,7 +77,19 @@ export const config : Config = {
       nova: 20
     }
   },
-  destinationFeeGasPriceMultiplier: 1.2,
+  bonderTotalStake: {
+    USDC: 2338333,
+    USDT: 649805,
+    DAI: 1500000,
+    MATIC: 766730,
+    ETH: 7959,
+    HOP: 4500000,
+    SNX: 250000,
+    sUSD: 400000,
+    rETH: 550,
+    MAGIC: 1000000
+  },
+  destinationFeeGasPriceMultiplier: 1.3,
   relayerFeeEnabled: {
     polygon: false,
     gnosis: false,
@@ -89,5 +101,13 @@ export const config : Config = {
     linea: false,
     scrollzk: false,
     polygonzk: false
+  },
+  relayerFeeWei: {
+    linea: '0'
+  },
+  proxyEnabled: {},
+  bridgeDeprecated: {
+    SNX: true,
+    sUSD: true
   }
 }

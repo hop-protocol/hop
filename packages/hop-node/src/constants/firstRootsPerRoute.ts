@@ -21,5 +21,13 @@ export const FirstRoots: Record<string, boolean> = {
   '0xa48ca1ade7ae622fb5c058e45a31ce602b553ef10aa5d92bda6a7a27788583b6': true, // Optimism
   '0x294697f26f1139668c659478d85219c7b1fedfe32ffb7d5469bfc6cec41c1be9': true, // Arbitrum One
   '0xab955d0167cfc4b0c328814e694e46a8f2e8cf962c06f34facf0f5076b898989': true, // Polygon
-  '0xdd12eaba7386d0e5423e42c6d8fdb276a308c48eca118a98fe4488c60e3174b3': true // Gnosis
+  '0xdd12eaba7386d0e5423e42c6d8fdb276a308c48eca118a98fe4488c60e3174b3': true, // Gnosis
+
+  // Linea - ETH
+  '0x6d6f36a3aaefb9270d607c86b087e8e0aad80241fc5cada6cf7c865283aedc98': true, // Optimism
+  '0x761538e697de713be33cd33dd3d24805fc89de6fff97f38380ed02d29913e959': true, // Polygon
+  '0x33168c5d7fafe64844b41618fa1b43b8959fa20434c37c0da914f638829d38f6': true, // Gnosis
+  '0x85957a5955054c51ee330933193b0128351ec7e854e6dcbe21317d9e13a33ad7': true, // Arbitrum
+  '0xea68dcaf98c736efe104c2b4179d17c353d8649e2ca1944dcc03c83051a03716': true, // Base
+  '0x7526402ed34dda3f1ddfe1b86888bd0dfdcf31708195b44549314c701fd6641a': true // Nova
 }

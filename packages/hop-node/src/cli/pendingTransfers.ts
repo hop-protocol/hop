@@ -1,5 +1,6 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseString, root } from './shared'
 import {
   getCommitTransfersWatcher
@@ -27,7 +28,7 @@ async function main (source: any) {
 
   const watcher = await getCommitTransfersWatcher({ chain: sourceChain, token, dryMode: true })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   const destinationChainId = chainSlugToId(destinationChain)

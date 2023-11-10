@@ -94,6 +94,18 @@ async function getTransfers (chain: string, transferIds: string[]) {
       transferIds: _transferIds
     })
 
+    // Temp: rm after gnosis is solved
+    if (chain === 'gnosis') {
+      for (const transfer of data.transferSents) {
+        console.log('gnosisDebug - transferIds', i, data.transferSents.length, transfer)
+      }
+      if (data.transferSents.length) {
+        for (const sents of data.transferSents) {
+          console.log('gnosisDebug - sents', i, data.transferSents.length, JSON.stringify(sents))
+        }
+      }
+    }
+
     items = items.concat(data.transferSents || [])
   }
 
@@ -101,7 +113,7 @@ async function getTransfers (chain: string, transferIds: string[]) {
 }
 
 export async function getInvalidBondWithdrawals (startDate: number, endDate: number) {
-  const chains = ['ethereum', 'polygon', 'gnosis', 'arbitrum', 'optimism', 'nova', 'base']
+  const chains = ['ethereum', 'polygon', 'gnosis', 'arbitrum', 'optimism', 'nova', 'base', 'linea']
   const bonds: Record<string, any> = {}
   const transfers: Record<string, any> = {}
   for (const chain of chains) {

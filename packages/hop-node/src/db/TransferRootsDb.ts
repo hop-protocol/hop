@@ -5,6 +5,7 @@ import { BigNumber } from 'ethers'
 import {
   Chain,
   ChallengePeriodMs,
+  FiveMinutesMs,
   OneWeekMs,
   OruExitTimeMs,
   RelayableChains,
@@ -665,6 +666,17 @@ class TransferRootsDb extends BaseDb {
 
       if (!(item?.bondedAt ?? item?.confirmedAt)) {
         return false
+      }
+
+      // TODO: This is temp. Rm.
+      const lineaRelayTime = 5 * FiveMinutesMs
+      if (destinationChain === Chain.Linea) {
+        const timestampMs = item?.bondedAt ?? item?.confirmedAt
+        if (timestampMs) {
+          if ((timestampMs * 1000) + lineaRelayTime > Date.now()) {
+            return false
+          }
+        }
       }
 
       const isSeenOnL1 = item?.bonded ?? item?.confirmed

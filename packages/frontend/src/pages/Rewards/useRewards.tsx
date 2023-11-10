@@ -42,6 +42,7 @@ export const useRewards = (props: Props) => {
   const [claimRecipient, setClaimRecipient] = useState(queryParams.address as string ?? address?.address)
   const [countdown, setCountdown] = useState('')
   const [inputValue, setInputValue] = useState('')
+  const [withdrawn, setWithdrawn] = useState(BigNumber.from(0))
   const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
@@ -159,8 +160,8 @@ export const useRewards = (props: Props) => {
         return
       }
       const total = BigNumber.from(entry.balance)
-      const withdrawn = await contract.withdrawn(claimRecipient)
-      const amount = total.sub(withdrawn)
+      const withdrawnAmount = await contract.withdrawn(claimRecipient)
+      const amount = total.sub(withdrawnAmount)
       setClaimableAmount(amount)
       setClaimProofBalance(total)
     } catch (err) {
@@ -415,6 +416,17 @@ export const useRewards = (props: Props) => {
     }
   }, [inputValue, address])
 
+  useEffect(() => {
+    async function updateWithdrawnAmount() {
+      if (contract && claimRecipient) {
+        const withdrawnAmount = await contract.withdrawn(claimRecipient)
+        setWithdrawn(withdrawnAmount)
+      }
+    }
+
+    updateWithdrawnAmount().catch(console.error)
+  }, [contract, claimRecipient])
+
   return {
     tokenDecimals,
     claimableAmount,
@@ -436,6 +448,7 @@ export const useRewards = (props: Props) => {
     repoUrl,
     countdown,
     inputValue,
-    handleInputChange
+    handleInputChange,
+    withdrawn
   }
 }

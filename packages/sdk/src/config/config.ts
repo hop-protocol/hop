@@ -1,49 +1,50 @@
 import { metadata } from './metadata'
 import * as goerli from './goerli'
-import * as kovan from './kovan'
 import * as mainnet from './mainnet'
-import * as staging from './staging'
 
 const addresses: {[network: string]: any} = {
   mainnet: mainnet.addresses,
-  staging: staging.addresses,
-  kovan: kovan.addresses,
   goerli: goerli.addresses
 }
 
 const chains: {[network: string]: any} = {
   mainnet: mainnet.chains,
-  staging: staging.chains,
-  kovan: kovan.chains,
   goerli: goerli.chains
 }
 
 const bonders: {[network: string]: {[token: string]: Record<string, Record<string, string>>}} = {
   mainnet: mainnet.bonders,
-  staging: staging.bonders,
-  kovan: kovan.bonders,
   goerli: goerli.bonders
 }
 
 const bonderFeeBps: {[network: string]: {[token: string]: Record<string, number>}} = {
   mainnet: mainnet.bonderFeeBps,
-  staging: staging.bonderFeeBps,
-  kovan: kovan.bonderFeeBps,
   goerli: goerli.bonderFeeBps
 }
 
 const destinationFeeGasPriceMultiplier: {[network: string]: number} = {
   mainnet: mainnet.destinationFeeGasPriceMultiplier,
-  staging: staging.destinationFeeGasPriceMultiplier,
-  kovan: kovan.destinationFeeGasPriceMultiplier,
   goerli: goerli.destinationFeeGasPriceMultiplier
 }
 
 const relayerFeeEnabled: {[network: string]: Record<string, boolean>} = {
   mainnet: mainnet.relayerFeeEnabled,
-  staging: staging.relayerFeeEnabled,
-  kovan: kovan.relayerFeeEnabled,
   goerli: goerli.relayerFeeEnabled
+}
+
+const relayerFeeWei: {[network: string]: Record<string, string>} = {
+  mainnet: mainnet.relayerFeeWei,
+  goerli: goerli.relayerFeeWei
+}
+
+const proxyEnabled: {[network: string]: {[token: string]: Record<string, boolean>}} = {
+  mainnet: mainnet.proxyEnabled,
+  goerli: goerli.proxyEnabled
+}
+
+const bridgeDeprecated: {[network: string]: Record<string, boolean>} = {
+  mainnet: mainnet.bridgeDeprecated,
+  goerli: goerli.bridgeDeprecated
 }
 
 const config = {
@@ -52,7 +53,10 @@ const config = {
   bonders,
   bonderFeeBps,
   destinationFeeGasPriceMultiplier,
-  relayerFeeEnabled
+  relayerFeeEnabled,
+  relayerFeeWei,
+  proxyEnabled,
+  bridgeDeprecated
 }
 
 export { metadata, config }
@@ -69,7 +73,8 @@ export const etherscanApiKeys: Record<string, string> = {
   arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY ?? '',
   gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY ?? '',
   nova: process.env.ETHERSCAN_NOVA_API_KEY ?? '',
-  base: process.env.ETHERSCAN_BASE_API_KEY ?? ''
+  base: process.env.ETHERSCAN_BASE_API_KEY ?? '',
+  linea: process.env.ETHERSCAN_LINEA_API_KEY ?? ''
 }
 
 export const etherscanApiUrls: Record<string, string> = {
@@ -79,7 +84,6 @@ export const etherscanApiUrls: Record<string, string> = {
   arbitrum: 'https://api.arbiscan.io',
   gnosis: 'https://api.gnosisscan.io',
   nova: 'https://api-nova.arbiscan.io',
-  base: 'https://api.basescan.org'
+  base: 'https://api.basescan.org',
+  linea: 'https://api.lineascan.build'
 }
-
-export const defaultRelayerFeeEth: string = '0.01'

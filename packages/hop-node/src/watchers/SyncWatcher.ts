@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -12,10 +13,11 @@ import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   Chain,
   ChainPollMultiplier,
+  DoesRootProviderSupportWs,
   GasCostTransactionType,
-  HeadSyncKeySuffix,
   OneWeekMs,
   RelayableChains,
+  RootProviderName,
   TenMinutesMs
 } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -43,7 +45,6 @@ import {
   SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
-  getNetworkHeadSync,
   getProxyAddressForChain,
   config as globalConfig,
   isProxyAddressForChain,
@@ -75,7 +76,6 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   isRelayableChainEnabled: boolean = false
-  shouldSyncHead: boolean
   ready: boolean = false
   // Experimental: Websocket support
   wsProvider: providers.WebSocketProvider
@@ -113,16 +113,6 @@ class SyncWatcher extends BaseWatcher {
       }
     }
 
-    this.shouldSyncHead = getNetworkHeadSync(this.chainSlug)
-    this.logger.debug(`shouldSyncHead: ${this.shouldSyncHead}`)
-
-    // TODO: This only works for Alchemy. Add WS url to config long term.
-    if (wsEnabledChains.includes(this.chainSlug)) {
-      const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
-      this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
-      this.initEventWebsockets()
-    }
-
     this.init()
       .catch(err => {
         this.logger.error('init error:', err)
@@ -137,6 +127,17 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`syncing from syncFromDate with timestamp ${timestamp}`)
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
       this.logger.debug(`syncing from syncFromDate with blockNumber ${this.customStartBlockNumber}`)
+    }
+
+    // TODO: This only works for Alchemy and Quiknode. Add WS url to config long term.
+    if (wsEnabledChains.includes(this.chainSlug)) {
+      const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
+      const rpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(wsProviderUrl)
+      if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
+        this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
+        this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
+        this.initEventWebsockets()
+      }
     }
 
     this.ready = true
@@ -340,17 +341,18 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async getTransferSentEventPromise (isHeadSync: boolean = false): Promise<any> {
+  async getTransferSentEventPromise (isCustomSync: boolean = false): Promise<any> {
     if (this.isL1) return []
 
     const l2Bridge = this.bridge as L2Bridge
+    const customSyncKeySuffix = l2Bridge.getCustomSyncKeySuffix()
     let keyName = l2Bridge.TransferSent
-    if (isHeadSync) {
-      keyName += HeadSyncKeySuffix
+    if (isCustomSync && customSyncKeySuffix) {
+      keyName += customSyncKeySuffix
     }
 
     return l2Bridge.mapTransferSentEvents(
-      async event => this.handleTransferSentEvent(event, isHeadSync),
+      async event => this.handleTransferSentEvent(event, isCustomSync),
       this.getSyncOptions(keyName)
     )
   }
@@ -448,8 +450,9 @@ class SyncWatcher extends BaseWatcher {
     if (this.isL1) return []
 
     let promises: EventPromise
-    if (this.shouldSyncHead) {
-      // Sync head first, then sync finalized transfers
+    const isCustomSync = this.bridge.shouldPerformCustomSync()
+    if (isCustomSync) {
+      // Custom sync first, then sync finalized transfers
       // If syncs are not done in this order, there is a race condition upon bonder startup
       // where a transfer might be marked finalized and then subsequently unfinalized. Ordering
       // these ensures that does not happen.
@@ -538,7 +541,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async handleTransferSentEvent (event: TransferSentEvent, isHeadSync: boolean) {
+  async handleTransferSentEvent (event: TransferSentEvent, isCustomSync: boolean) {
     const {
       transferId,
       chainId: destinationChainIdBn,
@@ -561,7 +564,10 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
       const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
-      const isFinalized = !isHeadSync
+      // isFinalized must be undefined if isCustomSync is not explicitly false
+      // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
+      // should never happen unless RPC providers return out of order events
+      const isFinalized = !isCustomSync ? true : undefined
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -600,14 +606,8 @@ class SyncWatcher extends BaseWatcher {
       // as notFound previously if there was weird behavior onchain after this
       // transfer was seen at the head. If this is the case, the transfer would not have been
       // bonded before finality and will need to be bonded now.
-
-      // NOTE: There is a rare race condition where an unfinalized transfer may be processed before
-      // the finalized transfer is seen but sent and fail onchain validation after the finalized
-      // transfer has been recorded. For example, if a reorg happens at block 255 and finalization
-      // is at block 256. In this case, the transferId will be marked as notFound and the
-      // transfer will never be bonded. This is not handled, but if it ever occurs in practice, handle here.
       if (isFinalized) {
-        logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxError: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
+        logger.debug(`finalized transfer seen, resetting unfinalized non-happy path states: isNotFound: ${dbData.isNotFound}, withdrawalBondTxErr: ${dbData.withdrawalBondTxError}, withdrawalBondBackoffIndex: ${dbData.withdrawalBondBackoffIndex}`)
         dbData.isNotFound = undefined
         dbData.withdrawalBondTxError = undefined
         dbData.withdrawalBondBackoffIndex = 0
@@ -1023,7 +1023,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const { destinationChainId, withdrawalBondSettledTxHash, withdrawalBondSettled } = dbTransfer
+    const { destinationChainId, withdrawalBondSettledTxHash } = dbTransfer
     if (dbTransfer.withdrawalBondSettled) {
       logger.debug('populateTransferWithdrawalBondSettled dbTransfer withdrawalBondSettled is true. Returning.')
       return
@@ -1034,8 +1034,41 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    const { rootHash, transferRootTotalAmount, bonder } = await destinationBridge.getParamsFromMultipleSettleEventTransaction(withdrawalBondSettledTxHash)
-    const transferRootId = this.bridge.getTransferRootId(rootHash, transferRootTotalAmount)
+
+    // TODO: Clean this up. getParamsFromMultipleSettleEventTransaction should be an event since it can be called in batch
+    const tx = await destinationBridge.getTransactionReceipt(withdrawalBondSettledTxHash)
+    let params
+    try {
+      const { rootHash, transferRootTotalAmount, bonder } = await destinationBridge.getParamsFromMultipleSettleEventTransaction(withdrawalBondSettledTxHash)
+      params = {
+        rootHash,
+        bonder,
+        totalAmount: transferRootTotalAmount
+      }
+    } catch (err) {
+      const events = await destinationBridge.getWithdrawalBondSettledEvents(tx.blockNumber, tx.blockNumber)
+      if (!events?.length) {
+        logger.debug('populateTransferWithdrawalBondSettled event not found. Returning.')
+        return
+      }
+
+      for (const event of events) {
+        if (event?.topics?.[2] === transferId) {
+          params = {
+            rootHash: event?.args?.rootHash,
+            bonder: event?.args?.bonder
+          }
+          break
+        }
+      }
+
+      if (!params?.rootHash || !params?.bonder) {
+        logger.debug('populateTransferWithdrawalBondSettled params not found. Returning.')
+        return
+      }
+    }
+
+    const { bonder } = params
     const isBonded = dbTransfer?.withdrawalBonded ?? false
     const isSameBonder = dbTransfer?.withdrawalBonder === bonder
     const isWithdrawalSettled = isBonded && isSameBonder
@@ -1056,6 +1089,13 @@ class SyncWatcher extends BaseWatcher {
       withdrawalBondSettled: true
     })
 
+    // If a withdrawal is bonded solo, we don't know the root id. allSettled will be marked later.
+    if (!params?.rootHash || !params?.totalAmount) {
+      logger.debug('populateTransferWithdrawalBondSettled transferRootId params not found. Returning.')
+      return
+    }
+
+    const transferRootId = this.bridge.getTransferRootId(params.rootHash, params.totalAmount)
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       logger.debug('populateTransferWithdrawalBondSettled dbTransferRoot not found. Returning.')
@@ -1714,8 +1754,13 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.includes(this.chainSlug)) {
-          const relayerFee = new RelayerFee()
-          const gasCost = await relayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
+          let gasCost: BigNumber
+          try {
+            gasCost = await RelayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
+          } catch (err) {
+            logger.error(`pollGasCost error getting relayerFee: ${err.message}`)
+            gasCost = BigNumber.from('0')
+          }
           logger.debug('pollGasCost got relayGasCost')
           estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })
         }

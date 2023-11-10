@@ -38,6 +38,14 @@ export type CanonicalTokenConvertOptions = {
   shouldSkipNearestCheck?: boolean
 }
 
+export type GasCostEstimationRes = {
+  gasCost: BigNumber
+  gasCostInToken: BigNumber
+  gasLimit: BigNumber
+  tokenPriceUsd: number
+  nativeTokenPriceUsd: number
+}
+
 type BlockValues = {
   end: number
   start: number
@@ -861,7 +869,7 @@ export default class Bridge extends ContractBase {
     transactionType: GasCostTransactionType,
     data?: string,
     to?: string
-  ) {
+  ): Promise<GasCostEstimationRes> {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     let gasCost: BigNumber = BigNumber.from('0')
     if (transactionType === GasCostTransactionType.Relay) {
@@ -924,7 +932,12 @@ export default class Bridge extends ContractBase {
 
   async getGasCostTokenValues (symbol: string) {
     const decimals = getTokenDecimals(symbol)
-    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
+    let priceUsd
+    try {
+      priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
+    } catch (err) {
+      throw new Error(`failed to get price for ${symbol} with error message: ${err.message}`)
+    }
     if (typeof priceUsd !== 'number') {
       throw new Error('expected price to be number type')
     }

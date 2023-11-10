@@ -124,6 +124,9 @@ export function truncateHash(hash) {
 }
 
 export function formatTokenString(value: BigNumber, tokenDecimals = 18, trailingDecimals = 2) {
+  if (value == null || tokenDecimals == null) {
+    return ''
+  }
   if (tokenDecimals <= 1) {
     return value.toString()
   }

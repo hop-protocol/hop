@@ -10,8 +10,7 @@ import {
   TxRetryDelayMs,
   getEnabledNetworks,
   config as globalConfig,
-  pendingCountCommitThreshold,
-  shouldUsePendingCountCommitThreshold
+  pendingCountCommitThreshold
 } from 'src/config'
 
 type Config = {
@@ -136,7 +135,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
 
-    const usePendingCountCommitThreshold = shouldUsePendingCountCommitThreshold(this.chainSlug, chainIdToSlug(destinationChainId))
+    const usePendingCountCommitThreshold = this.shouldUsePendingCountCommitThreshold(this.chainSlug, chainIdToSlug(destinationChainId))
     let pendingCountOk = false
     if (usePendingCountCommitThreshold) {
       pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)
@@ -198,8 +197,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
   }
 
-
-  shouldUsePendingCountCommitThreshold = (sourceChain: string, destinationChain: string): boolean => {
+  private readonly shouldUsePendingCountCommitThreshold = (sourceChain: string, destinationChain: string): boolean => {
     return (
       sourceChain === Chain.Polygon ||
       destinationChain === Chain.Linea

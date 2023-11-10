@@ -14,6 +14,7 @@ import {
   BigNumber,
   BigNumberish,
   Signer,
+  constants,
   ethers
 } from 'ethers'
 import {
@@ -664,6 +665,9 @@ class HopBridge extends Base {
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
     const relayer = await this.getBonderAddress(sourceChain, destinationChain)
+    if (!relayer) {
+      throw new Error('Relayer address is required')
+    }
 
     if (sourceChain.isL1) {
       if (bonderFee.gt(0) && !this.relayerFeeEnabled[destinationChain.slug]) {
@@ -680,11 +684,7 @@ class HopBridge extends Base {
       const isNativeToken = this.isNativeToken(sourceChain)
       const value = isNativeToken ? tokenAmount : undefined
 
-      if (
-        relayer &&
-        relayer === '0x0000000000000000000000000000000000000000' &&
-        bonderFee.gt(0)
-      ) {
+      if (!this.isValidRelayerAndRelayerFee(relayer, bonderFee)) {
         throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
       }
       const txOptions = [
@@ -2065,6 +2065,9 @@ class HopBridge extends Base {
     if (await this.getIsBridgeDeprecated(this.tokenSymbol)) {
       throw new Error('This bridge is deprecated')
     }
+    if (!relayer) {
+      throw new Error('relayer is required')
+    }
 
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
@@ -2101,13 +2104,9 @@ class HopBridge extends Base {
     }
 
     const value = isNativeToken ? amount : undefined
+    relayerFee = BigNumber.from(relayerFee || 0)
 
-    if (
-      relayer &&
-      relayer === '0x0000000000000000000000000000000000000000' &&
-      relayerFee &&
-      BigNumber.from(relayerFee).gt(0)
-    ) {
+    if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
       throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
     }
     const txOptions = [
@@ -2117,7 +2116,7 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       relayer,
-      relayerFee || BigNumber.from(0),
+      relayerFee,
       {
         ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
         value
@@ -2813,6 +2812,13 @@ class HopBridge extends Base {
     const price = await this.priceFeed.getPriceByTokenSymbol(tokenSymbol)
     this.debugTimeLog('getPriceByTokenSymbol', timeStart)
     return price
+  }
+
+  private async isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): Promise<boolean> {
+    return (
+      relayer !== constants.AddressZero ||
+      relayerFee.eq(0)
+    )
   }
 }
 

@@ -1,27 +1,27 @@
-import { ETHERSCAN_PREFIXES, NetworkId } from 'src/utils/constants'
+import { NetworkId } from 'src/utils/constants'
+import { getBaseExplorerUrl } from './getBaseExplorerUrl'
+import { networkIdToSlug } from './networks'
 
 export function getEtherscanLink(
   networkId: string | NetworkId,
   data: string,
   type: 'transaction' | 'token' | 'address' | 'block'
 ): string {
-  const prefix = `https://${
-    ETHERSCAN_PREFIXES[networkId as NetworkId] || ETHERSCAN_PREFIXES[1]
-  }etherscan.io`
+  const baseUrl = getBaseExplorerUrl(networkIdToSlug(networkId))
 
   switch (type) {
     case 'transaction': {
-      return `${prefix}/tx/${data}`
+      return `${baseUrl}/tx/${data}`
     }
     case 'token': {
-      return `${prefix}/token/${data}`
+      return `${baseUrl}/token/${data}`
     }
     case 'block': {
-      return `${prefix}/block/${data}`
+      return `${baseUrl}/block/${data}`
     }
     case 'address':
     default: {
-      return `${prefix}/address/${data}`
+      return `${baseUrl}/address/${data}`
     }
   }
 }

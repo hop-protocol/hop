@@ -11,6 +11,7 @@ export type Network = {
   subgraphUrl?: string
   etherscanApiUrl?: string
   isRollup?: boolean
+  isRelayable?: boolean
   txOverrides?: {
     minGasPrice?: number
     minGasLimit?: number

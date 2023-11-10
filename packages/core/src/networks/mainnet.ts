@@ -27,7 +27,8 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum',
     etherscanApiUrl: 'https://api.arbiscan.io',
-    isRollup: true
+    isRollup: true,
+    isRelayable: true
   },
   optimism: {
     name: chains.optimism.name,
@@ -87,7 +88,8 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
     subgraphUrl: 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-nova',
     etherscanApiUrl: 'https://api-nova.arbiscan.io',
-    isRollup: true
+    isRollup: true,
+    isRelayable: true
   },
   base: {
     name: chains.base.name,

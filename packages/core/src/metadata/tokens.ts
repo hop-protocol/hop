@@ -35,7 +35,8 @@ export const tokens: Tokens = {
     name: 'XDAI',
     decimals: 18,
     image: XDAIImage,
-    coingeckoId: 'dai'
+    coingeckoId: 'dai',
+    isStablecoin: true
   },
   MATIC: {
     symbol: 'MATIC',
@@ -49,7 +50,8 @@ export const tokens: Tokens = {
     name: 'DAI Stablecoin',
     decimals: 18,
     image: DAIImage,
-    coingeckoId: 'dai'
+    coingeckoId: 'dai',
+    isStablecoin: true
   },
   ARB: {
     symbol: 'ARB',
@@ -79,14 +81,16 @@ export const tokens: Tokens = {
     name: 'USD Coin',
     decimals: 6,
     image: USDCImage,
-    coingeckoId: 'usd-coin'
+    coingeckoId: 'usd-coin',
+    isStablecoin: true
   },
   USDT: {
     symbol: 'USDT',
     name: 'Tether USD',
     decimals: 6,
     image: USDTImage,
-    coingeckoId: 'tether'
+    coingeckoId: 'tether',
+    isStablecoin: true
   },
   WBTC: {
     symbol: 'WBTC',
@@ -121,7 +125,8 @@ export const tokens: Tokens = {
     name: 'Synth sUSD',
     decimals: 18,
     image: sUSDImage,
-    coingeckoId: 'nusd'
+    coingeckoId: 'nusd',
+    isStablecoin: true
   },
   GNO: {
     symbol: 'GNO',

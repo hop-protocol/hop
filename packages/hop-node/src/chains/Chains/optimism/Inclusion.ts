@@ -1,15 +1,15 @@
 import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import InclusionService, { IInclusionService } from '../../Services/InclusionService'
-import { IInclusionService as IInclusionServiceTmp, InclusionServiceConfig } from './inclusion/IInclusionService'
+import { IOptimismInclusionService, IOptimismInclusionServiceConfig } from './inclusion/IOptimismInclusionService'
 import { providers } from 'ethers'
 
 export class Inclusion extends InclusionService implements IInclusionService {
-  private readonly inclusionService: IInclusionServiceTmp | undefined
+  private readonly inclusionService: IOptimismInclusionService | undefined
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const inclusionServiceConfig: InclusionServiceConfig = {
+    const inclusionServiceConfig: IOptimismInclusionServiceConfig = {
       chainSlug: this.chainSlug,
       l1Wallet: this.l1Wallet,
       l2Wallet: this.l2Wallet,
@@ -20,12 +20,12 @@ export class Inclusion extends InclusionService implements IInclusionService {
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.inclusionService) return
+    if (!this.inclusionService?.getL1InclusionTx) return
     return this.inclusionService.getL1InclusionTx(l2TxHash)
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.inclusionService) return
+    if (!this.inclusionService?.getL2InclusionTx) return
     return this.inclusionService.getL2InclusionTx(l1TxHash)
   }
 }

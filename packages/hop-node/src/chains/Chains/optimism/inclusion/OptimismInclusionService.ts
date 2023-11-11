@@ -3,7 +3,7 @@ import Logger from 'src/logger'
 import zlib from 'zlib'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
 import { Contract, Signer, providers } from 'ethers'
-import { InclusionServiceConfig } from './IInclusionService'
+import { IOptimismInclusionServiceConfig } from './IOptimismInclusionService'
 import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
@@ -19,7 +19,7 @@ interface Batch {
   numL1BlocksInBatch: number
 }
 
-abstract class InclusionService {
+abstract class OptimismInclusionService {
   derive: Derive = new Derive()
   chainSlug: string
   l1Wallet: Signer
@@ -31,7 +31,7 @@ abstract class InclusionService {
   l1BlockAddress: string
   l1BlockContract: Contract
 
-  constructor (config: InclusionServiceConfig) {
+  constructor (config: IOptimismInclusionServiceConfig) {
     this.chainSlug = config.chainSlug
     this.l1Wallet = config.l1Wallet
     this.l2Wallet = config.l2Wallet
@@ -190,4 +190,4 @@ abstract class InclusionService {
   }
 }
 
-export default InclusionService
+export default OptimismInclusionService

@@ -428,7 +428,7 @@ class RelayWatcher extends BaseWatcher {
     }
 
     if (err instanceof MessageRelayedError) {
-      logger.debug('message already relayed. marking unrelayable')
+      logger.error('message already relayed. marking unrelayable')
       return {
         relayTxError: TxError.MessageAlreadyRelayed,
         relayBackoffIndex,
@@ -437,7 +437,7 @@ class RelayWatcher extends BaseWatcher {
     }
 
     if (err instanceof MessageInvalidError) {
-      logger.debug('message state invalid. marking unrelayable')
+      logger.error('message state invalid. marking unrelayable')
       return {
         relayTxError: TxError.MessageInvalidState,
         relayBackoffIndex,

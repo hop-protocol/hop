@@ -1,40 +1,22 @@
-import AbstractChainBridge from '../AbstractChainBridge'
 import fetch from 'node-fetch'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
-import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { IChainBridge, MessageDirection, RelayL1ToL2MessageOpts, RelayL2ToL1MessageOpts } from '../IChainBridge'
-import {
-  IL1ToL2MessageWriter,
-  IL2ToL1MessageWriter,
-  L1ToL2MessageStatus,
-  L1TransactionReceipt,
-  L2ToL1MessageStatus,
-  L2TransactionReceipt
-} from '@arbitrum/sdk'
 import { getCanonicalAddressesForChain } from 'src/config'
+import { IInclusionService } from '../../IChainBridge'
+import InclusionService from '../../Services/InclusionService'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
 }
 
-type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
-type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
-type RelayOpts = {
-  messageDirection: MessageDirection
-  messageIndex?: number
-}
-
-class ArbitrumBridge extends AbstractChainBridge<Message, MessageStatus, RelayOpts> implements IChainBridge {
-  nonRetryableProvider: providers.Provider
-  nodeInterfaceContract: Contract
-  sequencerInboxContract: Contract
+export class Inclusion extends InclusionService implements IInclusionService{
+  private readonly nodeInterfaceContract: Contract
+  private readonly sequencerInboxContract: Contract
 
   constructor (chainSlug: string) {
     super(chainSlug)
-    this.nonRetryableProvider = getNonRetryableRpcProvider(chainSlug)!
 
     // Addresses from config
     const canonicalAddresses: ArbitrumSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
@@ -60,22 +42,6 @@ class ArbitrumBridge extends AbstractChainBridge<Message, MessageStatus, RelayOp
     this.sequencerInboxContract = new Contract(sequencerInboxAddress, sequencerInboxAbi, this.l1Wallet)
   }
 
-  async relayL1ToL2Message (l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
-    const relayOpts: RelayOpts = {
-      messageDirection: MessageDirection.L1_TO_L2,
-      messageIndex: opts?.messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
-  }
-
-  async relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse> {
-    const relayOpts: RelayOpts = {
-      messageDirection: MessageDirection.L2_TO_L1,
-      messageIndex: opts?.messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
-  }
-
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     // The l1BlockNumber is the L1 block with approximately the same timestamp as the L2 block. L2 txs
     // are usually checkpointed within a few minutes after the L2 transaction is made. We can use this information
@@ -90,7 +56,8 @@ class ArbitrumBridge extends AbstractChainBridge<Message, MessageStatus, RelayOp
     try {
       // Use the nonRetryableProvider to avoid rateLimitRetry, since this call fails if the tx is not yet checkpointed
       // If the batch does not yet exist, this will throw with 'requested block x is after latest on-chain block y published in batch z'
-      l1BatchNumber = await this.nodeInterfaceContract.connect(this.nonRetryableProvider).findBatchContainingBlock(l2TxReceipt.blockNumber)
+      const nonRetryableProvider = getNonRetryableRpcProvider(this.chainSlug)!
+      l1BatchNumber = await this.nodeInterfaceContract.connect(nonRetryableProvider).findBatchContainingBlock(l2TxReceipt.blockNumber)
     } catch (err) {
       if (err.message.includes('is after latest on-chain block')) {
         this.logger.debug(`l1BatchNumber not yet posted for l2TxHash ${l2TxHash}`)
@@ -153,74 +120,6 @@ class ArbitrumBridge extends AbstractChainBridge<Message, MessageStatus, RelayOp
       endBlockNumber
     )
   }
-
-  protected async sendRelayTransaction (message: Message, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
-    const { messageDirection } = relayOpts
-    if (messageDirection === MessageDirection.L1_TO_L2) {
-      return (message as IL1ToL2MessageWriter).redeem()
-    } else {
-      const overrides: any = {
-        gasLimit: CanonicalMessengerRootConfirmationGasLimit
-      }
-      return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
-    }
-  }
-
-  protected async getMessage (txHash: string, relayOpts: RelayOpts): Promise<Message> {
-    let { messageDirection, messageIndex } = relayOpts
-    messageIndex = messageIndex ?? 0
-
-    let messages: Message[]
-    if (messageDirection === MessageDirection.L1_TO_L2) {
-      const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
-      if (!txReceipt) {
-        throw new Error(`txReceipt not found for tx hash ${txHash}`)
-      }
-      const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
-      const l2Wallet = this.l2Wallet.connect(this.nonRetryableProvider)
-      messages = await arbitrumTxReceipt.getL1ToL2Messages(l2Wallet)
-    } else {
-      const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
-      if (!txReceipt) {
-        throw new Error(`txReceipt not found for tx hash ${txHash}`)
-      }
-      const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
-      const l2Wallet = this.l2Wallet.connect(this.nonRetryableProvider)
-      messages = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, l2Wallet.provider!)
-    }
-
-    if (!messages) {
-      throw new Error('could not find messages for tx hash')
-    }
-    return messages[messageIndex]
-  }
-
-  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
-    // We cannot use our provider here because the SDK will rateLimitRetry and exponentially backoff as it retries an on-chain call
-    const res = await (message as IL1ToL2MessageWriter).waitForStatus()
-    return res.status
-  }
-
-  protected isMessageInFlight (messageStatus: MessageStatus): boolean {
-    return (
-      messageStatus === L1ToL2MessageStatus.NOT_YET_CREATED ||
-      messageStatus === L2ToL1MessageStatus.UNCONFIRMED
-    )
-  }
-
-  protected isMessageCheckpointed (messageStatus: MessageStatus): boolean {
-    return (
-      messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2 ||
-      messageStatus === L2ToL1MessageStatus.CONFIRMED
-    )
-  }
-
-  protected isMessageRelayed (messageStatus: MessageStatus): boolean {
-    return (
-      messageStatus === L1ToL2MessageStatus.REDEEMED ||
-      messageStatus === L2ToL1MessageStatus.EXECUTED
-    )
-  }
 }
 
-export default ArbitrumBridge
+export default Inclusion

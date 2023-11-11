@@ -1,24 +1,24 @@
-import AbstractChainBridge from '../AbstractChainBridge'
-import { IChainBridge } from '../IChainBridge'
+import MessageService from '../../Services/MessageService'
+import { IMessageService } from '../../IChainBridge'
 import { providers } from 'ethers'
 
-type Message = string
+type MessageType = string
 type MessageStatus = string
 
-class ZkSyncBridge extends AbstractChainBridge<Message, MessageStatus> implements IChainBridge {
+export class Message extends MessageService<MessageType, MessageStatus> implements IMessageService {
   async relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
 
-  protected async sendRelayTransaction (message: Message): Promise<providers.TransactionResponse> {
+  protected async sendRelayTransaction (message: MessageType): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
 
-  protected async getMessage (txHash: string): Promise<Message> {
+  protected async getMessage (txHash: string): Promise<MessageType> {
     throw new Error('implement')
   }
 
-  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+  protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
     throw new Error('implement')
   }
 
@@ -35,4 +35,4 @@ class ZkSyncBridge extends AbstractChainBridge<Message, MessageStatus> implement
   }
 }
 
-export default ZkSyncBridge
+export default Message

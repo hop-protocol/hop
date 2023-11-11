@@ -1,4 +1,4 @@
-import Derive, { Frame } from '../Derive'
+import Derive, { Frame } from './Derive'
 import Logger from 'src/logger'
 import zlib from 'zlib'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'

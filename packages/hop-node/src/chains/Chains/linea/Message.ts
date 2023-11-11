@@ -1,17 +1,17 @@
-import AbstractChainBridge from '../AbstractChainBridge'
+import MessageService from '../../Services/MessageService'
+import { IMessageService } from '../../IChainBridge'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
-import { IChainBridge } from '../IChainBridge'
 import {
   LineaSDK,
   LineaSDKOptions,
-  Message,
+  Message as LineaMessage,
   OnChainMessageStatus
 } from '@consensys/linea-sdk'
 
 // TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
-  getMessagesByTransactionHash(transactionHash: string): Promise<Message[] | null>
+  getMessagesByTransactionHash(transactionHash: string): Promise<LineaMessage[] | null>
   getMessageStatus(messageHash: BytesLike, overrides?: CallOverrides): Promise<OnChainMessageStatus>
   contract: Contract
 }
@@ -22,7 +22,7 @@ type RelayOpts = {
   wallet: Signer
 }
 
-class LineaBridge extends AbstractChainBridge<Message, OnChainMessageStatus, RelayOpts> implements IChainBridge {
+export class Message extends MessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
   LineaSDK: LineaSDK
   // TODO: More native way of doing this
   lineaMainnetChainId: number = 59144
@@ -73,7 +73,7 @@ class LineaBridge extends AbstractChainBridge<Message, OnChainMessageStatus, Rel
     return this.validateMessageAndSendTransaction(txHash, relayOpts)
   }
 
-  protected async sendRelayTransaction (message: Message, opts: RelayOpts): Promise<providers.TransactionResponse> {
+  protected async sendRelayTransaction (message: LineaMessage, opts: RelayOpts): Promise<providers.TransactionResponse> {
     const { destBridge, wallet } = opts
     // Gas estimation does not work sometimes, so manual limit is needed
     // https://lineascan.build/tx/0x8e3c6d7bd3b7d39154c9463535a576db1a1e4d1e99d3a6526feb5bde26a926c0#internal
@@ -93,16 +93,16 @@ class LineaBridge extends AbstractChainBridge<Message, OnChainMessageStatus, Rel
     )
   }
 
-  protected async getMessage (txHash: string, opts: RelayOpts): Promise<Message> {
+  protected async getMessage (txHash: string, opts: RelayOpts): Promise<LineaMessage> {
     const { sourceBridge } = opts
-    const messages: Message[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
+    const messages: LineaMessage[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
     return messages[0]
   }
 
-  protected async getMessageStatus (message: Message, opts: RelayOpts): Promise<OnChainMessageStatus> {
+  protected async getMessageStatus (message: LineaMessage, opts: RelayOpts): Promise<OnChainMessageStatus> {
     const { destBridge } = opts
     return destBridge.getMessageStatus(message.messageHash)
   }
@@ -119,4 +119,5 @@ class LineaBridge extends AbstractChainBridge<Message, OnChainMessageStatus, Rel
     return messageStatus === OnChainMessageStatus.CLAIMED
   }
 }
-export default LineaBridge
+
+export default Message

@@ -1,14 +1,14 @@
-import AbstractChainBridge from '../AbstractChainBridge'
-import { IChainBridge } from '../IChainBridge'
+import MessageService from '../../Services/MessageService'
+import { IMessageService } from '../../IChainBridge'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
 
 // TODO: Implement
-type Message = string
+type MessageType = string
 type MessageStatus = string
 
-class PolygonZkBridge extends AbstractChainBridge<Message, MessageStatus> implements IChainBridge {
+export class Message extends MessageService<MessageType, MessageStatus> implements IMessageService {
   ready: boolean = false
   l1Provider: any
   l2Provider: any
@@ -68,15 +68,15 @@ class PolygonZkBridge extends AbstractChainBridge<Message, MessageStatus> implem
     throw new Error('implement')
   }
 
-  protected async sendRelayTransaction (message: Message): Promise<providers.TransactionResponse> {
+  protected async sendRelayTransaction (message: MessageType): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
 
-  protected async getMessage (txHash: string): Promise<Message> {
+  protected async getMessage (txHash: string): Promise<MessageType> {
     throw new Error('implement')
   }
 
-  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+  protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
     throw new Error('implement')
   }
 
@@ -92,4 +92,5 @@ class PolygonZkBridge extends AbstractChainBridge<Message, MessageStatus> implem
     throw new Error('implement')
   }
 }
-export default PolygonZkBridge
+
+export default Message

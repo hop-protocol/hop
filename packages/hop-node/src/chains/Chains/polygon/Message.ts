@@ -1,8 +1,10 @@
-import AbstractChainBridge from '../AbstractChainBridge'
+import MessageService from '../../Services/MessageService'
+import { MessageDirection, IMessageService } from '../../IChainBridge'
+import AbstractChainBridge from '../../AbstractChainBridge'
 import fetch from 'node-fetch'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
-import { IChainBridge } from '../IChainBridge'
+import { IChainBridge } from '../../IChainBridge'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import { providers, utils } from 'ethers'
@@ -15,7 +17,7 @@ type RelayOpts = {
   rootTunnelAddress: string
 }
 
-class PolygonBridge extends AbstractChainBridge<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IChainBridge {
+export class Message extends MessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   polygonMainnetChainId: number = 137
@@ -168,4 +170,4 @@ class PolygonBridge extends AbstractChainBridge<PolygonMessage, PolygonMessageSt
   }
 }
 
-export default PolygonBridge
+export default Message

@@ -1,10 +1,10 @@
-import AbstractChainBridge from '../AbstractChainBridge'
+import MessageService from '../../Services/MessageService'
+import { IMessageService } from '../../IChainBridge'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
-import { IChainBridge } from '../IChainBridge'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
 import { getCanonicalAddressesForChain } from 'src/config'
@@ -14,12 +14,12 @@ import { solidityKeccak256 } from 'ethers/lib/utils'
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
 const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
 
-type GnosisMessage = string
-type GnosisMessageStatus = string
+type MessageType = string
+type MessageStatus = string
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatus> implements IChainBridge {
+export class Message extends MessageService<MessageStatus, MessageStatus> implements IMessageService {
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB
 
@@ -101,7 +101,7 @@ class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatu
     return this._isMessageInFlight(message)
   }
 
-  protected async sendRelayTransaction (message: GnosisMessage): Promise<providers.TransactionResponse> {
+  protected async sendRelayTransaction (message: MessageStatus): Promise<providers.TransactionResponse> {
     const messageHash: string = this._getMessageHash(message)
     const requiredSigs = (await this.l2Amb.requiredSignatures()).toNumber()
     const sigs: any[] = []
@@ -122,7 +122,7 @@ class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatu
     return this.l1Amb.executeSignatures(message, packedSigs, overrides)
   }
 
-  protected async getMessage (txHash: string): Promise<GnosisMessage> {
+  protected async getMessage (txHash: string): Promise<MessageStatus> {
     const sigEvent = await this._getValidSigEvent(txHash)
     if (!sigEvent?.args) {
       throw new Error(`args for sigEvent not found for ${txHash}`)
@@ -137,28 +137,28 @@ class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatu
     return message
   }
 
-  protected async getMessageStatus (message: string): Promise<GnosisMessageStatus> {
+  protected async getMessageStatus (message: string): Promise<MessageType> {
     // Gnosis status is defined by the message, so we return that
     return message
   }
 
-  protected async isMessageCheckpointed (messageStatus: GnosisMessageStatus): Promise<boolean> {
+  protected async isMessageCheckpointed (messageStatus: MessageType): Promise<boolean> {
     const isInFlight = await this._isMessageInFlight(messageStatus)
     const isRelayed = await this._isMessageRelayed(messageStatus)
     return !isInFlight && !isRelayed
   }
 
-  protected async isMessageRelayed (messageStatus: GnosisMessageStatus): Promise<boolean> {
+  protected async isMessageRelayed (messageStatus: MessageType): Promise<boolean> {
     return this._isMessageRelayed(messageStatus)
   }
 
-  private async _isMessageInFlight (messageStatus: GnosisMessageStatus): Promise<boolean> {
+  private async _isMessageInFlight (messageStatus: MessageType): Promise<boolean> {
     const msgHash = this._getMessageHash(messageStatus)
     const messageId = this.l2Amb.numMessagesSigned(msgHash)
     return this.l2Amb.isAlreadyProcessed(messageId)
   }
 
-  private async _isMessageRelayed (messageStatus: GnosisMessageStatus): Promise<boolean> {
+  private async _isMessageRelayed (messageStatus: MessageType): Promise<boolean> {
     const messageId =
       '0x' +
       Buffer.from(this._strip0x(messageStatus), 'hex')
@@ -168,4 +168,4 @@ class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatu
   }
 }
 
-export default GnosisBridge
+export default Message

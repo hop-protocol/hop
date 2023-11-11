@@ -56,14 +56,17 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     networkId = networkId.toString()
   }
 
-  for (const key in networks) {
-    const v = networks[key]
-    if (v.networkId.toString() === networkId) {
-      return key as Slug
+  for (const _network in allNetworks) {
+    const chains = (allNetworks as any)[_network]
+    for (const chainSlug in chains) {
+      const chainObj = chains[chainSlug]
+      if (chainObj.networkId.toString() === networkId) {
+        return chainSlug as Slug
+      }
     }
   }
 
-  return { 1: 'ethereum', 5: 'goerli' }[networkId] || ''
+  return ''
 }
 
 export const networkIdToName = (networkId: string | number) => {

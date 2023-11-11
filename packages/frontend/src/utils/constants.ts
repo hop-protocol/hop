@@ -3,11 +3,6 @@ import * as networks from '@hop-protocol/sdk/networks'
 import { tokens } from '@hop-protocol/sdk/tokens'
 import Network from 'src/models/Network'
 
-export declare enum NetworkId {
-  MAINNET = 1,
-  GOERLI = 5
-}
-
 export const L1_NETWORK = ChainSlug.Ethereum
 
 export const careersUrl = 'https://hop.exchange/careers'

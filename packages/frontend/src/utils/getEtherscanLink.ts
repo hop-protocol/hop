@@ -1,9 +1,8 @@
-import { NetworkId } from 'src/utils/constants'
 import { getBaseExplorerUrl } from './getBaseExplorerUrl'
 import { networkIdToSlug } from './networks'
 
 export function getEtherscanLink(
-  networkId: string | NetworkId,
+  networkId: string | number,
   data: string,
   type: 'transaction' | 'token' | 'address' | 'block'
 ): string {

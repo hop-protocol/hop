@@ -148,7 +148,7 @@ class HopBridge extends Base {
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new HopBridge('goerli', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
+   *const bridge = new HopBridge('mainnet', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
    *```
    */
   constructor (
@@ -180,12 +180,8 @@ class HopBridge extends Base {
     this.priceFeed = new PriceFeedFromS3(this.priceFeedApiKeys)
     this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
     if (this.network === NetworkSlug.Goerli) {
-      this.doesUseAmm = !(
-        this.tokenSymbol === CanonicalToken.USDT ||
-        this.tokenSymbol === CanonicalToken.DAI ||
-        this.tokenSymbol === CanonicalToken.UNI ||
-        this.tokenSymbol === CanonicalToken.HOP
-      )
+      const nonAmmAssets = this.getNonAmmAssets()
+      this.doesUseAmm = !nonAmmAssets.has(this.tokenSymbol)
     }
   }
 
@@ -2748,17 +2744,13 @@ class HopBridge extends Base {
   get supportedLpChains (): string[] {
     const token = this.toTokenModel(this.tokenSymbol)
     const supported = new Set()
+    const nonAmmAssets = this.getNonAmmAssets()
     for (const chain of this.supportedChains) {
       if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
       }
       if (this.network === NetworkSlug.Goerli) {
-        if (
-          token.canonicalSymbol === TokenModel.USDT ||
-          token.canonicalSymbol === TokenModel.DAI ||
-          token.canonicalSymbol === TokenModel.UNI ||
-          token.canonicalSymbol === TokenModel.HOP
-        ) {
+        if (nonAmmAssets.has(token.canonicalSymbol)) {
           continue
         }
       }
@@ -2769,6 +2761,17 @@ class HopBridge extends Base {
 
   getSupportedLpChains (): string[] {
     return this.supportedLpChains
+  }
+
+  getNonAmmAssets (): Set<string> {
+    const list = new Set([CanonicalToken.HOP])
+    if (this.network === NetworkSlug.Goerli) {
+      list.add(CanonicalToken.USDT)
+      list.add(CanonicalToken.DAI)
+      list.add(CanonicalToken.UNI)
+    }
+
+    return list
   }
 
   async getAccountLpBalance (chain: TChain, account?: string): Promise<BigNumber> {

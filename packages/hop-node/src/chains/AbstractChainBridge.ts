@@ -16,9 +16,7 @@ abstract class AbstractChainBridge implements IChainBridge {
   private readonly finality: IFinalityService | undefined
 
   constructor (chainSlug: Chain, Message: MessageService, Inclusion?: InclusionService, Finality?: FinalityService) {
-    if (Message) {
-      this.message = new Message(chainSlug)
-    }
+    this.message = new Message(chainSlug)
     if (Inclusion) {
       this.inclusion = new Inclusion(chainSlug)
     }

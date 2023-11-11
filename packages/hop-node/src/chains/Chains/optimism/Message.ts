@@ -1,10 +1,9 @@
-import MessageService from '../../Services/MessageService'
+import MessageService, { IMessageService, MessageDirection } from '../../Services/MessageService'
 import {
   CrossChainMessage,
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
-import { IMessageService, MessageDirection } from '../../IChainBridge'
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 

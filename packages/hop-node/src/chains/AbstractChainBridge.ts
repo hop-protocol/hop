@@ -2,15 +2,12 @@ import { Chain } from 'src/constants'
 import {
   FinalityService,
   IChainBridge,
-  IFinalityService,
-  IInclusionService,
-  IMessageService,
-  InclusionService
-  ,
-  MessageService,
-  RelayL1ToL2MessageOpts,
-  RelayL2ToL1MessageOpts
+  InclusionService,
+  MessageService
 } from './IChainBridge'
+import { IFinalityService } from './Services/FinalityService'
+import { IInclusionService } from './Services/InclusionService'
+import { IMessageService } from './Services/MessageService'
 import { providers } from 'ethers'
 
 abstract class AbstractChainBridge implements IChainBridge {
@@ -30,18 +27,18 @@ abstract class AbstractChainBridge implements IChainBridge {
     }
   }
 
-  async relayL1ToL2Message (l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     if (!this.message?.relayL1ToL2Message) {
       throw new Error('relayL1ToL2Message not implemented')
     }
-    return this.message.relayL1ToL2Message(l1TxHash, opts)
+    return this.message.relayL1ToL2Message(l1TxHash, messageIndex)
   }
 
-  async relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     if (!this.message?.relayL2ToL1Message) {
       throw new Error('relayL2ToL1Message not implemented')
     }
-    return this.message.relayL2ToL1Message(l2TxHash, opts)
+    return this.message.relayL2ToL1Message(l2TxHash, messageIndex)
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {

@@ -5,7 +5,11 @@ import { Chain } from 'src/constants'
 import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
 
-abstract class AbstractService {
+export interface IAbstractService {
+  getLogger(): Logger
+}
+
+abstract class AbstractService implements IAbstractService {
   logger: Logger
   chainSlug: string
   chainId: number

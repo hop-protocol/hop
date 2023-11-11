@@ -1,4 +1,7 @@
-import MessageService from '../../Services/MessageService'
+import MessageService, {
+  IMessageService,
+  MessageDirection
+} from '../../Services/MessageService'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import {
@@ -9,7 +12,6 @@ import {
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
-import { IMessageService, MessageDirection, RelayL1ToL2MessageOpts, RelayL2ToL1MessageOpts } from '../../IChainBridge'
 import { providers } from 'ethers'
 
 type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter
@@ -20,18 +22,18 @@ type RelayOpts = {
 }
 
 export class Message extends MessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
-  async relayL1ToL2Message (l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const relayOpts: RelayOpts = {
       messageDirection: MessageDirection.L1_TO_L2,
-      messageIndex: opts?.messageIndex ?? 0
+      messageIndex: messageIndex ?? 0
     }
     return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
   }
 
-  async relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const relayOpts: RelayOpts = {
       messageDirection: MessageDirection.L2_TO_L1,
-      messageIndex: opts?.messageIndex ?? 0
+      messageIndex: messageIndex ?? 0
     }
     return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
   }

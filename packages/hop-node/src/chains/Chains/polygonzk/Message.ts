@@ -1,5 +1,4 @@
-import MessageService from '../../Services/MessageService'
-import { IMessageService } from '../../IChainBridge'
+import MessageService, { IMessageService } from '../../Services/MessageService'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'

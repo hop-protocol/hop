@@ -1,6 +1,16 @@
 import AbstractService from './AbstractService'
 import { providers } from 'ethers'
 
+export enum MessageDirection {
+  L1_TO_L2 = 0,
+  L2_TO_L1 = 1
+}
+
+export interface IMessageService {
+  relayL1ToL2Message?(l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
+  relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
+}
+
 abstract class MessageService<T, U, V = null> extends AbstractService {
   protected abstract getMessage (txHash: string, opts: V | null): Promise<T>
   protected abstract getMessageStatus (message: T, opts: V | null): Promise<U>

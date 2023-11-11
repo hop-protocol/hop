@@ -1,5 +1,4 @@
-import MessageService from '../../Services/MessageService'
-import { IMessageService } from '../../IChainBridge'
+import MessageService, { IMessageService } from '../../Services/MessageService'
 import { providers } from 'ethers'
 
 type MessageType = string

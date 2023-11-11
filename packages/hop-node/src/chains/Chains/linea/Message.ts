@@ -1,7 +1,6 @@
-import MessageService from '../../Services/MessageService'
+import MessageService, { IMessageService } from '../../Services/MessageService'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
-import { IMessageService } from '../../IChainBridge'
 import {
   Message as LineaMessage,
   LineaSDK,

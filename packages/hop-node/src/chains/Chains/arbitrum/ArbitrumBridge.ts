@@ -1,8 +1,8 @@
+import AbstractChainBridge from '../../AbstractChainBridge'
 import Inclusion from './Inclusion'
 import Message from './Message'
-import { IChainBridge } from '../../IChainBridge'
-import AbstractChainBridge from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
+import { IChainBridge } from '../../IChainBridge'
 
 class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
   constructor (chainSlug: Chain) {

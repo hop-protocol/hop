@@ -1,17 +1,17 @@
+import InclusionService from '../../Services/InclusionService'
 import fetch from 'node-fetch'
 import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
-import { getCanonicalAddressesForChain } from 'src/config'
 import { IInclusionService } from '../../IChainBridge'
-import InclusionService from '../../Services/InclusionService'
+import { getCanonicalAddressesForChain } from 'src/config'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
 }
 
-export class Inclusion extends InclusionService implements IInclusionService{
+export class Inclusion extends InclusionService implements IInclusionService {
   private readonly nodeInterfaceContract: Contract
   private readonly sequencerInboxContract: Contract
 

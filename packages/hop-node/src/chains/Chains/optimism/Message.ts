@@ -4,7 +4,7 @@ import {
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
-import { MessageDirection, IMessageService } from '../../IChainBridge'
+import { IMessageService, MessageDirection } from '../../IChainBridge'
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
 
@@ -13,7 +13,7 @@ type RelayOpts = {
 }
 
 export class Message extends MessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
-  private csm: CrossChainMessenger
+  private readonly csm: CrossChainMessenger
 
   constructor (chainSlug: string) {
     super(chainSlug)

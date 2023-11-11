@@ -1,14 +1,13 @@
 import { Chain } from 'src/constants'
 import {
   FinalityService,
-  InclusionService,
+  IChainBridge,
   IFinalityService,
   IInclusionService,
   IMessageService,
-  MessageService
-} from './IChainBridge'
-import {
-  IChainBridge,
+  InclusionService
+  ,
+  MessageService,
   RelayL1ToL2MessageOpts,
   RelayL2ToL1MessageOpts
 } from './IChainBridge'
@@ -31,35 +30,35 @@ abstract class AbstractChainBridge implements IChainBridge {
     }
   }
 
-  relayL1ToL2Message(l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
     if (!this.message?.relayL1ToL2Message) {
       throw new Error('relayL1ToL2Message not implemented')
     }
     return this.message.relayL1ToL2Message(l1TxHash, opts)
   }
 
-  relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse> {
     if (!this.message?.relayL2ToL1Message) {
       throw new Error('relayL2ToL1Message not implemented')
     }
     return this.message.relayL2ToL1Message(l2TxHash, opts)
   }
-  
-  getL1InclusionTx(l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+
+  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     if (!this.inclusion?.getL1InclusionTx) {
       throw new Error('getL1InclusionTx not implemented')
     }
     return this.inclusion.getL1InclusionTx(l2TxHash)
   }
 
-  getL2InclusionTx(l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+  async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     if (!this.inclusion?.getL2InclusionTx) {
       throw new Error('getL2InclusionTx not implemented')
     }
     return this.inclusion.getL2InclusionTx(l1TxHash)
   }
 
-  getCustomSafeBlockNumber(): Promise<number | undefined> {
+  async getCustomSafeBlockNumber (): Promise<number | undefined> {
     if (!this.finality?.getCustomSafeBlockNumber) {
       throw new Error('getCustomSafeBlockNumber not implemented')
     }

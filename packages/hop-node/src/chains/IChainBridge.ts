@@ -1,5 +1,5 @@
-import { providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { providers } from 'ethers'
 
 export enum MessageDirection {
   L1_TO_L2 = 0,
@@ -14,7 +14,6 @@ export type RelayL2ToL1MessageOpts = {
   messageIndex?: number
 }
 
-
 export interface IMessageService {
   relayL1ToL2Message?(l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse>
   relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse>
@@ -28,7 +27,6 @@ export interface IInclusionService {
 export interface IFinalityService {
   getCustomSafeBlockNumber?(): Promise<number | undefined>
 }
-
 
 export type MessageService = new (chainSlug: Chain) => IMessageService
 export type InclusionService = new (chainSlug: Chain) => IInclusionService

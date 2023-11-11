@@ -2,9 +2,8 @@ import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Signer, providers } from 'ethers'
+import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
-import { IAbstractService } from './IAbstractService'
 
 abstract class AbstractService {
   logger: Logger
@@ -38,7 +37,6 @@ abstract class AbstractService {
   getLogger (): Logger {
     return this.logger
   }
-
 }
 
 export default AbstractService

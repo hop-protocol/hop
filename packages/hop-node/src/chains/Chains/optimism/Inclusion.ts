@@ -1,11 +1,11 @@
 import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import InclusionService from '../../Services/InclusionService'
-import { IInclusionService as IInclusionServiceTmp } from '../../IChainBridge'
 import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
+import { IInclusionService as IInclusionServiceTmp } from '../../IChainBridge'
 import { providers } from 'ethers'
 
 export class Inclusion extends InclusionService implements IInclusionServiceTmp {
-  private inclusionService: IInclusionService | undefined
+  private readonly inclusionService: IInclusionService | undefined
 
   constructor (chainSlug: string) {
     super(chainSlug)

@@ -1,5 +1,5 @@
-import { providers } from 'ethers'
 import AbstractService from './AbstractService'
+import { providers } from 'ethers'
 
 abstract class MessageService<T, U, V = null> extends AbstractService {
   protected abstract getMessage (txHash: string, opts: V | null): Promise<T>

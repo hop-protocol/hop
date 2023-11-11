@@ -1,5 +1,5 @@
 import Logger from 'src/logger'
 
-export interface IAbstractChainBridge {
+export interface IAbstractService {
   getLogger(): Logger
 }

@@ -4,6 +4,7 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Signer, providers } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
+import { IAbstractService } from './IAbstractService'
 
 abstract class AbstractService {
   logger: Logger

@@ -1,78 +1,69 @@
-import Logger from 'src/logger'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { IAbstractChainBridge } from './IAbstractChainBridge'
-import { Signer, providers } from 'ethers'
-import { getEnabledNetworks } from 'src/config'
+import {
+  FinalityService,
+  InclusionService,
+  IFinalityService,
+  IInclusionService,
+  IMessageService,
+  MessageService
+} from './IChainBridge'
+import {
+  IChainBridge,
+  RelayL1ToL2MessageOpts,
+  RelayL2ToL1MessageOpts
+} from './IChainBridge'
+import { providers } from 'ethers'
 
-abstract class AbstractChainBridge<T, U, V = null> implements IAbstractChainBridge {
-  logger: Logger
-  chainSlug: string
-  chainId: number
-  l1Wallet: Signer
-  l2Wallet: Signer
-  protected abstract getMessage (txHash: string, opts: V | null): Promise<T>
-  protected abstract getMessageStatus (message: T, opts: V | null): Promise<U>
-  protected abstract sendRelayTransaction (message: T, opts: V | null): Promise<providers.TransactionResponse>
-  protected abstract isMessageInFlight (messageStatus: U): Promise<boolean> | boolean
-  protected abstract isMessageCheckpointed (messageStatus: U): Promise<boolean> | boolean
-  protected abstract isMessageRelayed (messageStatus: U): Promise<boolean> | boolean
+abstract class AbstractChainBridge implements IChainBridge {
+  private readonly message: IMessageService | undefined
+  private readonly inclusion: IInclusionService | undefined
+  private readonly finality: IFinalityService | undefined
 
-  constructor (chainSlug: string) {
-    const enabledNetworks = getEnabledNetworks()
-    if (!enabledNetworks.includes(chainSlug)) {
-      throw new Error(`Chain ${chainSlug} is not enabled`)
+  constructor (chainSlug: Chain, Message: MessageService, Inclusion?: InclusionService, Finality?: FinalityService) {
+    if (Message) {
+      this.message = new Message(chainSlug)
     }
-
-    // Set up config
-    this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)
-    const prefix = `${this.chainSlug}`
-    const tag = this.constructor.name
-    this.logger = new Logger({
-      tag,
-      prefix,
-      color: 'blue'
-    })
-
-    // Set up signers
-    this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(chainSlug)
+    if (Inclusion) {
+      this.inclusion = new Inclusion(chainSlug)
+    }
+    if (Finality) {
+      this.finality = new Finality(chainSlug, this.inclusion)
+    }
   }
 
-  getLogger (): Logger {
-    return this.logger
+  relayL1ToL2Message(l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
+    if (!this.message?.relayL1ToL2Message) {
+      throw new Error('relayL1ToL2Message not implemented')
+    }
+    return this.message.relayL1ToL2Message(l1TxHash, opts)
   }
 
-  // Call a private method so the validation is guaranteed to run in order
-  protected async validateMessageAndSendTransaction (txHash: string, relayOpts: V | null = null): Promise<providers.TransactionResponse> {
-    return this._validateMessageAndSendTransaction(txHash, relayOpts)
+  relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse> {
+    if (!this.message?.relayL2ToL1Message) {
+      throw new Error('relayL2ToL1Message not implemented')
+    }
+    return this.message.relayL2ToL1Message(l2TxHash, opts)
+  }
+  
+  getL1InclusionTx(l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.inclusion?.getL1InclusionTx) {
+      throw new Error('getL1InclusionTx not implemented')
+    }
+    return this.inclusion.getL1InclusionTx(l2TxHash)
   }
 
-  private async _validateMessageAndSendTransaction (txHash: string, relayOpts: V | null): Promise<providers.TransactionResponse> {
-    const message: T = await this.getMessage(txHash, relayOpts)
-    const messageStatus: U = await this.getMessageStatus(message, relayOpts)
-    await this.validateMessageStatus(messageStatus)
-    return this.sendRelayTransaction(message, relayOpts)
+  getL2InclusionTx(l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+    if (!this.inclusion?.getL2InclusionTx) {
+      throw new Error('getL2InclusionTx not implemented')
+    }
+    return this.inclusion.getL2InclusionTx(l1TxHash)
   }
 
-  private async validateMessageStatus (messageStatus: U): Promise<void> {
-    if (!messageStatus) {
-      throw new Error('expected message status')
+  getCustomSafeBlockNumber(): Promise<number | undefined> {
+    if (!this.finality?.getCustomSafeBlockNumber) {
+      throw new Error('getCustomSafeBlockNumber not implemented')
     }
-
-    if (await this.isMessageInFlight(messageStatus)) {
-      throw new Error('expected deposit to be claimable')
-    }
-
-    if (await this.isMessageRelayed(messageStatus)) {
-      throw new Error('expected deposit to be claimable')
-    }
-
-    if (!(await this.isMessageCheckpointed(messageStatus))) {
-      throw new Error('expected deposit to be relayable')
-    }
+    return this.finality.getCustomSafeBlockNumber()
   }
 }
 

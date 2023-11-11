@@ -1,4 +1,3 @@
-import { IAbstractChainBridge } from './IAbstractChainBridge'
 import { providers } from 'ethers'
 import { Chain } from 'src/constants'
 
@@ -30,8 +29,9 @@ export interface IFinalityService {
   getCustomSafeBlockNumber?(): Promise<number | undefined>
 }
 
-export interface IChainBridge extends IMessageService, IInclusionService, IFinalityService {}
 
 export type MessageService = new (chainSlug: Chain) => IMessageService
 export type InclusionService = new (chainSlug: Chain) => IInclusionService
 export type FinalityService = new (chainSlug: Chain, inclusionService?: IInclusionService) => IFinalityService
+
+export interface IChainBridge extends IMessageService, IInclusionService, IFinalityService {}

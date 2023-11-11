@@ -1,25 +1,45 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { IChainBridge } from '../IChainBridge'
-import { LineaSDK } from '@consensys/linea-sdk'
-import { Signer, constants, providers } from 'ethers'
+import {
+  LineaSDK,
+  Message,
+  LineaSDKOptions,
+  OnChainMessageStatus
+} from '@consensys/linea-sdk'
+import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
 
-class LineaBridge extends AbstractChainBridge implements IChainBridge {
-  l1Wallet: Signer
-  l2Wallet: Signer
+// TODO: Get these from the SDK when they become exported
+interface LineaMessageServiceContract {
+  getMessagesByTransactionHash(transactionHash: string): Promise<Message[] | null>
+  getMessageStatus(messageHash: BytesLike, overrides?: CallOverrides): Promise<OnChainMessageStatus>
+  contract: Contract
+}
+
+type RelayOpts = {
+  sourceBridge: LineaMessageServiceContract
+  destBridge: LineaMessageServiceContract,
+  wallet: Signer
+}
+
+class LineaBridge extends AbstractChainBridge<Message, OnChainMessageStatus, RelayOpts> implements IChainBridge {
   LineaSDK: LineaSDK
   // TODO: More native way of doing this
   lineaMainnetChainId: number = 59144
 
   constructor (chainSlug: string) {
     super(chainSlug)
-
+    
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
+    const sdkOptions: Partial<LineaSDKOptions> = {
+      mode: 'read-only',
+      network: this.chainId === this.lineaMainnetChainId ? 'linea-mainnet' : 'linea-goerli'
+    }
     this.LineaSDK = new LineaSDK({
       l1RpcUrl: getRpcUrlFromProvider(this.l1Wallet.provider!),
       l2RpcUrl: getRpcUrlFromProvider(this.l2Wallet.provider!),
-      network: this.chainId === this.lineaMainnetChainId ? 'linea-mainnet' : 'linea-goerli',
-      mode: 'read-only'
+      network: sdkOptions.network!,
+      mode: sdkOptions.mode!
     })
   }
 
@@ -43,33 +63,25 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
     const l2Contract = this.LineaSDK.getL2Contract()
 
     const sourceBridge = isSourceTxOnL1 ? l1Contract : l2Contract
-    const destinationBridge = isSourceTxOnL1 ? l2Contract : l1Contract
+    const destBridge = isSourceTxOnL1 ? l2Contract : l1Contract
 
-    const messages = await sourceBridge.getMessagesByTransactionHash(txHash)
-    if (!messages) {
-      throw new Error('could not find messages for tx hash')
+    const relayOpts: RelayOpts = {
+      sourceBridge,
+      destBridge,
+      wallet
     }
+    return this.validateMessageAndSendTransaction(txHash, relayOpts)
+  }
 
-    const message = messages[0]
-    const messageHash = message.messageHash
-
-    const isRelayable = await this._isCheckpointed(messageHash, destinationBridge)
-    if (!isRelayable) {
-      throw new Error('expected deposit to be claimable')
-    }
-
-    const txReceipt = await sourceBridge.getTransactionReceiptByMessageHash(messageHash)
-    if (!txReceipt) {
-      throw new Error('could not get receipt from message')
-    }
-
+  protected async sendRelayTransaction (message: Message, opts: RelayOpts): Promise<providers.TransactionResponse> {
+    const { destBridge, wallet } = opts
     // Gas estimation does not work sometimes, so manual limit is needed
     // https://lineascan.build/tx/0x8e3c6d7bd3b7d39154c9463535a576db1a1e4d1e99d3a6526feb5bde26a926c0#internal
     const gasLimit = 500000
     const txOverrides = { gasLimit }
     // When the fee recipient is the zero address, the fee is sent to the msg.sender
     const feeRecipient = constants.AddressZero
-    return await destinationBridge.contract.connect(wallet).claimMessage(
+    return await destBridge.contract.connect(wallet).claimMessage(
       message.messageSender,
       message.destination,
       message.fee,
@@ -81,13 +93,30 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
     )
   }
 
-  // TODO: Add types to this and the bridge
-  private async _isCheckpointed (messageHash: string, destinationBridge: any): Promise<boolean> {
-    const messageStatus = await destinationBridge.getMessageStatus(messageHash)
-    if (messageStatus === 'CLAIMABLE') {
-      return true
+  protected async getMessage (txHash: string, opts: RelayOpts): Promise<Message> {
+    const { sourceBridge } = opts
+    const messages: Message[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
+    if (!messages) {
+      throw new Error('could not find messages for tx hash')
     }
-    return false
+    return messages[0]
+  }
+
+  protected async getMessageStatus (message: Message, opts: RelayOpts): Promise<OnChainMessageStatus> {
+    const { destBridge } = opts
+    return destBridge.getMessageStatus(message.messageHash)
+  }
+
+  protected isMessageInFlight(messageStatus: OnChainMessageStatus): boolean {
+    return messageStatus === OnChainMessageStatus.UNKNOWN
+  }
+
+  protected isMessageCheckpointed(messageStatus: OnChainMessageStatus): boolean {
+    return messageStatus === OnChainMessageStatus.CLAIMABLE
+  }
+
+  protected isMessageRelayed(messageStatus: OnChainMessageStatus): boolean {
+    return messageStatus === OnChainMessageStatus.CLAIMED
   }
 }
 export default LineaBridge

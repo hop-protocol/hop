@@ -5,15 +5,29 @@ import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { IChainBridge, RelayL1ToL2MessageOpts } from '../IChainBridge'
-import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
+import { IChainBridge, MessageDirection, RelayL1ToL2MessageOpts, RelayL2ToL1MessageOpts } from '../IChainBridge'
+import {
+  IL1ToL2MessageWriter,
+  IL2ToL1MessageWriter,
+  L1ToL2MessageStatus,
+  L1TransactionReceipt,
+  L2ToL1MessageStatus,
+  L2TransactionReceipt
+} from '@arbitrum/sdk'
 import { getCanonicalAddressesForChain } from 'src/config'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
 }
 
-class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
+type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
+type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
+type RelayOpts = {
+  messageDirection: MessageDirection
+  messageIndex?: number
+}
+
+class ArbitrumBridge extends AbstractChainBridge<Message, MessageStatus, RelayOpts> implements IChainBridge {
   nonRetryableProvider: providers.Provider
   nodeInterfaceContract: Contract
   sequencerInboxContract: Contract
@@ -47,66 +61,19 @@ class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async relayL1ToL2Message (l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse> {
-    const messageIndex = opts?.messageIndex ?? 0
-    this.logger.debug(`attempting to relay L1 to L2 message for l1TxHash: ${l1TxHash} messageIndex: ${messageIndex}`)
-    const status = await this._getMessageStatus(l1TxHash, messageIndex)
-    if (status !== L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2) {
-      this.logger.error(`Transaction not redeemable. Status: ${L1ToL2MessageStatus[status]}, l1TxHash: ${l1TxHash}`)
-      throw new Error('Transaction unredeemable')
+    const relayOpts: RelayOpts = {
+      messageDirection: MessageDirection.L1_TO_L2,
+      messageIndex: opts?.messageIndex ?? 0
     }
-
-    this.logger.debug(`getL1ToL2Message for l1TxHash: ${l1TxHash} messageIndex: ${messageIndex}`)
-    const l1ToL2Message = await this._getL1ToL2Message(l1TxHash, messageIndex)
-    this.logger.debug(`attempting l1ToL2Message.redeem() for l1TxHash: ${l1TxHash} messageIndex: ${messageIndex}`)
-    return await l1ToL2Message.redeem()
+    return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
   }
 
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    const txReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const initiatingTxnReceipt = new L2TransactionReceipt(
-      txReceipt
-    )
-
-    if (!initiatingTxnReceipt) {
-      throw new Error(
-        `no arbitrum transaction found for tx hash ${l2TxHash}`
-      )
+  async relayL2ToL1Message (l2TxHash: string, opts?: RelayL2ToL1MessageOpts): Promise<providers.TransactionResponse> {
+    const relayOpts: RelayOpts = {
+      messageDirection: MessageDirection.L2_TO_L1,
+      messageIndex: opts?.messageIndex ?? 0
     }
-
-    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!)
-    if (outGoingMessagesFromTxn.length === 0) {
-      throw new Error(`tx hash ${l2TxHash} did not initiate an outgoing messages`)
-    }
-
-    const msg: any = outGoingMessagesFromTxn[0]
-    if (!msg) {
-      throw new Error(`msg not found for tx hash ${l2TxHash}`)
-    }
-
-    const overrides: any = {
-      gasLimit: CanonicalMessengerRootConfirmationGasLimit
-    }
-    return msg.execute(this.l2Wallet.provider, overrides)
-  }
-
-  private async _getL1ToL2Message (l1TxHash: string, messageIndex: number = 0, useNonRetryableProvider: boolean = false): Promise<IL1ToL2MessageWriter> {
-    const l1ToL2Messages = await this._getL1ToL2Messages(l1TxHash, useNonRetryableProvider)
-    return l1ToL2Messages[messageIndex]
-  }
-
-  private async _getL1ToL2Messages (l1TxHash: string, useNonRetryableProvider: boolean = false): Promise<IL1ToL2MessageWriter[]> {
-    const l2Wallet = useNonRetryableProvider ? this.l2Wallet.connect(this.nonRetryableProvider) : this.l2Wallet
-    const txReceipt = await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)
-    const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
-    return l1TxnReceipt.getL1ToL2Messages(l2Wallet)
-  }
-
-  private async _getMessageStatus (l1TxHash: string, messageIndex: number = 0): Promise<L1ToL2MessageStatus> {
-    // We cannot use our provider here because the SDK will rateLimitRetry and exponentially backoff as it retries an on-chain call
-    const useNonRetryableProvider = true
-    const l1ToL2Message = await this._getL1ToL2Message(l1TxHash, messageIndex, useNonRetryableProvider)
-    const res = await l1ToL2Message.waitForStatus()
-    return res.status
+    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
@@ -184,6 +151,74 @@ class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
       this.sequencerInboxContract.filters.SequencerBatchDelivered(),
       startBlockNumber,
       endBlockNumber
+    )
+  }
+
+  protected async sendRelayTransaction (message: Message, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
+    const { messageDirection } = relayOpts
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return (message as IL1ToL2MessageWriter).redeem()
+    } else {
+      const overrides: any = {
+        gasLimit: CanonicalMessengerRootConfirmationGasLimit
+      }
+      return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
+    }
+  }
+
+  protected async getMessage (txHash: string, relayOpts: RelayOpts): Promise<Message> {
+    let { messageDirection, messageIndex } = relayOpts
+    messageIndex = messageIndex ?? 0
+
+    let messages: Message[]
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
+      if (!txReceipt) {
+        throw new Error(`txReceipt not found for tx hash ${txHash}`)
+      }
+      const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
+      const l2Wallet = this.l2Wallet.connect(this.nonRetryableProvider)
+      messages = await arbitrumTxReceipt.getL1ToL2Messages(l2Wallet)
+    } else {
+      const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
+      if (!txReceipt) {
+        throw new Error(`txReceipt not found for tx hash ${txHash}`)
+      }
+      const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
+      const l2Wallet = this.l2Wallet.connect(this.nonRetryableProvider)
+      messages = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, l2Wallet.provider!)
+    }
+
+    if (!messages) {
+      throw new Error('could not find messages for tx hash')
+    }
+    return messages[messageIndex]
+  }
+
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+    // We cannot use our provider here because the SDK will rateLimitRetry and exponentially backoff as it retries an on-chain call
+    const res = await (message as IL1ToL2MessageWriter).waitForStatus()
+    return res.status
+  }
+
+  protected isMessageInFlight(messageStatus: MessageStatus): boolean {
+    return (
+      messageStatus == L1ToL2MessageStatus.NOT_YET_CREATED ||
+      messageStatus == L2ToL1MessageStatus.UNCONFIRMED
+    )
+  }
+
+  protected isMessageCheckpointed(messageStatus: MessageStatus): boolean {
+    return (
+      messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2 ||
+      messageStatus === L2ToL1MessageStatus.CONFIRMED
+    )
+  }
+
+  protected isMessageRelayed(messageStatus: MessageStatus): boolean {
+    return (
+      messageStatus === L1ToL2MessageStatus.REDEEMED ||
+      messageStatus === L2ToL1MessageStatus.EXECUTED
     )
   }
 }

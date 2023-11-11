@@ -2,8 +2,12 @@ import AbstractChainBridge from '../AbstractChainBridge'
 import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import Derive from './Derive'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
-import { IChainBridge } from '../IChainBridge'
+import {
+  CrossChainMessage,
+  CrossChainMessenger,
+  MessageStatus
+} from '@eth-optimism/sdk'
+import { IChainBridge, MessageDirection } from '../IChainBridge'
 import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
 import { config as globalConfig } from 'src/config'
 import { providers } from 'ethers'
@@ -13,7 +17,11 @@ type CachedCustomSafeBlockNumber = {
   l2BlockNumberCustomSafe: number
 }
 
-class OptimismBridge extends AbstractChainBridge implements IChainBridge {
+type RelayOpts = {
+  messageDirection: MessageDirection
+}
+
+class OptimismBridge extends AbstractChainBridge<CrossChainMessage, MessageStatus, RelayOpts> implements IChainBridge {
   csm: CrossChainMessenger
   derive: Derive = new Derive()
   inclusionService: IInclusionService | undefined
@@ -46,61 +54,17 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    try {
-      // Need an arbitrary value that will always succeed
-      const gasLimit = 1000000
-      const message = await this.csm.toCrossChainMessage(l1TxHash)
-      // Signer is needed to execute tx with SDK
-      const txOpts: any = {
-        signer: this.l2Wallet,
-        overrides: {
-          gasLimit
-        }
-      }
-      return this.csm.resendMessage(message, txOpts)
-    } catch (err) {
-      throw new Error(`relayL1ToL2Message error: ${err.message}`)
+    const relayOpts: RelayOpts = {
+      messageDirection: MessageDirection.L1_TO_L2
     }
+    return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
   }
 
-  // This function will only handle one stage at a time. Upon completion of a stage, the poller will re-call
-  // this when the next stage is ready.
-  // It is expected that the poller re-calls this message every hour during the challenge period, if the
-  // transfer was challenged. The complexity of adding DB state to track successful/failed root prove txs
-  // and challenges is not worth saving the additional RPC calls (2) per hour during the challenge period.
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    const messageStatus: MessageStatus = await this.csm.getMessageStatus(l2TxHash)
-    if (
-      messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE ||
-      messageStatus === MessageStatus.FAILED_L1_TO_L2_MESSAGE ||
-      messageStatus === MessageStatus.RELAYED
-    ) {
-      throw new Error(`unexpected message status: ${messageStatus}, l2TxHash: ${l2TxHash}`)
+    const relayOpts: RelayOpts = {
+      messageDirection: MessageDirection.L2_TO_L1
     }
-
-    if (messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED) {
-      throw new Error('state root not published')
-    }
-
-    if (messageStatus === MessageStatus.READY_TO_PROVE) {
-      this.logger.info('sending proveMessage tx')
-      const resolved = await this.csm.toCrossChainMessage(l2TxHash)
-      return this.csm.proveMessage(resolved)
-    }
-
-    if (messageStatus === MessageStatus.IN_CHALLENGE_PERIOD) {
-      throw new Error('message in challenge period')
-    }
-
-    if (messageStatus === MessageStatus.READY_FOR_RELAY) {
-      this.logger.info('sending finalizeMessage tx')
-      const overrides: any = {
-        gasLimit: CanonicalMessengerRootConfirmationGasLimit
-      }
-      return this.csm.finalizeMessage(l2TxHash, { overrides })
-    }
-
-    throw new Error(`state not handled for tx ${l2TxHash}`)
+    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
@@ -175,6 +139,53 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l2BlockNumberCustomSafe
     }
   }
+
+  protected async sendRelayTransaction (message: CrossChainMessage, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
+    const { messageDirection } = relayOpts
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return this.csm.proveMessage(message)
+    } else {
+      // Need an arbitrary value that will always succeed
+      // Signer is needed to execute tx with SDK
+      const gasLimit = 1000000
+      const txOpts: any = {
+        signer: this.l2Wallet,
+        overrides: {
+          gasLimit
+        }
+      }
+      return this.csm.resendMessage(message, txOpts)
+    }
+  }
+
+  protected async getMessage (txHash: string): Promise<CrossChainMessage> {
+    const messages: CrossChainMessage[] = await this.csm.getMessagesByTransaction(txHash)
+    if (!messages) {
+      throw new Error('could not find messages for tx hash')
+    }
+    return messages[0]
+  }
+
+  protected async getMessageStatus (message: CrossChainMessage): Promise<MessageStatus> {
+    return this.csm.getMessageStatus(message.transactionHash)
+  }
+
+  protected isMessageInFlight(messageStatus: MessageStatus): boolean {
+    return (
+      messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE,
+      messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED
+    )
+  }
+
+  protected isMessageCheckpointed(messageStatus: MessageStatus): boolean {
+    return messageStatus === MessageStatus.READY_FOR_RELAY
+  }
+
+  protected isMessageRelayed(messageStatus: MessageStatus): boolean {
+    return messageStatus === MessageStatus.RELAYED
+  }
 }
+
+
 
 export default OptimismBridge

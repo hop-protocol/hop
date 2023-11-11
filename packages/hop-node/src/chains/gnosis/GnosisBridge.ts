@@ -9,7 +9,6 @@ import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
 import { getCanonicalAddressesForChain } from 'src/config'
 import { solidityKeccak256 } from 'ethers/lib/utils'
-import { BigNumber } from 'ethers'
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
@@ -98,7 +97,7 @@ class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatu
     return `0x${msgLength}${v}${r}${s}`
   }
 
-  protected async isMessageInFlight(message: string): Promise<boolean> {
+  protected async isMessageInFlight (message: string): Promise<boolean> {
     return this._isMessageInFlight(message)
   }
 
@@ -143,13 +142,13 @@ class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatu
     return message
   }
 
-  protected async isMessageCheckpointed(messageStatus: GnosisMessageStatus): Promise<boolean> {
+  protected async isMessageCheckpointed (messageStatus: GnosisMessageStatus): Promise<boolean> {
     const isInFlight = await this._isMessageInFlight(messageStatus)
     const isRelayed = await this._isMessageRelayed(messageStatus)
     return !isInFlight && !isRelayed
   }
 
-  protected async isMessageRelayed(messageStatus: GnosisMessageStatus): Promise<boolean> {
+  protected async isMessageRelayed (messageStatus: GnosisMessageStatus): Promise<boolean> {
     return this._isMessageRelayed(messageStatus)
   }
 
@@ -158,7 +157,7 @@ class GnosisBridge extends AbstractChainBridge<GnosisMessage, GnosisMessageStatu
     const messageId = this.l2Amb.numMessagesSigned(msgHash)
     return this.l2Amb.isAlreadyProcessed(messageId)
   }
-  
+
   private async _isMessageRelayed (messageStatus: GnosisMessageStatus): Promise<boolean> {
     const messageId =
       '0x' +

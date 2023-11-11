@@ -1,5 +1,4 @@
 import AbstractChainBridge from '../AbstractChainBridge'
-import wait from 'src/utils/wait'
 import { IChainBridge } from '../IChainBridge'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
@@ -61,7 +60,6 @@ class PolygonZkBridge extends AbstractChainBridge<Message, MessageStatus> implem
     this.ready = true
   }
 
-
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
@@ -82,15 +80,15 @@ class PolygonZkBridge extends AbstractChainBridge<Message, MessageStatus> implem
     throw new Error('implement')
   }
 
-  protected async isMessageInFlight(messageStatus: MessageStatus): Promise<boolean> {
+  protected async isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
     throw new Error('implement')
   }
 
-  protected async isMessageCheckpointed(messageStatus: MessageStatus): Promise<boolean> {
+  protected async isMessageCheckpointed (messageStatus: MessageStatus): Promise<boolean> {
     throw new Error('implement')
   }
 
-  protected async isMessageRelayed(messageStatus: MessageStatus): Promise<boolean> {
+  protected async isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
     throw new Error('implement')
   }
 }

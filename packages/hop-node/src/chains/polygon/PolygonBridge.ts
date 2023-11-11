@@ -44,7 +44,6 @@ class PolygonBridge extends AbstractChainBridge<PolygonMessage, PolygonMessageSt
       rootTunnelAddress
     }
     return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
-
   }
 
   private async _initClient (rootTunnelAddress: string): Promise<void> {
@@ -146,17 +145,18 @@ class PolygonBridge extends AbstractChainBridge<PolygonMessage, PolygonMessageSt
     return message
   }
 
-  protected async isMessageInFlight(messageStatus: PolygonMessageStatus): Promise<boolean> {
+  protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
     const apiResMessage = await this._fetchBlockIncluded(messageStatus)
     return apiResMessage === 'No block found'
   }
 
-  protected async isMessageCheckpointed(messageStatus: PolygonMessageStatus): Promise<boolean> {
+  protected async isMessageCheckpointed (messageStatus: PolygonMessageStatus): Promise<boolean> {
     const apiResMessage = await this._fetchBlockIncluded(messageStatus)
     return apiResMessage === 'success'
   }
 
-  protected async isMessageRelayed(messageStatus: PolygonMessageStatus): Promise<boolean> {
+  protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {
+    // TODO: Figure out how to differentiate between checkpointed and relayed
     return false
   }
 

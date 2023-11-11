@@ -201,21 +201,21 @@ class ArbitrumBridge extends AbstractChainBridge<Message, MessageStatus, RelayOp
     return res.status
   }
 
-  protected isMessageInFlight(messageStatus: MessageStatus): boolean {
+  protected isMessageInFlight (messageStatus: MessageStatus): boolean {
     return (
-      messageStatus == L1ToL2MessageStatus.NOT_YET_CREATED ||
-      messageStatus == L2ToL1MessageStatus.UNCONFIRMED
+      messageStatus === L1ToL2MessageStatus.NOT_YET_CREATED ||
+      messageStatus === L2ToL1MessageStatus.UNCONFIRMED
     )
   }
 
-  protected isMessageCheckpointed(messageStatus: MessageStatus): boolean {
+  protected isMessageCheckpointed (messageStatus: MessageStatus): boolean {
     return (
       messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2 ||
       messageStatus === L2ToL1MessageStatus.CONFIRMED
     )
   }
 
-  protected isMessageRelayed(messageStatus: MessageStatus): boolean {
+  protected isMessageRelayed (messageStatus: MessageStatus): boolean {
     return (
       messageStatus === L1ToL2MessageStatus.REDEEMED ||
       messageStatus === L2ToL1MessageStatus.EXECUTED

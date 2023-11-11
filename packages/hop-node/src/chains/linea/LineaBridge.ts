@@ -1,13 +1,13 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
+import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
 import { IChainBridge } from '../IChainBridge'
 import {
   LineaSDK,
-  Message,
   LineaSDKOptions,
+  Message,
   OnChainMessageStatus
 } from '@consensys/linea-sdk'
-import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
 
 // TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
@@ -18,7 +18,7 @@ interface LineaMessageServiceContract {
 
 type RelayOpts = {
   sourceBridge: LineaMessageServiceContract
-  destBridge: LineaMessageServiceContract,
+  destBridge: LineaMessageServiceContract
   wallet: Signer
 }
 
@@ -29,7 +29,7 @@ class LineaBridge extends AbstractChainBridge<Message, OnChainMessageStatus, Rel
 
   constructor (chainSlug: string) {
     super(chainSlug)
-    
+
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     const sdkOptions: Partial<LineaSDKOptions> = {
       mode: 'read-only',
@@ -107,15 +107,15 @@ class LineaBridge extends AbstractChainBridge<Message, OnChainMessageStatus, Rel
     return destBridge.getMessageStatus(message.messageHash)
   }
 
-  protected isMessageInFlight(messageStatus: OnChainMessageStatus): boolean {
+  protected isMessageInFlight (messageStatus: OnChainMessageStatus): boolean {
     return messageStatus === OnChainMessageStatus.UNKNOWN
   }
 
-  protected isMessageCheckpointed(messageStatus: OnChainMessageStatus): boolean {
+  protected isMessageCheckpointed (messageStatus: OnChainMessageStatus): boolean {
     return messageStatus === OnChainMessageStatus.CLAIMABLE
   }
 
-  protected isMessageRelayed(messageStatus: OnChainMessageStatus): boolean {
+  protected isMessageRelayed (messageStatus: OnChainMessageStatus): boolean {
     return messageStatus === OnChainMessageStatus.CLAIMED
   }
 }

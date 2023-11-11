@@ -1,7 +1,6 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import Derive from './Derive'
-import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import {
   CrossChainMessage,
   CrossChainMessenger,
@@ -170,22 +169,20 @@ class OptimismBridge extends AbstractChainBridge<CrossChainMessage, MessageStatu
     return this.csm.getMessageStatus(message.transactionHash)
   }
 
-  protected isMessageInFlight(messageStatus: MessageStatus): boolean {
+  protected isMessageInFlight (messageStatus: MessageStatus): boolean {
     return (
       messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE,
       messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED
     )
   }
 
-  protected isMessageCheckpointed(messageStatus: MessageStatus): boolean {
+  protected isMessageCheckpointed (messageStatus: MessageStatus): boolean {
     return messageStatus === MessageStatus.READY_FOR_RELAY
   }
 
-  protected isMessageRelayed(messageStatus: MessageStatus): boolean {
+  protected isMessageRelayed (messageStatus: MessageStatus): boolean {
     return messageStatus === MessageStatus.RELAYED
   }
 }
-
-
 
 export default OptimismBridge

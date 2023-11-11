@@ -22,15 +22,15 @@ class ZkSyncBridge extends AbstractChainBridge<Message, MessageStatus> implement
     throw new Error('implement')
   }
 
-  protected async isMessageInFlight(messageStatus: MessageStatus): Promise<boolean> {
+  protected async isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
     throw new Error('implement')
   }
 
-  protected async isMessageCheckpointed(messageStatus: MessageStatus): Promise<boolean> {
+  protected async isMessageCheckpointed (messageStatus: MessageStatus): Promise<boolean> {
     throw new Error('implement')
   }
 
-  protected async isMessageRelayed(messageStatus: MessageStatus): Promise<boolean> {
+  protected async isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
     throw new Error('implement')
   }
 }

@@ -141,7 +141,7 @@ export class Message extends MessageService<MessageStatus, MessageStatus> implem
     return message
   }
 
-  protected async isMessageCheckpointed (messageStatus: MessageType): Promise<boolean> {
+  protected async isMessageRelayable (messageStatus: MessageType): Promise<boolean> {
     const isInFlight = await this._isMessageInFlight(messageStatus)
     const isRelayed = await this._isMessageRelayed(messageStatus)
     return !isInFlight && !isRelayed

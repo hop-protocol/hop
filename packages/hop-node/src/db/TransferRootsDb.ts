@@ -5,7 +5,6 @@ import { BigNumber } from 'ethers'
 import {
   Chain,
   ChallengePeriodMs,
-  FiveMinutesMs,
   OneWeekMs,
   OruExitTimeMs,
   RelayableChains,
@@ -37,6 +36,9 @@ interface BaseTransferRoot {
   confirmTxHash?: string
   destinationChainId?: number
   isNotFound?: boolean
+  isRelayable?: boolean
+  relayBackoffIndex?: number
+  relayTxError?: TxError
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
   rootSetTxHash?: string
@@ -668,22 +670,28 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-      // TODO: This is temp. Rm.
-      const lineaRelayTime = 5 * FiveMinutesMs
-      if (destinationChain === Chain.Linea) {
-        const timestampMs = item?.bondedAt ?? item?.confirmedAt
-        if (timestampMs) {
-          if ((timestampMs * 1000) + lineaRelayTime > Date.now()) {
-            return false
-          }
-        }
+      // It is fine if isRelayable is undefined. We just need to ensure it is not false.
+      if (item?.isRelayable === false) {
+        return false
       }
 
       const isSeenOnL1 = item?.bonded ?? item?.confirmed
 
       let sentTxTimestampOk = true
       if (item.sentRelayTxAt) {
-        sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+        if (
+          item.relayTxError === TxError.UnfinalizedTransferBondError ||
+          item.relayTxError === TxError.MessageUnknownStatus ||
+          item.relayTxError === TxError.MessageRelayTooEarly
+        ) {
+          const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
+          if (delayMs > OneWeekMs) {
+            return false
+          }
+          sentTxTimestampOk = item.sentRelayTxAt + delayMs < Date.now()
+        } else {
+          sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+        }
       }
 
       return (
@@ -842,6 +850,15 @@ class TransferRootsDb extends BaseDb {
 
     // we can use any tx hash since we'll be using it to decode list of transfer ids upstream
     return events?.[0]?.txHash
+  }
+
+  async getRelayBackoffIndexForTransferRootId (transferRootId: string) {
+    let { relayBackoffIndex } = await this.getByTransferRootId(transferRootId)
+    if (!relayBackoffIndex) {
+      relayBackoffIndex = 0
+    }
+
+    return relayBackoffIndex
   }
 }
 

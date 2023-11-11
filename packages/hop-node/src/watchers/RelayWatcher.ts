@@ -7,6 +7,12 @@ import isNativeToken from 'src/utils/isNativeToken'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import {
+  MessageInFlightError,
+  MessageInvalidError,
+  MessageRelayedError,
+  MessageUnknownError
+} from 'src/chains/Services/MessageService'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
@@ -198,12 +204,35 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
+      logger.debug('sendTransferRelayTx err:', err.message)
+
       // For this watcher, we will always mark the transfer as incomplete if the process gets here
       await this.db.transfers.update(transferId, {
         transferFromL1Complete: false,
         transferFromL1CompleteTxHash: undefined
       })
 
+      let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
+      if (
+        err instanceof MessageUnknownError ||
+        err instanceof MessageInFlightError ||
+        err instanceof MessageRelayedError ||
+        err instanceof MessageInvalidError
+      ) {
+        const {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
+        await this.db.transfers.update(transferId, {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        })
+        return
+      }
+
+      // Handle general errors
       logger.error('relayTx error:', err.message)
       const isUnrelayableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnrelayableError) {
@@ -220,7 +249,6 @@ class RelayWatcher extends BaseWatcher {
         })
       }
       if (err instanceof RelayerFeeTooLowError) {
-        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RelayerFeeTooLow,
@@ -237,7 +265,6 @@ class RelayWatcher extends BaseWatcher {
       const isRpcError = isFetchRpcServerError(err.message)
       if (isRpcError) {
         logger.error('rpc server error. trying again.')
-        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RpcServerError,
@@ -309,7 +336,28 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
+      // TODO: Should be same err handler as checkTransferSentToL2
       logger.error('transferRootSet error:', err.message)
+      const relayBackoffIndex = await this.db.transferRoots.getRelayBackoffIndexForTransferRootId(transferRootId)
+      if (
+        err instanceof MessageUnknownError ||
+        err instanceof MessageInFlightError ||
+        err instanceof MessageRelayedError ||
+        err instanceof MessageInvalidError
+      ) {
+        const {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
+        await this.db.transferRoots.update(transferRootId, {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        })
+        return
+      }
+
       throw err
     }
   }
@@ -351,6 +399,53 @@ class RelayWatcher extends BaseWatcher {
 
     this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} relayL1ToL2MessageOpts ${messageIndex ?? 0} destinationChainId: ${destinationChainId}`)
     return chainWatcher.relayL1ToL2Message(txHash, messageIndex)
+  }
+
+  // TODO: Not any
+  private async handleMessageStatusError (
+    err: any,
+    relayBackoffIndex: number,
+    logger: Logger
+  ): Promise<any> {
+    if (err instanceof MessageUnknownError) {
+      logger.debug('message unknown. retrying')
+      relayBackoffIndex++
+      return {
+        relayTxError: TxError.MessageUnknownStatus,
+        relayBackoffIndex,
+        isRelayable: true
+      }
+    }
+
+    if (err instanceof MessageInFlightError) {
+      logger.debug('message in flight. retrying')
+      relayBackoffIndex++
+      return {
+        relayTxError: TxError.MessageUnknownStatus,
+        relayBackoffIndex,
+        isRelayable: true
+      }
+    }
+
+    if (err instanceof MessageRelayedError) {
+      logger.debug('message already relayed. marking unrelayable')
+      return {
+        relayTxError: TxError.MessageAlreadyRelayed,
+        relayBackoffIndex,
+        isRelayable: false
+      }
+    }
+
+    if (err instanceof MessageInvalidError) {
+      logger.debug('message state invalid. marking unrelayable')
+      return {
+        relayTxError: TxError.MessageInvalidState,
+        relayBackoffIndex,
+        isRelayable: false
+      }
+    }
+
+    throw new Error('RelayWatcher: handleMessageStatusError: unknown error type')
   }
 }
 

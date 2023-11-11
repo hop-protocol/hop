@@ -112,7 +112,7 @@ export class Message extends MessageService<LineaMessage, OnChainMessageStatus, 
     return messageStatus === OnChainMessageStatus.UNKNOWN
   }
 
-  protected isMessageCheckpointed (messageStatus: OnChainMessageStatus): boolean {
+  protected isMessageRelayable (messageStatus: OnChainMessageStatus): boolean {
     return messageStatus === OnChainMessageStatus.CLAIMABLE
   }
 

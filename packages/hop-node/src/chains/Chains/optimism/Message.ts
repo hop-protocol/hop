@@ -82,7 +82,7 @@ export class Message extends MessageService<CrossChainMessage, MessageStatus, Re
     )
   }
 
-  protected isMessageCheckpointed (messageStatus: MessageStatus): boolean {
+  protected isMessageRelayable (messageStatus: MessageStatus): boolean {
     return messageStatus === MessageStatus.READY_FOR_RELAY
   }
 

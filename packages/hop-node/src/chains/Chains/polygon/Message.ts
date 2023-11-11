@@ -149,7 +149,7 @@ export class Message extends MessageService<PolygonMessage, PolygonMessageStatus
     return apiResMessage === 'No block found'
   }
 
-  protected async isMessageCheckpointed (messageStatus: PolygonMessageStatus): Promise<boolean> {
+  protected async isMessageRelayable (messageStatus: PolygonMessageStatus): Promise<boolean> {
     const apiResMessage = await this._fetchBlockIncluded(messageStatus)
     return apiResMessage === 'success'
   }

@@ -92,7 +92,7 @@ export class Message extends MessageService<MessageType, MessageStatus, RelayOpt
     )
   }
 
-  protected isMessageCheckpointed (messageStatus: MessageStatus): boolean {
+  protected isMessageRelayable (messageStatus: MessageStatus): boolean {
     return (
       messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2 ||
       messageStatus === L2ToL1MessageStatus.CONFIRMED

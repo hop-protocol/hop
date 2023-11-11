@@ -83,7 +83,7 @@ export class Message extends MessageService<MessageType, MessageStatus> implemen
     throw new Error('implement')
   }
 
-  protected async isMessageCheckpointed (messageStatus: MessageStatus): Promise<boolean> {
+  protected async isMessageRelayable (messageStatus: MessageStatus): Promise<boolean> {
     throw new Error('implement')
   }
 

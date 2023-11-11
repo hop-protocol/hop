@@ -18,7 +18,7 @@ type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
 type RelayOpts = {
   messageDirection: MessageDirection
-  messageIndex?: number
+  messageIndex: number
 }
 
 export class Message extends MessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
@@ -51,8 +51,7 @@ export class Message extends MessageService<MessageType, MessageStatus, RelayOpt
   }
 
   protected async getMessage (txHash: string, relayOpts: RelayOpts): Promise<MessageType> {
-    let { messageDirection, messageIndex } = relayOpts
-    messageIndex = messageIndex ?? 0
+    const { messageDirection, messageIndex } = relayOpts
 
     let messages: MessageType[]
     const nonRetryableProvider = getNonRetryableRpcProvider(this.chainSlug)!

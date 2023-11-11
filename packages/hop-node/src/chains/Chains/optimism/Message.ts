@@ -9,6 +9,7 @@ import { providers } from 'ethers'
 
 type RelayOpts = {
   messageDirection: MessageDirection
+  messageIndex: number
 }
 
 export class Message extends MessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
@@ -26,16 +27,18 @@ export class Message extends MessageService<CrossChainMessage, MessageStatus, Re
     })
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const relayOpts: RelayOpts = {
-      messageDirection: MessageDirection.L1_TO_L2
+      messageDirection: MessageDirection.L1_TO_L2,
+      messageIndex: messageIndex ?? 0
     }
     return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
   }
 
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const relayOpts: RelayOpts = {
-      messageDirection: MessageDirection.L2_TO_L1
+      messageDirection: MessageDirection.L2_TO_L1,
+      messageIndex: messageIndex ?? 0
     }
     return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
   }
@@ -58,12 +61,14 @@ export class Message extends MessageService<CrossChainMessage, MessageStatus, Re
     }
   }
 
-  protected async getMessage (txHash: string): Promise<CrossChainMessage> {
+  protected async getMessage (txHash: string, relayOpts: RelayOpts): Promise<CrossChainMessage> {
+    const { messageIndex } = relayOpts
+
     const messages: CrossChainMessage[] = await this.csm.getMessagesByTransaction(txHash)
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
-    return messages[0]
+    return messages[messageIndex]
   }
 
   protected async getMessageStatus (message: CrossChainMessage): Promise<MessageStatus> {

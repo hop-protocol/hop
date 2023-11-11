@@ -19,6 +19,7 @@ type RelayOpts = {
   sourceBridge: LineaMessageServiceContract
   destBridge: LineaMessageServiceContract
   wallet: Signer
+  messageIndex: number
 }
 
 export class Message extends MessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
@@ -42,21 +43,21 @@ export class Message extends MessageService<LineaMessage, OnChainMessageStatus, 
     })
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const signer = this.l2Wallet
     const isSourceTxOnL1 = true
 
-    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer)
+    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer, messageIndex)
   }
 
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const signer = this.l1Wallet
     const isSourceTxOnL1 = false
 
-    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer)
+    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer, messageIndex)
   }
 
-  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
+  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer, messageIndex?: number): Promise<providers.TransactionResponse> {
     // TODO: Add types to this and the bridge. Maybe define these in parent methods and pass thru
     const l1Contract = this.LineaSDK.getL1Contract()
     const l2Contract = this.LineaSDK.getL2Contract()
@@ -67,7 +68,8 @@ export class Message extends MessageService<LineaMessage, OnChainMessageStatus, 
     const relayOpts: RelayOpts = {
       sourceBridge,
       destBridge,
-      wallet
+      wallet,
+      messageIndex: messageIndex ?? 0
     }
     return this.validateMessageAndSendTransaction(txHash, relayOpts)
   }
@@ -93,12 +95,12 @@ export class Message extends MessageService<LineaMessage, OnChainMessageStatus, 
   }
 
   protected async getMessage (txHash: string, opts: RelayOpts): Promise<LineaMessage> {
-    const { sourceBridge } = opts
+    const { sourceBridge, messageIndex } = opts
     const messages: LineaMessage[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
-    return messages[0]
+    return messages[messageIndex]
   }
 
   protected async getMessageStatus (message: LineaMessage, opts: RelayOpts): Promise<OnChainMessageStatus> {

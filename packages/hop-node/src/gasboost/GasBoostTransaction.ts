@@ -489,7 +489,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const cacheTimestampMs = gasFeeDataCacheTimestamp?.[this.chainSlug] ?? 0
     const isCacheExpired = now - cacheTimestampMs > cacheTimeMs
     if (!isCacheExpired) {
-      gasFeeDataCacheTimestamp[this.chainSlug] = now
       return gasFeeDataCache[this.chainSlug]!
     }
 

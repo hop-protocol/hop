@@ -88,7 +88,10 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+const cacheTimeMs = 10 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
+const gasFeeDataCache: Record<string, Partial<GasFeeData>> = {}
+let gasFeeDataCacheTimestamp: number = 0
 
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
@@ -482,6 +485,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
+    const now = Date.now()
+    const isCacheExpired = now - gasFeeDataCacheTimestamp > cacheTimeMs
+    if (!isCacheExpired) {
+      gasFeeDataCacheTimestamp = now
+      return gasFeeDataCache[this.chainSlug]!
+    }
+
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 
     if (use1559) {
@@ -498,18 +508,20 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
       maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
 
-      return {
+      gasFeeDataCache[this.chainSlug] = {
         gasPrice: undefined,
         maxFeePerGas,
         maxPriorityFeePerGas
       }
+      return gasFeeDataCache[this.chainSlug]!
     }
 
-    return {
+    gasFeeDataCache[this.chainSlug] = {
       gasPrice: await this.getBumpedGasPrice(multiplier),
       maxFeePerGas: undefined,
       maxPriorityFeePerGas: undefined
     }
+    return gasFeeDataCache[this.chainSlug]!
   }
 
   clampMaxGasFeeData (gasFeeData: Partial<GasFeeData>): Partial<GasFeeData> {
@@ -780,10 +792,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         }
 
         if (i === 1) {
-          const timeLimitMs = 60 * 1000
           let shouldCheck = true
           if (enoughFundsCheckCache[this.chainSlug]) {
-            shouldCheck = enoughFundsCheckCache[this.chainSlug] + timeLimitMs < Date.now()
+            shouldCheck = enoughFundsCheckCache[this.chainSlug] + cacheTimeMs < Date.now()
           }
           if (shouldCheck) {
             this.logger.debug(`tx index ${i}: checking for enough funds`)

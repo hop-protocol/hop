@@ -88,7 +88,7 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
-const cacheTimeMs = 10 * 60 * 1000
+const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
 const gasFeeDataCache: Record<string, Partial<GasFeeData>> = {}
 let gasFeeDataCacheTimestamp: number = 0

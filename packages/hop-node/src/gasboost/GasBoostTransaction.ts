@@ -809,6 +809,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           }
         }
 
+        this.logger.debug(`DEBUG: tx index ${i} tx: ${JSON.stringify(payload)}`)
         this.logger.debug(`tx index ${i}: sending transaction`)
 
         const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} `

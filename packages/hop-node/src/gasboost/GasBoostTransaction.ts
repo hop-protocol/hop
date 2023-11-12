@@ -485,12 +485,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
-    const now = Date.now()
-    const isCacheExpired = now - gasFeeDataCacheTimestamp > cacheTimeMs
-    if (!isCacheExpired) {
-      gasFeeDataCacheTimestamp = now
-      return gasFeeDataCache[this.chainSlug]!
-    }
+    // const now = Date.now()
+    // const isCacheExpired = now - gasFeeDataCacheTimestamp > cacheTimeMs
+    // if (!isCacheExpired) {
+    //   gasFeeDataCacheTimestamp = now
+    //   return gasFeeDataCache[this.chainSlug]!
+    // }
 
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 

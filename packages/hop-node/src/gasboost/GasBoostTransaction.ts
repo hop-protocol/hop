@@ -35,6 +35,10 @@ import {
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import { v4 as uuidv4 } from 'uuid'
 
+type TransactionRequestWithHash = providers.TransactionRequest & {
+  hash: string
+}
+
 enum State {
   Confirmed = 'confirmed',
   Boosted = 'boosted',
@@ -210,19 +214,25 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private setGasProperties (tx: providers.TransactionResponse) {
+  private setGasProperties (tx: TransactionRequestWithHash) {
     // things get complicated with boosting 1559 when initial tx is using gasPrice
     // so we explicitly set gasPrice here again
-    const shouldUseGasPrice = this.gasPrice && !tx.gasPrice && tx.maxFeePerGas && tx.maxPriorityFeePerGas && tx.maxFeePerGas.eq(tx.maxPriorityFeePerGas)
+    const shouldUseGasPrice = (
+      this.gasPrice &&
+      !tx.gasPrice &&
+      tx.maxFeePerGas &&
+      tx.maxPriorityFeePerGas &&
+      (tx.maxFeePerGas as BigNumber).eq(tx.maxPriorityFeePerGas)
+    )
     if (shouldUseGasPrice) {
       this.type = undefined
-      this.gasPrice = tx.maxFeePerGas
+      this.gasPrice = (tx.maxFeePerGas as BigNumber)
       this.maxFeePerGas = undefined
       this.maxPriorityFeePerGas = undefined
     } else {
-      this.gasPrice = tx.gasPrice!
-      this.maxFeePerGas = tx.maxFeePerGas!
-      this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
+      this.gasPrice = (tx.gasPrice! as BigNumber)
+      this.maxFeePerGas = (tx.maxFeePerGas! as BigNumber)
+      this.maxPriorityFeePerGas = (tx.maxPriorityFeePerGas! as BigNumber)
       if (tx.type != null) {
         this.type = tx.type
       }
@@ -362,15 +372,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
     // clamp gas values to max if they go over max for initial tx send
     gasFeeData = this.clampMaxGasFeeData(gasFeeData)
-    const tx = await this._sendTransaction(gasFeeData)
+    const tx: TransactionRequestWithHash = await this._sendTransaction(gasFeeData)
 
     // store populated and normalized values
-    this.from = tx.from
+    this.from = tx.from!
     this.to = tx.to!
-    this.data = tx.data
-    this.value = tx.value
-    this.gasLimit = tx.gasLimit
-    this.nonce = tx.nonce
+    this.data = (tx.data as string)
+    this.value = (tx.value as BigNumber)
+    this.gasLimit = (tx.gasLimit as BigNumber)
+    this.nonce = (tx.nonce as number)
     this.setGasProperties(tx)
 
     this.logger.debug(`beginning tracking for ${tx.hash}`)
@@ -605,8 +615,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     return await new Promise((resolve, reject) => {
       this
-        .on(State.Confirmed, (tx) => {
-          this.logger.debug('state confirmed')
+        .on(State.Confirmed, (tx: providers.TransactionReceipt) => {
+          this.logger.debug(`wait() confirmed, tx: ${this.hash} with status ${tx.status}`)
+          if (tx.status === 0) {
+            reject(new Error(`GAS_BOOST_TRANSACTION_CALL_EXCEPTION: ${JSON.stringify(tx)}`))
+          }
           resolve(tx)
         })
         .on(State.Error, (err) => {
@@ -765,7 +778,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.emit(State.Boosted, tx, this.boostIndex)
   }
 
-  private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<providers.TransactionResponse> {
+  private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<TransactionRequestWithHash> {
     const maxRetries = 10
     let i = 0
     while (true) {
@@ -815,7 +828,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} `
         // await here is intentional to catch error below
         console.time(_timeId)
-        const tx = await this.signer.sendTransaction(payload)
+        const tx = await this.sendUncheckedTransaction(payload)
         console.timeEnd(_timeId)
 
         this.logger.debug(`tx index ${i} completed`)
@@ -902,7 +915,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private track (tx: providers.TransactionResponse) {
+  private track (tx: TransactionRequestWithHash) {
     this.logger.debug('tracking')
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
@@ -918,7 +931,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
-    tx.wait().then((receipt: providers.TransactionReceipt) => {
+    this.signer.provider!.waitForTransaction(tx.hash).then((receipt: providers.TransactionReceipt) => {
       this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
       this.handleConfirmation(tx.hash, receipt)
     })
@@ -1062,6 +1075,20 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.maxPriorityFeePerGas = undefined
     this.clearInflightTxs()
     this.setOwnTxParams(this.originalTxParams)
+  }
+
+  // Other than the eth_sendRawTransaction method and return, this method is identical to ethers signer.sendTransaction
+  async sendUncheckedTransaction(transaction: any): Promise<TransactionRequestWithHash> {
+    const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
+    const signedTx: string = await this.signer.signTransaction(tx)
+    const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
+    const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [ signedTx ])
+
+    // Only populated response field is the hash
+    return {
+      ...tx,
+      hash: txHash
+    }
   }
 }
 

@@ -157,7 +157,7 @@ export class TransferStats {
         // this.trackReceivedAmountStatus(), // needs to be fixed
         this.trackRecentTransfers({ lookbackMinutes: 60, pollIntervalMs: 60 * 1000 }),
         this.trackRecentTransfers({ lookbackMinutes: 4 * 60, pollIntervalMs: 60 * 60 * 1000 }),
-        this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
+        this.trackRecentTransferBonds({ lookbackMinutes: 30, pollIntervalMs: 60 * 1000 }),
         this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
         this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
       ]
@@ -860,7 +860,7 @@ export class TransferStats {
       withdrews[fetchWithdrewsChains[i]] = enabledChainWithdrews[i]
     }
 
-    console.log('querying fetchTransferFromL1Completeds')
+    console.log('querying fetchTransferFromL1Completeds with startTime', startTime, 'endTime', endTime)
 
     const fetchFromL1CompletedsChains = Object.keys(fetchFromL1CompletedsMap).filter((chain: string) => chain !== 'ethereum')
     const enabledChainFromL1Completeds = await Promise.all(fetchFromL1CompletedsChains.map((chain: string) => {

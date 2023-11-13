@@ -910,7 +910,7 @@ export class TransferStats {
       const events = fromL1CompletedsMap[destChainSlug]
       if (events) {
         for (const event of events) {
-          const l1ToL2RelayTimeMaxSec = 45 * 60
+          const l1ToL2RelayTimeMaxSec = 120 * 60
           if (
             event.recipient === x.recipient &&
             event.amount === x.amount &&

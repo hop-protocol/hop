@@ -24,8 +24,8 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
       mode: 'read-only'
     })
 
-      this.lineaL1Contract = this.LineaSDK.getL1Contract()
-      this.lineaL2Contract = this.LineaSDK.getL2Contract()
+    this.lineaL1Contract = this.LineaSDK.getL1Contract()
+    this.lineaL2Contract = this.LineaSDK.getL2Contract()
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
@@ -39,7 +39,6 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean): Promise<providers.TransactionResponse> {
-
     const wallet: Signer = isSourceTxOnL1 ? this.l2Wallet : this.l1Wallet
     const sourceBridge = isSourceTxOnL1 ? this.lineaL1Contract : this.lineaL2Contract
     const destinationBridge = isSourceTxOnL1 ? this.lineaL2Contract : this.lineaL1Contract

@@ -12,8 +12,8 @@ const getRpcProviderFromUrl = (
   }
   const options = {
     url: rpcUrl,
-    timeout: 60 * 1000,
-    throttleLimit: 10
+    timeout: 60 * 1000
+    // throttleLimit: 10
   }
   const provider = new Provider(options)
   cache[cacheKey] = provider

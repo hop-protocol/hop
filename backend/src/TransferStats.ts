@@ -910,6 +910,7 @@ export class TransferStats {
       const events = fromL1CompletedsMap[destChainSlug]
       if (events) {
         for (const event of events) {
+          const l1ToL2RelayTimeMaxSec = 45 * 60
           if (
             event.recipient === x.recipient &&
             event.amount === x.amount &&
@@ -917,7 +918,8 @@ export class TransferStats {
             event.deadline.toString() === x.deadline.toString() &&
             event.relayer?.toString() === x.relayer?.toString() &&
             event.relayerFee?.toString() === x.relayerFee?.toString() &&
-            Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= 1800 && Number(event.timestamp.toString()) - Number(x.timestamp.toString()) > 0
+            Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= l1ToL2RelayTimeMaxSec &&
+            Number(event.timestamp.toString()) - Number(x.timestamp.toString()) > 0
           ) {
             x.bonded = true
 

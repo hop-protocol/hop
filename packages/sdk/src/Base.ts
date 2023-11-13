@@ -421,7 +421,7 @@ export class Base {
   public toTokenModel (token: TToken): TokenModel {
     if (typeof token === 'string') {
       const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
-      const { name, decimals } = metadata.tokens[this.network][canonicalSymbol]
+      const { name, decimals } = metadata.tokens[canonicalSymbol]
       return new TokenModel(0, '', decimals, token, name)
     }
 

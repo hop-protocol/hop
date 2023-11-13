@@ -1,4 +1,4 @@
-import * as hopMetadata from '@hop-protocol/core/metadata'
+import { metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
 import { reactAppNetwork, isMainnet } from 'src/config'
 import { capitalize } from 'src/utils/capitalize'
@@ -23,7 +23,7 @@ type Metadata = {
   }
 }
 
-const { tokens, chains } = hopMetadata[reactAppNetwork]
+const { tokens, chains } = coreMetadata[reactAppNetwork]
 
 const chainMetadata : any = {}
 

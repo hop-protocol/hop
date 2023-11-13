@@ -1,27 +1,7 @@
-import * as React from 'react'
+import React from 'react'
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import Typography from '@material-ui/core/Typography'
 import styled from 'styled-components/macro'
-import {
-  space,
-  color,
-  layout,
-  typography,
-  flexbox,
-  border,
-  background,
-  shadow,
-  position,
-  FlexboxProps,
-  SpaceProps,
-  ColorProps,
-  LayoutProps,
-  TypographyProps,
-  BorderProps,
-  BackgroundProps,
-  ShadowProps,
-  PositionProps,
-} from 'styled-system'
 import { Div } from '.'
 
 interface InputBaseProps {

@@ -9,8 +9,8 @@ import React, {
 } from 'react'
 import { ethers } from 'ethers'
 import Address from 'src/models/Address'
-import * as networks from '@hop-protocol/core/networks'
-import * as metadata from '@hop-protocol/core/metadata'
+import { networks } from '@hop-protocol/core/networks'
+import { chains as chainMetadata } from '@hop-protocol/core/metadata/chains'
 import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
 import { networkSlugToId } from 'src/utils'
 import { capitalize } from 'src/utils/capitalize'
@@ -46,7 +46,7 @@ function getOnboardChains(): any {
   for (const chainSlug in chains) {
     const chainObj = chains[chainSlug]
     const id = chainIdToHex(chainObj.networkId)
-    const token = metadata.chains?.[chainSlug]?.nativeTokenSymbol
+    const token = chainMetadata?.[chainSlug]?.nativeTokenSymbol
     const label = `${chainObj.name} ${capitalize(reactAppNetwork)}`
     let rpcUrl = chainObj.publicRpcUrl
 

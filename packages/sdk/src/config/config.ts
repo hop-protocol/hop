@@ -1,17 +1,16 @@
 import { Chains } from './types'
+import { addresses as chainAddresses } from '@hop-protocol/core/addresses'
+import { networks as chainNetworks } from '@hop-protocol/core/networks'
+import { config as coreConfig } from '@hop-protocol/core/config'
 import { metadata } from './metadata'
-import * as chainAddresses from '@hop-protocol/core/addresses'
-import * as chainNetworks from '@hop-protocol/core/networks'
-import * as coreConfig from '@hop-protocol/core/config'
 
 const bondableChainsSet = new Set([])
 const config : any = {}
-
 for (const network in chainNetworks) {
   const chains: Chains = {}
 
-  for (const chain in chainNetworks) {
-    const chainConfig = (chainNetworks as any)[chain] as any
+  for (const chain in (chainNetworks as any)[network]) {
+    const chainConfig = (chainNetworks as any)[network][chain] as any
     if (!chains[chain]) {
       chains[chain] = {}
     }
@@ -25,6 +24,9 @@ for (const network in chainNetworks) {
       bondableChainsSet.add(chain)
     }
   }
+  // console.log('here00', chainAddresses)
+  // console.log('here111', network)
+  // console.log('here222', (chainAddresses as any)[network])
 
   const addresses = (chainAddresses as any)[network].bridges
   const bonders = (chainAddresses as any)[network].bonders

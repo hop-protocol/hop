@@ -243,7 +243,7 @@ class HopBridge extends Base {
   ): Token {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    let { name, symbol, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
+    let { name, symbol, decimals, image } = metadata.tokens[token.canonicalSymbol]
 
     if (chain.equals(Chain.Gnosis) && token.symbol === CanonicalToken.DAI) {
       symbol = CanonicalToken.XDAI
@@ -286,7 +286,7 @@ class HopBridge extends Base {
       throw new Error('Hop tokens do not exist on layer 1')
     }
 
-    const { name, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
+    const { name, decimals, image } = metadata.tokens[token.canonicalSymbol]
     const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
     let formattedSymbol = token.canonicalSymbol as HToken

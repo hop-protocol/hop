@@ -1,12 +1,12 @@
 import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
-import chainMetadata from '@hop-protocol/core/metadata/chains'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
 import { ERC20__factory } from '@hop-protocol/core/contracts/factories/generated/ERC20__factory'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
 import { WETH9__factory } from '@hop-protocol/core/contracts/factories/static/WETH9__factory'
+import { chains as chainMetadata } from '@hop-protocol/core/metadata/chains'
 
 export type TokenConstructorOptions = {
   chain: TChain,

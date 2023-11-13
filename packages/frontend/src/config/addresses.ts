@@ -4,20 +4,19 @@ import { Slug } from '@hop-protocol/sdk'
 import { gitRevision } from './config'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
-const hopAppNetwork = reactAppNetwork
 let addresses: any
 let networks: any
-const isMainnet = hopAppNetwork === Slug.mainnet
-const isGoerli = hopAppNetwork === Slug.goerli
+const isMainnet = reactAppNetwork === Slug.mainnet
+const isGoerli = reactAppNetwork === Slug.goerli
 
 if (isMainnet) {
   addresses = mainnetAddresses
   networks = mainnetNetworks
-} else if (hopAppNetwork === Slug.goerli) {
+} else if (reactAppNetwork === Slug.goerli) {
   addresses = goerliAddresses
   networks = goerliNetworks
 } else {
-  throw new Error(`Invalid network: ${hopAppNetwork}`)
+  throw new Error(`Invalid network: ${reactAppNetwork}`)
 }
 
 let enabledTokens: string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
@@ -63,7 +62,7 @@ if (process.env.NODE_ENV !== 'test') {
 `)
   console.log('Welcome 🐰')
   console.debug('ui version:', gitRevision)
-  console.debug('config hop app network:', hopAppNetwork)
+  console.debug('config react app network:', reactAppNetwork)
   console.debug('config chains (networks):', networks)
   console.debug('config addresses:', addresses.tokens)
   console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
@@ -188,7 +187,6 @@ const hopStakingRewardsContracts = {
 export {
   addresses,
   reactAppNetwork,
-  hopAppNetwork,
   networks,
   isMainnet,
   isGoerli,

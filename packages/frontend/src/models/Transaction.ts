@@ -11,7 +11,7 @@ import {
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
 } from 'src/utils'
-import { hopAppNetwork } from 'src/config'
+import { reactAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 import { sigHashes } from 'src/hooks/useTransaction'
@@ -78,7 +78,7 @@ class Transaction extends EventEmitter {
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
-    this.networkName = (networkName || hopAppNetwork).trim().toLowerCase()
+    this.networkName = (networkName || reactAppNetwork).trim().toLowerCase()
 
     // TODO: not sure if changing pendingDestinationConfirmation will have big effects
     if (destNetworkName) {
@@ -135,7 +135,7 @@ class Transaction extends EventEmitter {
     }
 
     if (this.pendingDestinationConfirmation && this.destNetworkName) {
-      const sdk = new Hop(hopAppNetwork)
+      const sdk = new Hop(reactAppNetwork)
       this.checkIsTransferIdSpent(sdk)
     }
   }

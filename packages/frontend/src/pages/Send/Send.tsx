@@ -17,7 +17,7 @@ import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, t
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
-import { hopAppNetwork, isGoerli, showRewards } from 'src/config'
+import { isGoerli, showRewards } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'

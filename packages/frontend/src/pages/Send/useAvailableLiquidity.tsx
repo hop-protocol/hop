@@ -1,7 +1,6 @@
 import { ChainSlug, HopBridge } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useQuery } from 'react-query'
-import { isGoerli } from 'src/config'
 
 function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
   if (

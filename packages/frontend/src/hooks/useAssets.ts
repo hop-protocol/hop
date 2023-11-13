@@ -1,6 +1,5 @@
 import { CanonicalToken, HopBridge } from '@hop-protocol/sdk'
 import { useMemo } from 'react'
-import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import Network from 'src/models/Network'
 

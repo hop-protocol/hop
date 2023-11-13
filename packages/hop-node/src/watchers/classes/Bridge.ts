@@ -21,6 +21,7 @@ import { State } from 'src/db/SyncStateDb'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import {
+  CoingeckoApiKey,
   getBridgeWriteContractAddress,
   getNetworkCustomSyncType,
   getProxyAddressForChain,
@@ -57,7 +58,9 @@ type BlockValues = {
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 type BridgeContract = L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
 
-const priceFeed = new PriceFeed()
+const priceFeed = new PriceFeed({
+  coingecko: CoingeckoApiKey ?? undefined
+})
 
 export default class Bridge extends ContractBase {
   db: DbSet

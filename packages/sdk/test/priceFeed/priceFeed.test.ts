@@ -10,7 +10,7 @@ describe.skip('PriceFeed', () => {
   it('should return USDC price', async () => {
     const hop = new Hop('mainnet')
     hop.setPriceFeedApiKeys({
-      // coingecko: '123'
+      // coingecko: 'CG-123'
     })
     const bridge = hop.bridge('USDC')
     const price = await bridge.priceFeed.getPriceByTokenSymbol('USDC')

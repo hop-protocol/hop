@@ -3,6 +3,7 @@ import { BigNumber } from 'ethers'
 import { formatEther, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
+import { retryPromise } from 'src/utils/retryPromise'
 import { findNetworkBySlug } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
@@ -205,7 +206,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
           if (token.symbol === 'HOP') {
             continue
           }
-          promises.push(fetchStats(network, token).catch((err: any) => {
+          promises.push(retryPromise(fetchStats, network, token).catch((err: any) => {
             const id = `${network.slug}-${token.symbol}`
             return {
               id,
@@ -258,7 +259,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const virtualDebt = totalDebit.sub(debit)
     let pendingAmount = BigNumber.from(0)
     for (const obj of pendingAmounts) {
-      if (obj.destinationNetwork.eq(selectedNetwork) && obj.token.eq(token)) {
+      if (obj.destinationNetwork.eq(selectedNetwork) && obj.token.eq(token) && obj.pendingAmount) {
         pendingAmount = pendingAmount.add(obj.pendingAmount)
       }
     }
@@ -313,7 +314,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
             }
           }
           for (const bonder of bonders) {
-            promises.push(fetchBonderStats(network, token, bonder).catch((err: any) => {
+            promises.push(retryPromise(fetchBonderStats, network, token, bonder).catch((err: any) => {
               logger.error('error fetching bonder stats', token, network, bonder, err)
               const id = `${network.slug}-${token.symbol}-${bonder}`
               return {
@@ -395,7 +396,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
               continue
             }
             promises.push(
-              fetchPendingAmounts(sourceNetwork, destinationNetwork, token).catch((err: any) => {
+              retryPromise(fetchPendingAmounts, sourceNetwork, destinationNetwork, token).catch((err: any) => {
                 logger.error('error fetching pending amount stats', token, sourceNetwork, destinationNetwork)
                 const id = `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`
                 return {
@@ -489,7 +490,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const slug: string = addressData[0]
         const name: string = addressData[1]
         const address: string = addressData[2]
-        promises.push(fetchBalances(slug, name, address, addressData[3]).catch((err: any) => {
+        promises.push(retryPromise(fetchBalances, slug, name, address, addressData[3]).catch((err: any) => {
           logger.error('error fetching balance stats', slug, name, address, err)
           return {
             name,
@@ -569,7 +570,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
         for (const bonder of bonders) {
           try {
-            const result = await fetchDebitWindowStats(token, bonder)
+            const result = await retryPromise(fetchDebitWindowStats, token, bonder)
             logger.debug('got debit window stats result:', token, bonder)
             if (result) {
               results.push(result)

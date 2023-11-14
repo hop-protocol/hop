@@ -5,9 +5,9 @@ import MenuItem from '@material-ui/core/MenuItem'
 import Box from '@material-ui/core/Box'
 import { useApp } from 'src/contexts/AppContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
-import Alert from 'src/components/alert/Alert'
+import { Alert } from 'src/components/Alert'
 import { useFaucet } from 'src/pages/Faucet/FaucetContext'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import { findMatchingBridge } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({

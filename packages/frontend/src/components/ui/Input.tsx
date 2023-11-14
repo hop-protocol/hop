@@ -35,7 +35,7 @@ const StyledInput: React.FC<InputProps> = styled.input`
   ${composedStyleFns}
 `
 
-function Input(props: InputProps) {
+export function Input(props: InputProps) {
   const { boxShadow, label, ...rest } = props
   if (label) {
     return (
@@ -51,5 +51,3 @@ function Input(props: InputProps) {
   }
   return <StyledInput {...props} />
 }
-
-export default Input

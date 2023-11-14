@@ -2,7 +2,7 @@ import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import { Token } from '@hop-protocol/sdk'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import { useSendingTransaction } from './useSendingTransaction'
 

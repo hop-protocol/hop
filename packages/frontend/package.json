@@ -22,6 +22,7 @@
     "@mui/lab": "^5.0.0-alpha.140",
     "@mui/material": "^5.14.5",
     "@mui/styles": "^5.14.5",
+    "@types/react-google-recaptcha": "^2.1.8",
     "@web3-onboard/coinbase": "2.2.4",
     "@web3-onboard/core": "2.20.3",
     "@web3-onboard/gnosis": "2.1.10",

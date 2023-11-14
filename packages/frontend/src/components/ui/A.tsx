@@ -46,7 +46,7 @@ type AProps = SpaceProps &
   PositionProps &
   ABaseProps
 
-const A: React.FC<AProps> = styled.a`
+export const A: React.FC<AProps> = styled.a`
   ${({ bold }: any) => bold && 'font-weight: bold;'}
   cursor: pointer;
   text-decoration: none;
@@ -62,5 +62,3 @@ const A: React.FC<AProps> = styled.a`
   ${position};
   ${flexbox};
 `
-
-export default A

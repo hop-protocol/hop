@@ -1,6 +1,3 @@
-import InfoTooltip from './InfoTooltip'
-
-export { default as DetailRow } from './DetailRow'
-export { default as FeeDetails } from './FeeDetails'
-
-export default InfoTooltip
+export { InfoTooltip } from './InfoTooltip'
+export { DetailRow } from './DetailRow'
+export { FeeDetails } from './FeeDetails'

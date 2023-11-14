@@ -17,7 +17,7 @@ interface DivBaseProps {
 
 export type DivProps = ComposedStyleProps & DivBaseProps
 
-const Div: React.FC<DivProps> = styled.div<DivProps>`
+export const Div: React.FC<DivProps> = styled.div<DivProps>`
   box-sizing: border-box;
 
   ${({ bold }) => bold && 'font-weight: bold;'}
@@ -28,5 +28,3 @@ const Div: React.FC<DivProps> = styled.div<DivProps>`
 
   ${composedStyleFns}
 `
-
-export default Div

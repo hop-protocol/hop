@@ -10,6 +10,14 @@ import {
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from 'src/constants'
+import {
+  CoingeckoApiKey,
+  getBridgeWriteContractAddress,
+  getNetworkCustomSyncType,
+  getProxyAddressForChain,
+  config as globalConfig,
+  isProxyAddressForChain
+} from 'src/config'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -20,14 +28,6 @@ import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
-import {
-  CoingeckoApiKey,
-  getBridgeWriteContractAddress,
-  getNetworkCustomSyncType,
-  getProxyAddressForChain,
-  config as globalConfig,
-  isProxyAddressForChain
-} from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string

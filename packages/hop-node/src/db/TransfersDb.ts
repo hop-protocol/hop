@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, FiveMinutesMs, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, FiveMinutesMs, OneHourMs, OneDayMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -388,7 +388,7 @@ class TransfersDb extends BaseDb {
   // gets only transfers within range: now - 1 week ago
   async getTransfersFromWeek () {
     await this.tilReady()
-    const fromUnix = Math.floor((Date.now() - OneWeekMs) / 1000)
+    const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
     return await this.getTransfers({
       fromUnix
     })

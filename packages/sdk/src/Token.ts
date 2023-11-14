@@ -267,8 +267,9 @@ class Token extends Base {
     const nativeTokenSymbol = (chainMetadata as any)[this.chain.slug]?.nativeTokenSymbol
     let isNative = nativeTokenSymbol === this._symbol
 
-    if (!isNative && this.chain.equals(Chain.Gnosis)) {
-      isNative = [TokenModel.DAI, TokenModel.XDAI].includes(this._symbol) // check either DAI or XDAI on Gnosis Chain
+    // check for both XDAI and DAI on Gnosis Chain
+    if (!isNative && this.chain.equals(Chain.Gnosis) && TokenModel.DAI === this._symbol) {
+      isNative = true
     }
 
     return isNative

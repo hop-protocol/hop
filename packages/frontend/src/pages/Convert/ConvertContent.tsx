@@ -196,10 +196,10 @@ const ConvertContent: FC = () => {
   }
 
   useEffect(() => {
-    if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
-      return setManualWarning('')
-      // return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
-    }
+    // uncomment and set custom warning here
+    // if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
+    //   return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
+    // }
     setManualWarning('')
   }, [destNetwork?.slug, sourceNetwork?.slug])
 

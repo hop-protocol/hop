@@ -1,20 +1,19 @@
 import { ChainSlug, HopBridge } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useQuery } from 'react-query'
+import { getNativeTokenSymbol } from 'src/utils/getNativeTokenSymbol'
 
 function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
-  if (
-    (sourceChain === ChainSlug.Polygon && tokenSymbol === 'MATIC') ||
-    (sourceChain === ChainSlug.Gnosis && tokenSymbol === 'DAI') ||
-    (sourceChain === ChainSlug.Arbitrum && tokenSymbol === 'ETH') ||
-    (sourceChain === ChainSlug.Optimism && tokenSymbol === 'ETH') ||
-    (sourceChain === ChainSlug.Nova && tokenSymbol === 'ETH') ||
-    (sourceChain === ChainSlug.Linea && tokenSymbol === 'ETH') ||
-    (sourceChain === ChainSlug.Base && tokenSymbol === 'ETH') ||
-    (sourceChain === ChainSlug.Ethereum && tokenSymbol === 'ETH')
-  ) {
+  const nativeTokenSymbol = getNativeTokenSymbol(sourceChain)
+  if (tokenSymbol === nativeTokenSymbol) {
     return true
   }
+
+  // check for both XDAI and DAI on Gnosis chain
+  if (sourceChain === ChainSlug.Gnosis && tokenSymbol === 'DAI') {
+    return true
+  }
+
   return false
 }
 

@@ -2748,10 +2748,8 @@ class HopBridge extends Base {
       if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
       }
-      if (this.network === NetworkSlug.Goerli) {
-        if (nonAmmAssets.has(token.canonicalSymbol)) {
-          continue
-        }
+      if (nonAmmAssets.has(token.canonicalSymbol)) {
+        continue
       }
       supported.add(chain)
     }

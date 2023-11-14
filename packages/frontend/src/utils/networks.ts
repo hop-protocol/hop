@@ -6,6 +6,7 @@ import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
 import { networks as coreNetworks } from '@hop-protocol/core/networks'
 import Network from 'src/models/Network'
+import { getNativeTokenSymbol } from './getNativeTokenSymbol'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
   return find(networks, ['slug', slug])
@@ -77,12 +78,7 @@ export const networkIdToName = (networkId: string | number) => {
 
 export const networkIdNativeTokenSymbol = (networkId: string | number) => {
   const slug = networkIdToSlug(networkId)
-  if (slug === ChainSlug.Gnosis) {
-    return CanonicalToken.XDAI
-  } else if (slug === ChainSlug.Polygon) {
-    return CanonicalToken.MATIC
-  }
-  return CanonicalToken.ETH
+  return getNativeTokenSymbol(slug)
 }
 
 export function getNetworkWaitConfirmations(tChain: TChain): number {

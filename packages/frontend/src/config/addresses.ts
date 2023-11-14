@@ -33,7 +33,6 @@ if (enabledTokens) {
 
 const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
 
-// TODO: mv to src/config/networks
 let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
 if (enabledChains) {
   enabledChains = enabledChains.split(',').map(x => x.trim())
@@ -44,10 +43,6 @@ if (enabledChains) {
     }
   }
   networks = filteredNetworks
-}
-
-if (!enabledChains) {
-  enabledChains = ['ethereum', 'polygon', 'gnosis']
 }
 
 if (process.env.NODE_ENV !== 'test') {

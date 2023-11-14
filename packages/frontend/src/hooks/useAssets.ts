@@ -38,28 +38,13 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     if (!(selectedBridge && network)) {
       return null
     }
-    const assetsWithoutAmm = {
-      Polygon: [CanonicalToken.HOP],
-      Optimism: [CanonicalToken.HOP],
-      Arbitrum: [CanonicalToken.HOP],
-      Gnosis: [CanonicalToken.HOP],
-      Nova: [CanonicalToken.HOP],
-      Base: [CanonicalToken.HOP],
-      Linea: [CanonicalToken.HOP]
-    }
-    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
-    for (const chain in assetsWithoutAmm) {
-      const tokenSymbols = assetsWithoutAmm[chain]
-      for (const tokenSymbol of tokenSymbols) {
-        const isUnsupported =
-          selectedTokenSymbol === tokenSymbol &&
-          [network?.slug, toNetwork?.slug].includes(chain.toLowerCase())
-        if (isUnsupported) {
-          return {
-            chain,
-            tokenSymbol,
-          }
-        }
+    const nonAmmAssets = selectedBridge.getNonAmmAssets()
+    const tokenSymbol = selectedBridge?.getTokenSymbol()
+    const isUnsupported = nonAmmAssets.has(tokenSymbol)
+    if (isUnsupported) {
+      return {
+        chain: network?.slug,
+        tokenSymbol
       }
     }
 

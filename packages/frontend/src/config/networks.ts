@@ -7,10 +7,10 @@ import { metadata } from './metadata'
 
 export const allNetworks = Object.keys(networks).map(key => {
   const net = networks[key]
-  let meta = metadata.networks[key]
+  const meta = metadata.networks[key]
 
   if (key === ChainSlug.Ethereum) {
-    meta = metadata.networks[reactAppNetwork]
+    // meta = metadata.networks[reactAppNetwork]
   }
 
   return new Network({

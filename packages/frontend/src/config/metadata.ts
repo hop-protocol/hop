@@ -35,7 +35,7 @@ for (const chainSlug in chains) {
   }
   chainMetadata[chainSlug] = {
       name: chainObj.name,
-      isLayer1: chainObj.isLayer,
+      isLayer1: chainObj.isLayer1,
       image: chainObj.image,
       nativeTokenSymbol: chainObj.nativeTokenSymbol,
   }

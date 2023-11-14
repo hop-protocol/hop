@@ -67,6 +67,8 @@ function getOnboardChains(): any {
         rpcUrl
     })
   }
+
+  return onboardChains
 }
 
 const injected = injectedModule()

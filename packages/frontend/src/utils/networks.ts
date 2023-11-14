@@ -4,6 +4,7 @@ import { Signer, providers } from 'ethers'
 import { find } from 'lodash'
 import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
+import { networks as coreNetworks } from '@hop-protocol/core/networks'
 import Network from 'src/models/Network'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
@@ -56,8 +57,8 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     networkId = networkId.toString()
   }
 
-  for (const _network in allNetworks) {
-    const chains = (allNetworks as any)[_network]
+  for (const _network in coreNetworks) {
+    const chains = (coreNetworks as any)[_network]
     for (const chainSlug in chains) {
       const chainObj = chains[chainSlug]
       if (chainObj.networkId.toString() === networkId) {

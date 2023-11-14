@@ -1,4 +1,3 @@
-import { ethers } from 'ethers'
 import memoize from 'fast-memoize'
 import { networks } from 'src/config'
 import { getRpcUrls } from './getRpcUrl'

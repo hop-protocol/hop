@@ -22,6 +22,7 @@ import {
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
+import { GasCostEstimationRes } from './classes/Bridge'
 import {
   L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
@@ -1767,16 +1768,31 @@ class SyncWatcher extends BaseWatcher {
 
         logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, data, to, transactionType }) => {
-          const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
-            this.chainSlug,
-            this.tokenSymbol,
-            gasPrice,
-            gasLimit,
-            transactionType,
-            data,
-            to
-          )
+          let gasCostEstimation: GasCostEstimationRes
+          try {
+            const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+              this.chainSlug,
+              this.tokenSymbol,
+              gasPrice,
+              gasLimit,
+              transactionType,
+              data,
+              to
+            )
 
+            gasCostEstimation = {
+              gasCost,
+              gasCostInToken,
+              gasLimit,
+              tokenPriceUsd,
+              nativeTokenPriceUsd
+            }
+          } catch (err) {
+            logger.error(`pollGasCost error getting gasCostEstimation: ${err.message}`)
+            throw err
+          }
+
+          const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = gasCostEstimation
           logger.debug(`pollGasCost got estimate for txPayload. transactionType: ${transactionType}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
           const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
           logger.debug(`pollGasCost got estimate for minBonderFeeAbsolute. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)

@@ -1284,38 +1284,38 @@ const Index: NextPage = (props: any) => {
                       </TableCell>
                       <TableCell className="bonderFee number">
                         <Typography variant="body1" color="secondary" component="div">
-                          {x.sourceChainId !== chainSlugToId('ethereum') && (
+                          {(
                             <Tooltip title={<Box>Bonder Fee: {x.bonderFeeDisplay} {x.token}<br />Raw: {x.bonderFee}</Box>}>
                               <span>
                                 { x.bonderFeeDisplay }
                               </span>
                             </Tooltip>
                           )}
-                          {x.sourceChainId === chainSlugToId('ethereum') && (
+                          {/* (
                             <span className="na">
                               <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding and should arrive at the destination chain within an hour.">
                                 <abbr style={{ cursor: 'help' }}>N/A</abbr>
                               </Tooltip>
                             </span>
-                          )}
+                          ) */}
                         </Typography>
                       </TableCell>
                       <TableCell className="bonderFee number">
                         <Typography variant="body1" color="secondary" mr={2} component="div">
-                          {x.sourceChainId !== chainSlugToId('ethereum') && (
+                          {(
                             <Tooltip title={<Box>Bonder Fee USD: {x.bonderFeeUsdDisplay}<br />{x.token} Price: {x.tokenPriceUsdDisplay}</Box>}>
                               <span>
                                 { x.bonderFeeUsdDisplay }
                               </span>
                             </Tooltip>
                           )}
-                          {x.sourceChainId === chainSlugToId('ethereum') && (
+                          {/* (
                             <span className="na">
                               <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding">
                                 <abbr style={{ cursor: 'help' }}>N/A</abbr>
                               </Tooltip>
                             </span>
-                          )}
+                          ) */}
                         </Typography>
                       </TableCell>
                       <TableCell className="bonded">

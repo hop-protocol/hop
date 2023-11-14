@@ -162,7 +162,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     // TMP: Remove
-    if (destinationChainId === 59144) {
+    if (
+      destinationChainId === 59144 &&
+      transferIds.length > 750
+    ) {
       return
     }
 

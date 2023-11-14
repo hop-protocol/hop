@@ -8,6 +8,8 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   l1Wallet: Signer
   l2Wallet: Signer
   LineaSDK: LineaSDK
+  private readonly lineaL1Contract
+  private readonly lineaL2Contract
   // TODO: More native way of doing this
   lineaMainnetChainId: number = 59144
 
@@ -21,29 +23,25 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
       network: this.chainId === this.lineaMainnetChainId ? 'linea-mainnet' : 'linea-goerli',
       mode: 'read-only'
     })
+
+    this.lineaL1Contract = this.LineaSDK.getL1Contract()
+    this.lineaL2Contract = this.LineaSDK.getL2Contract()
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    const signer = this.l2Wallet
     const isSourceTxOnL1 = true
-
-    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer)
+    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1)
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    const signer = this.l1Wallet
     const isSourceTxOnL1 = false
-
-    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer)
+    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1)
   }
 
-  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
-    // TODO: Add types to this and the bridge. Maybe define these in parent methods and pass thru
-    const l1Contract = this.LineaSDK.getL1Contract()
-    const l2Contract = this.LineaSDK.getL2Contract()
-
-    const sourceBridge = isSourceTxOnL1 ? l1Contract : l2Contract
-    const destinationBridge = isSourceTxOnL1 ? l2Contract : l1Contract
+  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean): Promise<providers.TransactionResponse> {
+    const wallet: Signer = isSourceTxOnL1 ? this.l2Wallet : this.l1Wallet
+    const sourceBridge = isSourceTxOnL1 ? this.lineaL1Contract : this.lineaL2Contract
+    const destinationBridge = isSourceTxOnL1 ? this.lineaL2Contract : this.lineaL1Contract
 
     const messages = await sourceBridge.getMessagesByTransactionHash(txHash)
     if (!messages) {
@@ -58,11 +56,10 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
       throw new Error('expected deposit to be claimable')
     }
 
-    const txReceipt = await sourceBridge.getTransactionReceiptByMessageHash(messageHash)
-    if (!txReceipt) {
-      throw new Error('could not get receipt from message')
-    }
-
+    // Gas estimation does not work sometimes, so manual limit is needed
+    // https://lineascan.build/tx/0x8e3c6d7bd3b7d39154c9463535a576db1a1e4d1e99d3a6526feb5bde26a926c0#internal
+    const gasLimit = 500000
+    const txOverrides = { gasLimit }
     // When the fee recipient is the zero address, the fee is sent to the msg.sender
     const feeRecipient = constants.AddressZero
     return await destinationBridge.contract.connect(wallet).claimMessage(
@@ -72,7 +69,8 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
       message.value,
       feeRecipient,
       message.calldata,
-      message.messageNonce
+      message.messageNonce,
+      txOverrides
     )
   }
 

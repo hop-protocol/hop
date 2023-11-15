@@ -1,8 +1,8 @@
+import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
 
 import { actionHandler, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 
@@ -22,7 +22,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let {
+  const {
     chain,
     token,
     startBlockNumber,

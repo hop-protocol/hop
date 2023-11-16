@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, FiveMinutesMs, OneHourMs, OneDayMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, FiveMinutesMs, OneDayMs, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 

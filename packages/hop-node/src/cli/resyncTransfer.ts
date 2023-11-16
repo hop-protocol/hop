@@ -3,6 +3,7 @@ import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
+import getTransferSent from 'src/theGraph/getTransferSent'
 
 import { actionHandler, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 
@@ -11,8 +12,6 @@ root
   .description('Resync transfer')
   .option('--chain <slug>', 'Source chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--start-block-number <number>', 'Starting block number', parseNumber)
-  .option('--end-block-number <number>', ' Ending block number', parseNumber)
   .option('--transfer-ids <id, ...>', 'Comma-separated transfer ids', parseStringArray)
   .option(
     '--dry [boolean]',
@@ -25,28 +24,11 @@ async function main (source: any) {
   const {
     chain,
     token,
-    startBlockNumber,
-    endBlockNumber,
     transferIds
   } = source
 
   if (!chain) {
     throw new Error('source chain is required in order to apply correct reorg redundant protection')
-  }
-  if (!token) {
-    throw new Error('token is required')
-  }
-  if (!startBlockNumber) {
-    throw new Error('start block number is required')
-  }
-  if (!endBlockNumber) {
-    throw new Error('end block number is required')
-  }
-  if (startBlockNumber > endBlockNumber) {
-    throw new Error('start block number must be less than or equal to end block number')
-  }
-  if (Math.abs(startBlockNumber - endBlockNumber) > 1000) {
-    throw new Error('start block number and end block number must be within 1000 blocks')
   }
   if (!transferIds?.length) {
     throw new Error('transfer ID is required')
@@ -59,17 +41,37 @@ async function main (source: any) {
 
   // TODO: Add L1 -> L2
   // TODO: Add roots (and others)
-  const bridge = (watcher.bridge as L2Bridge)
-  const events = await bridge.bridgeContract.queryFilter(
-    bridge.l2BridgeWriteContract.filters.TransferSent(),
-    startBlockNumber,
-    endBlockNumber
-  )
 
-  for (const event of events) {
-    if (transferIds.includes(event.args?.transferId)) {
-      await watcher.syncWatcher.handleTransferSentEvent(event)
-      await watcher.syncWatcher.populateTransferDbItem(event.args.transferId)
+  const blockNumbers: number[] = []
+  for (const transferId of transferIds) {
+    const transfer = await getTransferSent(chain, transferId)
+    if (!transfer) {
+      throw new Error(`Transfer ${transferId} not found`)
+    }
+    blockNumbers.push(transfer.blockNumber)
+  }
+
+  if (blockNumbers.length !== transferIds.length) {
+    throw new Error('Block numbers and transfer IDs mismatch')
+  }
+
+  const bridge = (watcher.bridge as L2Bridge)
+  for (let i = 0; i < transferIds.length; i++) {
+    const transferId = transferIds[i]
+    const blockNumber = blockNumbers[i]
+
+    const events = await bridge.bridgeContract.queryFilter(
+      bridge.l2BridgeWriteContract.filters.TransferSent(),
+      blockNumber,
+      blockNumber
+    )
+
+    for (const event of events) {
+      if (event.args?.transferId === transferId) {
+        await watcher.syncWatcher.handleTransferSentEvent(event)
+        await watcher.syncWatcher.populateTransferDbItem(event.args.transferId)
+        break
+      }
     }
   }
 }

@@ -118,30 +118,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  async checkTransferRootHash (transferRootHash: string, bonder?: string) {
-    const logger = this.logger.create({ root: transferRootHash })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash
-    )
-    if (!dbTransferRoot) {
-      throw new Error('db transfer root not found')
-    }
-
-    const { transferRootId, transferIds } = dbTransferRoot
-    if (!bonder) {
-      const { transferRootId, transferIds } = dbTransferRoot
-      const transferId = transferIds![0]
-      const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-      if (!dbTransfer) {
-        throw new Error('db transfer not found')
-      }
-      const { withdrawalBonder } = dbTransfer
-      bonder = withdrawalBonder
-    }
-
-    return this.checkTransferRootId(transferRootId, bonder!)
-  }
-
   async checkTransferRootId (transferRootId: string, bonder: string) {
     if (!bonder) {
       throw new Error('bonder is required')
@@ -239,20 +215,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async checkTransferId (transferId: string) {
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    if (!dbTransfer) {
-      throw new Error(`transfer id "${transferId}" not found in db`)
-    }
-    const { transferRootId, withdrawalBonder } = dbTransfer
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
-      transferRootId!
+  async checkTransferRootHash (transferRootHash: string, bonder: string) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+      transferRootHash
     )
-    if (!dbTransferRoot) {
-      throw new Error(`transfer root id "${transferRootId}" not found in db`)
+    if (!dbTransferRoot?.transferRootId) {
+      throw new Error('db transfer root not found')
     }
-
-    return await this.checkTransferRootId(transferRootId!, withdrawalBonder!)
+    return this.checkTransferRootId(dbTransferRoot.transferRootId, bonder!)
   }
 
   async depositToVaultIfNeeded (destinationChainId: number) {

@@ -210,60 +210,16 @@ class SubDbIncompletes extends BaseDb {
 }
 
 // structure:
-// key: `<transferRootHash>:<transferId>`
-// value: `{ transferId: <transferId> }`
-class SubDbRootHashes extends BaseDb {
-  constructor (prefix: string, _namespace?: string) {
-    super(`${prefix}:transferRootHashes`, _namespace)
-  }
-
-  getTransferRootHashKey (transfer: Transfer) {
-    if (transfer.transferRootHash && transfer.transferId) {
-      return `${transfer.transferRootHash}:${transfer.transferId}`
-    }
-  }
-
-  async insertItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    const key = this.getTransferRootHashKey(transfer)
-    if (key) {
-      const exists = await this.getById(key)
-      if (!exists) {
-        logger.debug(`storing db transfer rootHash key item. key: ${key}`)
-        await this._update(key, { transferId })
-        logger.debug(`updated db transfer rootHash key item. key: ${key}`)
-      }
-    }
-  }
-
-  async getFilteredKeyValues (transferRootHash: string) {
-    if (!transferRootHash) {
-      throw new Error('expected transfer root hash')
-    }
-
-    const filter: KeyFilter = {
-      gte: `${transferRootHash}`,
-      lte: `${transferRootHash}~` // tilde is intentional
-    }
-
-    return this.getKeyValues(filter)
-  }
-}
-
-// structure:
 // key: `<transferId>`
 // value: `{ ...Transfer }`
 class TransfersDb extends BaseDb {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes
-  subDbRootHashes: SubDbRootHashes
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
-    this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
   shouldMigrate (): boolean {
@@ -351,7 +307,6 @@ class TransfersDb extends BaseDb {
     transfer.transferId = transferId
     await Promise.all([
       this.subDbTimestamps.upsertItem(transfer as Transfer),
-      this.subDbRootHashes.insertItem(transfer as Transfer),
       this.upsertTransferItem(transfer as Transfer)
     ])
   }
@@ -394,14 +349,10 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  async getTransfersWithTransferRootHash (transferRootHash: string) {
+  async getTransfersIdsWithTransferRootHash (transferRootHash: string): string[] {
     await this.tilReady()
-    const kv = await this.subDbRootHashes.getFilteredKeyValues(transferRootHash)
-    const unsortedTransferIds = kv.map(this.filterValueTransferId).filter(this.filterExisty)
-    const items = await this.batchGetByIds(unsortedTransferIds)
-    const sortedTransfers = items.sort(this.sortItems).filter(this.filterExisty)
-    return sortedTransfers
   }
+
 
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}

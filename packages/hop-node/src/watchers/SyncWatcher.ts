@@ -1355,21 +1355,17 @@ class SyncWatcher extends BaseWatcher {
     if (!transferRootHash) {
       throw new Error('expected transfer root hash')
     }
-    logger.debug(
-      `looking in db for transfer ids for transferRootHash ${transferRootHash}`
-    )
-    const items = await this.db.transfers.getTransfersWithTransferRootHash(transferRootHash)
-    if (items.length) {
-      const transferIds = items.map((item: Transfer) => item.transferId)
-      if (transferIds.length) {
-        const tree = new MerkleTree(transferIds)
-        const computedTransferRootHash = tree.getHexRoot()
-        if (computedTransferRootHash === transferRootHash) {
-          logger.debug(
-            `found db transfer ids in db for transferRootHash ${transferRootHash}`
-          )
-          return transferIds
-        }
+    logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
+
+    const transferIds: string[] = await this.db.transfers.getTransfersIdsWithTransferRootHash(transferRootHash)
+    if (transferIds.length) {
+      const tree = new MerkleTree(transferIds)
+      const computedTransferRootHash = tree.getHexRoot()
+      if (computedTransferRootHash === transferRootHash) {
+        logger.debug(
+          `found db transfer ids in db for transferRootHash ${transferRootHash}`
+        )
+        return transferIds
       }
     }
 

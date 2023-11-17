@@ -1,11 +1,11 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
+import getTransferSent from 'src/theGraph/getTransferSent'
 import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
-import getTransferSent from 'src/theGraph/getTransferSent'
 
-import { actionHandler, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 
 root
   .command('resync-transfer')

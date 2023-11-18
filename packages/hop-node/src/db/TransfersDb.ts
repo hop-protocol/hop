@@ -33,8 +33,6 @@ interface BaseTransfer {
   transferFromL1CompleteTxHash?: string
   transferNonce?: string
   transferRelayed?: boolean
-  transferRootHash?: string
-  transferRootId?: string
   transferSentBlockNumber?: number
   transferSentIndex?: number
   transferSentLogIndex?: number
@@ -42,12 +40,9 @@ interface BaseTransfer {
   transferSentTxHash?: string
   transferSpentTxHash?: string
   withdrawalBondBackoffIndex?: number
-  withdrawalBondSettled?: boolean
-  withdrawalBondSettledTxHash?: string
   withdrawalBondTxError?: TxError
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
-  withdrawalBonder?: string
   sender?: string
 }
 
@@ -104,7 +99,6 @@ export type UnrelayedSentTransfer = {
 
 export type UncommittedTransfer = {
   transferId: string
-  transferRootId: string
   transferSentTxHash: string
   committed: boolean
   destinationChainId: number
@@ -208,8 +202,6 @@ class SubDbIncompletes extends BaseDb {
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
       (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-      (item.withdrawalBondedTxHash && !item.withdrawalBonder) ||
-      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled) ||
       (!item.sender)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
@@ -409,7 +401,6 @@ class TransfersDb extends BaseDb {
 
       return (
         item.transferId &&
-        !item.transferRootId &&
         item.transferSentTxHash &&
         !item.committed &&
         item.isFinalized

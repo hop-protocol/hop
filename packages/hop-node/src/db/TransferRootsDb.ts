@@ -20,7 +20,6 @@ import {
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
-  allSettled?: boolean
   bondBlockNumber?: number
   bonded?: boolean
   bondedAt?: number
@@ -93,7 +92,6 @@ type UnsettledTransferRoot = {
   rootSetTxHash: string
   committed: boolean
   committedAt: number
-  allSettled: boolean
 }
 
 type UnbondedTransferRoot = {
@@ -785,7 +783,6 @@ class TransferRootsDb extends BaseDb {
         item.rootSetTxHash &&
         item.committed &&
         item.committedAt &&
-        !item.allSettled &&
         rootSetTimestampOk &&
         bondSettleTimestampOk &&
         settleAttemptTimestampOk
@@ -838,7 +835,7 @@ class TransferRootsDb extends BaseDb {
     return settledTotalAmount
   }
 
-  async getMultipleWithdrawalsSettledTxHash (transferRootId: string) {
+  async getMultipleWithdrawalsSettledTxHash (transferRootId: string): Promise<string | undefined> {
     const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
 
     // we can use any tx hash since we'll be using it to decode list of transfer ids upstream

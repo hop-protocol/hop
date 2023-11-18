@@ -1112,10 +1112,7 @@ class SyncWatcher extends BaseWatcher {
     let transferIds: string[] | undefined
     if (destinationChainId) {
       logger.debug(`looking at calldata for transfer ids for transferRootHash ${transferRootHash}`)
-      const multipleWithdrawalsSettledTxHash = await this.db.transferRoots.getMultipleWithdrawalsSettledTxHash(transferRootId)
-      if (multipleWithdrawalsSettledTxHash) {
-        transferIds = await this.getParamsFromCalldata(destinationChainId, multipleWithdrawalsSettledTxHash)
-      }
+      transferIds = await this.checkTransferIdsFromCalldata(transferRootId, destinationChainId)
     }
 
 
@@ -1132,7 +1129,6 @@ class SyncWatcher extends BaseWatcher {
       commitTxLogIndex
     )
     }
-
 
     // Try finding transferIds with events
     if (
@@ -1171,12 +1167,16 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async getParamsFromCalldata (
-    destinationChainId: number,
-    multipleWithdrawalsSettledTxHash: string
+  async checkTransferIdsFromCalldata (
+    transferRootId: string,
+    destinationChainId: number
   ): Promise<string[] | undefined> {
-    // This might not work if the tx executed by a contract or some other calldata
+    // This might not work if, for example, the tx executed by a contract or some other calldata
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    const multipleWithdrawalsSettledTxHash = await this.db.transferRoots.getMultipleWithdrawalsSettledTxHash(transferRootId)
+    if (!multipleWithdrawalsSettledTxHash) {
+      return
+    }
     try {
       const transferIds = await destinationBridge.getParamsFromMultipleSettleEventTransaction(multipleWithdrawalsSettledTxHash)
       return transferIds

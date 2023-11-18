@@ -110,6 +110,13 @@ export type UncommittedTransfer = {
   destinationChainId: number
 }
 
+export interface TransfersIdsWithTransferRootHashParams {
+  sourceChainId: number
+  destinationChainId: number
+  commitTxBlockNumber: number
+  commitTxLogIndex: number
+}
+
 // structure:
 // key: `transfer:<transferSentTimestamp>:<transferId>`
 // value: `{ transferId: <transferId> }`
@@ -349,8 +356,45 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  async getTransfersIdsWithTransferRootHash (transferRootHash: string): string[] {
+  /**
+   * @returns transferIds sorted in order of their index in the root
+   */
+  async getTransfersIdsWithTransferRootHash (input: TransfersIdsWithTransferRootHashParams): Promise<string[] | undefined> {
+    const { sourceChainId, destinationChainId, commitTxBlockNumber, commitTxLogIndex } = input
     await this.tilReady()
+
+    if (!commitTxLogIndex) {
+      return
+    }
+
+    // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
+    // up the root onchain. Each 
+    const maxLookbackIndex = 4
+    let transferIds: string[] = []
+    for (let i = 1; i <= maxLookbackIndex; i++) {
+      const fromUnix = Math.floor((Date.now() - (OneWeekMs * i)) / 1000)
+      const transfers: Transfer[] = await this.getTransfers({
+        fromUnix
+      })
+
+      // Sorted newest to oldest
+      const sortedTransfers = transfers.filter(Boolean).sort(this.sortItems).reverse()
+      for (const transfer of sortedTransfers) {
+        if (
+          transfer.sourceChainId === sourceChainId &&
+          transfer.destinationChainId === destinationChainId &&
+          transfer.transferSentBlockNumber &&
+          transfer.transferSentBlockNumber <= commitTxBlockNumber &&
+          transfer.transferSentLogIndex &&
+          transfer.transferSentLogIndex < commitTxLogIndex
+        ) {
+          transferIds.unshift(transfer.transferId)
+          if (transfer?.transferSentIndex === 0) {
+            return transferIds
+          }
+        }
+      }
+    }
   }
 
 

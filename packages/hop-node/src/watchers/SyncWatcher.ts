@@ -737,7 +737,7 @@ class SyncWatcher extends BaseWatcher {
 
     try {
       const committedAt = Number(committedAtBn.toString())
-      const { transactionHash, blockNumber } = event
+      const { transactionHash, blockNumber, logIndex } = event
       const sourceChainId = await this.bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
 
@@ -750,6 +750,8 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('transferRootHash:', transferRootHash)
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('shouldBondTransferRoot:', shouldBondTransferRoot)
+      logger.debug('transfersCommittedLogIndex:', logIndex)
+
 
       await this.db.transferRoots.update(transferRootId, {
         transferRootHash,
@@ -760,6 +762,7 @@ class SyncWatcher extends BaseWatcher {
         committed: true,
         commitTxHash: transactionHash,
         commitTxBlockNumber: blockNumber,
+        commitTxLogIndex: logIndex,
         shouldBondTransferRoot
       })
     } catch (err) {
@@ -1320,58 +1323,84 @@ class SyncWatcher extends BaseWatcher {
     if (!dbTransferRoot) {
       throw new Error('expected db transfer root item')
     }
-    const { sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
+    const {
+      transferRootHash,
+      sourceChainId,
+      destinationChainId,
+      totalAmount,
+      commitTxBlockNumber,
+      commitTxLogIndex,
+      transferIds: dbTransferIds,
+    } = dbTransferRoot
 
     if (
       (dbTransferIds !== undefined && dbTransferIds.length > 0) ||
       !(sourceChainId && destinationChainId && commitTxBlockNumber && totalAmount) ||
-      isL1ChainId(sourceChainId)
+      isL1ChainId(sourceChainId) ||
+      !transferRootHash
     ) {
       logger.debug('populateTransferRootTransferIds already found')
       return
     }
 
-    let transferIds = await this.checkTransferRootFromDb(transferRootId)
+    logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
+    let transferIds = await this.checkTransferRootFromDb(
+      sourceChainId,
+      destinationChainId,
+      commitTxBlockNumber,
+      commitTxLogIndex
+    )
     if (!transferIds) {
-      transferIds = await this.checkTransferRootFromChain(transferRootId)
+      logger.debug(`looking onchain for transfer ids for transferRootHash ${transferRootHash}`)
+      transferIds = await this.checkTransferRootFromChain(
+        transferRootHash,
+        transferRootId,
+        sourceChainId,
+        destinationChainId,
+        commitTxBlockNumber
+      )
     }
 
-    if (transferIds?.length) {
+    if (!transferIds) {
+      logger.debug(`transfer ids not found for transferRootHash ${transferRootHash}. isNotFound: true`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
+    logger.debug(`found transfer ids for transfer root hash ${transferRootHash}`, JSON.stringify(transferIds))
+    const tree = new MerkleTree(transferIds)
+    const computedTransferRootHash = tree.getHexRoot()
+    if (computedTransferRootHash !== transferRootHash) {
+      logger.warn(
+        `populateTransferRootTransferIds computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(transferIds)}`
+      )
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
       await this.db.transferRoots.update(transferRootId, {
         transferIds,
         totalAmount,
         sourceChainId
       })
-    }
   }
 
-  async checkTransferRootFromDb (transferRootId: string) {
-    const logger = this.logger.create({ root: transferRootId })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
-    if (!dbTransferRoot) {
-      throw new Error('expected db transfer root item')
+  async checkTransferRootFromDb (
+    sourceChainId: number,
+    destinationChainId: number,
+    commitTxBlockNumber: number,
+    commitTxLogIndex?: number
+  ): Promise<string[] | undefined> {
+    if (!commitTxLogIndex) {
+      // The commitTxLogIndex was added to DB entries after the initial release and a migration was never run
+      return
     }
-    const { transferRootHash } = dbTransferRoot
-    if (!transferRootHash) {
-      throw new Error('expected transfer root hash')
-    }
-    logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
-
-    const transferIds: string[] = await this.db.transfers.getTransfersIdsWithTransferRootHash(transferRootHash)
-    if (transferIds.length) {
-      const tree = new MerkleTree(transferIds)
-      const computedTransferRootHash = tree.getHexRoot()
-      if (computedTransferRootHash === transferRootHash) {
-        logger.debug(
-          `found db transfer ids in db for transferRootHash ${transferRootHash}`
-        )
-        return transferIds
-      }
-    }
-
-    logger.debug(
-      `no db transfer ids found for transferRootHash ${transferRootHash}`
-    )
+    return this.db.transfers.getTransfersIdsWithTransferRootHash({
+      sourceChainId,
+      destinationChainId,
+      commitTxBlockNumber,
+      commitTxLogIndex
+    })
   }
 
   async lookupTransferIds (sourceBridge: L2Bridge, transferRootHash: string, destinationChainId: number, endBlockNumber: number) {
@@ -1477,25 +1506,14 @@ class SyncWatcher extends BaseWatcher {
     return { startEvent, endEvent, transferIds }
   }
 
-  async checkTransferRootFromChain (transferRootId: string) {
+  async checkTransferRootFromChain (
+    transferRootId: string,
+    transferRootHash: string,
+    sourceChainId: number,
+    destinationChainId: number,
+    commitTxBlockNumber: number
+  ): Promise<string[] | undefined> {
     const logger = this.logger.create({ root: transferRootId })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
-    if (!dbTransferRoot) {
-      throw new Error('expected db transfer root item')
-    }
-    const { transferRootHash, sourceChainId, destinationChainId, commitTxBlockNumber } = dbTransferRoot
-    if (!transferRootHash) {
-      throw new Error('expected transfer root hash')
-    }
-    if (!sourceChainId) {
-      throw new Error('expected source chain id')
-    }
-    if (!destinationChainId) {
-      throw new Error('expected destination chain id')
-    }
-    if (!commitTxBlockNumber) {
-      throw new Error('expected commit tx block number')
-    }
     if (!this.hasSiblingWatcher(sourceChainId)) {
       logger.error(`no sibling watcher found for ${sourceChainId}`)
       return
@@ -1504,10 +1522,6 @@ class SyncWatcher extends BaseWatcher {
       .bridge as L2Bridge
 
     const eventBlockNumber: number = commitTxBlockNumber
-
-    logger.debug(
-      `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
-    )
 
     // It is not trivial to know if a root is the first for a route. When a new chain is added to an old bridge
     // the result is that the old bridge will look all the way back to when it is deployed before ignoring the root.
@@ -1530,30 +1544,6 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
-
-    logger.debug(`transfer ids: ${JSON.stringify(transferIds)}}`)
-
-    const tree = new MerkleTree(transferIds)
-    const computedTransferRootHash = tree.getHexRoot()
-    if (computedTransferRootHash !== transferRootHash) {
-      logger.warn(
-        `populateTransferRootTransferIds computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(transferIds)}`
-      )
-      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
-      return
-    }
-
-    logger.debug(
-      `found transfer ids for transfer root hash ${transferRootHash}`,
-      JSON.stringify(transferIds)
-    )
-
-    await Promise.all(transferIds.map(async (transferId: string) => {
-      await this.db.transfers.update(transferId, {
-        transferRootHash,
-        transferRootId
-      })
-    }))
 
     return transferIds
   }

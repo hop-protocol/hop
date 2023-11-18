@@ -31,6 +31,7 @@ interface BaseTransferRoot {
   committedAt?: number
   commitTxBlockNumber?: number
   commitTxHash?: string
+  commitTxLogIndex?: number
   confirmBlockNumber?: number
   confirmed?: boolean
   confirmedAt?: number

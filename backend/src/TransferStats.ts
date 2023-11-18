@@ -259,7 +259,7 @@ export class TransferStats {
       if (!rpcUrl) {
         throw new Error(`rpc url not found for "${destinationChainSlug}"`)
       }
-      const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+      const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
       const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
       const transferTopic = '0xddf252ad'
 
@@ -364,7 +364,7 @@ export class TransferStats {
       if (!rpcUrl) {
         throw new Error(`rpc url not found for "${destinationChainSlug}"`)
       }
-      const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+      const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
       const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
       const transferTopic = '0xddf252ad'
 
@@ -1052,7 +1052,7 @@ export class TransferStats {
     const rpcUrl = rpcUrls[sourceChainSlug]
     if (rpcUrl) {
       try {
-        const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+        const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
         const receipt = await this.getTransactionReceipt(provider, transactionHash)
         if (receipt) {
           const contractAddress = receipt.to?.toLowerCase()
@@ -1158,7 +1158,7 @@ export class TransferStats {
     }
     for (const chainSlug in rpcUrls) {
       const rpcUrl = rpcUrls[chainSlug]
-      const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+      const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
       const receipt = await this.getTransactionReceipt(provider, transactionHash)
       let transferId = ''
       const sourceChainId = chainSlugToId(chainSlug)

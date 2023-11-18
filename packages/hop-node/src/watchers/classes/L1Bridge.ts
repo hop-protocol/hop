@@ -252,7 +252,7 @@ export default class L1Bridge extends Bridge {
     }
 
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
+    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
@@ -264,7 +264,10 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    // TODO: Add check for relayer !== '0' when relayerFee
+    if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+      throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
+    }
+
     return await this.l1BridgeWriteContract.sendToL2(
       destinationChainId,
       recipient,
@@ -302,7 +305,7 @@ export default class L1Bridge extends Bridge {
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
+    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = bridge.defaultDeadlineSeconds
     const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
     const slippageTolerance = 0.1
@@ -318,7 +321,9 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    // TODO: Add check for relayer !== '0' when relayerFee
+    if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+      throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
+    }
     return await this.l1BridgeWriteContract.sendToL2(
       destinationChainId,
       recipient,
@@ -358,5 +363,12 @@ export default class L1Bridge extends Bridge {
       totalAmount,
       destinationChainId
     }
+  }
+
+  private async isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): Promise<boolean> {
+    return (
+      relayer !== constants.AddressZero ||
+      relayerFee.eq(0)
+    )
   }
 }

@@ -10,7 +10,7 @@ const getNonRetryableRpcProviderFromUrl = (
     return cache[cacheKey]
   }
 
-  const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+  const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
   cache[cacheKey] = provider
   return provider
 }

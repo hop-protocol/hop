@@ -18,7 +18,8 @@ export function getProviderWithFallbacks (rpcUrls: string[]) : any {
     const provider = new RetryProvider({
       url,
       timeout,
-      throttleLimit
+      throttleLimit,
+      allowGzip: true
     })
     rpcProviders.push({
       provider,
@@ -37,7 +38,8 @@ export function getProviderWithFallbacks (rpcUrls: string[]) : any {
     const provider = () => new RetryProvider({
       url,
       timeout,
-      throttleLimit
+      throttleLimit,
+      allowGzip: true
     })
     rpcProviders.push(provider)
   }
@@ -56,7 +58,8 @@ export function getProviderFromUrl (rpcUrl: string | string[]): providers.Provid
   const provider = new providers.StaticJsonRpcProvider({
     url: rpcUrls[0],
     timeout,
-    throttleLimit
+    throttleLimit,
+    allowGzip: true
   })
   return provider
   */

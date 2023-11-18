@@ -4,18 +4,21 @@ import { Div, Icon } from 'src/components/ui'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { commafy } from 'src/utils'
 
-function formatRatio(item) {
+function formatRatio(item: any) {
   const { reserve0, reserve1 } = item
+  if (!(reserve0 && reserve1)) {
+    return ''
+  }
   const div = reserve0 / reserve1
   return `${div.toString().slice(0, 6)}`
 }
 
-export const populatePoolStats = (item: any, extraData, i) => {
+export const populatePoolStats = (item: any, extraData: any, i: number) => {
   return {
-    chain: item.network.imageUrl,
+    chain: item.network?.imageUrl,
     canonicalToken: item.reserve0,
     hToken: item.reserve1,
-    tokenSymbol: item.token0.imageUrl,
+    tokenSymbol: item.token0?.imageUrl,
     ratio: formatRatio(item),
   }
 }
@@ -72,6 +75,8 @@ const PoolStats: FC = () => {
     []
   )
 
+  const error = poolStats?.map((item: any) => item.error).filter(Boolean).join('\n')
+
   return (
     <Div fontSize={[0, 1, 2]}>
       <SortableTable
@@ -80,6 +85,7 @@ const PoolStats: FC = () => {
         populateDataFn={populatePoolStats}
         extraData={poolStats}
         loading={fetching}
+        error={error}
       />
     </Div>
   )

@@ -155,7 +155,7 @@ const useTxHistory = (sdk: Hop): TxHistory => {
             return
           }
 
-          const bondTransactionHash = response[0].bondTransactionHash
+          const bondTransactionHash = response[0]?.bondTransactionHash
           if (bondTransactionHash) {
             clearInterval(intervalRefs.current[tx.hash])
             clearTimeout(timeoutRefs.current[tx.hash])

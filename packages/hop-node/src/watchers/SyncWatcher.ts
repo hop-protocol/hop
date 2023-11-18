@@ -22,6 +22,7 @@ import {
 } from 'src/constants'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
+import { GasCostEstimationRes } from './classes/Bridge'
 import {
   L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
@@ -1023,7 +1024,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const { destinationChainId, withdrawalBondSettledTxHash, withdrawalBondSettled } = dbTransfer
+    const { destinationChainId, withdrawalBondSettledTxHash } = dbTransfer
     if (dbTransfer.withdrawalBondSettled) {
       logger.debug('populateTransferWithdrawalBondSettled dbTransfer withdrawalBondSettled is true. Returning.')
       return
@@ -1034,8 +1035,41 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    const { rootHash, transferRootTotalAmount, bonder } = await destinationBridge.getParamsFromMultipleSettleEventTransaction(withdrawalBondSettledTxHash)
-    const transferRootId = this.bridge.getTransferRootId(rootHash, transferRootTotalAmount)
+
+    // TODO: Clean this up. getParamsFromMultipleSettleEventTransaction should be an event since it can be called in batch
+    const tx = await destinationBridge.getTransactionReceipt(withdrawalBondSettledTxHash)
+    let params
+    try {
+      const { rootHash, transferRootTotalAmount, bonder } = await destinationBridge.getParamsFromMultipleSettleEventTransaction(withdrawalBondSettledTxHash)
+      params = {
+        rootHash,
+        bonder,
+        totalAmount: transferRootTotalAmount
+      }
+    } catch (err) {
+      const events = await destinationBridge.getWithdrawalBondSettledEvents(tx.blockNumber, tx.blockNumber)
+      if (!events?.length) {
+        logger.debug('populateTransferWithdrawalBondSettled event not found. Returning.')
+        return
+      }
+
+      for (const event of events) {
+        if (event?.topics?.[2] === transferId) {
+          params = {
+            rootHash: event?.args?.rootHash,
+            bonder: event?.args?.bonder
+          }
+          break
+        }
+      }
+
+      if (!params?.rootHash || !params?.bonder) {
+        logger.debug('populateTransferWithdrawalBondSettled params not found. Returning.')
+        return
+      }
+    }
+
+    const { bonder } = params
     const isBonded = dbTransfer?.withdrawalBonded ?? false
     const isSameBonder = dbTransfer?.withdrawalBonder === bonder
     const isWithdrawalSettled = isBonded && isSameBonder
@@ -1056,6 +1090,13 @@ class SyncWatcher extends BaseWatcher {
       withdrawalBondSettled: true
     })
 
+    // If a withdrawal is bonded solo, we don't know the root id. allSettled will be marked later.
+    if (!params?.rootHash || !params?.totalAmount) {
+      logger.debug('populateTransferWithdrawalBondSettled transferRootId params not found. Returning.')
+      return
+    }
+
+    const transferRootId = this.bridge.getTransferRootId(params.rootHash, params.totalAmount)
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       logger.debug('populateTransferWithdrawalBondSettled dbTransferRoot not found. Returning.')
@@ -1716,8 +1757,7 @@ class SyncWatcher extends BaseWatcher {
         if (RelayableChains.includes(this.chainSlug)) {
           let gasCost: BigNumber
           try {
-            const relayerFee = new RelayerFee(globalConfig.network, this.chainSlug, this.tokenSymbol)
-            gasCost = await relayerFee.getRelayCost()
+            gasCost = await RelayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
           } catch (err) {
             logger.error(`pollGasCost error getting relayerFee: ${err.message}`)
             gasCost = BigNumber.from('0')
@@ -1728,16 +1768,31 @@ class SyncWatcher extends BaseWatcher {
 
         logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, data, to, transactionType }) => {
-          const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
-            this.chainSlug,
-            this.tokenSymbol,
-            gasPrice,
-            gasLimit,
-            transactionType,
-            data,
-            to
-          )
+          let gasCostEstimation: GasCostEstimationRes
+          try {
+            const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
+              this.chainSlug,
+              this.tokenSymbol,
+              gasPrice,
+              gasLimit,
+              transactionType,
+              data,
+              to
+            )
 
+            gasCostEstimation = {
+              gasCost,
+              gasCostInToken,
+              gasLimit,
+              tokenPriceUsd,
+              nativeTokenPriceUsd
+            }
+          } catch (err) {
+            logger.error(`pollGasCost error getting gasCostEstimation: ${err.message}`)
+            throw err
+          }
+
+          const { gasCost, gasCostInToken, tokenPriceUsd, nativeTokenPriceUsd } = gasCostEstimation
           logger.debug(`pollGasCost got estimate for txPayload. transactionType: ${transactionType}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
           const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
           logger.debug(`pollGasCost got estimate for minBonderFeeAbsolute. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)

@@ -55,7 +55,7 @@ async function main (source: any) {
         throw new Error('TransferId does not exist in the DB')
       }
       if (dbTransfer.sourceChainSlug !== chain) {
-        throw new Error('Source chain from DB does not match the source chain')
+        throw new Error(`Source chain from DB does not match the source chain: dbTransfer.sourceChainSlug=${dbTransfer.sourceChainSlug}, chain=${chain}`)
       }
       const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
       if (attemptSwap && isL1ChainId(dbTransfer.destinationChainId!)) {

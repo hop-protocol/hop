@@ -13,7 +13,7 @@ export class LineaStrategy extends FinalityStrategy implements IFinalityStrategy
   }
 
   getCustomBlockNumber = async (): Promise<number> => {
-    const confirmations = 10
+    const confirmations = 5
     return this.getProbabilisticBlockNumber(confirmations)
   }
 }

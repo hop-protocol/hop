@@ -516,7 +516,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 
-  // TODO: Clean this up since there is now a concept of finalized transfers and unfinalized transfers
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams, isFinalized?: boolean): Promise<void> {
     const logger = this.logger.create({ id: txParams.transferId })
 
@@ -530,6 +529,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await this.validateUniqueness(txParams)
       logger.debug('validating logs with redundant rpcs')
       await this.validateLogsWithRedundantRpcs(txParams)
+      logger.debug('validated transaction')
     } catch (err) {
       // Unfinalized transfers are not necessarily a reorg. Try again
       if (!isFinalized && err instanceof PossibleReorgDetected) {
@@ -564,20 +564,30 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async validateUniqueness (txParams: SendBondWithdrawalTxParams): Promise<void> {
     // Validate uniqueness for redundant reorg protection. A transferNonce should be seen exactly one time in the DB per source chain
+    console.log('debugging0', txParams.transferId)
     const txTransferNonce = txParams.transferNonce
+    console.log('debugging1', txParams.transferId)
     const dbTransfers: Transfer[] = await this.db.transfers.getTransfersFromWeek()
+    console.log('debugging2', txParams.transferId)
     const dbTransfersFromSource: Transfer[] = dbTransfers.filter(dbTransfer => dbTransfer.sourceChainId === this.bridge.chainId)
+    console.log('debugging3', txParams.transferId)
     const transfersWithExpectedTransferNonce: Transfer[] = dbTransfersFromSource.filter(dbTransfer => dbTransfer.transferNonce === txTransferNonce)
+    console.log('debugging4', txParams.transferId)
     if (transfersWithExpectedTransferNonce.length > 1) {
+      console.log('debugging5', txParams.transferId)
       throw new PossibleReorgDetected(`transferNonce (${txTransferNonce}) exists in multiple transfers in db. Other transferIds: ${transfersWithExpectedTransferNonce.map(dbTransfer => dbTransfer.transferId)}`)
     }
+    console.log('debugging6', txParams.transferId)
     if (transfersWithExpectedTransferNonce.length === 0) {
+      console.log('debugging7', txParams.transferId)
       // If a transfer is marked as notFound because the event is missed, it will never get a transferSent timestamp. In
       // this case, there will be no subDbTimestamps for the item since that relies on the transferSentTimestamp and
       // therefore the item will not exist in getTransfersFromWeek(). In this case, check the item exists in the DB
       // and validate that the transferNonce exists.
       const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+      console.log('debugging8', txParams.transferId)
       if (!calculatedDbTransfer?.transferNonce || calculatedDbTransfer.transferNonce !== txTransferNonce) {
+        console.log('debugging9', txParams.transferId)
         throw new PossibleReorgDetected(`transferNonce (${txTransferNonce}) does not exist in db`)
       }
     }

@@ -8,7 +8,7 @@ export function useBlockNumber() {
       'useBlockNumber',
     ],
     async () => {
-      const provider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/84842078b09946638c03157f83405213')
+      const provider = new ethers.providers.JsonRpcProvider({ allowGzip: true, url: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213' })
       const blockNumber = await provider.getBlockNumber()
       return blockNumber.toString()
     },

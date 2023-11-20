@@ -1072,9 +1072,6 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async populateTransferRootTransferIds (transferRootId: string) {
-    // transferIds can be retrieved a number of different ways depending on the state of the sync.
-    // Try them in order of least resource consumption to most.
-
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootTransferIds')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
@@ -1085,9 +1082,6 @@ class SyncWatcher extends BaseWatcher {
     const {
       transferRootHash,
       sourceChainId,
-      destinationChainId,
-      commitTxBlockNumber,
-      commitTxLogIndex,
       transferIds: dbTransferIds
     } = dbTransferRoot
 
@@ -1107,44 +1101,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-
-    // Try finding transferIds with calldata
-    let transferIds: string[] | undefined
-    if (destinationChainId) {
-      logger.debug(`looking at calldata for transfer ids for transferRootHash ${transferRootHash}`)
-      transferIds = await this.checkTransferIdsFromCalldata(transferRootId, destinationChainId)
-    }
-
-
-    // Try finding transferIds with the DB
-    if (
-      !transferIds &&
-      (sourceChainId && destinationChainId && commitTxBlockNumber && commitTxLogIndex)
-    ) {
-    logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
-      transferIds = await this.checkTransferRootFromDb(
-      sourceChainId,
-      destinationChainId,
-      commitTxBlockNumber,
-      commitTxLogIndex
-    )
-    }
-
-    // Try finding transferIds with events
-    if (
-      !transferIds &&
-      (sourceChainId && destinationChainId && commitTxBlockNumber)
-    ) {
-      logger.debug(`looking onchain for transfer ids for transferRootHash ${transferRootHash}`)
-      transferIds = await this.checkTransferRootFromChain(
-        transferRootHash,
-        transferRootId,
-        sourceChainId,
-        destinationChainId,
-        commitTxBlockNumber
-      )
-    }
-
+    const transferIds: string[] | undefined = await this.checkTransferIdsForRoot(dbTransferRoot)
     if (!transferIds) {
       logger.debug(`transfer ids not found for transferRootHash ${transferRootHash}. isNotFound: true`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
@@ -1162,12 +1119,71 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-      await this.db.transferRoots.update(transferRootId, {
+    await this.db.transferRoots.update(transferRootId, {
       transferIds
     })
   }
 
-  async checkTransferIdsFromCalldata (
+  async checkTransferIdsForRoot (dbTransferRoot: TransferRoot): Promise<string[] | undefined> {
+    // transferIds can be retrieved a number of different ways depending on the state of the sync.
+    // Try them in order of least resource consumption to most.
+
+    const {
+      transferRootId,
+      transferRootHash,
+      sourceChainId,
+      destinationChainId,
+      commitTxBlockNumber,
+      commitTxLogIndex,
+    } = dbTransferRoot
+
+    const logger = this.logger.create({ root: transferRootId })
+    if (!transferRootHash) {
+      logger.debug('populateTransferRootTransferIds not ready or not possible')
+      return
+    }
+
+    let transferIds: string[] | undefined
+
+    // Try finding transferIds with the tx calldata
+    if (destinationChainId) {
+      logger.debug(`looking at calldata for transfer ids for transferRootHash ${transferRootHash}`)
+      transferIds = await this.checkTransferIdsForRootFromCalldata(transferRootId, destinationChainId)
+    }
+
+    // Try finding transferIds with the DB
+    if (
+      !transferIds &&
+      (sourceChainId && destinationChainId && commitTxBlockNumber && commitTxLogIndex)
+    ) {
+    logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
+      transferIds = await this.checkTransferIdsForRootFromDb(
+      sourceChainId,
+      destinationChainId,
+      commitTxBlockNumber,
+      commitTxLogIndex
+    )
+    }
+
+    // Try finding transferIds with events
+    if (
+      !transferIds &&
+      (sourceChainId && destinationChainId && commitTxBlockNumber)
+    ) {
+      logger.debug(`looking onchain for transfer ids for transferRootHash ${transferRootHash}`)
+      transferIds = await this.checkTransferIdsForRootFromChain(
+        transferRootHash,
+        transferRootId,
+        sourceChainId,
+        destinationChainId,
+        commitTxBlockNumber
+      )
+    }
+
+    return transferIds
+  }
+
+  async checkTransferIdsForRootFromCalldata (
     transferRootId: string,
     destinationChainId: number
   ): Promise<string[] | undefined> {
@@ -1185,7 +1201,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async checkTransferRootFromDb (
+  async checkTransferIdsForRootFromDb (
     sourceChainId: number,
     destinationChainId: number,
     commitTxBlockNumber: number,
@@ -1306,7 +1322,7 @@ class SyncWatcher extends BaseWatcher {
     return { startEvent, endEvent, transferIds }
   }
 
-  async checkTransferRootFromChain (
+  async checkTransferIdsForRootFromChain (
     transferRootId: string,
     transferRootHash: string,
     sourceChainId: number,

@@ -16,7 +16,6 @@ type Config = {
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
-  settleAttemptedAt: { [rootHash: string]: number } = {}
 
   constructor (config: Config) {
     super({
@@ -34,39 +33,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
   async checkUnsettledTransferRootsFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(await this.getFilterRoute())
-
+    if (!dbTransferRoots.length) {
+      this.logger.debug('no unsettled db transfer roots to check')
+    }
+    this.logger.info(`total unsettled transfer roots db items: ${dbTransferRoots.length}`)
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootId, transferIds } = dbTransferRoot
-      const logger = this.logger.create({ id: transferRootId })
-
-      // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
-      // This comes into play when a transfer is bonded after others in the same root have been settled
-      const settleAttemptedAt = Date.now()
-      await this.db.transferRoots.update(transferRootId, {
-        settleAttemptedAt
-      })
-
-
-
+      promises.push(this.checkTransferRootId(dbTransferRoot.transferRootId))
     }
-
-    if (promises.length === 0) {
-      this.logger.debug('no unsettled db transfer roots to check')
-      return
-    }
-
-    this.logger.info(
-      `checking ${promises.length} unsettled db transfer roots`
-    )
-
     await Promise.all(promises)
   }
 
-  async checkTransferRootId (transferRootId: string, bonder: string) {
-    if (!bonder) {
-      throw new Error('bonder is required')
-    }
+  async checkTransferRootId (transferRootId: string) {
     const logger = this.logger.create({ root: transferRootId })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
       transferRootId
@@ -92,7 +70,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
       .bridge
-
+    const bonder = await destBridge.getBonderAddress()
     logger.debug(`transferRootId: ${transferRootId}`)
 
     const tree = new MerkleTree(transferIds)
@@ -124,9 +102,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
     if (onChainTotalAmount.eq(onChainAmountWithdrawn)) {
-      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(onChainAmountWithdrawn)}) matches total. Marking transfer root as all settled`)
+      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(onChainAmountWithdrawn)}) matches total. Marking as not found`)
       await this.db.transferRoots.update(transferRootId, {
-        allSettled: true
+        isNotFound: true
       })
       return
     }

@@ -1189,7 +1189,7 @@ class SyncWatcher extends BaseWatcher {
   ): Promise<string[] | undefined> {
     // This might not work if, for example, the tx executed by a contract or some other calldata
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    const multipleWithdrawalsSettledTxHash = await this.db.transferRoots.getMultipleWithdrawalsSettledTxHash(transferRootId)
+    const { multipleWithdrawalsSettledTxHash } = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!multipleWithdrawalsSettledTxHash) {
       return
     }
@@ -1370,7 +1370,7 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash,
       totalBondsSettled
     } = event.args
-    const { transactionHash, logIndex, blockNumber, transactionIndex } = event
+    const { transactionHash } = event
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     // Throwing here is not ideal, but it is required because we don't have the context of the transferId
     // with this event data. We can only get it from prior events. We should always see other events
@@ -1388,15 +1388,9 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
 
-    await this.db.transferRoots.updateMultipleWithdrawalsSettledEvent({
-      transferRootHash,
-      transferRootId,
-      bonder,
-      totalBondsSettled,
-      txHash: transactionHash,
-      blockNumber,
-      txIndex: transactionIndex,
-      logIndex
+    await this.db.transferRoots.update(transferRootId, {
+      multipleWithdrawalsSettledTxHash: transactionHash,
+      settled: true
     })
   }
 
@@ -1408,18 +1402,12 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash
     } = event.args
     const logger = this.logger.create({ id: transferId })
-
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    if (!dbTransfer) {
-      logger.warn(`transfer id ${transferId} db item not found`)
-      return
-    }
-
     logger.debug('handling WithdrawalBondSettled event')
     logger.debug(`tx hash from event: ${transactionHash}`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`transferId: ${transferId}`)
+    // Nothing is stored here. The current bonder assumptions make the bonder unconcerned with this.
   }
 
   getIsBondable = (

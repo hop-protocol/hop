@@ -59,14 +59,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       throw new Error('transferIds expected to be array')
     }
 
-    // TMP: Remove
-    if (
-      destinationChainId === 59144 &&
-      transferIds.length > 750
-    ) {
-      return
-    }
-
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
       .bridge
     bonder = bonder ?? await destBridge.getBonderAddress()

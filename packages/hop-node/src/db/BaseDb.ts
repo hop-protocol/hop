@@ -146,7 +146,7 @@ class BaseDb extends EventEmitter {
 
     const currentMigrationIndex = await this.getMigrationIndex() ?? 0
     const lastMigrationIndex = migrations.length - 1
-    if (currentMigrationIndex < lastMigrationIndex) {
+    if (currentMigrationIndex > lastMigrationIndex) {
       this.logger.debug(`no migration required, currentMigrationIndex: ${currentMigrationIndex}`)
       return
     }
@@ -209,7 +209,7 @@ class BaseDb extends EventEmitter {
     return this.getById(this.dbMigrationKey)
   }
 
-  private async putMigrationIndex (updatedMigrationIndex: number) {
+  private async putMigrationIndex (updatedMigrationIndex: number): Promise<void> {
     return this._updateSingle(this.dbMigrationKey, updatedMigrationIndex)
   }
 

@@ -1091,8 +1091,8 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (
-      (sourceChainId && isL1ChainId(sourceChainId)) ||
-      !transferRootHash
+      !transferRootHash ||
+      (sourceChainId && isL1ChainId(sourceChainId))
     ) {
       logger.debug('populateTransferRootTransferIds not ready or not possible')
       return

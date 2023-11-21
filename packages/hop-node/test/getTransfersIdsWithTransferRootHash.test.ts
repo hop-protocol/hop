@@ -42,12 +42,10 @@ async function testBondWithdrawalWatcher (bridge: L2Bridge, chain: string, token
       commitTxBlockNumber: transferRoot.commitTxBlockNumber!,
       commitTxLogIndex: transferRoot.commitTxLogIndex!
     })
-      if (!transferIds?.length) {
-        throw new Error(`no transfer ids found for transfer root hash ${transferRoot.transferRootHash}`)
-      }
+    if (!transferIds?.length) {
+      throw new Error(`no transfer ids found for transfer root hash ${transferRoot.transferRootHash}`)
     }
   }
 }
 
 main().catch(console.error).finally(() => process.exit(0))
-

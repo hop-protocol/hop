@@ -1,5 +1,5 @@
 const { override } = require('customize-cra')
-const { mainnet, goerli } = require('@hop-protocol/core/networks')
+const { mainnet, goerli, sepolia } = require('@hop-protocol/core/networks')
 const CspHtmlWebpackPlugin = require('csp-html-webpack-plugin')
 
 const scriptSrc = new Set([
@@ -99,7 +99,7 @@ const connectSrc = new Set([
   "https://media-exp1.licdn.com"
 ])
 
-const networks = [mainnet, goerli]
+const networks = [mainnet, goerli, sepolia]
 for (const network in networks) {
   for (const chain in networks[network]) {
     const { publicRpcUrl, fallbackPublicRpcUrls, subgraphUrl } = networks[network][chain]

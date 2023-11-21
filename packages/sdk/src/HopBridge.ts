@@ -2514,10 +2514,16 @@ class HopBridge extends Base {
   }
 
   isSupportedAsset (chain: TChain) :boolean {
-    chain = this.toChainModel(chain)
+    try {
+      chain = this.toChainModel(chain)
+    } catch (err) {
+      if (err.message.includes('is unsupported')) {
+        return false
+      }
+    }
     const supported = this.getSupportedAssets()
     const token = this.toTokenModel(this.tokenSymbol)
-    return !!supported[chain.slug]?.[token.canonicalSymbol] ?? false
+    return !!supported[chain?.slug]?.[token.canonicalSymbol] ?? false
   }
 
   async getBonderAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {

@@ -48,6 +48,7 @@ export enum ChainSlug {
 export enum Slug {
   ethereum = 'ethereum',
   goerli = 'goerli',
+  sepolia = 'sepolia',
   mainnet = 'mainnet',
   arbitrum = 'arbitrum',
   optimism = 'optimism',

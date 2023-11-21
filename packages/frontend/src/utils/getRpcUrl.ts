@@ -1,6 +1,5 @@
-import { L1_NETWORK } from 'src/utils'
 import { networks } from 'src/config'
-import { ChainSlug } from '@hop-protocol/sdk'
+import { reactAppNetwork } from '../config'
 
 export const getRpcUrlOrThrow = (network: string) => {
   if (!network) {
@@ -8,7 +7,7 @@ export const getRpcUrlOrThrow = (network: string) => {
   }
   let networkRpcUrl = networks?.[network]?.rpcUrl
   // make goerli rpc available when react app network is mainnet, this is for testing certain features on staging mainnet environment
-  if (!networkRpcUrl && network === 'goerli') {
+  if (!networkRpcUrl && (network === 'goerli' || (network === 'ethereum' && reactAppNetwork === 'goerli'))) {
     networkRpcUrl = 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213' // infura id is from ethers
   }
   if (typeof networkRpcUrl !== 'string') {

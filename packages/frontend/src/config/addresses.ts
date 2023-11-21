@@ -1,5 +1,5 @@
 import { mainnetAddresses, mainnetNetworks } from './mainnet'
-import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
+import { goerliAddresses, goerliNetworks } from './goerli'
 import { Slug } from '@hop-protocol/sdk'
 import { gitRevision } from './config'
 
@@ -12,7 +12,7 @@ const isGoerli = reactAppNetwork === Slug.goerli
 if (isMainnet) {
   addresses = mainnetAddresses
   networks = mainnetNetworks
-} else if (reactAppNetwork === Slug.goerli) {
+} else if (isGoerli) {
   addresses = goerliAddresses
   networks = goerliNetworks
 } else {
@@ -31,6 +31,8 @@ if (enabledTokens) {
   addresses.tokens = filteredAddresses
 }
 
+const chainsWithConfig = new Set(Object.values(addresses.tokens).map((x: any) => Object.keys(x)).flat())
+
 const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
 
 let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
@@ -41,6 +43,12 @@ if (enabledChains) {
     if (networks[enabledChain]) {
       filteredNetworks[enabledChain] = networks[enabledChain]
     }
+  }
+  networks = filteredNetworks
+} else {
+  const filteredNetworks: { [key: string]: any } = {}
+  for (const chain of chainsWithConfig) {
+    filteredNetworks[chain] = networks[chain]
   }
   networks = filteredNetworks
 }
@@ -188,6 +196,5 @@ export {
   blocknativeDappid,
   stakingRewardsContracts,
   hopStakingRewardsContracts,
-  enabledChains,
   deprecatedTokens
 }

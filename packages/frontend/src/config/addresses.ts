@@ -1,5 +1,6 @@
 import { mainnetAddresses, mainnetNetworks } from './mainnet'
 import { goerliAddresses, goerliNetworks } from './goerli'
+import { sepoliaAddresses, sepoliaNetworks } from './sepolia'
 import { Slug } from '@hop-protocol/sdk'
 import { gitRevision } from './config'
 
@@ -8,6 +9,7 @@ let addresses: any
 let networks: any
 const isMainnet = reactAppNetwork === Slug.mainnet
 const isGoerli = reactAppNetwork === Slug.goerli
+const isSepolia = reactAppNetwork === Slug.sepolia
 
 if (isMainnet) {
   addresses = mainnetAddresses
@@ -15,6 +17,9 @@ if (isMainnet) {
 } else if (isGoerli) {
   addresses = goerliAddresses
   networks = goerliNetworks
+} else if (isSepolia) {
+  addresses = sepoliaAddresses
+  networks = sepoliaNetworks
 } else {
   throw new Error(`Invalid network: ${reactAppNetwork}`)
 }
@@ -46,7 +51,9 @@ if (enabledChains) {
   }
   networks = filteredNetworks
 } else {
-  const filteredNetworks: { [key: string]: any } = {}
+  const filteredNetworks: { [key: string]: any } = {
+    ethereum: networks.ethereum
+  }
   for (const chain of chainsWithConfig) {
     filteredNetworks[chain] = networks[chain]
   }

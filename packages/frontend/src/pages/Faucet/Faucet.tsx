@@ -62,6 +62,8 @@ const Faucet: FC = () => {
   }
   setMintAmount(mintAmounts[selectedToken])
 
+  const filteredTokens = tokens?.filter(token => token.symbol !== 'ETH')
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center">
@@ -74,13 +76,15 @@ const Faucet: FC = () => {
           <Typography variant="body1" className={styles.text}>
             Mint {mintAmount} {selectedToken}
           </Typography>
-          <RaisedSelect value={selectedToken} onChange={handleTokenChange}>
-            {tokens.filter(token => token.symbol !== 'ETH').filter(token => token.symbol !== 'USDC').map(token => (
-              <MenuItem value={token.symbol} key={token.symbol}>
-                {token.symbol}
-              </MenuItem>
-            ))}
-          </RaisedSelect>
+          {filteredTokens?.length > 0 && (
+            <RaisedSelect value={selectedToken} onChange={handleTokenChange}>
+              {filteredTokens.filter(token => token.symbol !== 'USDC').map(token => (
+                <MenuItem value={token.symbol} key={token.symbol}>
+                  {token.symbol}
+                </MenuItem>
+              ))}
+            </RaisedSelect>
+          )}
         </Box>
         <Button
           className={styles.button}

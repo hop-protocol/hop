@@ -1078,13 +1078,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   // Other than the eth_sendRawTransaction method and return, this method is identical to ethers signer.sendTransaction
-  async sendUncheckedTransaction(transaction: providers.TransactionRequest): Promise<TransactionRequestWithHash> {
+  async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<TransactionRequestWithHash> {
     const _debugMsg = `GasBoostTransaction signer.sendTransaction elapsed DEBUG ${this.logId}`
     const _debugMsgA = _debugMsg + ' A'
     const _debugMsgB = _debugMsg + ' B'
     const _debugMsgC = _debugMsg + ' C'
     const _debugMsgD = _debugMsg + ' D'
-
 
     console.time(_debugMsgA)
     const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
@@ -1096,7 +1095,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
     console.timeEnd(_debugMsgC)
     console.time(_debugMsgD)
-    const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [ signedTx ])
+
+    const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [signedTx])
     console.timeEnd(_debugMsgD)
 
     // Only populated response field is the hash

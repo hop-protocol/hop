@@ -168,7 +168,7 @@ export class ArbBot {
     }
     this.l2ChainWriteProvider = this.l2ChainProvider
     if (this.l2ChainSlug === 'linea') {
-      this.l2ChainWriteProvider = new providers.StaticJsonRpcProvider('https://rpc.goerli.linea.build')
+      this.l2ChainWriteProvider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: 'https://rpc.goerli.linea.build' })
     }
 
     this.ammSigner = new Wallet(privateKey)

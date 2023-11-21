@@ -87,7 +87,7 @@ export const config : Config = {
     polygonzk: true
   },
   relayerFeeWei: {
-    linea: '1000000000000000'
+    linea: '100000000000000'
   },
   proxyEnabled: {
     ETH: {
@@ -95,7 +95,7 @@ export const config : Config = {
       polygon: false,
       gnosis: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -107,7 +107,7 @@ export const config : Config = {
       polygon: false,
       gnosis: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -118,7 +118,7 @@ export const config : Config = {
       polygon: false,
       gnosis: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -128,7 +128,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -138,7 +138,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -148,7 +148,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,

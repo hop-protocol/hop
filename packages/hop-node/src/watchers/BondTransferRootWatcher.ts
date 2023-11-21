@@ -283,7 +283,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const transferIds = txParams.transferIds.map((x: string) => x.toLowerCase())
 
     // Only use roots that are not the current root, from the source chain, and have associated transferIds
-    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromTwoWeeks())
+    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromWeek())
       .filter(dbTransferRoot => dbTransferRoot.transferRootId !== txParams.transferRootId)
       .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
       .filter(dbTransferRoot => dbTransferRoot?.transferIds?.length)

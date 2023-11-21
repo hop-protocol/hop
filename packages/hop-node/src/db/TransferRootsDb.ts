@@ -364,9 +364,9 @@ class TransferRootsDb extends BaseDb {
   }
 
   // gets only transfer roots within range: now - 2 weeks ago
-  async getTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
+  async getTransferRootsFromWeek (): Promise<TransferRoot[]> {
     await this.tilReady()
-    const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
+    const fromUnix = Math.floor((Date.now() - (OneWeekMs)) / 1000)
     return this.getTransferRoots({
       fromUnix
     })
@@ -376,7 +376,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<UnbondedTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
@@ -442,7 +442,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -500,7 +500,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -548,7 +548,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<RelayableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -612,7 +612,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<ChallengeableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -651,7 +651,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<UnsettledTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false

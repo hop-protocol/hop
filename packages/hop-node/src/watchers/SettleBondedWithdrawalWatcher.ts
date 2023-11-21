@@ -44,7 +44,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  async checkTransferRootId (transferRootId: string) {
+  async checkTransferRootId (transferRootId: string, bonder?: string) {
     const logger = this.logger.create({ root: transferRootId })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
       transferRootId
@@ -70,7 +70,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
       .bridge
-    const bonder = await destBridge.getBonderAddress()
+    bonder = bonder ?? await destBridge.getBonderAddress()
     logger.debug(`transferRootId: ${transferRootId}`)
 
     const tree = new MerkleTree(transferIds)
@@ -145,7 +145,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     if (!dbTransferRoot?.transferRootId) {
       throw new Error('db transfer root not found')
     }
-    return this.checkTransferRootId(dbTransferRoot.transferRootId, bonder!)
+    return this.checkTransferRootId(dbTransferRoot.transferRootId, bonder)
   }
 
   async depositToVaultIfNeeded (destinationChainId: number) {

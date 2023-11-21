@@ -327,7 +327,7 @@ class TransfersDb extends BaseDb {
   }
 
   // gets only transfers within range: now - 1 week ago
-  async getTransfersFromWeek () {
+  async getTransfersFromDay () {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
     return await this.getTransfers({
@@ -380,7 +380,7 @@ class TransfersDb extends BaseDb {
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UncommittedTransfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const transfers: Transfer[] = await this.getTransfersFromDay()
     const filtered = transfers.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
@@ -400,7 +400,7 @@ class TransfersDb extends BaseDb {
   async getUnbondedSentTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnbondedSentTransfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const transfers: Transfer[] = await this.getTransfersFromDay()
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false
@@ -449,7 +449,7 @@ class TransfersDb extends BaseDb {
   async getUnrelayedSentTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnrelayedSentTransfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const transfers: Transfer[] = await this.getTransfersFromDay()
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false

@@ -838,7 +838,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.populateTransferSentTimestampAndSender(transferId)
+    await this.populateTransferSentTimestamp(transferId)
   }
 
   async populateTransferRootDbItem (transferRootId: string) {
@@ -875,34 +875,33 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTransferIds(transferRootId)
   }
 
-  async populateTransferSentTimestampAndSender (transferId: string) {
+  async populateTransferSentTimestamp (transferId: string) {
     const logger = this.logger.create({ id: transferId })
-    logger.debug('starting populateTransferSentTimestampAndSender')
+    logger.debug('starting populateTransferSentTimestamp')
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     const {
       sourceChainId,
       transferSentTxHash,
       transferSentBlockNumber,
       transferSentTimestamp,
-      sender,
       recipient
     } = dbTransfer
 
     if (!sourceChainId || !transferSentTxHash || !transferSentBlockNumber) {
-      logger.warn(`populateTransferSentTimestampAndSender marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferSentTimestamp marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 
-    if (transferSentTimestamp && sender) {
-      logger.debug(`populateTransferSentTimestampAndSender already found. dbItem: ${JSON.stringify(dbTransfer)}`)
+    if (transferSentTimestamp) {
+      logger.debug(`populateTransferSentTimestamp already found. dbItem: ${JSON.stringify(dbTransfer)}`)
       return
     }
 
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
     const tx: providers.TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
     if (!tx) {
-      logger.warn(`populateTransferSentTimestampAndSender marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferSentTimestamp marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
@@ -913,9 +912,8 @@ class SyncWatcher extends BaseWatcher {
       timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     }
 
-    logger.debug(`populateTransferSentTimestampAndSender: sender: ${from}, timestamp: ${timestamp}`)
+    logger.debug(`populateTransferSentTimestamp: sender: ${from}, timestamp: ${timestamp}`)
     await this.db.transfers.update(transferId, {
-      sender: from,
       transferSentTimestamp: timestamp
     })
 

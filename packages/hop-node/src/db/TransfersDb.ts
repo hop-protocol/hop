@@ -44,7 +44,6 @@ interface BaseTransfer {
   withdrawalBondTxError?: TxError
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
-  sender?: string
 }
 
 export interface Transfer extends BaseTransfer {
@@ -202,7 +201,7 @@ class SubDbIncompletes extends BaseDb {
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
-      (item.transferSentBlockNumber && (!item.transferSentTimestamp && !item.sender))
+      (item.transferSentBlockNumber && !item.transferSentTimestamp)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }

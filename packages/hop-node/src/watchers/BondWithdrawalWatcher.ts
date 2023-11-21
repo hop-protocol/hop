@@ -48,7 +48,6 @@ type Config = {
 
 export type SendBondWithdrawalTxParams = {
   transferId: string
-  sender: string
   recipient: string
   amount: BigNumber
   transferNonce: string
@@ -254,7 +253,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.debug('checkTransferId sendBondWithdrawalTx')
       const tx = await this.sendBondWithdrawalTx({
         transferId,
-        sender: sourceTx.from,
         recipient,
         amount,
         transferNonce,

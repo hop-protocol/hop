@@ -255,43 +255,12 @@ class SubDbRootHashes extends BaseDb {
 }
 
 // structure:
-// key: `<bondedAt>:<transferRootId>`
-// value: `{ transferRootId: <transferRootId> }`
-class SubDbBondedAt extends BaseDb {
-  constructor (prefix: string, _namespace?: string) {
-    super(`${prefix}:rootBondedAt`, _namespace)
-  }
-
-  async insertItem (transferRoot: TransferRoot) {
-    const { transferRootId, bondedAt } = transferRoot
-    const logger = this.logger.create({ id: transferRootId })
-    if (!bondedAt) {
-      return
-    }
-    const key = `${bondedAt}:${transferRootId}`
-    const exists = await this.getById(key)
-    if (!exists) {
-      logger.debug('inserting db transferRoot bondedAt key item')
-      await this._update(key, { transferRootId })
-    }
-  }
-
-  async getFilteredKeyValues (dateFilter: TransferRootsDateFilter) {
-    const filter: KeyFilter = {
-      gte: `${dateFilter.fromUnix}`
-    }
-    return this.getKeyValues(filter)
-  }
-}
-
-// structure:
 // key: `<transferRootId>`
 // value: `{ ...TransferRoot }`
 class TransferRootsDb extends BaseDb {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes
   subDbRootHashes: SubDbRootHashes
-  subDbBondedAt: SubDbBondedAt
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
@@ -299,7 +268,6 @@ class TransferRootsDb extends BaseDb {
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
-    this.subDbBondedAt = new SubDbBondedAt(prefix, _namespace)
     this.logger.debug('TransferRootsDb initialized')
   }
 
@@ -341,7 +309,6 @@ class TransferRootsDb extends BaseDb {
     await Promise.all([
       this.subDbTimestamps.insertItem(transferRoot as TransferRoot),
       this.subDbRootHashes.insertItem(transferRoot as TransferRoot),
-      this.subDbBondedAt.insertItem(transferRoot as TransferRoot),
       this.upsertTransferRootItem(transferRoot as TransferRoot)
     ])
   }
@@ -403,15 +370,6 @@ class TransferRootsDb extends BaseDb {
     return this.getTransferRoots({
       fromUnix
     })
-  }
-
-  async getBondedTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
-    await this.tilReady()
-    const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
-    const items = await this.subDbBondedAt.getFilteredKeyValues({ fromUnix })
-    const transferRootIds = items.map((item: KV) => item.value.transferRootId)
-    const entries = await this.batchGetByIds(transferRootIds)
-    return entries.map(this.normalizeItem)
   }
 
   async getUnbondedTransferRoots (
@@ -654,7 +612,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<ChallengeableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getBondedTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false

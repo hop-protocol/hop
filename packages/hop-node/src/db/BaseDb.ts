@@ -12,6 +12,8 @@ import { EventEmitter } from 'events'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
+import { Migration } from 'src/db/migrations'
+
 
 const dbMap: { [key: string]: any } = {}
 
@@ -59,8 +61,9 @@ class BaseDb extends EventEmitter {
   batchSize: number = 10
   batchTimeLimit: number = 2 * 1000
   batchQueue: QueueItem[] = []
+  private readonly dbMigrationKey: string = '_dbMigrationIndex'
 
-  constructor (prefix: string, _namespace?: string) {
+  constructor (prefix: string, _namespace?: string, migrations?: Migration[]) {
     super()
     if (!prefix) {
       throw new Error('db prefix is required')
@@ -121,7 +124,7 @@ class BaseDb extends EventEmitter {
       })
 
     this.pollBatchQueue()
-    this._migration()
+    this._migrate(migrations)
       .then(() => {
         this.ready = true
         this.logger.debug('db ready')
@@ -132,15 +135,33 @@ class BaseDb extends EventEmitter {
       })
   }
 
-  // To add a migration, implement the shouldMigrate and migration functions in the child class.
   // Migrations are memory intensive. Ensure there is no unintentional memory overflow.
   // * Use stream instead of storing all entries at once
   // * Bypass the mutex
-  async _migration (): Promise<void> {
-    // Check if migration is needed
-    if (!this.shouldMigrate()) return
+  // This may take minutes or hours to complete
+  private async _migrate (migrations?: Migration[]): Promise<void> {
+    if (!migrations?.length) {
+      this.logger.debug('no migrations to process')
+      return
+    }
 
-    // Perform migration
+    const currentMigrationIndex = await this.getMigrationIndex() ?? 0
+    const lastMigrationIndex = migrations.length - 1
+    if (currentMigrationIndex < lastMigrationIndex) {
+      this.logger.debug(`no migration required, currentMigrationIndex: ${currentMigrationIndex}`)
+      return
+    }
+
+    for (let i = currentMigrationIndex; i <= lastMigrationIndex; i++) {
+      const migration: Migration = migrations[i]
+      this.logger.debug(`processing migration ${i}`)
+      await this._processMigration(migration)
+      await this.putMigrationIndex(i)
+      this.logger.debug(`completed migration ${i}`)
+    }
+  }
+
+  private async _processMigration(migration: Migration): Promise<void> {
     return await new Promise((resolve, reject) => {
       const s = this.db.createReadStream({})
       s.on('data', async (key: any, value: any) => {
@@ -154,9 +175,8 @@ class BaseDb extends EventEmitter {
           return
         }
 
-        // Call the child class migration function
         try {
-          await this.migration(key, value)
+          await this._migrateEntry(migration, key, value)
         } catch (err) {
           s.emit('error', err)
         }
@@ -174,15 +194,24 @@ class BaseDb extends EventEmitter {
     })
   }
 
-  shouldMigrate (): boolean {
-    // Optional
-    // Must return true in child class to perform migration
-    return false
+  // Ensure that these DB reads and writes do not use the mutex since a migration is memory-intensive
+  private async _migrateEntry (migration: Migration, key: string, value: any): Promise<void> {
+    const { key: migrationKey, value: migrationValue, migratedValue } = migration
+    if (
+      value?.[migrationKey] === undefined ||
+      value?.[migrationKey] === migrationValue
+    ) {
+      const { value: updatedValue } = await this._getUpdateData(key, migratedValue)
+      return this.db.put(key, updatedValue)
+    }
   }
 
-  async migration (key: string, value: any): Promise<void> {
-    // Optional
-    // Must be implemented in child class to perform migration
+  private async getMigrationIndex (): Promise<number | undefined> {
+    return this.getById(this.dbMigrationKey)
+  }
+
+  private async putMigrationIndex (updatedMigrationIndex: number) {
+    return this._updateSingle(this.dbMigrationKey, updatedMigrationIndex)
   }
 
   protected async tilReady (): Promise<boolean> {

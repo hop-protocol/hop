@@ -5,6 +5,7 @@ import { BigNumber } from 'ethers'
 import { Chain, FiveMinutesMs, OneDayMs, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
+import { transfersMigrations } from './migrations'
 
 interface BaseTransfer {
   amount?: BigNumber
@@ -216,21 +217,9 @@ class TransfersDb extends BaseDb {
   subDbIncompletes: SubDbIncompletes
 
   constructor (prefix: string, _namespace?: string) {
-    super(prefix, _namespace)
+    super(prefix, _namespace, transfersMigrations)
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
-  }
-
-  shouldMigrate (): boolean {
-    return true
-  }
-
-  async migration (key: string, value: any): Promise<void> {
-    if (value?.isFinalized === undefined) {
-      const { value: updatedValue } = await this._getUpdateData(key, value)
-      updatedValue.isFinalized = true
-      return this.db.put(key, updatedValue)
-    }
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {

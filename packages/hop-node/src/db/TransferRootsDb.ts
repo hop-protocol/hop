@@ -18,6 +18,7 @@ import {
   oruChains
 } from 'src/config'
 import { normalizeDbItem } from './utils'
+import { transferRootsMigrations } from './migrations'
 
 interface BaseTransferRoot {
   bondBlockNumber?: number
@@ -134,7 +135,7 @@ export type ChallengeableTransferRoot = {
 // note: the "transferRoot" prefix is not required but requires a migration to remove
 class SubDbTimestamps extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
-    super(`${prefix}:timestampedKeys`, _namespace)
+    super(`${prefix}:timestampedKeys`, _namespace, transferRootsMigrations)
   }
 
   getTimestampedKey (transferRoot: TransferRoot) {

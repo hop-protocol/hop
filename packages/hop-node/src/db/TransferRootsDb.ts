@@ -1,4 +1,4 @@
-import BaseDb, { KV, KeyFilter } from './BaseDb'
+import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
@@ -160,7 +160,12 @@ class SubDbTimestamps extends BaseDb {
   }
 
   async getFilteredKeyValues (dateFilter?: TransferRootsDateFilter) {
-    // return only transfer-root keys that are within specified range (filter by timestamped keys)
+    const now = Math.floor(Date.now() / 1000)
+    const maxDateFilterWarning = now - (OneWeekMs * 2)
+    if (dateFilter?.fromUnix && dateFilter.fromUnix < maxDateFilterWarning) {
+      this.logger.warn(`TransferRootsDb.getFilteredKeyValues: Date range is large. Watch out for memory issues. fromUnix: ${dateFilter.fromUnix}`)
+    }
+
     const filter: KeyFilter = {
       gte: 'transferRoot:',
       lte: 'transferRoot:~'
@@ -363,7 +368,6 @@ class TransferRootsDb extends BaseDb {
     return this.getItems(dateFilter)
   }
 
-  // gets only transfer roots within range: now - 2 weeks ago
   async getTransferRootsFromWeek (): Promise<TransferRoot[]> {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - (OneWeekMs)) / 1000)

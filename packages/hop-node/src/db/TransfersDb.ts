@@ -142,6 +142,12 @@ class SubDbTimestamps extends BaseDb {
   }
 
   async getFilteredKeyValues (dateFilter?: TransfersDateFilter) {
+    const now = Math.floor(Date.now() / 1000)
+    const maxDateFilterWarning = now - OneWeekMs
+    if (dateFilter?.fromUnix && dateFilter.fromUnix < maxDateFilterWarning) {
+      this.logger.warn(`TransfersDb.getFilteredKeyValues: Date range is large. Watch out for memory issues. fromUnix: ${dateFilter.fromUnix}`)
+    }
+
     const filter: KeyFilter = {
       gte: 'transfer:',
       lte: 'transfer:~'
@@ -326,7 +332,6 @@ class TransfersDb extends BaseDb {
     return await this.getItems(dateFilter)
   }
 
-  // gets only transfers within range: now - 1 week ago
   async getTransfersFromDay () {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
@@ -347,11 +352,11 @@ class TransfersDb extends BaseDb {
     }
 
     // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
-    // up the root onchain. Each 
-    const maxLookbackIndex = 4
-    let transferIds: string[] = []
+    // up the root onchain.
+    const maxLookbackIndex = 14
+    const transferIds: string[] = []
     for (let i = 1; i <= maxLookbackIndex; i++) {
-      const fromUnix = Math.floor((Date.now() - (OneWeekMs * i)) / 1000)
+      const fromUnix = Math.floor((Date.now() - (OneDayMs * i)) / 1000)
       const transfers: Transfer[] = await this.getTransfers({
         fromUnix
       })
@@ -375,7 +380,6 @@ class TransfersDb extends BaseDb {
       }
     }
   }
-
 
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}

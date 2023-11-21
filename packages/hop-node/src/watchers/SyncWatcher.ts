@@ -751,7 +751,6 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('shouldBondTransferRoot:', shouldBondTransferRoot)
       logger.debug('transfersCommittedLogIndex:', logIndex)
 
-
       await this.db.transferRoots.update(transferRootId, {
         transferRootHash,
         totalAmount,
@@ -1132,7 +1131,7 @@ class SyncWatcher extends BaseWatcher {
       sourceChainId,
       destinationChainId,
       commitTxBlockNumber,
-      commitTxLogIndex,
+      commitTxLogIndex
     } = dbTransferRoot
 
     const logger = this.logger.create({ root: transferRootId })
@@ -1194,9 +1193,7 @@ class SyncWatcher extends BaseWatcher {
     try {
       const transferIds = await destinationBridge.getParamsFromMultipleSettleEventTransaction(multipleWithdrawalsSettledTxHash)
       return transferIds
-    } catch (err) {
-      return
-    }
+    } catch (err) {}
   }
 
   async checkTransferIdsForRootFromDb (

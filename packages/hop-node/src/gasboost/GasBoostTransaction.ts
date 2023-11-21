@@ -1085,7 +1085,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const _debugMsgC = _debugMsg + ' C'
     const _debugMsgD = _debugMsg + ' D'
 
-
     console.time(_debugMsgA)
     const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
     console.timeEnd(_debugMsgA)

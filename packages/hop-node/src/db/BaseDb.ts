@@ -9,11 +9,10 @@ import spread from 'lodash/spread'
 import sub from 'subleveldown'
 import wait from 'src/utils/wait'
 import { EventEmitter } from 'events'
+import { Migration } from 'src/db/migrations'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
-import { Migration } from 'src/db/migrations'
-
 
 const dbMap: { [key: string]: any } = {}
 
@@ -161,7 +160,7 @@ class BaseDb extends EventEmitter {
     }
   }
 
-  private async _processMigration(migration: Migration): Promise<void> {
+  private async _processMigration (migration: Migration): Promise<void> {
     return await new Promise((resolve, reject) => {
       const s = this.db.createReadStream({})
       s.on('data', async (key: any, value: any) => {

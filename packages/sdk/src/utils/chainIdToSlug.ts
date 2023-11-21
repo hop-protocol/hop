@@ -1,4 +1,4 @@
-import * as allNetworks from '@hop-protocol/core/networks'
+import { networks } from '@hop-protocol/core/networks'
 
 export function chainIdToSlug (network: string, chainId: number | string) {
   if (chainId === undefined) {
@@ -9,13 +9,15 @@ export function chainIdToSlug (network: string, chainId: number | string) {
     chainId = chainId.toString()
   }
 
-  const networks = (allNetworks as any)[network] as any
-  for (const key in networks) {
-    const v = networks[key]
-    if (v.networkId.toString() === chainId) {
-      return key
+  for (const _network in networks) {
+    const chains = (networks as any)[_network]
+    for (const chainSlug in chains) {
+      const chainObj = chains[chainSlug]
+      if (chainObj.networkId.toString() === chainId) {
+        return chainSlug
+      }
     }
   }
 
-  return { 1: 'ethereum', 5: 'goerli' }[chainId] || ''
+  return ''
 }

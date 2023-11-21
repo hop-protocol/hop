@@ -4,7 +4,9 @@ import { Signer, providers } from 'ethers'
 import { find } from 'lodash'
 import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
+import { networks as coreNetworks } from '@hop-protocol/core/networks'
 import Network from 'src/models/Network'
+import { getNativeTokenSymbol } from './getNativeTokenSymbol'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
   return find(networks, ['slug', slug])
@@ -56,14 +58,17 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     networkId = networkId.toString()
   }
 
-  for (const key in networks) {
-    const v = networks[key]
-    if (v.networkId.toString() === networkId) {
-      return key as Slug
+  for (const _network in coreNetworks) {
+    const chains = (coreNetworks as any)[_network]
+    for (const chainSlug in chains) {
+      const chainObj = chains[chainSlug]
+      if (chainObj.networkId.toString() === networkId) {
+        return chainSlug as Slug
+      }
     }
   }
 
-  return { 1: 'ethereum', 5: 'goerli' }[networkId] || ''
+  return ''
 }
 
 export const networkIdToName = (networkId: string | number) => {
@@ -73,12 +78,7 @@ export const networkIdToName = (networkId: string | number) => {
 
 export const networkIdNativeTokenSymbol = (networkId: string | number) => {
   const slug = networkIdToSlug(networkId)
-  if (slug === ChainSlug.Gnosis) {
-    return CanonicalToken.XDAI
-  } else if (slug === ChainSlug.Polygon) {
-    return CanonicalToken.MATIC
-  }
-  return CanonicalToken.ETH
+  return getNativeTokenSymbol(slug)
 }
 
 export function getNetworkWaitConfirmations(tChain: TChain): number {

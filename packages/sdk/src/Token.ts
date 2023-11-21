@@ -6,6 +6,7 @@ import { ERC20__factory } from '@hop-protocol/core/contracts/factories/generated
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
 import { WETH9__factory } from '@hop-protocol/core/contracts/factories/static/WETH9__factory'
+import { chains as chainMetadata } from '@hop-protocol/core/metadata/chains'
 
 export type TokenConstructorOptions = {
   chain: TChain,
@@ -262,26 +263,16 @@ class Token extends Base {
     )
   }
 
-  // TODO: read from core instead
   get isNativeToken (): boolean {
-    const isEth =
-      this._symbol === TokenModel.ETH &&
-      (this.chain.equals(Chain.Ethereum) ||
-        this.chain.equals(Chain.Arbitrum) ||
-        this.chain.equals(Chain.Nova) ||
-        this.chain.equals(Chain.Optimism) ||
-        this.chain.equals(Chain.ZkSync) ||
-        this.chain.equals(Chain.Linea) ||
-        this.chain.equals(Chain.ScrollZk) ||
-        this.chain.equals(Chain.Base) ||
-        this.chain.equals(Chain.PolygonZk)
-      )
-    const isMatic =
-      this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
-    const isxDai =
-      [TokenModel.DAI, TokenModel.XDAI].includes(this._symbol) &&
-      this.chain.equals(Chain.Gnosis)
-    return isEth || isMatic || isxDai
+    const nativeTokenSymbol = (chainMetadata as any)[this.chain.slug]?.nativeTokenSymbol
+    let isNative = nativeTokenSymbol === this._symbol
+
+    // check for both XDAI and DAI on Gnosis Chain
+    if (!isNative && this.chain.equals(Chain.Gnosis) && TokenModel.DAI === this._symbol) {
+      isNative = true
+    }
+
+    return isNative
   }
 
   get nativeTokenSymbol (): string {

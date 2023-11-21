@@ -3,7 +3,7 @@ const { ethers } = require('ethers')
 async function main () {
   const url = 'http://localhost:8000' // local proxy
   const options = {
-    allowGzip: false,
+    allowGzip: true,
     url
   }
   const provider = new ethers.providers.JsonRpcProvider(options)

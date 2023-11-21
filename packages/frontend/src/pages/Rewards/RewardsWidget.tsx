@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
-import Alert from 'src/components/alert/Alert'
+import { Alert } from 'src/components/Alert'
 import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import Typography from '@material-ui/core/Typography'
 import { toTokenDisplay } from 'src/utils'
-import InfoTooltip from 'src/components/InfoTooltip'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { useRewards } from './useRewards'
 import { makeStyles } from '@material-ui/core/styles'
-import LargeTextField from 'src/components/LargeTextField'
+import { LargeTextField } from 'src/components/LargeTextField'
 import { utils } from 'ethers'
 
 interface Props {

@@ -9,7 +9,10 @@ export const networks: Networks = {
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli',
+    txOverrides: {
+      minGasLimit: 1_000_000
+    }
   },
   polygon: {
     name: chains.polygon.name,
@@ -19,7 +22,11 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge',
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mumbai'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mumbai',
+    txOverrides: {
+      minGasPrice: 30_000_000_000,
+      minGasLimit: 1_000_000
+    }
   },
   optimism: {
     name: chains.optimism.name,
@@ -29,7 +36,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli',
+    isRollup: true
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -39,7 +47,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.arbiscan.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
-    subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
+    subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli',
+    isRollup: true
   },
   zksync: {
     name: chains.zksync.name,
@@ -48,7 +57,8 @@ export const networks: Networks = {
     publicRpcUrl: 'https://zksync2-testnet.zksync.dev',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
-    nativeBridgeUrl: ''
+    nativeBridgeUrl: '',
+    isRollup: true
   },
   linea: {
     name: chains.linea.name,
@@ -58,7 +68,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
-    subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
+    subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli',
+    isRollup: true
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -67,7 +78,8 @@ export const networks: Networks = {
     publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
-    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge'
+    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
+    isRollup: true
   },
   base: {
     name: chains.base.name,
@@ -77,7 +89,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
-    subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
+    subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli',
+    isRollup: true
   },
   polygonzk: {
     name: chains.polygonzk.name,
@@ -86,6 +99,7 @@ export const networks: Networks = {
     publicRpcUrl: 'https://rpc.public.zkevm-test.net',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
-    nativeBridgeUrl: 'https://public.zkevm-test.net'
+    nativeBridgeUrl: 'https://public.zkevm-test.net',
+    isRollup: true
   }
 }

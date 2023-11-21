@@ -95,7 +95,7 @@ export const config : Config = {
       polygon: false,
       gnosis: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -107,7 +107,7 @@ export const config : Config = {
       polygon: false,
       gnosis: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -118,7 +118,7 @@ export const config : Config = {
       polygon: false,
       gnosis: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -128,7 +128,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -138,7 +138,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -148,7 +148,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
-      arbitrum: false,
+      arbitrum: true,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -157,5 +157,29 @@ export const config : Config = {
   },
   bridgeDeprecated: {
     USDC: true
+  },
+  defaultSendGasLimit: {
+    native: {
+      ethereum: 130000,
+      arbitrum: 500000,
+      optimism: 225000,
+      gnosis: 260000,
+      polygon: 260000,
+      linea: 500000,
+      scrollzk: 500000,
+      base: 225000,
+      polygonzk: 500000
+    },
+    token: {
+      ethereum: 180000,
+      arbitrum: 700000,
+      optimism: 240000,
+      gnosis: 260000,
+      polygon: 260000,
+      linea: 700000,
+      scrollzk: 700000,
+      base: 240000,
+      polygonzk: 700000
+    }
   }
 }

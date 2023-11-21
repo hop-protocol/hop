@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton'
-import InfoTooltip from 'src/components/InfoTooltip'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'
 import { PoolRow } from './PoolRow'

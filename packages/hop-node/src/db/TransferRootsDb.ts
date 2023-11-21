@@ -219,7 +219,7 @@ class SubDbIncompletes extends BaseDb {
       (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
       (item.confirmTxHash && !item.confirmedAt) ||
       (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
-      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds)
+      (item.sourceChainId && !item.transferIds)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
@@ -728,6 +728,7 @@ class TransferRootsDb extends BaseDb {
         item.rootSetTxHash &&
         item.committed &&
         item.committedAt &&
+        !item.settled &&
         rootSetTimestampOk &&
         bondSettleTimestampOk
       )

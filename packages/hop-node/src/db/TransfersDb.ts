@@ -202,8 +202,7 @@ class SubDbIncompletes extends BaseDb {
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
-      (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-      (!item.sender)
+      (item.transferSentBlockNumber && (!item.transferSentTimestamp && !item.sender))
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }

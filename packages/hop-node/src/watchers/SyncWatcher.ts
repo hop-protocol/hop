@@ -1156,13 +1156,13 @@ class SyncWatcher extends BaseWatcher {
       !transferIds &&
       (sourceChainId && destinationChainId && commitTxBlockNumber && commitTxLogIndex)
     ) {
-    logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
+      logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
       transferIds = await this.checkTransferIdsForRootFromDb(
-      sourceChainId,
-      destinationChainId,
-      commitTxBlockNumber,
-      commitTxLogIndex
-    )
+        sourceChainId,
+        destinationChainId,
+        commitTxBlockNumber,
+        commitTxLogIndex
+      )
     }
 
     // Try finding transferIds with events

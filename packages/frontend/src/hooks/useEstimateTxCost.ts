@@ -5,6 +5,7 @@ import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
+import { getDefaultSendGasLimit } from 'src/utils/getDefaultSendGasLimit'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -122,19 +123,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
           )
         } catch (err) {
           logger.error('estimateSendGasLimit error:', err)
-          const defaultSendGasLimits = {
-            ethereum: token.symbol === 'ETH' ? 130000 : 180000,
-            arbitrum: token.symbol === 'ETH' ? 500000 : 700000,
-            optimism: token.symbol === 'ETH' ? 225000 : 240000,
-            gnosis: token.symbol === 'ETH' ? 260000 : 390000,
-            polygon: token.symbol === 'ETH' ? 260000 : 260000,
-            nova: token.symbol === 'ETH' ? 500000 : 700000,
-            linea: token.symbol === 'ETH' ? 500000 : 700000,
-            scrollzk: token.symbol === 'ETH' ? 500000 : 700000,
-            base: token.symbol === 'ETH' ? 225000 : 240000,
-            polygonzk: token.symbol === 'ETH' ? 500000 : 700000
-          }
-          const defaultGasLimit = defaultSendGasLimits[fromNetwork.slug]
+          const defaultGasLimit = getDefaultSendGasLimit(fromNetwork.slug, token.symbol)
           logger.debug('using default gasLimit:', defaultGasLimit)
           estimatedGasLimit = BigNumber.from(defaultGasLimit)
         }

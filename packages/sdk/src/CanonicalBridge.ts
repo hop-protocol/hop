@@ -602,7 +602,7 @@ class CanonicalBridge extends Base {
   public toCanonicalToken (token: TToken, network: string, chain: TChain): TokenClass {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    const { name, symbol, decimals, image } = metadata.tokens[network][
+    const { name, symbol, decimals, image } = metadata.tokens[
       token.canonicalSymbol
     ]
     let address
@@ -646,7 +646,7 @@ class CanonicalBridge extends Base {
     } else {
       tokenSymbol = token.symbol
     }
-    const { name, symbol, decimals, image } = metadata.tokens[network][
+    const { name, symbol, decimals, image } = metadata.tokens[
       tokenSymbol
     ]
     const l2HopBridgeToken = this.getL2HopBridgeTokenAddress(

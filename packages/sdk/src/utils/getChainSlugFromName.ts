@@ -26,6 +26,7 @@ export function getChainSlugFromName (name: string) {
   }
   if (
     slug === NetworkSlug.Goerli ||
+    slug === NetworkSlug.Sepolia ||
     slug === NetworkSlug.Mainnet ||
     slug === ChainSlug.Ethereum
   ) {

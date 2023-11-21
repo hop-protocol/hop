@@ -1,104 +1,6 @@
-import { BigNumber } from 'ethers'
+import { CanonicalToken, ChainId, ChainName, ChainSlug, HToken, NetworkSlug, Slug, WrappedToken } from '@hop-protocol/core/networks/enums'
 
-export enum NetworkSlug {
-  Mainnet = 'mainnet',
-  Goerli = 'goerli'
-}
-
-// mainnet chain ids
-export enum ChainId {
-  Ethereum = 1,
-  Optimism = 10,
-  Arbitrum = 42161,
-  Polygon = 137,
-  Gnosis = 100,
-  Nova = 42170,
-  ZkSync = 324,
-  Base = 8453,
-  Linea = 59144
-}
-
-// TODO: read from core package
-export enum ChainName {
-  Ethereum = 'Ethereum',
-  Optimism = 'Optimism',
-  Arbitrum = 'Arbitrum',
-  Polygon = 'Polygon',
-  Gnosis = 'Gnosis',
-  Nova = 'Nova',
-  ZkSync = 'zkSync',
-  Linea = 'Linea',
-  ScrollZk = 'Scroll zkEVM',
-  Base = 'Base',
-  PolygonZk = 'Polygon zkEVM',
-}
-
-// TODO: read from core package
-export enum ChainSlug {
-  Ethereum = 'ethereum',
-  Optimism = 'optimism',
-  Arbitrum = 'arbitrum',
-  Polygon = 'polygon',
-  Gnosis = 'gnosis',
-  Nova = 'nova',
-  ZkSync = 'zksync',
-  Linea = 'linea',
-  ScrollZk = 'scrollzk',
-  Base = 'base',
-  PolygonZk = 'polygonzk',
-}
-
-export enum Slug {
-  ethereum = 'ethereum',
-  goerli = 'goerli',
-  mainnet = 'mainnet',
-  arbitrum = 'arbitrum',
-  optimism = 'optimism',
-  gnosis = 'gnosis',
-  polygon = 'polygon',
-  nova = 'nova',
-  zksync = 'zksync',
-  linea = 'linea',
-  scrollzk = 'scrollzk',
-  base = 'base',
-  polygonzk = 'polygonzk'
-}
-
-export enum CanonicalToken {
-  ETH = 'ETH',
-  MATIC = 'MATIC',
-  XDAI = 'XDAI',
-  USDC = 'USDC',
-  USDT = 'USDT',
-  DAI = 'DAI',
-  WBTC = 'WBTC',
-  sBTC = 'sBTC',
-  sETH = 'sETH',
-  HOP = 'HOP',
-  SNX = 'SNX',
-  sUSD = 'sUSD',
-  rETH = 'rETH',
-  UNI = 'UNI',
-  MAGIC = 'MAGIC'
-}
-
-export enum WrappedToken {
-  WETH = 'WETH',
-  WMATIC = 'WMATIC',
-  WXDAI = 'WXDAI',
-}
-
-export enum HToken {
-  hETH = 'hETH',
-  hMATIC = 'hMATIC',
-  hUSDC = 'hUSDC',
-  hUSDT = 'hUSDT',
-  hDAI = 'hDAI',
-  hHop = 'hHOP',
-  hrETH = 'hrETH',
-  hUNI = 'hUNI',
-  hMAGIC = 'hMAGIC'
-}
+export { NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
 
 export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string
 
@@ -132,9 +34,6 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 
 export const LpFeeBps = 4
 export const PendingAmountBufferUsd = 50000
-export const MinPolygonGasPrice = 30_000_000_000
-export const MinPolygonGasLimit = BigNumber.from(1_000_000)
-export const MinGoerliGasLimit = BigNumber.from(1_000_000)
 
 export enum Errors {
   NotEnoughAllowance = 'Not enough allowance. Please call `approve` on the token contract to allow contract to move tokens and make sure you are connected to the correct network.',

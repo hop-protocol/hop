@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core/styles'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -24,7 +24,7 @@ type Props = {
   relayFeeUsd?: string
 }
 
-const FeeDetails: FC<Props> = props => {
+export const FeeDetails: FC<Props> = props => {
   const styles = useStyles()
   const { bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd, relayFee, relayFeeUsd } = props
 
@@ -67,5 +67,3 @@ const FeeDetails: FC<Props> = props => {
     </div>
   )
 }
-
-export default FeeDetails

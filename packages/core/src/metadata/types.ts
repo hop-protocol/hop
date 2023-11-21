@@ -6,6 +6,7 @@ export interface Token {
   decimals: number
   image: string
   coingeckoId?: string
+  isStablecoin?: boolean
 }
 
 export type Tokens = {

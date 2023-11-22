@@ -79,7 +79,7 @@ async function main (source: any) {
         output.push(item || { transferRootId })
       }
       const filtered = output.map((x: any) => {
-        const { transferRootId, transferRootHash, totalAmount, bonded, comitted, committedAt, confirmed, rootSetTimestamp, allSettled } = x
+        const { transferRootId, transferRootHash, totalAmount, bonded, comitted, committedAt, confirmed, rootSetTimestamp } = x
         return {
           transferRootId,
           transferRootHash,
@@ -88,8 +88,7 @@ async function main (source: any) {
           comitted,
           committedAt,
           confirmed,
-          rootSetTimestamp,
-          allSettled
+          rootSetTimestamp
         }
       })
       items = filtered

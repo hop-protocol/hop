@@ -523,7 +523,7 @@ class IncompleteSettlementsWatcher {
 
   private async getOnchainTotalAmountWithdrawn (destinationChain: string, token: string, transferRootHash: string, totalAmount: BigNumber) {
     const contract = this.getContract(destinationChain, token)
-    const { total, amountWithdrawn } = await contract.getTransferRoot(transferRootHash, totalAmount)
+    const { amountWithdrawn } = await contract.getTransferRoot(transferRootHash, totalAmount)
     return amountWithdrawn
   }
 

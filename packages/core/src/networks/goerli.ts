@@ -39,17 +39,6 @@ export const networks: Networks = {
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli',
     isRollup: true
   },
-  arbitrum: {
-    name: chains.arbitrum.name,
-    image: chains.arbitrum.image,
-    networkId: 421613,
-    publicRpcUrl: 'https://goerli-rollup.arbitrum.io/rpc',
-    fallbackPublicRpcUrls: [],
-    explorerUrls: ['https://goerli.arbiscan.io'],
-    nativeBridgeUrl: 'https://bridge.arbitrum.io',
-    subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli',
-    isRollup: true
-  },
   zksync: {
     name: chains.zksync.name,
     image: chains.zksync.image,

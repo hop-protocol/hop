@@ -167,6 +167,7 @@ class BaseDb extends EventEmitter {
   }
 
   private async _processMigration (migration: Migration): Promise<void> {
+    let migrationCount = 0
     return await new Promise((resolve, reject) => {
       const s = this.db.createReadStream({})
       s.on('data', async (key: any, value: any) => {
@@ -182,12 +183,13 @@ class BaseDb extends EventEmitter {
 
         try {
           await this._migrateEntry(migration, key, value)
+          migrationCount++
         } catch (err) {
           s.emit('error', err)
         }
       })
         .on('end', () => {
-          this.logger.debug('DB migration complete')
+          this.logger.debug(`DB migration complete. migrated ${migrationCount} entries`)
           s.destroy()
           resolve()
         })
@@ -206,7 +208,8 @@ class BaseDb extends EventEmitter {
       value?.[migrationKey] === undefined ||
       value?.[migrationKey] === migrationValue
     ) {
-      const { value: updatedValue } = await this._getUpdateData(key, migratedValue)
+      const { value: updatedValue } = await this._getUpdateData(key, value)
+      updatedValue[migrationKey] = migratedValue
       return this.db.put(key, updatedValue)
     }
   }

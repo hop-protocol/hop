@@ -19,6 +19,7 @@ for (const network in chainNetworks) {
     chains[chain].rpcUrl = chainConfig?.publicRpcUrl
     chains[chain].explorerUrl = chainConfig?.explorerUrls?.[0]
     chains[chain].fallbackRpcUrls = chainConfig?.fallbackPublicRpcUrls ?? []
+    chains[chain].etherscanApiUrl = chainConfig?.etherscanApiUrl ?? ''
     chains[chain].subgraphUrl = chainConfig?.subgraphUrl
     if (chainConfig?.isRollup) {
       bondableChainsSet.add(chain)
@@ -50,16 +51,5 @@ for (const network in chainNetworks) {
 export const bondableChains = Array.from(bondableChainsSet)
 export const rateLimitMaxRetries = 3
 export const rpcTimeoutSeconds = 60
-
-export const etherscanApiUrls: Record<string, string> = {
-  ethereum: 'https://api.etherscan.io',
-  polygon: 'https://api.polygonscan.com',
-  optimism: 'https://api-optimistic.etherscan.io',
-  arbitrum: 'https://api.arbiscan.io',
-  gnosis: 'https://api.gnosisscan.io',
-  nova: 'https://api-nova.arbiscan.io',
-  base: 'https://api.basescan.org',
-  linea: 'https://api.lineascan.build'
-}
 
 export { metadata, config }

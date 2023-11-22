@@ -1,7 +1,7 @@
-import { etherscanApiUrls } from '../config'
+import { config } from '../config'
 
 export function getEtherscanApiUrl (network: string, chain: string): string {
-  const url = etherscanApiUrls?.[chain]
+  const url = config[network]?.chains?.[chain]?.etherscanApiUrl
   if (!url) {
     throw new Error(`etherscan API url not found for chain ${chain}`)
   }

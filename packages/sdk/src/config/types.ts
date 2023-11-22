@@ -5,6 +5,7 @@ interface Chain {
   fallbackRpcUrls?: string[]
   explorerUrl: string
   subgraphUrl: string
+  etherscanApiUrl?: string
 }
 
 export interface Chains {

@@ -355,7 +355,7 @@ class TransfersDb extends BaseDb {
     // up the root onchain.
     const maxLookbackIndex = 14
     const transferIds: string[] = []
-    
+
     const now = Date.now()
     for (let i = 0; i <= maxLookbackIndex; i++) {
       const fromUnix = Math.floor((now - (OneDayMs * (i + 1))) / 1000)

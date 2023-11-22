@@ -126,9 +126,8 @@ export default async function getTransferIdsForTransferRoot (
     }
   `
 
-  
-  let _transfers: any[] = []
-  while(true) {
+  const _transfers: any[] = []
+  while (true) {
     jsonRes = await makeRequest(chain, query, {
       token,
       startBlockNumber: startBlockNumber.toString(),

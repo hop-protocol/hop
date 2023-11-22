@@ -928,13 +928,6 @@ const Index: NextPage = (props: any) => {
           </div>
         </div>
       )}
-      {isGoerli && (
-        <div id="banner">
-          <div>
-            <span>⚠️</span> The Linea network is experiencing RPC issues at this time. If your Linea transaction has not arrived, please check again in a few hours.
-          </div>
-        </div>
-      )}
       <Box id="app" className={dark ? 'dark' : 'light'}>
         <Box mb={2} mt={2} display="flex" justifyContent="space-between">
           <Box className="header" display="flex" alignItems="center" justifyContent="center">

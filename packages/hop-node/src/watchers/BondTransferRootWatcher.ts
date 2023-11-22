@@ -70,8 +70,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         committedAt,
         sourceChainId,
-        transferIds,
-        commitTxBlockNumber
+        transferIds
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
 
@@ -93,8 +92,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         committedAt,
         sourceChainId,
-        transferIds,
-        commitTxBlockNumber
+        transferIds
       ))
     }
 
@@ -108,8 +106,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     destinationChainId: number,
     committedAt: number,
     sourceChainId: number,
-    transferIds: string[],
-    commitTxBlockNumber: number
+    transferIds: string[]
   ) {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
@@ -143,7 +140,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('transferRootId:', transferRootId)
     logger.debug('transferRootHash:', transferRootHash)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-    logger.debug('transferRootId:', transferRootId)
 
     const pendingTransfers: string[] = transferIds ?? []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
@@ -287,7 +283,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const transferIds = txParams.transferIds.map((x: string) => x.toLowerCase())
 
     // Only use roots that are not the current root, from the source chain, and have associated transferIds
-    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromTwoWeeks())
+    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromWeek())
       .filter(dbTransferRoot => dbTransferRoot.transferRootId !== txParams.transferRootId)
       .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
       .filter(dbTransferRoot => dbTransferRoot?.transferIds?.length)

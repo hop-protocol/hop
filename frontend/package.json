@@ -18,7 +18,7 @@
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
-    "@hop-protocol/core": "^0.0.1-beta.202",
+    "@hop-protocol/core": "^0.0.1-beta.203",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.8",
     "@mui/styles": "^5.11.7",

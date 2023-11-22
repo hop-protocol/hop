@@ -1177,6 +1177,10 @@ class SyncWatcher extends BaseWatcher {
       )
     }
 
+    if (!transferIds) {
+      throw new Error(`transfer ids not found after lookup for transferRootHash ${transferRootHash}`)
+    }
+
     return transferIds
   }
 
@@ -1191,7 +1195,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     try {
-      const transferIds = await destinationBridge.getParamsFromMultipleSettleEventTransaction(multipleWithdrawalsSettledTxHash)
+      const { transferIds } = await destinationBridge.getParamsFromMultipleSettleEventTransaction(multipleWithdrawalsSettledTxHash)
       return transferIds
     } catch (err) {}
   }

@@ -37,6 +37,10 @@ type QueueItem = {
   cb: any
 }
 
+type MigrationIndexEntry = {
+  index: number
+}
+
 // this are options that leveldb createReadStream accepts
 export type KeyFilter = {
   gt?: string
@@ -151,13 +155,15 @@ class BaseDb extends EventEmitter {
       return
     }
 
+    this.logger.debug(`processing migrations from ${currentMigrationIndex} to ${lastMigrationIndex}`)
     for (let i = currentMigrationIndex; i <= lastMigrationIndex; i++) {
       const migration: Migration = migrations[i]
       this.logger.debug(`processing migration ${i}`)
       await this._processMigration(migration)
-      await this.putMigrationIndex(i)
+      await this.putMigrationIndex(i + 1)
       this.logger.debug(`completed migration ${i}`)
     }
+    this.logger.debug('migrations complete')
   }
 
   private async _processMigration (migration: Migration): Promise<void> {
@@ -206,11 +212,15 @@ class BaseDb extends EventEmitter {
   }
 
   private async getMigrationIndex (): Promise<number | undefined> {
-    return this.getById(this.dbMigrationKey)
+    const migrationEntry: MigrationIndexEntry = await this.getById(this.dbMigrationKey)
+    return migrationEntry?.index
   }
 
   private async putMigrationIndex (updatedMigrationIndex: number): Promise<void> {
-    return this._updateSingle(this.dbMigrationKey, updatedMigrationIndex)
+    const data: MigrationIndexEntry = {
+      index: updatedMigrationIndex
+    }
+    return this._updateSingle(this.dbMigrationKey, data)
   }
 
   protected async tilReady (): Promise<boolean> {

@@ -135,7 +135,7 @@ export type ChallengeableTransferRoot = {
 // note: the "transferRoot" prefix is not required but requires a migration to remove
 class SubDbTimestamps extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
-    super(`${prefix}:timestampedKeys`, _namespace, transferRootsMigrations)
+    super(`${prefix}:timestampedKeys`, _namespace)
   }
 
   getTimestampedKey (transferRoot: TransferRoot) {
@@ -268,7 +268,7 @@ class TransferRootsDb extends BaseDb {
   subDbRootHashes: SubDbRootHashes
 
   constructor (prefix: string, _namespace?: string) {
-    super(prefix, _namespace)
+    super(prefix, _namespace, transferRootsMigrations)
 
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
@@ -359,7 +359,7 @@ class TransferRootsDb extends BaseDb {
     const transferRoots = batchedItems.map(this.normalizeItem)
     const items = transferRoots.sort(this.sortItems)
 
-    this.logger.debug(`items length: ${items.length}`)
+    this.logger.debug(`getItems, items length: ${items.length}`)
     return items
   }
 

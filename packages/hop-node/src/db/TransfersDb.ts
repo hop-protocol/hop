@@ -322,7 +322,7 @@ class TransfersDb extends BaseDb {
     const batchedItems = await this.batchGetByIds(transferIds)
     const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
     const items = transfers.filter(Boolean).sort(this.sortItems)
-    this.logger.info(`items length: ${items.length}`)
+    this.logger.info(`getMultipleTransfersByTransferIds, items length: ${items.length}`)
 
     return items
   }
@@ -355,10 +355,14 @@ class TransfersDb extends BaseDb {
     // up the root onchain.
     const maxLookbackIndex = 14
     const transferIds: string[] = []
-    for (let i = 1; i <= maxLookbackIndex; i++) {
-      const fromUnix = Math.floor((Date.now() - (OneDayMs * i)) / 1000)
+    
+    const now = Date.now()
+    for (let i = 0; i <= maxLookbackIndex; i++) {
+      const fromUnix = Math.floor((now - (OneDayMs * (i + 1))) / 1000)
+      const toUnix = Math.floor((now - (OneDayMs * i)) / 1000)
       const transfers: Transfer[] = await this.getTransfers({
-        fromUnix
+        fromUnix,
+        toUnix
       })
 
       // Sorted newest to oldest
@@ -369,11 +373,17 @@ class TransfersDb extends BaseDb {
           transfer.destinationChainId === destinationChainId &&
           transfer.transferSentBlockNumber &&
           transfer.transferSentBlockNumber <= commitTxBlockNumber &&
-          transfer.transferSentLogIndex &&
-          transfer.transferSentLogIndex < commitTxLogIndex
+          transfer.transferSentIndex
         ) {
+          if (
+            commitTxBlockNumber === transfer.transferSentBlockNumber &&
+            transfer.transferSentIndex > commitTxLogIndex
+          ) {
+            continue
+          }
           transferIds.unshift(transfer.transferId)
-          if (transfer?.transferSentIndex === 0) {
+          // onchain transfer sent index always starts at 1
+          if (transfer?.transferSentIndex === 1) {
             return transferIds
           }
         }

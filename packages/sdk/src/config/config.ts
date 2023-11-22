@@ -51,17 +51,6 @@ export const bondableChains = Array.from(bondableChainsSet)
 export const rateLimitMaxRetries = 3
 export const rpcTimeoutSeconds = 60
 
-export const etherscanApiKeys: Record<string, string> = {
-  ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY ?? '',
-  polygon: process.env.ETHERSCAN_POLYGON_API_KEY ?? '',
-  optimism: process.env.ETHERSCAN_OPTIMISM_API_KEY ?? '',
-  arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY ?? '',
-  gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY ?? '',
-  nova: process.env.ETHERSCAN_NOVA_API_KEY ?? '',
-  base: process.env.ETHERSCAN_BASE_API_KEY ?? '',
-  linea: process.env.ETHERSCAN_LINEA_API_KEY ?? ''
-}
-
 export const etherscanApiUrls: Record<string, string> = {
   ethereum: 'https://api.etherscan.io',
   polygon: 'https://api.polygonscan.com',

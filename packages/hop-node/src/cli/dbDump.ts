@@ -65,7 +65,7 @@ async function main (source: any) {
       if (calculatedTransferRootHash !== transferRootHash) {
         logger.debug('transferIds:', JSON.stringify(transferIds))
         throw new Error(
-          `transfers computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${calculatedTransferRootHash}`
+          `dbDump computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${calculatedTransferRootHash}`
         )
       }
       console.log(dbTransferRoot)

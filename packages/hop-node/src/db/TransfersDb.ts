@@ -376,7 +376,7 @@ class TransfersDb extends BaseDb {
               transfer.transferSentLogIndex === undefined ||
               transfer.transferSentLogIndex > commitTxLogIndex
             ) {
-            continue
+              continue
             }
           }
 

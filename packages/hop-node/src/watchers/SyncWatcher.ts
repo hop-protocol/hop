@@ -1111,9 +1111,7 @@ class SyncWatcher extends BaseWatcher {
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
-      logger.warn(
-        `populateTransferRootTransferIds computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(transferIds)}`
-      )
+      logger.warn(`computed root doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. IDs: ${JSON.stringify(transferIds)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
@@ -1183,10 +1181,6 @@ class SyncWatcher extends BaseWatcher {
         destinationChainId,
         commitTxBlockNumber
       )
-    }
-
-    if (!transferIds) {
-      throw new Error(`transfer ids not found after lookup for transferRootHash ${transferRootHash}`)
     }
 
     return transferIds

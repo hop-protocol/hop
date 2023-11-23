@@ -19,14 +19,12 @@ for (const network in chainNetworks) {
     chains[chain].rpcUrl = chainConfig?.publicRpcUrl
     chains[chain].explorerUrl = chainConfig?.explorerUrls?.[0]
     chains[chain].fallbackRpcUrls = chainConfig?.fallbackPublicRpcUrls ?? []
+    chains[chain].etherscanApiUrl = chainConfig?.etherscanApiUrl ?? ''
     chains[chain].subgraphUrl = chainConfig?.subgraphUrl
     if (chainConfig?.isRollup) {
       bondableChainsSet.add(chain)
     }
   }
-  // console.log('here00', chainAddresses)
-  // console.log('here111', network)
-  // console.log('here222', (chainAddresses as any)[network])
 
   const addresses = (chainAddresses as any)[network].bridges
   const bonders = (chainAddresses as any)[network].bonders
@@ -53,4 +51,5 @@ for (const network in chainNetworks) {
 export const bondableChains = Array.from(bondableChainsSet)
 export const rateLimitMaxRetries = 3
 export const rpcTimeoutSeconds = 60
+
 export { metadata, config }

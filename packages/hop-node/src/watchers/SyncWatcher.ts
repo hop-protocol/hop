@@ -1149,9 +1149,13 @@ class SyncWatcher extends BaseWatcher {
     }
 
     // Try finding transferIds with the DB
+    // NOTE: commitTxLogIndex can be 0, so we need to check for undefined
     if (
       !transferIds &&
-      (sourceChainId && destinationChainId && commitTxBlockNumber && commitTxLogIndex)
+      sourceChainId &&
+      destinationChainId &&
+      commitTxBlockNumber &&
+      commitTxLogIndex !== undefined
     ) {
       logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
       transferIds = await this.checkTransferIdsForRootFromDb(
@@ -1165,7 +1169,9 @@ class SyncWatcher extends BaseWatcher {
     // Try finding transferIds with events
     if (
       !transferIds &&
-      (sourceChainId && destinationChainId && commitTxBlockNumber)
+      sourceChainId &&
+      destinationChainId &&
+      commitTxBlockNumber
     ) {
       logger.debug(`looking onchain for transfer ids for transferRootHash ${transferRootHash}`)
       transferIds = await this.checkTransferIdsForRootFromChain(
@@ -1204,12 +1210,8 @@ class SyncWatcher extends BaseWatcher {
     sourceChainId: number,
     destinationChainId: number,
     commitTxBlockNumber: number,
-    commitTxLogIndex?: number
+    commitTxLogIndex: number
   ): Promise<string[] | undefined> {
-    if (!commitTxLogIndex) {
-      // The commitTxLogIndex was added to DB entries after the initial release and a migration was never run
-      return
-    }
     return this.db.transfers.getTransfersIdsWithTransferRootHash({
       sourceChainId,
       destinationChainId,

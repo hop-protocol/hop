@@ -112,6 +112,7 @@ export const networks: Networks = {
     explorerUrls: ['https://lineascan.build/'],
     nativeBridgeUrl: 'https://bridge.linea.build/',
     subgraphUrl: 'https://linea.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea',
+    etherscanApiUrl: 'https://api.lineascan.build',
     isRollup: true
   }
   /*

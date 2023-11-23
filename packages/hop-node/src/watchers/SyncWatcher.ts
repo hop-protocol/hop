@@ -558,7 +558,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling TransferSent event')
 
     try {
-      const { transactionHash } = event
+      const { transactionHash, logIndex } = event
       const transferSentIndex: number = index.toNumber()
       const blockNumber: number = event.blockNumber
       const l2Bridge = this.bridge as L2Bridge
@@ -579,6 +579,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
       logger.debug('deadline:', deadline.toString())
       logger.debug('transferSentIndex:', transferSentIndex)
+      logger.debug('transferSentLogIndex:', logIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
       logger.debug('isFinalized:', isFinalized)
 
@@ -600,6 +601,7 @@ class SyncWatcher extends BaseWatcher {
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
         transferSentIndex,
+        transferSentLogIndex: logIndex,
         isFinalized
       }
 

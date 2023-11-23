@@ -369,17 +369,19 @@ class TransfersDb extends BaseDb {
           transfer.destinationChainId === destinationChainId &&
           transfer.transferSentBlockNumber &&
           transfer.transferSentBlockNumber <= commitTxBlockNumber &&
-          transfer.transferSentIndex
+          transfer.transferSentIndex !== undefined
         ) {
-          if (
-            commitTxBlockNumber === transfer.transferSentBlockNumber &&
-            transfer.transferSentIndex > commitTxLogIndex
-          ) {
+          if (transfer.transferSentBlockNumber === commitTxBlockNumber) {
+            if (
+              transfer.transferSentLogIndex === undefined ||
+              transfer.transferSentLogIndex > commitTxLogIndex
+            ) {
             continue
+            }
           }
+
           transferIds.unshift(transfer.transferId)
-          // onchain transfer sent index always starts at 1
-          if (transfer?.transferSentIndex === 1) {
+          if (transfer.transferSentIndex === 0) {
             return transferIds
           }
         }

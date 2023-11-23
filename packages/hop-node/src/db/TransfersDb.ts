@@ -347,10 +347,6 @@ class TransfersDb extends BaseDb {
     const { sourceChainId, destinationChainId, commitTxBlockNumber, commitTxLogIndex } = input
     await this.tilReady()
 
-    if (!commitTxLogIndex) {
-      return
-    }
-
     // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
     // up the root onchain.
     const maxLookbackIndex = 14

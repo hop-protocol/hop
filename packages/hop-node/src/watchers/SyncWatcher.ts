@@ -1175,8 +1175,8 @@ class SyncWatcher extends BaseWatcher {
     ) {
       logger.debug(`looking onchain for transfer ids for transferRootHash ${transferRootHash}`)
       transferIds = await this.checkTransferIdsForRootFromChain(
-        transferRootHash,
         transferRootId,
+        transferRootHash,
         sourceChainId,
         destinationChainId,
         commitTxBlockNumber
@@ -1220,7 +1220,12 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async lookupTransferIds (sourceBridge: L2Bridge, transferRootHash: string, destinationChainId: number, endBlockNumber: number) {
+  async lookupTransferIds (
+    sourceBridge: L2Bridge,
+    transferRootHash: string,
+    destinationChainId: number,
+    endBlockNumber: number
+  ) {
     const logger = this.logger.create({ root: transferRootHash })
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
@@ -1350,7 +1355,12 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const { endEvent, transferIds } = await this.lookupTransferIds(sourceBridge, transferRootHash, destinationChainId, eventBlockNumber)
+    const { endEvent, transferIds } = await this.lookupTransferIds(
+      sourceBridge,
+      transferRootHash,
+      destinationChainId,
+      eventBlockNumber
+    )
 
     if (!transferIds) {
       throw new Error('expected transfer ids')

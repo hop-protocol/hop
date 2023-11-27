@@ -12,6 +12,7 @@ export const networks: Networks = {
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-sepolia',
     txOverrides: {
       minGasLimit: 1_000_000
-    }
+    },
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   }
 }

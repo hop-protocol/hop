@@ -12,6 +12,7 @@ export type Network = {
   etherscanApiUrl?: string
   isRollup?: boolean
   isRelayable?: boolean
+  multicall?: string
   txOverrides?: {
     minGasPrice?: number
     minGasLimit?: number

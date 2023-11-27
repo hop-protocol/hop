@@ -1,8 +1,18 @@
 import Multicall3Abi from '@hop-protocol/core/abi/static/Multicall3.json'
 import { ethers } from 'ethers'
 
+type Config = {
+  accountAddress: string
+}
+
 export class Multicall {
-  async getBalances (userAddress: string) {
+  accountAddress: string
+
+  constructor (config: Config) {
+    this.accountAddress = config.accountAddress
+  }
+
+  async getBalances () {
     // Set up the provider (e.g., Infura, Alchemy)
     const provider = new ethers.providers.JsonRpcProvider('https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213') // public rpc
 
@@ -21,7 +31,7 @@ export class Multicall {
       const tokenContract = new ethers.Contract(tokenAddress, erc20ABI, provider)
       return {
         target: tokenAddress,
-        callData: tokenContract.interface.encodeFunctionData('balanceOf', [userAddress])
+        callData: tokenContract.interface.encodeFunctionData('balanceOf', [this.accountAddress])
       }
     })
 

@@ -1,1 +1,1 @@
-export * from './Multicall'
+export { Multicall } from './Multicall'

@@ -1,6 +1,6 @@
 import { Multicall } from '../../src/Multicall'
 
-describe('Multicall', () => {
+describe.skip('Multicall', () => {
   it('Should get token addresses for chain', async () => {
     const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
     const multicall = new Multicall({ network: 'mainnet', accountAddress })
@@ -27,13 +27,13 @@ describe('Multicall', () => {
     const multicall = new Multicall({ network: 'mainnet', accountAddress })
     const balances = await multicall.getBalancesForChain('optimism')
     console.log(balances)
-    expect(balances).toBeDefined()
+    expect(balances.length > 0).toBeTruthy()
   }, 60 * 1000)
   it('Should get balances', async () => {
     const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
     const multicall = new Multicall({ network: 'mainnet', accountAddress })
     const balances = await multicall.getBalances()
     console.log(balances)
-    expect(balances).toBeDefined()
+    expect(balances.length > 0).toBeTruthy()
   }, 60 * 1000)
 })

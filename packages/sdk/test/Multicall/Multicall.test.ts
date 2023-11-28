@@ -1,6 +1,6 @@
 import { Multicall } from '../../src/Multicall'
 
-describe.skip('Multicall', () => {
+describe.only('Multicall', () => {
   it('Should get token addresses for chain', async () => {
     const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
     const multicall = new Multicall({ network: 'mainnet', accountAddress })

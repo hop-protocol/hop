@@ -1,17 +1,36 @@
 import ERC20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import Multicall3Abi from '@hop-protocol/core/abi/static/Multicall3.json'
 import { Contract, constants, providers } from 'ethers'
-import { defaultAbiCoder } from 'ethers/lib/utils'
+import { PriceFeedFromS3 } from '../priceFeed'
+import { defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
+import { getTokenDecimals } from '../utils/getTokenDecimals'
 import { config as sdkConfig } from '../config'
 
-type Config = {
+export type Config = {
   network: string
   accountAddress: string
+}
+
+export type Balance = {
+  tokenSymbol: string
+  address: string
+  chainSlug: string
+  balance?: string
+  balanceFormatted?: string
+  balanceUsd?: string
+  tokenPrice?: string
+  error?: string
+}
+
+export type TokenAddress = {
+  tokenSymbol: string
+  address: string
 }
 
 export class Multicall {
   network: string
   accountAddress: string
+  priceFeed: PriceFeedFromS3
 
   constructor (config: Config) {
     if (!config) {
@@ -25,9 +44,10 @@ export class Multicall {
     }
     this.network = config.network
     this.accountAddress = config.accountAddress
+    this.priceFeed = new PriceFeedFromS3()
   }
 
-  getMulticallAddressForChain (chainSlug: string) {
+  getMulticallAddressForChain (chainSlug: string): string {
     const address = sdkConfig[this.network].chains?.[chainSlug]?.multicall
     if (!address) {
       throw new Error(`multicallAddress not found for chain ${chainSlug}`)
@@ -35,7 +55,7 @@ export class Multicall {
     return address
   }
 
-  getProvider (chainSlug: string) {
+  getProvider (chainSlug: string): providers.Provider {
     const rpcUrl = sdkConfig[this.network].chains?.[chainSlug]?.rpcUrl
     if (!rpcUrl) {
       throw new Error(`rpcUrl not found for chain ${chainSlug}`)
@@ -44,14 +64,14 @@ export class Multicall {
     return provider
   }
 
-  getChains () {
+  getChains (): string[] {
     const chains = Object.keys(sdkConfig[this.network].chains)
     return chains
   }
 
-  getTokenAddressesForChain (chainSlug: string) {
+  getTokenAddressesForChain (chainSlug: string): TokenAddress[] {
     const tokenConfigs = sdkConfig[this.network]?.addresses
-    const addresses : any[] = []
+    const addresses : TokenAddress[] = []
     for (const tokenSymbol in tokenConfigs) {
       const chainConfig = tokenConfigs[tokenSymbol]?.[chainSlug]
       if (!chainConfig) {
@@ -72,9 +92,9 @@ export class Multicall {
     return addresses
   }
 
-  async getBalances () {
+  async getBalances ():Promise<Balance[]> {
     const chains = this.getChains()
-    const promises: any[] = []
+    const promises: Promise<any>[] = []
     for (const chain of chains) {
       promises.push(this.getBalancesForChain(chain))
     }
@@ -82,13 +102,13 @@ export class Multicall {
     return balances.flat()
   }
 
-  async getBalancesForChain (chainSlug: string) {
+  async getBalancesForChain (chainSlug: string): Promise<Balance[]> {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const tokenAddresses = this.getTokenAddressesForChain(chainSlug)
     const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
 
-    const calls = tokenAddresses.map(({ address }: any) => {
+    const calls = tokenAddresses.map(({ address }: TokenAddress) => {
       const tokenContract = new Contract(address, ERC20Abi, provider)
       return {
         target: address,
@@ -98,16 +118,23 @@ export class Multicall {
 
     const result = await multicallContract.callStatic.aggregate3(calls)
 
-    const balances = result.map((data: any, index: number) => {
+    const balancePromises = result.map(async (data: any, index: number) => {
       const returnData = data.returnData
       const { tokenSymbol, address } = tokenAddresses[index]
       try {
-        const balance = defaultAbiCoder.decode(['uint256'], returnData)[0].toString()
+        const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]
+        const tokenDecimals = getTokenDecimals(tokenSymbol)
+        const balanceFormatted = Number(formatUnits(balance, tokenDecimals))
+        const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(tokenSymbol)
+        const balanceUsd = balanceFormatted * tokenPrice
         return {
           tokenSymbol,
           address,
+          chainSlug,
           balance,
-          chainSlug
+          balanceFormatted,
+          balanceUsd,
+          tokenPrice
         }
       } catch (err: any) {
         return {
@@ -118,6 +145,8 @@ export class Multicall {
         }
       }
     })
+
+    const balances = await Promise.all(balancePromises)
 
     return balances
   }

@@ -194,7 +194,12 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
-      let { rootBondBackoffIndex } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+      const transferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+      if (!transferRoot) {
+        throw new Error('transferRoot not found in db')
+      }
+
+      let { rootBondBackoffIndex } = transferRoot
       if (!rootBondBackoffIndex) {
         rootBondBackoffIndex = 0
       }

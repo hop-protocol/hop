@@ -1,48 +1,51 @@
 import Logger from 'src/logger'
-import groupBy from 'lodash/groupBy'
 import level from 'level-party'
-import merge from 'lodash/merge'
 import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
-import spread from 'lodash/spread'
 import sub from 'subleveldown'
 import wait from 'src/utils/wait'
 import { EventEmitter } from 'events'
 import { Migration } from 'src/db/migrations'
-import { Mutex } from 'async-mutex'
-import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
+import { normalizeDbItem } from './utils'
+import DatabaseMigrator from './DatabaseMigrator'
 
 const dbMap: { [key: string]: any } = {}
 
 enum Event {
-  Error = 'error',
-  Batch = 'batch',
+  Error = 'error'
 }
 
-export type BaseItem = {
-  _id?: string
+export type KV<T> = {
+  key: string
+  value: T
+}
+
+type DbMetadata = {
   _createdAt?: number
+  _migrationIndex?: number
 }
 
-export type KV = {
-  key: string
-  value: any
+export type DateFilter = {
+  fromUnix?: number
+  toUnix?: number
 }
 
-type QueueItem = {
-  key: string
-  value: any
-  cb: any
+export type DateFilterWithKeyPrefix = DateFilter & {
+  keyPrefix: string
 }
 
-type MigrationIndexEntry = {
-  index: number
+export type CbFilterGet<T> = (key: string, value: T) => T | null
+export type CbFilterPut<T> = (key: string, value: T) => Promise<void>
+export type DbItemsFilter<T> = {
+  dateFilterWithKeyPrefix?: DateFilterWithKeyPrefix
+  cbFilterGet?: CbFilterGet<T>
+  cbFilterPut?: CbFilterPut<T>
 }
 
-// this are options that leveldb createReadStream accepts
-export type KeyFilter = {
+// These are LevelDB options
+export type DbKeyFilter = {
   gt?: string
   gte?: string
   lt?: string
@@ -53,18 +56,12 @@ export type KeyFilter = {
   values?: boolean
 }
 
-class BaseDb extends EventEmitter {
-  ready = false
+abstract class BaseDb<T> extends EventEmitter {
   public db: any
   public prefix: string
-  logger: Logger
-  mutex: Mutex = new Mutex()
-  pollIntervalMs: number = 5 * 1000
-  lastBatchUpdatedAt: number = Date.now()
-  batchSize: number = 10
-  batchTimeLimit: number = 2 * 1000
-  batchQueue: QueueItem[] = []
-  private readonly dbMigrationKey: string = '_dbMigrationIndex'
+  public logger: Logger
+  private ready = false
+  private readonly metadataKey: string = '_metadata'
 
   constructor (prefix: string, _namespace?: string, migrations?: Migration[]) {
     super()
@@ -83,7 +80,10 @@ class BaseDb extends EventEmitter {
     mkdirp.sync(pathname.replace(path.basename(pathname), ''))
     if (!dbMap[pathname]) {
       this.logger.info(`db path: ${pathname}`)
-      dbMap[pathname] = level(pathname)
+      // Default write buffer size is 4 MB. Increase to 8 MB for more efficient disk writes.
+      dbMap[pathname] = level(pathname, {
+        writeBufferSize: 8 * 1024 * 1024 // 8 MB
+      })
     }
 
     const key = `${pathname}:${prefix}`
@@ -92,43 +92,30 @@ class BaseDb extends EventEmitter {
     }
     this.db = dbMap[key]
 
-    const logPut = (key: string, value: any) => {
-      // only log recently created items
-      const recentlyCreated = value?._createdAt && Date.now() - value._createdAt < TenSecondsMs
-      if (recentlyCreated) {
-        this.logger.debug(`put item, key=${key}`)
-      }
-    }
-
     this.db
-      .on('open', () => {
-        this.logger.debug('open')
-      })
-      .on('closed', () => {
-        this.logger.debug('closed')
-      })
-      .on('batch', (ops: any[]) => {
-        this.emit(Event.Batch, ops)
-        for (const op of ops) {
-          if (op.type === 'put') {
-            logPut(op.key, op.value)
-          }
-        }
-      })
-      .on('put', (key: string, value: any) => {
-        logPut(key, value)
-      })
-      .on('clear', (key: string) => {
-        this.logger.debug(`clear item, key=${key}`)
-      })
       .on('error', (err: Error) => {
-        this._emitError(err)
+        this.#emitError(err)
         this.logger.error(`leveldb error: ${err.message}`)
       })
 
-    this.pollBatchQueue()
-    this._migrate(migrations)
-      .then(() => {
+
+    if (migrations) {
+      this.#init(migrations)
+    } else {
+      this.ready = true
+      this.logger.debug('db ready')
+    }
+  }
+
+  async #init(migrations: Migration[]): Promise<void> {
+    const databaseMigrator = new DatabaseMigrator<T>(this)
+    const metadata = await this.#getMetadata()
+    const migrationIndex = metadata?._migrationIndex ?? 0
+    databaseMigrator.migrate(migrations, migrationIndex)
+      .then(async (updatedMigrationIndex: number) => {
+        await this.#upsertMetadata({
+          _migrationIndex: updatedMigrationIndex
+        })
         this.ready = true
         this.logger.debug('db ready')
       })
@@ -136,94 +123,6 @@ class BaseDb extends EventEmitter {
         this.logger.error(err)
         process.exit(1)
       })
-  }
-
-  // Migrations are memory intensive. Ensure there is no unintentional memory overflow.
-  // * Use stream instead of storing all entries at once
-  // * Bypass the mutex
-  // This may take minutes or hours to complete
-  private async _migrate (migrations?: Migration[]): Promise<void> {
-    if (!migrations?.length) {
-      this.logger.debug('no migrations to process')
-      return
-    }
-
-    const currentMigrationIndex = await this.getMigrationIndex() ?? 0
-    const lastMigrationIndex = migrations.length - 1
-    if (currentMigrationIndex > lastMigrationIndex) {
-      this.logger.debug(`no migration required, currentMigrationIndex: ${currentMigrationIndex}`)
-      return
-    }
-
-    this.logger.debug(`processing migrations from ${currentMigrationIndex} to ${lastMigrationIndex}`)
-    for (let i = currentMigrationIndex; i <= lastMigrationIndex; i++) {
-      const migration: Migration = migrations[i]
-      this.logger.debug(`processing migration ${i}`)
-      await this._processMigration(migration)
-      await this.putMigrationIndex(i + 1)
-      this.logger.debug(`completed migration ${i}`)
-    }
-    this.logger.debug('migrations complete')
-  }
-
-  private async _processMigration (migration: Migration): Promise<void> {
-    let migrationCount = 0
-    return await new Promise((resolve, reject) => {
-      const s = this.db.createReadStream({})
-      s.on('data', async (key: any, value: any) => {
-        // the parameter types depend on what key/value enabled options were used
-        if (typeof key === 'object') {
-          value = key.value
-          key = key.key
-        }
-        // ignore this key that used previously to track unique ids
-        if (key === 'ids') {
-          return
-        }
-
-        try {
-          await this._migrateEntry(migration, key, value)
-          migrationCount++
-        } catch (err) {
-          s.emit('error', err)
-        }
-      })
-        .on('end', () => {
-          this.logger.debug(`DB migration complete. migrated ${migrationCount} entries`)
-          s.destroy()
-          resolve()
-        })
-        .on('error', (err: any) => {
-          this.logger.error('DB migration error:', err)
-          s.destroy()
-          reject(err)
-        })
-    })
-  }
-
-  // Ensure that these DB reads and writes do not use the mutex since a migration is memory-intensive
-  private async _migrateEntry (migration: Migration, key: string, value: any): Promise<void> {
-    const { key: migrationKey, value: migrationValue, migratedValue } = migration
-    if (
-      value?.[migrationKey] === undefined ||
-      value?.[migrationKey] === migrationValue
-    ) {
-      const { value: updatedValue } = await this._getUpdateData(key, value)
-      updatedValue[migrationKey] = migratedValue
-      return this.db.put(key, updatedValue)
-    }
-  }
-
-  private async getMigrationIndex (): Promise<number | undefined> {
-    const migrationEntry: MigrationIndexEntry = await this.getById(this.dbMigrationKey)
-    return migrationEntry?.index
-  }
-
-  private async putMigrationIndex (updatedMigrationIndex: number): Promise<void> {
-    const data: MigrationIndexEntry = {
-      index: updatedMigrationIndex
-    }
-    return this._updateSingle(this.dbMigrationKey, data)
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -235,175 +134,106 @@ class BaseDb extends EventEmitter {
     return await this.tilReady()
   }
 
-  async pollBatchQueue () {
-    await this.tilReady()
-    while (true) {
-      try {
-        await this.checkBatchQueue()
-      } catch (err) {
-        this.logger.error('pollBatchQueue error:', err)
-      }
-      await wait(this.pollIntervalMs)
-    }
+  async update(key: string, value: T): Promise<void> {
+    throw new Error('update method not implemented')
   }
 
-  async addUpdateKvToBatchQueue (key: string, value: any, cb: any) {
-    this.logger.debug(`adding to batch, key: ${key} `)
-    this.batchQueue.push({ key, value, cb })
-    await this.checkBatchQueue()
+  /**
+   * API Wrapper
+   */
+
+  protected async _put (key: string, value: T): Promise<void> {
+    return this.db.put(key, value)
   }
 
-  async checkBatchQueue () {
-    const timestampOk = this.lastBatchUpdatedAt + this.batchTimeLimit < Date.now()
-    const batchSizeOk = this.batchQueue.length >= this.batchSize
-    const shouldPutBatch = (timestampOk || batchSizeOk) && this.batchQueue.length
-    if (shouldPutBatch) {
-      const ops = this.batchQueue.slice(0)
-      this.batchQueue = []
-      this.lastBatchUpdatedAt = Date.now()
-      this.logger.debug(`attempting batch write, items: ${ops?.length} `)
-      await this.putBatch(ops)
-    }
-  }
-
-  protected async _getUpdateData (key: string, data: any) {
-    const entry = await this.getById(key, {
-      _createdAt: Date.now()
-    })
-    const value = Object.assign({}, entry, data)
-    return { key, value }
-  }
-
-  async _update (key: string, data: any) {
-    return this._updateSingle(key, data)
-  }
-
-  async _updateSingle (key: string, data: any) {
-    return this.mutex.runExclusive(async () => {
-      const { value } = await this._getUpdateData(key, data)
-      return this.db.put(key, value)
-    })
-  }
-
-  async _updateWithBatch (key: string, data: any) {
-    const logger = this.logger.create({ id: key })
-    return new Promise(async (resolve, reject) => {
-      const cb = (err: Error, ops: any[]) => {
-        if (err) {
-          reject(err)
-          return
-        }
-        logger.debug(`received batch put event. items: ${ops?.length}`)
-        resolve(null)
-      }
-      await this.addUpdateKvToBatchQueue(key, data, cb)
-    })
-  }
-
-  public async putBatch (putItems: QueueItem[]) {
-    return this.mutex.runExclusive(async () => {
-      const ops: any[] = []
-      for (const data of putItems) {
-        const { key, value } = await this._getUpdateData(data.key, data.value)
-        ops.push({
-          type: 'put',
-          key,
-          value
-        })
-      }
-
-      // merge all properties belong to same key
-      const groups = groupBy(ops, 'key')
-      const keys = Object.keys(groups)
-      const groupedOps = Object.values(groups).map((items: any[], i) => {
-        const value = spread(merge)(items.map(this.getValue))
-        return {
-          type: 'put',
-          key: keys[i],
-          value
-        }
-      })
-
-      return new Promise((resolve, reject) => {
-        this.db.batch(groupedOps, (err: Error) => {
-          for (const { cb } of putItems) {
-            if (cb) {
-              cb(err, putItems)
-            }
-          }
-
-          if (err) {
-            this._emitError(err)
-            reject(err)
-            return
-          }
-
-          resolve(null)
-        })
-      })
-    })
-  }
-
-  async _get (key: string): Promise<any> {
-    return await this.db.get(key)
-  }
-
-  async getById (id: string, defaultValue: any = null) {
+  protected async _get (key: string): Promise<T| null> {
     try {
-      const value = await this._get(id)
-      return value
+      const item = await this.db.get(key)
+      return item
     } catch (err) {
-      if (!err.message.includes('Key not found in database')) {
-        this.logger.error(`getById error: ${err.message}, key: ${id}`)
-      }
-      return defaultValue
+      return null
     }
   }
 
-  async _getMany (keys: string[]): Promise<any[]> {
-    return this.db.getMany(keys)
+  protected async _getMany (keys: string[]): Promise<T[]> {
+    try {
+      const items = await this.db.getMany(keys)
+      return items
+    } catch (err) {
+      return []
+    }
   }
 
-  async batchGetByIds (ids: string[], defaultValue: any = null) {
-    const values = await this._getMany(ids)
-    return values.filter(this.filterExisty)
-  }
-
-  async deleteById (id: string) {
+  protected async _del (id: string): Promise<void> {
     return this.db.del(id)
   }
 
-  private getKey (x: any): string {
-    return x.key
+  /**
+   * Custom DB Operations - Individual items
+   */
+
+  protected async _upsert (key: string, value: T): Promise<void> {
+    let entry = await this._get(key) ?? {} as T
+    const updatedValue = this.getUpdatedValue(entry, value)
+    return this._put(key, updatedValue)
   }
 
-  private getValue (x: any): any {
-    return x.value
+  protected async _insertIfNotExists(key: string, value: T): Promise<void> {
+    const exists = await this._exists(key)
+    if (exists) {
+      return
+    }
+    await this._put(key, value)
   }
 
-  async getKeys (filter?: KeyFilter): Promise<string[]> {
-    filter = Object.assign({
-      keys: true,
-      values: false
-    }, filter)
-    const kv = await this.getKeyValues(filter)
-    return kv.map(this.getKey).filter(this.filterExisty)
+  protected async _exists (key: string): Promise<boolean> {
+    return !!(await this._get(key))
   }
 
-  async getValues (filter?: KeyFilter): Promise<any[]> {
-    filter = Object.assign({
-      keys: true,
-      values: true
-    }, filter)
-    const kv = await this.getKeyValues(filter)
-    return kv.map(this.getValue).filter(this.filterExisty)
+  /**
+   * Custom DB Operations - All items
+   */
+
+  protected async _upsertAll (filters?: DbItemsFilter<T>): Promise<void> {
+    if (filters?.cbFilterGet) {
+      throw new Error('cbFilterGet cannot be used with _upsertAll')
+    }
+    if (!filters?.cbFilterPut) {
+      throw new Error('cbFilterPut is required with _upsertAll')
+    }
+    await this.#_processItems(filters)
   }
 
-  async getKeyValues (filter: KeyFilter = { keys: true, values: true }): Promise<KV[]> {
-    return await new Promise((resolve, reject) => {
-      const kv: KV[] = []
-      const s = this.db.createReadStream(filter)
-      s.on('data', (key: any, value: any) => {
+  protected async _getKeys (filters?: DbItemsFilter<T>): Promise<string[]> {
+    if (filters?.cbFilterPut) {
+      throw new Error('cbFilterPut cannot be used with _getKeys')
+    }
+    const items: KV<T>[] = await this.#_processItems(filters)
+    return items.map(item => item.key)
+  }
+
+  protected async _getValues (filters?: DbItemsFilter<T>): Promise<T[]> {
+    if (filters?.cbFilterPut) {
+      throw new Error('cbFilterPut cannot be used with _getValues')
+    }
+    const items: KV<T>[] = await this.#_processItems(filters)
+    return items.map(item => item.value)
+  }
+
+  async #_processItems(filters?: DbItemsFilter<T>): Promise<KV<T>[]> {
+    if (filters?.cbFilterPut && filters?.cbFilterGet) {
+      throw new Error('cbFilterPut and cbFilterGet cannot be used together')
+    }
+
+    let dbKeyFilter: DbKeyFilter = {}
+    if (filters?.dateFilterWithKeyPrefix) {
+      dbKeyFilter = this.#_getDateFilter(filters.dateFilterWithKeyPrefix)
+    }
+
+    // Iterate over each item. If a callback exists, execute. Otherwise, return the value.
+    const items: KV<T>[] = []
+    try {
+      for await (let [key, value] of this.db.iterate(dbKeyFilter)) {
         // the parameter types depend on what key/value enabled options were used
         if (typeof key === 'object') {
           value = key.value
@@ -411,29 +241,102 @@ class BaseDb extends EventEmitter {
         }
         // ignore this key that used previously to track unique ids
         if (key === 'ids') {
-          return
+          continue
         }
-        if (typeof key === 'string') {
-          kv.push({ key, value: Object.assign({}, value) })
+
+        // Handle put filter, if exists
+        if (filters?.cbFilterPut) {
+          await filters.cbFilterPut(key, value)
+          continue
         }
-      })
-        .on('end', () => {
-          s.destroy()
-          resolve(kv)
+
+        // Handle get filter, if exists
+        let filteredValue: T | null
+        if (filters?.cbFilterGet) {
+          filteredValue = filters.cbFilterGet(key, value)
+        } else {
+          filteredValue = value
+        }
+
+        if (!filteredValue) {
+          continue
+        }
+
+        items.push({
+          key,
+          value: filteredValue
         })
-        .on('error', (err: any) => {
-          s.destroy()
-          reject(err)
-        })
-    })
+
+      }
+    } catch {}
+
+    return items.filter(this._filterExisty)
   }
 
-  filterExisty = (x: any) => {
+  /**
+   * Metadata and migrations
+   * @remarks Metadata is stored in a separate namespace and doesn't use generics so we need
+   * to use a separate method to access it.
+   */
+
+  async #upsertMetadata(value: Partial<DbMetadata>): Promise<void> {
+    const entry = await this._get(this.metadataKey) ?? {} as DbMetadata
+    const updatedValue = Object.assign({}, entry, value)
+    return this.db.put(this.metadataKey, updatedValue)
+  }
+
+  async #getMetadata(): Promise<DbMetadata | null> {
+    try {
+      const item = await this.db.get(this.metadataKey)
+      return item
+    } catch (err) {
+      return null
+    }
+  }
+
+  async upsertMigrationValues (filters: DbItemsFilter<T>): Promise<void> {
+    // This is the only DB operation that is not protected. It is used to perform migrations
+    // and then is blocked after the migration is complete.
+    if (this.ready) {
+      throw new Error('Can only run migrations before the db is ready')
+    }
+    await this._upsertAll(filters)
+  }
+
+  /**
+   * Utils
+   */
+
+  #_getDateFilter (dateFilterWithKeyPrefix: DateFilterWithKeyPrefix): DbKeyFilter {
+    const { keyPrefix, fromUnix, toUnix } = dateFilterWithKeyPrefix
+    const filter: DbKeyFilter = {
+      gte: `${keyPrefix}:`,
+      lte: `${keyPrefix}:~`
+    }
+
+    if (fromUnix) {
+      filter.gte = `${keyPrefix}:${fromUnix}`
+    }
+    if (toUnix) {
+      filter.lte = `${keyPrefix}:${toUnix}~` // tilde is intentional
+    }
+    return filter
+  }
+
+  protected _filterExisty = (x: any) => {
     return x
   }
 
+  protected _normalizeItem (item: T): T {
+    return normalizeDbItem(item)
+  }
+
+  getUpdatedValue (existingValue: T, newValue: T): T {
+    return Object.assign({}, existingValue, newValue)
+  }
+
   // explainer: https://stackoverflow.com/q/35185749/1439168
-  private _emitError (err: Error) {
+  #emitError (err: Error) {
     if (this.listeners(Event.Error).length > 0) {
       this.emit(Event.Error, err)
     }

@@ -199,6 +199,17 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
+      logger.debug('sendTransferRelayErr err:', err.message)
+      const transfer = await this.db.transfers.getByTransferId(transferId)
+      if (!transfer) {
+        throw new Error('transfer not found in db')
+      }
+
+      let { relayBackoffIndex } = transfer
+      if (!relayBackoffIndex) {
+        relayBackoffIndex = 0
+      }
+
       // For this watcher, we will always mark the transfer as incomplete if the process gets here
       await this.db.transfers.update(transferId, {
         transferFromL1Complete: false,
@@ -221,7 +232,6 @@ class RelayWatcher extends BaseWatcher {
         })
       }
       if (err instanceof RelayerFeeTooLowError) {
-        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RelayerFeeTooLow,
@@ -238,7 +248,6 @@ class RelayWatcher extends BaseWatcher {
       const isRpcError = isFetchRpcServerError(err.message)
       if (isRpcError) {
         logger.error('rpc server error. trying again.')
-        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RpcServerError,

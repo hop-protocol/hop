@@ -271,6 +271,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendBondWithdrawalTx err:', err.message)
+      const transfer = await this.db.transfers.getByTransferId(transferId)
+      if (!transfer) {
+        throw new Error('transfer not found in db')
+      }
+
+      let { withdrawalBondBackoffIndex } = transfer
+      if (!withdrawalBondBackoffIndex) {
+        withdrawalBondBackoffIndex = 0
+      }
+
       const isUnbondableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnbondableError) {
         logger.debug(`marking as unbondable due to error: ${err.message}`)
@@ -293,7 +303,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
 
-      let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
       if (err instanceof BonderFeeTooLowError) {
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {

@@ -15,7 +15,6 @@ const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
 // gasBoostDbs are chain specific instances
 const gasBoostDbs: {[chain: string]: any} = {}
 
-type Db = SyncStateDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
   syncState: SyncStateDb
   transfers: TransfersDb

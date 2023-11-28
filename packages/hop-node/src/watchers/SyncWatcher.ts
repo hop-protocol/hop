@@ -878,6 +878,11 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferId })
     logger.debug('starting populateTransferSentTimestamp')
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      logger.error('populateTransferSentTimestamp item not found')
+      return
+    }
+
     const {
       sourceChainId,
       transferSentTxHash,
@@ -931,6 +936,11 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootCommittedAt')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      logger.error('populateTransferRootCommittedAt item not found')
+      return
+    }
+
     const { sourceChainId, commitTxHash, committedAt } = dbTransferRoot
 
     if (
@@ -964,6 +974,11 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootBondedAt')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      logger.error('populateTransferRootBondedAt item not found')
+      return
+    }
+
     const { bondTxHash, bondBlockNumber, bonder, bondedAt } = dbTransferRoot
     if (
       !bondTxHash ||
@@ -1009,6 +1024,11 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootConfirmedAt')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      logger.error('populateTransferRootConfirmedAt item not found')
+      return
+    }
+
     const { confirmTxHash, confirmBlockNumber, confirmedAt } = dbTransferRoot
     if (
       !confirmTxHash ||
@@ -1045,6 +1065,11 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootSetTimestamp')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      logger.error('populateTransferRootSetTimestamp item not found')
+      return
+    }
+
     const { rootSetBlockNumber, rootSetTimestamp, destinationChainId } = dbTransferRoot
     if (
       !rootSetBlockNumber || rootSetTimestamp
@@ -1190,7 +1215,12 @@ class SyncWatcher extends BaseWatcher {
   ): Promise<string[] | undefined> {
     // This might not work if, for example, the tx executed by a contract or some other calldata
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    const { multipleWithdrawalsSettledTxHash } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      return
+    }
+
+    const { multipleWithdrawalsSettledTxHash } = dbTransferRoot
     if (!multipleWithdrawalsSettledTxHash) {
       return
     }
@@ -1370,17 +1400,15 @@ class SyncWatcher extends BaseWatcher {
       totalBondsSettled
     } = event.args
     const { transactionHash } = event
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const transferRootId = await this.db.transferRoots.getTransferRootIdByTransferRootHash(transferRootHash)
     // Throwing here is not ideal, but it is required because we don't have the context of the transferId
     // with this event data. We can only get it from prior events. We should always see other events
     // first, but in the case where we completely miss an event, we will explicitly throw here.
-    if (!dbTransferRoot?.transferRootId) {
+    if (!transferRootId) {
       throw new Error(`expected db item for transfer root hash "${transferRootHash}"`)
     }
 
-    const { transferRootId } = dbTransferRoot
     const logger = this.logger.create({ root: transferRootId })
-
     logger.debug('handling MultipleWithdrawalsSettled event')
     logger.debug(`tx hash from event: ${transactionHash}`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
@@ -1559,7 +1587,7 @@ class SyncWatcher extends BaseWatcher {
           logger.debug(`pollGasCost got estimate for minBonderFeeAbsolute. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)
 
           logger.debug('pollGasCost attempting to do db update')
-          await this.db.gasCost.update({
+          const gasCostData: any = {
             chain: this.chainSlug,
             token: this.tokenSymbol,
             timestamp,
@@ -1571,7 +1599,10 @@ class SyncWatcher extends BaseWatcher {
             tokenPriceUsd,
             nativeTokenPriceUsd,
             minBonderFeeAbsolute
-          })
+          }
+          // TODO: This method should not care about the key.
+          const key: string = await this.db.gasCost.getKeyFromValue(gasCostData)
+          await this.db.gasCost.update(key, gasCostData)
           logger.debug('pollGasCost db update completed')
         }))
       } catch (err) {

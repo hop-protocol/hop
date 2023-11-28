@@ -53,7 +53,7 @@ type InflightItem = {
   sentAt: number
 }
 
-type MarshalledItem = {
+export type MarshalledTx = {
   id: string
   createdAt: number
   txHash?: string
@@ -305,10 +305,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.store) {
       return
     }
-    await this.store.updateItem(this.id, this.marshal())
+    await this.store.update(this.id, this.marshal())
   }
 
-  marshal (): MarshalledItem {
+  marshal (): MarshalledTx {
     return {
       id: this.id,
       createdAt: this.createdAt,
@@ -331,7 +331,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return await GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
-  static async unmarshal (item: MarshalledItem, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static async unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,

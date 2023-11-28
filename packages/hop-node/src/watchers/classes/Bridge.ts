@@ -611,24 +611,27 @@ export default class Bridge extends ContractBase {
         this.address,
         options.syncCacheKey
       )
-      state = await this.db.syncState.getByKey(syncCacheKey)
+      state = (await this.db.syncState.getByKey(syncCacheKey)) ?? undefined
+      if (state) {
+        const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+        if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
+          // If a head sync does not have state or the state is stale, use the state of
+          // its finalized counterpart. The finalized counterpart is guaranteed to have updated
+          // state since the bonder performs a full sync before beginning any other operations.
+          // * The head sync will not have state upon fresh bonder sync.
+          // * The head sync will have stale data if they use the head syncer, turn it off
+          //   for some time, and then turn it back on again.
+          const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
+          const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
+          if (!finalizedState) {
+            throw new Error(`expected finalizedState for key ${finalizedStateKey}`)
+          }
 
-      const customSyncKeySuffix = this.getCustomSyncKeySuffix()
-      if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
-        // If a head sync does not have state or the state is stale, use the state of
-        // its finalized counterpart. The finalized counterpart is guaranteed to have updated
-        // state since the bonder performs a full sync before beginning any other operations.
-        // * The head sync will not have state upon fresh bonder sync.
-        // * The head sync will have stale data if they use the head syncer, turn it off
-        //   for some time, and then turn it back on again.
-        const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
-        const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
-
-        const doesCustomSyncDbExist = !!state?.latestBlockSynced
-        const isCustomSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
-        if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
-          state = finalizedState
-          state.key = syncCacheKey
+          const doesCustomSyncDbExist = !!state.latestBlockSynced
+          const isCustomSyncDataStale = state.latestBlockSynced < finalizedState.latestBlockSynced
+          if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
+            state = finalizedState
+          }
         }
       }
     }

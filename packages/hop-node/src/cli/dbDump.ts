@@ -28,6 +28,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
+  // TODO: reintroduce syncState and gasCost dump with more specific options
   let { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate, inputFile: inputFileList, transferRootId, transferRootHash } = source
   if (dbPath) {
     setDbPath(dbPath)
@@ -128,8 +129,6 @@ async function main (source: any) {
         toUnix: toDate
       })
     }
-  } else if (dbName === 'sync-state') {
-    items = await db.syncState.getItems()
   } else if (dbName === 'gas-cost') {
     if (tokenSymbol && nearest) {
       if (!chain) {
@@ -140,8 +139,6 @@ async function main (source: any) {
         db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawalAndAttemptSwap, nearest),
         db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.Relay, nearest)
       ])
-    } else {
-      items = await db.gasCost.getItems()
     }
   } else {
     throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)

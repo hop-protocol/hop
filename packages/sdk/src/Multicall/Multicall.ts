@@ -1,49 +1,121 @@
+import ERC20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import Multicall3Abi from '@hop-protocol/core/abi/static/Multicall3.json'
-import { ethers } from 'ethers'
+import { Contract, constants, providers } from 'ethers'
+import { defaultAbiCoder } from 'ethers/lib/utils'
+import { config as sdkConfig } from '../config'
 
 type Config = {
+  network: string
   accountAddress: string
 }
 
 export class Multicall {
+  network: string
   accountAddress: string
 
   constructor (config: Config) {
+    if (!config) {
+      throw new Error('config is required')
+    }
+    if (!config.network) {
+      throw new Error('config.network is required')
+    }
+    if (!config.accountAddress) {
+      throw new Error('config.accountAddress is required')
+    }
+    this.network = config.network
     this.accountAddress = config.accountAddress
   }
 
+  getMulticallAddressForChain (chainSlug: string) {
+    const address = sdkConfig[this.network].chains?.[chainSlug]?.multicall
+    if (!address) {
+      throw new Error(`multicallAddress not found for chain ${chainSlug}`)
+    }
+    return address
+  }
+
+  getProvider (chainSlug: string) {
+    const rpcUrl = sdkConfig[this.network].chains?.[chainSlug]?.rpcUrl
+    if (!rpcUrl) {
+      throw new Error(`rpcUrl not found for chain ${chainSlug}`)
+    }
+    const provider = new providers.JsonRpcProvider(rpcUrl)
+    return provider
+  }
+
+  getChains () {
+    const chains = Object.keys(sdkConfig[this.network].chains)
+    return chains
+  }
+
+  getTokenAddressesForChain (chainSlug: string) {
+    const tokenConfigs = sdkConfig[this.network]?.addresses
+    const addresses : any[] = []
+    for (const tokenSymbol in tokenConfigs) {
+      const chainConfig = tokenConfigs[tokenSymbol]?.[chainSlug]
+      if (!chainConfig) {
+        continue
+      }
+      const address = chainConfig?.l2CanonicalToken ?? chainConfig?.l1CanonicalToken
+      if (!address) {
+        throw new Error(`canonicalToken not found for chain ${chainSlug}`)
+      }
+      if (address === constants.AddressZero) {
+        continue
+      }
+      addresses.push({
+        tokenSymbol,
+        address
+      })
+    }
+    return addresses
+  }
+
   async getBalances () {
-    // Set up the provider (e.g., Infura, Alchemy)
-    const provider = new ethers.providers.JsonRpcProvider('https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213') // public rpc
+    const chains = this.getChains()
+    const promises: any[] = []
+    for (const chain of chains) {
+      promises.push(this.getBalancesForChain(chain))
+    }
+    const balances = await Promise.all(promises)
+    return balances.flat()
+  }
 
-    // Multicall3 contract address and ABI
-    const multicallAddress = '0xcA11bde05977b3631167028862bE2a173976CA11' // optimism
+  async getBalancesForChain (chainSlug: string) {
+    const provider = this.getProvider(chainSlug)
+    const multicallAddress = this.getMulticallAddressForChain(chainSlug)
+    const tokenAddresses = this.getTokenAddressesForChain(chainSlug)
+    const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
 
-    // ERC20 token addresses and ABI
-    const tokenAddresses = ['0x7F5c764cBc14f9669B88837ca1490cCa17c31607', '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1'] // USDC, DAI
-    const erc20ABI = ['function balanceOf(address) view returns (uint)']
-
-    // Create Multicall3 contract instance
-    const multicallContract = new ethers.Contract(multicallAddress, Multicall3Abi, provider)
-
-    // Create calls array
-    const calls = tokenAddresses.map(tokenAddress => {
-      const tokenContract = new ethers.Contract(tokenAddress, erc20ABI, provider)
+    const calls = tokenAddresses.map(({ address }: any) => {
+      const tokenContract = new Contract(address, ERC20Abi, provider)
       return {
-        target: tokenAddress,
+        target: address,
         callData: tokenContract.interface.encodeFunctionData('balanceOf', [this.accountAddress])
       }
     })
 
-    // Call Multicall3
     const result = await multicallContract.callStatic.aggregate3(calls)
 
-    // Decode the returned data
     const balances = result.map((data: any, index: number) => {
       const returnData = data.returnData
-      return {
-        token: tokenAddresses[index],
-        balance: ethers.utils.defaultAbiCoder.decode(['uint256'], returnData)[0].toString()
+      const { tokenSymbol, address } = tokenAddresses[index]
+      try {
+        const balance = defaultAbiCoder.decode(['uint256'], returnData)[0].toString()
+        return {
+          tokenSymbol,
+          address,
+          balance,
+          chainSlug
+        }
+      } catch (err: any) {
+        return {
+          tokenSymbol,
+          address,
+          chainSlug,
+          error: err.message
+        }
       }
     })
 

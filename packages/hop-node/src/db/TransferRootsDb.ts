@@ -250,7 +250,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
-    this.logger.debug('TransferRootsDb initialized')
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: TransferRoot) {
@@ -296,7 +295,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     if (!item) {
       return null
     }
-    return this._normalizeItem(item)
+    return item
   }
 
   async getByTransferRootHash (transferRootHash: string): Promise<TransferRoot | null> {
@@ -343,8 +342,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       return []
     }
 
-    const items = batchedItems.map(this._normalizeItem).sort(this.#sortItems)
-    this.logger.debug(`getItems, items length: ${items.length}`)
+    const items = batchedItems.sort(this.#sortItems)
     return items
   }
 
@@ -687,7 +685,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       return []
     }
 
-    return incompleteTransferRootIdEntries.map(this._normalizeItem).filter((item: TransferRoot) => {
+    return incompleteTransferRootIdEntries.filter((item: TransferRoot) => {
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false

@@ -10,6 +10,7 @@ import { Migration } from 'src/db/migrations'
 import { config as globalConfig } from 'src/config'
 import { normalizeDbItem } from './utils'
 import DatabaseMigrator from './DatabaseMigrator'
+import { isEqual } from 'lodash'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -103,7 +104,7 @@ abstract class BaseDb<T> extends EventEmitter {
       this.#init(migrations)
     } else {
       this.ready = true
-      this.logger.debug('db ready')
+      this.logger.info('db ready')
     }
   }
 
@@ -117,7 +118,7 @@ abstract class BaseDb<T> extends EventEmitter {
           _migrationIndex: updatedMigrationIndex
         })
         this.ready = true
-        this.logger.debug('db ready')
+        this.logger.info('db ready')
       })
       .catch(err => {
         this.logger.error(err)
@@ -143,6 +144,7 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   protected async _put (key: string, value: T): Promise<void> {
+    this.#logDbOperation(this._put.name, key, value)
     return this.db.put(key, value)
   }
 
@@ -164,8 +166,9 @@ abstract class BaseDb<T> extends EventEmitter {
     }
   }
 
-  protected async _del (id: string): Promise<void> {
-    return this.db.del(id)
+  protected async _del (key: string): Promise<void> {
+    this.#logDbOperation(this._del.name, key)
+    return this.db.del(key)
   }
 
   /**
@@ -174,6 +177,11 @@ abstract class BaseDb<T> extends EventEmitter {
 
   protected async _upsert (key: string, value: T): Promise<void> {
     let entry = await this._get(key) ?? {} as T
+    if (isEqual(entry, value)) {
+      const logMsg = `New value is the same as existing value. Skipping write.`
+      this.#logDbOperation(this._upsert.name, key, value, logMsg)
+      return
+    }
     const updatedValue = this.getUpdatedValue(entry, value)
     return this._put(key, updatedValue)
   }
@@ -181,6 +189,8 @@ abstract class BaseDb<T> extends EventEmitter {
   protected async _insertIfNotExists(key: string, value: T): Promise<void> {
     const exists = await this._exists(key)
     if (exists) {
+      const logMsg = `Key already exists. Skipping write.`
+      this.#logDbOperation(this._upsert.name, key, value, logMsg)
       return
     }
     await this._put(key, value)
@@ -340,6 +350,17 @@ abstract class BaseDb<T> extends EventEmitter {
     if (this.listeners(Event.Error).length > 0) {
       this.emit(Event.Error, err)
     }
+  }
+
+  #logDbOperation (operation: string, key: string, value?: T, logMsg?: string): void {
+    let log = `DB Operation: ${operation}, key: ${key}`
+    if (value) {
+      log += `, value: ${JSON.stringify(value)}`
+    }
+    if (logMsg) {
+      log += `, ${logMsg}`
+    }
+    this.logger.debug(log)
   }
 }
 

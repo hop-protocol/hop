@@ -44,7 +44,6 @@ class GasCostDb extends BaseDb<GasCost> {
 
   async update (key: string, data: GasCost): Promise<void> {
     await this._put(key, data)
-    this.logger.debug(`updated db gasCost item. ${JSON.stringify(data)}`)
   }
 
   async getKeyFromValue (value: GasCost): Promise<string> {

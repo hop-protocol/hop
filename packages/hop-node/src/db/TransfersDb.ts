@@ -291,8 +291,6 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    console.log('shane - ddd')
-    this.logger.debug(`getItems, items length: ${items.length}`)
     return items
   }
 

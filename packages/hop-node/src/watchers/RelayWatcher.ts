@@ -187,7 +187,7 @@ class RelayWatcher extends BaseWatcher {
       })
 
       // This will not work as intended if the process restarts after the tx is sent but before this is executed.
-      // This is expected because we cannot watch for the event because it does not emit enough info for a unique DB entry
+      // This is expected because we cannot watch for the event because it does not emit enough info for a unique DB item
       // since the L1 to L2 transferId relies on the L1 transaction hash. If the server does restart, we will be alerted
       // that a tx has not been relayed and we can investigate the status.
       await this.db.transfers.update(transferId, {

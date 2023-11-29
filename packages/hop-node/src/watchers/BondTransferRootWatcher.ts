@@ -273,7 +273,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async validateDestinationChainId (txParams: SendBondTransferRootTxParams): Promise<void> {
-    // Validate that the destination chain id matches the db entry
+    // Validate that the destination chain id matches the db item
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     if (!calculatedDbTransferRoot?.destinationChainId || !txParams?.destinationChainId) {
       throw new PossibleReorgDetected(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${txParams?.destinationChainId}) is missing`)

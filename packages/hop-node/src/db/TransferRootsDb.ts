@@ -263,8 +263,8 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async update (transferRootId: string, transferRoot: UpdateTransferRoot): Promise<void> {
-    const entry = await this._get(transferRootId) ?? {} as TransferRoot // eslint-disable-line @typescript-eslint/consistent-type-assertions
-    const updatedValue: TransferRoot = this.getUpdatedValue(entry, transferRoot as TransferRoot)
+    const item = await this._get(transferRootId) ?? {} as TransferRoot // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const updatedValue: TransferRoot = this.getUpdatedValue(item, transferRoot as TransferRoot)
     updatedValue.transferRootId = transferRootId
 
     await Promise.all([
@@ -647,12 +647,12 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     if (!incompleteTransferRootIds.length) {
       return []
     }
-    const incompleteTransferRootIdEntries: TransferRoot[] | null = await this._getMany(incompleteTransferRootIds)
-    if (!incompleteTransferRootIdEntries.length) {
+    const incompleteTransferRootIdItems: TransferRoot[] | null = await this._getMany(incompleteTransferRootIds)
+    if (!incompleteTransferRootIdItems.length) {
       return []
     }
 
-    return incompleteTransferRootIdEntries.filter((item: TransferRoot) => {
+    return incompleteTransferRootIdItems.filter((item: TransferRoot) => {
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false

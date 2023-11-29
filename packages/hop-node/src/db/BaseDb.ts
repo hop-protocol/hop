@@ -170,13 +170,13 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   protected async _upsert (key: string, value: T): Promise<void> {
-    const entry = await this._get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
-    if (isEqual(entry, value)) {
+    const item = await this._get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    if (isEqual(item, value)) {
       const logMsg = 'New value is the same as existing value. Skipping write.'
       this.#logDbOperation(this._upsert.name, key, value, logMsg)
       return
     }
-    const updatedValue = this.getUpdatedValue(entry, value)
+    const updatedValue = this.getUpdatedValue(item, value)
     return this._put(key, updatedValue)
   }
 
@@ -284,8 +284,8 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   async #upsertMetadata (value: Partial<DbMetadata>): Promise<void> {
-    const entry = await this._get(this.metadataKey) ?? {} as DbMetadata // eslint-disable-line @typescript-eslint/consistent-type-assertions
-    const updatedValue = Object.assign({}, entry, value)
+    const item = await this._get(this.metadataKey) ?? {} as DbMetadata // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const updatedValue = Object.assign({}, item, value)
     return this.db.put(this.metadataKey, updatedValue)
   }
 

@@ -229,8 +229,8 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async update (transferId: string, transfer: UpdateTransfer): Promise<void> {
-    const entry = await this._get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
-    const updatedValue: Transfer = this.getUpdatedValue(entry, transfer as Transfer)
+    const item = await this._get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const updatedValue: Transfer = this.getUpdatedValue(item, transfer as Transfer)
     updatedValue.transferId = transferId
 
     await Promise.all([
@@ -432,12 +432,12 @@ class TransfersDb extends BaseDb<Transfer> {
     if (!incompleteTransferIds.length) {
       return []
     }
-    const incompleteTransferIdEntries = await this._getMany(incompleteTransferIds)
-    if (!incompleteTransferIdEntries.length) {
+    const incompleteTransferIdItems = await this._getMany(incompleteTransferIds)
+    if (!incompleteTransferIdItems.length) {
       return []
     }
 
-    return incompleteTransferIdEntries.map(this.normalizeTransferItem).filter((item: Transfer) => {
+    return incompleteTransferIdItems.map(this.normalizeTransferItem).filter((item: Transfer) => {
       if (!item) {
         return false
       }

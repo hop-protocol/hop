@@ -1237,7 +1237,7 @@ class SyncWatcher extends BaseWatcher {
     commitTxLogIndex?: number
   ): Promise<string[] | undefined> {
     if (!commitTxLogIndex) {
-      // The commitTxLogIndex was added to DB entries after the initial release and a migration was never run
+      // The commitTxLogIndex was added to DB items after the initial release and a migration was never run
       return
     }
     return this.db.transfers.getTransfersIdsWithTransferRootHash({

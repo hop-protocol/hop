@@ -18,6 +18,21 @@ enum Event {
   Error = 'error'
 }
 
+export enum DbOperations {
+  Put = 'put',
+  Get = 'get',
+  Del = 'del',
+  Batch = 'batch',
+  Upsert = 'upsert',
+  InsertIfNotExists = 'insertIfNotExists'
+}
+
+export type DbBatchOperation = {
+  type: DbOperations
+  key: string
+  value?: any
+}
+
 export type KV<T> = {
   key: string
   value: T
@@ -35,6 +50,13 @@ export type DateFilter = {
 
 export type DateFilterWithKeyPrefix = DateFilter & {
   keyPrefix: string
+}
+
+type LogOptions = {
+  key?: string
+  value?: any
+  logMsg?: string
+  batchOperations?: DbBatchOperation[]
 }
 
 export type CbFilterGet<T> = (key: string, value: T) => T | null
@@ -59,9 +81,9 @@ export type DbKeyFilter = {
 
 abstract class BaseDb<T> extends EventEmitter {
   public db: any
-  public prefix: string
   public logger: Logger
   private ready = false
+  private isMigrating = false
   private readonly metadataKey: string = '_metadata'
 
   constructor (prefix: string, _namespace?: string, migrations?: Migration[]) {
@@ -72,7 +94,6 @@ abstract class BaseDb<T> extends EventEmitter {
     if (_namespace) {
       prefix = `${_namespace}:${prefix}`
     }
-    this.prefix = prefix
     this.logger = new Logger({
       tag: 'Db',
       prefix
@@ -111,18 +132,25 @@ abstract class BaseDb<T> extends EventEmitter {
     const databaseMigrator = new DatabaseMigrator<T>(this)
     const metadata = await this.#getMetadata()
     const migrationIndex = metadata?._migrationIndex ?? 0
+    this.isMigrating = true
     databaseMigrator.migrate(migrations, migrationIndex)
       .then(async (updatedMigrationIndex: number) => {
         await this.#upsertMetadata({
           _migrationIndex: updatedMigrationIndex
         })
+        this.isMigrating = false
         this.ready = true
-        this.logger.info('db ready')
+        this.logger.info('migrations complete. db ready.')
       })
       .catch(err => {
+        this.logger.error('db migration error', err)
         this.logger.error(err)
         process.exit(1)
       })
+  }
+
+  isReady (): boolean {
+    return this.ready
   }
 
   async update (key: string, value: T): Promise<void> {
@@ -134,13 +162,11 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   protected async _put (key: string, value: T): Promise<void> {
-    await this.#tilReady()
-    this.#logDbOperation(this._put.name, key, value)
+    this.#logDbOperation(DbOperations.Put, { key, value })
     return this.db.put(key, value)
   }
 
   protected async _get (key: string): Promise<T| null> {
-    await this.#tilReady()
     try {
       const item = await this.db.get(key)
       return this.#normalizeItem(item)
@@ -150,7 +176,6 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   protected async _getMany (keys: string[]): Promise<T[]> {
-    await this.#tilReady()
     try {
       const items = await this.db.getMany(keys)
       return items.filter(this.#normalizeItem)
@@ -160,9 +185,13 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   protected async _del (key: string): Promise<void> {
-    await this.#tilReady()
-    this.#logDbOperation(this._del.name, key)
+    this.#logDbOperation(DbOperations.Del, { key })
     return this.db.del(key)
+  }
+
+  protected async _batch (batchOperations: DbBatchOperation[]): Promise<void> {
+    this.#logDbOperation(DbOperations.Batch, { batchOperations })
+    return this.db.batch(batchOperations)
   }
 
   /**
@@ -173,7 +202,7 @@ abstract class BaseDb<T> extends EventEmitter {
     const item = await this._get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
     if (isEqual(item, value)) {
       const logMsg = 'New value is the same as existing value. Skipping write.'
-      this.#logDbOperation(this._upsert.name, key, value, logMsg)
+      this.#logDbOperation(DbOperations.Upsert, { key, value, logMsg })
       return
     }
     const updatedValue = this.getUpdatedValue(item, value)
@@ -184,7 +213,7 @@ abstract class BaseDb<T> extends EventEmitter {
     const exists = await this._exists(key)
     if (exists) {
       const logMsg = 'Key already exists. Skipping write.'
-      this.#logDbOperation(this._upsert.name, key, value, logMsg)
+      this.#logDbOperation(DbOperations.InsertIfNotExists, { key, value, logMsg })
       return
     }
     await this._put(key, value)
@@ -225,7 +254,6 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   async #processItems (filters?: DbItemsFilter<T>): Promise<Array<KV<T>>> {
-    await this.#tilReady()
     if (filters?.cbFilterPut && filters?.cbFilterGet) {
       throw new Error('cbFilterPut and cbFilterGet cannot be used together')
     }
@@ -346,24 +374,33 @@ abstract class BaseDb<T> extends EventEmitter {
     }
   }
 
-  #logDbOperation (operation: string, key: string, value?: T, logMsg?: string): void {
-    let log = `DB Operation: ${operation}, key: ${key}`
+  #logDbOperation (operation: string, logOptions: LogOptions): void {
+    const { key, value, logMsg, batchOperations } = logOptions
+
+    let log = `DB Operation: ${operation}`
+
+    // Warn the consumer that the DB is not yet ready
+    if (!this.ready && !this.isMigrating) {
+      log += ', DB is not ready and this operation may cause unexpected results'
+    }
+    if (key) {
+      log += `, key: ${key}`
+    }
     if (value) {
       log += `, value: ${JSON.stringify(value)}`
     }
     if (logMsg) {
       log += `, ${logMsg}`
     }
-    this.logger.debug(log)
-  }
-
-  async #tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
+    if (batchOperations) {
+      const maxLength = 10
+      if (batchOperations.length > maxLength) {
+        log += `, batchOperations: ${JSON.stringify(batchOperations).substring(0, maxLength)}... (truncated ${batchOperations.length - maxLength} chars)`
+      } else {
+        log += `, batchOperations: ${JSON.stringify(batchOperations)}`
+      }
     }
-
-    await wait(100)
-    return await this.#tilReady()
+    this.logger.debug(log)
   }
 }
 

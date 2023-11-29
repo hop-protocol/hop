@@ -16,15 +16,15 @@ class DatabaseMigrator<T> {
       return migrationIndex
     }
 
-    const lastMigrationIndex = migrations.length - 1
-    if (migrationIndex > lastMigrationIndex) {
+    const numMigrations = migrations.length
+    if (migrationIndex >= numMigrations) {
       this.db.logger.debug(`no migration required, migrationIndex: ${migrationIndex}`)
       return migrationIndex
     }
 
-    this.db.logger.debug(`processing migrations from ${migrationIndex} to ${lastMigrationIndex}`)
+    this.db.logger.debug(`processing migrations from ${migrationIndex} to ${numMigrations}`)
     let updatedMigrationIndex = migrationIndex
-    for (let i = migrationIndex; i <= lastMigrationIndex; i++) {
+    for (let i = migrationIndex; i < numMigrations; i++) {
       const migration: Migration = migrations[i]
       this.db.logger.debug(`processing migration ${i}`)
       await this.processMigration(migration)
@@ -32,7 +32,7 @@ class DatabaseMigrator<T> {
       this.db.logger.debug(`completed migration ${i}`)
     }
     this.db.logger.debug('migrations complete')
-    return migrationIndex
+    return updatedMigrationIndex
   }
 
   protected async processMigration (migration: Migration): Promise<void> {
@@ -58,7 +58,6 @@ class DatabaseMigrator<T> {
       cbFilterPut: migrateCb
     }
     await this.db.upsertMigrationValues(filters)
-    this.db.logger.debug('DB migration complete')
   }
 
   // Get a property from a generic object, if it exists

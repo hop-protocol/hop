@@ -1,8 +1,8 @@
-import BaseDb, { DateFilterWithKeyPrefix, DbItemsFilter } from './BaseDb'
+import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbItemsFilter, DbOperations } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { GasCostTransactionType, OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
+import { GasCostTransactionType, OneHourMs, OneHourSeconds } from 'src/constants'
 
 const varianceSeconds = 20 * 60
 
@@ -25,6 +25,7 @@ type GasCost = {
 // key: `<chain>:<token>:<timestamp>:<transactionType>`
 // value: `{ ...GasCost }`
 class GasCostDb extends BaseDb<GasCost> {
+  private readonly prunePollerIntervalMs = 6 * OneHourMs
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.startPrunePoller()
@@ -34,7 +35,7 @@ class GasCostDb extends BaseDb<GasCost> {
     while (true) {
       try {
         await this.prune()
-        await wait(OneHourMs)
+        await wait(this.prunePollerIntervalMs)
       } catch (err) {
         this.logger.error(`prune poller error: ${err.message}`)
       }
@@ -87,31 +88,46 @@ class GasCostDb extends BaseDb<GasCost> {
   }
 
   protected async prune (): Promise<void> {
-    const getStaleValues: GasCost[] = await this.getStaleValues()
-    this.logger.debug(`items to prune: ${getStaleValues.length}`)
-    for (const { chain, token, timestamp, id } of getStaleValues) {
-      try {
-        if (!id) {
-          throw new Error(`id not found for ${chain}:${token}:${timestamp}`)
-        }
-        await this._del(id)
-      } catch (err) {
-        this.logger.error(`error pruning db item: ${err.message}`)
+    const staleValues: GasCost[] = await this.getStaleValues()
+    this.logger.debug(`items to prune: ${staleValues.length}`)
+
+    // There is a possibility that this will exceed memory limits. This would only occur in the case
+    // of a serious issue where the prune poller is not running and the db is not being pruned. If
+    // that happens, introduce a limit and prune in batches.
+    let dbBatchOperations: DbBatchOperation[] = []
+    for (const { chain, token, timestamp, id } of staleValues) {
+      if (!id) {
+        this.logger.error(`error pruning db item id not found for ${chain}:${token}:${timestamp}`)
+        continue
       }
+      dbBatchOperations.push({
+        type: DbOperations.Del,
+        key: id
+      })
+    }
+
+    if (dbBatchOperations.length) {
+      await this._batch(dbBatchOperations)
     }
   }
 
   protected async getStaleValues (): Promise<GasCost[]> {
-    const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
+    // Cannot use date filter since the filter is based on the token and chain but we don't have
+    // that context here
+
+    // Stale items should be a multiple of the prune poller interval to ensure we don't prune
+    // items that are still relevant
+    const staleItemLookbackMs = this.prunePollerIntervalMs * 4
+    const staleItemCutoffSec = Math.floor((Date.now() - staleItemLookbackMs) / 1000)
+
     const isStaleItem = (key: string, value: GasCost): GasCost | null => {
       const item: GasCost = { ...value, id: key }
-      return item.timestamp < oneWeekAgo ? item : null
+      return item.timestamp < staleItemCutoffSec ? item : null
     }
     const filters: DbItemsFilter<GasCost> = {
       cbFilterGet: isStaleItem
     }
-    const staleItems: GasCost[] = await this._getValues(filters)
-    return staleItems
+    return this._getValues(filters)
   }
 }
 

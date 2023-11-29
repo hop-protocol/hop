@@ -12,7 +12,8 @@ export const networks: Networks = {
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli',
     txOverrides: {
       minGasLimit: 1_000_000
-    }
+    },
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   polygon: {
     name: chains.polygon.name,
@@ -26,7 +27,8 @@ export const networks: Networks = {
     txOverrides: {
       minGasPrice: 30_000_000_000,
       minGasLimit: 1_000_000
-    }
+    },
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   optimism: {
     name: chains.optimism.name,
@@ -37,7 +39,8 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli-optimism.etherscan.io'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   zksync: {
     name: chains.zksync.name,
@@ -47,7 +50,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
     nativeBridgeUrl: '',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xF9cda624FBC7e059355ce98a31693d299FACd963'
   },
   linea: {
     name: chains.linea.name,
@@ -58,7 +62,8 @@ export const networks: Networks = {
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
     subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -68,7 +73,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
     nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   base: {
     name: chains.base.name,
@@ -79,7 +85,8 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
     subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11'
   },
   polygonzk: {
     name: chains.polygonzk.name,
@@ -89,6 +96,7 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
     nativeBridgeUrl: 'https://public.zkevm-test.net',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11'
   }
 }

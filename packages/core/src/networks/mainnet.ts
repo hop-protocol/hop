@@ -12,7 +12,8 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://etherscan.io'],
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet',
-    etherscanApiUrl: 'https://api.etherscan.io'
+    etherscanApiUrl: 'https://api.etherscan.io',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -28,7 +29,8 @@ export const networks: Networks = {
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum',
     etherscanApiUrl: 'https://api.arbiscan.io',
     isRollup: true,
-    isRelayable: true
+    isRelayable: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   optimism: {
     name: chains.optimism.name,
@@ -43,7 +45,8 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism',
     etherscanApiUrl: 'https://api-optimistic.etherscan.io',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   gnosis: {
     name: chains.gnosis.name,
@@ -57,7 +60,8 @@ export const networks: Networks = {
     explorerUrls: ['https://gnosisscan.io'],
     nativeBridgeUrl: 'https://omni.xdaichain.com',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-xdai',
-    etherscanApiUrl: 'https://api.gnosisscan.io'
+    etherscanApiUrl: 'https://api.gnosisscan.io',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   polygon: {
     name: chains.polygon.name,
@@ -76,7 +80,8 @@ export const networks: Networks = {
       // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
       minGasPrice: 30_000_000_000,
       minGasLimit: 1_000_000
-    }
+    },
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   nova: {
     name: chains.nova.name,
@@ -89,7 +94,8 @@ export const networks: Networks = {
     subgraphUrl: 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-nova',
     etherscanApiUrl: 'https://api-nova.arbiscan.io',
     isRollup: true,
-    isRelayable: true
+    isRelayable: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   base: {
     name: chains.base.name,
@@ -101,7 +107,8 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.base.org/deposit',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-base',
     etherscanApiUrl: 'https://api.basescan.org',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11'
   },
   linea: {
     name: chains.linea.name,
@@ -113,7 +120,8 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.linea.build/',
     subgraphUrl: 'https://linea.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea',
     etherscanApiUrl: 'https://api.lineascan.build',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   }
   /*
   zksync: {
@@ -124,7 +132,8 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.zksync.io'],
     nativeBridgeUrl: '',
-    isRollup: true
+    isRollup: true,
+    multicall: '0xF9cda624FBC7e059355ce98a31693d299FACd963'
   }
   */
 }

@@ -19,6 +19,7 @@ import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts/static/L2_Pol
 import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
 import { L2_xDaiToken } from '@hop-protocol/core/contracts/static/L2_xDaiToken'
 import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
+import { Multicall, Balance as MulticallBalance } from './Multicall'
 import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
@@ -1091,6 +1092,12 @@ export class Base {
       console.warn('debugTimeLogsCacheEnabled is false')
     }
     return this.debugTimeLogsCache
+  }
+
+  async getTokenBalancesForAccount (accountAddress: string): Promise<MulticallBalance[]> {
+    const multicall = new Multicall({ network: this.network, accountAddress })
+    const balances = await multicall.getBalances()
+    return balances
   }
 }
 

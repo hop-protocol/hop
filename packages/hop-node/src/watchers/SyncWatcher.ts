@@ -558,7 +558,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling TransferSent event')
 
     try {
-      const { transactionHash } = event
+      const { transactionHash, logIndex } = event
       const transferSentIndex: number = index.toNumber()
       const blockNumber: number = event.blockNumber
       const l2Bridge = this.bridge as L2Bridge
@@ -579,6 +579,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
       logger.debug('deadline:', deadline.toString())
       logger.debug('transferSentIndex:', transferSentIndex)
+      logger.debug('transferSentLogIndex:', logIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
       logger.debug('isFinalized:', isFinalized)
 
@@ -600,6 +601,7 @@ class SyncWatcher extends BaseWatcher {
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
         transferSentIndex,
+        transferSentLogIndex: logIndex,
         isFinalized
       }
 
@@ -1134,9 +1136,7 @@ class SyncWatcher extends BaseWatcher {
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
-      logger.warn(
-        `populateTransferRootTransferIds computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(transferIds)}`
-      )
+      logger.warn(`computed root doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. IDs: ${JSON.stringify(transferIds)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
@@ -1174,9 +1174,13 @@ class SyncWatcher extends BaseWatcher {
     }
 
     // Try finding transferIds with the DB
+    // NOTE: commitTxLogIndex can be 0, so we need to check for undefined
     if (
       !transferIds &&
-      (sourceChainId && destinationChainId && commitTxBlockNumber && commitTxLogIndex)
+      sourceChainId &&
+      destinationChainId &&
+      commitTxBlockNumber &&
+      commitTxLogIndex !== undefined
     ) {
       logger.debug(`looking in db for transfer ids for transferRootHash ${transferRootHash}`)
       transferIds = await this.checkTransferIdsForRootFromDb(
@@ -1190,20 +1194,18 @@ class SyncWatcher extends BaseWatcher {
     // Try finding transferIds with events
     if (
       !transferIds &&
-      (sourceChainId && destinationChainId && commitTxBlockNumber)
+      sourceChainId &&
+      destinationChainId &&
+      commitTxBlockNumber
     ) {
       logger.debug(`looking onchain for transfer ids for transferRootHash ${transferRootHash}`)
       transferIds = await this.checkTransferIdsForRootFromChain(
-        transferRootHash,
         transferRootId,
+        transferRootHash,
         sourceChainId,
         destinationChainId,
         commitTxBlockNumber
       )
-    }
-
-    if (!transferIds) {
-      throw new Error(`transfer ids not found after lookup for transferRootHash ${transferRootHash}`)
     }
 
     return transferIds
@@ -1234,7 +1236,7 @@ class SyncWatcher extends BaseWatcher {
     sourceChainId: number,
     destinationChainId: number,
     commitTxBlockNumber: number,
-    commitTxLogIndex?: number
+    commitTxLogIndex: number
   ): Promise<string[] | undefined> {
     if (!commitTxLogIndex) {
       // The commitTxLogIndex was added to DB items after the initial release and a migration was never run
@@ -1248,7 +1250,12 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async lookupTransferIds (sourceBridge: L2Bridge, transferRootHash: string, destinationChainId: number, endBlockNumber: number) {
+  async lookupTransferIds (
+    sourceBridge: L2Bridge,
+    transferRootHash: string,
+    destinationChainId: number,
+    endBlockNumber: number
+  ) {
     const logger = this.logger.create({ root: transferRootHash })
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
@@ -1378,7 +1385,12 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const { endEvent, transferIds } = await this.lookupTransferIds(sourceBridge, transferRootHash, destinationChainId, eventBlockNumber)
+    const { endEvent, transferIds } = await this.lookupTransferIds(
+      sourceBridge,
+      transferRootHash,
+      destinationChainId,
+      eventBlockNumber
+    )
 
     if (!transferIds) {
       throw new Error('expected transfer ids')

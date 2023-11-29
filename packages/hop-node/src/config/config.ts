@@ -5,9 +5,9 @@ import normalizeEnvVarBool from './utils/normalizeEnvVarBool'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
-import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
+import { Addresses, Bonders, Bridges, CanonicalAddresses, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { BonderConfig } from 'src/config/types'
-import { Bps, ChainSlug } from '@hop-protocol/core/config'
+import { Bps, ChainSlug, config as coreConfig } from '@hop-protocol/core/config'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -17,11 +17,9 @@ import {
   SyncType,
   TotalBlocks
 } from 'src/constants'
-import { Tokens as Metadata } from '@hop-protocol/core/metadata'
-import { Networks } from '@hop-protocol/core/networks'
+import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
+import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
-import * as goerliConfig from './goerli'
-import * as mainnetConfig from './mainnet'
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')
 
@@ -177,9 +175,30 @@ export type Config = {
   emergencyDryMode: boolean
 }
 
-const networkConfigs: {[key: string]: any} = {
-  goerli: goerliConfig,
-  mainnet: mainnetConfig
+const networkConfigs: {[key: string]: any} = {}
+
+for (const network in coreNetworks) {
+  const { bridges: addresses, bonders, canonicalAddresses } = (coreAddresses as any)[network]
+  const coreNetwork = (coreNetworks as any)[network]
+  const bonderConfig: BonderConfig = {}
+  const networks: any = {}
+
+  for (const chain in coreNetwork) {
+    const chainObj = coreNetwork[chain]
+    if (!networks[chain]) {
+      networks[chain] = {}
+    }
+    networks[chain].name = chainObj?.name
+    networks[chain].chainId = chainObj?.networkId
+    networks[chain].rpcUrl = chainObj?.publicRpcUrl
+    networks[chain].subgraphUrl = chainObj?.subgraphUrl
+
+    bonderConfig.totalStake = (coreConfig as any)[network].bonderTotalStake
+  }
+
+  const metadata = (coreMetadata as any)[network]
+  const networkInfo = { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata }
+  networkConfigs[network] = networkInfo
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {

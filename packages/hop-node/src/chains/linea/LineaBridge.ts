@@ -3,6 +3,7 @@ import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { IChainBridge } from '../IChainBridge'
 import { LineaSDK } from '@consensys/linea-sdk'
 import { Signer, constants, providers } from 'ethers'
+import { networks } from '@hop-protocol/core/networks'
 
 class LineaBridge extends AbstractChainBridge implements IChainBridge {
   l1Wallet: Signer
@@ -10,17 +11,28 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
   LineaSDK: LineaSDK
   private readonly lineaL1Contract
   private readonly lineaL2Contract
-  // TODO: More native way of doing this
-  lineaMainnetChainId: number = 59144
 
   constructor (chainSlug: string) {
     super(chainSlug)
+
+    let lineaNetwork: any
+    for (const network in networks) {
+      const chainId = (networks as any)[network]?.linea?.networkId
+      if (chainId === this.chainId) {
+        lineaNetwork = `linea-${network}`
+        break
+      }
+    }
+
+    if (!lineaNetwork) {
+      throw new Error('linea sdk network name not found')
+    }
 
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     this.LineaSDK = new LineaSDK({
       l1RpcUrl: getRpcUrlFromProvider(this.l1Wallet.provider!),
       l2RpcUrl: getRpcUrlFromProvider(this.l2Wallet.provider!),
-      network: this.chainId === this.lineaMainnetChainId ? 'linea-mainnet' : 'linea-goerli',
+      network: lineaNetwork, // options are: "linea-mainnet", "linea-goerli
       mode: 'read-only'
     })
 

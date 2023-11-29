@@ -30,6 +30,7 @@ import {
   blocknativeApiKey,
   gasBoostErrorSlackChannel,
   gasBoostWarnSlackChannel,
+  config as globalConfig,
   hostname
 } from 'src/config'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
@@ -424,8 +425,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
-    if (isMainnet) {
+    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum && globalConfig.isMainnet
+    if (isEthereumMainnet) {
       try {
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
@@ -457,7 +458,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       try {
         return await this.getOruMaxFeePerGas(this.chainSlug)
       } catch (err) {
-        this.logger.error(`oru max fee per gas call failed: ${err}`)
+        this.logger.error('oru max fee per gas call failed:', err)
       }
     }
 

@@ -10,7 +10,7 @@ import { claimChainId } from './config'
 import { networkIdToSlug } from 'src/utils/networks'
 import { useInterval } from 'usehooks-ts'
 import { getProviderByNetworkName, getProvider } from 'src/utils/getProvider'
-import { reactAppNetwork } from 'src/config'
+import { isMainnet } from 'src/config'
 
 export interface TokenClaim {
   entry: {
@@ -56,7 +56,7 @@ export function useClaim() {
   const [claimProvider, setClaimProvider] = useState<any>(() => {
     // makes mainnet rpc available when react app network is testnet
     // so claim flow doesn't break frontend
-    if (reactAppNetwork !== 'mainnet' && claimChainId === 1) {
+    if (!isMainnet && claimChainId === 1) {
       const rpcUrl = 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213' // infura id is from ethers
       return getProvider(rpcUrl)
     }

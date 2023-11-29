@@ -1,44 +1,7 @@
+import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks/enums'
 import { chains } from '@hop-protocol/core/metadata'
 
-export enum Network {
-  Mainnet = 'mainnet',
-  Goerli = 'goerli'
-}
-
-// TODO: read from core
-export enum Chain {
-  Ethereum = 'ethereum',
-  Optimism = 'optimism',
-  Arbitrum = 'arbitrum',
-  Polygon = 'polygon',
-  Gnosis = 'gnosis',
-  Nova = 'nova',
-  ZkSync = 'zksync',
-  Linea = 'linea',
-  ScrollZk = 'scrollzk',
-  Base = 'base',
-  PolygonZk = 'polygonzk',
-}
-
-// TODO: read from core
-export enum Token {
-  USDC = 'USDC',
-  USDT = 'USDT',
-  DAI = 'DAI',
-  ETH = 'ETH',
-  MATIC = 'MATIC',
-  HOP = 'HOP',
-  SNX = 'SNX',
-  sUSD = 'sUSD',
-  rETH = 'rETH',
-  MAGIC = 'MAGIC'
-}
-
-export enum NativeChainToken {
-  ETH = 'ETH',
-  XDAI = 'XDAI',
-  MATIC = 'MATIC'
-}
+export { Network, Chain, Token, NativeChainToken }
 
 const nativeChainTokens: Record<string, string> = {}
 for (const chain in chains) {

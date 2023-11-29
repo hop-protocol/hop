@@ -7,7 +7,6 @@ import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
-import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber, constants } from 'ethers'
@@ -34,6 +33,7 @@ import {
   hostname
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
+import { isNativeToken } from 'src/utils/isNativeToken'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract

@@ -7,7 +7,6 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
 import {
   BlockHashValidationError,
@@ -37,6 +36,7 @@ import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
+import { isNativeToken } from 'src/utils/isNativeToken'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {

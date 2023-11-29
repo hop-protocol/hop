@@ -129,7 +129,6 @@ class SubDbTimestamps extends BaseDb<Transfer> {
   }
 
   async insertIfNotExists (transferId: string, transfer: Transfer): Promise<void> {
-    await this.tilReady()
     const key = this.#getTimestampedKey(transfer)
     if (!key) {
       return
@@ -138,7 +137,6 @@ class SubDbTimestamps extends BaseDb<Transfer> {
   }
 
   async getTransferIds (dateFilter?: DateFilter): Promise<string[]> {
-    await this.tilReady()
     const keyPrefix = 'transfer'
     const dateFilterWithKeyPrefix: DateFilterWithKeyPrefix = {
       keyPrefix,
@@ -162,7 +160,6 @@ class SubDbIncompletes extends BaseDb<Transfer> {
   }
 
   async update (transferId: string, transfer: Transfer): Promise<void> {
-    await this.tilReady()
     const isIncomplete = this.#isItemIncomplete(transfer)
     if (isIncomplete) {
       const value = { transferId }
@@ -174,7 +171,6 @@ class SubDbIncompletes extends BaseDb<Transfer> {
 
   async getItems (): Promise<string[]> {
     // No filter needed, as incomplete items are deleted when they are complete. Each get should retrieve all.
-    await this.tilReady()
     const incompleteItems = await this._getValues()
     return incompleteItems.map(this.#filterTransferId).filter(this._filterExisty)
   }
@@ -233,7 +229,6 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async update (transferId: string, transfer: UpdateTransfer): Promise<void> {
-    this.tilReady()
     const entry = await this._get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
     const updatedValue: Transfer = this.getUpdatedValue(entry, transfer as Transfer)
     updatedValue.transferId = transferId
@@ -258,12 +253,10 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async getTransfers (dateFilter?: DateFilter): Promise<Transfer[]> {
-    await this.tilReady()
     return await this.#getItems(dateFilter)
   }
 
   async getTransfersFromDay (): Promise<Transfer[]> {
-    await this.tilReady()
     const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
     return await this.getTransfers({
       fromUnix
@@ -271,8 +264,6 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async #getItems (dateFilter?: DateFilter): Promise<Transfer[]> {
-    await this.tilReady()
-
     const transferIds = await this.subDbTimestamps.getTransferIds(dateFilter)
     if (!transferIds) {
       return []
@@ -445,8 +436,6 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async getIncompleteItems (filter: GetItemsFilter = {}): Promise<Transfer[]> {
-    await this.tilReady()
-
     const incompleteTransferIds: string[] = await this.subDbIncompletes.getItems()
     if (!incompleteTransferIds.length) {
       return []
@@ -480,8 +469,6 @@ class TransfersDb extends BaseDb<Transfer> {
    */
 
   async getInFlightTransfers (): Promise<Transfer[]> {
-    await this.tilReady()
-
     // Unbonded should not be in flight for more than 1 hour
     const fromUnix = Math.floor((Date.now() - OneHourMs) / 1000)
     const transfersFromHour: Transfer[] = await this.getTransfers({
@@ -515,8 +502,6 @@ class TransfersDb extends BaseDb<Transfer> {
    */
   async getTransfersIdsWithTransferRootHash (input: TransfersIdsWithTransferRootHashParams): Promise<string[] | undefined> {
     const { sourceChainId, destinationChainId, commitTxBlockNumber, commitTxLogIndex } = input
-    await this.tilReady()
-
     if (!commitTxLogIndex) {
       return
     }

@@ -139,7 +139,6 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
   }
 
   async insertIfNotExists (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
-    await this.tilReady()
     const key = this.#getTimestampedKey(transferRoot)
     if (!key) {
       throw new Error(`key not found for transferRootId: ${transferRootId}`)
@@ -148,7 +147,6 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
   }
 
   async getTransferRootIds (dateFilter?: DateFilter): Promise<string[]> {
-    await this.tilReady()
     const keyPrefix = 'transferRoot'
     const dateFilterWithKeyPrefix: DateFilterWithKeyPrefix = {
       keyPrefix,
@@ -172,7 +170,6 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
   }
 
   async update (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
-    await this.tilReady()
     const isIncomplete = this.#isItemIncomplete(transferRoot)
     if (isIncomplete) {
       const value = { transferRootId }
@@ -184,7 +181,6 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
 
   async getItems (): Promise<string[]> {
     // No filter needed, as incomplete items are deleted when they are complete. Each get should retrieve all.
-    await this.tilReady()
     const incompleteItems = await this._getValues()
     return incompleteItems.map(this.#filterTransferRootId).filter(this._filterExisty)
   }
@@ -222,12 +218,10 @@ class SubDbRootHashes extends BaseDb<TransferRoot> {
   }
 
   async insertIfNotExists (transferRootId: string) {
-    await this.tilReady()
     await this._insertIfNotExists(transferRootId, { transferRootId })
   }
 
   async getTransferRootId (transferRootHash: string): Promise<string | null> {
-    await this.tilReady()
     const item = await this._get(transferRootHash)
     if (!item?.transferRootId) {
       return null
@@ -269,7 +263,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async update (transferRootId: string, transferRoot: UpdateTransferRoot): Promise<void> {
-    await this.tilReady()
     const entry = await this._get(transferRootId) ?? {} as TransferRoot // eslint-disable-line @typescript-eslint/consistent-type-assertions
     const updatedValue: TransferRoot = this.getUpdatedValue(entry, transferRoot as TransferRoot)
     updatedValue.transferRootId = transferRootId
@@ -287,7 +280,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
    */
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot | null> {
-    await this.tilReady()
     const item = await this._get(transferRootId)
     if (!item) {
       return null
@@ -296,7 +288,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getByTransferRootHash (transferRootHash: string): Promise<TransferRoot | null> {
-    await this.tilReady()
     const transferRootId = await this.subDbRootHashes.getTransferRootId(transferRootHash)
     if (!transferRootId) {
       return null
@@ -305,7 +296,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getTransferRootIdByTransferRootHash (transferRootHash: string): Promise<string | null> {
-    await this.tilReady()
     const transferRootId = await this.subDbRootHashes.getTransferRootId(transferRootHash)
     if (!transferRootId) {
       return null
@@ -314,12 +304,10 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getTransferRoots (dateFilter?: DateFilter): Promise<TransferRoot[]> {
-    await this.tilReady()
     return this.#getItems(dateFilter)
   }
 
   async getTransferRootsFromWeek (): Promise<TransferRoot[]> {
-    await this.tilReady()
     const fromUnix = Math.floor((Date.now() - (OneWeekMs)) / 1000)
     return this.getTransferRoots({
       fromUnix
@@ -327,8 +315,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async #getItems (dateFilter?: DateFilter): Promise<TransferRoot[]> {
-    await this.tilReady()
-
     const transferRootIds = await this.subDbTimestamps.getTransferRootIds(dateFilter)
     if (!transferRootIds) {
       return []
@@ -350,7 +336,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   async getUnbondedTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<UnbondedTransferRoot[]> {
-    await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
@@ -416,7 +401,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   async getExitableTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
-    await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
@@ -474,7 +458,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   async getConfirmableTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
-    await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
@@ -522,7 +505,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   async getRelayableTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<RelayableTransferRoot[]> {
-    await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
@@ -586,7 +568,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   async getChallengeableTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<ChallengeableTransferRoot[]> {
-    await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
@@ -625,7 +606,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   async getUnsettledTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<UnsettledTransferRoot[]> {
-    await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
@@ -671,8 +651,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getIncompleteItems (filter: GetItemsFilter = {}): Promise<TransferRoot[]> {
-    await this.tilReady()
-
     const incompleteTransferRootIds: string[] = await this.subDbIncompletes.getItems()
     if (!incompleteTransferRootIds.length) {
       return []

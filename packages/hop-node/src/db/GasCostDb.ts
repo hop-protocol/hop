@@ -31,7 +31,6 @@ class GasCostDb extends BaseDb<GasCost> {
   }
 
   private async startPrunePoller () {
-    await this.tilReady()
     while (true) {
       try {
         await this.#prune()
@@ -52,7 +51,6 @@ class GasCostDb extends BaseDb<GasCost> {
   }
 
   async getNearest (chain: string, token: string, transactionType: GasCostTransactionType, targetTimestamp: number): Promise<GasCost | null> {
-    await this.tilReady()
     const dateFilterWithKeyPrefix: DateFilterWithKeyPrefix = {
       keyPrefix: `${chain}:${token}`,
       fromUnix: targetTimestamp - OneHourSeconds,
@@ -89,7 +87,6 @@ class GasCostDb extends BaseDb<GasCost> {
   }
 
   async #prune (): Promise<void> {
-    await this.tilReady()
 
     const getStaleValues: GasCost[] = await this.#getStaleValues()
     this.logger.debug(`items to prune: ${getStaleValues.length}`)
@@ -106,8 +103,6 @@ class GasCostDb extends BaseDb<GasCost> {
   }
 
   async #getStaleValues (): Promise<GasCost[]> {
-    await this.tilReady()
-
     const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
     const isStaleItem = (key: string, value: GasCost): GasCost | null => {
       const item: GasCost = { ...value, id: key }

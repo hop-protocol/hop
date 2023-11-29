@@ -125,15 +125,6 @@ abstract class BaseDb<T> extends EventEmitter {
       })
   }
 
-  protected async tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
-    }
-
-    await wait(100)
-    return await this.tilReady()
-  }
-
   async update (key: string, value: T): Promise<void> {
     throw new Error('update method not implemented')
   }
@@ -143,11 +134,13 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   protected async _put (key: string, value: T): Promise<void> {
+    await this.#tilReady()
     this.#logDbOperation(this._put.name, key, value)
     return this.db.put(key, value)
   }
 
   protected async _get (key: string): Promise<T| null> {
+    await this.#tilReady()
     try {
       const item = await this.db.get(key)
       return this.#normalizeItem(item)
@@ -157,6 +150,7 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   protected async _getMany (keys: string[]): Promise<T[]> {
+    await this.#tilReady()
     try {
       const items = await this.db.getMany(keys)
       return items.filter(this.#normalizeItem)
@@ -166,6 +160,7 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   protected async _del (key: string): Promise<void> {
+    await this.#tilReady()
     this.#logDbOperation(this._del.name, key)
     return this.db.del(key)
   }
@@ -230,6 +225,7 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   async #_processItems (filters?: DbItemsFilter<T>): Promise<Array<KV<T>>> {
+    await this.#tilReady()
     if (filters?.cbFilterPut && filters?.cbFilterGet) {
       throw new Error('cbFilterPut and cbFilterGet cannot be used together')
     }
@@ -359,6 +355,15 @@ abstract class BaseDb<T> extends EventEmitter {
       log += `, ${logMsg}`
     }
     this.logger.debug(log)
+  }
+
+  async #tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return await this.#tilReady()
   }
 }
 

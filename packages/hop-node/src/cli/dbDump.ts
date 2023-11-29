@@ -77,16 +77,16 @@ async function main (source: any) {
       const output: any[] = []
       for (const transferRootId of inputFileList) {
         const item = await db.transferRoots.getByTransferRootId(transferRootId)
-        output.push(item || { transferRootId })
+        output.push(item ?? { transferRootId })
       }
       const filtered = output.map((x: any) => {
-        const { transferRootId, transferRootHash, totalAmount, bonded, comitted, committedAt, confirmed, rootSetTimestamp } = x
+        const { transferRootId, transferRootHash, totalAmount, bonded, committed, committedAt, confirmed, rootSetTimestamp } = x
         return {
           transferRootId,
           transferRootHash,
           totalAmount,
           bonded,
-          comitted,
+          committed,
           committedAt,
           confirmed,
           rootSetTimestamp
@@ -108,7 +108,7 @@ async function main (source: any) {
       const output: any[] = []
       for (const transferId of inputFileList) {
         const item = await db.transfers.getByTransferId(transferId)
-        output.push(item || { transferId })
+        output.push(item ?? { transferId })
       }
       const filtered = output.map((x: any) => {
         const { transferId, amount, transferSentTimestamp, withdrawalBonded, isBondable, withdrawalBondTxError, bondWithdrawalAttemptedAt } = x

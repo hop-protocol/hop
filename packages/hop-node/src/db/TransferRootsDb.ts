@@ -270,13 +270,10 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
   async update (transferRootId: string, transferRoot: UpdateTransferRoot): Promise<void> {
     await this.tilReady()
-    let entry = await this._get(transferRootId)
-    if (!entry) {
-      entry = {} as TransferRoot
-    }
-
+    const entry = await this._get(transferRootId) ?? {} as TransferRoot // eslint-disable-line @typescript-eslint/consistent-type-assertions
     const updatedValue: TransferRoot = this.getUpdatedValue(entry, transferRoot as TransferRoot)
     updatedValue.transferRootId = transferRootId
+
     await Promise.all([
       this.subDbRootHashes.insertIfNotExists(transferRootId),
       this.subDbTimestamps.insertIfNotExists(transferRootId, updatedValue),

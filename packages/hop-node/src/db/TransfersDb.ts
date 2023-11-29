@@ -234,10 +234,7 @@ class TransfersDb extends BaseDb<Transfer> {
 
   async update (transferId: string, transfer: UpdateTransfer): Promise<void> {
     this.tilReady()
-    let entry = await this._get(transferId)
-    if (!entry) {
-      entry = {} as Transfer
-    }
+    const entry = await this._get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
     const updatedValue: Transfer = this.getUpdatedValue(entry, transfer as Transfer)
     updatedValue.transferId = transferId
 

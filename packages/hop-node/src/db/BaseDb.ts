@@ -205,14 +205,14 @@ abstract class BaseDb<T> extends EventEmitter {
     if (!filters?.cbFilterPut) {
       throw new Error('cbFilterPut is required with _upsertAll')
     }
-    await this.#_processItems(filters)
+    await this.#processItems(filters)
   }
 
   protected async _getKeys (filters?: DbItemsFilter<T>): Promise<string[]> {
     if (filters?.cbFilterPut) {
       throw new Error('cbFilterPut cannot be used with _getKeys')
     }
-    const items: Array<KV<T>> = await this.#_processItems(filters)
+    const items: Array<KV<T>> = await this.#processItems(filters)
     return items.map(item => item.key)
   }
 
@@ -220,11 +220,11 @@ abstract class BaseDb<T> extends EventEmitter {
     if (filters?.cbFilterPut) {
       throw new Error('cbFilterPut cannot be used with _getValues')
     }
-    const items: Array<KV<T>> = await this.#_processItems(filters)
+    const items: Array<KV<T>> = await this.#processItems(filters)
     return items.map(item => this.#normalizeItem(item.value))
   }
 
-  async #_processItems (filters?: DbItemsFilter<T>): Promise<Array<KV<T>>> {
+  async #processItems (filters?: DbItemsFilter<T>): Promise<Array<KV<T>>> {
     await this.#tilReady()
     if (filters?.cbFilterPut && filters?.cbFilterGet) {
       throw new Error('cbFilterPut and cbFilterGet cannot be used together')
@@ -232,7 +232,7 @@ abstract class BaseDb<T> extends EventEmitter {
 
     let dbKeyFilter: DbKeyFilter = {}
     if (filters?.dateFilterWithKeyPrefix) {
-      dbKeyFilter = this.#_getDateFilter(filters.dateFilterWithKeyPrefix)
+      dbKeyFilter = this.#getDateFilter(filters.dateFilterWithKeyPrefix)
     }
 
     // Iterate over each item. If a callback exists, execute. Otherwise, return the value.
@@ -311,7 +311,19 @@ abstract class BaseDb<T> extends EventEmitter {
    * Utils
    */
 
-  #_getDateFilter (dateFilterWithKeyPrefix: DateFilterWithKeyPrefix): DbKeyFilter {
+  getUpdatedValue (existingValue: T, newValue: T): T {
+    return Object.assign({}, existingValue, newValue)
+  }
+
+  protected _filterExisty = (x: any) => {
+    return x
+  }
+
+  #normalizeItem (item: T): T {
+    return normalizeDbItem(item)
+  }
+
+  #getDateFilter (dateFilterWithKeyPrefix: DateFilterWithKeyPrefix): DbKeyFilter {
     const { keyPrefix, fromUnix, toUnix } = dateFilterWithKeyPrefix
     const filter: DbKeyFilter = {
       gte: `${keyPrefix}:`,
@@ -325,18 +337,6 @@ abstract class BaseDb<T> extends EventEmitter {
       filter.lte = `${keyPrefix}:${toUnix}~` // tilde is intentional
     }
     return filter
-  }
-
-  protected _filterExisty = (x: any) => {
-    return x
-  }
-
-  getUpdatedValue (existingValue: T, newValue: T): T {
-    return Object.assign({}, existingValue, newValue)
-  }
-
-  #normalizeItem (item: T): T {
-    return normalizeDbItem(item)
   }
 
   // explainer: https://stackoverflow.com/q/35185749/1439168

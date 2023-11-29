@@ -122,14 +122,8 @@ class SubDbTimestamps extends BaseDb<Transfer> {
     super(`${prefix}:timestampedKeys`, _namespace)
   }
 
-  #getTimestampedKey (transfer: Transfer): string | undefined {
-    if (transfer.transferSentTimestamp && transfer.transferId) {
-      return `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
-    }
-  }
-
   async insertIfNotExists (transferId: string, transfer: Transfer): Promise<void> {
-    const key = this.#getTimestampedKey(transfer)
+    const key = this.getTimestampedKey(transfer)
     if (!key) {
       return
     }
@@ -143,10 +137,16 @@ class SubDbTimestamps extends BaseDb<Transfer> {
       ...dateFilter
     }
     const values = await this._getValues({ dateFilterWithKeyPrefix })
-    return values.map(this.#filterTransferId).filter(this._filterExisty)
+    return values.map(this.filterTransferId).filter(this._filterExisty)
   }
 
-  readonly #filterTransferId = (x: any): string => {
+  protected getTimestampedKey (transfer: Transfer): string | undefined {
+    if (transfer.transferSentTimestamp && transfer.transferId) {
+      return `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
+    }
+  }
+
+  protected readonly filterTransferId = (x: any): string => {
     return x?.value?.transferId
   }
 }
@@ -160,7 +160,7 @@ class SubDbIncompletes extends BaseDb<Transfer> {
   }
 
   async update (transferId: string, transfer: Transfer): Promise<void> {
-    const isIncomplete = this.#isItemIncomplete(transfer)
+    const isIncomplete = this.isItemIncomplete(transfer)
     if (isIncomplete) {
       const value = { transferId }
       await this._insertIfNotExists(transferId, value)
@@ -172,10 +172,10 @@ class SubDbIncompletes extends BaseDb<Transfer> {
   async getItems (): Promise<string[]> {
     // No filter needed, as incomplete items are deleted when they are complete. Each get should retrieve all.
     const incompleteItems = await this._getValues()
-    return incompleteItems.map(this.#filterTransferId).filter(this._filterExisty)
+    return incompleteItems.map(this.filterTransferId).filter(this._filterExisty)
   }
 
-  #isItemIncomplete (item: Transfer): boolean {
+  protected isItemIncomplete (item: Transfer): boolean {
     if (!item?.transferId) {
       return false
     }
@@ -194,7 +194,7 @@ class SubDbIncompletes extends BaseDb<Transfer> {
     )
   }
 
-  readonly #filterTransferId = (x: any): string => {
+  protected readonly filterTransferId = (x: any): string => {
     return x?.value?.transferId
   }
 }
@@ -240,20 +240,16 @@ class TransfersDb extends BaseDb<Transfer> {
     ])
   }
 
-  /**
-   * Item Getters
-   */
-
   async getByTransferId (transferId: string): Promise<Transfer | null> {
     const item: Transfer | null = await this._get(transferId)
     if (!item) {
       return null
     }
-    return this.#normalizeTransferItem(item)
+    return this.normalizeTransferItem(item)
   }
 
   async getTransfers (dateFilter?: DateFilter): Promise<Transfer[]> {
-    return await this.#getItems(dateFilter)
+    return await this.getItems(dateFilter)
   }
 
   async getTransfersFromDay (): Promise<Transfer[]> {
@@ -263,7 +259,7 @@ class TransfersDb extends BaseDb<Transfer> {
     })
   }
 
-  async #getItems (dateFilter?: DateFilter): Promise<Transfer[]> {
+  protected async getItems (dateFilter?: DateFilter): Promise<Transfer[]> {
     const transferIds = await this.subDbTimestamps.getTransferIds(dateFilter)
     if (!transferIds) {
       return []
@@ -274,17 +270,13 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    const items = batchedItems.map(this.#normalizeTransferItem).sort(this.#sortItems)
+    const items = batchedItems.map(this.normalizeTransferItem).sort(this.sortItems)
     if (items == null || !items.length) {
       return []
     }
 
     return items
   }
-
-  /**
-   * Poller Getters
-   */
 
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}
@@ -445,7 +437,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    return incompleteTransferIdEntries.map(this.#normalizeTransferItem).filter((item: Transfer) => {
+    return incompleteTransferIdEntries.map(this.normalizeTransferItem).filter((item: Transfer) => {
       if (!item) {
         return false
       }
@@ -463,10 +455,6 @@ class TransfersDb extends BaseDb<Transfer> {
       return true
     })
   }
-
-  /**
-   * Poller Getters
-   */
 
   async getInFlightTransfers (): Promise<Transfer[]> {
     // Unbonded should not be in flight for more than 1 hour
@@ -521,7 +509,7 @@ class TransfersDb extends BaseDb<Transfer> {
       })
 
       // Sorted newest to oldest
-      const sortedTransfers = transfers.filter(Boolean).sort(this.#sortItems).reverse()
+      const sortedTransfers = transfers.filter(Boolean).sort(this.sortItems).reverse()
       for (const transfer of sortedTransfers) {
         if (
           transfer.sourceChainId === sourceChainId &&
@@ -546,11 +534,7 @@ class TransfersDb extends BaseDb<Transfer> {
     }
   }
 
-  readonly filterValueTransferId = (x: any) => {
-    return x?.value?.transferId
-  }
-
-  #normalizeTransferItem (item: Transfer): Transfer {
+  protected normalizeTransferItem (item: Transfer): Transfer {
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }
@@ -566,8 +550,12 @@ class TransfersDb extends BaseDb<Transfer> {
     return item
   }
 
+  protected readonly filterValueTransferId = (x: any) => {
+    return x?.value?.transferId
+  }
+
   // sort explainer: https://stackoverflow.com/a/9175783/1439168
-  readonly #sortItems = (a: any, b: any) => {
+  protected readonly sortItems = (a: any, b: any) => {
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
     if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1

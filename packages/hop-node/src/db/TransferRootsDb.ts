@@ -132,14 +132,8 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
     super(`${prefix}:timestampedKeys`, _namespace)
   }
 
-  #getTimestampedKey (transferRoot: TransferRoot): string | undefined {
-    if (transferRoot.committedAt && transferRoot.transferRootId) {
-      return `transferRoot:${transferRoot.committedAt}:${transferRoot.transferRootId}`
-    }
-  }
-
   async insertIfNotExists (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
-    const key = this.#getTimestampedKey(transferRoot)
+    const key = this.getTimestampedKey(transferRoot)
     if (!key) {
       throw new Error(`key not found for transferRootId: ${transferRootId}`)
     }
@@ -153,10 +147,16 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
       ...dateFilter
     }
     const values = await this._getValues({ dateFilterWithKeyPrefix })
-    return values.map(this.#filterTransferRootId).filter(this._filterExisty)
+    return values.map(this.filterTransferRootId).filter(this._filterExisty)
   }
 
-  readonly #filterTransferRootId = (x: any): string => {
+  protected getTimestampedKey (transferRoot: TransferRoot): string | undefined {
+    if (transferRoot.committedAt && transferRoot.transferRootId) {
+      return `transferRoot:${transferRoot.committedAt}:${transferRoot.transferRootId}`
+    }
+  }
+
+  protected readonly filterTransferRootId = (x: any): string => {
     return x?.value?.transferRootId
   }
 }
@@ -170,7 +170,7 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
   }
 
   async update (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
-    const isIncomplete = this.#isItemIncomplete(transferRoot)
+    const isIncomplete = this.isItemIncomplete(transferRoot)
     if (isIncomplete) {
       const value = { transferRootId }
       await this._insertIfNotExists(transferRootId, value)
@@ -182,10 +182,10 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
   async getItems (): Promise<string[]> {
     // No filter needed, as incomplete items are deleted when they are complete. Each get should retrieve all.
     const incompleteItems = await this._getValues()
-    return incompleteItems.map(this.#filterTransferRootId).filter(this._filterExisty)
+    return incompleteItems.map(this.filterTransferRootId).filter(this._filterExisty)
   }
 
-  #isItemIncomplete (item: TransferRoot): boolean {
+  protected isItemIncomplete (item: TransferRoot): boolean {
     if (item.isNotFound) {
       return false
     }
@@ -204,7 +204,7 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
     )
   }
 
-  readonly #filterTransferRootId = (x: any): string => {
+  protected readonly filterTransferRootId = (x: any): string => {
     return x?.value?.transferRootId
   }
 }
@@ -275,10 +275,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     ])
   }
 
-  /**
-   * Item Getters
-   */
-
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot | null> {
     const item = await this._get(transferRootId)
     if (!item) {
@@ -304,7 +300,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getTransferRoots (dateFilter?: DateFilter): Promise<TransferRoot[]> {
-    return this.#getItems(dateFilter)
+    return this.getItems(dateFilter)
   }
 
   async getTransferRootsFromWeek (): Promise<TransferRoot[]> {
@@ -314,7 +310,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     })
   }
 
-  async #getItems (dateFilter?: DateFilter): Promise<TransferRoot[]> {
+  protected async getItems (dateFilter?: DateFilter): Promise<TransferRoot[]> {
     const transferRootIds = await this.subDbTimestamps.getTransferRootIds(dateFilter)
     if (!transferRootIds) {
       return []
@@ -325,13 +321,9 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       return []
     }
 
-    const items = batchedItems.sort(this.#sortItems)
+    const items = batchedItems.sort(this.sortItems)
     return items
   }
-
-  /**
-   * Poller Getters
-   */
 
   async getUnbondedTransferRoots (
     filter: GetItemsFilter = {}
@@ -679,7 +671,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
    * Utils
    */
 
-  readonly #sortItems = (a: any, b: any) => {
+  protected readonly sortItems = (a: any, b: any) => {
     return a?.committedAt - b?.committedAt
   }
 }

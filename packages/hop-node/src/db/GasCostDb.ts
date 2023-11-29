@@ -33,7 +33,7 @@ class GasCostDb extends BaseDb<GasCost> {
   private async startPrunePoller () {
     while (true) {
       try {
-        await this.#prune()
+        await this.prune()
         await wait(OneHourMs)
       } catch (err) {
         this.logger.error(`prune poller error: ${err.message}`)
@@ -86,9 +86,8 @@ class GasCostDb extends BaseDb<GasCost> {
     return item
   }
 
-  async #prune (): Promise<void> {
-
-    const getStaleValues: GasCost[] = await this.#getStaleValues()
+  protected async prune (): Promise<void> {
+    const getStaleValues: GasCost[] = await this.getStaleValues()
     this.logger.debug(`items to prune: ${getStaleValues.length}`)
     for (const { chain, token, timestamp, id } of getStaleValues) {
       try {
@@ -102,7 +101,7 @@ class GasCostDb extends BaseDb<GasCost> {
     }
   }
 
-  async #getStaleValues (): Promise<GasCost[]> {
+  protected async getStaleValues (): Promise<GasCost[]> {
     const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
     const isStaleItem = (key: string, value: GasCost): GasCost | null => {
       const item: GasCost = { ...value, id: key }

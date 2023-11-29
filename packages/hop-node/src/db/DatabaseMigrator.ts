@@ -27,7 +27,7 @@ class DatabaseMigrator<T> {
     for (let i = migrationIndex; i <= lastMigrationIndex; i++) {
       const migration: Migration = migrations[i]
       this.db.logger.debug(`processing migration ${i}`)
-      await this.#processMigration(migration)
+      await this.processMigration(migration)
       updatedMigrationIndex++
       this.db.logger.debug(`completed migration ${i}`)
     }
@@ -35,14 +35,14 @@ class DatabaseMigrator<T> {
     return migrationIndex
   }
 
-  async #processMigration (migration: Migration): Promise<void> {
+  protected async processMigration (migration: Migration): Promise<void> {
     const migrateCb = async (key: string, value: T): Promise<void> => {
       const {
         key: migrationKey,
         value: migrationValue,
         migratedValue
       } = migration
-      const existingValue = this.#getProperty(migrationKey, value as { [key: string]: any })
+      const existingValue = this.getProperty(migrationKey, value as { [key: string]: any })
       if (
         existingValue !== undefined &&
         existingValue !== migrationValue
@@ -62,7 +62,7 @@ class DatabaseMigrator<T> {
   }
 
   // Get a property from a generic object, if it exists
-  #getProperty<T extends { [key: string]: any }>(key: string, value: T): any | undefined {
+  protected getProperty<T extends { [key: string]: any }>(key: string, value: T): any | undefined {
     return value?.[key]
   }
 }

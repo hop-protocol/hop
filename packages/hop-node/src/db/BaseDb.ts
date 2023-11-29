@@ -149,7 +149,7 @@ abstract class BaseDb<T> extends EventEmitter {
   protected async _get (key: string): Promise<T| null> {
     try {
       const item = await this.db.get(key)
-      return item
+      return this.#normalizeItem(item)
     } catch (err) {
       return null
     }
@@ -158,7 +158,7 @@ abstract class BaseDb<T> extends EventEmitter {
   protected async _getMany (keys: string[]): Promise<T[]> {
     try {
       const items = await this.db.getMany(keys)
-      return items
+      return items.filter(this.#normalizeItem)
     } catch (err) {
       return []
     }
@@ -217,7 +217,7 @@ abstract class BaseDb<T> extends EventEmitter {
       throw new Error('cbFilterPut cannot be used with _getValues')
     }
     const items: KV<T>[] = await this.#_processItems(filters)
-    return items.map(item => item.value)
+    return items.map(item => this.#normalizeItem(item.value))
   }
 
   async #_processItems(filters?: DbItemsFilter<T>): Promise<KV<T>[]> {
@@ -327,12 +327,12 @@ abstract class BaseDb<T> extends EventEmitter {
     return x
   }
 
-  protected _normalizeItem (item: T): T {
-    return normalizeDbItem(item)
-  }
-
   getUpdatedValue (existingValue: T, newValue: T): T {
     return Object.assign({}, existingValue, newValue)
+  }
+
+  #normalizeItem (item: T): T {
+    return normalizeDbItem(item)
   }
 
   // explainer: https://stackoverflow.com/q/35185749/1439168

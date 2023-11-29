@@ -80,7 +80,7 @@ class GasCostDb extends BaseDb<GasCost> {
     if (index === -1) {
       return null
     }
-    const item = this._normalizeItem(values[index])
+    const item = values[index]
     const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
     if (isTooFar) {
       return null

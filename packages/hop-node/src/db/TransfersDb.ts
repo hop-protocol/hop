@@ -257,7 +257,7 @@ class TransfersDb extends BaseDb<Transfer> {
     if (!item) {
       return null
     }
-    return this.#normalizeItem(item)
+    return this.#normalizeTransferItem(item)
   }
 
   async getTransfers (dateFilter?: DateFilter): Promise<Transfer[]> {
@@ -286,7 +286,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    const items = batchedItems.map(this.#normalizeItem).sort(this.#sortItems)
+    const items = batchedItems.map(this.#normalizeTransferItem).sort(this.#sortItems)
     if (items == null || !items.length) {
       return []
     }
@@ -461,7 +461,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    return incompleteTransferIdEntries.map(this.#normalizeItem).filter((item: Transfer) => {
+    return incompleteTransferIdEntries.map(this.#normalizeTransferItem).filter((item: Transfer) => {
       if (!item) {
         return false
       }
@@ -569,7 +569,7 @@ class TransfersDb extends BaseDb<Transfer> {
     return x?.value?.transferId
   }
 
-  #normalizeItem (item: Transfer): Transfer {
+  #normalizeTransferItem (item: Transfer): Transfer {
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }
@@ -582,7 +582,7 @@ class TransfersDb extends BaseDb<Transfer> {
         item.deadline = BigNumber.from((item.deadline as number).toString())
       }
     }
-    return this._normalizeItem(item)
+    return item
   }
 
   // sort explainer: https://stackoverflow.com/a/9175783/1439168

@@ -473,7 +473,8 @@ class TransfersDb extends BaseDb<Transfer> {
       if (item.isNotFound) {
         return false
       }
-      return
+
+      return true
     })
   }
 

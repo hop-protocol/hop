@@ -50,6 +50,7 @@ class GasCostDb extends BaseDb<GasCost> {
     const { chain, token, timestamp, transactionType } = value
     return `${chain}:${token}:${timestamp}:${transactionType}`
   }
+
   async getNearest (chain: string, token: string, transactionType: GasCostTransactionType, targetTimestamp: number): Promise<GasCost | null> {
     await this.tilReady()
     const dateFilterWithKeyPrefix: DateFilterWithKeyPrefix = {

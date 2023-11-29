@@ -696,7 +696,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      return
+      return true
     })
   }
 

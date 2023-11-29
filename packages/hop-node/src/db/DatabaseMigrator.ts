@@ -58,7 +58,7 @@ class DatabaseMigrator<T> {
       cbFilterPut: migrateCb
     }
     await this.db.upsertMigrationValues(filters)
-    this.db.logger.debug(`DB migration complete`)
+    this.db.logger.debug('DB migration complete')
   }
 
   // Get a property from a generic object, if it exists

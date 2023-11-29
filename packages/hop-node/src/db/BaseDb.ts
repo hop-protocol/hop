@@ -1,3 +1,4 @@
+import DatabaseMigrator from './DatabaseMigrator'
 import Logger from 'src/logger'
 import level from 'level-party'
 import mkdirp from 'mkdirp'
@@ -8,9 +9,8 @@ import wait from 'src/utils/wait'
 import { EventEmitter } from 'events'
 import { Migration } from 'src/db/migrations'
 import { config as globalConfig } from 'src/config'
-import { normalizeDbItem } from './utils'
-import DatabaseMigrator from './DatabaseMigrator'
 import { isEqual } from 'lodash'
+import { normalizeDbItem } from './utils'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -99,7 +99,6 @@ abstract class BaseDb<T> extends EventEmitter {
         this.logger.error(`leveldb error: ${err.message}`)
       })
 
-
     if (migrations) {
       this.#init(migrations)
     } else {
@@ -108,7 +107,7 @@ abstract class BaseDb<T> extends EventEmitter {
     }
   }
 
-  async #init(migrations: Migration[]): Promise<void> {
+  async #init (migrations: Migration[]): Promise<void> {
     const databaseMigrator = new DatabaseMigrator<T>(this)
     const metadata = await this.#getMetadata()
     const migrationIndex = metadata?._migrationIndex ?? 0
@@ -135,7 +134,7 @@ abstract class BaseDb<T> extends EventEmitter {
     return await this.tilReady()
   }
 
-  async update(key: string, value: T): Promise<void> {
+  async update (key: string, value: T): Promise<void> {
     throw new Error('update method not implemented')
   }
 
@@ -176,9 +175,9 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   protected async _upsert (key: string, value: T): Promise<void> {
-    let entry = await this._get(key) ?? {} as T
+    const entry = await this._get(key) ?? {} as T
     if (isEqual(entry, value)) {
-      const logMsg = `New value is the same as existing value. Skipping write.`
+      const logMsg = 'New value is the same as existing value. Skipping write.'
       this.#logDbOperation(this._upsert.name, key, value, logMsg)
       return
     }
@@ -186,10 +185,10 @@ abstract class BaseDb<T> extends EventEmitter {
     return this._put(key, updatedValue)
   }
 
-  protected async _insertIfNotExists(key: string, value: T): Promise<void> {
+  protected async _insertIfNotExists (key: string, value: T): Promise<void> {
     const exists = await this._exists(key)
     if (exists) {
-      const logMsg = `Key already exists. Skipping write.`
+      const logMsg = 'Key already exists. Skipping write.'
       this.#logDbOperation(this._upsert.name, key, value, logMsg)
       return
     }
@@ -218,7 +217,7 @@ abstract class BaseDb<T> extends EventEmitter {
     if (filters?.cbFilterPut) {
       throw new Error('cbFilterPut cannot be used with _getKeys')
     }
-    const items: KV<T>[] = await this.#_processItems(filters)
+    const items: Array<KV<T>> = await this.#_processItems(filters)
     return items.map(item => item.key)
   }
 
@@ -226,11 +225,11 @@ abstract class BaseDb<T> extends EventEmitter {
     if (filters?.cbFilterPut) {
       throw new Error('cbFilterPut cannot be used with _getValues')
     }
-    const items: KV<T>[] = await this.#_processItems(filters)
+    const items: Array<KV<T>> = await this.#_processItems(filters)
     return items.map(item => this.#normalizeItem(item.value))
   }
 
-  async #_processItems(filters?: DbItemsFilter<T>): Promise<KV<T>[]> {
+  async #_processItems (filters?: DbItemsFilter<T>): Promise<Array<KV<T>>> {
     if (filters?.cbFilterPut && filters?.cbFilterGet) {
       throw new Error('cbFilterPut and cbFilterGet cannot be used together')
     }
@@ -241,7 +240,7 @@ abstract class BaseDb<T> extends EventEmitter {
     }
 
     // Iterate over each item. If a callback exists, execute. Otherwise, return the value.
-    const items: KV<T>[] = []
+    const items: Array<KV<T>> = []
     try {
       for await (let [key, value] of this.db.iterate(dbKeyFilter)) {
         // the parameter types depend on what key/value enabled options were used
@@ -276,7 +275,6 @@ abstract class BaseDb<T> extends EventEmitter {
           key,
           value: filteredValue
         })
-
       }
     } catch {}
 
@@ -289,13 +287,13 @@ abstract class BaseDb<T> extends EventEmitter {
    * to use a separate method to access it.
    */
 
-  async #upsertMetadata(value: Partial<DbMetadata>): Promise<void> {
+  async #upsertMetadata (value: Partial<DbMetadata>): Promise<void> {
     const entry = await this._get(this.metadataKey) ?? {} as DbMetadata
     const updatedValue = Object.assign({}, entry, value)
     return this.db.put(this.metadataKey, updatedValue)
   }
 
-  async #getMetadata(): Promise<DbMetadata | null> {
+  async #getMetadata (): Promise<DbMetadata | null> {
     try {
       const item = await this.db.get(this.metadataKey)
       return item

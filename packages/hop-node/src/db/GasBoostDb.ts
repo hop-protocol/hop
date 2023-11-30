@@ -3,11 +3,11 @@ import { MarshalledTx } from 'src/gasboost/GasBoostTransaction'
 
 class GasBoostDb extends BaseDb<MarshalledTx> {
   async update (key: string, data: MarshalledTx): Promise<void> {
-    await this._put(key, data)
+    await this.put(key, data)
   }
 
   async getItem (key: string): Promise<MarshalledTx | null> {
-    const item = await this._get(key)
+    const item = await this.get(key)
     if (!item) {
       return null
     }
@@ -15,7 +15,7 @@ class GasBoostDb extends BaseDb<MarshalledTx> {
   }
 
   async deleteItem (key: string): Promise<void> {
-    await this._del(key)
+    await this.del(key)
   }
 }
 

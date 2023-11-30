@@ -161,12 +161,12 @@ abstract class BaseDb<T> extends EventEmitter {
    * API Wrapper
    */
 
-  protected async _put (key: string, value: T): Promise<void> {
+  protected async put (key: string, value: T): Promise<void> {
     this.#logDbOperation(DbOperations.Put, { key, value })
     return this.db.put(key, value)
   }
 
-  protected async _get (key: string): Promise<T| null> {
+  protected async get (key: string): Promise<T| null> {
     try {
       const item = await this.db.get(key)
       return this.#normalizeItem(item)
@@ -175,7 +175,7 @@ abstract class BaseDb<T> extends EventEmitter {
     }
   }
 
-  protected async _getMany (keys: string[]): Promise<T[]> {
+  protected async getMany (keys: string[]): Promise<T[]> {
     try {
       const items = await this.db.getMany(keys)
       return items.filter(this.#normalizeItem)
@@ -184,12 +184,12 @@ abstract class BaseDb<T> extends EventEmitter {
     }
   }
 
-  protected async _del (key: string): Promise<void> {
+  protected async del (key: string): Promise<void> {
     this.#logDbOperation(DbOperations.Del, { key })
     return this.db.del(key)
   }
 
-  protected async _batch (batchOperations: DbBatchOperation[]): Promise<void> {
+  protected async batch (batchOperations: DbBatchOperation[]): Promise<void> {
     this.#logDbOperation(DbOperations.Batch, { batchOperations })
     return this.db.batch(batchOperations)
   }
@@ -198,56 +198,56 @@ abstract class BaseDb<T> extends EventEmitter {
    * Custom DB Operations - Individual items
    */
 
-  protected async _upsert (key: string, value: T): Promise<void> {
-    const item = await this._get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
+  protected async upsert (key: string, value: T): Promise<void> {
+    const item = await this.get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
     if (isEqual(item, value)) {
       const logMsg = 'New value is the same as existing value. Skipping write.'
       this.#logDbOperation(DbOperations.Upsert, { key, value, logMsg })
       return
     }
     const updatedValue = this.getUpdatedValue(item, value)
-    return this._put(key, updatedValue)
+    return this.put(key, updatedValue)
   }
 
-  protected async _insertIfNotExists (key: string, value: T): Promise<void> {
-    const exists = await this._exists(key)
+  protected async insertIfNotExists (key: string, value: T): Promise<void> {
+    const exists = await this.exists(key)
     if (exists) {
       const logMsg = 'Key already exists. Skipping write.'
       this.#logDbOperation(DbOperations.InsertIfNotExists, { key, value, logMsg })
       return
     }
-    await this._put(key, value)
+    await this.put(key, value)
   }
 
-  protected async _exists (key: string): Promise<boolean> {
-    return !!(await this._get(key))
+  protected async exists (key: string): Promise<boolean> {
+    return !!(await this.get(key))
   }
 
   /**
    * Custom DB Operations - All items
    */
 
-  protected async _upsertAll (filters?: DbItemsFilter<T>): Promise<void> {
+  protected async upsertAll (filters?: DbItemsFilter<T>): Promise<void> {
     if (filters?.cbFilterGet) {
-      throw new Error('cbFilterGet cannot be used with _upsertAll')
+      throw new Error('cbFilterGet cannot be used with upsertAll')
     }
     if (!filters?.cbFilterPut) {
-      throw new Error('cbFilterPut is required with _upsertAll')
+      throw new Error('cbFilterPut is required with upsertAll')
     }
     await this.#processItems(filters)
   }
 
-  protected async _getKeys (filters?: DbItemsFilter<T>): Promise<string[]> {
+  protected async getKeys (filters?: DbItemsFilter<T>): Promise<string[]> {
     if (filters?.cbFilterPut) {
-      throw new Error('cbFilterPut cannot be used with _getKeys')
+      throw new Error('cbFilterPut cannot be used with getKeys')
     }
     const items: Array<KV<T>> = await this.#processItems(filters)
     return items.map(item => item.key)
   }
 
-  protected async _getValues (filters?: DbItemsFilter<T>): Promise<T[]> {
+  protected async getValues (filters?: DbItemsFilter<T>): Promise<T[]> {
     if (filters?.cbFilterPut) {
-      throw new Error('cbFilterPut cannot be used with _getValues')
+      throw new Error('cbFilterPut cannot be used with getValues')
     }
     const items: Array<KV<T>> = await this.#processItems(filters)
     return items.map(item => this.#normalizeItem(item.value))
@@ -309,7 +309,7 @@ abstract class BaseDb<T> extends EventEmitter {
       throw new Error(`Error processing items: ${err.message}`)
     }
 
-    return items.filter(this._filterExisty)
+    return items.filter(this.filterExisty)
   }
 
   /**
@@ -319,7 +319,7 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   async #upsertMetadata (value: Partial<DbMetadata>): Promise<void> {
-    const item = await this._get(this.metadataKey) ?? {} as DbMetadata // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const item = await this.get(this.metadataKey) ?? {} as DbMetadata // eslint-disable-line @typescript-eslint/consistent-type-assertions
     const updatedValue = Object.assign({}, item, value)
     return this.db.put(this.metadataKey, updatedValue)
   }
@@ -339,7 +339,7 @@ abstract class BaseDb<T> extends EventEmitter {
     if (this.ready) {
       throw new Error('Can only run migrations before the db is ready')
     }
-    await this._upsertAll(filters)
+    await this.upsertAll(filters)
   }
 
   /**
@@ -350,7 +350,7 @@ abstract class BaseDb<T> extends EventEmitter {
     return Object.assign({}, existingValue, newValue)
   }
 
-  protected _filterExisty = (x: any) => {
+  protected filterExisty = (x: any) => {
     return x
   }
 

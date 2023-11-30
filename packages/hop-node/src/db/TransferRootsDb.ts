@@ -132,12 +132,12 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
     super(`${prefix}:timestampedKeys`, _namespace)
   }
 
-  async insertIfNotExists (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
+  async update (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
     const key = this.getTimestampedKey(transferRoot)
     if (!key) {
       throw new Error(`key not found for transferRootId: ${transferRootId}`)
     }
-    await this._insertIfNotExists(key, { transferRootId })
+    await this.insertIfNotExists(key, { transferRootId })
   }
 
   async getTransferRootIds (dateFilter?: DateFilter): Promise<string[]> {
@@ -146,8 +146,8 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
       keyPrefix,
       ...dateFilter
     }
-    const values = await this._getValues({ dateFilterWithKeyPrefix })
-    return values.map(this.filterTransferRootId).filter(this._filterExisty)
+    const values = await this.getValues({ dateFilterWithKeyPrefix })
+    return values.map(this.filterTransferRootId).filter(this.filterExisty)
   }
 
   protected getTimestampedKey (transferRoot: TransferRoot): string | undefined {
@@ -173,16 +173,16 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
     const isIncomplete = this.isItemIncomplete(transferRoot)
     if (isIncomplete) {
       const value = { transferRootId }
-      await this._insertIfNotExists(transferRootId, value)
+      await this.insertIfNotExists(transferRootId, value)
     } else {
-      await this._del(transferRootId)
+      await this.del(transferRootId)
     }
   }
 
   async getItems (): Promise<string[]> {
     // No filter needed, as incomplete items are deleted when they are complete. Each get should retrieve all.
-    const incompleteItems = await this._getValues()
-    return incompleteItems.map(this.filterTransferRootId).filter(this._filterExisty)
+    const incompleteItems = await this.getValues()
+    return incompleteItems.map(this.filterTransferRootId).filter(this.filterExisty)
   }
 
   protected isItemIncomplete (item: TransferRoot): boolean {
@@ -217,12 +217,14 @@ class SubDbRootHashes extends BaseDb<TransferRoot> {
     super(`${prefix}:rootHashes`, _namespace)
   }
 
-  async insertIfNotExists (transferRootId: string) {
-    await this._insertIfNotExists(transferRootId, { transferRootId })
+  async update (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
+    // Redundant to use transferRootId from the value, but it will always be the same and allows
+    // this method to conform with the interface
+    await this.insertIfNotExists(transferRootId, { transferRootId: transferRoot.transferRootId })
   }
 
   async getTransferRootId (transferRootHash: string): Promise<string | null> {
-    const item = await this._get(transferRootHash)
+    const item = await this.get(transferRootHash)
     if (!item?.transferRootId) {
       return null
     }
@@ -263,20 +265,20 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async update (transferRootId: string, transferRoot: UpdateTransferRoot): Promise<void> {
-    const item = await this._get(transferRootId) ?? {} as TransferRoot // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const item = await this.get(transferRootId) ?? {} as TransferRoot // eslint-disable-line @typescript-eslint/consistent-type-assertions
     const updatedValue: TransferRoot = this.getUpdatedValue(item, transferRoot as TransferRoot)
     updatedValue.transferRootId = transferRootId
 
     await Promise.all([
-      this.subDbRootHashes.insertIfNotExists(transferRootId),
-      this.subDbTimestamps.insertIfNotExists(transferRootId, updatedValue),
+      this.subDbRootHashes.update(transferRootId, updatedValue),
+      this.subDbTimestamps.update(transferRootId, updatedValue),
       this.subDbIncompletes.update(transferRootId, updatedValue),
-      this._put(transferRootId, updatedValue)
+      this.put(transferRootId, updatedValue)
     ])
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot | null> {
-    const item = await this._get(transferRootId)
+    const item = await this.get(transferRootId)
     if (!item) {
       return null
     }
@@ -316,7 +318,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       return []
     }
 
-    const batchedItems = await this._getMany(transferRootIds)
+    const batchedItems = await this.getMany(transferRootIds)
     if (!batchedItems.length) {
       return []
     }
@@ -651,7 +653,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     if (!incompleteTransferRootIds.length) {
       return []
     }
-    const incompleteTransferRootIdItems: TransferRoot[] | null = await this._getMany(incompleteTransferRootIds)
+    const incompleteTransferRootIdItems: TransferRoot[] | null = await this.getMany(incompleteTransferRootIds)
     if (!incompleteTransferRootIdItems.length) {
       return []
     }

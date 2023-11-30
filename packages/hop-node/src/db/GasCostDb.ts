@@ -43,7 +43,7 @@ class GasCostDb extends BaseDb<GasCost> {
   }
 
   async update (key: string, data: GasCost): Promise<void> {
-    await this._put(key, data)
+    await this.put(key, data)
   }
 
   async getKeyFromValue (value: GasCost): Promise<string> {
@@ -73,7 +73,7 @@ class GasCostDb extends BaseDb<GasCost> {
       cbFilterGet: isRelevantItem
     }
 
-    const values: GasCost[] = await this._getValues(filters)
+    const values: GasCost[] = await this.getValues(filters)
     const dates = values.map((item: GasCost) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
     if (index === -1) {
@@ -107,7 +107,7 @@ class GasCostDb extends BaseDb<GasCost> {
     }
 
     if (dbBatchOperations.length) {
-      await this._batch(dbBatchOperations)
+      await this.batch(dbBatchOperations)
     }
   }
 
@@ -127,7 +127,7 @@ class GasCostDb extends BaseDb<GasCost> {
     const filters: DbItemsFilter<GasCost> = {
       cbFilterGet: isStaleItem
     }
-    return this._getValues(filters)
+    return this.getValues(filters)
   }
 }
 

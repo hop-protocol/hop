@@ -122,12 +122,12 @@ class SubDbTimestamps extends BaseDb<Transfer> {
     super(`${prefix}:timestampedKeys`, _namespace)
   }
 
-  async insertIfNotExists (transferId: string, transfer: Transfer): Promise<void> {
+  async update (transferId: string, transfer: Transfer): Promise<void> {
     const key = this.getTimestampedKey(transfer)
     if (!key) {
       return
     }
-    await this._insertIfNotExists(key, { transferId })
+    await this.insertIfNotExists(key, { transferId })
   }
 
   async getTransferIds (dateFilter?: DateFilter): Promise<string[]> {
@@ -136,8 +136,8 @@ class SubDbTimestamps extends BaseDb<Transfer> {
       keyPrefix,
       ...dateFilter
     }
-    const values = await this._getValues({ dateFilterWithKeyPrefix })
-    return values.map(this.filterTransferId).filter(this._filterExisty)
+    const values = await this.getValues({ dateFilterWithKeyPrefix })
+    return values.map(this.filterTransferId).filter(this.filterExisty)
   }
 
   protected getTimestampedKey (transfer: Transfer): string | undefined {
@@ -163,16 +163,16 @@ class SubDbIncompletes extends BaseDb<Transfer> {
     const isIncomplete = this.isItemIncomplete(transfer)
     if (isIncomplete) {
       const value = { transferId }
-      await this._insertIfNotExists(transferId, value)
+      await this.insertIfNotExists(transferId, value)
     } else {
-      await this._del(transferId)
+      await this.del(transferId)
     }
   }
 
   async getItems (): Promise<string[]> {
     // No filter needed, as incomplete items are deleted when they are complete. Each get should retrieve all.
-    const incompleteItems = await this._getValues()
-    return incompleteItems.map(this.filterTransferId).filter(this._filterExisty)
+    const incompleteItems = await this.getValues()
+    return incompleteItems.map(this.filterTransferId).filter(this.filterExisty)
   }
 
   protected isItemIncomplete (item: Transfer): boolean {
@@ -229,19 +229,19 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async update (transferId: string, transfer: UpdateTransfer): Promise<void> {
-    const item = await this._get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const item = await this.get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
     const updatedValue: Transfer = this.getUpdatedValue(item, transfer as Transfer)
     updatedValue.transferId = transferId
 
     await Promise.all([
-      this.subDbTimestamps.insertIfNotExists(transferId, updatedValue),
+      this.subDbTimestamps.update(transferId, updatedValue),
       this.subDbIncompletes.update(transferId, updatedValue),
-      this._put(transferId, updatedValue)
+      this.put(transferId, updatedValue)
     ])
   }
 
   async getByTransferId (transferId: string): Promise<Transfer | null> {
-    const item: Transfer | null = await this._get(transferId)
+    const item: Transfer | null = await this.get(transferId)
     if (!item) {
       return null
     }
@@ -265,7 +265,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    const batchedItems = await this._getMany(transferIds)
+    const batchedItems = await this.getMany(transferIds)
     if (!batchedItems.length) {
       return []
     }
@@ -432,7 +432,7 @@ class TransfersDb extends BaseDb<Transfer> {
     if (!incompleteTransferIds.length) {
       return []
     }
-    const incompleteTransferIdItems = await this._getMany(incompleteTransferIds)
+    const incompleteTransferIdItems = await this.getMany(incompleteTransferIds)
     if (!incompleteTransferIdItems.length) {
       return []
     }

@@ -10,11 +10,11 @@ export type State = {
 // value: `{ ...State }`
 class SyncStateDb extends BaseDb<State> {
   async update (key: string, value: State): Promise<void> {
-    await this._put(key, value)
+    await this.put(key, value)
   }
 
   async getByKey (key: string): Promise<State | null> {
-    const item: State | null = await this._get(key)
+    const item: State | null = await this.get(key)
     if (!item) {
       return null
     }

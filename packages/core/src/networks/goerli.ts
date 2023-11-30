@@ -13,7 +13,11 @@ export const networks: Networks = {
     txOverrides: {
       minGasLimit: 1_000_000
     },
-    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 12,
+
+    // These values are currently the same on both mainnet and testnet but this might not always be the case
+    timeToIncludeOnL2Seconds: 0
   },
   polygon: {
     name: chains.polygon.name,
@@ -28,7 +32,8 @@ export const networks: Networks = {
       minGasPrice: 30_000_000_000,
       minGasLimit: 1_000_000
     },
-    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 2
   },
   optimism: {
     name: chains.optimism.name,
@@ -40,7 +45,14 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli',
     isRollup: true,
-    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 2,
+    oruExitTimeSeconds: 60 * 60, // 1 hour
+
+    // These values are currently the same on both mainnet and testnet but this might not always be the case
+    timeToIncludeOnL1Seconds: 120,
+    timeToIncludeOnL2Seconds: 180,
+    L1ToL2CheckpointTimeInL1Blocks: 6
   },
   zksync: {
     name: chains.zksync.name,
@@ -63,7 +75,10 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
     subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli',
     isRollup: true,
-    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
+    isRelayable: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 12,
+    oruExitTimeSeconds: 12 * 60 * 60 // 12 hours
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -86,7 +101,14 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.base.org',
     subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli',
     isRollup: true,
-    multicall: '0xca11bde05977b3631167028862be2a173976ca11'
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11',
+    averageBlockTimeSeconds: 2,
+    oruExitTimeSeconds: 60 * 60, // 1 hour
+
+    // These values are currently the same on both mainnet and testnet but this might not always be the case
+    timeToIncludeOnL1Seconds: 20,
+    timeToIncludeOnL2Seconds: 90,
+    L1ToL2CheckpointTimeInL1Blocks: 12
   },
   polygonzk: {
     name: chains.polygonzk.name,
@@ -97,6 +119,11 @@ export const networks: Networks = {
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
     nativeBridgeUrl: 'https://public.zkevm-test.net',
     isRollup: true,
-    multicall: '0xca11bde05977b3631167028862be2a173976ca11'
+    isRelayable: true,
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11',
+
+    // PolygonZk: typically around 30 minutes but up to a week in rare cases.
+    //           https://zkevm.polygon.technology/docs/protocol/transaction-execution
+    oruExitTimeSeconds: 60 * 60 // 1 hour
   }
 }

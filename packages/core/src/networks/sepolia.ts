@@ -10,9 +10,10 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://sepolia.etherscan.io'],
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-sepolia',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     txOverrides: {
       minGasLimit: 1_000_000
     },
-    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
+    averageBlockTimeSeconds: 12
   }
 }

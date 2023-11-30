@@ -5,7 +5,6 @@ import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
 import sub from 'subleveldown'
-import wait from 'src/utils/wait'
 import { EventEmitter } from 'events'
 import { Migration } from 'src/db/migrations'
 import { config as globalConfig } from 'src/config'
@@ -85,6 +84,7 @@ abstract class BaseDb<T> extends EventEmitter {
   private ready = false
   private isMigrating = false
   private readonly metadataKey: string = '_metadata'
+  abstract update(key: string, value: T): Promise<void>
 
   constructor (prefix: string, _namespace?: string, migrations?: Migration[]) {
     super()
@@ -151,10 +151,6 @@ abstract class BaseDb<T> extends EventEmitter {
 
   isReady (): boolean {
     return this.ready
-  }
-
-  async update (key: string, value: T): Promise<void> {
-    throw new Error('update method not implemented')
   }
 
   /**

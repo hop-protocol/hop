@@ -201,6 +201,7 @@ class RelayWatcher extends BaseWatcher {
     } catch (err: any) {
       // TODO: TMP Linea rm with other branch
       if (err instanceof MessageAlreadyClaimedError) {
+        logger.debug('message already claimed. marking as relayed')
         await this.db.transfers.update(transferId, {
           transferFromL1Complete: true
         })

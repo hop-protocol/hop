@@ -7,7 +7,7 @@ import isNativeToken from 'src/utils/isNativeToken'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
+import { MessageAlreadyClaimedError, NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
@@ -200,6 +200,15 @@ class RelayWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendTransferRelayErr err:', err.message)
+
+      // TODO: TMP Linea rm with other branch
+      if (err instanceof MessageAlreadyClaimedError) {
+        await this.db.transfers.update(transferId, {
+          transferFromL1Complete: true
+        })
+        return
+      }
+
       const transfer = await this.db.transfers.getByTransferId(transferId)
       if (!transfer) {
         throw new Error('transfer not found in db')

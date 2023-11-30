@@ -5,9 +5,9 @@ import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 
-import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
-import getTransferRootId from 'src/utils/getTransferRootId'
 import getTransferCommitted from 'src/theGraph/getTransferCommitted'
+import getTransferRootId from 'src/utils/getTransferRootId'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 
 root
   .command('resync-data')
@@ -51,7 +51,7 @@ async function main (source: any) {
   if (transferIds) {
     await handleTransferIds(watcher, chain, transferIds)
   }
-  
+
   if (transferRoots) {
     await handleTransferRoots(watcher, chain, token, transferRoots)
   }
@@ -92,7 +92,7 @@ async function handleTransferIds (watcher: any, chain: string, transferIds: stri
   }
 }
 
-async function handleTransferRoots(watcher: any, chain: string, token: string, transferRoots: string[]) {
+async function handleTransferRoots (watcher: any, chain: string, token: string, transferRoots: string[]) {
   const blockNumbers: number[] = []
   for (const transferRoot of transferRoots) {
     const commit = await getTransferCommitted(chain, token, transferRoot)

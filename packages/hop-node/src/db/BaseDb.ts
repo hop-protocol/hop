@@ -266,14 +266,19 @@ abstract class BaseDb<T> extends EventEmitter {
     // Iterate over each item. If a callback exists, execute. Otherwise, return the value.
     const items: Array<KV<T>> = []
     try {
-      for await (let [key, value] of this.db.iterate(dbKeyFilter)) {
+      for await (let [key, value] of this.db.iterator(dbKeyFilter)) {
         // the parameter types depend on what key/value enabled options were used
         if (typeof key === 'object') {
           value = key.value
           key = key.key
         }
-        // ignore this key that used previously to track unique ids
-        if (key === 'ids') {
+
+        // ignore metadata keys and legacy keys that are no longer used
+        const legacyKeys = this.#getLegacyKeys()
+        if (
+          key === this.metadataKey ||
+          legacyKeys.includes(key)
+        ) {
           continue
         }
 
@@ -300,7 +305,9 @@ abstract class BaseDb<T> extends EventEmitter {
           value: filteredValue
         })
       }
-    } catch {}
+    } catch (err) {
+      throw new Error(`Error processing items: ${err.message}`)
+    }
 
     return items.filter(this._filterExisty)
   }
@@ -393,7 +400,7 @@ abstract class BaseDb<T> extends EventEmitter {
       log += `, ${logMsg}`
     }
     if (batchOperations) {
-      const maxLength = 10
+      const maxLength = 1000
       if (batchOperations.length > maxLength) {
         log += `, batchOperations: ${JSON.stringify(batchOperations).substring(0, maxLength)}... (truncated ${batchOperations.length - maxLength} chars)`
       } else {
@@ -401,6 +408,14 @@ abstract class BaseDb<T> extends EventEmitter {
       }
     }
     this.logger.debug(log)
+  }
+
+  #getLegacyKeys (): string[] {
+    // keys that were once used and still exist in some DBs but are no longer used
+    return [
+      'ids',
+      '_dbMigrationIndex'
+    ]
   }
 }
 

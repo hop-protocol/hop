@@ -147,7 +147,7 @@ class SubDbTimestamps extends BaseDb<Transfer> {
   }
 
   protected readonly filterTransferId = (x: any): string => {
-    return x?.value?.transferId
+    return x?.transferId
   }
 }
 
@@ -195,7 +195,7 @@ class SubDbIncompletes extends BaseDb<Transfer> {
   }
 
   protected readonly filterTransferId = (x: any): string => {
-    return x?.value?.transferId
+    return x?.transferId
   }
 }
 
@@ -261,12 +261,12 @@ class TransfersDb extends BaseDb<Transfer> {
 
   protected async getItems (dateFilter?: DateFilter): Promise<Transfer[]> {
     const transferIds = await this.subDbTimestamps.getTransferIds(dateFilter)
-    if (!transferIds) {
+    if (!transferIds.length) {
       return []
     }
 
     const batchedItems = await this._getMany(transferIds)
-    if (!batchedItems) {
+    if (!batchedItems.length) {
       return []
     }
 

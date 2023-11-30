@@ -157,7 +157,7 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
   }
 
   protected readonly filterTransferRootId = (x: any): string => {
-    return x?.value?.transferRootId
+    return x?.transferRootId
   }
 }
 
@@ -205,7 +205,7 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
   }
 
   protected readonly filterTransferRootId = (x: any): string => {
-    return x?.value?.transferRootId
+    return x?.transferRootId
   }
 }
 
@@ -312,16 +312,20 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
   protected async getItems (dateFilter?: DateFilter): Promise<TransferRoot[]> {
     const transferRootIds = await this.subDbTimestamps.getTransferRootIds(dateFilter)
-    if (!transferRootIds) {
+    if (!transferRootIds.length) {
       return []
     }
 
     const batchedItems = await this._getMany(transferRootIds)
-    if (!batchedItems) {
+    if (!batchedItems.length) {
       return []
     }
 
     const items = batchedItems.sort(this.sortItems)
+    if (items == null || !items.length) {
+      return []
+    }
+
     return items
   }
 

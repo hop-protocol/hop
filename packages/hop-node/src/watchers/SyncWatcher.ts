@@ -21,6 +21,7 @@ import {
   RootProviderName,
   TenMinutesMs
 } from 'src/constants'
+import { GasCost } from 'src/db/GasCostDb'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
 import { GasCostEstimationRes } from './classes/Bridge'
@@ -72,6 +73,7 @@ type EventPromise = Array<Promise<any>>
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   syncIntervalMs: number
+  // Five minutes is granular enough. Any lower results in excessive redundant DB writes.
   gasCostPollMs: number = FiveMinutesMs
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
@@ -1600,7 +1602,7 @@ class SyncWatcher extends BaseWatcher {
           logger.debug(`pollGasCost got estimate for minBonderFeeAbsolute. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)
 
           logger.debug('pollGasCost attempting to do db update')
-          const gasCostData: any = {
+          const gasCostData: GasCost = {
             chain: this.chainSlug,
             token: this.tokenSymbol,
             timestamp,
@@ -1613,7 +1615,8 @@ class SyncWatcher extends BaseWatcher {
             nativeTokenPriceUsd,
             minBonderFeeAbsolute
           }
-          // TODO: This method should not care about the key.
+          // This method should not care about the key but would require GasCost DB architecture change
+          // that is not worth it.
           const key: string = await this.db.gasCost.getKeyFromValue(gasCostData)
           await this.db.gasCost.update(key, gasCostData)
           logger.debug('pollGasCost db update completed')

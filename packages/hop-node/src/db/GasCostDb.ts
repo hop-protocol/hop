@@ -6,7 +6,7 @@ import { GasCostTransactionType, OneHourMs, OneHourSeconds } from 'src/constants
 
 const varianceSeconds = 20 * 60
 
-type GasCost = {
+export type GasCost = {
   id?: string
   chain: string
   token: string
@@ -25,7 +25,7 @@ type GasCost = {
 // key: `<chain>:<token>:<timestamp>:<transactionType>`
 // value: `{ ...GasCost }`
 class GasCostDb extends BaseDb<GasCost> {
-  private readonly prunePollerIntervalMs = 6 * OneHourMs
+  private readonly prunePollerIntervalMs = 2 * OneHourMs
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.startPrunePoller()
@@ -74,6 +74,10 @@ class GasCostDb extends BaseDb<GasCost> {
     }
 
     const values: GasCost[] = await this.getValues(filters)
+    if (!values.length) {
+      return null
+    }
+
     const dates = values.map((item: GasCost) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
     if (index === -1) {
@@ -91,13 +95,11 @@ class GasCostDb extends BaseDb<GasCost> {
     const staleValues: GasCost[] = await this.getStaleValues()
     this.logger.debug(`items to prune: ${staleValues.length}`)
 
-    // There is a possibility that this will exceed memory limits. This would only occur in the case
-    // of a serious issue where the prune poller is not running and the db is not being pruned. If
-    // that happens, introduce a limit and prune in batches.
     let dbBatchOperations: DbBatchOperation[] = []
-    for (const { chain, token, timestamp, id } of staleValues) {
+    for (const value of staleValues) {
+      const { id } = value
       if (!id) {
-        this.logger.error(`error pruning db item id not found for ${chain}:${token}:${timestamp}`)
+        this.logger.error(`error pruning db item id not found for key ${this.getKeyFromValue(value)}`)
         continue
       }
       dbBatchOperations.push({
@@ -106,6 +108,9 @@ class GasCostDb extends BaseDb<GasCost> {
       })
     }
 
+    // There is a possibility that this will exceed memory limits. This would only occur in the case
+    // of a serious issue where the prune poller is not running and the db is not being pruned. If
+    // that happens, introduce a limit and prune in batches.
     if (dbBatchOperations.length) {
       await this.batch(dbBatchOperations)
     }
@@ -117,7 +122,7 @@ class GasCostDb extends BaseDb<GasCost> {
 
     // Stale items should be a multiple of the prune poller interval to ensure we don't prune
     // items that are still relevant
-    const staleItemLookbackMs = this.prunePollerIntervalMs * 4
+    const staleItemLookbackMs = this.prunePollerIntervalMs * 12
     const staleItemCutoffSec = Math.floor((Date.now() - staleItemLookbackMs) / 1000)
 
     const isStaleItem = (key: string, value: GasCost): GasCost | null => {

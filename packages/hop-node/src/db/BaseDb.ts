@@ -9,17 +9,14 @@ import { EventEmitter } from 'events'
 import { Migration } from 'src/db/migrations'
 import { config as globalConfig } from 'src/config'
 import { isEqual } from 'lodash'
-import { normalizeDbItem } from './utils'
+import { normalizeDbValue } from './utils'
 
 const dbMap: { [key: string]: any } = {}
-
-enum Event {
-  Error = 'error'
-}
 
 export enum DbOperations {
   Put = 'put',
   Get = 'get',
+  GetMany = 'getMany',
   Del = 'del',
   Batch = 'batch',
   Upsert = 'upsert',
@@ -32,9 +29,8 @@ export type DbBatchOperation = {
   value?: any
 }
 
-export type KV<T> = {
-  key: string
-  value: T
+export type Item<T> = {
+  [key: string]: T
 }
 
 type DbMetadata = {
@@ -116,8 +112,8 @@ abstract class BaseDb<T> extends EventEmitter {
 
     this.db
       .on('error', (err: Error) => {
-        this.#emitError(err)
         this.logger.error(`leveldb error: ${err.message}`)
+        process.exit(1)
       })
 
     if (migrations) {
@@ -164,8 +160,8 @@ abstract class BaseDb<T> extends EventEmitter {
 
   protected async get (key: string): Promise<T| null> {
     try {
-      const item = await this.db.get(key)
-      return this.#normalizeItem(item)
+      const value = await this.db.get(key)
+    return this.#normalizeValue(value)
     } catch (err) {
       return null
     }
@@ -173,8 +169,8 @@ abstract class BaseDb<T> extends EventEmitter {
 
   protected async getMany (keys: string[]): Promise<T[]> {
     try {
-      const items = await this.db.getMany(keys)
-      return items.filter(this.#normalizeItem)
+      const values = await this.db.getMany(keys)
+      return values.filter(this.#normalizeValue)
     } catch (err) {
       return []
     }
@@ -195,20 +191,20 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   protected async upsert (key: string, value: T): Promise<void> {
-    const item = await this.get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
-    if (isEqual(item, value)) {
+    const dbValue = await this.get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    if (isEqual(dbValue, value)) {
       const logMsg = 'New value is the same as existing value. Skipping write.'
       this.#logDbOperation(DbOperations.Upsert, { key, value, logMsg })
       return
     }
-    const updatedValue = this.getUpdatedValue(item, value)
+    const updatedValue = this.getUpdatedValue(dbValue, value)
     return this.put(key, updatedValue)
   }
 
   protected async insertIfNotExists (key: string, value: T): Promise<void> {
     const exists = await this.exists(key)
     if (exists) {
-      const logMsg = 'Key already exists. Skipping write.'
+      const logMsg = 'Key and value already exist. Skipping write.'
       this.#logDbOperation(DbOperations.InsertIfNotExists, { key, value, logMsg })
       return
     }
@@ -237,19 +233,20 @@ abstract class BaseDb<T> extends EventEmitter {
     if (filters?.cbFilterPut) {
       throw new Error('cbFilterPut cannot be used with getKeys')
     }
-    const items: Array<KV<T>> = await this.#processItems(filters)
-    return items.map(item => item.key)
+    const items: Array<Item<T>> = await this.#processItems(filters)
+    return items.map(item => Object.keys(item)[0])
+
   }
 
   protected async getValues (filters?: DbItemsFilter<T>): Promise<T[]> {
     if (filters?.cbFilterPut) {
       throw new Error('cbFilterPut cannot be used with getValues')
     }
-    const items: Array<KV<T>> = await this.#processItems(filters)
-    return items.map(item => this.#normalizeItem(item.value))
+    const items: Array<Item<T>> = await this.#processItems(filters)
+    return items.map(item => Object.values(item)[0])
   }
 
-  async #processItems (filters?: DbItemsFilter<T>): Promise<Array<KV<T>>> {
+  async #processItems (filters?: DbItemsFilter<T>): Promise<Array<Item<T>>> {
     if (filters?.cbFilterPut && filters?.cbFilterGet) {
       throw new Error('cbFilterPut and cbFilterGet cannot be used together')
     }
@@ -260,7 +257,7 @@ abstract class BaseDb<T> extends EventEmitter {
     }
 
     // Iterate over each item. If a callback exists, execute. Otherwise, return the value.
-    const items: Array<KV<T>> = []
+    const items: Array<Item<T>> = []
     try {
       for await (let [key, value] of this.db.iterator(dbKeyFilter)) {
         // the parameter types depend on what key/value enabled options were used
@@ -296,9 +293,9 @@ abstract class BaseDb<T> extends EventEmitter {
           continue
         }
 
+        filteredValue = this.#normalizeValue(filteredValue)
         items.push({
-          key,
-          value: filteredValue
+          [key]: filteredValue
         })
       }
     } catch (err) {
@@ -315,18 +312,17 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   async #upsertMetadata (value: Partial<DbMetadata>): Promise<void> {
-    const item = await this.get(this.metadataKey) ?? {} as DbMetadata // eslint-disable-line @typescript-eslint/consistent-type-assertions
-    const updatedValue = Object.assign({}, item, value)
+    const dbValue = await this.get(this.metadataKey) ?? {} as DbMetadata // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const updatedValue = Object.assign({}, dbValue, value)
     return this.db.put(this.metadataKey, updatedValue)
   }
 
   async #getMetadata (): Promise<DbMetadata | null> {
+    let value: DbMetadata | null = null
     try {
-      const item = await this.db.get(this.metadataKey)
-      return item
-    } catch (err) {
-      return null
-    }
+      value = await this.db.get(this.metadataKey)
+    } catch {}
+    return value
   }
 
   async upsertMigrationValues (filters: DbItemsFilter<T>): Promise<void> {
@@ -350,8 +346,8 @@ abstract class BaseDb<T> extends EventEmitter {
     return x
   }
 
-  #normalizeItem (item: T): T {
-    return normalizeDbItem(item)
+  #normalizeValue (value: T): T {
+    return normalizeDbValue(value)
   }
 
   #getDateFilter (dateFilterWithKeyPrefix: DateFilterWithKeyPrefix): DbKeyFilter {
@@ -368,13 +364,6 @@ abstract class BaseDb<T> extends EventEmitter {
       filter.lte = `${keyPrefix}:${toUnix}~` // tilde is intentional
     }
     return filter
-  }
-
-  // explainer: https://stackoverflow.com/q/35185749/1439168
-  #emitError (err: Error) {
-    if (this.listeners(Event.Error).length > 0) {
-      this.emit(Event.Error, err)
-    }
   }
 
   #logDbOperation (operation: string, logOptions: LogOptions): void {

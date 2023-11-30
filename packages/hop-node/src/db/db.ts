@@ -31,28 +31,21 @@ export function getDbSet (tokenSymbol: string): DbSet {
   if (!dbSets.syncStateDb[tokenSymbol]) {
     dbSets.syncStateDb[tokenSymbol] = new SyncStateDb('state', tokenSymbol)
   }
-  const syncState: SyncStateDb = dbSets.syncStateDb[tokenSymbol]
-
   if (!dbSets.transfersDb[tokenSymbol]) {
     dbSets.transfersDb[tokenSymbol] = new TransfersDb('transfers', tokenSymbol)
   }
-  const transfers: TransfersDb = dbSets.transfersDb[tokenSymbol]
-
   if (!dbSets.transferRootsDb[tokenSymbol]) {
     dbSets.transferRootsDb[tokenSymbol] = new TransferRootsDb('transferRoots', tokenSymbol)
   }
-  const transferRoots: TransferRootsDb = dbSets.transferRootsDb[tokenSymbol]
-
   if (!dbSets.gasCostDb[tokenSymbol]) {
     dbSets.gasCostDb[tokenSymbol] = new GasCostDb('gasCost', tokenSymbol)
   }
-  const gasCost: GasCostDb = dbSets.gasCostDb[tokenSymbol]
 
   return {
-    syncState,
-    transfers,
-    transferRoots,
-    gasCost
+    syncState: dbSets.syncStateDb[tokenSymbol],
+    transfers: dbSets.transfersDb[tokenSymbol],
+    transferRoots: dbSets.transferRootsDb[tokenSymbol],
+    gasCost: dbSets.gasCostDb[tokenSymbol]
   }
 }
 

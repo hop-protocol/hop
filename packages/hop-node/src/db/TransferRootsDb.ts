@@ -135,7 +135,9 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
   async update (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
     const key = this.getTimestampedKey(transferRoot)
     if (!key) {
-      throw new Error(`key not found for transferRootId: ${transferRootId}`)
+      // Can occur if an event has been missed
+      this.logger.debug(`key not found for transferRootId: ${transferRootId}`)
+      return
     }
     await this.insertIfNotExists(key, { transferRootId })
   }

@@ -119,7 +119,6 @@ class RelayWatcher extends BaseWatcher {
       amount,
       relayer,
       relayerFee,
-      transferSentTimestamp,
       transferSentTxHash
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })

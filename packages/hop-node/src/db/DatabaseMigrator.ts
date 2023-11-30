@@ -38,19 +38,20 @@ class DatabaseMigrator<T> {
   protected async processMigration (migration: Migration): Promise<void> {
     const migrateCb = async (key: string, value: T): Promise<void> => {
       const {
-        key: migrationKey,
-        value: migrationValue,
-        migratedValue
+        migrationProperty,
+        expectedPropertyValue,
+        migratedPropertyValue
       } = migration
-      const existingValue = this.getProperty(migrationKey, value as { [key: string]: any })
+
+      const existingPropertyValue = this.getPropertyValue(value as { [key: string]: any }, migrationProperty)
       if (
-        existingValue !== undefined &&
-        existingValue !== migrationValue
+        existingPropertyValue !== undefined &&
+        existingPropertyValue === expectedPropertyValue
       ) {
         return
       }
 
-      const updatedValue: T = this.db.getUpdatedValue(value, migratedValue)
+      const updatedValue: T = this.db.getUpdatedValue(value, migratedPropertyValue)
       return this.db.update(key, updatedValue)
     }
 
@@ -61,8 +62,8 @@ class DatabaseMigrator<T> {
   }
 
   // Get a property from a generic object, if it exists
-  protected getProperty<T extends { [key: string]: any }>(key: string, value: T): any | undefined {
-    return value?.[key]
+  protected getPropertyValue<T extends { [key: string]: any }>(obj: T, property: string): any | undefined {
+    return obj?.[property]
   }
 }
 

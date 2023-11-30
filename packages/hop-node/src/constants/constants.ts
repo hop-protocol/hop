@@ -1,4 +1,5 @@
 import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks/enums'
+import { ProviderSlug, providers } from '@hop-protocol/core/metadata/providers'
 import { chains } from '@hop-protocol/core/metadata'
 import { networks } from '@hop-protocol/core/networks'
 import { tokens } from '@hop-protocol/core/metadata/tokens'
@@ -159,20 +160,15 @@ export const ChainPollMultiplier: Record<string, number> = {
 // tx is propagated to the chain.
 export const CanonicalMessengerRootConfirmationGasLimit: number = 1500000
 
-// Quicknode endpoints are spelled without the c, so we will use that spelling
-export enum RootProviderName {
-  Local = 'local',
-  Alchemy = 'alchemy',
-  Infura = 'infura',
-  Quiknode = 'quiknode'
+const DoesRootProviderSupportWs: Partial<Record<ProviderSlug, boolean>> = {}
+
+for (const providerSlug in providers) {
+  const providerObj = (providers as any)[providerSlug]
+  DoesRootProviderSupportWs[providerSlug as ProviderSlug] = providerObj?.wsSupported
 }
 
-export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
-  [RootProviderName.Local]: false,
-  [RootProviderName.Alchemy]: true,
-  [RootProviderName.Infura]: false,
-  [RootProviderName.Quiknode]: true
-}
+export { DoesRootProviderSupportWs }
+export { ProviderSlug as RootProviderName }
 
 export const DefaultBondThreshold = 5
 // TODO: When bonder-specific strategies are isolated from the finality dir, use a new

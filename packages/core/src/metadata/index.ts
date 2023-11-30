@@ -8,3 +8,4 @@ export { goerli, sepolia, mainnet, metadata }
 export * from './types'
 export { tokens } from './tokens'
 export { chains } from './chains'
+export { providers, ProviderSlug, Provider } from './providers'

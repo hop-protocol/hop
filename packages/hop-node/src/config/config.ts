@@ -399,6 +399,22 @@ export function getAllTokens () {
   return Object.keys(config.addresses)
 }
 
+export function getSourceChains (tokenSymbol: string, settlementChain?: string): string[] {
+  const enabledChains = getAllChains()
+  const sourceChains = new Set<string>([])
+  for (const chain of enabledChains) {
+    if (chain === Chain.Ethereum || chain === settlementChain) {
+      continue
+    }
+    if (!config.addresses[tokenSymbol][chain]) {
+      continue
+    }
+    sourceChains.add(chain)
+  }
+
+  return Array.from(sourceChains)
+}
+
 export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
   config.metrics = { ...config.metrics, ...metricsConfig }
 }

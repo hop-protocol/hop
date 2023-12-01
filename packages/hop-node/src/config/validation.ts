@@ -84,21 +84,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.PolygonZk
   ]
 
-  // TODO: read from core
-  const validTokenKeys = [
-    'USDC',
-    'USDT',
-    'DAI',
-    'ETH',
-    'MATIC',
-    'WBTC',
-    'HOP',
-    'SNX',
-    'sUSD',
-    'rETH',
-    'UNI',
-    'MAGIC'
-  ]
+  const validTokenKeys = Object.values(AssetSymbol)
 
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)

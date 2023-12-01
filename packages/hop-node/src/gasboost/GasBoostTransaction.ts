@@ -93,6 +93,14 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+type EventEmitterState = {
+  [key in State]: any
+}
+
+type EventEmitterEvents = EventEmitter & {
+  _events: any
+}
+
 const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
 const gasFeeDataCache: Record<string, Partial<GasFeeData>> = {}
@@ -130,6 +138,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   reorgConfirmationBlocks: number = 1
   originalTxParams: providers.TransactionRequest
+  _events: any[] // implemented by EventEmitter
 
   type?: number
 
@@ -626,7 +635,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         .on(State.Error, (err) => {
           reject(err)
         })
-      const listeners = (this as any)._events
+      const listeners = (this as EventEmitterEvents)._events as EventEmitterState
       this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "Err": ${listeners?.[State.Error]?.length}`)
     })
   }

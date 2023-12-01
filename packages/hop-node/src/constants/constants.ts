@@ -1,3 +1,4 @@
+import { AssetSymbol } from '@hop-protocol/core/config'
 import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks/enums'
 import { ProviderSlug, providers } from '@hop-protocol/core/metadata/providers'
 import { chains } from '@hop-protocol/core/metadata'
@@ -8,7 +9,7 @@ export { Network, Chain, Token, NativeChainToken }
 
 const nativeChainTokens: Record<string, string> = {}
 for (const chain in chains) {
-  nativeChainTokens[chain] = (chains as any)[chain].nativeTokenSymbol
+  nativeChainTokens[chain] = chains[chain as Chain].nativeTokenSymbol
 }
 
 export { nativeChainTokens }
@@ -21,8 +22,8 @@ const TimeToIncludeOnL2Sec: Record<string, number> = {}
 const L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {}
 
 for (const network in networks) {
-  for (const chain in (networks as any)[network]) {
-    const chainObj = (networks as any)[network][chain]
+  for (const chain in networks[network as Network]) {
+    const chainObj = networks[network as Network][chain as Chain]
     const seconds = chainObj?.averageBlockTimeSeconds
     if (seconds != null) {
       AvgBlockTimeSeconds[chain] = seconds
@@ -126,7 +127,7 @@ export const MaxDeadline: number = 9999999999
 
 export const stableCoins = new Set<string>([])
 for (const tokenSymbol in tokens) {
-  const tokenObj = (tokens as any)[tokenSymbol]
+  const tokenObj = tokens[tokenSymbol as AssetSymbol]
   if (tokenObj?.isStablecoin) {
     stableCoins.add(tokenSymbol)
   }
@@ -163,7 +164,7 @@ export const CanonicalMessengerRootConfirmationGasLimit: number = 1500000
 const DoesRootProviderSupportWs: Partial<Record<ProviderSlug, boolean>> = {}
 
 for (const providerSlug in providers) {
-  const providerObj = (providers as any)[providerSlug]
+  const providerObj = providers[providerSlug as ProviderSlug]
   DoesRootProviderSupportWs[providerSlug as ProviderSlug] = providerObj?.wsSupported
 }
 

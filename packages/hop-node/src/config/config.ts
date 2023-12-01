@@ -6,8 +6,8 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, CanonicalAddresses, addresses as coreAddresses } from '@hop-protocol/core/addresses'
+import { AssetSymbol, Bps, ChainSlug, config as coreConfig } from '@hop-protocol/core/config'
 import { BonderConfig } from 'src/config/types'
-import { Bps, ChainSlug, config as coreConfig } from '@hop-protocol/core/config'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -178,13 +178,13 @@ export type Config = {
 const networkConfigs: {[key: string]: any} = {}
 
 for (const network in coreNetworks) {
-  const { bridges: addresses, bonders, canonicalAddresses } = (coreAddresses as any)[network]
-  const coreNetwork = (coreNetworks as any)[network]
+  const { bridges: addresses, bonders, canonicalAddresses } = coreAddresses[network as Network]
+  const coreNetwork = coreNetworks[network as Network]
   const bonderConfig: BonderConfig = {}
   const networks: any = {}
 
   for (const chain in coreNetwork) {
-    const chainObj = coreNetwork[chain]
+    const chainObj = coreNetwork[chain as Chain]
     if (!networks[chain]) {
       networks[chain] = {}
     }
@@ -193,16 +193,16 @@ for (const network in coreNetworks) {
     networks[chain].rpcUrl = chainObj?.publicRpcUrl
     networks[chain].subgraphUrl = chainObj?.subgraphUrl
 
-    bonderConfig.totalStake = (coreConfig as any)[network].bonderTotalStake
+    bonderConfig.totalStake = coreConfig[network as Network].bonderTotalStake
   }
 
-  const metadata = (coreMetadata as any)[network]
+  const metadata = coreMetadata[network as Network]
   const networkInfo = { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata }
   networkConfigs[network] = networkInfo
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs?.[network]
   const isMainnet = network === Network.Mainnet
 
   return {
@@ -481,17 +481,17 @@ export function getCanonicalAddressesForChain (chainSlug: string): any {
 }
 
 export const getConfigBondersForToken = (token: string) => {
-  return (config.bonders as any)?.[token]
+  return config.bonders?.[token as AssetSymbol]
 }
 
 export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
   const bonders = getConfigBondersForToken(token)
-  const bonder = bonders?.[sourceChain]?.[destinationChain]
+  const bonder = bonders?.[sourceChain as Chain]?.[destinationChain as Chain]
   return bonder
 }
 
 export const getBonderTotalStake = (token: string): number | undefined => {
-  return (config.bonderConfig?.totalStake as any)?.[token]
+  return config.bonderConfig?.totalStake?.[token as AssetSymbol]
 }
 
 export { Bonders }

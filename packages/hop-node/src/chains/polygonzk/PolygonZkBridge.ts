@@ -1,10 +1,10 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import wait from 'src/utils/wait'
 import { IChainBridge } from '../IChainBridge'
+import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
-import { networks } from '@hop-protocol/core/networks'
 
 const polygonChainSlugs: Record<string, string> = {
   mainnet: 'matic',
@@ -43,7 +43,7 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
     super(chainSlug)
 
     for (const network in networks) {
-      const chainId = (networks as any)[network]?.polygonzk?.networkId
+      const chainId = networks[network as NetworkSlug]?.polygonzk?.networkId
       if (chainId === this.chainId) {
         this.l1Network = network
         break

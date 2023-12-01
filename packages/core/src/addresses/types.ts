@@ -1,6 +1,6 @@
 import { AssetSymbol, ChainSlug } from '../config/types'
 
-interface L1BridgeProps {
+export interface L1BridgeProps {
   l1CanonicalToken: string
   l1Bridge: string
   bridgeDeployedBlockNumber: number
@@ -8,7 +8,7 @@ interface L1BridgeProps {
   validator?: string
 }
 
-interface L2BridgeProps {
+export interface L2BridgeProps {
   l1CanonicalBridge: string
   l1MessengerWrapper: string
   l2CanonicalBridge: string
@@ -23,20 +23,19 @@ interface L2BridgeProps {
   bridgeDeployedBlockNumber: number
 }
 
-interface PolygonBridgeProps extends L2BridgeProps {
+export interface PolygonBridgeProps extends L2BridgeProps {
   l1FxBaseRootTunnel: string
   l1PosRootChainManager: string
   l1PosPredicate: string
   l2MessengerProxy: string
 }
 
-interface GnosisBridgeProps extends L2BridgeProps {
+export interface GnosisBridgeProps extends L2BridgeProps {
   l1Amb: string
   l2Amb: string
 }
 
-export type Bridges = {
-  [tokenSymbol: string]: Partial<{
+export type BridgeChains = Partial<{
     ethereum: L1BridgeProps,
     arbitrum: L2BridgeProps,
     optimism: L2BridgeProps,
@@ -49,6 +48,9 @@ export type Bridges = {
     base: L2BridgeProps
     polygonzk: L2BridgeProps
   }>
+
+export type Bridges = {
+  [tokenSymbol: string]: BridgeChains
 }
 
 export interface GnosisCanonicalAddresses {

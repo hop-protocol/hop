@@ -3,9 +3,9 @@ import fetch from 'node-fetch'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { IChainBridge } from '../IChainBridge'
+import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
-import { networks } from '@hop-protocol/core/networks'
 import { providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
@@ -34,7 +34,7 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
     super(chainSlug)
 
     for (const network in networks) {
-      const chainId = (networks as any)[network]?.polygon?.networkId
+      const chainId = networks[network as NetworkSlug]?.polygon?.networkId
       if (chainId === this.chainId) {
         this.l1Network = network
         break

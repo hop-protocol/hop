@@ -1,3 +1,4 @@
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { Chain, SyncType } from 'src/constants'
 import {
   Config,
@@ -202,7 +203,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       const chains = Object.keys(config.fees[token])
       validateKeys(enabledChains, chains)
       for (const chain of destinationChains) {
-        const found = (config.fees[token] as any)?.[chain as string]
+        const found = config.fees[token as AssetSymbol]?.[chain as ChainSlug]
         if (!found) {
           throw new Error(`missing fee for chain "${chain}" for token "${token}"`)
         }
@@ -248,37 +249,41 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   }
 
   if (config.bonders) {
-    const bonders = config.bonders as any
+    const bonders = config.bonders
     if (!(bonders instanceof Object)) {
       throw new Error('bonders config should be an object')
     }
     const tokens = Object.keys(bonders)
     validateKeys(enabledTokens, tokens)
     for (const token of enabledTokens) {
-      if (!(bonders[token] instanceof Object)) {
+      if (!(bonders[token as AssetSymbol] instanceof Object)) {
         throw new Error(`bonders config for "${token}" should be an object`)
       }
-      const sourceChains = Object.keys(bonders[token])
+      const sourceChains = Object.keys(bonders[token as AssetSymbol])
       validateKeys(enabledChains, sourceChains)
-      for (const sourceChain in bonders[token]) {
-        if (!(bonders[token][sourceChain] instanceof Object)) {
+      for (const sourceChain in bonders[token as AssetSymbol]) {
+        if (!(bonders[token as AssetSymbol][sourceChain as ChainSlug] instanceof Object)) {
           throw new Error(`bonders config for "${token}.${sourceChain}" should be an object`)
         }
-        const destinationChains = Object.keys(bonders[token][sourceChain])
+        const obj = bonders[token as AssetSymbol][sourceChain as ChainSlug]
+        if (!obj) {
+          continue
+        }
+        const destinationChains = Object.keys(obj)
         validateKeys(enabledChains, destinationChains)
       }
     }
   }
 
   if (config.vault) {
-    const vaultConfig = config.vault as any
+    const vaultConfig = config.vault
     const vaultTokens = Object.keys(vaultConfig)
     validateKeys(validTokenKeys, vaultTokens)
     for (const tokenSymbol in vaultConfig) {
       const vaultChains = Object.keys(vaultConfig[tokenSymbol])
       validateKeys(validChainKeys, vaultChains)
       for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        const chainTokenConfig = vaultConfig[tokenSymbol as AssetSymbol][chain as ChainSlug]
         const validConfigKeys = ['depositThresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
         const chainTokenConfigKeys = Object.keys(chainTokenConfig)
         validateKeys(validConfigKeys, chainTokenConfigKeys)
@@ -287,7 +292,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   }
 
   if (config.blocklist) {
-    const blocklistConfig = config.blocklist as any
+    const blocklistConfig = config.blocklist
     if (!(blocklistConfig instanceof Object)) {
       throw new Error('blocklist config must be an object')
     }
@@ -380,11 +385,11 @@ export async function validateConfigValues (config?: Config) {
   }
 
   if (config.bonders) {
-    const bonders = config.bonders as any
+    const bonders = config.bonders
     for (const token of enabledTokens) {
-      for (const sourceChain in bonders[token]) {
-        for (const destinationChain in bonders[token][sourceChain]) {
-          const bonderAddress = bonders[token][sourceChain][destinationChain]
+      for (const sourceChain in bonders[token as AssetSymbol]) {
+        for (const destinationChain in bonders[token as AssetSymbol][sourceChain as ChainSlug]) {
+          const bonderAddress = bonders[token as AssetSymbol][sourceChain as ChainSlug]?.[destinationChain as ChainSlug]
           if (typeof bonderAddress !== 'string') {
             throw new Error('config bonder address should be a string')
           }
@@ -399,10 +404,10 @@ export async function validateConfigValues (config?: Config) {
   }
 
   if (config.vault) {
-    const vaultConfig = config.vault as any
+    const vaultConfig = config.vault
     for (const tokenSymbol in vaultConfig) {
       for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        const chainTokenConfig = vaultConfig[tokenSymbol as AssetSymbol][chain as ChainSlug]
         if (typeof chainTokenConfig.autoDeposit !== 'boolean') {
           throw new Error('autoDeposit should be boolean')
         }

@@ -1,7 +1,8 @@
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import { ChainSlug } from '@hop-protocol/core/config'
 import { DateTime } from 'luxon'
+import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { formatUnits } from 'ethers/lib/utils'
-import { networks } from '@hop-protocol/core/networks'
 
 export type Filters = {
   startDate: string
@@ -13,8 +14,12 @@ export type Filters = {
 const chainIdToSlug: Record<string, string> = {}
 
 for (const network in networks) {
-  for (const chain in (networks as any)[network]) {
-    chainIdToSlug[(networks as any)[network][chain].networkId] = network
+  for (const chain in networks[network as NetworkSlug]) {
+    const networkId = networks[network as NetworkSlug]?.[chain as ChainSlug]?.networkId
+    if (!networkId) {
+      continue
+    }
+    chainIdToSlug[networkId] = network
   }
 }
 

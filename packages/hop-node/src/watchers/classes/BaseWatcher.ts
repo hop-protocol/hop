@@ -9,6 +9,7 @@ import SyncWatcher from 'src/watchers/SyncWatcher'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { BigNumber, constants } from 'ethers'
 import {
   Chain,
@@ -100,9 +101,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.dryMode = config.dryMode
     }
     const signer = wallets.get(this.chainSlug)
-    const vaultConfig = globalConfig.vault as any
-    if (vaultConfig[this.tokenSymbol]?.[this.chainSlug]) {
-      const strategy = vaultConfig[this.tokenSymbol]?.[this.chainSlug]?.strategy as Strategy
+    const vaultConfig = globalConfig.vault
+    if (vaultConfig[this.tokenSymbol as AssetSymbol]?.[this.chainSlug as ChainSlug]) {
+      const strategy = vaultConfig[this.tokenSymbol as AssetSymbol]?.[this.chainSlug as ChainSlug]?.strategy as Strategy
       if (strategy) {
         this.logger.debug(`setting vault instance. strategy: ${strategy}, chain: ${this.chainSlug}, token: ${this.tokenSymbol}`)
         this.vault = Vault.from(strategy, this.chainSlug as Chain, this.tokenSymbol, signer)

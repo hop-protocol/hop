@@ -2,8 +2,8 @@ import AbstractChainBridge from '../AbstractChainBridge'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { IChainBridge } from '../IChainBridge'
 import { LineaSDK } from '@consensys/linea-sdk'
+import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, constants, providers } from 'ethers'
-import { networks } from '@hop-protocol/core/networks'
 
 class LineaBridge extends AbstractChainBridge implements IChainBridge {
   l1Wallet: Signer
@@ -17,7 +17,7 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
 
     let lineaNetwork: any
     for (const network in networks) {
-      const chainId = (networks as any)[network]?.linea?.networkId
+      const chainId = networks[network as NetworkSlug]?.linea?.networkId
       if (chainId === this.chainId) {
         lineaNetwork = `linea-${network}`
         break

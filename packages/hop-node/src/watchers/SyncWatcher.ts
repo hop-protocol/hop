@@ -59,6 +59,7 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { promiseQueue } from 'src/utils/promiseQueue'
+import { isDbSetReady } from 'src/db'
 
 type Config = {
   chainSlug: string
@@ -71,6 +72,7 @@ type Config = {
 type EventPromise = Array<Promise<any>>
 
 class SyncWatcher extends BaseWatcher {
+  sourceChainInitialSyncCompleted: boolean = false
   initialSyncCompleted: boolean = false
   syncIntervalMs: number
   // Five minutes is granular enough. Any lower results in excessive redundant DB writes.
@@ -147,7 +149,28 @@ class SyncWatcher extends BaseWatcher {
     this.ready = true
   }
 
+  async #tilReady (): Promise<void> {
+    while (true) {
+      if (this.#isReady()) {
+        this.logger.debug('SyncWatcher ready')
+        return 
+      }
+      await wait(5 * 1000)
+    }
+  }
+
+  #isReady (): boolean {
+    if(
+      this.ready &&
+      isDbSetReady(this.tokenSymbol)
+    ) {
+      return true
+    }
+    return false
+  }
+
   async start () {
+    await this.#tilReady()
     try {
       await Promise.all([
         this.pollGasCost(),
@@ -161,12 +184,9 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async pollSync () {
+    this.logger.debug('starting pollSync')
     while (true) {
       try {
-        if (!this.ready) {
-          await wait(5 * 1000)
-          continue
-        }
         await this.preSyncHandler()
         await this.syncHandler()
         this.logger.debug(`done syncing pure handlers. index: ${this.syncIndex}`)
@@ -267,8 +287,20 @@ class SyncWatcher extends BaseWatcher {
     await wait(this.syncIntervalMs)
   }
 
+  isSourceChainInitialSyncCompleted(): boolean {
+    return this.sourceChainInitialSyncCompleted
+  }
+
   isInitialSyncCompleted (): boolean {
     return this.initialSyncCompleted
+  }
+
+  isAllSiblingWatchersSourceChainInitialSyncCompleted (): boolean {
+    return Object.values(this.siblingWatchers).every(
+      (siblingWatcher: SyncWatcher) => {
+        return siblingWatcher.isSourceChainInitialSyncCompleted()
+      }
+    )
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -279,27 +311,53 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async syncHandler (): Promise<any> {
+  async syncHandler (): Promise<void> {
+    // The initial sync has to be performed in order so that transfers and transferRoots at the source can
+    // be observed prior to their observation at the destination. After the initial sync, this does not
+    // matter since chain finality will enforce this.
+    if (!this.isInitialSyncCompleted()) {
+      await this.handleInitialSync()
+      return
+    }
+
     // Events that are related to user transfers can be polled every cycle while all other, less
     // time-sensitive events can be polled every N cycles.
-    let promisesPerPoll: EventPromise = []
-    if (this.shouldSyncAllEvents()) {
-      promisesPerPoll = this.getAllPromises()
+    const shouldSyncAllEvents = this.syncIndex % SyncCyclesPerFullSync === 0
+    let pollPromises: EventPromise = []
+    if (shouldSyncAllEvents) {
+      pollPromises = this.getAllPromises()
     } else {
-      promisesPerPoll = this.getTransferSentPromises()
+      pollPromises = this.getTransferSentPromises()
     }
 
     // these must come after db is done syncing, and syncAvailableCredit must be last
-    await Promise.all(promisesPerPoll)
+    await Promise.all(pollPromises)
       .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
   }
 
-  shouldSyncAllEvents (): boolean {
-    return !this.isInitialSyncCompleted() || this.isAtNewFullSyncCycleIndex()
-  }
+  async handleInitialSync(): Promise<void> {
+    const asyncPromises: EventPromise = this.getAsyncPromises()
+    const syncPromises: EventPromise = this.getSyncPromises()
+    const initialSyncSourceChainPromises: EventPromise = [
+      ...asyncPromises,
+      ...syncPromises
+    ]
+    await Promise.all(initialSyncSourceChainPromises)
 
-  isAtNewFullSyncCycleIndex (): boolean {
-    return this.syncIndex % SyncCyclesPerFullSync === 0
+    // Wait for all transfers to sync their initialSyncSourceChainPromises
+    this.sourceChainInitialSyncCompleted = true
+    this.logger.debug('source chain initial sync completed. waiting for sibling watchers to complete initial sync')
+    while (true) {
+      if (this.isAllSiblingWatchersSourceChainInitialSyncCompleted()) {
+        this.logger.debug('all sibling watchers completed source chain initial sync')
+        break
+      }
+      await wait(5000)
+    }
+
+    // Sync remaining events that require data from other events
+    const orderedPromises: EventPromise = this.getOrderedPromises()
+    await Promise.all(orderedPromises)
   }
 
   getSyncOptions (keyName: string) {
@@ -416,27 +474,41 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  getAllPromises (): EventPromise {
-    const asyncPromises: EventPromise = [
+  getAsyncPromises (): EventPromise {
+    // Handlers that do not rely on data from other handlers
+    return [
       this.getTransferSentToL2EventPromise(),
       this.getTransferRootConfirmedEventPromise(),
       this.getTransferBondChallengedEventPromise(),
       this.getTransferSentEventPromise(),
       this.getTransferRootSetEventPromise()
     ]
-    const syncPromises: EventPromise = [
+  }
+
+  getSyncPromises (): EventPromise {
+    // Handlers that are required at the source for handlers at the destination to work
+    return [
       this.getTransferRootBondedEventPromise(),
       this.getTransfersCommittedEventPromise(),
       this.getWithdrawalBondedEventPromise(),
       this.getWithdrewEventPromise()
     ]
+  }
+
+  getOrderedPromises (): EventPromise {
+    // These must be executed after the syncPromises event handlers at the source chain
+    // since it relies on data from those handlers.
+    return [
+      this.getMultipleWithdrawalsSettledEventPromise(),
+      this.getWithdrawalBondSettledEventPromise()
+    ]
+  }
+
+  getAllPromises (): EventPromise {
+    const asyncPromises: EventPromise = this.getAsyncPromises()
+    const syncPromises: EventPromise = this.getSyncPromises()
     const orderedPromises: Promise<any> = Promise.all(syncPromises).then(async () => {
-      // These must be executed after the Withdrew and WithdrawalBonded event handlers
-      // on initial sync since it relies on data from those handlers
-      await Promise.all([
-        this.getMultipleWithdrawalsSettledEventPromise(),
-        this.getWithdrawalBondSettledEventPromise()
-      ])
+      await Promise.all(this.getOrderedPromises())
     })
     return [
       ...asyncPromises,

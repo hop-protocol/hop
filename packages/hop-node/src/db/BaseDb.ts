@@ -79,6 +79,7 @@ abstract class BaseDb<T> extends EventEmitter {
   public logger: Logger
   private ready = false
   private isMigrating = false
+  private dbWriteBufferSize = 8 * 1024 * 1024 // 8 MB
   private readonly metadataKey: string = '_metadata'
   abstract update(key: string, value: T): Promise<void>
 
@@ -100,7 +101,7 @@ abstract class BaseDb<T> extends EventEmitter {
       this.logger.info(`db path: ${pathname}`)
       // Default write buffer size is 4 MB. Increase to 8 MB for more efficient disk writes.
       dbMap[pathname] = level(pathname, {
-        writeBufferSize: 8 * 1024 * 1024 // 8 MB
+        writeBufferSize: this.dbWriteBufferSize
       })
     }
 

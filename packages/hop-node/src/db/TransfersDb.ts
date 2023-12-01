@@ -235,6 +235,7 @@ class TransfersDb extends BaseDb<Transfer> {
     const updatedValue: Transfer = this.getUpdatedValue(item, transfer as Transfer)
     updatedValue.transferId = transferId
 
+    this.logger.debug(`updating transfer. key: ${transferId}, value: ${JSON.stringify(updatedValue)}`)
     await Promise.all([
       this.subDbTimestamps.update(transferId, updatedValue),
       this.subDbIncompletes.update(transferId, updatedValue),

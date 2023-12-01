@@ -178,6 +178,7 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   protected async del (key: string): Promise<void> {
+    // if the key does not exist, this operation will still succeed
     this.#logDbOperation(DbOperations.Del, { key })
     return this.db.del(key)
   }
@@ -388,9 +389,9 @@ abstract class BaseDb<T> extends EventEmitter {
     if (batchOperations) {
       const maxLength = 1000
       if (batchOperations.length > maxLength) {
-        log += `, batchOperations: ${JSON.stringify(batchOperations).substring(0, maxLength)}... (truncated ${batchOperations.length - maxLength} chars)`
+        log += `, batchOperations (${batchOperations.length} items): ${JSON.stringify(batchOperations).substring(0, maxLength)}... (truncated ${batchOperations.length - maxLength} operations)`
       } else {
-        log += `, batchOperations: ${JSON.stringify(batchOperations)}`
+        log += `, batchOperations (${batchOperations.length} items): ${JSON.stringify(batchOperations)}`
       }
     }
     this.logger.debug(log)

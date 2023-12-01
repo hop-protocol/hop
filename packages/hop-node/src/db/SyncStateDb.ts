@@ -14,11 +14,7 @@ class SyncStateDb extends BaseDb<State> {
   }
 
   async getByKey (key: string): Promise<State | null> {
-    const value: State | null = await this.get(key)
-    if (!value) {
-      return null
-    }
-    return value 
+    return this.get(key)
   }
 }
 

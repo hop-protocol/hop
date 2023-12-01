@@ -198,7 +198,7 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
-      logger.debug('sendTransferRelayErr err:', err.message)
+      logger.debug('sendTransferRelayErr err:', err)
 
       // TODO: TMP Linea rm with other branch
       if (err instanceof MessageAlreadyClaimedError) {

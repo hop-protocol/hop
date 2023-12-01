@@ -10,7 +10,6 @@ import { Migration } from 'src/db/migrations'
 import { config as globalConfig } from 'src/config'
 import { isEqual } from 'lodash'
 import { normalizeDbValue } from './utils'
-
 const dbMap: { [key: string]: any } = {}
 
 export enum DbOperations {
@@ -54,13 +53,22 @@ type LogOptions = {
   batchOperations?: DbBatchOperation[]
 }
 
-export type CbFilterGet<T> = (key: string, value: T) => T | null
-export type CbFilterPut<T> = (key: string, value: T) => Promise<void>
-export type DbItemsFilter<T> = {
+export type DbGetItemsFilters<T> = {
   dateFilterWithKeyPrefix?: DateFilterWithKeyPrefix
-  cbFilterGet?: CbFilterGet<T>
-  cbFilterPut?: CbFilterPut<T>
+  cbFilterGet?: (key: string, value: T) => T | null
 }
+
+export type DbPutItemsFilters<T> = {
+  dateFilterWithKeyPrefix?: DateFilterWithKeyPrefix
+  cbFilterPut: (key: string, value: T) => Promise<void>
+}
+
+// Optional cbFilterPut when handling general
+export type DbItemsFilters<T> = (DbGetItemsFilters<T> & DbPutItemsFilters<T>) & {
+  cbFilterPut?: DbPutItemsFilters<T>['cbFilterPut']
+}
+export type DbMigrationFilters<T> = DbPutItemsFilters<T>
+
 
 // These are LevelDB options
 export type DbKeyFilter = {
@@ -126,11 +134,14 @@ abstract class BaseDb<T> extends EventEmitter {
   }
 
   async #init (migrations: Migration[]): Promise<void> {
-    const databaseMigrator = new DatabaseMigrator<T>(this)
+    const databaseMigrator = new DatabaseMigrator<T>({
+      db: this,
+      migrations
+    })
     const metadata = await this.#getMetadata()
     const migrationIndex = metadata?._migrationIndex ?? 0
     this.isMigrating = true
-    databaseMigrator.migrate(migrations, migrationIndex)
+    databaseMigrator.migrate(migrationIndex)
       .then(async (updatedMigrationIndex: number) => {
         await this.#upsertMetadata({
           _migrationIndex: updatedMigrationIndex
@@ -162,7 +173,7 @@ abstract class BaseDb<T> extends EventEmitter {
   protected async get (key: string): Promise<T| null> {
     try {
       const value = await this.db.get(key)
-    return this.#normalizeValue(value)
+      return this.#normalizeValue(value)
     } catch (err) {
       return null
     }
@@ -221,34 +232,21 @@ abstract class BaseDb<T> extends EventEmitter {
    * Custom DB Operations - All items
    */
 
-  protected async upsertAll (filters?: DbItemsFilter<T>): Promise<void> {
-    if (filters?.cbFilterGet) {
-      throw new Error('cbFilterGet cannot be used with upsertAll')
-    }
-    if (!filters?.cbFilterPut) {
-      throw new Error('cbFilterPut is required with upsertAll')
-    }
+  protected async upsertAll (filters: DbPutItemsFilters<T>): Promise<void> {
     await this.#processItems(filters)
   }
 
-  protected async getKeys (filters?: DbItemsFilter<T>): Promise<string[]> {
-    if (filters?.cbFilterPut) {
-      throw new Error('cbFilterPut cannot be used with getKeys')
-    }
-    const items: Array<Item<T>> = await this.#processItems(filters)
+  protected async getKeys (filters?: DbGetItemsFilters<T>): Promise<string[]> {
+    const items: Array<Item<T>> = await this.#processItems(filters as DbItemsFilters<T>)
     return items.map(item => Object.keys(item)[0])
-
   }
 
-  protected async getValues (filters?: DbItemsFilter<T>): Promise<T[]> {
-    if (filters?.cbFilterPut) {
-      throw new Error('cbFilterPut cannot be used with getValues')
-    }
-    const items: Array<Item<T>> = await this.#processItems(filters)
+  protected async getValues (filters?: DbGetItemsFilters<T>): Promise<T[]> {
+    const items: Array<Item<T>> = await this.#processItems(filters as DbItemsFilters<T>)
     return items.map(item => Object.values(item)[0])
   }
 
-  async #processItems (filters?: DbItemsFilter<T>): Promise<Array<Item<T>>> {
+  async #processItems (filters?: DbItemsFilters<T>): Promise<Array<Item<T>>> {
     if (filters?.cbFilterPut && filters?.cbFilterGet) {
       throw new Error('cbFilterPut and cbFilterGet cannot be used together')
     }
@@ -327,18 +325,43 @@ abstract class BaseDb<T> extends EventEmitter {
     return value
   }
 
-  async upsertMigrationValues (filters: DbItemsFilter<T>): Promise<void> {
+  async upsertMigrationValues (filter: DbMigrationFilters<T>): Promise<void> {
     // This is the only DB operation that is not protected. It is used to perform migrations
     // and then is blocked after the migration is complete.
     if (this.ready) {
       throw new Error('Can only run migrations before the db is ready')
     }
-    await this.upsertAll(filters)
+    await this.upsertAll(filter as DbPutItemsFilters<T>)
   }
 
   /**
    * Utils
    */
+
+  async getAllItems (): Promise<Item<T>[]> {
+    this.logger.warn('getAllItems is memory intensive. Consider using a filter.')
+    const countCb = (key: string, value: T): T => {
+      return value
+    }
+    const filter: DbGetItemsFilters<T> = {
+      cbFilterGet: countCb
+    }
+    return this.#processItems(filter as DbItemsFilters<T>)
+  }
+
+  async getNumItems (): Promise<number> {
+    this.logger.warn('getNumItems is memory intensive. Consider using a filter.')
+    let count = 0
+    const countCb = (key: string, value: T): null => {
+      count++
+      return null
+    }
+    const filter: DbGetItemsFilters<T> = {
+      cbFilterGet: countCb
+    }
+    await this.#processItems(filter as DbItemsFilters<T>)
+    return count
+  }
 
   getUpdatedValue (existingValue: T, newValue: T): T {
     return Object.assign({}, existingValue, newValue)
@@ -371,30 +394,30 @@ abstract class BaseDb<T> extends EventEmitter {
   #logDbOperation (operation: string, logOptions: LogOptions): void {
     const { key, value, logMsg, batchOperations } = logOptions
 
-    let log = `DB Operation: ${operation}`
+    let logs: string[] = [`DB Operation: ${operation}`]
 
     // Warn the consumer that the DB is not yet ready
     if (!this.ready && !this.isMigrating) {
-      log += ', DB is not ready and this operation may cause unexpected results'
+      logs.push('DB is not ready and this operation may cause unexpected results')
     }
     if (key) {
-      log += `, key: ${key}`
+      logs.push(`key: ${key}`)
     }
     if (value) {
-      log += `, value: ${JSON.stringify(value)}`
+      logs.push(`value: ${JSON.stringify(value)}`)
     }
     if (logMsg) {
-      log += `, ${logMsg}`
+      logs.push(`${logMsg}`)
     }
     if (batchOperations) {
       const maxLength = 1000
       if (batchOperations.length > maxLength) {
-        log += `, batchOperations (${batchOperations.length} items): ${JSON.stringify(batchOperations).substring(0, maxLength)}... (truncated ${batchOperations.length - maxLength} operations)`
+        logs.push(`batchOperations (${batchOperations.length} items): ${JSON.stringify(batchOperations).substring(0, maxLength)}... (truncated ${batchOperations.length - maxLength} operations)`)
       } else {
-        log += `, batchOperations (${batchOperations.length} items): ${JSON.stringify(batchOperations)}`
+        logs.push(`batchOperations (${batchOperations.length} items): ${JSON.stringify(batchOperations)}`)
       }
     }
-    this.logger.debug(log)
+    this.logger.dbOperation(logs.join(', '))
   }
 
   #getLegacyKeys (): string[] {

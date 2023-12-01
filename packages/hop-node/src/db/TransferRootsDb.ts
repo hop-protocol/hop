@@ -135,8 +135,7 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
   async update (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
     const key = this.getTimestampedKey(transferRoot)
     if (!key) {
-      // Can occur if an event has been missed
-      this.logger.debug(`key not found for transferRootId: ${transferRootId}`)
+      this.logger.debug(`key not found for transferRootId: ${transferRootId}. Can occur if an event has been missed or during initial sync.`)
       return
     }
     await this.insertIfNotExists(key, { transferRootId })
@@ -280,11 +279,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot | null> {
-    const item = await this.get(transferRootId)
-    if (!item) {
-      return null
-    }
-    return item
+    return this.get(transferRootId)
   }
 
   async getByTransferRootHash (transferRootHash: string): Promise<TransferRoot | null> {

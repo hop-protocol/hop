@@ -1,4 +1,4 @@
-import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbItemsFilter, DbOperations } from './BaseDb'
+import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, DbOperations } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
@@ -60,15 +60,15 @@ class GasCostDb extends BaseDb<GasCost> {
 
     const isRelevantItem = (key: string, value: GasCost): GasCost | null => {
       const isRelevant = (
-        !!(value.chain === chain) &&
-        !!(value.token === token) &&
-        !!(value.transactionType === transactionType) &&
+        value.chain === chain &&
+        value.token === token &&
+        value.transactionType === transactionType &&
         !!(value.timestamp)
       )
       return isRelevant ? value : null
     }
 
-    const filters: DbItemsFilter<GasCost> = {
+    const filters: DbGetItemsFilters<GasCost> = {
       dateFilterWithKeyPrefix,
       cbFilterGet: isRelevantItem
     }
@@ -129,7 +129,7 @@ class GasCostDb extends BaseDb<GasCost> {
       const item: GasCost = { ...value, id: key }
       return item.timestamp < staleItemCutoffSec ? item : null
     }
-    const filters: DbItemsFilter<GasCost> = {
+    const filters: DbGetItemsFilters<GasCost> = {
       cbFilterGet: isStaleItem
     }
     return this.getValues(filters)

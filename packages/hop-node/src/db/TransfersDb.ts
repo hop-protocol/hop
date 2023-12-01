@@ -125,8 +125,7 @@ class SubDbTimestamps extends BaseDb<Transfer> {
   async update (transferId: string, transfer: Transfer): Promise<void> {
     const key = this.getTimestampedKey(transfer)
     if (!key) {
-      // Can occur if an event has been missed
-      this.logger.debug(`key not found for transferId: ${transferId}`)
+      this.logger.debug(`key not found for transferId: ${transferId}. Can occur if an event has been missed or during initial sync.`)
       return
     }
     await this.insertIfNotExists(key, { transferId })
@@ -248,7 +247,7 @@ class TransfersDb extends BaseDb<Transfer> {
     if (!item) {
       return null
     }
-    return this.normalizeTransferItem(item)
+    return this.normalizeTransferValue(item)
   }
 
   async getTransfers (dateFilter?: DateFilter): Promise<Transfer[]> {
@@ -273,7 +272,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    const items = batchedItems.map(this.normalizeTransferItem).sort(this.sortItems)
+    const items = batchedItems.map(this.normalizeTransferValue).sort(this.sortItems)
     if (items == null || !items.length) {
       return []
     }
@@ -440,7 +439,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    return incompleteTransferIdItems.map(this.normalizeTransferItem).filter((item: Transfer) => {
+    return incompleteTransferIdItems.map(this.normalizeTransferValue).filter((item: Transfer) => {
       if (!item) {
         return false
       }
@@ -537,7 +536,7 @@ class TransfersDb extends BaseDb<Transfer> {
     }
   }
 
-  protected normalizeTransferItem (item: Transfer): Transfer {
+  protected normalizeTransferValue (item: Transfer): Transfer {
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }

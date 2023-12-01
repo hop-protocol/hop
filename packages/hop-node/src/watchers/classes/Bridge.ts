@@ -604,14 +604,14 @@ export default class Bridge extends ContractBase {
 
     // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
     let syncCacheKey = ''
-    let state: State | undefined
+    let state: State | null = null
     if (options.syncCacheKey) {
       syncCacheKey = this.getSyncCacheKeyFromKey(
         this.chainId,
         this.address,
         options.syncCacheKey
       )
-      state = (await this.db.syncState.getByKey(syncCacheKey)) ?? undefined
+      state = await this.db.syncState.getByKey(syncCacheKey)
       if (state) {
         const customSyncKeySuffix = this.getCustomSyncKeySuffix()
         if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
@@ -701,7 +701,7 @@ export default class Bridge extends ContractBase {
     return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State): Promise<BlockValues> => {
+  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
     const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number

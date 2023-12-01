@@ -1,22 +1,29 @@
-import BaseDb, { DbItemsFilter } from './BaseDb'
+import BaseDb, { DbMigrationFilters } from './BaseDb'
 import { Migration } from './migrations'
+
+type DatabaseMigratorParams<T> = {
+  db: BaseDb<T>,
+  migrations: Migration[]
+}
 
 class DatabaseMigrator<T> {
   private readonly db: BaseDb<T>
+  private readonly migrations: Migration[]
 
-  constructor (db: BaseDb<T>) {
-    this.db = db
+  constructor (params: DatabaseMigratorParams<T>) {
+    this.db = params.db
+    this.migrations = params.migrations
   }
 
   // Migrations are memory intensive. Ensure there is no unintentional memory overflow.
   // This may take minutes to complete.
-  async migrate (migrations: Migration[], migrationIndex: number): Promise<number> {
-    if (!migrations?.length) {
+  async migrate (migrationIndex: number): Promise<number> {
+    if (!this.migrations?.length) {
       this.db.logger.debug('no migrations to process')
       return migrationIndex
     }
 
-    const numMigrations = migrations.length
+    const numMigrations = this.migrations.length
     if (migrationIndex >= numMigrations) {
       this.db.logger.debug(`no migration required, migrationIndex: ${migrationIndex}`)
       return migrationIndex
@@ -25,7 +32,7 @@ class DatabaseMigrator<T> {
     this.db.logger.debug(`processing migrations from ${migrationIndex} to ${numMigrations}`)
     let updatedMigrationIndex = migrationIndex
     for (let i = migrationIndex; i < numMigrations; i++) {
-      const migration: Migration = migrations[i]
+      const migration: Migration = this.migrations[i]
       this.db.logger.debug(`processing migration ${i}`)
       await this.processMigration(migration)
       updatedMigrationIndex++
@@ -36,7 +43,7 @@ class DatabaseMigrator<T> {
   }
 
   protected async processMigration (migration: Migration): Promise<void> {
-    const migrateCb = async (key: string, value: T): Promise<void> => {
+    const migrationCb = async (key: string, value: T): Promise<void> => {
       const {
         migrationProperty,
         expectedPropertyValue,
@@ -55,8 +62,8 @@ class DatabaseMigrator<T> {
       return this.db.update(key, updatedValue)
     }
 
-    const filters: DbItemsFilter<T> = {
-      cbFilterPut: migrateCb
+    const filters: DbMigrationFilters<T> = {
+      cbFilterPut: migrationCb,
     }
     await this.db.upsertMigrationValues(filters)
   }

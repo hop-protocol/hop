@@ -569,7 +569,6 @@ class SyncWatcher extends BaseWatcher {
       logIndex
     )
     const logger = this.logger.create({ id: transferId })
-    logger.debug('handling TransferSentToL2 event')
 
     try {
       const blockNumber: number = event.blockNumber
@@ -577,18 +576,20 @@ class SyncWatcher extends BaseWatcher {
       const sourceChainId = await l1Bridge.getChainId()
       const isRelayable = this.getIsRelayable(relayerFee)
 
-      logger.debug('sourceChainId:', sourceChainId)
-      logger.debug('destinationChainId:', destinationChainId)
-      logger.debug('isRelayable:', isRelayable)
-      logger.debug('transferId:', transferId)
-      logger.debug('amount:', this.bridge.formatUnits(amount))
-      logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
-      logger.debug('deadline:', deadline.toString())
-      logger.debug('transferSentBlockNumber:', blockNumber)
-      logger.debug('relayer:', relayer)
-      logger.debug('relayerFee:', this.bridge.formatUnits(relayerFee))
-      logger.debug('transactionHash:', transactionHash)
-      logger.debug('logIndex:', logIndex)
+      logger.debug('handling TransferSentToL2 event', JSON.stringify({
+        sourceChainId,
+        destinationChainId,
+        isRelayable,
+        transferId,
+        amount: this.bridge.formatUnits(amount),
+        amountOutMin: this.bridge.formatUnits(amountOutMin),
+        deadline: deadline.toString(),
+        blockNumber,
+        relayer,
+        relayerFee: this.bridge.formatUnits(relayerFee),
+        transactionHash,
+        logIndex,
+      }))
 
       if (!isRelayable) {
         logger.warn('transfer is not relayable. fee:', relayerFee.toString())
@@ -609,8 +610,6 @@ class SyncWatcher extends BaseWatcher {
         transferSentBlockNumber: blockNumber,
         transferSentLogIndex: logIndex
       })
-
-      logger.debug('handleTransferSentToL2Event: stored transfer item')
     } catch (err) {
       logger.error(`handleTransferSentToL2Event error: ${err.message}`)
       this.notifier.error(`handleTransferSentToL2Event error: ${err.message}`)
@@ -630,7 +629,6 @@ class SyncWatcher extends BaseWatcher {
       index
     } = event.args
     const logger = this.logger.create({ id: transferId })
-    logger.debug('handling TransferSent event')
 
     try {
       const { transactionHash, logIndex } = event
@@ -644,19 +642,22 @@ class SyncWatcher extends BaseWatcher {
       // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
       // should never happen unless RPC providers return out of order events
       const isFinalized = !isCustomSync ? true : undefined
+    logger.debug('')
 
-      logger.debug('sourceChainId:', sourceChainId)
-      logger.debug('destinationChainId:', destinationChainId)
-      logger.debug('isBondable:', isBondable)
-      logger.debug('transferId:', transferId)
-      logger.debug('amount:', this.bridge.formatUnits(amount))
-      logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-      logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
-      logger.debug('deadline:', deadline.toString())
-      logger.debug('transferSentIndex:', transferSentIndex)
-      logger.debug('transferSentLogIndex:', logIndex)
-      logger.debug('transferSentBlockNumber:', blockNumber)
-      logger.debug('isFinalized:', isFinalized)
+      logger.debug('handling TransferSent event', JSON.stringify({
+        sourceChainId,
+        destinationChainId,
+        isBondable,
+        transferId,
+        amount: this.bridge.formatUnits(amount),
+        bonderFee: this.bridge.formatUnits(bonderFee),
+        amountOutMin: this.bridge.formatUnits(amountOutMin),
+        deadline: deadline.toString(),
+        transferSentIndex,
+        logIndex,
+        blockNumber,
+        isFinalized,
+      }))
 
       if (!isBondable) {
         logger.warn('transfer is unbondable', amountOutMin, deadline)
@@ -711,9 +712,10 @@ class SyncWatcher extends BaseWatcher {
     const { transferId, amount } = event.args
     const logger = this.logger.create({ id: transferId })
 
-    logger.debug('handling WithdrawalBonded event')
-    logger.debug('transferId:', transferId)
-    logger.debug('amount:', this.bridge.formatUnits(amount))
+    logger.debug('handling WithdrawalBonded event', JSON.stringify({
+      transferId,
+      amount: this.bridge.formatUnits(amount)
+    }))
 
     await this.db.transfers.update(transferId, {
       withdrawalBonded: true,
@@ -734,12 +736,13 @@ class SyncWatcher extends BaseWatcher {
 
     const { transactionHash } = event
 
-    logger.debug('handling Withdrew event')
-    logger.debug('transferId:', transferId)
-    logger.debug('transactionHash:', transactionHash)
-    logger.debug('recipient:', recipient)
-    logger.debug('amount:', amount)
-    logger.debug('transferNonce:', transferNonce)
+    logger.debug('handling Withdrew event', JSON.stringify({
+      transferId,
+      transactionHash,
+      recipient,
+      amount,
+      transferNonce,
+    }))
 
     await this.db.transfers.update(transferId, {
       isTransferSpent: true,
@@ -778,14 +781,15 @@ class SyncWatcher extends BaseWatcher {
     const transferRootId = this.bridge.getTransferRootId(transferRootHash, totalAmount)
 
     const logger = this.logger.create({ root: transferRootId })
-    logger.debug('handling TransferRootBonded event')
 
     try {
-      logger.debug(`transferRootHash from event: ${transferRootHash}`)
-      logger.debug(`event transactionHash: ${transactionHash}`)
-      logger.debug(`event blockNumber: ${blockNumber}`)
-      logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
-      logger.debug(`transferRootId: ${transferRootId}`)
+      logger.debug('handling TransferRootBonded event', JSON.stringify({
+        transferRootHash,
+        transactionHash,
+        blockNumber,
+        totalAmount: this.bridge.formatUnits(totalAmount),
+        transferRootId: transferRootId
+      }))
 
       await this.db.transferRoots.update(transferRootId, {
         transferRootHash,
@@ -809,7 +813,6 @@ class SyncWatcher extends BaseWatcher {
     } = event.args
     const transferRootId = this.bridge.getTransferRootId(transferRootHash, totalAmount)
     const logger = this.logger.create({ root: transferRootId })
-    logger.debug('handling TransfersCommitted event')
 
     try {
       const committedAt = Number(committedAtBn.toString())
@@ -820,13 +823,15 @@ class SyncWatcher extends BaseWatcher {
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
       const shouldBondTransferRoot = oruChains.has(sourceChainSlug)
 
-      logger.debug('transferRootId:', transferRootId)
-      logger.debug('committedAt:', committedAt)
-      logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-      logger.debug('transferRootHash:', transferRootHash)
-      logger.debug('destinationChainId:', destinationChainId)
-      logger.debug('shouldBondTransferRoot:', shouldBondTransferRoot)
-      logger.debug('transfersCommittedLogIndex:', logIndex)
+      logger.debug('handling TransfersCommitted event', JSON.stringify({
+        transferRootId,
+        committedAt,
+        totalAmount: this.bridge.formatUnits(totalAmount),
+        transferRootHash,
+        destinationChainId,
+        shouldBondTransferRoot,
+        logIndex,
+      }))
 
       await this.db.transferRoots.update(transferRootId, {
         transferRootHash,
@@ -855,11 +860,12 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const { transactionHash } = event
 
-    logger.debug('handling TransferBondChallenged event')
-    logger.debug(`transferRootId: ${transferRootId}`)
-    logger.debug(`transferRootHash: ${transferRootHash}`)
-    logger.debug(`originalAmount: ${this.bridge.formatUnits(originalAmount)}`)
-    logger.debug(`event transactionHash: ${transactionHash}`)
+    logger.debug('handling TransferBondChallenged event', JSON.stringify({
+      transferRootId,
+      transferRootHash,
+      originalAmount: this.bridge.formatUnits(originalAmount),
+      transactionHash
+    }))
 
     await this.db.transferRoots.update(transferRootId, {
       transferRootHash,
@@ -876,10 +882,11 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const { transactionHash, blockNumber } = event
 
-    logger.debug('handling TransferRootSet event')
-    logger.debug(`transferRootHash from event: ${transferRootHash}`)
-    logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
-    logger.debug(`event transactionHash: ${transactionHash}`)
+    logger.debug('handling TransferRootSet event', JSON.stringify({
+      transferRootHash,
+      totalAmount: this.bridge.formatUnits(totalAmount),
+      transactionHash
+    }))
 
     await this.db.transferRoots.update(transferRootId, {
       transferRootHash,

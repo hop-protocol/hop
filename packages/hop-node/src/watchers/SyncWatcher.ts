@@ -1696,7 +1696,7 @@ class SyncWatcher extends BaseWatcher {
           }
           // This method should not care about the key but would require GasCost DB architecture change
           // that is not worth it.
-          const key: string = await this.db.gasCost.getKeyFromValue(gasCostData)
+          const key: string = this.db.gasCost.getKeyFromValue(gasCostData)
           await this.db.gasCost.update(key, gasCostData)
           logger.debug('pollGasCost db update completed')
         }))

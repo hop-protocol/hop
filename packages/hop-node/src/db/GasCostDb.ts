@@ -46,7 +46,7 @@ class GasCostDb extends BaseDb<GasCost> {
     await this.put(key, data)
   }
 
-  async getKeyFromValue (value: GasCost): Promise<string> {
+  getKeyFromValue (value: GasCost): string {
     const { chain, token, timestamp, transactionType } = value
     return `${chain}:${token}:${timestamp}:${transactionType}`
   }

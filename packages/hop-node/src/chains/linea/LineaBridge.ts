@@ -2,6 +2,7 @@ import AbstractChainBridge from '../AbstractChainBridge'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { IChainBridge } from '../IChainBridge'
 import { LineaSDK } from '@consensys/linea-sdk'
+import { MessageAlreadyClaimedError } from 'src/types/error'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, constants, providers } from 'ethers'
 
@@ -65,6 +66,12 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
 
     const isRelayable = await this._isCheckpointed(messageHash, destinationBridge)
     if (!isRelayable) {
+      // TODO: TMP Linea rm with other branch
+      const messageStatus = await destinationBridge.getMessageStatus(messageHash)
+      if (messageStatus === 'CLAIMED') {
+        throw new MessageAlreadyClaimedError('message already claimed')
+      }
+
       throw new Error('expected deposit to be claimable')
     }
 

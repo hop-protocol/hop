@@ -1,7 +1,11 @@
-// TODO: read from core
+import { AssetSymbol } from '@hop-protocol/core/config'
+
 function getCanonicalTokenSymbol (tokenSymbol: string) {
-  // remove "h" (lowercase), "W", and "X" prefix
-  return tokenSymbol.replace(/^h?W?X?(ETH|MATIC|USDC|USDT|DAI|WBTC|HOP|SNX|sUSD|rETH|UNI|MAGIC)/g, '$1')
+  const symbols = Object.values(AssetSymbol)
+  const pattern = symbols.join('|')
+
+  // remove "h" (lowercase), "W" (wrapped prefix), and "X" prefix (for xDai)
+  return tokenSymbol.replace(new RegExp(`^h?W?X?(${pattern})`, 'g'), '$1')
 }
 
 export default getCanonicalTokenSymbol

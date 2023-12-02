@@ -4,9 +4,9 @@ interface Chain {
   rpcUrl: string
   fallbackRpcUrls?: string[]
   explorerUrl: string
-  waitConfirmations: number
-  hasFinalizationBlockTag: boolean
   subgraphUrl: string
+  etherscanApiUrl?: string
+  multicall?: string
 }
 
 export interface Chains {

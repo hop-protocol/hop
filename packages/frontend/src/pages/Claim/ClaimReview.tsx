@@ -1,11 +1,11 @@
 import React from 'react'
 import { Div, Icon } from 'src/components/ui'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { toTokenDisplay } from 'src/utils'
 import { BigNumber } from 'ethers'
 import Box from '@material-ui/core/Box'
-import { StyledButton } from 'src/components/buttons/StyledButton'
+import { StyledButton } from 'src/components/Button/StyledButton'
 import Typography from '@material-ui/core/Typography'
 import { DelegateIcon } from './DelegateIcon'
 

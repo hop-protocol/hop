@@ -315,8 +315,7 @@ export default class L2Bridge extends Bridge {
     transferNonce: string,
     bonderFee: BigNumber,
     amountOutMin: BigNumber,
-    deadline: BigNumber,
-    hiddenCalldata?: string
+    deadline: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -340,12 +339,7 @@ export default class L2Bridge extends Bridge {
       txOverrides
     ] as const
 
-    const populatedTx = await this.l2BridgeWriteContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
-    if (hiddenCalldata) {
-      populatedTx.data = populatedTx.data! + hiddenCalldata
-    }
-    const tx = await this.l2BridgeWriteContract.signer.sendTransaction(populatedTx)
-
+    const tx = await this.l2BridgeWriteContract.bondWithdrawalAndDistribute(...payload)
     return tx
   }
 

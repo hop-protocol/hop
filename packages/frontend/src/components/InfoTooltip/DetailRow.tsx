@@ -2,7 +2,7 @@ import React, { FC, ReactFragment } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
-import InfoTooltip from 'src/components/InfoTooltip'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import classnames from 'classnames'
 import { Flex } from '../ui'
 
@@ -67,7 +67,7 @@ const useStyles = makeStyles<Theme, StyleProps>((theme: any) => {
   }
 })
 
-const DetailRow: FC<DetailRowProps> = props => {
+export const DetailRow: FC<DetailRowProps> = props => {
   const {
     title,
     tooltip,
@@ -104,5 +104,3 @@ const DetailRow: FC<DetailRowProps> = props => {
     </Box>
   )
 }
-
-export default DetailRow

@@ -6,8 +6,8 @@ import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
 import { RelayableChains } from 'src/utils/constants'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
-import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
 type GetDetailsInput = {
@@ -165,7 +165,7 @@ class HopConvertOption extends ConvertOption {
 
     const bridge = sdk.bridge(l1TokenSymbol)
     if (sourceNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1BridgeWrapperOrL1Bridge(sourceNetwork.slug, destNetwork?.slug)
+      const l1Bridge = await bridge.getL1Bridge()
       return l1Bridge.address
     } else {
       const l2Bridge = await bridge.getL2Bridge(sourceNetwork.slug)

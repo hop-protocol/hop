@@ -2,6 +2,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import getChainBridge from 'src/chains/getChainBridge'
 import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
 import { IChainBridge } from '../chains/IChainBridge'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 
@@ -40,7 +41,7 @@ async function main (source: any) {
 
   const watcher = await getConfirmRootsWatcher({ chain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   const dbTransferRoots: any[] = []
@@ -100,7 +101,6 @@ async function main (source: any) {
       if (!commitTxHash) {
         throw new Error('commitTxHash is required')
       }
-      console.log('commitTxHash', commitTxHash)
       await chainBridge.relayL2ToL1Message(commitTxHash)
     }
   }

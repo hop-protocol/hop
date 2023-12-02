@@ -1,8 +1,8 @@
 import React, { useEffect, useState, ChangeEvent } from 'react'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
-import AmountSelectorCard from 'src/components/AmountSelectorCard'
+import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
 import logger from 'src/logger'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import { BigNumber } from 'ethers'
@@ -11,7 +11,7 @@ import { Slider } from 'src/components/slider'
 import MenuItem from '@material-ui/core/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 
 const useStyles = makeStyles(theme => ({
   root: {

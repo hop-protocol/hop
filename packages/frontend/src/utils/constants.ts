@@ -1,21 +1,7 @@
 import { ChainSlug, Token } from '@hop-protocol/sdk'
+import { networks } from '@hop-protocol/core/networks'
+import { tokens } from '@hop-protocol/core/metadata/tokens'
 import Network from 'src/models/Network'
-
-export declare enum NetworkId {
-  MAINNET = 1,
-  ROPSTEN = 3,
-  RINKEBY = 4,
-  GOERLI = 5,
-  KOVAN = 42,
-}
-
-export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
-  1: '',
-  3: 'ropsten.',
-  4: 'rinkeby.',
-  5: 'goerli.',
-  42: 'kovan.',
-}
 
 export const L1_NETWORK = ChainSlug.Ethereum
 
@@ -43,9 +29,23 @@ export interface NetworkTokenEntity {
   amount: string
 }
 
-export const RelayableChains: string[] = [
-  ChainSlug.Arbitrum,
-  ChainSlug.Nova
-]
+const relayablChainsSet = new Set(<string[]>[])
+for (const network in networks) {
+  const networkObj = networks[network]
+  for (const chain in networkObj) {
+    const chainObj = networkObj[chain]
+    if (chainObj?.isRelayable) {
+      relayablChainsSet.add(chain)
+    }
+  }
+}
 
-export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
+export const RelayableChains = Array.from(relayablChainsSet)
+
+export const stableCoins = new Set(<string[]>[])
+for (const tokenSymbol in tokens) {
+  const tokenObj = tokens[tokenSymbol]
+  if (tokenObj?.isStablecoin) {
+    stableCoins.add(tokenSymbol)
+  }
+}

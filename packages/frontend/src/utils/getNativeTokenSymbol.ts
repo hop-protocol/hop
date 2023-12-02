@@ -1,11 +1,5 @@
+import { chains as chainsMetadata } from '@hop-protocol/core/metadata/chains'
+
 export function getNativeTokenSymbol (chainSlug: string) {
-  if (chainSlug === 'polygon') {
-    return 'MATIC'
-  }
-
-  if (chainSlug === 'gnosis') {
-    return 'GNO'
-  }
-
-  return 'ETH'
+  return (chainsMetadata as any)[chainSlug].nativeTokenSymbol
 }

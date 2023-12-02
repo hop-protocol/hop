@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import ErrorIcon from '@material-ui/icons/ErrorOutline'
-import InfoTooltip from 'src/components/InfoTooltip'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import Typography from '@material-ui/core/Typography'
 import { useStyles } from './useStyles'
 

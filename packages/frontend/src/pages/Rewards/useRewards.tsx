@@ -13,7 +13,7 @@ import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { DateTime } from 'luxon'
 import { getTokenImage } from 'src/utils/tokens'
-import { isGoerli } from 'src/config'
+import { isGoerli, isMainnet, reactAppNetwork } from 'src/config'
 
 interface Props {
   rewardsContractAddress: string
@@ -42,7 +42,8 @@ export const useRewards = (props: Props) => {
   const [claimRecipient, setClaimRecipient] = useState(queryParams.address as string ?? address?.address)
   const [countdown, setCountdown] = useState('')
   const [inputValue, setInputValue] = useState('')
-  const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+  const [withdrawn, setWithdrawn] = useState(BigNumber.from(0))
+  const apiBaseUrl = isMainnet ? 'https://optimism-fee-refund-api.hop.exchange' : (isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : '')
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
@@ -159,8 +160,8 @@ export const useRewards = (props: Props) => {
         return
       }
       const total = BigNumber.from(entry.balance)
-      const withdrawn = await contract.withdrawn(claimRecipient)
-      const amount = total.sub(withdrawn)
+      const withdrawnAmount = await contract.withdrawn(claimRecipient)
+      const amount = total.sub(withdrawnAmount)
       setClaimableAmount(amount)
       setClaimProofBalance(total)
     } catch (err) {
@@ -229,6 +230,9 @@ export const useRewards = (props: Props) => {
       if (!claimRecipient) {
         return
       }
+      if (!apiBaseUrl) {
+        throw new Error(`apiBasUrl not set for network ${reactAppNetwork}`)
+      }
       const url = `${apiBaseUrl}/v1/rewards?address=${claimRecipient}`
       const res = await fetch(url)
       const json = await res.json()
@@ -265,6 +269,9 @@ export const useRewards = (props: Props) => {
     try {
       if (!pollUnclaimableAmountFromBackend) {
         return
+      }
+      if (!apiBaseUrl) {
+        throw new Error(`apiBasUrl not set for network ${reactAppNetwork}`)
       }
       const url = `${apiBaseUrl}/v1/rewards-info`
       const res = await fetch(url)
@@ -415,6 +422,17 @@ export const useRewards = (props: Props) => {
     }
   }, [inputValue, address])
 
+  useEffect(() => {
+    async function updateWithdrawnAmount() {
+      if (contract && claimRecipient) {
+        const withdrawnAmount = await contract.withdrawn(claimRecipient)
+        setWithdrawn(withdrawnAmount)
+      }
+    }
+
+    updateWithdrawnAmount().catch(console.error)
+  }, [contract, claimRecipient])
+
   return {
     tokenDecimals,
     claimableAmount,
@@ -436,6 +454,7 @@ export const useRewards = (props: Props) => {
     repoUrl,
     countdown,
     inputValue,
-    handleInputChange
+    handleInputChange,
+    withdrawn
   }
 }

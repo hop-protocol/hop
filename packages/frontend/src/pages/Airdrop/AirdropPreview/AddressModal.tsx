@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import Typography from '@material-ui/core/Typography'
 import { Input } from 'src/components/ui'
-import Modal from 'src/components/modal'
+import { Modal } from 'src/components/Modal'
 import Box from '@material-ui/core/Box'
 
 interface Props {

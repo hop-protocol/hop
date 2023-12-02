@@ -4,6 +4,9 @@ import { useTable, useSortBy } from 'react-table'
 import makeData from './makeData'
 import { Div } from '../ui'
 import Skeleton from '@material-ui/lab/Skeleton'
+import Alert from '@material-ui/lab/Alert'
+import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -143,10 +146,11 @@ interface Props {
   populateDataFn: (item: any, ...rest: any) => void
   extraData?: any
   loading?: boolean
+  error?: string
 }
 
 function SortableTable(props: Props) {
-  const { stats, columns, populateDataFn, extraData, loading } = props
+  const { stats, columns, populateDataFn, extraData, loading, error } = props
 
   const data = React.useMemo(
     () => makeData(stats, populateDataFn, extraData),
@@ -156,6 +160,13 @@ function SortableTable(props: Props) {
   return (
     <Styles>
       <Table columns={columns} data={data} loading={loading} />
+      {!!error && (
+        <Box mt={3} width="100%">
+          <Alert severity="error" >
+            <Typography>{error}</Typography>
+          </Alert>
+        </Box>
+      )}
     </Styles>
   )
 }

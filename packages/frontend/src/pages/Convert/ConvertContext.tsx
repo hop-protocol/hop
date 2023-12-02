@@ -16,6 +16,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import { Token } from '@hop-protocol/sdk'
 import find from 'lodash/find'
 import Network from 'src/models/Network'
+import Address from 'src/models/Address'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -36,6 +37,7 @@ import {
 import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
+  address: Address | undefined
   approveTokens: () => void
   approving: boolean
   convertOptions: ConvertOption[]
@@ -417,7 +419,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
             throw new Error('Missing convert param')
           }
 
-          return convertOption.convert(
+          const tx = await convertOption.convert(
             sdk,
             signer,
             sourceNetwork,
@@ -430,6 +432,9 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
             bonderFee,
             customRecipient
           )
+
+          await tx?.wait()
+          return tx
         },
       })
 
@@ -499,6 +504,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <ConvertContext.Provider
       value={{
+        address,
         approveTokens,
         approving,
         assetWithoutAmm,

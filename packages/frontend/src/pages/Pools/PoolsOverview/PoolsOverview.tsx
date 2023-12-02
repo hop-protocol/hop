@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton'
-import InfoTooltip from 'src/components/InfoTooltip'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'
 import { PoolRow } from './PoolRow'
@@ -127,7 +127,7 @@ export function PoolsOverview () {
         <Box className={styles.box} p={4} mb={6}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} className={styles.header}>
             <Box p={1} textAlign="left">
-              <Typography variant="h5">
+              <Typography variant="h5" component="div">
                 <Box display="flex" alignItems="center">
                   My Pools <InfoTooltip title="The pools the connected account has deposited into" />
                 </Box>
@@ -159,7 +159,7 @@ export function PoolsOverview () {
                   </th>
                   <th className={styles.hideMobile}>
                     <Box p={1} textAlign="left">
-                      <Typography variant="subtitle2" color="secondary">
+                      <Typography variant="subtitle2" color="secondary" component="div">
                       <Box display="flex" alignItems="center">
                         TVL <InfoTooltip title="Total Value Locked; the total number of tokens that are in the pool, shown in USD" />
                       </Box>
@@ -168,7 +168,7 @@ export function PoolsOverview () {
                   </th>
                   <th className={styles.hideMobile}>
                     <Box p={1} textAlign="left">
-                      <Typography variant="subtitle2" color="secondary">
+                      <Typography variant="subtitle2" color="secondary" component="div">
                       <Box display="flex" alignItems="center">
                         Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                       </Box>
@@ -177,7 +177,7 @@ export function PoolsOverview () {
                   </th>
                   <th>
                     <Box p={1} textAlign="left">
-                      <Typography variant="subtitle2" color="secondary">
+                      <Typography variant="subtitle2" color="secondary" component="div">
                       <Box display="flex" alignItems="center" justifyContent="center">
                         Action <InfoTooltip title="Deposit into pool or withdraw from pool" />
                       </Box>
@@ -209,7 +209,7 @@ export function PoolsOverview () {
                 </tbody>
             </table>
           </Box>
-          <Typography variant="body2" color="secondary">
+          <Typography variant="body2" color="secondary" component="div">
             <Box display="flex" alignItems="left" justifyContent="left" marginTop="20px">
               * All APRs for ETH staking derivative pools include the underlying ETH staking APR.
             </Box>
@@ -219,7 +219,7 @@ export function PoolsOverview () {
       <Box className={styles.box} p={4}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} overflow="auto" className={styles.header}>
           <Box p={1} textAlign="left">
-            <Typography variant="h5">
+            <Typography variant="h5" component="div">
               <Box display="flex" alignItems="center">
                 All Pools <InfoTooltip title="All the pools you can deposit into" />
               </Box>
@@ -317,7 +317,7 @@ export function PoolsOverview () {
               <th className={styles.hideMobile}>
                 <Box p={1} textAlign="left">
                   <a className={styles.thLink} onClick={handleColumnSortFn('tvl')}>
-                    <Typography variant="subtitle2" color="secondary">
+                    <Typography variant="subtitle2" color="secondary" component="div">
                      <Box display="flex" alignItems="center">
                       TVL <InfoTooltip title="Total Value Locked; the total number of tokens that are in the pool, shown in USD" />
                      </Box>
@@ -328,7 +328,7 @@ export function PoolsOverview () {
               <th>
                 <Box p={1} textAlign="left">
                   <a className={styles.thLink} onClick={handleColumnSortFn('totalApr')}>
-                    <Typography variant="subtitle2" color="secondary">
+                    <Typography variant="subtitle2" color="secondary" component="div">
                      <Box display="flex" alignItems="center">
                        Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                      </Box>
@@ -338,7 +338,7 @@ export function PoolsOverview () {
               </th>
               <th>
                 <Box p={1} textAlign="left">
-                  <Typography variant="subtitle2" color="secondary">
+                  <Typography variant="subtitle2" color="secondary" component="div">
                     <Box display="flex" alignItems="center" justifyContent="center">
                      Action <InfoTooltip title="Deposit into pool" />
                     </Box>
@@ -369,7 +369,7 @@ export function PoolsOverview () {
             )}
             </tbody>
           </table>
-          <Typography variant="body2" color="secondary" title="Tokens in pool">
+          <Typography variant="body2" color="secondary" title="Tokens in pool" component="div">
             <Box display="flex" alignItems="left" justifyContent="left" marginTop="20px">
               * All APRs for ETH staking derivative pools include the underlying ETH staking APR.
             </Box>

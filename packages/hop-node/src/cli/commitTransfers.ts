@@ -1,4 +1,5 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import { getCommitTransfersWatcher } from 'src/watchers/watchers'
 
@@ -29,7 +30,7 @@ async function main (source: any) {
 
   const watcher = await getCommitTransfersWatcher({ chain: sourceChain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   const destinationChainId = chainSlugToId(destinationChain)

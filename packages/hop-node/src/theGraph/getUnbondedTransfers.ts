@@ -18,7 +18,7 @@ export async function getUnbondedTransfers (days: number, offsetDays: number = 0
 }
 
 async function getTransfersData (startTime: number, endTime: number) {
-  const enabledChains = [Chain.Gnosis, Chain.Polygon, Chain.Optimism, Chain.Arbitrum, Chain.Ethereum, Chain.Nova, Chain.Base]
+  const enabledChains = [Chain.Gnosis, Chain.Polygon, Chain.Optimism, Chain.Arbitrum, Chain.Ethereum, Chain.Nova, Chain.Base, Chain.Linea]
   console.log('getTransfersData: fetching transfers')
   let data: any[] = []
   const [
@@ -47,7 +47,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.PolygonZk) ? fetchTransfers(Chain.PolygonZk, startTime, endTime) : Promise.resolve([])
   ])
 
-  console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length, mainnetTransfers.length, baseTransfers.length)
+  console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length, mainnetTransfers.length, baseTransfers.length, lineaTransfers.length)
 
   for (const x of mainnetTransfers) {
     const transferId = getTransferSentToL2TransferId(
@@ -182,7 +182,7 @@ async function getTransfersData (startTime: number, endTime: number) {
   }
   for (const x of lineaTransfers) {
     data.push({
-      sourceChain: 59140, // TODO: update for mainnet
+      sourceChain: 59144,
       destinationChain: x.destinationChainId,
       amount: x.amount,
       amountOutMin: x.amountOutMin,
@@ -249,6 +249,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumBondedWithdrawals,
     novaBondedWithdrawals,
     baseBondedWithdrawals,
+    lineaBondedWithdrawals,
     mainnetBondedWithdrawals
   ] = await Promise.all([
     enabledChains.includes(Chain.Gnosis) ? fetchBonds(Chain.Gnosis, transferIds) : Promise.resolve([]),
@@ -257,6 +258,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Arbitrum) ? fetchBonds(Chain.Arbitrum, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Nova) ? fetchBonds(Chain.Nova, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Base) ? fetchBonds(Chain.Base, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Linea) ? fetchBonds(Chain.Linea, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Ethereum) ? fetchBonds(Chain.Ethereum, transferIds) : Promise.resolve([])
   ])
 
@@ -270,6 +272,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumWithdrews,
     novaWithdrews,
     baseWithdrews,
+    lineaWithdrews,
     mainnetWithdrews
   ] = await Promise.all([
     enabledChains.includes(Chain.Gnosis) ? fetchWithdrews(Chain.Gnosis, transferIds) : Promise.resolve([]),
@@ -278,6 +281,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Arbitrum) ? fetchWithdrews(Chain.Arbitrum, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Nova) ? fetchWithdrews(Chain.Nova, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Base) ? fetchWithdrews(Chain.Base, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Linea) ? fetchWithdrews(Chain.Linea, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Ethereum) ? fetchWithdrews(Chain.Ethereum, transferIds) : Promise.resolve([])
   ])
 
@@ -290,14 +294,16 @@ async function getTransfersData (startTime: number, endTime: number) {
     optimismFromL1Completeds,
     arbitrumFromL1Completeds,
     novaFromL1Completeds,
-    baseFromL1Completeds
+    baseFromL1Completeds,
+    lineaFromL1Completeds
   ] = await Promise.all([
     enabledChains.includes(Chain.Gnosis) ? fetchTransferFromL1Completeds(Chain.Gnosis, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Polygon) ? fetchTransferFromL1Completeds(Chain.Polygon, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Optimism) ? fetchTransferFromL1Completeds(Chain.Optimism, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Arbitrum) ? fetchTransferFromL1Completeds(Chain.Arbitrum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Nova) ? fetchTransferFromL1Completeds(Chain.Nova, startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes(Chain.Base) ? fetchTransferFromL1Completeds(Chain.Base, startTime, endTime) : Promise.resolve([])
+    enabledChains.includes(Chain.Base) ? fetchTransferFromL1Completeds(Chain.Base, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Linea) ? fetchTransferFromL1Completeds(Chain.Linea, startTime, endTime) : Promise.resolve([])
   ])
 
   console.log('getTransfersData: got L1 completeds')
@@ -308,6 +314,7 @@ async function getTransfersData (startTime: number, endTime: number) {
   const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
   const novaBonds = [...novaBondedWithdrawals, ...novaWithdrews]
   const baseBonds = [...baseBondedWithdrawals, ...baseWithdrews]
+  const lineaBonds = [...lineaBondedWithdrawals, ...lineaWithdrews]
   const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
   const bondsMap: any = {
@@ -317,6 +324,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrum: {},
     nova: {},
     base: {},
+    linea: {},
     ethereum: {}
   }
 
@@ -338,6 +346,9 @@ async function getTransfersData (startTime: number, endTime: number) {
   for (const x of baseBonds) {
     bondsMap.base[x.transferId] = x
   }
+  for (const x of lineaBonds) {
+    bondsMap.linea[x.transferId] = x
+  }
   for (const x of mainnetBonds) {
     bondsMap.ethereum[x.transferId] = x
   }
@@ -348,7 +359,8 @@ async function getTransfersData (startTime: number, endTime: number) {
     optimism: optimismFromL1Completeds,
     arbitrum: arbitrumFromL1Completeds,
     nova: novaFromL1Completeds,
-    base: baseFromL1Completeds
+    base: baseFromL1Completeds,
+    linea: lineaFromL1Completeds
   }
 
   console.log(`getTransfersData: data count: ${data.length}`)

@@ -2,7 +2,7 @@ import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import InfoTooltip from 'src/components/InfoTooltip'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { getTokenImage } from 'src/utils/tokens'
 
 export const useStyles = makeStyles((theme: any) => ({

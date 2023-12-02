@@ -1,32 +1,28 @@
 import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
 import { BigNumber } from 'ethers'
 import { Chain } from '../models'
-import { NetworkSlug } from '../constants'
-import { defaultRelayerFeeEth } from '../config'
-import { parseEther } from 'ethers/lib/utils'
+import { IRelayerFee } from './IRelayerFee'
+import { LineaRelayerFee } from './LineaRelayerFee'
 
-const RelayerFees = {
+type RelayerFeeClass = new (network: string, chain: string, token: string) => IRelayerFee
+
+const RelayerFees: Record<string, RelayerFeeClass> = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
-  [Chain.Nova.slug]: ArbitrumRelayerFee
+  [Chain.Nova.slug]: ArbitrumRelayerFee,
+  [Chain.Linea.slug]: LineaRelayerFee
 }
 
 class RelayerFee {
-  async getRelayCost (network: string, chainSlug: string, token: string): Promise<BigNumber> {
-    // Relayer fees shouldn't be calculated for non-mainnet chains since some fee calculations rely on chain-specific data
-    // that is less useful on testnets. Instead, we use a default value for testnets.
-    if (network !== NetworkSlug.Mainnet) {
-      if (token === 'ETH') {
-        return parseEther(defaultRelayerFeeEth)
-      } else {
-        return BigNumber.from('0')
-      }
+  /**
+   * @returns {BigNumber} The cost of in Wei
+   */
+  static getRelayCost = async (network: string, chain: string, token: string): Promise<BigNumber> => {
+    const relayerFeeConstructor: RelayerFeeClass | undefined = RelayerFees?.[chain]
+    if (!relayerFeeConstructor) {
+      throw new Error(`Relayer fee not implemented for network ${network}, chain ${chain}, token ${token}`)
     }
-
-    if (!RelayerFees[chainSlug]) {
-      return parseEther(defaultRelayerFeeEth)
-    }
-
-    return (new RelayerFees[chainSlug](network, token, chainSlug)).getRelayCost()
+    const relayerFee = new relayerFeeConstructor(network, chain, token)
+    return relayerFee.getRelayCost()
   }
 }
 

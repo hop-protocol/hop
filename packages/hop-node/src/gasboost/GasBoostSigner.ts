@@ -115,7 +115,7 @@ class GasBoostSigner extends Signer {
   // this is a required ethers Signer method
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     await this.tilReady()
-    return await this.mutex.runExclusive(async () => {
+    const txResponse: providers.TransactionResponse = await this.mutex.runExclusive(async () => {
       const id = uuidv4()
       const logger = this.logger.create({ id })
       logger.debug(`in-memory count: ${this._count}`)
@@ -123,6 +123,10 @@ class GasBoostSigner extends Signer {
       this._count++
       return await this._sendTransaction(tx, id)
     })
+
+    // TODO: waits should be handled outside of this class
+    await txResponse.wait()
+    return txResponse
   }
 
   private async _sendTransaction (tx: providers.TransactionRequest, id: string): Promise<providers.TransactionResponse> {

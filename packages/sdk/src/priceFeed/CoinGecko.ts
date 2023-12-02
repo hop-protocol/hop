@@ -91,7 +91,8 @@ export class CoinGecko {
         include_market_cap: false,
         include_24hr_vol: false,
         include_24hr_change: false,
-        include_last_updated_at: false
+        include_last_updated_at: false,
+        x_cg_pro_api_key: this.apiKey
       }
 
       let qs = ''

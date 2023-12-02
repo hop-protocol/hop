@@ -1,10 +1,10 @@
 import React from 'react'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import { useSendingTransaction } from './useSendingTransaction'
-import Alert from 'src/components/alert/Alert'
+import { Alert } from 'src/components/Alert'
 import Address from 'src/models/Address'
 
 const useStyles = makeStyles(() => ({

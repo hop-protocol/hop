@@ -49,6 +49,11 @@ class Provider extends providers.StaticJsonRpcProvider implements EthersProvider
 
 type ChainId = 1 | 42161
 
+type YearnProvider = {
+  write: Provider
+  read: Provider
+}
+
 export class YearnVault implements Vault {
   chain: Chain
   token: string
@@ -72,11 +77,12 @@ export class YearnVault implements Vault {
     this.signer = signer
     this.decimals = getTokenDecimals(token)
     if (!instanceCache[chain]) {
+      const yearnProvider: YearnProvider = {
+        write: provider,
+        read: provider
+      }
       instanceCache[chain] = new Yearn(chainId, {
-        provider: {
-          write: provider,
-          read: provider
-        } as any
+        provider: yearnProvider
       })
     }
     this.yearn = instanceCache[chain]

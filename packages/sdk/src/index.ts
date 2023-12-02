@@ -26,6 +26,7 @@ export {
   HToken
 } from './constants/constants'
 export * from './provider'
+export { Multicall } from './Multicall'
 
 if (typeof window !== 'undefined') {
   ;(window as any).Hop = Hop

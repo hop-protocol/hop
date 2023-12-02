@@ -1,6 +1,6 @@
 import React from 'react'
 import Box from '@material-ui/core/Box'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import MuiButton from '@material-ui/core/Button'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'

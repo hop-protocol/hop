@@ -68,7 +68,7 @@ const FaucetContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
       if (!tokenSymbol) return
 
-      let address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
+      let address = ''
       if (tokenSymbol === 'HOP') {
         address = '0x38aF6928BF1Fd6B3c768752e716C49eb8206e20c' // token/faucet contract
       }

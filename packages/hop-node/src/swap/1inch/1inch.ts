@@ -7,11 +7,12 @@ import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import serializeQueryParams from 'src/utils/serializeQueryParams'
 import wallets from 'src/wallets'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { BigNumber } from 'ethers'
 import { Chain, nativeChainTokens } from 'src/constants'
+import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { SwapInput } from '../types'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 const logger = new Logger({
   tag: '1inch'
@@ -274,8 +275,8 @@ export async function swap (input: SwapInput) {
   logger.debug('slippage:', slippage)
   logger.debug('dryMode:', !!dryMode)
 
-  const fromTokenConfig = (mainnetAddresses as any).bridges?.[canonicalFromTokenSymbol]?.[chain]
-  const toTokenConfig = (mainnetAddresses as any).bridges?.[canonicalToTokenSymbol]?.[chain]
+  const fromTokenConfig = mainnetAddresses.bridges?.[canonicalFromTokenSymbol as AssetSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
+  const toTokenConfig = mainnetAddresses.bridges?.[canonicalToTokenSymbol as AssetSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
   let fromTokenAddress = fromTokenConfig?.l1CanonicalToken || fromTokenConfig?.l2CanonicalToken
   let toTokenAddress = toTokenConfig?.l1CanonicalToken || toTokenConfig?.l2CanonicalToken
 

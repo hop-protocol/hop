@@ -6,7 +6,7 @@ import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/static/Arbitru
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinGoerliGasLimit, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { ChainSlug, Errors, NetworkSlug } from './constants'
 import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L1_OptimismTokenBridge'
 import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
 import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts/static/L1_PolygonPosRootChainManager'
@@ -19,15 +19,19 @@ import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts/static/L2_Pol
 import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
 import { L2_xDaiToken } from '@hop-protocol/core/contracts/static/L2_xDaiToken'
 import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
+import { Multicall, Balance as MulticallBalance } from './Multicall'
 import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { getMinGasLimit } from './utils/getMinGasLimit'
+import { getMinGasPrice } from './utils/getMinGasPrice'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 import { promiseTimeout } from './utils/promiseTimeout'
+import { rateLimitRetry } from './utils/rateLimitRetry'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -45,18 +49,15 @@ const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
-  if (!config.chains[network]?.[chain]) {
+  if (!config[network]?.chains[chain]) {
     throw new Error(`config for chain not found: ${network} ${chain}`)
   }
-  const rpcUrl = config.chains[network][chain].rpcUrl
+  const rpcUrl = config[network].chains[chain].rpcUrl
   if (!rpcUrl) {
-    if (network === NetworkSlug.Staging) {
-      network = NetworkSlug.Mainnet
-    }
     return providers.getDefaultProvider(network)
   }
 
-  const fallbackRpcUrls = config.chains[network][chain].fallbackRpcUrls ?? []
+  const fallbackRpcUrls = config[network].chains[chain].fallbackRpcUrls ?? []
   const rpcUrls = [rpcUrl, ...fallbackRpcUrls]
 
   const provider = getProviderFromUrl(rpcUrls)
@@ -109,6 +110,9 @@ export type BaseConstructorOptions = {
   signer?: TProvider,
   chainProviders?: ChainProviders
   blocklist?: Record<string, boolean> | string[] | null
+  debugTimeLogsEnabled?: boolean
+  debugTimeLogsCacheEnabled?: boolean
+  debugTimeLogsCache?: any[]
 } & ConfigFileOptions
 
 const defaultBaseConfigUrl = 'https://assets.hop.exchange'
@@ -133,6 +137,9 @@ export class Base {
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
   relayerFeeEnabled: Record<string, boolean>
+  relayerFeeWei: Record<string, string>
+  proxyEnabled: { [token: string]: Record<string, boolean>}
+  bridgeDeprecated: Record<string, boolean>
 
   baseExplorerUrl: string = 'https://explorer.hop.exchange'
   baseConfigUrl: string = defaultBaseConfigUrl
@@ -142,10 +149,14 @@ export class Base {
   customAvailableLiquidityJsonUrl: string = ''
   blocklist: Record<string, boolean> | null = null
 
+  debugTimeLogsEnabled: boolean = false
+  debugTimeLogsCacheEnabled: boolean = false
+  debugTimeLogsCache: any[] = []
+
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
-   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'goerli')
    * @returns New Base class instance.
    */
   constructor (
@@ -185,6 +196,15 @@ export class Base {
           }
         }
       }
+      if (options.debugTimeLogsEnabled) {
+        this.debugTimeLogsEnabled = options.debugTimeLogsEnabled
+      }
+      if (options.debugTimeLogsCacheEnabled) {
+        this.debugTimeLogsCacheEnabled = options.debugTimeLogsCacheEnabled
+      }
+      if (options.debugTimeLogsCache) {
+        this.debugTimeLogsCache = options.debugTimeLogsCache
+      }
     } else {
       network = networkOrOptionsObject as string
     }
@@ -207,22 +227,22 @@ export class Base {
       this.chainProviders = chainProviders
     }
 
-    this.chains = config.chains[network]
-    this.addresses = config.addresses[network]
-    this.bonders = config.bonders[network]
-    this.fees = config.bonderFeeBps[network]
-    this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
-    this.relayerFeeEnabled = config.relayerFeeEnabled[network]
-    if (this.network === NetworkSlug.Goerli) {
-      this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
+    this.chains = config[network].chains
+    this.addresses = config[network].addresses
+    this.bonders = config[network].bonders
+    this.fees = config[network].bonderFeeBps
+    this.destinationFeeGasPriceMultiplier = config[network].destinationFeeGasPriceMultiplier
+    this.relayerFeeEnabled = config[network].relayerFeeEnabled
+    this.relayerFeeWei = config[network].relayerFeeWei
+    this.proxyEnabled = config[network].proxyEnabled
+    this.bridgeDeprecated = config[network].bridgeDeprecated
+    if (this.network !== NetworkSlug.Mainnet) {
+      this.baseExplorerUrl = `https://${this.network}.explorer.hop.exchange`
     }
   }
 
   async fetchConfigFromS3 (): Promise<any> {
     if (!this.configFileFetchEnabled) {
-      return
-    }
-    if (this.network === 'goerli') {
       return
     }
     try {
@@ -245,6 +265,15 @@ export class Base {
         }
         if (data.relayerFeeEnabled) {
           this.relayerFeeEnabled = data.relayerFeeEnabled
+        }
+        if (data.relayerFeeWei) {
+          this.relayerFeeWei = data.relayerFeeWei
+        }
+        if (data.proxyEnabled) {
+          this.proxyEnabled = data.proxyEnabled
+        }
+        if (data.bridgeDeprecated) {
+          this.bridgeDeprecated = data.bridgeDeprecated
         }
 
         if (!cached) {
@@ -324,7 +353,7 @@ export class Base {
   }
 
   get supportedNetworks (): string[] {
-    return Object.keys(this.chains || config.chains)
+    return Object.keys(this.chains || config)
   }
 
   isValidNetwork (network: string): boolean {
@@ -393,7 +422,7 @@ export class Base {
   public toTokenModel (token: TToken): TokenModel {
     if (typeof token === 'string') {
       const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
-      const { name, decimals } = metadata.tokens[this.network][canonicalSymbol]
+      const { name, decimals } = metadata.tokens[canonicalSymbol]
       return new TokenModel(0, '', decimals, token, name)
     }
 
@@ -415,7 +444,7 @@ export class Base {
    *```
    */
   public async getBumpedGasPrice (signer: TProvider, percent: number): Promise<BigNumber> {
-    const gasPrice = await signer.getGasPrice()
+    const gasPrice = await this.getGasPrice(signer)
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
@@ -617,31 +646,20 @@ export class Base {
       )
     }
 
-    // Not all Polygon nodes follow recommended 30 Gwei gasPrice
-    // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    if (sourceChain.equals(Chain.Polygon)) {
-      if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
-        txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
-      }
-      txOptions.gasLimit = MinPolygonGasLimit
+    const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
+    if (minGasPrice) {
+      txOptions.gasPrice = BigNumber.from(minGasPrice)
     }
 
-    if (sourceChain.equals(Chain.Linea)) {
-      const gasPriceMultiplier = 2
-      txOptions.gasPrice = await this.getBumpedGasPrice(
-        this.signer,
-        gasPriceMultiplier
-      )
+    const minGasLimit = getMinGasLimit(this.network, sourceChain.slug)
+    if (minGasLimit) {
+      txOptions.gasLimit = BigNumber.from(minGasLimit)
     }
 
     // Post-bedrock L1 to L2 message transactions don't estimate correctly
     // TODO: Remove this when estimation is fixed
     if (sourceChain.equals(Chain.Ethereum) && (destinationChain?.equals(Chain.Optimism) || destinationChain?.equals(Chain.Base))) {
       txOptions.gasLimit = 500000
-    }
-
-    if (this.network === NetworkSlug.Goerli) {
-      txOptions.gasLimit = MinGoerliGasLimit
     }
 
     return txOptions
@@ -661,6 +679,20 @@ export class Base {
     return bonder
   }
 
+  protected async _getStakerAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<string> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const staker = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.proxy
+    if (!staker) {
+      console.warn(`staker address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
+    }
+
+    return staker
+  }
+
   protected async _getMessengerWrapperAddress (token: TToken, destinationChain: TChain): Promise<string> {
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
@@ -675,6 +707,7 @@ export class Base {
   }
 
   public async getFeeBps (token: TToken, destinationChain: TChain): Promise<number> {
+    const timeStart = Date.now()
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
@@ -690,6 +723,7 @@ export class Base {
     }
 
     const feeBps = fees[destinationChain.slug] || 0
+    this.debugTimeLog('getFeeBps', timeStart)
     return feeBps
   }
 
@@ -701,6 +735,30 @@ export class Base {
     return this.destinationFeeGasPriceMultiplier
   }
 
+  public async getProxyEnabled (token: TToken, destinationChain: TChain): Promise<boolean> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    destinationChain = this.toChainModel(destinationChain)
+    if (!token) {
+      throw new Error('token is required')
+    }
+    if (!destinationChain) {
+      throw new Error('destinationChain is required')
+    }
+    const proxyEnabled = this.proxyEnabled?.[token?.canonicalSymbol]
+    return proxyEnabled?.[destinationChain.slug] || false
+  }
+
+  public async getIsBridgeDeprecated (token: TToken): Promise<boolean> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    if (!token) {
+      throw new Error('token is required')
+    }
+    const bridgeDeprecated = this.bridgeDeprecated?.[token?.canonicalSymbol]
+    return bridgeDeprecated || false
+  }
+
   public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
     await this.fetchConfigFromS3()
     destinationChain = this.toChainModel(destinationChain)
@@ -709,8 +767,15 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    const relayerFee = new RelayerFee()
-    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
+    const customRelayerFee = this.relayerFeeWei?.[destinationChain.slug]
+    if (customRelayerFee) {
+      return BigNumber.from(customRelayerFee)
+    }
+    try {
+      return RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
+    } catch (err) {
+      return BigNumber.from(0)
+    }
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {
@@ -785,38 +850,6 @@ export class Base {
       return data
     } catch (err: any) {
       throw new Error(`fetchBonderAvailableLiquidityData error: ${err.message}, url: ${url}`)
-    }
-  }
-
-  public getL1BridgeWrapperAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
-    if (!(token && sourceChain && destinationChain)) {
-      return
-    }
-
-    token = this.toTokenModel(token)
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-
-    if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.Linea)) {
-          let hopL1BridgeWrapperAddress
-          if (token.symbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '0xd9e10C6b1bd26dE4E2749ce8aFe8Dd64294BcBF5'
-          } else if (token.symbol === TokenModel.HOP) {
-            hopL1BridgeWrapperAddress = '0x9051Dc48d27dAb53DbAB9E844f8E48c469603938'
-          } else if (token.symbol === TokenModel.USDC) {
-            hopL1BridgeWrapperAddress = '0x889CD829cE211c92b31fDFE1d75299482839ea2b'
-          } else if (token.symbol === TokenModel.USDT) {
-            hopL1BridgeWrapperAddress = '0x53B94FAf104A484ff4E7c66bFe311fd48ce3D887'
-          } else if (token.symbol === TokenModel.DAI) {
-            hopL1BridgeWrapperAddress = '0xAa1603822b43e592e33b58d34B4423E1bcD8b4dC'
-          } else if (token.symbol === TokenModel.UNI) {
-            hopL1BridgeWrapperAddress = '0x9D3A7fB18CA7F1237F977Dc5572883f8b24F5638'
-          }
-          return hopL1BridgeWrapperAddress
-        }
-      }
     }
   }
 
@@ -913,7 +946,7 @@ export class Base {
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
-    const gasPrice = await chain.provider.getGasPrice()
+    const gasPrice = await this.getGasPrice(chain.provider)
     const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
       .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
     const serializedTx = serializeTransaction({
@@ -923,21 +956,10 @@ export class Base {
       to,
       data
     })
+    const timeStart = Date.now()
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
     return l1FeeInWei
-  }
-
-  getWaitConfirmations (chain: TChain):number {
-    chain = this.toChainModel(chain)
-    if (!chain) {
-      throw new Error(`chain "${chain}" not found`)
-    }
-    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
-    if (waitConfirmations === undefined) {
-      throw new Error(`waitConfirmations for chain "${chain}" not found`)
-    }
-
-    return waitConfirmations
   }
 
   getExplorerUrl (): string {
@@ -957,14 +979,14 @@ export class Base {
   }
 
   async getTransferStatus (transferIdOrTxHash: string):Promise<any> {
-    const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
+    const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
     const json = await fetchJsonOrThrow(url)
     return json.data ?? null
   }
 
   async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string):Promise<any> {
-    const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
+    const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
     const json = await fetchJsonOrThrow(url, (9 * 1000))
     return json.data ?? null
@@ -1034,6 +1056,48 @@ export class Base {
       return
     }
     return data
+  }
+
+  getGasPrice = rateLimitRetry(async (signerOrProvider: TProvider): Promise<BigNumber> => {
+    const timeStart = Date.now()
+    const gasPrice = await signerOrProvider.getGasPrice()
+    this.debugTimeLog('getGasPrice', timeStart)
+    return gasPrice
+  })
+
+  async estimateGas (signerOrProvider: TProvider, tx: any): Promise<BigNumber> {
+    const timeStart = Date.now()
+    const gasLimit = await signerOrProvider.estimateGas(tx)
+    this.debugTimeLog('estimateGas', timeStart)
+    return gasLimit
+  }
+
+  debugTimeLog (label: string, timeStart: number) {
+    if (this.debugTimeLogsEnabled) {
+      const now = Date.now()
+      const durationMs = now - timeStart
+      const duration = `${durationMs / 1000}s`
+      console.debug(`debugTimeLog ${label} ${duration} ${now}`)
+      if (durationMs > 2 * 1000) {
+        console.warn(`debugTimeLog slow ${label} ${duration} ${now}`)
+      }
+      if (this.debugTimeLogsCacheEnabled) {
+        this.debugTimeLogsCache.push({ label, duration: durationMs, timestamp: now })
+      }
+    }
+  }
+
+  getDebugTimeLogs () {
+    if (!this.debugTimeLogsCacheEnabled) {
+      console.warn('debugTimeLogsCacheEnabled is false')
+    }
+    return this.debugTimeLogsCache
+  }
+
+  async getTokenBalancesForAccount (accountAddress: string): Promise<MulticallBalance[]> {
+    const multicall = new Multicall({ network: this.network, accountAddress })
+    const balances = await multicall.getBalances()
+    return balances
   }
 }
 

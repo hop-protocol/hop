@@ -656,7 +656,12 @@ async function getSubgraphSyncTimestamp (
   chain: string,
   provider: providers.Provider
 ): Promise<number> {
-  if (chain === Chain.Nova || chain === Chain.PolygonZk || chain === Chain.Base) {
+  if (
+    chain === Chain.Nova ||
+    chain === Chain.PolygonZk ||
+    chain === Chain.Base ||
+    chain === Chain.Linea
+  ) {
     // These chains do not have a sync subgraph
     return 0
   }

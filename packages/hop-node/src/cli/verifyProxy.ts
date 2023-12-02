@@ -12,7 +12,7 @@
 //   isProxyAddressForChain
 // } from 'src/config'
 // import { parseEther } from 'ethers/lib/utils'
-
+// import { WatcherNotFoundError } from './shared/utils'
 // import wait from 'src/utils/wait'
 // import { Chain, nativeChainTokens } from 'src/constants'
 // import { main as claimFromProxy } from './claimFromProxy'
@@ -53,7 +53,7 @@
 //   // Arbitrary watcher since only the bridge is needed
 //   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
 //   if (!watcher) {
-//     throw new Error('Watcher not found')
+//     throw new Error(WatcherNotFoundError)
 //   }
 
 //   const bridge: L2Bridge | L1Bridge = watcher.bridge

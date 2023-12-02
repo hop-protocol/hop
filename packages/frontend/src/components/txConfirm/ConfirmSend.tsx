@@ -1,6 +1,6 @@
 import React from 'react'
-import Button from 'src/components/buttons/Button'
-import Alert from 'src/components/alert/Alert'
+import { Button } from 'src/components/Button'
+import { Alert } from 'src/components/Alert'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
@@ -10,7 +10,6 @@ import Box from '@material-ui/core/Box'
 import { useSendingTransaction } from './useSendingTransaction'
 import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
 import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
-import pluralize from 'pluralize'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 
 const useStyles = makeStyles(() => ({

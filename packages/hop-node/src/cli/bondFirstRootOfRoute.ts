@@ -2,6 +2,7 @@ import L1Bridge from 'src/watchers/classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import { Chain } from 'src/constants'
+import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, parseString, root } from './shared'
 import {
   getBondTransferRootWatcher
@@ -53,7 +54,7 @@ async function main (source: any) {
 
   const watcher = await getBondTransferRootWatcher({ chain, token, dryMode: true })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   const dbTransferRoot: any = await watcher.db.transferRoots.getByTransferRootHash(rootHash)

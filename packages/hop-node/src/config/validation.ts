@@ -1,5 +1,13 @@
-import { Chain } from 'src/constants'
-import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
+import { Chain, SyncType } from 'src/constants'
+import {
+  Config,
+  FileConfig,
+  Watchers,
+  getAllChains,
+  getAllTokens,
+  getEnabledTokens
+} from 'src/config'
 import { URL } from 'url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 
@@ -76,21 +84,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.PolygonZk
   ]
 
-  // TODO: read from core
-  const validTokenKeys = [
-    'USDC',
-    'USDT',
-    'DAI',
-    'ETH',
-    'MATIC',
-    'WBTC',
-    'HOP',
-    'SNX',
-    'sUSD',
-    'rETH',
-    'UNI',
-    'MAGIC'
-  ]
+  const validTokenKeys = Object.values(AssetSymbol)
 
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)
@@ -104,7 +98,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   for (const key in config.chains) {
     const chain = config.chains[key]
-    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'headSync']
+    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice', 'redundantRpcUrls', 'customSyncType']
     const chainKeys = Object.keys(chain)
     validateKeys(validChainConfigKeys, chainKeys)
   }
@@ -195,7 +189,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       const chains = Object.keys(config.fees[token])
       validateKeys(enabledChains, chains)
       for (const chain of destinationChains) {
-        const found = (config.fees[token] as any)?.[chain as string]
+        const found = config.fees[token as AssetSymbol]?.[chain as ChainSlug]
         if (!found) {
           throw new Error(`missing fee for chain "${chain}" for token "${token}"`)
         }
@@ -241,37 +235,41 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   }
 
   if (config.bonders) {
-    const bonders = config.bonders as any
+    const bonders = config.bonders
     if (!(bonders instanceof Object)) {
       throw new Error('bonders config should be an object')
     }
     const tokens = Object.keys(bonders)
     validateKeys(enabledTokens, tokens)
     for (const token of enabledTokens) {
-      if (!(bonders[token] instanceof Object)) {
+      if (!(bonders[token as AssetSymbol] instanceof Object)) {
         throw new Error(`bonders config for "${token}" should be an object`)
       }
-      const sourceChains = Object.keys(bonders[token])
+      const sourceChains = Object.keys(bonders[token as AssetSymbol])
       validateKeys(enabledChains, sourceChains)
-      for (const sourceChain in bonders[token]) {
-        if (!(bonders[token][sourceChain] instanceof Object)) {
+      for (const sourceChain in bonders[token as AssetSymbol]) {
+        if (!(bonders[token as AssetSymbol][sourceChain as ChainSlug] instanceof Object)) {
           throw new Error(`bonders config for "${token}.${sourceChain}" should be an object`)
         }
-        const destinationChains = Object.keys(bonders[token][sourceChain])
+        const obj = bonders[token as AssetSymbol][sourceChain as ChainSlug]
+        if (!obj) {
+          continue
+        }
+        const destinationChains = Object.keys(obj)
         validateKeys(enabledChains, destinationChains)
       }
     }
   }
 
   if (config.vault) {
-    const vaultConfig = config.vault as any
+    const vaultConfig = config.vault
     const vaultTokens = Object.keys(vaultConfig)
     validateKeys(validTokenKeys, vaultTokens)
     for (const tokenSymbol in vaultConfig) {
       const vaultChains = Object.keys(vaultConfig[tokenSymbol])
       validateKeys(validChainKeys, vaultChains)
       for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        const chainTokenConfig = vaultConfig[tokenSymbol as AssetSymbol][chain as ChainSlug]
         const validConfigKeys = ['depositThresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
         const chainTokenConfigKeys = Object.keys(chainTokenConfig)
         validateKeys(validConfigKeys, chainTokenConfigKeys)
@@ -280,7 +278,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   }
 
   if (config.blocklist) {
-    const blocklistConfig = config.blocklist as any
+    const blocklistConfig = config.blocklist
     if (!(blocklistConfig instanceof Object)) {
       throw new Error('blocklist config must be an object')
     }
@@ -304,7 +302,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations, hasFinalizationBlockTag, headSync } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, customSyncType } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -319,17 +317,6 @@ export async function validateConfigValues (config?: Config) {
     } catch (err) {
       throw new Error(`rpc url "${rpcUrl}" is invalid`)
     }
-    if (waitConfirmations != null) {
-      if (typeof waitConfirmations !== 'number') {
-        throw new Error(`waitConfirmations for chain "${chainSlug}" must be a number`)
-      }
-      if (waitConfirmations <= 0) {
-        throw new Error(`waitConfirmations for chain "${chainSlug}" must be greater than 0`)
-      }
-    }
-    if (hasFinalizationBlockTag == null) {
-      throw new Error(`hasFinalizationBlockTag for chain "${chainSlug}" is required`)
-    }
     if (maxGasPrice != null) {
       if (typeof maxGasPrice !== 'number') {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be a number`)
@@ -338,9 +325,9 @@ export async function validateConfigValues (config?: Config) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
       }
     }
-    if (headSync != null) {
-      if (typeof headSync !== 'boolean') {
-        throw new Error(`headSync for chain "${chainSlug}" must be a boolean`)
+    if (customSyncType != null) {
+      if (!Object.values(SyncType).includes(customSyncType as SyncType)) {
+        throw new Error(`customSyncType for chain "${chainSlug}" must be of type SyncType`)
       }
     }
     if (redundantRpcUrls && redundantRpcUrls.length > 0) {
@@ -384,11 +371,11 @@ export async function validateConfigValues (config?: Config) {
   }
 
   if (config.bonders) {
-    const bonders = config.bonders as any
+    const bonders = config.bonders
     for (const token of enabledTokens) {
-      for (const sourceChain in bonders[token]) {
-        for (const destinationChain in bonders[token][sourceChain]) {
-          const bonderAddress = bonders[token][sourceChain][destinationChain]
+      for (const sourceChain in bonders[token as AssetSymbol]) {
+        for (const destinationChain in bonders[token as AssetSymbol][sourceChain as ChainSlug]) {
+          const bonderAddress = bonders[token as AssetSymbol][sourceChain as ChainSlug]?.[destinationChain as ChainSlug]
           if (typeof bonderAddress !== 'string') {
             throw new Error('config bonder address should be a string')
           }
@@ -403,10 +390,10 @@ export async function validateConfigValues (config?: Config) {
   }
 
   if (config.vault) {
-    const vaultConfig = config.vault as any
+    const vaultConfig = config.vault
     for (const tokenSymbol in vaultConfig) {
       for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        const chainTokenConfig = vaultConfig[tokenSymbol as AssetSymbol][chain as ChainSlug]
         if (typeof chainTokenConfig.autoDeposit !== 'boolean') {
           throw new Error('autoDeposit should be boolean')
         }

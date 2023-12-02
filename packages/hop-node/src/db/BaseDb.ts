@@ -9,10 +9,10 @@ import spread from 'lodash/spread'
 import sub from 'subleveldown'
 import wait from 'src/utils/wait'
 import { EventEmitter } from 'events'
+import { Migration } from 'src/db/migrations'
 import { Mutex } from 'async-mutex'
 import { TenSecondsMs } from 'src/constants'
 import { config as globalConfig } from 'src/config'
-import { promiseTimeout } from 'src/utils/promiseTimeout'
 
 const dbMap: { [key: string]: any } = {}
 
@@ -35,6 +35,10 @@ type QueueItem = {
   key: string
   value: any
   cb: any
+}
+
+type MigrationIndexEntry = {
+  index: number
 }
 
 // this are options that leveldb createReadStream accepts
@@ -60,9 +64,9 @@ class BaseDb extends EventEmitter {
   batchSize: number = 10
   batchTimeLimit: number = 2 * 1000
   batchQueue: QueueItem[] = []
-  timeoutSeconds: number = 10 * 1000
+  private readonly dbMigrationKey: string = '_dbMigrationIndex'
 
-  constructor (prefix: string, _namespace?: string) {
+  constructor (prefix: string, _namespace?: string, migrations?: Migration[]) {
     super()
     if (!prefix) {
       throw new Error('db prefix is required')
@@ -123,10 +127,10 @@ class BaseDb extends EventEmitter {
       })
 
     this.pollBatchQueue()
-    this.migration()
+    this._migrate(migrations)
       .then(() => {
         this.ready = true
-        this.logger.debug('ready')
+        this.logger.debug('db ready')
       })
       .catch(err => {
         this.logger.error(err)
@@ -134,9 +138,92 @@ class BaseDb extends EventEmitter {
       })
   }
 
-  async migration () {
-    // Optional migration,
-    // Implement in child class
+  // Migrations are memory intensive. Ensure there is no unintentional memory overflow.
+  // * Use stream instead of storing all entries at once
+  // * Bypass the mutex
+  // This may take minutes or hours to complete
+  private async _migrate (migrations?: Migration[]): Promise<void> {
+    if (!migrations?.length) {
+      this.logger.debug('no migrations to process')
+      return
+    }
+
+    const currentMigrationIndex = await this.getMigrationIndex() ?? 0
+    const lastMigrationIndex = migrations.length - 1
+    if (currentMigrationIndex > lastMigrationIndex) {
+      this.logger.debug(`no migration required, currentMigrationIndex: ${currentMigrationIndex}`)
+      return
+    }
+
+    this.logger.debug(`processing migrations from ${currentMigrationIndex} to ${lastMigrationIndex}`)
+    for (let i = currentMigrationIndex; i <= lastMigrationIndex; i++) {
+      const migration: Migration = migrations[i]
+      this.logger.debug(`processing migration ${i}`)
+      await this._processMigration(migration)
+      await this.putMigrationIndex(i + 1)
+      this.logger.debug(`completed migration ${i}`)
+    }
+    this.logger.debug('migrations complete')
+  }
+
+  private async _processMigration (migration: Migration): Promise<void> {
+    let migrationCount = 0
+    return await new Promise((resolve, reject) => {
+      const s = this.db.createReadStream({})
+      s.on('data', async (key: any, value: any) => {
+        // the parameter types depend on what key/value enabled options were used
+        if (typeof key === 'object') {
+          value = key.value
+          key = key.key
+        }
+        // ignore this key that used previously to track unique ids
+        if (key === 'ids') {
+          return
+        }
+
+        try {
+          await this._migrateEntry(migration, key, value)
+          migrationCount++
+        } catch (err) {
+          s.emit('error', err)
+        }
+      })
+        .on('end', () => {
+          this.logger.debug(`DB migration complete. migrated ${migrationCount} entries`)
+          s.destroy()
+          resolve()
+        })
+        .on('error', (err: any) => {
+          this.logger.error('DB migration error:', err)
+          s.destroy()
+          reject(err)
+        })
+    })
+  }
+
+  // Ensure that these DB reads and writes do not use the mutex since a migration is memory-intensive
+  private async _migrateEntry (migration: Migration, key: string, value: any): Promise<void> {
+    const { key: migrationKey, value: migrationValue, migratedValue } = migration
+    if (
+      value?.[migrationKey] === undefined ||
+      value?.[migrationKey] === migrationValue
+    ) {
+      const { value: updatedValue } = await this._getUpdateData(key, value)
+      updatedValue[migrationKey] = migratedValue
+      return this.db.put(key, updatedValue)
+    }
+  }
+
+  private async getMigrationIndex (): Promise<number | undefined> {
+    const migrationEntry: MigrationIndexEntry = await this.getById(this.dbMigrationKey)
+    return migrationEntry?.index
+  }
+
+  private async putMigrationIndex (updatedMigrationIndex: number): Promise<void> {
+    const data: MigrationIndexEntry = {
+      index: updatedMigrationIndex
+    }
+    return this._updateSingle(this.dbMigrationKey, data)
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -258,14 +345,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _get (key: string): Promise<any> {
-    try {
-      return await promiseTimeout(this.db.get(key), this.timeoutSeconds)
-    } catch (err: any) {
-      if (err.message.includes('timedout')) {
-        this.handleTimeoutError(err)
-      }
-      throw err
-    }
+    return await this.db.get(key)
   }
 
   async getById (id: string, defaultValue: any = null) {
@@ -281,14 +361,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _getMany (keys: string[]): Promise<any[]> {
-    try {
-      return await promiseTimeout(this.db.getMany(keys), this.timeoutSeconds)
-    } catch (err: any) {
-      if (err.message.includes('timedout')) {
-        this.handleTimeoutError(err)
-      }
-      throw err
-    }
+    return this.db.getMany(keys)
   }
 
   async batchGetByIds (ids: string[], defaultValue: any = null) {
@@ -364,12 +437,6 @@ class BaseDb extends EventEmitter {
     if (this.listeners(Event.Error).length > 0) {
       this.emit(Event.Error, err)
     }
-  }
-
-  private handleTimeoutError (err: Error) {
-    console.trace()
-    this.logger.error(`BaseDb timeout error: ${err.message}. Possible reasons: mutex is hanging, db might be corrupt, lock rever released. exiting process to trigger restart and db reconnection...`)
-    process.exit(1)
   }
 }
 

@@ -133,7 +133,7 @@ Class with base methods.
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `networkOrOptionsObject` | `string` \| `BaseConstructorOptions` | L1 network name (e.g. 'mainnet', 'goerli') |
 | `signer` | [`TProvider`](../modules.md#tprovider) | - |
 | `chainProviders?` | `ChainProviders` | - |
 

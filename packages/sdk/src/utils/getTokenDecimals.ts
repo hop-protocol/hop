@@ -1,7 +1,7 @@
-import * as metadata from '@hop-protocol/core/metadata'
+import { tokens as tokensMetadata } from '@hop-protocol/core/metadata'
 
 export function getTokenDecimals (tokenSymbol: string) {
-  const token = (metadata as any).tokens[tokenSymbol]
+  const token = (tokensMetadata as any)[tokenSymbol]
   if (!token) {
     throw new Error(`could not find token: ${tokenSymbol}`)
   }

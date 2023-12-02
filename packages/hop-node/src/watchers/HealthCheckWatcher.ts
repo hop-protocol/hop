@@ -14,14 +14,15 @@ import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
 import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
+import { Routes } from '@hop-protocol/core/addresses'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { appTld, expectedNameservers, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
+import { appTld, expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
-import { getEnabledTokens } from 'src/config/config'
 import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
 import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
@@ -252,7 +253,7 @@ export class HealthCheckWatcher {
   incompleteSettlementsMinTimeToWaitHours: number = 4
 
   chainsIgnoredByBonder: Record<string, string[]> = {
-    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon', 'nova', 'base']
+    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon', 'nova', 'base', 'linea']
   }
 
   enabledChecks: EnabledChecks = {
@@ -548,13 +549,21 @@ export class HealthCheckWatcher {
 
     const bonders = new Set<string>()
     const bonderBridges: Record<string, string> = {}
-    const configBonders = globalConfig.bonders as any
+    const configBonders = globalConfig.bonders
     const result: any = []
 
     for (const token in configBonders) {
-      for (const sourceChain in configBonders[token]) {
-        for (const destinationChain in configBonders[token][sourceChain]) {
-          const bonder = configBonders[token][sourceChain][destinationChain]
+      const tokenConfig = configBonders[token as keyof typeof AssetSymbol] as Routes
+      if (!tokenConfig) {
+        continue
+      }
+      for (const sourceChain in tokenConfig) {
+        const sourceChainConfig = tokenConfig[sourceChain as ChainSlug]
+        for (const destinationChain in sourceChainConfig) {
+          const bonder = sourceChainConfig[destinationChain as ChainSlug]
+          if (!bonder) {
+            continue
+          }
           bonderBridges[bonder] = token
           bonders.add(bonder)
         }
@@ -692,7 +701,7 @@ export class HealthCheckWatcher {
 
     // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
     const l1Chains: string[] = [Chain.Ethereum]
-    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base]
+    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base, Chain.Linea]
     result = result.map((x: any) => {
       const isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
@@ -742,8 +751,8 @@ export class HealthCheckWatcher {
 
   private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
-    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
+    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
     const tokens = getEnabledTokens()
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
@@ -876,7 +885,7 @@ export class HealthCheckWatcher {
     const outOfSyncTimestamp = Math.floor(now.minus({ minutes: this.healthCheckFinalityTimeMinutes }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
 
-    // Note: Nova and Base are unsupported here since there is no index-node subgraph for these chains
+    // Note: Nova, Base, and Linea are unsupported here since there is no index-node subgraph for these chains
     const result: any = []
     for (const chain of chains) {
       const provider = getRpcProvider(chain)!
@@ -903,7 +912,7 @@ export class HealthCheckWatcher {
   async getMissedEvents (): Promise<MissedEvent[]> {
     return []
     // const missedEvents: MissedEvent[] = []
-    // const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+    // const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
     // const tokens = getEnabledTokens()
     // const now = DateTime.now().toUTC()
     // const endDate = now.minus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
@@ -979,7 +988,7 @@ export class HealthCheckWatcher {
       if (chain === Chain.PolygonZk) continue
 
       // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
-      const endDateWithBuffer = endDate.plus({ minutes: 30 })
+      const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
 

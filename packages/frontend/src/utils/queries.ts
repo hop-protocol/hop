@@ -1,7 +1,7 @@
 import { utils } from '@hop-protocol/sdk'
 import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
-import { isGoerli } from 'src/config'
+import { reactAppNetwork } from 'src/config'
 
 async function queryFetch(url: string, query: string, variables?: any) {
   try {
@@ -49,7 +49,7 @@ export function normalizeBN(str: BigNumberish) {
 }
 
 export async function fetchTransferSents(
-  chain,
+  chain: string,
   recipient: string,
   txHash: string
 ): Promise<L2Transfer[]> {
@@ -80,16 +80,14 @@ export async function fetchTransferSents(
     }
   `
 
-  // TODO: Better way to get network
-  const network = isGoerli ? 'goerli' : 'mainnet'
-  const url = utils.getSubgraphUrl(network, chain)
+  const url = utils.getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferSents
 }
 
 export async function fetchTransferFromL1Completeds(
-  chain,
+  chain: string,
   recipient: string,
   amount: BigNumberish,
   deadline: BigNumberish
@@ -113,15 +111,13 @@ export async function fetchTransferFromL1Completeds(
     }
   `
 
-  // TODO: Better way to get network
-  const network = isGoerli ? 'goerli' : 'mainnet'
-  const url = utils.getSubgraphUrl(network, chain)
+  const url = utils.getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferFromL1Completeds
 }
 
-export async function fetchWithdrawalBondedsByTransferId(chain, transferId: BigNumberish) {
+export async function fetchWithdrawalBondedsByTransferId(chain: string, transferId: BigNumberish) {
   transferId = normalizeBN(transferId)
 
   const query = `
@@ -137,9 +133,7 @@ export async function fetchWithdrawalBondedsByTransferId(chain, transferId: BigN
         }
       }
     `
-  // TODO: Better way to get network
-  const network = isGoerli ? 'goerli' : 'mainnet'
-  const url = utils.getSubgraphUrl(network, chain)
+  const url = utils.getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
   return data?.withdrawalBondeds
 }

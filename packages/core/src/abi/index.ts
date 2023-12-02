@@ -115,3 +115,4 @@ export { default as l1ArbitrumMessengerAbi } from './static/L1_ArbitrumMessenger
 export { default as l1PolygonMessengerAbi } from './static/L1_PolygonMessenger.json'
 export { default as wethAbi } from './static/WETH9.json'
 export { default as yVaultAbi } from './static/yVault.json'
+export { default as Multicall3 } from './static/Multicall3.json'

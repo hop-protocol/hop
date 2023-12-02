@@ -35,6 +35,8 @@ type State = {
   unlocked: boolean
 }
 
+type TickSpacing = 100 | 500 | 3000 | 10000
+
 async function getPoolImmutables (poolContract: Contract) {
   const immutables: Immutables = {
     factory: await poolContract.factory(),
@@ -100,12 +102,12 @@ async function getPool (poolContract: Contract) {
     state.tick,
     [
       {
-        index: nearestUsableTick(TickMath.MIN_TICK, (TICK_SPACINGS as any)[feeAmount]),
+        index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount as TickSpacing]),
         liquidityNet: liquidity,
         liquidityGross: liquidity
       },
       {
-        index: nearestUsableTick(TickMath.MAX_TICK, (TICK_SPACINGS as any)[feeAmount]),
+        index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount as TickSpacing]),
         liquidityNet: BigNumber.from(liquidity).mul(-1).toString(),
         liquidityGross: liquidity
       }
@@ -232,7 +234,7 @@ export async function swap (config: SwapInput) {
   let routeToken1: any = pool.token1
 
   const token0Symbol = await token0.symbol()
-  const ethNativeChains: string[] = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base]
+  const ethNativeChains: string[] = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
   const isToken0ETH = ethNativeChains.includes(chain) && ['ETH', 'WETH'].includes(token0Symbol)
   const isToken0MATIC = chain === Chain.Polygon && ['MATIC', 'WMATIC'].includes(token0Symbol)
   const isToken0Native = isToken0ETH || isToken0MATIC

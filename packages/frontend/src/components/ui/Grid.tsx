@@ -16,7 +16,7 @@ interface CustomProps {
 
 type Props = CustomProps & ComposedStyleProps
 
-const Grid: FC<Props> = styled.div<Props>`
+export const Grid: FC<Props> = styled.div<Props>`
   display: grid;
 
   ${({ gap }) => gap && `gap: ${gap}px`};
@@ -42,5 +42,3 @@ const Grid: FC<Props> = styled.div<Props>`
 
   ${composedStyleFns}
 `
-
-export { Grid }

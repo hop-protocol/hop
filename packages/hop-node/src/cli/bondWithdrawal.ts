@@ -1,6 +1,7 @@
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { SendBondWithdrawalTxParams } from 'src/watchers/BondWithdrawalWatcher'
 import { Transfer } from 'src/db/TransfersDb'
+import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
@@ -44,7 +45,7 @@ async function main (source: any) {
 
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode })
   if (!watcher) {
-    throw new Error('watcher not found')
+    throw new Error(WatcherNotFoundError)
   }
 
   for (const transferId of transferIds) {
@@ -54,7 +55,7 @@ async function main (source: any) {
         throw new Error('TransferId does not exist in the DB')
       }
       if (dbTransfer.sourceChainSlug !== chain) {
-        throw new Error('Source chain from DB does not match the source chain')
+        throw new Error(`Source chain from DB does not match the source chain: dbTransfer.sourceChainSlug=${dbTransfer.sourceChainSlug}, chain=${chain}`)
       }
       const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
       if (attemptSwap && isL1ChainId(dbTransfer.destinationChainId!)) {
@@ -63,7 +64,6 @@ async function main (source: any) {
 
       const txParams: SendBondWithdrawalTxParams = {
         transferId: dbTransfer.transferId,
-        sender: dbTransfer.sender!,
         recipient: dbTransfer.recipient!,
         amount: dbTransfer.amount!,
         transferNonce: dbTransfer.transferNonce!,
@@ -73,8 +73,6 @@ async function main (source: any) {
         amountOutMin: dbTransfer.amountOutMin!,
         deadline: dbTransfer.deadline!,
         transferSentIndex: dbTransfer.transferSentIndex!,
-        transferSentTxHash: dbTransfer.transferSentTxHash!,
-        transferSentBlockNumber: dbTransfer.transferSentBlockNumber!,
         isFinalized: dbTransfer.isFinalized!
       }
       await watcher.sendBondWithdrawalTx(txParams)

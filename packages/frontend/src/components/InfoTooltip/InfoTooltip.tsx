@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme: any) => ({
   },
 }))
 
-const InfoTooltip: FC<Props> = (props: any) => {
+export const InfoTooltip: FC<Props> = (props: any) => {
   const [tooltipIsOpen, setTooltipIsOpen] = useState(false);
   const styles = useStyles()
   const children = props.children
@@ -48,5 +48,3 @@ const InfoTooltip: FC<Props> = (props: any) => {
     </Tooltip>
   )
 }
-
-export default InfoTooltip

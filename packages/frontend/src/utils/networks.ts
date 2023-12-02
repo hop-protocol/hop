@@ -2,9 +2,11 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { CanonicalToken, ChainId, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
 import { Signer, providers } from 'ethers'
 import { find } from 'lodash'
-import { networks } from 'src/config'
+import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
+import { networks as coreNetworks } from '@hop-protocol/core/networks'
 import Network from 'src/models/Network'
+import { getNativeTokenSymbol } from './getNativeTokenSymbol'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
   return find(networks, ['slug', slug])
@@ -56,14 +58,17 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     networkId = networkId.toString()
   }
 
-  for (const key in networks) {
-    const v = networks[key]
-    if (v.networkId.toString() === networkId) {
-      return key as Slug
+  for (const _network in coreNetworks) {
+    const chains = (coreNetworks as any)[_network]
+    for (const chainSlug in chains) {
+      const chainObj = chains[chainSlug]
+      if (chainObj.networkId.toString() === networkId) {
+        return chainSlug as Slug
+      }
     }
   }
 
-  return { 1: 'ethereum', 4: 'rinkeby', 5: 'goerli', 42: 'kovan' }[networkId] || ''
+  return ''
 }
 
 export const networkIdToName = (networkId: string | number) => {
@@ -73,19 +78,21 @@ export const networkIdToName = (networkId: string | number) => {
 
 export const networkIdNativeTokenSymbol = (networkId: string | number) => {
   const slug = networkIdToSlug(networkId)
-  if (slug === ChainSlug.Gnosis) {
-    return CanonicalToken.XDAI
-  } else if (slug === ChainSlug.Polygon) {
-    return CanonicalToken.MATIC
-  }
-  return CanonicalToken.ETH
+  return getNativeTokenSymbol(slug)
 }
 
-export function getNetworkWaitConfirmations(tChain: TChain) {
+export function getNetworkWaitConfirmations(tChain: TChain): number {
+  let waitConfirmations: number
   if (typeof tChain === 'string') {
-    return networks[tChain].waitConfirmations
+    waitConfirmations = WaitConfirmations?.[tChain]
+  } else {
+    waitConfirmations = WaitConfirmations?.[tChain.slug]
   }
-  return networks[tChain.slug].waitConfirmations
+
+  if (!waitConfirmations) {
+    throw new Error(`Wait confirmations not found for ${tChain}`)
+  }
+  return waitConfirmations
 }
 
 export function isLayer1(chain: Network | ChainSlug | undefined) {

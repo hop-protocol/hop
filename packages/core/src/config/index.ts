@@ -1,5 +1,8 @@
+import { config as goerli } from './goerli'
+import { config as mainnet } from './mainnet'
+import { config as sepolia } from './sepolia'
+
+const config = { goerli, sepolia, mainnet }
+
+export { goerli, sepolia, mainnet, config }
 export * from './types'
-export { config as kovan } from './kovan'
-export { config as goerli } from './goerli'
-export { config as mainnet } from './mainnet'
-export { config as staging } from './staging'

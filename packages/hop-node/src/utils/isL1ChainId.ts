@@ -1,7 +1,8 @@
 const l1Chains: Record<string, boolean> = {
   1: true,
   5: true,
-  42: true
+  42: true,
+  11155111: true
 }
 
 const isL1ChainId = (chainId: number | string) => {

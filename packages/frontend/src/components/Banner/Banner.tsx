@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import Alert from 'src/components/alert/Alert'
+import { Alert } from 'src/components/Alert'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 type Props = {
   children: any
 }
 
-function Banner(props: Props) {
+export function Banner(props: Props) {
   const { isDarkMode } = useThemeMode()
   const [show, setShow] = useState<boolean>(true)
   const handleClose = () => {
@@ -28,5 +28,3 @@ function Banner(props: Props) {
     </>
   )
 }
-
-export default Banner

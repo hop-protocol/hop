@@ -9,7 +9,7 @@ export type Options = {
 }
 
 export async function startArbBots (options?: Options) {
-  let configJson = arbBotsConfig as any
+  let configJson = arbBotsConfig as Record<string, Record<string, string|number|boolean>>
   if (options?.configFilePath) {
     configJson = JSON.parse(fs.readFileSync(path.resolve(options.configFilePath)).toString())
   }
@@ -38,7 +38,7 @@ export async function startArbBots (options?: Options) {
       slippageTolerance,
       pollIntervalSeconds,
       ammDepositThresholdAmount,
-      waitConfirmations
+      reorgConfirmationBlocks
     } = conf
 
     console.log(`arb bot "${label}" enabled: ${!!conf.enabled}`)
@@ -60,7 +60,7 @@ export async function startArbBots (options?: Options) {
         slippageTolerance,
         pollIntervalSeconds,
         ammDepositThresholdAmount,
-        waitConfirmations,
+        reorgConfirmationBlocks,
         privateKey
       }).start()
     )

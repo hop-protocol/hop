@@ -38,19 +38,21 @@ export function useStakingAll () {
               _totalEarnedBn = _totalEarnedBn.add(earned)
               if (earned.gt(0)) {
                 const network = findNetworkBySlug(chainSlug)!
-                _txList.push({
-                  label: `Claim ${rewardsTokenSymbol} on ${network.name}`,
-                  fn: async () => {
-                    const networkId = Number(network.networkId)
-                    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-                    if (!isNetworkConnected) {
-                      throw new Error('wrong network connected')
+                if (network) {
+                  _txList.push({
+                    label: `Claim ${rewardsTokenSymbol} on ${network.name}`,
+                    fn: async () => {
+                      const networkId = Number(network.networkId)
+                      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                      if (!isNetworkConnected) {
+                        throw new Error('wrong network connected')
+                      }
+                      const _provider = await sdk.getSignerOrProvider(chainSlug)
+                      const contract = StakingRewards__factory.connect(address, _provider)
+                      return contract?.getReward()
                     }
-                    const _provider = await sdk.getSignerOrProvider(chainSlug)
-                    const contract = StakingRewards__factory.connect(address, _provider)
-                    return contract?.getReward()
-                  }
-                })
+                  })
+                }
               }
             } catch (err: any) {
               if (!/(Transaction reverted|noNetwork)/.test(err.message)) {

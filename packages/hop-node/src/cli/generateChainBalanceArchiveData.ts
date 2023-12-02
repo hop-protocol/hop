@@ -72,7 +72,7 @@ async function getL1ArchiveData (token: Token, timestamp: number): Promise<void>
     startDate: 0,
     endDate: timestamp
   })
-  const expected = ChainBalanceArchiveData.UnwithdrawnTransfers[token][Chain.Ethereum]!
+  const expected = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[Chain.Ethereum] ?? '0'
   compare(ArchiveType.UnwithdrawnTransfers, Chain.Ethereum, expected, l1UnwithdrawnTransfers)
 
   // L1 tokens sent directly to bridge contract
@@ -90,12 +90,12 @@ async function getL2ArchiveData (token: Token, chain: Chain, timestamp: number):
     chain,
     endDate: timestamp
   })
-  let expected = ChainBalanceArchiveData.UnwithdrawnTransfers[token][chain]!
+  let expected = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[chain] ?? '0'
   compare(ArchiveType.UnwithdrawnTransfers, chain, expected, l2UnwithdrawnTransfers)
 
   const endTimestamp = timestamp
   const inFlightL1ToL2Transfers: BigNumber = await getHistoricalUnrelayedL1ToL2Transfers(token, chain, endTimestamp)
-  expected = ChainBalanceArchiveData.InFlightL1ToL2Transfers[token][chain]!
+  expected = ChainBalanceArchiveData.InFlightL1ToL2Transfers?.[token]?.[chain] ?? '0'
   compare(ArchiveType.InFlightL1ToL2Transfers, chain, expected, inFlightL1ToL2Transfers)
 }
 

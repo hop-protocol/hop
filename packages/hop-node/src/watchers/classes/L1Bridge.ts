@@ -5,7 +5,7 @@ import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
-import { Chain, GasCostTransactionType, RelayableChains } from 'src/constants'
+import { Chain, GasCostTransactionType, Network, RelayableChains, Token as TokenEnum } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
 import { Hop } from '@hop-protocol/sdk'
 import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -150,7 +150,7 @@ export default class L1Bridge extends Bridge {
 
   getTransferRootCommittedAt = async (destChainId: number, transferRootId: string): Promise<number> => {
     let committedAt
-    if (this.tokenSymbol === 'USDC' && globalConfig.network === 'mainnet') {
+    if (this.tokenSymbol === TokenEnum.USDC && globalConfig.network === Network.Mainnet) {
       committedAt = await (this.l1BridgeContract as L1BridgeContract).transferRootCommittedAt(transferRootId)
     } else {
       committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)
@@ -252,7 +252,7 @@ export default class L1Bridge extends Bridge {
     }
 
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
+    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
@@ -262,6 +262,10 @@ export default class L1Bridge extends Bridge {
       this.tokenSymbol === 'ETH'
     ) {
       txOverrides.value = amount
+    }
+
+    if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+      throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
     }
 
     return await this.l1BridgeWriteContract.sendToL2(
@@ -301,7 +305,7 @@ export default class L1Bridge extends Bridge {
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
+    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = bridge.defaultDeadlineSeconds
     const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
     const slippageTolerance = 0.1
@@ -317,6 +321,9 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
+    if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+      throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
+    }
     return await this.l1BridgeWriteContract.sendToL2(
       destinationChainId,
       recipient,
@@ -356,5 +363,12 @@ export default class L1Bridge extends Bridge {
       totalAmount,
       destinationChainId
     }
+  }
+
+  private async isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): Promise<boolean> {
+    return (
+      relayer !== constants.AddressZero ||
+      relayerFee.eq(0)
+    )
   }
 }

@@ -319,16 +319,14 @@ class SyncWatcher extends BaseWatcher {
     // Events that are related to user transfers can be polled every cycle while all other, less
     // time-sensitive events can be polled every N cycles.
     const shouldSyncAllEvents = this.syncIndex % SyncCyclesPerFullSync === 0
-    let pollPromises: EventPromise = []
     if (shouldSyncAllEvents) {
-      pollPromises = this.getAllPromises()
+      await Promise.all(this.getAllPromises())
     } else {
-      pollPromises = this.getTransferSentPromises()
+      await Promise.all(this.getTransferSentPromises())
     }
 
     // these must come after db is done syncing, and syncAvailableCredit must be last
-    await Promise.all(pollPromises)
-      .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
+    await this.availableLiquidityWatcher.syncBonderCredit()
   }
 
   async handleInitialSync (): Promise<void> {
@@ -364,9 +362,13 @@ class SyncWatcher extends BaseWatcher {
     while (true) {
       if (this.isAllSiblingWatchersInitialSyncCompleted()) {
         this.logger.debug('all sibling watchers completed dest chain initial sync')
+        break
       }
       await wait(5000)
     }
+
+    this.logger.debug('Syncing bonder credit on initial sync')
+    await this.availableLiquidityWatcher.syncBonderCredit()
   }
 
   getSyncOptions (keyName: string) {

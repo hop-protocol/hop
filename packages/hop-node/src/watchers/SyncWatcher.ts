@@ -171,7 +171,16 @@ class SyncWatcher extends BaseWatcher {
 
   async start () {
     await this.#tilReady()
+
     try {
+      // The initial sync has to be performed in order so that transfers and transferRoots at the source can
+      // be observed prior to their observation at the destination. After the initial sync, this does not
+      // matter since chain finality will enforce this.
+      this.logger.debug('starting initial sync')
+      await this.handleInitialSync()
+      this.logger.debug('initial sync complete')
+
+      // Run polling sync
       await Promise.all([
         this.pollGasCost(),
         this.pollSync()
@@ -272,10 +281,6 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async postSyncHandler () {
-    if (this.syncIndex === 0) {
-      this.initialSyncCompleted = true
-      this.logger.debug('initial sync complete')
-    }
     this.logger.debug('done syncing. index:', this.syncIndex)
     this.syncIndex++
     try {
@@ -311,14 +316,6 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncHandler (): Promise<void> {
-    // The initial sync has to be performed in order so that transfers and transferRoots at the source can
-    // be observed prior to their observation at the destination. After the initial sync, this does not
-    // matter since chain finality will enforce this.
-    if (!this.isInitialSyncCompleted()) {
-      await this.handleInitialSync()
-      return
-    }
-
     // Events that are related to user transfers can be polled every cycle while all other, less
     // time-sensitive events can be polled every N cycles.
     const shouldSyncAllEvents = this.syncIndex % SyncCyclesPerFullSync === 0
@@ -335,6 +332,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async handleInitialSync (): Promise<void> {
+    // Sync items that do not rely on data from other items
     const asyncPromises: EventPromise = this.getAsyncPromises()
     const syncPromises: EventPromise = this.getSyncPromises()
     const initialSyncSourceChainPromises: EventPromise = [
@@ -343,9 +341,13 @@ class SyncWatcher extends BaseWatcher {
     ]
     await Promise.all(initialSyncSourceChainPromises)
 
+    // Sync incomplete items in order to get timestamps needed for ordered promises
+    this.logger.debug('initialSyncSourceChainPromises complete. syncing incomplete items.')
+    await this.incompletePollSync()
+
     // Wait for all transfers to sync their initialSyncSourceChainPromises
+    this.logger.debug('source chain incompletePollSync completed. waiting for sibling watchers to complete initial sync')
     this.sourceChainInitialSyncCompleted = true
-    this.logger.debug('source chain initial sync completed. waiting for sibling watchers to complete initial sync')
     while (true) {
       if (this.isAllSiblingWatchersSourceChainInitialSyncCompleted()) {
         this.logger.debug('all sibling watchers completed source chain initial sync')
@@ -357,6 +359,14 @@ class SyncWatcher extends BaseWatcher {
     // Sync remaining events that require data from other events
     const orderedPromises: EventPromise = this.getOrderedPromises()
     await Promise.all(orderedPromises)
+
+    this.initialSyncCompleted = true
+    while (true) {
+      if (this.isAllSiblingWatchersInitialSyncCompleted()) {
+        this.logger.debug('all sibling watchers completed dest chain initial sync')
+      }
+      await wait(5000)
+    }
   }
 
   getSyncOptions (keyName: string) {

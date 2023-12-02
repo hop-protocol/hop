@@ -261,6 +261,16 @@ class TransfersDb extends BaseDb<Transfer> {
     })
   }
 
+  async getTransfersWithinHour (targetTimestampSec: number): Promise<Transfer[]> {
+    const targetTimestampMs = targetTimestampSec * 1000
+    const fromUnix = Math.floor((targetTimestampMs - OneHourMs) / 1000)
+    const toUnix = Math.floor((targetTimestampMs + OneHourMs) / 1000)
+    return await this.getTransfers({
+      fromUnix,
+      toUnix
+    })
+  }
+
   protected async getItems (dateFilter?: DateFilter): Promise<Transfer[]> {
     const transferIds = await this.subDbTimestamps.getTransferIds(dateFilter)
     if (!transferIds.length) {

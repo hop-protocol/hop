@@ -762,6 +762,7 @@ class SyncWatcher extends BaseWatcher {
     try {
       const { transactionHash, blockNumber } = event
       await this.db.transferRoots.update(transferRootId, {
+        transferRootHash,
         confirmed: true,
         confirmTxHash: transactionHash,
         confirmBlockNumber: blockNumber
@@ -1509,6 +1510,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
 
     await this.db.transferRoots.update(transferRootId, {
+      transferRootHash,
       multipleWithdrawalsSettledTxHash: transactionHash,
       settled: true
     })

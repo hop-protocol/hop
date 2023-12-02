@@ -219,9 +219,12 @@ class SubDbRootHashes extends BaseDb<TransferRoot> {
   }
 
   async update (transferRootId: string, transferRoot: TransferRoot): Promise<void> {
-    // Redundant to use transferRootId from the value, but it will always be the same and allows
-    // this method to conform with the interface
-    await this.insertIfNotExists(transferRootId, { transferRootId: transferRoot.transferRootId })
+    const key = transferRoot?.transferRootHash
+    if (!key) {
+      this.logger.debug(`key (transferRootHash) not found for transferRootId: ${transferRootId}. Can occur with legacy DBs. Will be updated on next event for this transferRootId.`)
+      return
+    }
+    await this.insertIfNotExists(key , { transferRootId: transferRoot.transferRootId })
   }
 
   async getTransferRootId (transferRootHash: string): Promise<string | null> {

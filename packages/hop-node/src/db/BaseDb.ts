@@ -339,11 +339,11 @@ abstract class BaseDb<T> extends EventEmitter {
 
   async getAllItems (): Promise<Array<Item<T>>> {
     this.logger.warn('getAllItems is memory intensive. Consider using a filter.')
-    const countCb = (key: string, value: T): T => {
+    const allItemsCb = (key: string, value: T): T => {
       return value
     }
     const filter: DbGetItemsFilters<T> = {
-      cbFilterGet: countCb
+      cbFilterGet: allItemsCb
     }
     return this.#processItems(filter as DbItemsFilters<T>)
   }

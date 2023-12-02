@@ -650,6 +650,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     if (!incompleteTransferRootIds.length) {
       return []
     }
+
     const incompleteTransferRootIdItems: TransferRoot[] | null = await this.getMany(incompleteTransferRootIds)
     if (!incompleteTransferRootIdItems.length) {
       return []

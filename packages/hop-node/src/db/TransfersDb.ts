@@ -502,9 +502,6 @@ class TransfersDb extends BaseDb<Transfer> {
    */
   async getTransfersIdsWithTransferRootHash (input: TransfersIdsWithTransferRootHashParams): Promise<string[] | undefined> {
     const { sourceChainId, destinationChainId, commitTxBlockNumber, commitTxLogIndex } = input
-    if (!commitTxLogIndex) {
-      return
-    }
 
     // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
     // up the root onchain.
@@ -528,17 +525,19 @@ class TransfersDb extends BaseDb<Transfer> {
           transfer.destinationChainId === destinationChainId &&
           transfer.transferSentBlockNumber &&
           transfer.transferSentBlockNumber <= commitTxBlockNumber &&
-          transfer.transferSentIndex
+          transfer.transferSentIndex !== undefined
         ) {
-          if (
-            commitTxBlockNumber === transfer.transferSentBlockNumber &&
-            transfer.transferSentIndex > commitTxLogIndex
-          ) {
-            continue
+          if (transfer.transferSentBlockNumber === commitTxBlockNumber) {
+            if (
+              transfer.transferSentLogIndex === undefined ||
+              transfer.transferSentLogIndex > commitTxLogIndex
+            ) {
+              continue
+            }
           }
+
           transferIds.unshift(transfer.transferId)
-          // onchain transfer sent index always starts at 1
-          if (transfer?.transferSentIndex === 1) {
+          if (transfer.transferSentIndex === 0) {
             return transferIds
           }
         }

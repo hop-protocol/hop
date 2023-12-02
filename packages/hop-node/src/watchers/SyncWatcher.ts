@@ -1059,7 +1059,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('populating committedAt')
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
     if (!sourceBridge) {
-      logger.warn(`populateTransferRootCommittedAt sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferRootCommittedAt sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
@@ -1188,7 +1188,7 @@ class SyncWatcher extends BaseWatcher {
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     if (!destinationBridge) {
-      logger.warn(`populateTransferRootSetTimestamp destinationBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferRootSetTimestamp destinationBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }

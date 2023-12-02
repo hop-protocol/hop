@@ -224,7 +224,7 @@ class SubDbRootHashes extends BaseDb<TransferRoot> {
       this.logger.debug(`key (transferRootHash) not found for transferRootId: ${transferRootId}. Can occur with legacy DBs. Will be updated on next event for this transferRootId.`)
       return
     }
-    await this.insertIfNotExists(key , { transferRootId: transferRoot.transferRootId })
+    await this.insertIfNotExists(key, { transferRootId: transferRoot.transferRootId })
   }
 
   async getTransferRootId (transferRootHash: string): Promise<string | null> {

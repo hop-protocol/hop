@@ -1330,10 +1330,6 @@ class SyncWatcher extends BaseWatcher {
     commitTxBlockNumber: number,
     commitTxLogIndex: number
   ): Promise<string[] | undefined> {
-    if (!commitTxLogIndex) {
-      // The commitTxLogIndex was added to DB items after the initial release and a migration was never run
-      return
-    }
     return this.db.transfers.getTransfersIdsWithTransferRootHash({
       sourceChainId,
       destinationChainId,
@@ -1436,11 +1432,7 @@ class SyncWatcher extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
-    const { sortedTransfers, missingIndexes, lastIndex } = getSortedTransferIds(transfers, startBlockNumber)
-
-    if (sortedTransfers) {
-      logger.debug(`last index number found in transferIds list: ${lastIndex}`)
-    }
+    const { sortedTransfers, missingIndexes } = getSortedTransferIds(transfers, startBlockNumber)
 
     if (missingIndexes?.length) {
       logger.warn(`missing indexes from list of transferIds (${missingIndexes.length}): ${JSON.stringify(missingIndexes)}`)
@@ -1513,11 +1505,12 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const logger = this.logger.create({ root: transferRootId })
-    logger.debug('handling MultipleWithdrawalsSettled event')
-    logger.debug(`tx hash from event: ${transactionHash}`)
-    logger.debug(`transferRootHash from event: ${transferRootHash}`)
-    logger.debug(`bonder : ${bonder}`)
-    logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
+    logger.debug('handling MultipleWithdrawalsSettled event', JSON.stringify({
+      transactionHash,
+      transferRootHash,
+      bonder,
+      totalBondsSettled: this.bridge.formatUnits(totalBondsSettled)
+    }))
 
     await this.db.transferRoots.update(transferRootId, {
       transferRootHash,
@@ -1534,11 +1527,12 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash
     } = event.args
     const logger = this.logger.create({ id: transferId })
-    logger.debug('handling WithdrawalBondSettled event')
-    logger.debug(`tx hash from event: ${transactionHash}`)
-    logger.debug(`transferRootHash from event: ${transferRootHash}`)
-    logger.debug(`bonder : ${bonder}`)
-    logger.debug(`transferId: ${transferId}`)
+    logger.debug('handling WithdrawalBondSettled event', JSON.stringify({
+      transactionHash,
+      transferRootHash,
+      bonder,
+      transferId
+    }))
     // Nothing is stored here. The current bonder assumptions make the bonder unconcerned with this.
   }
 

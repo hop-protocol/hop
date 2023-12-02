@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import { DateTime } from 'luxon'
-import { DbLogEnabled } from 'src/config'
 
 type Options = {
   tag?: string

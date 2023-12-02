@@ -95,7 +95,7 @@ class GasCostDb extends BaseDb<GasCost> {
     const staleValues: GasCost[] = await this.getStaleValues()
     this.logger.debug(`items to prune: ${staleValues.length}`)
 
-    let dbBatchOperations: DbBatchOperation[] = []
+    const dbBatchOperations: DbBatchOperation[] = []
     for (const value of staleValues) {
       const { id } = value
       if (!id) {

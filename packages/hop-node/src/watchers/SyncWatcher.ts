@@ -21,9 +21,9 @@ import {
   RootProviderName,
   TenMinutesMs
 } from 'src/constants'
-import { GasCost } from 'src/db/GasCostDb'
 import { DateTime } from 'luxon'
 import { FirstRoots } from 'src/constants/firstRootsPerRoute'
+import { GasCost } from 'src/db/GasCostDb'
 import { GasCostEstimationRes } from './classes/Bridge'
 import {
   L1_Bridge as L1BridgeContract,
@@ -58,8 +58,8 @@ import {
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { promiseQueue } from 'src/utils/promiseQueue'
 import { isDbSetReady } from 'src/db'
+import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
   chainSlug: string
@@ -153,14 +153,14 @@ class SyncWatcher extends BaseWatcher {
     while (true) {
       if (this.#isReady()) {
         this.logger.debug('SyncWatcher ready')
-        return 
+        return
       }
       await wait(5 * 1000)
     }
   }
 
   #isReady (): boolean {
-    if(
+    if (
       this.ready &&
       isDbSetReady(this.tokenSymbol)
     ) {
@@ -262,7 +262,6 @@ class SyncWatcher extends BaseWatcher {
             logger.error('populateTransferDbItem error:', err)
           })
       }, { concurrency })
-
     } catch (err: any) {
       this.logger.error(`incomplete transfers poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
     }
@@ -287,7 +286,7 @@ class SyncWatcher extends BaseWatcher {
     await wait(this.syncIntervalMs)
   }
 
-  isSourceChainInitialSyncCompleted(): boolean {
+  isSourceChainInitialSyncCompleted (): boolean {
     return this.sourceChainInitialSyncCompleted
   }
 
@@ -335,7 +334,7 @@ class SyncWatcher extends BaseWatcher {
       .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
   }
 
-  async handleInitialSync(): Promise<void> {
+  async handleInitialSync (): Promise<void> {
     const asyncPromises: EventPromise = this.getAsyncPromises()
     const syncPromises: EventPromise = this.getSyncPromises()
     const initialSyncSourceChainPromises: EventPromise = [
@@ -588,7 +587,7 @@ class SyncWatcher extends BaseWatcher {
         relayer,
         relayerFee: this.bridge.formatUnits(relayerFee),
         transactionHash,
-        logIndex,
+        logIndex
       }))
 
       if (!isRelayable) {
@@ -642,7 +641,7 @@ class SyncWatcher extends BaseWatcher {
       // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
       // should never happen unless RPC providers return out of order events
       const isFinalized = !isCustomSync ? true : undefined
-    logger.debug('')
+      logger.debug('')
 
       logger.debug('handling TransferSent event', JSON.stringify({
         sourceChainId,
@@ -656,7 +655,7 @@ class SyncWatcher extends BaseWatcher {
         transferSentIndex,
         logIndex,
         blockNumber,
-        isFinalized,
+        isFinalized
       }))
 
       if (!isBondable) {
@@ -741,7 +740,7 @@ class SyncWatcher extends BaseWatcher {
       transactionHash,
       recipient,
       amount,
-      transferNonce,
+      transferNonce
     }))
 
     await this.db.transfers.update(transferId, {
@@ -830,7 +829,7 @@ class SyncWatcher extends BaseWatcher {
         transferRootHash,
         destinationChainId,
         shouldBondTransferRoot,
-        logIndex,
+        logIndex
       }))
 
       await this.db.transferRoots.update(transferRootId, {

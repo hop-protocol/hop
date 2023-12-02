@@ -2,7 +2,7 @@ import BaseDb, { DbMigrationFilters } from './BaseDb'
 import { Migration } from './migrations'
 
 type DatabaseMigratorParams<T> = {
-  db: BaseDb<T>,
+  db: BaseDb<T>
   migrations: Migration[]
 }
 
@@ -63,7 +63,7 @@ class DatabaseMigrator<T> {
     }
 
     const filters: DbMigrationFilters<T> = {
-      cbFilterPut: migrationCb,
+      cbFilterPut: migrationCb
     }
     await this.db.upsertMigrationValues(filters)
   }

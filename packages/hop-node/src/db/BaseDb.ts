@@ -69,7 +69,6 @@ export type DbItemsFilters<T> = (DbGetItemsFilters<T> & DbPutItemsFilters<T>) & 
 }
 export type DbMigrationFilters<T> = DbPutItemsFilters<T>
 
-
 // These are LevelDB options
 export type DbKeyFilter = {
   gt?: string
@@ -87,9 +86,9 @@ abstract class BaseDb<T> extends EventEmitter {
   public logger: Logger
   private ready = false
   private isMigrating = false
-  private dbWriteBufferSize = 8 * 1024 * 1024 // 8 MB
+  private readonly dbWriteBufferSize = 8 * 1024 * 1024 // 8 MB
   private readonly metadataKey: string = '_metadata'
-  abstract update(key: string, value: T): Promise<void>
+  abstract update (key: string, value: T): Promise<void>
 
   constructor (prefix: string, _namespace?: string, migrations?: Migration[]) {
     super()
@@ -338,7 +337,7 @@ abstract class BaseDb<T> extends EventEmitter {
    * Utils
    */
 
-  async getAllItems (): Promise<Item<T>[]> {
+  async getAllItems (): Promise<Array<Item<T>>> {
     this.logger.warn('getAllItems is memory intensive. Consider using a filter.')
     const countCb = (key: string, value: T): T => {
       return value
@@ -394,7 +393,7 @@ abstract class BaseDb<T> extends EventEmitter {
   #logDbOperation (operation: string, logOptions: LogOptions): void {
     const { key, value, logMsg, batchOperations } = logOptions
 
-    let logs: string[] = [`DB Operation: ${operation}`]
+    const logs: string[] = [`DB Operation: ${operation}`]
 
     // Warn the consumer that the DB is not yet ready
     if (!this.ready && !this.isMigrating) {

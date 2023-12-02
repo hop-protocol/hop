@@ -462,9 +462,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       if (
         !(
           canonicalToken &&
-          provider &&
           selectedNetwork?.provider &&
-          poolReserves &&
           !unsupportedAsset?.chain &&
           accountAddress
         )
@@ -484,64 +482,60 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const bridge = sdk.bridge(canonicalToken.symbol)
       const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
 
-      const [_totalSupplyBn, balance, reserves] = await Promise.all([
+      const [_totalSupplyBn, _balance, _reserves, _stakingContractBalance, _hopStakingContractBalance] = await Promise.all([
         (await lpToken.getErc20()).totalSupply(),
         lpToken.balanceOf(),
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
+        stakingContract ? stakingContract.balanceOf(accountAddress) : Promise.resolve(BigNumber.from(0)),
+        hopStakingContract ? hopStakingContract.balanceOf(accountAddress) : Promise.resolve(BigNumber.from(0))
       ])
-      setUserPoolBalance(balance)
 
-      const [reserve0, reserve1] = reserves
-      const formattedTotalSupply = formatUnits(_totalSupplyBn.toString(), lpDecimals)
-      setTotalSupply(formattedTotalSupply)
-      setTotalSupplyBn(_totalSupplyBn)
+      const _stakedBalance = _stakingContractBalance.add(_hopStakingContractBalance)
 
-      const oneToken = parseUnits('1', lpDecimals)
-      const poolPercentage = balance.mul(oneToken).div(_totalSupplyBn).mul(100)
-      const formattedPoolPercentage = Number(formatUnits(poolPercentage, lpDecimals)).toFixed(2)
-      setUserPoolTokenPercentage(
-        formattedPoolPercentage === '0.00' ? '<0.01' : formattedPoolPercentage
-      )
+      const [_reserve0, _reserve1] = _reserves
+      const _formattedTotalSupply = formatUnits(_totalSupplyBn.toString(), lpDecimals)
 
-      const token0Deposited = balance.mul(reserve0).div(_totalSupplyBn)
-      const token1Deposited = balance.mul(reserve1).div(_totalSupplyBn)
-      const tokenSumDeposited = token0Deposited.add(token1Deposited)
+      const _oneToken = parseUnits('1', lpDecimals)
+      const _poolPercentage = _balance.mul(_oneToken).div(_totalSupplyBn).mul(100)
+      const _formattedPoolPercentage = Number(formatUnits(_poolPercentage, lpDecimals)).toFixed(2)
 
-      setToken0Deposited(token0Deposited)
-      setToken1Deposited(token1Deposited)
-      setTokenSumDeposited(tokenSumDeposited)
-      if (reserve0?.eq(0) && reserve1?.eq(0)) {
-        setToken1Rate('0')
+      const _token0Deposited = _balance.mul(_reserve0).div(_totalSupplyBn)
+      const _token1Deposited = _balance.mul(_reserve1).div(_totalSupplyBn)
+      const _tokenSumDeposited = _token0Deposited.add(_token1Deposited)
+
+      let _token1Rate = ''
+      if (_reserve0?.eq(0) && _reserve1?.eq(0)) {
+        _token1Rate = '0'
       } else {
-        const amount0 = formatUnits(reserve1.mul(oneToken).div(reserve0), tokenDecimals)
-        setToken1Rate(Number(amount0).toFixed(2))
+        const amount0 = formatUnits(_reserve1.mul(oneToken).div(_reserve0), tokenDecimals)
+        _token1Rate = Number(amount0).toFixed(2)
       }
 
-      let stakedBalance = BigNumber.from(0)
-      if (stakingContract) {
-        const balance = await stakingContract.balanceOf(accountAddress)
-        stakedBalance = stakedBalance.add(balance)
-      }
-      if (hopStakingContract) {
-        const balance = await hopStakingContract.balanceOf(accountAddress)
-        stakedBalance = stakedBalance.add(balance)
-      }
-
-      const totalLpTokens = balance.add(stakedBalance)
-      const _overallToken0Deposited = totalLpTokens.mul(BigNumber.from(poolReserves[0] || 0)).div(_totalSupplyBn)
-      const _overallToken1Deposited = totalLpTokens.mul(BigNumber.from(poolReserves[1] || 0)).div(_totalSupplyBn)
+      const _totalLpTokens = _balance.add(_stakedBalance)
+      const _overallToken0Deposited = _totalLpTokens.mul(BigNumber.from(_reserve0)).div(_totalSupplyBn)
+      const _overallToken1Deposited = _totalLpTokens.mul(BigNumber.from(_reserve1)).div(_totalSupplyBn)
+      setUserPoolBalance(_balance)
+      setTotalSupply(_formattedTotalSupply)
+      setTotalSupplyBn(_totalSupplyBn)
+      setUserPoolTokenPercentage(
+        _formattedPoolPercentage === '0.00' ? '<0.01' : _formattedPoolPercentage
+      )
+      setToken0Deposited(_token0Deposited)
+      setToken1Deposited(_token1Deposited)
+      setTokenSumDeposited(_tokenSumDeposited)
+      setToken1Rate(_token1Rate)
       setOverallToken0Deposited(_overallToken0Deposited)
       setOverallToken1Deposited(_overallToken1Deposited)
-      setStakedBalance(stakedBalance)
+      setStakedBalance(_stakedBalance)
     } catch (err) {
       logger.error(err)
     }
     setLoading(false)
-  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken, address, accountAddress, stakingContract, hopStakingContract, poolReserves, selectedBridge])
+  }, [unsupportedAsset, selectedNetwork, canonicalToken, hopToken, accountAddress, stakingContract, hopStakingContract, selectedBridge])
 
   useEffect(() => {
     updateUserPoolPositions()
-  }, [provider, selectedNetwork, canonicalToken, hopToken, updateUserPoolPositions])
+  }, [provider, selectedNetwork, canonicalToken, hopToken, accountAddress, stakingContract, hopStakingContract, selectedBridge, updateUserPoolPositions])
 
   useInterval(updatePrices, 5 * 1000)
   useInterval(updateUserPoolPositions, 5 * 1000)

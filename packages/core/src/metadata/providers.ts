@@ -1,31 +1,31 @@
-export enum ProviderSlug {
+export enum RpcProviderSlug {
   Local = 'local',
   Alchemy = 'alchemy',
   Infura = 'infura',
   Quiknode = 'quiknode' // Quicknode endpoints are spelled without the c, so we will use that spelling
 }
 
-export type Provider = {
-  [key in ProviderSlug]: {
+export type RpcProvider = {
+  [key in RpcProviderSlug]: {
     name: string
     wsSupported: boolean
   }
 }
 
-export const providers: Provider = {
-  [ProviderSlug.Local]: {
+export const rpcProviders: RpcProvider = {
+  [RpcProviderSlug.Local]: {
     name: 'Local',
     wsSupported: false
   },
-  [ProviderSlug.Alchemy]: {
+  [RpcProviderSlug.Alchemy]: {
     name: 'Alchemy',
     wsSupported: true
   },
-  [ProviderSlug.Infura]: {
+  [RpcProviderSlug.Infura]: {
     name: 'Infura',
     wsSupported: false
   },
-  [ProviderSlug.Quiknode]: {
+  [RpcProviderSlug.Quiknode]: {
     name: 'Quiknode',
     wsSupported: true
   }

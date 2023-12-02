@@ -1,6 +1,6 @@
 import { AssetSymbol } from '@hop-protocol/core/config'
 import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks/enums'
-import { ProviderSlug, providers } from '@hop-protocol/core/metadata/providers'
+import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata/providers'
 import { chains } from '@hop-protocol/core/metadata'
 import { networks } from '@hop-protocol/core/networks'
 import { tokens } from '@hop-protocol/core/metadata/tokens'
@@ -161,15 +161,15 @@ export const ChainPollMultiplier: Record<string, number> = {
 // tx is propagated to the chain.
 export const CanonicalMessengerRootConfirmationGasLimit: number = 1500000
 
-const DoesRootProviderSupportWs: Partial<Record<ProviderSlug, boolean>> = {}
+const DoesRootProviderSupportWs: Partial<Record<RpcProviderSlug, boolean>> = {}
 
-for (const providerSlug in providers) {
-  const providerObj = providers[providerSlug as ProviderSlug]
-  DoesRootProviderSupportWs[providerSlug as ProviderSlug] = providerObj?.wsSupported
+for (const providerSlug in rpcProviders) {
+  const providerObj = rpcProviders[providerSlug as RpcProviderSlug]
+  DoesRootProviderSupportWs[providerSlug as RpcProviderSlug] = providerObj?.wsSupported
 }
 
 export { DoesRootProviderSupportWs }
-export { ProviderSlug as RootProviderName }
+export { RpcProviderSlug as RootProviderName }
 
 export const DefaultBondThreshold = 5
 // TODO: When bonder-specific strategies are isolated from the finality dir, use a new

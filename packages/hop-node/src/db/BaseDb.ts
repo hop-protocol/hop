@@ -108,7 +108,7 @@ abstract class BaseDb<T> extends EventEmitter {
       this.logger.info(`db path: ${pathname}`)
       // Default write buffer size is 4 MB. Increase to 8 MB for more efficient disk writes.
       dbMap[pathname] = level(pathname, {
-        writeBufferSize: this.dbWriteBufferSize
+        // writeBufferSize: this.dbWriteBufferSize
       })
     }
 

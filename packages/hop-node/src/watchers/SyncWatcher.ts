@@ -996,7 +996,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+
+    let sourceBridge
+    try {
+      sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    } catch {}
     if (!sourceBridge) {
       logger.warn(`populateTransferSentTimestamp sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
@@ -1057,7 +1061,10 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     logger.debug('populating committedAt')
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    let sourceBridge
+    try {
+      sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    } catch {}
     if (!sourceBridge) {
       logger.warn(`populateTransferRootCommittedAt sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
@@ -1186,7 +1193,11 @@ class SyncWatcher extends BaseWatcher {
     if (!destinationChainId) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+
+    let destinationBridge
+    try {
+      destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    } catch {}
     if (!destinationBridge) {
       logger.warn(`populateTransferRootSetTimestamp destinationBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
@@ -1325,7 +1336,10 @@ class SyncWatcher extends BaseWatcher {
     destinationChainId: number
   ): Promise<string[] | undefined> {
     // This might not work if, for example, the tx executed by a contract or some other calldata
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    let destinationBridge
+    try {
+      destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    } catch {}
     if (!destinationBridge) {
       return
     }
@@ -1475,8 +1489,12 @@ class SyncWatcher extends BaseWatcher {
       logger.error(`no sibling watcher found for ${sourceChainId}`)
       return
     }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
-      .bridge as L2Bridge
+
+    let sourceBridge
+    try {
+      sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
+        .bridge as L2Bridge
+    } catch {}
     if (!sourceBridge) {
       return
     }

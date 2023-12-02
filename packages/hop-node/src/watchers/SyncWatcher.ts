@@ -997,6 +997,12 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    if (!sourceBridge) {
+      logger.warn(`populateTransferSentTimestamp sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+
     const tx: providers.TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
     if (!tx) {
       logger.warn(`populateTransferSentTimestamp marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
@@ -1052,6 +1058,12 @@ class SyncWatcher extends BaseWatcher {
     }
     logger.debug('populating committedAt')
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    if (!sourceBridge) {
+      logger.warn(`populateTransferRootCommittedAt sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
     const timestamp = await sourceBridge.getTransactionTimestamp(commitTxHash)
     if (!timestamp) {
       logger.warn(`populateTransferRootCommittedAt item not found. timestamp for commitTxHash: ${commitTxHash}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
@@ -1175,6 +1187,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    if (!destinationBridge) {
+      logger.warn(`populateTransferRootSetTimestamp destinationBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
     if (!timestamp) {
       logger.warn(`populateTransferRootSetTimestamp marking item not found. timestamp for rootSetBlockNumber: ${rootSetBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
@@ -1309,6 +1326,10 @@ class SyncWatcher extends BaseWatcher {
   ): Promise<string[] | undefined> {
     // This might not work if, for example, the tx executed by a contract or some other calldata
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    if (!destinationBridge) {
+      return
+    }
+
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       return
@@ -1456,6 +1477,9 @@ class SyncWatcher extends BaseWatcher {
     }
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
       .bridge as L2Bridge
+    if (!sourceBridge) {
+      return
+    }
 
     const eventBlockNumber: number = commitTxBlockNumber
 

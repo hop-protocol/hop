@@ -527,7 +527,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams, isFinalized?: boolean): Promise<void> {
-      // Perform this check as late as possible before the transaction is sent
+    // Perform this check as late as possible before the transaction is sent
 
     try {
       const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)

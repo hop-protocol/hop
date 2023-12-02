@@ -998,7 +998,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-
     let sourceBridge
     try {
       sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge

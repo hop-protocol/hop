@@ -578,50 +578,23 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), 18)
   }
 
-  protected async mapEventsBatch<E extends Event, R> (
+protected async mapEventsBatch<E extends Event, R> (
     getEventsMethod: (start: number, end: number) => Promise<E[]>,
     cb: EventCb<E, R>,
     options?: Partial<EventsBatchOptions>
   ): Promise<R[]> {
     let i = 0
-
-    /**
-     * Batch promises to avoid loading all events into memory and running OOM. For initial
-     * syncs, this value needs to allow for the events to live in memory. The higher the
-     * concurrency value, the quicker the sync.
-     *
-     * To calculate this value, consider the following values:
-     * - Each item in promiseBatch will be ~500kb
-     * - For each token, there are 7 parallel calls from L1 and 5 parallel calls from each L2
-     *
-     * Examples (assume concurrency of 100):
-     * - An ETH bridge on Ethereum, Optimism, and Arbitrum will need 850MB of mem (17 parallel calls)
-     * - A USDC and USDT bridge on Ethereum, Polygon, Gnosis, Optimism, and Arbitrum will need 2.7GB of mem (54 parallel calls)
-     */
-
-    const concurrency = 10
-    let promiseBatch: R[] = []
-
+    const promises: R[] = []
+    // This will grow unbounded in memory and cause OOM issues if the sync range is too large
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await getEventsMethod(start, end)
       events = events.reverse()
       for (const event of events) {
-        promiseBatch.push(cb(event, i))
-        if (promiseBatch.length >= concurrency) {
-          this.logger.debug('clearing batch of event promises')
-          await Promise.all(promiseBatch)
-          promiseBatch = []
-        }
+        promises.push(cb(event, i))
       }
       i++
     }, options)
-
-    // Process any remaining promises
-    if (promiseBatch.length > 0) {
-      await Promise.all(promiseBatch)
-    }
-
-    return []
+    return await Promise.all(promises)
   }
 
   public async eventsBatch (

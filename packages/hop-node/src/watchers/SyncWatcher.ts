@@ -328,18 +328,27 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async handleInitialSync (): Promise<void> {
-    // Sync items that do not rely on data from other items
-    const asyncPromises: EventPromise = this.getAsyncPromises()
-    const syncPromises: EventPromise = this.getSyncPromises()
-    const initialSyncSourceChainPromises: EventPromise = [
-      ...asyncPromises,
-      ...syncPromises
-    ]
-    await Promise.all(initialSyncSourceChainPromises)
+    // The initial sync has the potential to deal with a lot of data. To avoid OOM errors, handle
+    // the data more slowly than the normal sync by running the items in the initial sync serially
+    // instead of in parallel.
+
+    // Async
+    await this.getTransferSentToL2EventPromise(),
+    await this.getTransferRootConfirmedEventPromise(),
+    await this.getTransferBondChallengedEventPromise(),
+    await this.getTransferSentEventPromise(),
+    await this.getTransferRootSetEventPromise()
+
+    // Sync
+    await this.getTransferRootBondedEventPromise(),
+    await this.getTransfersCommittedEventPromise(),
+    await this.getWithdrawalBondedEventPromise(),
+    await this.getWithdrewEventPromise()
 
     // Sync incomplete items in order to get timestamps needed for ordered promises
     this.logger.debug('initialSyncSourceChainPromises complete. syncing incomplete items.')
-    await this.incompletePollSync()
+    await this.incompleteTransfersPollSync(),
+    await this.incompleteTransferRootsPollSync()
 
     // Wait for all transfers to sync their initialSyncSourceChainPromises
     this.logger.debug('source chain incompletePollSync completed. waiting for sibling watchers to complete initial sync')
@@ -353,8 +362,8 @@ class SyncWatcher extends BaseWatcher {
     }
 
     // Sync remaining events that require data from other events
-    const orderedPromises: EventPromise = this.getOrderedPromises()
-    await Promise.all(orderedPromises)
+    await this.getMultipleWithdrawalsSettledEventPromise(),
+    await this.getWithdrawalBondSettledEventPromise()
 
     this.initialSyncCompleted = true
     while (true) {

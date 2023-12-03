@@ -72,6 +72,7 @@ type Config = {
 type EventPromise = Array<Promise<any>>
 
 class SyncWatcher extends BaseWatcher {
+  sourceChainInitialSyncCompleted: boolean = false
   initialSyncCompleted: boolean = false
   syncIntervalMs: number
   // Five minutes is granular enough. Any lower results in excessive redundant DB writes.
@@ -85,7 +86,6 @@ class SyncWatcher extends BaseWatcher {
   // Experimental: Websocket support
   wsProvider: providers.WebSocketProvider
   wsCache: Record<string, any> = {}
-  sourceChainInitialSyncStatus = 0
 
   constructor (config: Config) {
     super({
@@ -291,18 +291,18 @@ class SyncWatcher extends BaseWatcher {
     await wait(this.syncIntervalMs)
   }
 
+  isSourceChainInitialSyncCompleted (): boolean {
+    return this.sourceChainInitialSyncCompleted
+  }
+
   isInitialSyncCompleted (): boolean {
     return this.initialSyncCompleted
   }
 
-  getSourceChainInitialSyncStatus(): number {
-    return this.sourceChainInitialSyncStatus
-  }
-
-  isAllSiblingWatchersInitialSyncStatusMatch (status: number): boolean {
+  isAllSiblingWatchersSourceChainInitialSyncCompleted (): boolean {
     return Object.values(this.siblingWatchers).every(
       (siblingWatcher: SyncWatcher) => {
-        return siblingWatcher.getSourceChainInitialSyncStatus() === status
+        return siblingWatcher.isSourceChainInitialSyncCompleted()
       }
     )
   }
@@ -332,43 +332,33 @@ class SyncWatcher extends BaseWatcher {
     // the data more slowly than the normal sync by running the items in the initial sync serially
     // instead of in parallel.
 
-    // Async
-    await Promise.all([this.getTransferSentToL2EventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getTransferRootConfirmedEventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getTransferBondChallengedEventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getTransferSentEventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getTransferRootSetEventPromise()])
-    await this.waitForStatus()
-
-    // Sync
-    await Promise.all([this.getTransferRootBondedEventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getTransfersCommittedEventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getWithdrawalBondedEventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getWithdrewEventPromise()])
-    await this.waitForStatus()
+    // Sync items that do not rely on data from other items
+    const asyncPromises: EventPromise = this.getAsyncPromises()
+    const syncPromises: EventPromise = this.getSyncPromises()
+    const initialSyncSourceChainPromises: EventPromise = [
+      ...asyncPromises,
+      ...syncPromises
+    ]
+    await Promise.all(initialSyncSourceChainPromises)
 
     // Sync incomplete items in order to get timestamps needed for ordered promises
     this.logger.debug('initialSyncSourceChainPromises complete. syncing incomplete items.')
-    await Promise.all([this.incompleteTransfersPollSync()])
-    await this.waitForStatus()
-    await Promise.all([this.incompleteTransferRootsPollSync()])
-    await this.waitForStatus()
+    await this.incompletePollSync()
 
     // Wait for all transfers to sync their initialSyncSourceChainPromises
     this.logger.debug('source chain incompletePollSync completed. waiting for sibling watchers to complete initial sync')
+    this.sourceChainInitialSyncCompleted = true
+    while (true) {
+      if (this.isAllSiblingWatchersSourceChainInitialSyncCompleted()) {
+        this.logger.debug('all sibling watchers completed source chain initial sync')
+        break
+      }
+      await wait(5000)
+    }
 
     // Sync remaining events that require data from other events
-    await Promise.all([this.getMultipleWithdrawalsSettledEventPromise()])
-    await this.waitForStatus()
-    await Promise.all([this.getWithdrawalBondSettledEventPromise()])
-    await this.waitForStatus()
+    const orderedPromises: EventPromise = this.getOrderedPromises()
+    await Promise.all(orderedPromises)
 
     this.initialSyncCompleted = true
     while (true) {
@@ -381,19 +371,6 @@ class SyncWatcher extends BaseWatcher {
 
     this.logger.debug('Syncing bonder credit on initial sync')
     await this.availableLiquidityWatcher.syncBonderCredit()
-  }
-
-  async waitForStatus (): Promise<void> {
-    this.logger.debug(`getter complete for status - ${this.sourceChainInitialSyncStatus}`)
-    this.sourceChainInitialSyncStatus++
-
-    while (true) {
-      if (this.isAllSiblingWatchersInitialSyncStatusMatch(this.sourceChainInitialSyncStatus)) {
-        this.logger.debug(`sibling watcher status complete - ${this.sourceChainInitialSyncStatus}`)
-        return
-      }
-      await wait(5000)
-    }
   }
 
   getSyncOptions (keyName: string) {

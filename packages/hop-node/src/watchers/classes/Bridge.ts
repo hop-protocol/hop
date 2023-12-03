@@ -584,16 +584,31 @@ export default class Bridge extends ContractBase {
     options?: Partial<EventsBatchOptions>
   ): Promise<R[]> {
     let i = 0
-    const promises: R[] = []
+
+    // Batch promises to avoid loading all events into memory
+    const concurrency = 100
+    let promiseBatch: R[] = []
+
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await getEventsMethod(start, end)
       events = events.reverse()
       for (const event of events) {
-        promises.push(cb(event, i))
+        promiseBatch.push(cb(event))
+        if (promiseBatch.length >= concurrency) {
+          this.logger.debug('clearing batch of event promises')
+          await Promise.all(promiseBatch)
+          promiseBatch = []
+        }
+      }
+
+      // Process any remaining promises
+      if (promiseBatch.length > 0) {
+        await Promise.all(promiseBatch)
       }
       i++
     }, options)
-    return await Promise.all(promises)
+
+    return []
   }
 
   public async eventsBatch (

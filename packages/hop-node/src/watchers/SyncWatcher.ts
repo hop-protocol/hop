@@ -324,8 +324,6 @@ class SyncWatcher extends BaseWatcher {
     } else {
       await Promise.all(this.getTransferSentPromises())
     }
-
-    // these must come after db is done syncing, and syncAvailableCredit must be last
     await this.availableLiquidityWatcher.syncBonderCredit()
   }
 

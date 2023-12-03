@@ -613,13 +613,13 @@ export default class Bridge extends ContractBase {
           promiseBatch = []
         }
       }
-
-      // Process any remaining promises
-      if (promiseBatch.length > 0) {
-        await Promise.all(promiseBatch)
-      }
       i++
     }, options)
+
+    // Process any remaining promises
+    if (promiseBatch.length > 0) {
+      await Promise.all(promiseBatch)
+    }
 
     return []
   }

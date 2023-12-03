@@ -578,7 +578,7 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), 18)
   }
 
-protected async mapEventsBatch<E extends Event, R> (
+  protected async mapEventsBatch<E extends Event, R> (
     getEventsMethod: (start: number, end: number) => Promise<E[]>,
     cb: EventCb<E, R>,
     options?: Partial<EventsBatchOptions>

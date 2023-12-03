@@ -333,22 +333,22 @@ class SyncWatcher extends BaseWatcher {
     // instead of in parallel.
 
     // Async
-    await this.getTransferSentToL2EventPromise(),
-    await this.getTransferRootConfirmedEventPromise(),
-    await this.getTransferBondChallengedEventPromise(),
-    await this.getTransferSentEventPromise(),
-    await this.getTransferRootSetEventPromise()
+    await Promise.all([this.getTransferSentToL2EventPromise()])
+    await Promise.all([this.getTransferRootConfirmedEventPromise()])
+    await Promise.all([this.getTransferBondChallengedEventPromise()])
+    await Promise.all([this.getTransferSentEventPromise()])
+    await Promise.all([this.getTransferRootSetEventPromise()])
 
     // Sync
-    await this.getTransferRootBondedEventPromise(),
-    await this.getTransfersCommittedEventPromise(),
-    await this.getWithdrawalBondedEventPromise(),
-    await this.getWithdrewEventPromise()
+    await Promise.all([this.getTransferRootBondedEventPromise()])
+    await Promise.all([this.getTransfersCommittedEventPromise()])
+    await Promise.all([this.getWithdrawalBondedEventPromise()])
+    await Promise.all([this.getWithdrewEventPromise()])
 
     // Sync incomplete items in order to get timestamps needed for ordered promises
     this.logger.debug('initialSyncSourceChainPromises complete. syncing incomplete items.')
-    await this.incompleteTransfersPollSync(),
-    await this.incompleteTransferRootsPollSync()
+    await Promise.all([this.incompleteTransfersPollSync()])
+    await Promise.all([this.incompleteTransferRootsPollSync()])
 
     // Wait for all transfers to sync their initialSyncSourceChainPromises
     this.logger.debug('source chain incompletePollSync completed. waiting for sibling watchers to complete initial sync')
@@ -362,8 +362,8 @@ class SyncWatcher extends BaseWatcher {
     }
 
     // Sync remaining events that require data from other events
-    await this.getMultipleWithdrawalsSettledEventPromise(),
-    await this.getWithdrawalBondSettledEventPromise()
+    await Promise.all([this.getMultipleWithdrawalsSettledEventPromise()])
+    await Promise.all([this.getWithdrawalBondSettledEventPromise()])
 
     this.initialSyncCompleted = true
     while (true) {

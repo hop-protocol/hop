@@ -608,21 +608,21 @@ class SyncWatcher extends BaseWatcher {
         logger.warn('transfer is not relayable. fee:', relayerFee.toString())
       }
 
-      // await this.db.transfers.update(transferId, {
-      //   transferId,
-      //   destinationChainId,
-      //   sourceChainId,
-      //   recipient,
-      //   amount,
-      //   amountOutMin,
-      //   deadline,
-      //   relayer,
-      //   relayerFee,
-      //   isRelayable,
-      //   transferSentTxHash: transactionHash,
-      //   transferSentBlockNumber: blockNumber,
-      //   transferSentLogIndex: logIndex
-      // })
+      await this.db.transfers.update(transferId, {
+        transferId,
+        destinationChainId,
+        sourceChainId,
+        recipient,
+        amount,
+        amountOutMin,
+        deadline,
+        relayer,
+        relayerFee,
+        isRelayable,
+        transferSentTxHash: transactionHash,
+        transferSentBlockNumber: blockNumber,
+        transferSentLogIndex: logIndex
+      })
     } catch (err) {
       logger.error(`handleTransferSentToL2Event error: ${err.message}`)
       this.notifier.error(`handleTransferSentToL2Event error: ${err.message}`)
@@ -705,7 +705,7 @@ class SyncWatcher extends BaseWatcher {
         dbData.withdrawalBondBackoffIndex = 0
       }
 
-      // await this.db.transfers.update(transferId, dbData)
+      await this.db.transfers.update(transferId, dbData)
 
       // Experimental: compare data against WS cache and clear the memory
       if (this.wsCache[transferId]) {
@@ -730,12 +730,12 @@ class SyncWatcher extends BaseWatcher {
       amount: this.bridge.formatUnits(amount)
     }))
 
-    // await this.db.transfers.update(transferId, {
-    //   withdrawalBonded: true,
-    //   withdrawalBondedTxHash: transactionHash,
-    //   isTransferSpent: true,
-    //   transferSpentTxHash: transactionHash
-    // })
+    await this.db.transfers.update(transferId, {
+      withdrawalBonded: true,
+      withdrawalBondedTxHash: transactionHash,
+      isTransferSpent: true,
+      transferSpentTxHash: transactionHash
+    })
   }
 
   async handleWithdrewEvent (event: WithdrewEvent) {
@@ -757,11 +757,11 @@ class SyncWatcher extends BaseWatcher {
       transferNonce
     }))
 
-    // await this.db.transfers.update(transferId, {
-    //   isTransferSpent: true,
-    //   transferSpentTxHash: transactionHash,
-    //   isBondable: false
-    // })
+    await this.db.transfers.update(transferId, {
+      isTransferSpent: true,
+      transferSpentTxHash: transactionHash,
+      isBondable: false
+    })
   }
 
   async handleTransferRootConfirmedEvent (event: TransferRootConfirmedEvent) {
@@ -775,12 +775,12 @@ class SyncWatcher extends BaseWatcher {
 
     try {
       const { transactionHash, blockNumber } = event
-      // await this.db.transferRoots.update(transferRootId, {
-      //   transferRootHash,
-      //   confirmed: true,
-      //   confirmTxHash: transactionHash,
-      //   confirmBlockNumber: blockNumber
-      // })
+      await this.db.transferRoots.update(transferRootId, {
+        transferRootHash,
+        confirmed: true,
+        confirmTxHash: transactionHash,
+        confirmBlockNumber: blockNumber
+      })
     } catch (err) {
       logger.error(`handleTransferRootConfirmedEvent error: ${err.message}`)
       this.notifier.error(
@@ -805,13 +805,13 @@ class SyncWatcher extends BaseWatcher {
         transferRootId: transferRootId
       }))
 
-      // await this.db.transferRoots.update(transferRootId, {
-      //   transferRootHash,
-      //   bonded: true,
-      //   bondTxHash: transactionHash,
-      //   bondBlockNumber: blockNumber,
-      //   totalAmount
-      // })
+      await this.db.transferRoots.update(transferRootId, {
+        transferRootHash,
+        bonded: true,
+        bondTxHash: transactionHash,
+        bondBlockNumber: blockNumber,
+        totalAmount
+      })
     } catch (err) {
       logger.error(`handleTransferRootBondedEvent error: ${err.message}`)
       this.notifier.error(`handleTransferRootBondedEvent error: ${err.message}`)
@@ -847,18 +847,18 @@ class SyncWatcher extends BaseWatcher {
         logIndex
       }))
 
-      // await this.db.transferRoots.update(transferRootId, {
-      //   transferRootHash,
-      //   totalAmount,
-      //   committedAt,
-      //   destinationChainId,
-      //   sourceChainId,
-      //   committed: true,
-      //   commitTxHash: transactionHash,
-      //   commitTxBlockNumber: blockNumber,
-      //   commitTxLogIndex: logIndex,
-      //   shouldBondTransferRoot
-      // })
+      await this.db.transferRoots.update(transferRootId, {
+        transferRootHash,
+        totalAmount,
+        committedAt,
+        destinationChainId,
+        sourceChainId,
+        committed: true,
+        commitTxHash: transactionHash,
+        commitTxBlockNumber: blockNumber,
+        commitTxLogIndex: logIndex,
+        shouldBondTransferRoot
+      })
     } catch (err) {
       logger.error(`handleTransfersCommittedEvent error: ${err.message}`)
       this.notifier.error(`handleTransfersCommittedEvent error: ${err.message}`)
@@ -881,10 +881,10 @@ class SyncWatcher extends BaseWatcher {
       transactionHash
     }))
 
-    // await this.db.transferRoots.update(transferRootId, {
-    //   transferRootHash,
-    //   challenged: true
-    // })
+    await this.db.transferRoots.update(transferRootId, {
+      transferRootHash,
+      challenged: true
+    })
   }
 
   async handleTransferRootSetEvent (event: TransferRootSetEvent) {
@@ -902,11 +902,11 @@ class SyncWatcher extends BaseWatcher {
       transactionHash
     }))
 
-    // await this.db.transferRoots.update(transferRootId, {
-    //   transferRootHash,
-    //   rootSetTxHash: transactionHash,
-    //   rootSetBlockNumber: blockNumber
-    // })
+    await this.db.transferRoots.update(transferRootId, {
+      transferRootHash,
+      rootSetTxHash: transactionHash,
+      rootSetBlockNumber: blockNumber
+    })
   }
 
   async populateTransferDbItem (transferId: string) {
@@ -1557,11 +1557,11 @@ class SyncWatcher extends BaseWatcher {
       totalBondsSettled: this.bridge.formatUnits(totalBondsSettled)
     }))
 
-    // await this.db.transferRoots.update(transferRootId, {
-    //   transferRootHash,
-    //   multipleWithdrawalsSettledTxHash: transactionHash,
-    //   settled: true
-    // })
+    await this.db.transferRoots.update(transferRootId, {
+      transferRootHash,
+      multipleWithdrawalsSettledTxHash: transactionHash,
+      settled: true
+    })
   }
 
   handleWithdrawalBondSettledEvent = async (event: WithdrawalBondSettledEvent) => {

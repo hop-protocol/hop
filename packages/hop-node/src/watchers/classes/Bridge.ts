@@ -593,7 +593,7 @@ export default class Bridge extends ContractBase {
       let events = await getEventsMethod(start, end)
       events = events.reverse()
       for (const event of events) {
-        promiseBatch.push(cb(event))
+        promiseBatch.push(cb(event, i))
         if (promiseBatch.length >= concurrency) {
           this.logger.debug('clearing batch of event promises')
           await Promise.all(promiseBatch)

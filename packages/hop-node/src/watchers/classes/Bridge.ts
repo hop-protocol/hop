@@ -585,8 +585,21 @@ export default class Bridge extends ContractBase {
   ): Promise<R[]> {
     let i = 0
 
-    // Batch promises to avoid loading all events into memory
-    const concurrency = 100
+    /**
+     * Batch promises to avoid loading all events into memory and running OOM. For initial
+     * syncs, this value needs to allow for the events to live in memory. The higher the
+     * concurrency value, the quicker the sync.
+     *
+     * To calculate this value, consider the following values:
+     * - Each item in promiseBatch will be ~500kb
+     * - For each token, there are 7 parallel calls from L1 and 5 parallel calls from each L2
+     *
+     * Examples (assume concurrency of 100):
+     * - An ETH bridge on Ethereum, Optimism, and Arbitrum will need 850MB of mem (17 parallel calls)
+     * - A USDC and USDT bridge on Ethereum, Polygon, Gnosis, Optimism, and Arbitrum will need 2.7GB of mem (54 parallel calls)
+     */
+
+    const concurrency = 10
     let promiseBatch: R[] = []
 
     await this.eventsBatch(async (start: number, end: number) => {

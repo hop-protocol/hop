@@ -14,7 +14,7 @@ interface Props {
   availableNetworks?: Network[] | any[]
 }
 
-function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
+export function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
   const { networks: allNetworks } = useApp()
   const styles = useNetworkSelectorStyles()
   const networks = useMemo(
@@ -58,5 +58,3 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
     </FlatSelect>
   )
 }
-
-export default NetworkSelector

@@ -5,7 +5,7 @@ import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
-import { Chain, GasCostTransactionType, RelayableChains } from 'src/constants'
+import { Chain, GasCostTransactionType, Network, RelayableChains, Token as TokenEnum } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
 import { Hop } from '@hop-protocol/sdk'
 import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -150,7 +150,7 @@ export default class L1Bridge extends Bridge {
 
   getTransferRootCommittedAt = async (destChainId: number, transferRootId: string): Promise<number> => {
     let committedAt
-    if (this.tokenSymbol === 'USDC' && globalConfig.network === 'mainnet') {
+    if (this.tokenSymbol === TokenEnum.USDC && globalConfig.network === Network.Mainnet) {
       committedAt = await (this.l1BridgeContract as L1BridgeContract).transferRootCommittedAt(transferRootId)
     } else {
       committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)

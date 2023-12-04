@@ -1,19 +1,19 @@
 import React, { FC, ChangeEvent, useEffect, useState } from 'react'
 import Card from '@material-ui/core/Card'
 import { makeStyles } from '@material-ui/core/styles'
-import LargeTextField from 'src/components/LargeTextField'
+import { LargeTextField } from 'src/components/LargeTextField'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
-import Alert from 'src/components/alert/Alert'
+import { Alert } from 'src/components/Alert'
 import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import Button from 'src/components/buttons/Button'
-import InfoTooltip from 'src/components/InfoTooltip'
+import { Button } from 'src/components/Button/Button'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import useQueryParams from 'src/hooks/useQueryParams'
 import { updateQueryParams } from 'src/utils/updateQueryParams'
-import { isGoerli } from 'src/config'
+import { reactAppNetwork } from 'src/config'
 import { WithdrawalProof } from '@hop-protocol/sdk'
 
 const useStyles = makeStyles((theme: any) => ({
@@ -72,7 +72,7 @@ export const Withdraw: FC = () => {
       let wp: WithdrawalProof
       await new Promise(async (resolve, reject) => {
         try {
-          wp = new WithdrawalProof(isGoerli ? 'goerli' : 'mainnet', transferIdOrTxHash)
+          wp = new WithdrawalProof(reactAppNetwork, transferIdOrTxHash)
           await wp.generateProof()
           const { sourceChain } = wp.transfer
           await txConfirm?.show({

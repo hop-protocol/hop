@@ -7,7 +7,6 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
 import {
   BlockHashValidationError,
@@ -37,6 +36,7 @@ import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
+import { isNativeToken } from 'src/utils/isNativeToken'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -48,7 +48,6 @@ type Config = {
 
 export type SendBondWithdrawalTxParams = {
   transferId: string
-  sender: string
   recipient: string
   amount: BigNumber
   transferNonce: string
@@ -254,7 +253,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.debug('checkTransferId sendBondWithdrawalTx')
       const tx = await this.sendBondWithdrawalTx({
         transferId,
-        sender: sourceTx.from,
         recipient,
         amount,
         transferNonce,
@@ -567,7 +565,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     console.log('debugging0', txParams.transferId)
     const txTransferNonce = txParams.transferNonce
     console.log('debugging1', txParams.transferId)
-    const dbTransfers: Transfer[] = await this.db.transfers.getTransfersFromWeek()
+    const dbTransfers: Transfer[] = await this.db.transfers.getTransfersFromDay()
     console.log('debugging2', txParams.transferId)
     const dbTransfersFromSource: Transfer[] = dbTransfers.filter(dbTransfer => dbTransfer.sourceChainId === this.bridge.chainId)
     console.log('debugging3', txParams.transferId)
@@ -582,7 +580,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       console.log('debugging7', txParams.transferId)
       // If a transfer is marked as notFound because the event is missed, it will never get a transferSent timestamp. In
       // this case, there will be no subDbTimestamps for the item since that relies on the transferSentTimestamp and
-      // therefore the item will not exist in getTransfersFromWeek(). In this case, check the item exists in the DB
+      // therefore the item will not exist in getTransfersFromDay(). In this case, check the item exists in the DB
       // and validate that the transferNonce exists.
       const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
       console.log('debugging8', txParams.transferId)

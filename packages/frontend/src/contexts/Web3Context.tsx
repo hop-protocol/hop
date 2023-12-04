@@ -9,9 +9,11 @@ import React, {
 } from 'react'
 import { ethers } from 'ethers'
 import Address from 'src/models/Address'
-import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
-import { blocknativeDappid, isGoerli } from 'src/config'
+import { networks } from '@hop-protocol/core/networks'
+import { chains as chainMetadata } from '@hop-protocol/core/metadata/chains'
+import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
 import { networkSlugToId } from 'src/utils'
+import { capitalize } from 'src/utils/capitalize'
 import { l1Network } from 'src/config/networks'
 import logger from 'src/logger'
 import { chainIdToHex } from 'src/utils/chainIdToHex'
@@ -21,9 +23,6 @@ import coinbaseWalletModule from '@web3-onboard/coinbase'
 import walletConnectModule from '@web3-onboard/walletconnect'
 import gnosisModule from '@web3-onboard/gnosis'
 import { useThemeMode } from 'src/theme/ThemeProvider'
-
-const goerliChains = goerliNetworks as any
-const mainnetChains = mainnetNetworks as any
 
 export type Props = {
   onboard: any
@@ -41,115 +40,35 @@ export type Props = {
 class NetworkSwitchError extends Error {}
 
 function getOnboardChains(): any {
-  if (isGoerli) {
-    return [
-      {
-        id: chainIdToHex(goerliChains.ethereum.networkId),
-        token: 'ETH',
-        label: 'Ethereum Goerli',
-        rpcUrl: goerliChains.ethereum.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(goerliChains.arbitrum.networkId),
-        token: 'ETH',
-        label: 'Arbitrum Goerli',
-        rpcUrl: goerliChains.arbitrum.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(goerliChains.optimism.networkId),
-        token: 'ETH',
-        label: 'Optimism Goerli',
-        rpcUrl: goerliChains.optimism.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(goerliChains.polygon.networkId),
-        token: 'MATIC',
-        label: 'Polygon Mumbai',
-        rpcUrl: goerliChains.polygon.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(goerliChains.zksync.networkId),
-        token: 'ETH',
-        label: 'zkSync Goerli',
-        rpcUrl: goerliChains.zksync.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(goerliChains.linea.networkId),
-        token: 'ETH',
-        label: 'Linea Goerli',
-        rpcUrl: 'https://rpc.goerli.linea.build'
-      },
-      {
-        id: chainIdToHex(goerliChains.scrollzk.networkId),
-        token: 'ETH',
-        label: 'Scroll zkEVM',
-        rpcUrl: goerliChains.scrollzk.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(goerliChains.polygonzk.networkId),
-        token: 'ETH',
-        label: 'Polygon zkEVM (Goerli)',
-        rpcUrl: goerliChains.polygonzk.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(goerliChains.base.networkId),
-        token: 'ETH',
-        label: 'Base Goerli',
-        rpcUrl: goerliChains.base.publicRpcUrl
-      },
-    ]
-  } else {
-    return [
-      {
-        id: chainIdToHex(mainnetChains.ethereum.networkId),
-        token: 'ETH',
-        label: 'Ethereum Mainnet',
-        rpcUrl: mainnetChains.ethereum.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(mainnetChains.arbitrum.networkId),
-        token: 'ETH',
-        label: 'Arbitrum One',
-        rpcUrl: mainnetChains.arbitrum.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(mainnetChains.optimism.networkId),
-        token: 'ETH',
-        label: 'Optimism Mainnet',
-        rpcUrl: mainnetChains.optimism.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(mainnetChains.gnosis.networkId),
-        token: 'XDAI',
-        label: 'Gnosis Chain',
-        rpcUrl: mainnetChains.gnosis.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(mainnetChains.polygon.networkId),
-        token: 'MATIC',
-        label: 'Polygon Mainnet',
-        rpcUrl: mainnetChains.polygon.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(mainnetChains.nova.networkId),
-        token: 'ETH',
-        label: 'Nova Mainnet',
-        rpcUrl: mainnetChains.nova.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(mainnetChains.base.networkId),
-        token: 'ETH',
-        label: 'Base Mainnet',
-        rpcUrl: mainnetChains.base.publicRpcUrl
-      },
-      {
-        id: chainIdToHex(mainnetChains.linea.networkId),
-        token: 'ETH',
-        label: 'Linea Mainnet',
-        rpcUrl: 'https://rpc.linea.build'
-      },
-    ]
+  const chains = (networks as any)[reactAppNetwork]
+  const onboardChains :any[] = []
+
+  for (const chainSlug in chains) {
+    const chainObj = chains[chainSlug]
+    const id = chainIdToHex(chainObj.networkId)
+    const token = chainMetadata?.[chainSlug]?.nativeTokenSymbol
+    const label = `${chainObj.name} ${capitalize(reactAppNetwork)}`
+    let rpcUrl = chainObj.publicRpcUrl
+
+    // overrides
+    if (chainSlug === 'linea') {
+      if (isGoerli) {
+        rpcUrl = 'https://rpc.goerli.linea.build'
+      }
+      if (isMainnet) {
+        rpcUrl = 'https://rpc.linea.build'
+      }
+    }
+
+    onboardChains.push({
+        id,
+        token,
+        label,
+        rpcUrl
+    })
   }
+
+  return onboardChains
 }
 
 const injected = injectedModule()
@@ -167,7 +86,6 @@ const gnosis = gnosisModule({
 const walletConnect = walletConnectModule({
   version: 2, // NOTE: version v1 will be sunset but MetaMask currently only supports v1
   projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce',
-  // requiredChains: [isGoerli ? 5 : 1]
   optionalChains: getOnboardChains().map((chain: any) => Number(chain.id)) as number[]
 })
 

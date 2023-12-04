@@ -139,7 +139,6 @@ export class AmmStats {
     let totalFeesUsd = 0
 
     for (let i = 0; i < this.days; i++) {
-      const promises: any[] = []
       const now = DateTime.utc()
       const startDate = now.minus({ day: i + this.offsetDays }).startOf('day')
       const endDate = startDate.endOf('day')
@@ -152,96 +151,91 @@ export class AmmStats {
           if (!config) {
             continue
           }
-          promises.push(
-            (async () => {
-              try {
-                const tokenDecimals = getTokenDecimals(token)
-                console.log('fetching token swaps', chain, token, i)
-                const events = await this.fetchTokenSwaps(
-                  chain,
-                  token,
-                  startDateUnix,
-                  endDateUnix
-                )
-                let volume = BigNumber.from(0)
-                for (const event of events) {
-                  const amount = BigNumber.from(event.tokensSold)
-                  volume = volume.add(amount)
-                }
-                const volumeFormatted = Number(
-                  formatUnits(volume, tokenDecimals)
-                )
 
-                const oneToken = parseUnits('1', tokenDecimals)
-                const lpFee = BigNumber.from(4)
-                const lpFeeBN = parseUnits(lpFee.toString(), tokenDecimals)
-                const fees = volume
-                  .mul(lpFeeBN)
-                  .div(oneToken)
-                  .div(10000)
+          try {
+            const tokenDecimals = getTokenDecimals(token)
+            console.log('fetching token swaps', chain, token, i)
+            const events = await this.fetchTokenSwaps(
+              chain,
+              token,
+              startDateUnix,
+              endDateUnix
+            )
+            let volume = BigNumber.from(0)
+            for (const event of events) {
+              const amount = BigNumber.from(event.tokensSold)
+              volume = volume.add(amount)
+            }
+            const volumeFormatted = Number(
+              formatUnits(volume, tokenDecimals)
+            )
 
-                const feesFormatted = Number(formatUnits(fees, tokenDecimals))
+            const oneToken = parseUnits('1', tokenDecimals)
+            const lpFee = BigNumber.from(4)
+            const lpFeeBN = parseUnits(lpFee.toString(), tokenDecimals)
+            const fees = volume
+              .mul(lpFeeBN)
+              .div(oneToken)
+              .div(10000)
 
-                if (!prices[token]) {
-                  console.log('price not found', token)
-                  return
-                }
+            const feesFormatted = Number(formatUnits(fees, tokenDecimals))
 
-                const dates = prices[token].reverse().map((x: any) => x[0])
-                const nearest = nearestDate(dates, startDateUnix)
-                const price = prices[token][nearest][1]
+            if (!prices[token]) {
+              console.log('price not found', token)
+              return
+            }
 
-                const volumeFormattedUsd = price * volumeFormatted
-                const feesFormattedUsd = price * feesFormatted
-                console.log(
-                  startDate.toISO(),
-                  startDateUnix,
-                  chain,
-                  token,
-                  'events',
-                  events.length,
-                  'volume',
-                  volumeFormatted,
-                  'volume usd',
-                  volumeFormattedUsd,
-                  'fees',
-                  feesFormatted,
-                  'fees usd',
-                  feesFormattedUsd
-                )
+            const dates = prices[token].reverse().map((x: any) => x[0])
+            const nearest = nearestDate(dates, startDateUnix)
+            const price = prices[token][nearest][1]
 
-                totalFeesUsd += feesFormattedUsd
+            const volumeFormattedUsd = price * volumeFormatted
+            const feesFormattedUsd = price * feesFormatted
+            console.log(
+              startDate.toISO(),
+              startDateUnix,
+              chain,
+              token,
+              'events',
+              events.length,
+              'volume',
+              volumeFormatted,
+              'volume usd',
+              volumeFormattedUsd,
+              'fees',
+              feesFormatted,
+              'fees usd',
+              feesFormattedUsd
+            )
 
-                try {
-                  console.log('upserting amm stat', chain, token, i)
-                  this.db.upsertAmmStat(
-                    chain,
-                    token,
-                    volumeFormatted,
-                    volumeFormattedUsd,
-                    feesFormatted,
-                    feesFormattedUsd,
-                    startDateUnix
-                  )
-                } catch (err) {
-                  if (!err.message.includes('UNIQUE constraint failed')) {
-                    console.log('error', chain, token)
-                    throw err
-                  }
-                  console.error(err)
-                }
-                console.log(
-                  `done fetching amm daily volume stats, chain: ${chain}, token: ${token}`
-                )
-              } catch (err) {
-                console.error('amm stats error:', err)
+            totalFeesUsd += feesFormattedUsd
+
+            try {
+              console.log('upserting amm stat', chain, token, i)
+              await this.db.upsertAmmStat(
+                chain,
+                token,
+                volumeFormatted,
+                volumeFormattedUsd,
+                feesFormatted,
+                feesFormattedUsd,
+                startDateUnix
+              )
+            } catch (err) {
+              if (!err.message.includes('UNIQUE constraint failed')) {
+                console.log('error', chain, token)
+                throw err
               }
-            })()
-          )
+              console.error(err)
+            }
+            console.log(
+              `done fetching amm daily volume stats, chain: ${chain}, token: ${token}`
+            )
+          } catch (err) {
+            console.error('amm stats error:', err)
+          }
         }
       }
-
-      await Promise.all(promises)
     }
 
     console.log('totalFeesUsd', totalFeesUsd)

@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from 'react'
-import Button from 'src/components/buttons/Button'
+import { Button } from 'src/components/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import FormControlLabel from '@material-ui/core/FormControlLabel'

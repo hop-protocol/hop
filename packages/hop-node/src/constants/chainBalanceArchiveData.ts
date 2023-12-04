@@ -5,25 +5,25 @@ import { Chain, Token } from 'src/constants'
  * up to an hour to run or may not be possible in the case of missing regenesis data.
  */
 
-type IUnwithdrawnTransfers = {
+type IUnwithdrawnTransfers = Partial<{
   [key in Token]: Partial<{
     [key in Chain]: string
   }>
-}
+}>
 
-type IInFlightL1ToL2Transfers = {
+type IInFlightL1ToL2Transfers = Partial<{
   [key in Token]: Partial<{
     [key in Chain]: string
   }>
-}
+}>
 
-type IL1TokensSentDirectlyToBridge = {
+type IL1TokensSentDirectlyToBridge = Partial<{
   [key in Token]: string
-}
+}>
 
-type IL1InvalidRoot = {
+type IL1InvalidRoot = Partial<{
   [key in Token]: string
-}
+}>
 
 const archiveDataTimestamp: number = 1684998000
 

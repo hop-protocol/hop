@@ -1,4 +1,4 @@
-import { CanonicalToken, NetworkSlug, TokenSymbol } from '../constants'
+import { CanonicalToken, TokenSymbol } from '../constants'
 import { ethers } from 'ethers'
 import { metadata } from '../config'
 
@@ -54,7 +54,7 @@ export class Token {
       this.decimals = decimals
     }
     if (!decimals && symbol) {
-      this.decimals = metadata.tokens?.[NetworkSlug.Mainnet]?.[symbol]?.decimals
+      this.decimals = metadata.tokens[symbol]?.decimals
     }
   }
 

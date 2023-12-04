@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import Modal from 'src/components/modal/Modal'
+import { Modal } from 'src/components/Modal'
 import Approval from 'src/components/txConfirm/Approval'
 import ConfirmSend from 'src/components/txConfirm/ConfirmSend'
 import ConfirmConvert from 'src/components/txConfirm/ConfirmConvert'

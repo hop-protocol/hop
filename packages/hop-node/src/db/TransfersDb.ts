@@ -2,9 +2,10 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, FiveMinutesMs, OneHourMs, OneDayMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import { Chain, FiveMinutesMs, OneDayMs, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
+import { transfersMigrations } from './migrations'
 
 interface BaseTransfer {
   amount?: BigNumber
@@ -33,8 +34,6 @@ interface BaseTransfer {
   transferFromL1CompleteTxHash?: string
   transferNonce?: string
   transferRelayed?: boolean
-  transferRootHash?: string
-  transferRootId?: string
   transferSentBlockNumber?: number
   transferSentIndex?: number
   transferSentLogIndex?: number
@@ -42,13 +41,9 @@ interface BaseTransfer {
   transferSentTxHash?: string
   transferSpentTxHash?: string
   withdrawalBondBackoffIndex?: number
-  withdrawalBondSettled?: boolean
-  withdrawalBondSettledTxHash?: string
   withdrawalBondTxError?: TxError
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
-  withdrawalBonder?: string
-  sender?: string
 }
 
 export interface Transfer extends BaseTransfer {
@@ -104,10 +99,16 @@ export type UnrelayedSentTransfer = {
 
 export type UncommittedTransfer = {
   transferId: string
-  transferRootId: string
   transferSentTxHash: string
   committed: boolean
   destinationChainId: number
+}
+
+export interface TransfersIdsWithTransferRootHashParams {
+  sourceChainId: number
+  destinationChainId: number
+  commitTxBlockNumber: number
+  commitTxLogIndex: number
 }
 
 // structure:
@@ -141,6 +142,12 @@ class SubDbTimestamps extends BaseDb {
   }
 
   async getFilteredKeyValues (dateFilter?: TransfersDateFilter) {
+    const now = Math.floor(Date.now() / 1000)
+    const maxDateFilterWarning = now - OneWeekMs
+    if (dateFilter?.fromUnix && dateFilter.fromUnix < maxDateFilterWarning) {
+      this.logger.warn(`TransfersDb.getFilteredKeyValues: Date range is large. Watch out for memory issues. fromUnix: ${dateFilter.fromUnix}`)
+    }
+
     const filter: KeyFilter = {
       gte: 'transfer:',
       lte: 'transfer:~'
@@ -200,54 +207,9 @@ class SubDbIncompletes extends BaseDb {
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
-      (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-      (item.withdrawalBondedTxHash && !item.withdrawalBonder) ||
-      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled) ||
-      (!item.sender)
+      (item.transferSentBlockNumber && !item.transferSentTimestamp)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
-  }
-}
-
-// structure:
-// key: `<transferRootHash>:<transferId>`
-// value: `{ transferId: <transferId> }`
-class SubDbRootHashes extends BaseDb {
-  constructor (prefix: string, _namespace?: string) {
-    super(`${prefix}:transferRootHashes`, _namespace)
-  }
-
-  getTransferRootHashKey (transfer: Transfer) {
-    if (transfer.transferRootHash && transfer.transferId) {
-      return `${transfer.transferRootHash}:${transfer.transferId}`
-    }
-  }
-
-  async insertItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    const key = this.getTransferRootHashKey(transfer)
-    if (key) {
-      const exists = await this.getById(key)
-      if (!exists) {
-        logger.debug(`storing db transfer rootHash key item. key: ${key}`)
-        await this._update(key, { transferId })
-        logger.debug(`updated db transfer rootHash key item. key: ${key}`)
-      }
-    }
-  }
-
-  async getFilteredKeyValues (transferRootHash: string) {
-    if (!transferRootHash) {
-      throw new Error('expected transfer root hash')
-    }
-
-    const filter: KeyFilter = {
-      gte: `${transferRootHash}`,
-      lte: `${transferRootHash}~` // tilde is intentional
-    }
-
-    return this.getKeyValues(filter)
   }
 }
 
@@ -257,25 +219,11 @@ class SubDbRootHashes extends BaseDb {
 class TransfersDb extends BaseDb {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes
-  subDbRootHashes: SubDbRootHashes
 
   constructor (prefix: string, _namespace?: string) {
-    super(prefix, _namespace)
+    super(prefix, _namespace, transfersMigrations)
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
-    this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
-  }
-
-  shouldMigrate (): boolean {
-    return true
-  }
-
-  async migration (key: string, value: any): Promise<void> {
-    if (value?.isFinalized === undefined) {
-      const { value: updatedValue } = await this._getUpdateData(key, value)
-      updatedValue.isFinalized = true
-      return this.db.put(key, updatedValue)
-    }
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
@@ -351,7 +299,6 @@ class TransfersDb extends BaseDb {
     transfer.transferId = transferId
     await Promise.all([
       this.subDbTimestamps.upsertItem(transfer as Transfer),
-      this.subDbRootHashes.insertItem(transfer as Transfer),
       this.upsertTransferItem(transfer as Transfer)
     ])
   }
@@ -375,7 +322,7 @@ class TransfersDb extends BaseDb {
     const batchedItems = await this.batchGetByIds(transferIds)
     const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
     const items = transfers.filter(Boolean).sort(this.sortItems)
-    this.logger.info(`items length: ${items.length}`)
+    this.logger.info(`getMultipleTransfersByTransferIds, items length: ${items.length}`)
 
     return items
   }
@@ -385,8 +332,7 @@ class TransfersDb extends BaseDb {
     return await this.getItems(dateFilter)
   }
 
-  // gets only transfers within range: now - 1 week ago
-  async getTransfersFromWeek () {
+  async getTransfersFromDay () {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
     return await this.getTransfers({
@@ -394,19 +340,59 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  async getTransfersWithTransferRootHash (transferRootHash: string) {
+  /**
+   * @returns transferIds sorted in order of their index in the root
+   */
+  async getTransfersIdsWithTransferRootHash (input: TransfersIdsWithTransferRootHashParams): Promise<string[] | undefined> {
+    const { sourceChainId, destinationChainId, commitTxBlockNumber, commitTxLogIndex } = input
     await this.tilReady()
-    const kv = await this.subDbRootHashes.getFilteredKeyValues(transferRootHash)
-    const unsortedTransferIds = kv.map(this.filterValueTransferId).filter(this.filterExisty)
-    const items = await this.batchGetByIds(unsortedTransferIds)
-    const sortedTransfers = items.sort(this.sortItems).filter(this.filterExisty)
-    return sortedTransfers
+
+    // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
+    // up the root onchain.
+    const maxLookbackIndex = 14
+    const transferIds: string[] = []
+
+    const now = Date.now()
+    for (let i = 0; i <= maxLookbackIndex; i++) {
+      const fromUnix = Math.floor((now - (OneDayMs * (i + 1))) / 1000)
+      const toUnix = Math.floor((now - (OneDayMs * i)) / 1000)
+      const transfers: Transfer[] = await this.getTransfers({
+        fromUnix,
+        toUnix
+      })
+
+      // Sorted newest to oldest
+      const sortedTransfers = transfers.filter(Boolean).sort(this.sortItems).reverse()
+      for (const transfer of sortedTransfers) {
+        if (
+          transfer.sourceChainId === sourceChainId &&
+          transfer.destinationChainId === destinationChainId &&
+          transfer.transferSentBlockNumber &&
+          transfer.transferSentBlockNumber <= commitTxBlockNumber &&
+          transfer.transferSentIndex !== undefined
+        ) {
+          if (transfer.transferSentBlockNumber === commitTxBlockNumber) {
+            if (
+              transfer.transferSentLogIndex === undefined ||
+              transfer.transferSentLogIndex > commitTxLogIndex
+            ) {
+              continue
+            }
+          }
+
+          transferIds.unshift(transfer.transferId)
+          if (transfer.transferSentIndex === 0) {
+            return transferIds
+          }
+        }
+      }
+    }
   }
 
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UncommittedTransfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const transfers: Transfer[] = await this.getTransfersFromDay()
     const filtered = transfers.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
@@ -414,7 +400,6 @@ class TransfersDb extends BaseDb {
 
       return (
         item.transferId &&
-        !item.transferRootId &&
         item.transferSentTxHash &&
         !item.committed &&
         item.isFinalized
@@ -427,7 +412,7 @@ class TransfersDb extends BaseDb {
   async getUnbondedSentTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnbondedSentTransfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const transfers: Transfer[] = await this.getTransfersFromDay()
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false
@@ -476,7 +461,7 @@ class TransfersDb extends BaseDb {
   async getUnrelayedSentTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnrelayedSentTransfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const transfers: Transfer[] = await this.getTransfersFromDay()
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false

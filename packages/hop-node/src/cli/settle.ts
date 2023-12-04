@@ -12,7 +12,6 @@ root
   .option('--source-chain <slug>', 'Source chain', parseString)
   .option('--token <slug>', 'Token', parseString)
   .option('--transfer-root-hash <id>', 'Transfer root hash', parseString)
-  .option('--transfer-id <id>', 'Transfer ID', parseString)
   .option('--bonder <address>', 'Bonder address', parseString)
   .option('--use-db [boolean]', 'Use the DB to construct the roots', parseBool)
   .option(
@@ -23,15 +22,15 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { sourceChain: chain, token, transferRootHash, transferId, bonder, useDb, dry: dryMode } = source
+  let { sourceChain: chain, token, transferRootHash, bonder, useDb, dry: dryMode } = source
   if (!chain) {
     throw new Error('source chain is required')
   }
   if (!token) {
     throw new Error('token is required')
   }
-  if (!(transferRootHash || transferId)) {
-    throw new Error('transferRootHash or transferId is required')
+  if (!transferRootHash) {
+    throw new Error('transferRootHash is required')
   }
 
   if (typeof useDb === 'undefined') {
@@ -44,11 +43,7 @@ async function main (source: any) {
   }
 
   if (useDb) {
-    if (transferRootHash) {
-      await watcher.checkTransferRootHash(transferRootHash, bonder)
-    } else {
-      await watcher.checkTransferId(transferId)
-    }
+    await watcher.checkTransferRootHash(transferRootHash, bonder)
   } else {
     const transferRoot: any = await getTransferRoot(chain, token, transferRootHash)
     const destinationChainId: number = transferRoot.destinationChainId

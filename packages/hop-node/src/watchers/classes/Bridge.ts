@@ -55,6 +55,12 @@ type BlockValues = {
   latestBlockInBatch: number
 }
 
+export type DecodedSettleBondedWithdrawalsDataRes = {
+  bonder: string
+  transferIds: string[]
+  totalAmount: BigNumber
+}
+
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 type BridgeContract = L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
 
@@ -302,7 +308,9 @@ export default class Bridge extends ContractBase {
     return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
-  getParamsFromMultipleSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
+  getParamsFromMultipleSettleEventTransaction = async (
+    multipleWithdrawalsSettledTxHash: string
+  ): Promise<DecodedSettleBondedWithdrawalsDataRes> => {
     const tx = await this.getTransaction(multipleWithdrawalsSettledTxHash)
     if (!tx) {
       throw new Error('expected tx object')
@@ -362,7 +370,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  decodeSettleBondedWithdrawalsData (data: string): any {
+  decodeSettleBondedWithdrawalsData (data: string): DecodedSettleBondedWithdrawalsDataRes {
     if (!data) {
       throw new Error('data to decode is required')
     }

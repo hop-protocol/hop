@@ -1,7 +1,14 @@
 import { providers } from 'ethers'
 
-function getRpcUrlFromProvider (provider: providers.Provider): string {
-  return (provider as any)?.connection?.url ?? (provider as any).providers?.[0]?.connection?.url ?? ''
+type Provider = providers.Provider & {
+  connection?: {
+    url: string
+  }
+  providers?: Provider[]
+}
+
+function getRpcUrlFromProvider (provider: Provider): string {
+  return provider?.connection?.url ?? provider.providers?.[0]?.connection?.url ?? ''
 }
 
 export default getRpcUrlFromProvider

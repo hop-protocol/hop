@@ -19,7 +19,7 @@ export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: 
   // console.log(JSON.stringify(transfers, null, 2))
 
   const seen: any = {}
-  const replace: any = {}
+  const replace: Record<string, any> = {}
 
   transfers = transfers.filter((x: any, i: number) => {
     if (seen[x.index]) {
@@ -39,7 +39,7 @@ export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: 
   const firstBlockNumber = transfers[0]?.blockNumber
 
   for (const i in replace) {
-    const idx = i as any
+    const idx = i as unknown as number // note: ts type checker suggests using 'unknown' type first to fix type error
     if (idx > 100 || firstBlockNumber > transfers[idx].blockNumber) {
       transfers[idx] = replace[i]
     }

@@ -1,5 +1,6 @@
 import MerkleTree from 'src/utils/MerkleTree'
 import makeRequest from './makeRequest'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { normalizeEntity } from './shared'
@@ -86,7 +87,7 @@ export default async function getTransferIdsForTransferRoot (
     // get the transfer sent events between the two commit transfer events
     startBlockNumber = previousTransferCommitted.blockNumber
   } else {
-    startBlockNumber = (addresses as any)?.bridges?.[token]?.[chain]?.bridgeDeployedBlockNumber ?? 0
+    startBlockNumber = addresses?.bridges?.[token as AssetSymbol]?.[chain as ChainSlug]?.bridgeDeployedBlockNumber ?? 0
   }
 
   const endBlockNumber = transferCommitted.blockNumber

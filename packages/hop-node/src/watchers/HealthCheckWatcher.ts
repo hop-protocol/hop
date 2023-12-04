@@ -14,10 +14,12 @@ import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
 import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
+import { Routes } from '@hop-protocol/core/addresses'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { appTld, expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
@@ -547,13 +549,21 @@ export class HealthCheckWatcher {
 
     const bonders = new Set<string>()
     const bonderBridges: Record<string, string> = {}
-    const configBonders = globalConfig.bonders as any
+    const configBonders = globalConfig.bonders
     const result: any = []
 
     for (const token in configBonders) {
-      for (const sourceChain in configBonders[token]) {
-        for (const destinationChain in configBonders[token][sourceChain]) {
-          const bonder = configBonders[token][sourceChain][destinationChain]
+      const tokenConfig = configBonders[token as keyof typeof AssetSymbol] as Routes
+      if (!tokenConfig) {
+        continue
+      }
+      for (const sourceChain in tokenConfig) {
+        const sourceChainConfig = tokenConfig[sourceChain as ChainSlug]
+        for (const destinationChain in sourceChainConfig) {
+          const bonder = sourceChainConfig[destinationChain as ChainSlug]
+          if (!bonder) {
+            continue
+          }
           bonderBridges[bonder] = token
           bonders.add(bonder)
         }

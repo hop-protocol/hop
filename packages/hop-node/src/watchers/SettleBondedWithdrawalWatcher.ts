@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
+import { ChainSlug } from '@hop-protocol/core/config'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
@@ -48,6 +49,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
       transferRootId
     )
+    if (!dbTransferRoot) {
+      this.logger.error('db transfer root not found')
+      return
+    }
     const {
       transferRootHash,
       sourceChainId,
@@ -140,7 +145,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async depositToVaultIfNeeded (destinationChainId: number) {
-    const vaultConfig = (globalConfig.vault as any)?.[this.tokenSymbol]?.[this.chainSlug]
+    const vaultConfig = globalConfig.vault?.[this.tokenSymbol]?.[this.chainSlug as ChainSlug]
     if (!vaultConfig) {
       return
     }

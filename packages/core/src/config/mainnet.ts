@@ -98,12 +98,12 @@ export const config : Config = {
     nova: false,
     base: false,
     zksync: false,
-    linea: false,
+    linea: true,
     scrollzk: false,
     polygonzk: false
   },
   relayerFeeWei: {
-    linea: '0'
+    linea: '1000000000000000'
   },
   proxyEnabled: {},
   bridgeDeprecated: {

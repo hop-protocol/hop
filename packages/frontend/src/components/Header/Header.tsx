@@ -8,8 +8,7 @@ import { HeaderRoutes } from './HeaderRoutes'
 import { TxPill } from './TxPill'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
-import { isMainnet, showBannerMessage } from 'src/config'
-import { l1Network } from 'src/config/networks'
+import { isMainnet, showBannerMessage, reactAppNetwork } from 'src/config'
 import { Settings } from './Settings'
 import { WalletWarning } from './WalletWarning'
 import {
@@ -156,7 +155,7 @@ export const Header: FC = () => {
               src={isDarkMode ? HopLogoWhite : HopLogoBlack}
               alt="Hop"
             />
-            {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}
+            {!isMainnet && <span className={styles.label}>{reactAppNetwork}</span>}
           </Link>
         </Box>
 

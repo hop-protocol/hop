@@ -21,6 +21,7 @@ for (const network in chainNetworks) {
     chains[chain].fallbackRpcUrls = chainConfig?.fallbackPublicRpcUrls ?? []
     chains[chain].etherscanApiUrl = chainConfig?.etherscanApiUrl ?? ''
     chains[chain].subgraphUrl = chainConfig?.subgraphUrl
+    chains[chain].multicall = chainConfig?.multicall
     if (chainConfig?.isRollup) {
       bondableChainsSet.add(chain)
     }

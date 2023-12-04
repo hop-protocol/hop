@@ -9,6 +9,7 @@ export const config : Config = {
       optimism: 500,
       zksync: 500,
       linea: 500,
+      arbitrum: 500,
       scrollzk: 500,
       base: 500,
       polygonzk: 500
@@ -18,6 +19,7 @@ export const config : Config = {
       polygon: 500,
       gnosis: 500,
       optimism: 500,
+      arbitrum: 500,
       zksync: 500,
       linea: 500,
       scrollzk: 500,
@@ -28,6 +30,7 @@ export const config : Config = {
       polygon: 500,
       gnosis: 500,
       optimism: 500,
+      arbitrum: 500,
       zksync: 500,
       linea: 500,
       scrollzk: 500,
@@ -36,6 +39,7 @@ export const config : Config = {
     USDT: {
       ethereum: 500,
       polygon: 500,
+      arbitrum: 500,
       optimism: 500,
       zksync: 500,
       linea: 500,
@@ -47,6 +51,7 @@ export const config : Config = {
       polygon: 500,
       optimism: 500,
       zksync: 500,
+      arbitrum: 500,
       linea: 500,
       scrollzk: 500,
       base: 500
@@ -58,6 +63,7 @@ export const config : Config = {
       zksync: 500,
       linea: 500,
       scrollzk: 500,
+      arbitrum: 500,
       base: 500
     }
   },
@@ -71,13 +77,14 @@ export const config : Config = {
   },
   destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
-    polygon: true,
-    optimism: true,
-    zksync: true,
-    linea: true,
-    scrollzk: true,
-    base: true,
-    polygonzk: true
+    polygon: false,
+    optimism: false,
+    arbitrum: false,
+    zksync: false,
+    linea: false,
+    scrollzk: false,
+    base: false,
+    polygonzk: false
   },
   relayerFeeWei: {
     linea: '100000000000000'
@@ -86,6 +93,7 @@ export const config : Config = {
     ETH: {
       ethereum: false,
       polygon: false,
+      arbitrum: false,
       gnosis: false,
       optimism: false,
       zksync: false,
@@ -98,6 +106,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       gnosis: false,
+      arbitrum: false,
       optimism: false,
       zksync: false,
       linea: false,
@@ -109,6 +118,7 @@ export const config : Config = {
       polygon: false,
       gnosis: false,
       optimism: false,
+      arbitrum: false,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -118,6 +128,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
+      arbitrum: false,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -127,6 +138,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
+      arbitrum: false,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -136,6 +148,7 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       optimism: false,
+      arbitrum: false,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -150,6 +163,7 @@ export const config : Config = {
       ethereum: 130000,
       optimism: 225000,
       gnosis: 260000,
+      arbitrum: 260000,
       polygon: 260000,
       linea: 500000,
       scrollzk: 500000,
@@ -161,6 +175,7 @@ export const config : Config = {
       optimism: 240000,
       gnosis: 260000,
       polygon: 260000,
+      arbitrum: 260000,
       linea: 700000,
       scrollzk: 700000,
       base: 240000,

@@ -10,9 +10,11 @@ import lineaErc20Abi from './lineaErc20Abi'
 import wethAbi from './wethAbi'
 import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
+import { ChainSlug } from '@hop-protocol/core/config'
 import { CrossChainMessenger } from '@eth-optimism/sdk'
 import { Erc20Bridger, EthBridger, getL2Network } from '@arbitrum/sdk'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
+import { L1BridgeProps, L2BridgeProps, PolygonBridgeProps, addresses as allAddresses } from '@hop-protocol/core/addresses'
 import { Logger } from 'src/logger'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { chainSlugToId } from 'src/utils/chainSlugToId'
@@ -20,7 +22,7 @@ import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofData } from 'src/cli/shared'
-import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { use } from '@maticnetwork/maticjs'
 import { wait } from 'src/utils/wait'
@@ -116,7 +118,7 @@ export class ArbBot {
       this.reorgConfirmationBlocks = options.reorgConfirmationBlocks
     }
 
-    this.l1ChainId = this.network === 'mainnet' ? 1 : 5
+    this.l1ChainId = networkSlugToId(this.network)
     this.l2ChainId = chainSlugToId(this.l2ChainSlug)
     this.logger = new Logger(`ArbBot${options?.label ? `:${options?.label}` : ''}`)
     this.sdk = new Hop({
@@ -192,6 +194,11 @@ export class ArbBot {
       this.logger.log(`waiting for next poll ${this.pollIntervalMs / 1000}s`)
       await wait(this.pollIntervalMs)
     }
+  }
+
+  getAddresses () {
+    const addresses = allAddresses[this.network as keyof typeof allAddresses]
+    return addresses
   }
 
   async pollUnwithdrawnTransfers () {
@@ -804,9 +811,9 @@ export class ArbBot {
         }
       }
 
-      const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
-      const l1TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug]?.l1CanonicalToken
-      const l2TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug]?.l2CanonicalToken
+      const addresses = this.getAddresses()
+      const l1TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
+      const l2TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as L2BridgeProps)?.l2CanonicalToken
       const tx = await csm.depositERC20(l1TokenAddress, l2TokenAddress, amount)
       return tx
     }
@@ -864,8 +871,8 @@ export class ArbBot {
         }
       }
 
-      const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
-      const l1TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug]?.l1CanonicalToken
+      const addresses = this.getAddresses()
+      const l1TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
       const erc20Bridger = new Erc20Bridger(l2Network)
       const tx = await erc20Bridger.deposit({
         erc20L1Address: l1TokenAddress,
@@ -930,16 +937,30 @@ export class ArbBot {
         }
       }
 
-      const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
-      const l1TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug]?.l1CanonicalToken
+      const addresses = this.getAddresses()
+      const l1TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
 
       use(Web3ClientPlugin)
 
       const maticClient = new FxPortalClient()
-      const rootTunnel = addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug]?.l1FxBaseRootTunnel
+      const rootTunnel = (addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as PolygonBridgeProps)?.l1FxBaseRootTunnel
+
+      const polygonSdkNetwork: Record<string, string> = {
+        mainnet: 'mainnet',
+        goerli: 'testnet'
+      }
+
+      const polygonSdkVersion: Record<string, string> = {
+        mainnet: 'v1',
+        goerli: 'mumbai'
+      }
+
+      const sdkNetwork = polygonSdkNetwork[this.network]
+      const sdkVersion = polygonSdkVersion[this.network]
+
       await maticClient.init({
-        network: this.network === 'mainnet' ? 'mainnet' : 'testnet',
-        version: this.network === 'mainnet' ? 'v1' : 'mumbai',
+        network: sdkNetwork,
+        version: sdkVersion,
         parent: {
           provider: this.ammSigner.connect(this.l1ChainProvider),
           defaultConfig: {
@@ -1016,8 +1037,8 @@ export class ArbBot {
   }
 
   async getL2WethContract () {
-    const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
-    const l2WethAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug]?.l2CanonicalToken
+    const addresses = this.getAddresses()
+    const l2WethAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as L2BridgeProps)?.l2CanonicalToken
     const weth = new Contract(l2WethAddress, wethAbi, this.ammSigner.connect(this.l2ChainProvider))
     return weth
   }

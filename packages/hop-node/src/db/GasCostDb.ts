@@ -1,13 +1,12 @@
-import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
+import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, DbOperations } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { GasCostTransactionType, OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
-import { normalizeDbItem } from './utils'
+import { GasCostTransactionType, OneHourMs, OneHourSeconds } from 'src/constants'
 
 const varianceSeconds = 20 * 60
 
-type GasCost = BaseItem & {
+export type GasCost = {
   id?: string
   chain: string
   token: string
@@ -25,58 +24,66 @@ type GasCost = BaseItem & {
 // structure:
 // key: `<chain>:<token>:<timestamp>:<transactionType>`
 // value: `{ ...GasCost }`
-class GasCostDb extends BaseDb {
+class GasCostDb extends BaseDb<GasCost> {
+  private readonly prunePollerIntervalMs = 2 * OneHourMs
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.startPrunePoller()
   }
 
   private async startPrunePoller () {
-    await this.tilReady()
     while (true) {
       try {
         await this.prune()
-        await wait(OneHourMs)
+        await wait(this.prunePollerIntervalMs)
       } catch (err) {
         this.logger.error(`prune poller error: ${err.message}`)
       }
     }
   }
 
-  async update (data: GasCost) {
-    const key = `${data.chain}:${data.token}:${data.timestamp}:${data.transactionType}`
-    await this._update(key, data)
-    this.logger.debug(`updated db gasCost item. ${JSON.stringify(data)}`)
+  async update (key: string, data: GasCost): Promise<void> {
+    await this.put(key, data)
   }
 
-  async getItems (filter?: KeyFilter): Promise<GasCost[]> {
-    const items: GasCost[] = await this.getValues(filter)
-    return items.filter(x => x)
+  getKeyFromValue (value: GasCost): string {
+    const { chain, token, timestamp, transactionType } = value
+    return `${chain}:${token}:${timestamp}:${transactionType}`
   }
 
   async getNearest (chain: string, token: string, transactionType: GasCostTransactionType, targetTimestamp: number): Promise<GasCost | null> {
-    await this.tilReady()
-    const startTimestamp = targetTimestamp - OneHourSeconds
-    const endTimestamp = targetTimestamp + OneHourSeconds
-    const filter = {
-      gte: `${chain}:${token}:${startTimestamp}`,
-      lte: `${chain}:${token}:${endTimestamp}~`
+    const dateFilterWithKeyPrefix: DateFilterWithKeyPrefix = {
+      keyPrefix: `${chain}:${token}`,
+      fromUnix: targetTimestamp - OneHourSeconds,
+      toUnix: targetTimestamp + OneHourSeconds
     }
-    const items: GasCost[] = (await this.getItems(filter)).filter((item: GasCost) => {
-      return (
-        item.chain === chain &&
-        item.token === token &&
-        item.transactionType === transactionType &&
-        item.timestamp
-      )
-    })
 
-    const dates = items.map((item: GasCost) => item.timestamp)
+    const isRelevantItem = (key: string, value: GasCost): GasCost | null => {
+      const isRelevant = (
+        value.chain === chain &&
+        value.token === token &&
+        value.transactionType === transactionType &&
+        !!(value.timestamp)
+      )
+      return isRelevant ? value : null
+    }
+
+    const filters: DbGetItemsFilters<GasCost> = {
+      dateFilterWithKeyPrefix,
+      cbFilterGet: isRelevantItem
+    }
+
+    const values: GasCost[] = await this.getValues(filters)
+    if (!values.length) {
+      return null
+    }
+
+    const dates = values.map((item: GasCost) => item.timestamp)
     const index = nearest(dates, targetTimestamp)
     if (index === -1) {
       return null
     }
-    const item = normalizeDbItem(items[index])
+    const item = values[index]
     const isTooFar = Math.abs(item.timestamp - targetTimestamp) > varianceSeconds
     if (isTooFar) {
       return null
@@ -84,33 +91,48 @@ class GasCostDb extends BaseDb {
     return item
   }
 
-  private async getOldEntries (): Promise<GasCost[]> {
-    await this.tilReady()
-    const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
-    const items = (await this.getKeyValues())
-      .map((kv: any) => {
-        kv.value.id = kv.key
-        return kv.value
-      })
-      .filter((item: GasCost) => item.timestamp < oneWeekAgo)
+  protected async prune (): Promise<void> {
+    const staleValues: GasCost[] = await this.getStaleValues()
+    this.logger.debug(`items to prune: ${staleValues.length}`)
 
-    return items
+    const dbBatchOperations: DbBatchOperation[] = []
+    for (const value of staleValues) {
+      const { id } = value
+      if (!id) {
+        this.logger.error(`error pruning db item id not found for key ${this.getKeyFromValue(value)}`)
+        continue
+      }
+      dbBatchOperations.push({
+        type: DbOperations.Del,
+        key: id
+      })
+    }
+
+    // There is a possibility that this will exceed memory limits. This would only occur in the case
+    // of a serious issue where the prune poller is not running and the db is not being pruned. If
+    // that happens, introduce a limit and prune in batches.
+    if (dbBatchOperations.length) {
+      await this.batch(dbBatchOperations)
+    }
   }
 
-  private async prune (): Promise<void> {
-    await this.tilReady()
-    const items = await this.getOldEntries()
-    this.logger.debug(`items to prune: ${items.length}`)
-    for (const { chain, token, timestamp, id } of items) {
-      try {
-        if (!id) {
-          throw new Error(`id not found for ${chain}:${token}:${timestamp}`)
-        }
-        await this.deleteById(id)
-      } catch (err) {
-        this.logger.error(`error pruning db item: ${err.message}`)
-      }
+  protected async getStaleValues (): Promise<GasCost[]> {
+    // Cannot use date filter since the filter is based on the token and chain but we don't have
+    // that context here
+
+    // Stale items should be a multiple of the prune poller interval to ensure we don't prune
+    // items that are still relevant
+    const staleItemLookbackMs = this.prunePollerIntervalMs * 12
+    const staleItemCutoffSec = Math.floor((Date.now() - staleItemLookbackMs) / 1000)
+
+    const isStaleItem = (key: string, value: GasCost): GasCost | null => {
+      const item: GasCost = { ...value, id: key }
+      return item.timestamp < staleItemCutoffSec ? item : null
     }
+    const filters: DbGetItemsFilters<GasCost> = {
+      cbFilterGet: isStaleItem
+    }
+    return this.getValues(filters)
   }
 }
 

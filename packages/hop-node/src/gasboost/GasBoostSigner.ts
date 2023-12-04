@@ -184,7 +184,7 @@ class GasBoostSigner extends Signer {
   }
 
   private async setDbNonce (nonce: number) {
-    await this.store.updateItem('nonce', {
+    await this.store.update('nonce', {
       nonce,
       updatedAt: Date.now()
     })

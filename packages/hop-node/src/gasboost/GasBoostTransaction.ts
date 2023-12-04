@@ -30,6 +30,7 @@ import {
   blocknativeApiKey,
   gasBoostErrorSlackChannel,
   gasBoostWarnSlackChannel,
+  config as globalConfig,
   hostname
 } from 'src/config'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
@@ -53,7 +54,7 @@ type InflightItem = {
   sentAt: number
 }
 
-type MarshalledItem = {
+export type MarshalledTx = {
   id: string
   createdAt: number
   txHash?: string
@@ -92,6 +93,14 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+type EventEmitterState = {
+  [key in State]: any
+}
+
+type EventEmitterEvents = EventEmitter & {
+  _events: any
+}
+
 const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
 const gasFeeDataCache: Record<string, Partial<GasFeeData>> = {}
@@ -129,6 +138,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   reorgConfirmationBlocks: number = 1
   originalTxParams: providers.TransactionRequest
+  _events: any[] // implemented by EventEmitter
 
   type?: number
 
@@ -305,10 +315,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.store) {
       return
     }
-    await this.store.updateItem(this.id, this.marshal())
+    await this.store.update(this.id, this.marshal())
   }
 
-  marshal (): MarshalledItem {
+  marshal (): MarshalledTx {
     return {
       id: this.id,
       createdAt: this.createdAt,
@@ -331,7 +341,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return await GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
-  static async unmarshal (item: MarshalledItem, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static async unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,
@@ -424,8 +434,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
-    if (isMainnet) {
+    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum && globalConfig.isMainnet
+    if (isEthereumMainnet) {
       try {
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
@@ -457,7 +467,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       try {
         return await this.getOruMaxFeePerGas(this.chainSlug)
       } catch (err) {
-        this.logger.error(`oru max fee per gas call failed: ${err}`)
+        this.logger.error('oru max fee per gas call failed:', err)
       }
     }
 
@@ -625,7 +635,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         .on(State.Error, (err) => {
           reject(err)
         })
-      const listeners = (this as any)._events
+      const listeners = (this as EventEmitterEvents)._events as EventEmitterState
       this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "Err": ${listeners?.[State.Error]?.length}`)
     })
   }
@@ -1079,26 +1089,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   // Other than the eth_sendRawTransaction method and return, this method is identical to ethers signer.sendTransaction
   async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<TransactionRequestWithHash> {
-    const _debugMsg = `GasBoostTransaction signer.sendTransaction elapsed DEBUG ${this.logId}`
-    const _debugMsgA = _debugMsg + ' A'
-    const _debugMsgB = _debugMsg + ' B'
-    const _debugMsgC = _debugMsg + ' C'
-    const _debugMsgD = _debugMsg + ' D'
-
-    console.time(_debugMsgA)
     const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
-    console.timeEnd(_debugMsgA)
-    console.time(_debugMsgB)
     const signedTx: string = await this.signer.signTransaction(tx)
-    console.timeEnd(_debugMsgB)
-    console.time(_debugMsgC)
     const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
-    console.timeEnd(_debugMsgC)
-    console.time(_debugMsgD)
 
     const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [signedTx])
-    console.timeEnd(_debugMsgD)
-
     // Only populated response field is the hash
     return {
       ...tx,

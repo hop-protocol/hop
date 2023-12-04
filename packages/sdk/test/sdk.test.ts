@@ -1300,3 +1300,13 @@ describe.skip('debugTimeLogs', () => {
     // open debugTimeLogs.png
   }, 60 * 60 * 1000)
 })
+
+describe.skip('Multicall token balances', () => {
+  it('Should get all token balances on all chains', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const sdk = new Hop('mainnet')
+    const balances = await sdk.getTokenBalancesForAccount(accountAddress)
+    console.log(balances)
+    expect(balances.length > 0).toBeTruthy()
+  }, 60 * 1000)
+})

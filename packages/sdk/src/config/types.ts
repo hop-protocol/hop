@@ -6,6 +6,7 @@ interface Chain {
   explorerUrl: string
   subgraphUrl: string
   etherscanApiUrl?: string
+  multicall?: string
 }
 
 export interface Chains {

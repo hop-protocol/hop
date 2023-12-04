@@ -3,17 +3,17 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getChainBridge from 'src/chains/getChainBridge'
-import isNativeToken from 'src/utils/isNativeToken'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
+import { MessageAlreadyClaimedError, NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
-import { config as globalConfig, relayTransactionBatchSize } from 'src/config'
+import { config as globalConfig, RelayTransactionBatchSize } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
+import { isNativeToken } from 'src/utils/isNativeToken'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
 
@@ -26,6 +26,7 @@ type Config = {
 
 class RelayWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: RelayWatcher }
+  private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {
     super({
@@ -80,7 +81,7 @@ class RelayWatcher extends BaseWatcher {
 
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} complete`)
       logger.debug('db poll completed')
-    }, { concurrency: relayTransactionBatchSize, timeoutMs: 10 * 60 * 1000 })
+    }, { concurrency: this.relayTransactionBatchSize, timeoutMs: 10 * 60 * 1000 })
 
     this.logger.debug('checkTransferSentToL2FromDb completed')
   }
@@ -119,7 +120,6 @@ class RelayWatcher extends BaseWatcher {
       amount,
       relayer,
       relayerFee,
-      transferSentTimestamp,
       transferSentTxHash
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
@@ -187,7 +187,7 @@ class RelayWatcher extends BaseWatcher {
       })
 
       // This will not work as intended if the process restarts after the tx is sent but before this is executed.
-      // This is expected because we cannot watch for the event because it does not emit enough info for a unique DB entry
+      // This is expected because we cannot watch for the event because it does not emit enough info for a unique DB item
       // since the L1 to L2 transferId relies on the L1 transaction hash. If the server does restart, we will be alerted
       // that a tx has not been relayed and we can investigate the status.
       await this.db.transfers.update(transferId, {
@@ -199,6 +199,27 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
+      logger.debug('sendTransferRelayErr err:', err)
+
+      // TODO: TMP Linea rm with other branch
+      if (err instanceof MessageAlreadyClaimedError) {
+        logger.debug('message already claimed. marking as relayed')
+        await this.db.transfers.update(transferId, {
+          transferFromL1Complete: true
+        })
+        return
+      }
+
+      const transfer = await this.db.transfers.getByTransferId(transferId)
+      if (!transfer) {
+        throw new Error('transfer not found in db')
+      }
+
+      let { relayBackoffIndex } = transfer
+      if (!relayBackoffIndex) {
+        relayBackoffIndex = 0
+      }
+
       // For this watcher, we will always mark the transfer as incomplete if the process gets here
       await this.db.transfers.update(transferId, {
         transferFromL1Complete: false,
@@ -221,7 +242,6 @@ class RelayWatcher extends BaseWatcher {
         })
       }
       if (err instanceof RelayerFeeTooLowError) {
-        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RelayerFeeTooLow,
@@ -238,7 +258,6 @@ class RelayWatcher extends BaseWatcher {
       const isRpcError = isFetchRpcServerError(err.message)
       if (isRpcError) {
         logger.error('rpc server error. trying again.')
-        let relayBackoffIndex = await this.db.transfers.getRelayBackoffIndexForTransferId(transferId)
         relayBackoffIndex++
         await this.db.transfers.update(transferId, {
           relayTxError: TxError.RpcServerError,

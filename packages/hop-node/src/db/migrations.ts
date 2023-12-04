@@ -1,12 +1,13 @@
 /**
- * If an key matches value, update it to migratedValue
+ * If the existing property value for a specific migrationProperty matches expectedPropertyValue, update
+ * it to migratedPropertyValue.
  */
 
 export interface Migration {
   _note?: string
-  key: string
-  value: any
-  migratedValue: any
+  migrationProperty: string
+  expectedPropertyValue: any
+  migratedPropertyValue: any
 }
 
 // TODO: Update migrations to allow for arbitrary async logic
@@ -14,17 +15,17 @@ export interface Migration {
 export const transfersMigrations: Migration[] = [
   {
     _note: 'Assumes all prior transfers have been finalized since the bonder was unaware of pre-finalized transfers prior to this migration.',
-    key: 'isFinalized',
-    value: undefined,
-    migratedValue: true
+    migrationProperty: 'isFinalized',
+    expectedPropertyValue: undefined,
+    migratedPropertyValue: true
   }
 ]
 
 export const transferRootsMigrations: Migration[] = [
   {
     _note: 'Assumes all prior transferRoots have been settled for simplicity.',
-    key: 'settled',
-    value: undefined,
-    migratedValue: true
+    migrationProperty: 'settled',
+    expectedPropertyValue: undefined,
+    migratedPropertyValue: true
   }
 ]

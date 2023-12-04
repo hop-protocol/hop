@@ -6,6 +6,7 @@ import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { IChainBridge } from '../IChainBridge'
 import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
 import { config as globalConfig } from 'src/config'
+import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
 
 type CachedCustomSafeBlockNumber = {
@@ -24,7 +25,7 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
 
     this.csm = new CrossChainMessenger({
       bedrock: true,
-      l1ChainId: globalConfig.isMainnet ? 1 : 5,
+      l1ChainId: networkSlugToId(globalConfig.network),
       l2ChainId: this.chainId,
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet

@@ -19,7 +19,7 @@ import {
 } from 'src/types/error'
 import {
   BondThreshold,
-  bondWithdrawalBatchSize,
+  BondWithdrawalBatchSize,
   enableEmergencyMode,
   getBonderTotalStake,
   getNetworkCustomSyncType,
@@ -57,11 +57,14 @@ export type SendBondWithdrawalTxParams = {
   amountOutMin: BigNumber
   deadline: BigNumber
   transferSentIndex: number
+  transferSentTimestamp: number
   isFinalized?: boolean
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
+  private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
 
   constructor (config: Config) {
     super({
@@ -134,7 +137,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} complete`)
       logger.debug('db poll completed')
-    }, { concurrency: bondWithdrawalBatchSize, timeoutMs: 10 * 60 * 1000 })
+    }, { concurrency: this.bondWithdrawalBatchSize, timeoutMs: 10 * 60 * 1000 })
 
     this.logger.debug('checkTransferSentFromDb completed')
   }
@@ -156,6 +159,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline,
       transferSentTxHash,
       transferSentIndex,
+      transferSentTimestamp,
       isFinalized
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
@@ -262,6 +266,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amountOutMin,
         deadline,
         transferSentIndex,
+        transferSentTimestamp,
         isFinalized
       })
 
@@ -271,6 +276,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendBondWithdrawalTx err:', err.message)
+      const transfer = await this.db.transfers.getByTransferId(transferId)
+      if (!transfer) {
+        throw new Error('transfer not found in db')
+      }
+
+      let { withdrawalBondBackoffIndex } = transfer
+      if (!withdrawalBondBackoffIndex) {
+        withdrawalBondBackoffIndex = 0
+      }
+
       const isUnbondableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnbondableError) {
         logger.debug(`marking as unbondable due to error: ${err.message}`)
@@ -293,7 +308,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
 
-      let withdrawalBondBackoffIndex = await this.db.transfers.getWithdrawalBondBackoffIndexForTransferId(transferId)
       if (err instanceof BonderFeeTooLowError) {
         withdrawalBondBackoffIndex++
         await this.db.transfers.update(transferId, {
@@ -515,19 +529,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams, isFinalized?: boolean): Promise<void> {
-    const logger = this.logger.create({ id: txParams.transferId })
+    // Perform this check as late as possible before the transaction is sent
 
     try {
-      // Perform this check as late as possible before the transaction is sent
-      logger.debug('validating db existence')
-      await this.validateDbExistence(txParams)
-      logger.debug('validating transferSent index')
-      await this.validateTransferSentIndex(txParams)
-      logger.debug('validating uniqueness')
-      await this.validateUniqueness(txParams)
-      logger.debug('validating logs with redundant rpcs')
-      await this.validateLogsWithRedundantRpcs(txParams)
-      logger.debug('validated transaction')
+      const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+
+      await this.validateDbExistence(txParams, calculatedDbTransfer)
+      await this.validateTransferSentIndex(txParams, calculatedDbTransfer)
+      await this.validateUniqueness(txParams, calculatedDbTransfer)
+      await this.validateLogsWithRedundantRpcs(txParams, calculatedDbTransfer)
     } catch (err) {
       // Unfinalized transfers are not necessarily a reorg. Try again
       if (!isFinalized && err instanceof PossibleReorgDetected) {
@@ -537,9 +547,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async validateDbExistence (txParams: SendBondWithdrawalTxParams): Promise<void> {
+  async validateDbExistence (txParams: SendBondWithdrawalTxParams, calculatedDbTransfer: Transfer): Promise<void> {
     // Validate DB existence with calculated transferId
-    const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+    const logger = this.logger.create({ id: txParams.transferId })
+    logger.debug('validating db existence')
+
     if (!calculatedDbTransfer?.transferId || !txParams?.transferId) {
       throw new PossibleReorgDetected(`Calculated transferId (${calculatedDbTransfer?.transferId}) or transferId in txParams (${txParams?.transferId}) is falsy`)
     }
@@ -548,9 +560,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async validateTransferSentIndex (txParams: SendBondWithdrawalTxParams): Promise<void> {
+  async validateTransferSentIndex (txParams: SendBondWithdrawalTxParams, calculatedDbTransfer: Transfer): Promise<void> {
     // Validate transferSentIndex is expected since it is not part of the transferId
-    const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+    const logger = this.logger.create({ id: txParams.transferId })
+    logger.debug('validating transferSent index')
+
     // Check for undefined since these values can be 0
     if (!calculatedDbTransfer?.transferSentIndex === undefined || !txParams?.transferSentIndex === undefined) {
       throw new PossibleReorgDetected(`Calculated transferSentIndex (${calculatedDbTransfer?.transferSentIndex}) or transferSentIndex in txParams (${txParams?.transferSentIndex}) is falsy`)
@@ -560,12 +574,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async validateUniqueness (txParams: SendBondWithdrawalTxParams): Promise<void> {
+  async validateUniqueness (txParams: SendBondWithdrawalTxParams, calculatedDbTransfer: Transfer): Promise<void> {
     // Validate uniqueness for redundant reorg protection. A transferNonce should be seen exactly one time in the DB per source chain
+    const logger = this.logger.create({ id: txParams.transferId })
+    logger.debug('validating uniqueness')
+
     console.log('debugging0', txParams.transferId)
     const txTransferNonce = txParams.transferNonce
     console.log('debugging1', txParams.transferId)
-    const dbTransfers: Transfer[] = await this.db.transfers.getTransfersFromDay()
+    const dbTransfers: Transfer[] = await this.db.transfers.getTransfersWithinHour(txParams.transferSentTimestamp)
     console.log('debugging2', txParams.transferId)
     const dbTransfersFromSource: Transfer[] = dbTransfers.filter(dbTransfer => dbTransfer.sourceChainId === this.bridge.chainId)
     console.log('debugging3', txParams.transferId)
@@ -582,7 +599,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // this case, there will be no subDbTimestamps for the item since that relies on the transferSentTimestamp and
       // therefore the item will not exist in getTransfersFromDay(). In this case, check the item exists in the DB
       // and validate that the transferNonce exists.
-      const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
       console.log('debugging8', txParams.transferId)
       if (!calculatedDbTransfer?.transferNonce || calculatedDbTransfer.transferNonce !== txTransferNonce) {
         console.log('debugging9', txParams.transferId)
@@ -591,11 +607,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async validateLogsWithRedundantRpcs (txParams: SendBondWithdrawalTxParams): Promise<void> {
+  async validateLogsWithRedundantRpcs (txParams: SendBondWithdrawalTxParams, calculatedDbTransfer: Transfer): Promise<void> {
     const logger = this.logger.create({ id: txParams.transferId })
+    logger.debug('validating logs with redundant rpcs')
 
     // Validate logs with redundant RPC endpoint, if it exists
-    const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     const blockNumber = calculatedDbTransfer?.transferSentBlockNumber
     if (!blockNumber) {
       // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error

@@ -585,6 +585,7 @@ export default class Bridge extends ContractBase {
   ): Promise<R[]> {
     let i = 0
     const promises: R[] = []
+    // This will grow unbounded in memory and cause OOM issues if the sync range is too large
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await getEventsMethod(start, end)
       events = events.reverse()
@@ -604,7 +605,7 @@ export default class Bridge extends ContractBase {
 
     // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
     let syncCacheKey = ''
-    let state: State | undefined
+    let state: State | null = null
     if (options.syncCacheKey) {
       syncCacheKey = this.getSyncCacheKeyFromKey(
         this.chainId,
@@ -612,23 +613,26 @@ export default class Bridge extends ContractBase {
         options.syncCacheKey
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
+      if (state) {
+        const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+        if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
+          // If a head sync does not have state or the state is stale, use the state of
+          // its finalized counterpart. The finalized counterpart is guaranteed to have updated
+          // state since the bonder performs a full sync before beginning any other operations.
+          // * The head sync will not have state upon fresh bonder sync.
+          // * The head sync will have stale data if they use the head syncer, turn it off
+          //   for some time, and then turn it back on again.
+          const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
+          const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
+          if (!finalizedState) {
+            throw new Error(`expected finalizedState for key ${finalizedStateKey}`)
+          }
 
-      const customSyncKeySuffix = this.getCustomSyncKeySuffix()
-      if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
-        // If a head sync does not have state or the state is stale, use the state of
-        // its finalized counterpart. The finalized counterpart is guaranteed to have updated
-        // state since the bonder performs a full sync before beginning any other operations.
-        // * The head sync will not have state upon fresh bonder sync.
-        // * The head sync will have stale data if they use the head syncer, turn it off
-        //   for some time, and then turn it back on again.
-        const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
-        const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
-
-        const doesCustomSyncDbExist = !!state?.latestBlockSynced
-        const isCustomSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
-        if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
-          state = finalizedState
-          state.key = syncCacheKey
+          const doesCustomSyncDbExist = !!state.latestBlockSynced
+          const isCustomSyncDataStale = state.latestBlockSynced < finalizedState.latestBlockSynced
+          if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
+            state = finalizedState
+          }
         }
       }
     }
@@ -698,7 +702,7 @@ export default class Bridge extends ContractBase {
     return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State): Promise<BlockValues> => {
+  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
     const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number

@@ -1,10 +1,17 @@
-import BaseDb, { KeyFilter } from './BaseDb'
+import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { Chain, FiveMinutesMs, OneDayMs, OneHourMs, OneWeekMs, RelayableChains, TxError } from 'src/constants'
+import {
+  Chain,
+  FiveMinutesMs,
+  OneDayMs,
+  OneHourMs,
+  OneWeekMs,
+  RelayableChains,
+  TxError
+} from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
-import { normalizeDbItem } from './utils'
 import { transfersMigrations } from './migrations'
 
 interface BaseTransfer {
@@ -52,11 +59,6 @@ export interface Transfer extends BaseTransfer {
 
 interface UpdateTransfer extends BaseTransfer {
   transferId?: string
-}
-
-type TransfersDateFilter = {
-  fromUnix?: number
-  toUnix?: number
 }
 
 type GetItemsFilter = Partial<Transfer> & {
@@ -115,85 +117,66 @@ export interface TransfersIdsWithTransferRootHashParams {
 // key: `transfer:<transferSentTimestamp>:<transferId>`
 // value: `{ transferId: <transferId> }`
 // note: the "transfer" prefix is not required but requires a migration to remove
-class SubDbTimestamps extends BaseDb {
+class SubDbTimestamps extends BaseDb<Transfer> {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:timestampedKeys`, _namespace)
   }
 
-  getTimestampedKey (transfer: Transfer) {
+  async update (transferId: string, transfer: Transfer): Promise<void> {
+    const key = this.getTimestampedKey(transfer)
+    if (!key) {
+      this.logger.debug(`key not found for transferId: ${transferId}. Can occur if an event has been missed or during initial sync.`)
+      return
+    }
+    await this.insertIfNotExists(key, { transferId })
+  }
+
+  async getTransferIds (dateFilter?: DateFilter): Promise<string[]> {
+    const keyPrefix = 'transfer'
+    const dateFilterWithKeyPrefix: DateFilterWithKeyPrefix = {
+      keyPrefix,
+      ...dateFilter
+    }
+    const values = await this.getValues({ dateFilterWithKeyPrefix })
+    return values.map(this.filterTransferId).filter(this.filterExisty)
+  }
+
+  protected getTimestampedKey (transfer: Transfer): string | undefined {
     if (transfer.transferSentTimestamp && transfer.transferId) {
       return `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
     }
   }
 
-  async upsertItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    const key = this.getTimestampedKey(transfer)
-    if (!key) {
-      return
-    }
-    const exists = await this.getById(key)
-    if (!exists) {
-      logger.debug(`storing db transfer timestamped key item. key: ${key}`)
-      await this._update(key, { transferId })
-      logger.debug(`updated db transfer timestamped key item. key: ${key}`)
-    }
-  }
-
-  async getFilteredKeyValues (dateFilter?: TransfersDateFilter) {
-    const now = Math.floor(Date.now() / 1000)
-    const maxDateFilterWarning = now - OneWeekMs
-    if (dateFilter?.fromUnix && dateFilter.fromUnix < maxDateFilterWarning) {
-      this.logger.warn(`TransfersDb.getFilteredKeyValues: Date range is large. Watch out for memory issues. fromUnix: ${dateFilter.fromUnix}`)
-    }
-
-    const filter: KeyFilter = {
-      gte: 'transfer:',
-      lte: 'transfer:~'
-    }
-
-    // return only transfer-id keys that are within specified range (filter by timestamped keys)
-    if (dateFilter?.fromUnix || dateFilter?.toUnix) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-      if (dateFilter.fromUnix) {
-        filter.gte = `transfer:${dateFilter.fromUnix}`
-      }
-      if (dateFilter.toUnix) {
-        filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
-      }
-    }
-
-    return this.getKeyValues(filter)
+  protected readonly filterTransferId = (x: any): string => {
+    return x?.transferId
   }
 }
 
 // structure:
 // key: `<transferId>`
 // value: `{ transferId: <transferId> }`
-class SubDbIncompletes extends BaseDb {
+class SubDbIncompletes extends BaseDb<Transfer> {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:incompleteItems`, _namespace)
   }
 
-  async upsertItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
+  async update (transferId: string, transfer: Transfer): Promise<void> {
     const isIncomplete = this.isItemIncomplete(transfer)
-    const exists = await this.getById(transferId)
-    const shouldUpsert = isIncomplete && !exists
-    const shouldDelete = !isIncomplete && exists
-    if (shouldUpsert) {
-      logger.debug('updating db transfer incomplete key item')
-      await this._update(transferId, { transferId })
-      logger.debug('updated db transfer incomplete key item')
-    } else if (shouldDelete) {
-      logger.debug('deleting db transfer incomplete key item')
-      await this.deleteById(transferId)
-      logger.debug('deleted db transfer incomplete key item')
+    if (isIncomplete) {
+      const value = { transferId }
+      await this.insertIfNotExists(transferId, value)
+    } else {
+      await this.del(transferId)
     }
   }
 
-  isItemIncomplete (item: Transfer) {
+  async getItems (): Promise<string[]> {
+    // No filter needed, as incomplete items are deleted when they are complete. Each get should retrieve all.
+    const incompleteItems = await this.getValues()
+    return incompleteItems.map(this.filterTransferId).filter(this.filterExisty)
+  }
+
+  protected isItemIncomplete (item: Transfer): boolean {
     if (!item?.transferId) {
       return false
     }
@@ -207,16 +190,20 @@ class SubDbIncompletes extends BaseDb {
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
-      (item.transferSentBlockNumber && !item.transferSentTimestamp)
+      !!(item.transferSentBlockNumber && !item.transferSentTimestamp)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
+  }
+
+  protected readonly filterTransferId = (x: any): string => {
+    return x?.transferId
   }
 }
 
 // structure:
 // key: `<transferId>`
 // value: `{ ...Transfer }`
-class TransfersDb extends BaseDb {
+class TransfersDb extends BaseDb<Transfer> {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes
 
@@ -242,151 +229,65 @@ class TransfersDb extends BaseDb {
     return true
   }
 
-  private normalizeItem (item: Transfer) {
-    try {
-      if (!item) {
-        return null
-      }
+  async update (transferId: string, transfer: UpdateTransfer): Promise<void> {
+    const item = await this.get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const updatedValue: Transfer = this.getUpdatedValue(item, transfer as Transfer)
+    updatedValue.transferId = transferId
 
-      if (item.destinationChainId) {
-        item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
-      }
-      if (item.sourceChainId) {
-        item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
-      }
-      if (item.deadline !== undefined) {
-        // convert number to BigNumber for backward compatibility reasons
-        if (typeof item.deadline === 'number') {
-          item.deadline = BigNumber.from((item.deadline as number).toString())
-        }
-      }
-      return normalizeDbItem(item)
-    } catch (err: any) {
-      const logger = this.logger.create({ id: item?.transferId })
-
-      logger.error('normalizeItem error:', err)
-      return null
-    }
-  }
-
-  private readonly filterValueTransferId = (x: any) => {
-    return x?.value?.transferId
-  }
-
-  private async upsertTransferItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    await this._update(transferId, transfer)
-    const entry = await this.getById(transferId)
-    logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
-    await this.subDbIncompletes.upsertItem(entry)
-  }
-
-  // sort explainer: https://stackoverflow.com/a/9175783/1439168
-  private readonly sortItems = (a: any, b: any) => {
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
-    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
-    if (a.transferSentIndex! > b.transferSentIndex!) return 1
-    if (a.transferSentIndex! < b.transferSentIndex!) return -1
-    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
-    return 0
-  }
-
-  async update (transferId: string, transfer: UpdateTransfer) {
-    const logger = this.logger.create({ id: transferId })
-    logger.debug('update called')
-    transfer.transferId = transferId
+    this.logger.debug(`updating transfer. key: ${transferId}, value: ${JSON.stringify(updatedValue)}`)
     await Promise.all([
-      this.subDbTimestamps.upsertItem(transfer as Transfer),
-      this.upsertTransferItem(transfer as Transfer)
+      this.subDbTimestamps.update(transferId, updatedValue),
+      this.subDbIncompletes.update(transferId, updatedValue),
+      this.put(transferId, updatedValue)
     ])
   }
 
-  async getByTransferId (transferId: string): Promise<Transfer> {
-    const item: Transfer = await this.getById(transferId)
-    return this.normalizeItem(item)
+  async getByTransferId (transferId: string): Promise<Transfer | null> {
+    const item: Transfer | null = await this.get(transferId)
+    if (!item) {
+      return null
+    }
+    return this.normalizeTransferValue(item)
   }
 
-  async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
-    const kv = await this.subDbTimestamps.getFilteredKeyValues(dateFilter)
-    return kv.map(this.filterValueTransferId).filter(this.filterExisty)
-  }
-
-  async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
-    const transferIds = await this.getTransferIds(dateFilter)
-    return this.getMultipleTransfersByTransferIds(transferIds)
-  }
-
-  async getMultipleTransfersByTransferIds (transferIds: string[]) {
-    const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
-    const items = transfers.filter(Boolean).sort(this.sortItems)
-    this.logger.info(`getMultipleTransfersByTransferIds, items length: ${items.length}`)
-
-    return items
-  }
-
-  async getTransfers (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
-    await this.tilReady()
+  async getTransfers (dateFilter?: DateFilter): Promise<Transfer[]> {
     return await this.getItems(dateFilter)
   }
 
-  async getTransfersFromDay () {
-    await this.tilReady()
+  async getTransfersFromDay (): Promise<Transfer[]> {
     const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
     return await this.getTransfers({
       fromUnix
     })
   }
 
-  /**
-   * @returns transferIds sorted in order of their index in the root
-   */
-  async getTransfersIdsWithTransferRootHash (input: TransfersIdsWithTransferRootHashParams): Promise<string[] | undefined> {
-    const { sourceChainId, destinationChainId, commitTxBlockNumber, commitTxLogIndex } = input
-    await this.tilReady()
+  async getTransfersWithinHour (targetTimestampSec: number): Promise<Transfer[]> {
+    const targetTimestampMs = targetTimestampSec * 1000
+    const fromUnix = Math.floor((targetTimestampMs - OneHourMs) / 1000)
+    const toUnix = Math.floor((targetTimestampMs + OneHourMs) / 1000)
+    return await this.getTransfers({
+      fromUnix,
+      toUnix
+    })
+  }
 
-    // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
-    // up the root onchain.
-    const maxLookbackIndex = 14
-    const transferIds: string[] = []
-
-    const now = Date.now()
-    for (let i = 0; i <= maxLookbackIndex; i++) {
-      const fromUnix = Math.floor((now - (OneDayMs * (i + 1))) / 1000)
-      const toUnix = Math.floor((now - (OneDayMs * i)) / 1000)
-      const transfers: Transfer[] = await this.getTransfers({
-        fromUnix,
-        toUnix
-      })
-
-      // Sorted newest to oldest
-      const sortedTransfers = transfers.filter(Boolean).sort(this.sortItems).reverse()
-      for (const transfer of sortedTransfers) {
-        if (
-          transfer.sourceChainId === sourceChainId &&
-          transfer.destinationChainId === destinationChainId &&
-          transfer.transferSentBlockNumber &&
-          transfer.transferSentBlockNumber <= commitTxBlockNumber &&
-          transfer.transferSentIndex !== undefined
-        ) {
-          if (transfer.transferSentBlockNumber === commitTxBlockNumber) {
-            if (
-              transfer.transferSentLogIndex === undefined ||
-              transfer.transferSentLogIndex > commitTxLogIndex
-            ) {
-              continue
-            }
-          }
-
-          transferIds.unshift(transfer.transferId)
-          if (transfer.transferSentIndex === 0) {
-            return transferIds
-          }
-        }
-      }
+  protected async getItems (dateFilter?: DateFilter): Promise<Transfer[]> {
+    const transferIds = await this.subDbTimestamps.getTransferIds(dateFilter)
+    if (!transferIds.length) {
+      return []
     }
+
+    const batchedItems = await this.getMany(transferIds)
+    if (!batchedItems.length) {
+      return []
+    }
+
+    const items = batchedItems.map(this.normalizeTransferValue).sort(this.sortItems)
+    if (items == null || !items.length) {
+      return []
+    }
+
+    return items
   }
 
   async getUncommittedTransfers (
@@ -538,18 +439,17 @@ class TransfersDb extends BaseDb {
     return filtered as UnrelayedSentTransfer[]
   }
 
-  async getIncompleteItems (
-    filter: GetItemsFilter = {}
-  ) {
-    const kv = await this.subDbIncompletes.getKeyValues()
-    const transferIds = kv.map(this.filterValueTransferId).filter(this.filterExisty)
-    if (!transferIds.length) {
+  async getIncompleteItems (filter: GetItemsFilter = {}): Promise<Transfer[]> {
+    const incompleteTransferIds: string[] = await this.subDbIncompletes.getItems()
+    if (!incompleteTransferIds.length) {
       return []
     }
-    const batchedItems = await this.batchGetByIds(transferIds)
-    const transfers = batchedItems.map((item: Transfer) => this.normalizeItem(item))
+    const incompleteTransferIdItems = await this.getMany(incompleteTransferIds)
+    if (!incompleteTransferIdItems.length) {
+      return []
+    }
 
-    return transfers.filter((item: any) => {
+    return incompleteTransferIdItems.map(this.normalizeTransferValue).filter((item: Transfer) => {
       if (!item) {
         return false
       }
@@ -564,31 +464,11 @@ class TransfersDb extends BaseDb {
         return false
       }
 
-      return this.subDbIncompletes.isItemIncomplete(item)
+      return true
     })
   }
 
-  async getWithdrawalBondBackoffIndexForTransferId (transferId: string) {
-    let { withdrawalBondBackoffIndex } = await this.getByTransferId(transferId)
-    if (!withdrawalBondBackoffIndex) {
-      withdrawalBondBackoffIndex = 0
-    }
-
-    return withdrawalBondBackoffIndex
-  }
-
-  async getRelayBackoffIndexForTransferId (transferId: string) {
-    let { relayBackoffIndex } = await this.getByTransferId(transferId)
-    if (!relayBackoffIndex) {
-      relayBackoffIndex = 0
-    }
-
-    return relayBackoffIndex
-  }
-
   async getInFlightTransfers (): Promise<Transfer[]> {
-    await this.tilReady()
-
     // Unbonded should not be in flight for more than 1 hour
     const fromUnix = Math.floor((Date.now() - OneHourMs) / 1000)
     const transfersFromHour: Transfer[] = await this.getTransfers({
@@ -611,6 +491,89 @@ class TransfersDb extends BaseDb {
         !transfer?.isTransferSpent
       )
     })
+  }
+
+  /**
+   * Utils
+   */
+
+  /**
+   * @returns transferIds sorted in order of their index in the root
+   */
+  async getTransfersIdsWithTransferRootHash (input: TransfersIdsWithTransferRootHashParams): Promise<string[] | undefined> {
+    const { sourceChainId, destinationChainId, commitTxBlockNumber, commitTxLogIndex } = input
+
+    // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
+    // up the root onchain.
+    const maxLookbackIndex = 14
+    const transferIds: string[] = []
+
+    const now = Date.now()
+    for (let i = 0; i <= maxLookbackIndex; i++) {
+      const fromUnix = Math.floor((now - (OneDayMs * (i + 1))) / 1000)
+      const toUnix = Math.floor((now - (OneDayMs * i)) / 1000)
+      const transfers: Transfer[] = await this.getTransfers({
+        fromUnix,
+        toUnix
+      })
+
+      // Sorted newest to oldest
+      const sortedTransfers = transfers.filter(Boolean).sort(this.sortItems).reverse()
+      for (const transfer of sortedTransfers) {
+        if (
+          transfer.sourceChainId === sourceChainId &&
+          transfer.destinationChainId === destinationChainId &&
+          transfer.transferSentBlockNumber &&
+          transfer.transferSentBlockNumber <= commitTxBlockNumber &&
+          transfer.transferSentIndex !== undefined
+        ) {
+          if (transfer.transferSentBlockNumber === commitTxBlockNumber) {
+            if (
+              transfer.transferSentLogIndex === undefined ||
+              transfer.transferSentLogIndex > commitTxLogIndex
+            ) {
+              continue
+            }
+          }
+
+          transferIds.unshift(transfer.transferId)
+          if (transfer.transferSentIndex === 0) {
+            return transferIds
+          }
+        }
+      }
+    }
+  }
+
+  protected normalizeTransferValue (item: Transfer): Transfer {
+    if (item.destinationChainId) {
+      item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
+    }
+    if (item.sourceChainId) {
+      item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
+    }
+    if (item.deadline !== undefined) {
+      // convert number to BigNumber for backward compatibility reasons
+      if (typeof item.deadline === 'number') {
+        item.deadline = BigNumber.from((item.deadline as number).toString())
+      }
+    }
+    return item
+  }
+
+  protected readonly filterValueTransferId = (x: any) => {
+    return x?.value?.transferId
+  }
+
+  // sort explainer: https://stackoverflow.com/a/9175783/1439168
+  protected readonly sortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
   }
 }
 

@@ -77,13 +77,14 @@ export const config : Config = {
   },
   destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
-    polygon: true,
-    optimism: true,
-    zksync: true,
-    linea: true,
-    scrollzk: true,
-    base: true,
-    polygonzk: true
+    polygon: false,
+    optimism: false,
+    arbitrum: false,
+    zksync: false,
+    linea: false,
+    scrollzk: false,
+    base: false,
+    polygonzk: false
   },
   relayerFeeWei: {
     linea: '100000000000000'

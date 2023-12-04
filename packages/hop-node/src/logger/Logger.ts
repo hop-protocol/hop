@@ -150,6 +150,16 @@ export class Logger {
     }
     console.warn(...this.headers(LogLevels.Warn), ...input)
   }
+
+  dbOperation = (...input: any[]) => {
+    // Explicitly set to true for debugging
+    const isEnabled = process.env.DB_LOG_ENABLED === 'true'
+    if (!this.enabled || !isEnabled) return
+    if (logLevel < LogLevels.Debug) {
+      return
+    }
+    console.warn(...this.headers(LogLevels.Debug), ...input)
+  }
 }
 
 export default Logger

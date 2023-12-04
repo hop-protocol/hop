@@ -1519,11 +1519,11 @@ class SyncWatcher extends BaseWatcher {
     const onchainLookupTimeoutSec = 60_000
     try {
       lookupTransferIdsRes = await promiseTimeout(this.lookupTransferIds(
-      sourceBridge,
-      transferRootHash,
-      destinationChainId,
-      eventBlockNumber
-    ), onchainLookupTimeoutSec)
+        sourceBridge,
+        transferRootHash,
+        destinationChainId,
+        eventBlockNumber
+      ), onchainLookupTimeoutSec)
     } catch (err) {
       logger.error(`checkTransferIdsForRootFromChain onchain lookup timed out after ${onchainLookupTimeoutSec} seconds`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })

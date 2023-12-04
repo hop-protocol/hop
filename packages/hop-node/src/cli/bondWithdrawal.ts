@@ -64,7 +64,6 @@ async function main (source: any) {
 
       const txParams: SendBondWithdrawalTxParams = {
         transferId: dbTransfer.transferId,
-        sender: dbTransfer.sender!,
         recipient: dbTransfer.recipient!,
         amount: dbTransfer.amount!,
         transferNonce: dbTransfer.transferNonce!,

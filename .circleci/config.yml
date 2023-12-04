@@ -181,6 +181,7 @@ workflows:
                 - mainnet-bonder
                 - develop-bonder
                 - goerli-bonder
+                - sepolia-bonder
               ignore: /.*/
       - build_stats_worker:
           filters:

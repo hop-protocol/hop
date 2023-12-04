@@ -68,6 +68,15 @@ export type TotalStake = {
   [key in AssetSymbol]: number
 }
 
+export type DefaultSendGasLimit = {
+  native: Partial<{
+    [key in ChainSlug]: number
+  }>,
+  token: Partial<{
+    [key in ChainSlug]: number
+  }>
+}
+
 export type Config = {
   bonderFeeBps: Partial<Fees>
   bonderTotalStake: Partial<TotalStake>
@@ -76,4 +85,5 @@ export type Config = {
   relayerFeeEnabled: Partial<RelayerFeeEnabled>
   proxyEnabled: Partial<ProxyEnabled>
   bridgeDeprecated: Partial<BridgeDeprecated>
+  defaultSendGasLimit: Partial<DefaultSendGasLimit>
 }

@@ -3,17 +3,17 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getChainBridge from 'src/chains/getChainBridge'
-import isNativeToken from 'src/utils/isNativeToken'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
+import { MessageAlreadyClaimedError, NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
 import { config as globalConfig, relayTransactionBatchSize } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
+import { isNativeToken } from 'src/utils/isNativeToken'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
 
@@ -199,6 +199,15 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
+      // TODO: TMP Linea rm with other branch
+      if (err instanceof MessageAlreadyClaimedError) {
+        logger.debug('message already claimed. marking as relayed')
+        await this.db.transfers.update(transferId, {
+          transferFromL1Complete: true
+        })
+        return
+      }
+
       // For this watcher, we will always mark the transfer as incomplete if the process gets here
       await this.db.transfers.update(transferId, {
         transferFromL1Complete: false,

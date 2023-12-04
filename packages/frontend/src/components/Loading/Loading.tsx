@@ -5,7 +5,7 @@ import styled, { keyframes, css } from 'styled-components/macro'
 import { background, color } from 'styled-system'
 import { Flex } from '../ui'
 
-export function logStyleProps(props) {
+export function logStyleProps(props: any) {
   console.log('style props:', props)
   return props
 }
@@ -69,7 +69,7 @@ const LoadingWrapper: any = styled.div<any>`
       : 'none'};
 `
 
-function Loading({ size = 24, load = true, imgSrc }: any) {
+export function Loading({ size = 24, load = true, imgSrc }: any) {
   const theme = useTheme()
 
   return (
@@ -81,4 +81,3 @@ function Loading({ size = 24, load = true, imgSrc }: any) {
   )
 }
 
-export default Loading

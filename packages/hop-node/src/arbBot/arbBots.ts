@@ -9,7 +9,7 @@ export type Options = {
 }
 
 export async function startArbBots (options?: Options) {
-  let configJson = arbBotsConfig as any
+  let configJson = arbBotsConfig as Record<string, Record<string, string|number|boolean>>
   if (options?.configFilePath) {
     configJson = JSON.parse(fs.readFileSync(path.resolve(options.configFilePath)).toString())
   }

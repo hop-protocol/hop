@@ -9,7 +9,15 @@ export const networks: Networks = {
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.etherscan.io'],
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-goerli',
+    txOverrides: {
+      minGasLimit: 1_000_000
+    },
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 12,
+
+    // These values are currently the same on both mainnet and testnet but this might not always be the case
+    timeToIncludeOnL2Seconds: 0
   },
   polygon: {
     name: chains.polygon.name,
@@ -19,7 +27,13 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge',
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mumbai'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mumbai',
+    txOverrides: {
+      minGasPrice: 30_000_000_000,
+      minGasLimit: 1_000_000
+    },
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 2
   },
   optimism: {
     name: chains.optimism.name,
@@ -29,7 +43,16 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
-    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli',
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 2,
+    oruExitTimeSeconds: 60 * 60, // 1 hour
+
+    // These values are currently the same on both mainnet and testnet but this might not always be the case
+    timeToIncludeOnL1Seconds: 120,
+    timeToIncludeOnL2Seconds: 180,
+    L1ToL2CheckpointTimeInL1Blocks: 6
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -37,9 +60,11 @@ export const networks: Networks = {
     networkId: 421613,
     publicRpcUrl: 'https://goerli-rollup.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
-    explorerUrls: ['https://goerli.arbiscan.io'],
+    explorerUrls: ['https://goerli.arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io',
-    subgraphUrl: 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
+    subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-arbitrum-goerli',
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   zksync: {
     name: chains.zksync.name,
@@ -48,7 +73,9 @@ export const networks: Networks = {
     publicRpcUrl: 'https://zksync2-testnet.zksync.dev',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
-    nativeBridgeUrl: ''
+    nativeBridgeUrl: '',
+    isRollup: true,
+    multicall: '0xF9cda624FBC7e059355ce98a31693d299FACd963'
   },
   linea: {
     name: chains.linea.name,
@@ -58,7 +85,12 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
     nativeBridgeUrl: 'https://bridge.goerli.linea.build',
-    subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
+    subgraphUrl: 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli',
+    isRollup: true,
+    isRelayable: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    averageBlockTimeSeconds: 12,
+    oruExitTimeSeconds: 12 * 60 * 60 // 12 hours
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -67,7 +99,9 @@ export const networks: Networks = {
     publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
-    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge'
+    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
+    isRollup: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11'
   },
   base: {
     name: chains.base.name,
@@ -77,7 +111,16 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
-    subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
+    subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli',
+    isRollup: true,
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11',
+    averageBlockTimeSeconds: 2,
+    oruExitTimeSeconds: 60 * 60, // 1 hour
+
+    // These values are currently the same on both mainnet and testnet but this might not always be the case
+    timeToIncludeOnL1Seconds: 20,
+    timeToIncludeOnL2Seconds: 90,
+    L1ToL2CheckpointTimeInL1Blocks: 12
   },
   polygonzk: {
     name: chains.polygonzk.name,
@@ -86,6 +129,13 @@ export const networks: Networks = {
     publicRpcUrl: 'https://rpc.public.zkevm-test.net',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.public.zkevm-test.net'],
-    nativeBridgeUrl: 'https://public.zkevm-test.net'
+    nativeBridgeUrl: 'https://public.zkevm-test.net',
+    isRollup: true,
+    isRelayable: true,
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11',
+
+    // PolygonZk: typically around 30 minutes but up to a week in rare cases.
+    //           https://zkevm.polygon.technology/docs/protocol/transaction-execution
+    oruExitTimeSeconds: 60 * 60 // 1 hour
   }
 }

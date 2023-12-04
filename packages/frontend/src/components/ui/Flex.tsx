@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React from 'react'
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components/macro'
 
@@ -30,7 +30,7 @@ interface CustomFlexProps {
 
 export type FlexProps = FlexBaseProps & ComposedStyleProps & CustomFlexProps
 
-const Flex: React.FC<FlexProps> = styled.div<FlexProps>`
+export const Flex: React.FC<FlexProps> = styled.div<FlexProps>`
   box-sizing: border-box;
   display: flex;
   flex-wrap: ${props => {
@@ -69,5 +69,3 @@ const Flex: React.FC<FlexProps> = styled.div<FlexProps>`
 
   ${composedStyleFns}
 `
-
-export default Flex

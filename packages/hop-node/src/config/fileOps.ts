@@ -225,7 +225,7 @@ export async function setGlobalConfigFromConfigFile (
     throw new Error('config for watchers is required')
   }
 
-  const enabledWatchers = Object.keys(config?.watchers).filter((watcher: string) => (config?.watchers as any)?.[watcher])
+  const enabledWatchers = Object.keys(config?.watchers).filter((watcher: string) => config?.watchers?.[watcher as Watchers])
   if (!config?.watchers) {
     throw new Error('config for watchers is required')
   }

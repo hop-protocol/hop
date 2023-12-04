@@ -16,10 +16,10 @@ export class LineaUtils {
 
   constructor () {
     const l1Rpc = 'https://rpc.ankr.com/eth_goerli'
-    this.l1Provider = new ethers.providers.StaticJsonRpcProvider(l1Rpc)
+    this.l1Provider = new ethers.providers.StaticJsonRpcProvider({ allowGzip: true, url: l1Rpc })
 
     const l2Rpc = 'https://linea-goerli.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480'
-    this.l2Provider = new ethers.providers.StaticJsonRpcProvider(l2Rpc)
+    this.l2Provider = new ethers.providers.StaticJsonRpcProvider({ allowGzip: true, url: l2Rpc })
   }
 
   async getL1MessageDispatchedEvent (l1TxHash: string, fromAddress: string) {

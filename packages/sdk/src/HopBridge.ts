@@ -149,7 +149,7 @@ class HopBridge extends Base {
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new HopBridge('goerli', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
+   *const bridge = new HopBridge('mainnet', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
    *```
    */
   constructor (
@@ -181,12 +181,8 @@ class HopBridge extends Base {
     this.priceFeed = new PriceFeedFromS3(this.priceFeedApiKeys)
     this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
     if (this.network === NetworkSlug.Goerli) {
-      this.doesUseAmm = !(
-        this.tokenSymbol === CanonicalToken.USDT ||
-        this.tokenSymbol === CanonicalToken.DAI ||
-        this.tokenSymbol === CanonicalToken.UNI ||
-        this.tokenSymbol === CanonicalToken.HOP
-      )
+      const nonAmmAssets = this.getNonAmmAssets()
+      this.doesUseAmm = !nonAmmAssets.has(this.tokenSymbol)
     }
   }
 
@@ -248,7 +244,7 @@ class HopBridge extends Base {
   ): Token {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    let { name, symbol, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
+    let { name, symbol, decimals, image } = metadata.tokens[token.canonicalSymbol]
 
     if (chain.equals(Chain.Gnosis) && token.symbol === CanonicalToken.DAI) {
       symbol = CanonicalToken.XDAI
@@ -291,7 +287,7 @@ class HopBridge extends Base {
       throw new Error('Hop tokens do not exist on layer 1')
     }
 
-    const { name, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
+    const { name, decimals, image } = metadata.tokens[token.canonicalSymbol]
     const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
     let formattedSymbol = token.canonicalSymbol as HToken
@@ -2426,7 +2422,7 @@ class HopBridge extends Base {
       }
     }
 
-    if (this.network === NetworkSlug.Goerli) {
+    if (this.network !== NetworkSlug.Mainnet) {
       const l2Bridge = await this.getL2Bridge(sourceChain)
       onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
     }
@@ -2518,10 +2514,15 @@ class HopBridge extends Base {
   }
 
   isSupportedAsset (chain: TChain) :boolean {
-    chain = this.toChainModel(chain)
-    const supported = this.getSupportedAssets()
-    const token = this.toTokenModel(this.tokenSymbol)
-    return !!supported[chain.slug]?.[token.canonicalSymbol] ?? false
+    try {
+      chain = this.toChainModel(chain)
+      const supported = this.getSupportedAssets()
+      const token = this.toTokenModel(this.tokenSymbol)
+      return !!supported[chain?.slug]?.[token.canonicalSymbol] ?? false
+    } catch (err: any) {
+      console.error(err)
+    }
+    return false
   }
 
   async getBonderAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
@@ -2747,19 +2748,13 @@ class HopBridge extends Base {
   get supportedLpChains (): string[] {
     const token = this.toTokenModel(this.tokenSymbol)
     const supported = new Set()
+    const nonAmmAssets = this.getNonAmmAssets()
     for (const chain of this.supportedChains) {
       if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
       }
-      if (this.network === NetworkSlug.Goerli) {
-        if (
-          token.canonicalSymbol === TokenModel.USDT ||
-          token.canonicalSymbol === TokenModel.DAI ||
-          token.canonicalSymbol === TokenModel.UNI ||
-          token.canonicalSymbol === TokenModel.HOP
-        ) {
-          continue
-        }
+      if (nonAmmAssets.has(token.canonicalSymbol)) {
+        continue
       }
       supported.add(chain)
     }
@@ -2768,6 +2763,17 @@ class HopBridge extends Base {
 
   getSupportedLpChains (): string[] {
     return this.supportedLpChains
+  }
+
+  getNonAmmAssets (): Set<string> {
+    const list = new Set([CanonicalToken.HOP])
+    if (this.network === NetworkSlug.Goerli) {
+      list.add(CanonicalToken.USDT)
+      list.add(CanonicalToken.DAI)
+      list.add(CanonicalToken.UNI)
+    }
+
+    return list
   }
 
   async getAccountLpBalance (chain: TChain, account?: string): Promise<BigNumber> {

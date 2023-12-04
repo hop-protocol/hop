@@ -16,7 +16,7 @@ const StyledIcon = styled.img<ComposedStyleProps & SquareDimensions>`
   ${squareDimensions}
 `
 
-const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
+export const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
   const [error, setError] = useState(false)
   if (!src || error) {
     return null
@@ -42,5 +42,3 @@ Icon.Circle = styled(Circle)<any>`
   ${layout};
   ${color};
 `
-
-export default Icon

@@ -6,8 +6,8 @@ import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
 import { RelayableChains } from 'src/utils/constants'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
-import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
 type GetDetailsInput = {

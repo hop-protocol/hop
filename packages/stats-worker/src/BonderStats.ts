@@ -112,15 +112,17 @@ class BonderStats {
     }
 
     for (const chain in rpcUrls) {
-      this.allProviders[chain] = new providers.StaticJsonRpcProvider(
-        rpcUrls[chain]
-      )
+      this.allProviders[chain] = new providers.StaticJsonRpcProvider({
+        allowGzip: true,
+        url: rpcUrls[chain]
+      })
     }
 
     for (const chain in archiveRpcUrls) {
-      this.allArchiveProviders[chain] = new providers.StaticJsonRpcProvider(
-        archiveRpcUrls[chain]
-      )
+      this.allArchiveProviders[chain] = new providers.StaticJsonRpcProvider({
+        allowGzip: true,
+        url: archiveRpcUrls[chain]
+      })
     }
   }
 

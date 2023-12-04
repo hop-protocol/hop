@@ -1,4 +1,4 @@
-import BaseDb, { KV, KeyFilter } from './BaseDb'
+import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
@@ -18,9 +18,9 @@ import {
   oruChains
 } from 'src/config'
 import { normalizeDbItem } from './utils'
+import { transferRootsMigrations } from './migrations'
 
 interface BaseTransferRoot {
-  allSettled?: boolean
   bondBlockNumber?: number
   bonded?: boolean
   bondedAt?: number
@@ -31,12 +31,14 @@ interface BaseTransferRoot {
   committedAt?: number
   commitTxBlockNumber?: number
   commitTxHash?: string
+  commitTxLogIndex?: number
   confirmBlockNumber?: number
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
   destinationChainId?: number
   isNotFound?: boolean
+  multipleWithdrawalsSettledTxHash?: string
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
   rootSetTxHash?: string
@@ -44,7 +46,7 @@ interface BaseTransferRoot {
   sentCommitTxAt?: number
   sentConfirmTxAt?: number
   sentRelayTxAt?: number
-  settleAttemptedAt?: number
+  settled?: boolean
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
   totalAmount?: BigNumber
@@ -72,17 +74,6 @@ type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
 }
 
-interface MultipleWithdrawalsSettled {
-  transferRootHash: string
-  transferRootId: string
-  bonder: string
-  totalBondsSettled: BigNumber
-  txHash: string
-  blockNumber: number
-  txIndex: number
-  logIndex: number
-}
-
 type UnsettledTransferRoot = {
   transferRootId: string
   transferRootHash: string
@@ -92,7 +83,6 @@ type UnsettledTransferRoot = {
   rootSetTxHash: string
   committed: boolean
   committedAt: number
-  allSettled: boolean
 }
 
 type UnbondedTransferRoot = {
@@ -170,7 +160,12 @@ class SubDbTimestamps extends BaseDb {
   }
 
   async getFilteredKeyValues (dateFilter?: TransferRootsDateFilter) {
-    // return only transfer-root keys that are within specified range (filter by timestamped keys)
+    const now = Math.floor(Date.now() / 1000)
+    const maxDateFilterWarning = now - (OneWeekMs * 2)
+    if (dateFilter?.fromUnix && dateFilter.fromUnix < maxDateFilterWarning) {
+      this.logger.warn(`TransferRootsDb.getFilteredKeyValues: Date range is large. Watch out for memory issues. fromUnix: ${dateFilter.fromUnix}`)
+    }
+
     const filter: KeyFilter = {
       gte: 'transferRoot:',
       lte: 'transferRoot:~'
@@ -229,7 +224,7 @@ class SubDbIncompletes extends BaseDb {
       (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
       (item.confirmTxHash && !item.confirmedAt) ||
       (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
-      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds)
+      (item.sourceChainId && !item.transferIds)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
@@ -265,92 +260,19 @@ class SubDbRootHashes extends BaseDb {
 }
 
 // structure:
-// key: `<bondedAt>:<transferRootId>`
-// value: `{ transferRootId: <transferRootId> }`
-class SubDbBondedAt extends BaseDb {
-  constructor (prefix: string, _namespace?: string) {
-    super(`${prefix}:rootBondedAt`, _namespace)
-  }
-
-  async insertItem (transferRoot: TransferRoot) {
-    const { transferRootId, bondedAt } = transferRoot
-    const logger = this.logger.create({ id: transferRootId })
-    if (!bondedAt) {
-      return
-    }
-    const key = `${bondedAt}:${transferRootId}`
-    const exists = await this.getById(key)
-    if (!exists) {
-      logger.debug('inserting db transferRoot bondedAt key item')
-      await this._update(key, { transferRootId })
-    }
-  }
-
-  async getFilteredKeyValues (dateFilter: TransferRootsDateFilter) {
-    const filter: KeyFilter = {
-      gte: `${dateFilter.fromUnix}`
-    }
-    return this.getKeyValues(filter)
-  }
-}
-
-// structure:
-// key: `<transferRootId>:<txHash>`
-// value: `{ ...MultipleWithdrawalsSettled }`
-class SubDbMultipleWithdrawalsSettleds extends BaseDb {
-  constructor (prefix: string, _namespace?: string) {
-    super(`${prefix}:multipleWithdrawalsSettleds`, _namespace)
-  }
-
-  getInsertKey (event: MultipleWithdrawalsSettled) {
-    if (event.transferRootId && event.txHash) {
-      return `${event.transferRootId}:${event.txHash}`
-    }
-  }
-
-  async insertItem (event: MultipleWithdrawalsSettled) {
-    const { transferRootId } = event
-    const logger = this.logger.create({ id: transferRootId })
-    const key = this.getInsertKey(event)
-    if (!key) {
-      return
-    }
-    const exists = await this.getById(key)
-    if (!exists) {
-      logger.debug(`storing db MultipleWithdrawalsSettled item. key: ${key}`)
-      await this._update(key, event)
-      logger.debug(`updated db MultipleWithdrawalsSettled item. key: ${key}`)
-    }
-  }
-
-  async getEvents (transferRootId: string): Promise<MultipleWithdrawalsSettled[]> {
-    const filter: KeyFilter = {
-      gte: `${transferRootId}:`,
-      lte: `${transferRootId}:~`
-    }
-
-    return this.getValues(filter)
-  }
-}
-
-// structure:
 // key: `<transferRootId>`
 // value: `{ ...TransferRoot }`
 class TransferRootsDb extends BaseDb {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes
   subDbRootHashes: SubDbRootHashes
-  subDbBondedAt: SubDbBondedAt
-  subDbMultipleWithdrawalsSettleds: SubDbMultipleWithdrawalsSettleds
 
   constructor (prefix: string, _namespace?: string) {
-    super(prefix, _namespace)
+    super(prefix, _namespace, transferRootsMigrations)
 
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
-    this.subDbBondedAt = new SubDbBondedAt(prefix, _namespace)
-    this.subDbMultipleWithdrawalsSettleds = new SubDbMultipleWithdrawalsSettleds(prefix, _namespace)
     this.logger.debug('TransferRootsDb initialized')
   }
 
@@ -392,7 +314,6 @@ class TransferRootsDb extends BaseDb {
     await Promise.all([
       this.subDbTimestamps.insertItem(transferRoot as TransferRoot),
       this.subDbRootHashes.insertItem(transferRoot as TransferRoot),
-      this.subDbBondedAt.insertItem(transferRoot as TransferRoot),
       this.upsertTransferRootItem(transferRoot as TransferRoot)
     ])
   }
@@ -438,7 +359,7 @@ class TransferRootsDb extends BaseDb {
     const transferRoots = batchedItems.map(this.normalizeItem)
     const items = transferRoots.sort(this.sortItems)
 
-    this.logger.debug(`items length: ${items.length}`)
+    this.logger.debug(`getItems, items length: ${items.length}`)
     return items
   }
 
@@ -447,29 +368,19 @@ class TransferRootsDb extends BaseDb {
     return this.getItems(dateFilter)
   }
 
-  // gets only transfer roots within range: now - 2 weeks ago
-  async getTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
+  async getTransferRootsFromWeek (): Promise<TransferRoot[]> {
     await this.tilReady()
-    const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
+    const fromUnix = Math.floor((Date.now() - (OneWeekMs)) / 1000)
     return this.getTransferRoots({
       fromUnix
     })
-  }
-
-  async getBondedTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
-    await this.tilReady()
-    const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
-    const items = await this.subDbBondedAt.getFilteredKeyValues({ fromUnix })
-    const transferRootIds = items.map((item: KV) => item.value.transferRootId)
-    const entries = await this.batchGetByIds(transferRootIds)
-    return entries.map(this.normalizeItem)
   }
 
   async getUnbondedTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<UnbondedTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
@@ -535,7 +446,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -593,7 +504,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -641,7 +552,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<RelayableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -705,7 +616,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<ChallengeableTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getBondedTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
@@ -744,7 +655,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<UnsettledTransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
     const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
@@ -770,11 +681,6 @@ class TransferRootsDb extends BaseDb {
           Date.now()
       }
 
-      let settleAttemptTimestampOk = true
-      if (item.settleAttemptedAt) {
-        settleAttemptTimestampOk = item.settleAttemptedAt + TxRetryDelayMs < Date.now()
-      }
-
       return (
         item.transferRootId &&
         item.transferRootHash &&
@@ -784,10 +690,9 @@ class TransferRootsDb extends BaseDb {
         item.rootSetTxHash &&
         item.committed &&
         item.committedAt &&
-        !item.allSettled &&
+        !item.settled &&
         rootSetTimestampOk &&
-        bondSettleTimestampOk &&
-        settleAttemptTimestampOk
+        bondSettleTimestampOk
       )
     })
 
@@ -821,27 +726,6 @@ class TransferRootsDb extends BaseDb {
     })
 
     return filtered
-  }
-
-  async updateMultipleWithdrawalsSettledEvent (event: MultipleWithdrawalsSettled) {
-    await this.subDbMultipleWithdrawalsSettleds.insertItem(event)
-  }
-
-  async getMultipleWithdrawalsSettledTotalAmount (transferRootId: string) {
-    // sum up all the totalBondsSettled amounts to get total settled amount
-    const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
-    let settledTotalAmount = BigNumber.from(0)
-    for (const event of events) {
-      settledTotalAmount = settledTotalAmount.add(event.totalBondsSettled)
-    }
-    return settledTotalAmount
-  }
-
-  async getMultipleWithdrawalsSettledTxHash (transferRootId: string) {
-    const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
-
-    // we can use any tx hash since we'll be using it to decode list of transfer ids upstream
-    return events?.[0]?.txHash
   }
 }
 

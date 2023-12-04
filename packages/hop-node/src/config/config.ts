@@ -5,9 +5,9 @@ import normalizeEnvVarBool from './utils/normalizeEnvVarBool'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
-import { Addresses, Bonders, Bridges, CanonicalAddresses } from '@hop-protocol/core/addresses'
+import { Addresses, Bonders, Bridges, CanonicalAddresses, addresses as coreAddresses } from '@hop-protocol/core/addresses'
+import { AssetSymbol, Bps, ChainSlug, config as coreConfig } from '@hop-protocol/core/config'
 import { BonderConfig } from 'src/config/types'
-import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -17,11 +17,9 @@ import {
   SyncType,
   TotalBlocks
 } from 'src/constants'
-import { Tokens as Metadata } from '@hop-protocol/core/metadata'
-import { Networks } from '@hop-protocol/core/networks'
+import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
+import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
-import * as goerliConfig from './goerli'
-import * as mainnetConfig from './mainnet'
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../../db_data')
 
@@ -177,13 +175,34 @@ export type Config = {
   emergencyDryMode: boolean
 }
 
-const networkConfigs: {[key: string]: any} = {
-  goerli: goerliConfig,
-  mainnet: mainnetConfig
+const networkConfigs: {[key: string]: any} = {}
+
+for (const network in coreNetworks) {
+  const { bridges: addresses, bonders, canonicalAddresses } = coreAddresses[network as Network]
+  const coreNetwork = coreNetworks[network as Network]
+  const bonderConfig: BonderConfig = {}
+  const networks: any = {}
+
+  for (const chain in coreNetwork) {
+    const chainObj = coreNetwork[chain as Chain]
+    if (!networks[chain]) {
+      networks[chain] = {}
+    }
+    networks[chain].name = chainObj?.name
+    networks[chain].chainId = chainObj?.networkId
+    networks[chain].rpcUrl = chainObj?.publicRpcUrl
+    networks[chain].subgraphUrl = chainObj?.subgraphUrl
+
+    bonderConfig.totalStake = coreConfig[network as Network].bonderTotalStake
+  }
+
+  const metadata = coreMetadata[network as Network]
+  const networkInfo = { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata }
+  networkConfigs[network] = networkInfo
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs?.[network]
   const isMainnet = network === Network.Mainnet
 
   return {
@@ -380,6 +399,22 @@ export function getAllTokens () {
   return Object.keys(config.addresses)
 }
 
+export function getSourceChains (tokenSymbol: string, settlementChain?: string): string[] {
+  const enabledChains = getAllChains()
+  const sourceChains = new Set<string>([])
+  for (const chain of enabledChains) {
+    if (chain === Chain.Ethereum || chain === settlementChain) {
+      continue
+    }
+    if (!config.addresses[tokenSymbol][chain]) {
+      continue
+    }
+    sourceChains.add(chain)
+  }
+
+  return Array.from(sourceChains)
+}
+
 export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
   config.metrics = { ...config.metrics, ...metricsConfig }
 }
@@ -462,17 +497,17 @@ export function getCanonicalAddressesForChain (chainSlug: string): any {
 }
 
 export const getConfigBondersForToken = (token: string) => {
-  return (config.bonders as any)?.[token]
+  return config.bonders?.[token as AssetSymbol]
 }
 
 export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
   const bonders = getConfigBondersForToken(token)
-  const bonder = bonders?.[sourceChain]?.[destinationChain]
+  const bonder = bonders?.[sourceChain as Chain]?.[destinationChain as Chain]
   return bonder
 }
 
 export const getBonderTotalStake = (token: string): number | undefined => {
-  return (config.bonderConfig?.totalStake as any)?.[token]
+  return config.bonderConfig?.totalStake?.[token as AssetSymbol]
 }
 
 export { Bonders }

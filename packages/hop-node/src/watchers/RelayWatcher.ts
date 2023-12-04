@@ -11,7 +11,7 @@ import { MessageAlreadyClaimedError, NonceTooLowError, RelayerFeeTooLowError } f
 import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
-import { config as globalConfig, relayTransactionBatchSize } from 'src/config'
+import { config as globalConfig, RelayTransactionBatchSize } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { promiseQueue } from 'src/utils/promiseQueue'
@@ -26,6 +26,7 @@ type Config = {
 
 class RelayWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: RelayWatcher }
+  private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {
     super({
@@ -80,7 +81,7 @@ class RelayWatcher extends BaseWatcher {
 
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} complete`)
       logger.debug('db poll completed')
-    }, { concurrency: relayTransactionBatchSize, timeoutMs: 10 * 60 * 1000 })
+    }, { concurrency: this.relayTransactionBatchSize, timeoutMs: 10 * 60 * 1000 })
 
     this.logger.debug('checkTransferSentToL2FromDb completed')
   }

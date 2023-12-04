@@ -53,8 +53,8 @@ export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
-export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 25
-export const relayTransactionBatchSize = bondWithdrawalBatchSize
+export const BondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 25
+export const RelayTransactionBatchSize = BondWithdrawalBatchSize
 export const ShouldIgnoreProxy = normalizeEnvVarBool(process.env.SHOULD_IGNORE_PROXY) ?? false
 export const ShouldIgnoreBlockHashValidation = normalizeEnvVarBool(process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION) ?? false
 const envNetwork = process.env.NETWORK ?? Network.Mainnet

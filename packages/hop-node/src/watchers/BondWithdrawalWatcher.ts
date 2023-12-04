@@ -20,7 +20,7 @@ import {
 } from 'src/types/error'
 import {
   BondThreshold,
-  bondWithdrawalBatchSize,
+  BondWithdrawalBatchSize,
   enableEmergencyMode,
   getBonderTotalStake,
   getNetworkCustomSyncType,
@@ -63,6 +63,8 @@ export type SendBondWithdrawalTxParams = {
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
+  private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
 
   constructor (config: Config) {
     super({
@@ -135,7 +137,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} complete`)
       logger.debug('db poll completed')
-    }, { concurrency: bondWithdrawalBatchSize, timeoutMs: 10 * 60 * 1000 })
+    }, { concurrency: this.bondWithdrawalBatchSize, timeoutMs: 10 * 60 * 1000 })
 
     this.logger.debug('checkTransferSentFromDb completed')
   }

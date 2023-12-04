@@ -28,7 +28,6 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  // TODO: reintroduce syncState and gasCost dump with more specific options
   let { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate, inputFile: inputFileList, transferRootId, transferRootHash } = source
   if (dbPath) {
     setDbPath(dbPath)

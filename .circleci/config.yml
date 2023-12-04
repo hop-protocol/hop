@@ -182,7 +182,6 @@ workflows:
                 - develop-bonder
                 - goerli-bonder
                 - sepolia-bonder
-                - feat/level-config-optimization
               ignore: /.*/
       - build_stats_worker:
           filters:

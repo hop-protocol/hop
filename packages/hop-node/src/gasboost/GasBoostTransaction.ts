@@ -30,6 +30,7 @@ import {
   blocknativeApiKey,
   gasBoostErrorSlackChannel,
   gasBoostWarnSlackChannel,
+  config as globalConfig,
   hostname
 } from 'src/config'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
@@ -92,6 +93,14 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+type EventEmitterState = {
+  [key in State]: any
+}
+
+type EventEmitterEvents = EventEmitter & {
+  _events: any
+}
+
 const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
 const gasFeeDataCache: Record<string, Partial<GasFeeData>> = {}
@@ -129,6 +138,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   reorgConfirmationBlocks: number = 1
   originalTxParams: providers.TransactionRequest
+  _events: any[] // implemented by EventEmitter
 
   type?: number
 
@@ -424,8 +434,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
-    if (isMainnet) {
+    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum && globalConfig.isMainnet
+    if (isEthereumMainnet) {
       try {
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
@@ -457,7 +467,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       try {
         return await this.getOruMaxFeePerGas(this.chainSlug)
       } catch (err) {
-        this.logger.error(`oru max fee per gas call failed: ${err}`)
+        this.logger.error('oru max fee per gas call failed:', err)
       }
     }
 
@@ -625,7 +635,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         .on(State.Error, (err) => {
           reject(err)
         })
-      const listeners = (this as any)._events
+      const listeners = (this as EventEmitterEvents)._events as EventEmitterState
       this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "Err": ${listeners?.[State.Error]?.length}`)
     })
   }

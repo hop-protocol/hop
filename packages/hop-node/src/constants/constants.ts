@@ -1,60 +1,60 @@
+import { AssetSymbol } from '@hop-protocol/core/config'
+import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks/enums'
+import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata/providers'
 import { chains } from '@hop-protocol/core/metadata'
+import { networks } from '@hop-protocol/core/networks'
+import { tokens } from '@hop-protocol/core/metadata/tokens'
 
-export enum Network {
-  Mainnet = 'mainnet',
-  Goerli = 'goerli'
-}
-
-// TODO: read from core
-export enum Chain {
-  Ethereum = 'ethereum',
-  Optimism = 'optimism',
-  Arbitrum = 'arbitrum',
-  Polygon = 'polygon',
-  Gnosis = 'gnosis',
-  Nova = 'nova',
-  ZkSync = 'zksync',
-  Linea = 'linea',
-  ScrollZk = 'scrollzk',
-  Base = 'base',
-  PolygonZk = 'polygonzk',
-}
-
-// TODO: read from core
-export enum Token {
-  USDC = 'USDC',
-  USDT = 'USDT',
-  DAI = 'DAI',
-  ETH = 'ETH',
-  MATIC = 'MATIC',
-  HOP = 'HOP',
-  SNX = 'SNX',
-  sUSD = 'sUSD',
-  rETH = 'rETH',
-  MAGIC = 'MAGIC'
-}
-
-export enum NativeChainToken {
-  ETH = 'ETH',
-  XDAI = 'XDAI',
-  MATIC = 'MATIC'
-}
+export { Network, Chain, Token, NativeChainToken }
 
 const nativeChainTokens: Record<string, string> = {}
 for (const chain in chains) {
-  nativeChainTokens[chain] = (chains as any)[chain].nativeTokenSymbol
+  nativeChainTokens[chain] = chains[chain as Chain].nativeTokenSymbol
 }
 
 export { nativeChainTokens }
 
-export const AvgBlockTimeSeconds: Record<string, number> = {
-  [Chain.Ethereum]: 12,
-  [Chain.Polygon]: 2,
-  [Chain.Gnosis]: 6,
-  [Chain.Optimism]: 2,
-  [Chain.Base]: 2,
-  [Chain.Linea]: 12
+const relayablChainsSet = new Set<string>([])
+const AvgBlockTimeSeconds: Record<string, number> = {}
+const OruExitTimeMs: Record<string, number> = {}
+const TimeToIncludeOnL1Sec: Record<string, number> = {}
+const TimeToIncludeOnL2Sec: Record<string, number> = {}
+const L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {}
+
+for (const network in networks) {
+  for (const chain in networks[network as Network]) {
+    const chainObj = networks[network as Network][chain as Chain]
+    const seconds = chainObj?.averageBlockTimeSeconds
+    if (seconds != null) {
+      AvgBlockTimeSeconds[chain] = seconds
+    }
+    if (chainObj?.isRelayable) {
+      relayablChainsSet.add(chain)
+    }
+    if (chainObj?.oruExitTimeSeconds != null) {
+      OruExitTimeMs[chain] = chainObj.oruExitTimeSeconds * 1000
+    }
+    if (chainObj?.timeToIncludeOnL1Seconds != null) {
+      TimeToIncludeOnL1Sec[chain] = chainObj.timeToIncludeOnL1Seconds
+    }
+    if (chainObj?.timeToIncludeOnL2Seconds != null) {
+      TimeToIncludeOnL2Sec[chain] = chainObj.timeToIncludeOnL2Seconds
+    }
+    if (chainObj?.L1ToL2CheckpointTimeInL1Blocks != null) {
+      L1ToL2CheckpointTimeInL1Blocks[chain] = chainObj.L1ToL2CheckpointTimeInL1Blocks
+    }
+  }
 }
+
+export {
+  AvgBlockTimeSeconds,
+  OruExitTimeMs,
+  TimeToIncludeOnL1Sec,
+  TimeToIncludeOnL2Sec,
+  L1ToL2CheckpointTimeInL1Blocks
+}
+
+export const RelayableChains = Array.from(relayablChainsSet)
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
@@ -123,34 +123,18 @@ export enum GasCostTransactionType {
   Relay = 'relay'
 }
 
-export const RelayableChains: string[] = [
-  Chain.Arbitrum,
-  Chain.Nova,
-  Chain.Linea,
-  Chain.PolygonZk
-]
-
 export const MaxDeadline: number = 9999999999
 
-export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
+export const stableCoins = new Set<string>([])
+for (const tokenSymbol in tokens) {
+  const tokenObj = tokens[tokenSymbol as AssetSymbol]
+  if (tokenObj?.isStablecoin) {
+    stableCoins.add(tokenSymbol)
+  }
+}
+
 export const BondTransferRootDelayBufferSeconds = 5 * 60
 export const MaxReorgCheckBackoffIndex = 2 // 120 + 240 + 480 = 840 seconds, 14 minutes
-
-// Optimism: time for relayer to publish state root
-//           https://community.optimism.io/docs/developers/bedrock/bedrock/#two-phase-withdrawals
-// Arbitrum: arbitrary buffer required
-//           https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
-// PolygonZk: typically around 30 minutes but up to a week in rare cases.
-//           https://zkevm.polygon.technology/docs/protocol/transaction-execution
-const ValidatorExitBufferMs = OneHourMs * 10
-export const OruExitTimeMs: Record<string, number> = {
-  [Chain.Optimism]: OneHourMs,
-  [Chain.Base]: OneHourMs,
-  [Chain.Arbitrum]: OneWeekMs + ValidatorExitBufferMs,
-  [Chain.Nova]: OneWeekMs + ValidatorExitBufferMs,
-  [Chain.Linea]: OneHourMs * 12,
-  [Chain.PolygonZk]: OneHourMs
-}
 
 export const DoesSupportCustomFinality: Record<string, boolean> = {
   [Chain.Optimism]: true,
@@ -158,24 +142,6 @@ export const DoesSupportCustomFinality: Record<string, boolean> = {
 }
 
 export const NumStoredBlockHashes: number = 256
-
-// These values are currently the same on both mainnet and testnet but this might not always be the case
-export const TimeToIncludeOnL1Sec: Record<string, number> = {
-  [Chain.Optimism]: 120,
-  [Chain.Base]: 20
-}
-
-// These values are currently the same on both mainnet and testnet but this might not always be the case
-export const TimeToIncludeOnL2Sec: Record<string, number> = {
-  [Chain.Ethereum]: 0,
-  [Chain.Optimism]: 180,
-  [Chain.Base]: 90
-}
-
-export const L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {
-  [Chain.Optimism]: 6,
-  [Chain.Base]: 12
-}
 
 // Poll certain chains at a slower cadence if they are not widely used
 export const ChainPollMultiplier: Record<string, number> = {
@@ -195,20 +161,15 @@ export const ChainPollMultiplier: Record<string, number> = {
 // tx is propagated to the chain.
 export const CanonicalMessengerRootConfirmationGasLimit: number = 1500000
 
-// Quicknode endpoints are spelled without the c, so we will use that spelling
-export enum RootProviderName {
-  Local = 'local',
-  Alchemy = 'alchemy',
-  Infura = 'infura',
-  Quiknode = 'quiknode'
+const DoesRootProviderSupportWs: Partial<Record<RpcProviderSlug, boolean>> = {}
+
+for (const providerSlug in rpcProviders) {
+  const providerObj = rpcProviders[providerSlug as RpcProviderSlug]
+  DoesRootProviderSupportWs[providerSlug as RpcProviderSlug] = providerObj?.wsSupported
 }
 
-export const DoesRootProviderSupportWs: Record<RootProviderName, boolean> = {
-  [RootProviderName.Local]: false,
-  [RootProviderName.Alchemy]: true,
-  [RootProviderName.Infura]: false,
-  [RootProviderName.Quiknode]: true
-}
+export { DoesRootProviderSupportWs }
+export { RpcProviderSlug as RootProviderName }
 
 export const DefaultBondThreshold = 5
 // TODO: When bonder-specific strategies are isolated from the finality dir, use a new

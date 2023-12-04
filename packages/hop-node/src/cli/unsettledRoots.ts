@@ -5,8 +5,8 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, utils } from 'ethers'
-import { actionHandler, getSourceChains, parseString, root } from './shared'
-import { getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
+import { actionHandler, parseString, root } from './shared'
+import { getProxyAddressForChain, getSourceChains, isProxyAddressForChain } from 'src/config'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 

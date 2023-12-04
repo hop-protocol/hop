@@ -86,6 +86,12 @@ export enum WrappedToken {
   WXDAI = 'WXDAI',
 }
 
+export enum NativeChainToken {
+  ETH = 'ETH',
+  XDAI = 'XDAI',
+  MATIC = 'MATIC'
+}
+
 export enum HToken {
   hETH = 'hETH',
   hMATIC = 'hMATIC',

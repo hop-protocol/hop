@@ -10,12 +10,13 @@ import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import wait from 'src/utils/wait'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
+import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { formatUnits } from 'ethers/lib/utils'
 import { getEnabledTokens, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Options = {
@@ -259,7 +260,10 @@ class IncompleteSettlementsWatcher {
 
   private getContract (chain: string, token: string) {
     const provider = getRpcProvider(chain)
-    const config = (mainnetAddresses as any).bridges[token][chain]
+    const config = mainnetAddresses.bridges[token as AssetSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
+    if (!config) {
+      throw new Error(`Could not find bridge config for ${token} on ${chain}`)
+    }
     const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? l1BridgeAbi : l2BridgeAbi, provider!)
     return contract
   }

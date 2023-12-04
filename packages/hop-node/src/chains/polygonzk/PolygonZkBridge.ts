@@ -1,9 +1,30 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import wait from 'src/utils/wait'
 import { IChainBridge } from '../IChainBridge'
+import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
+
+const polygonChainSlugs: Record<string, string> = {
+  mainnet: 'matic',
+  goerli: 'mumbai'
+}
+
+const polygonMessengers: Record<string, string> = {
+  mainnet: '0x2a3DD3EB832aF982ec71669E178424b10Dca2EDe',
+  goerli: '0xF6BEEeBB578e214CA9E23B0e9683454Ff88Ed2A7'
+}
+
+const polygonSdkNetwork: Record<string, string> = {
+  mainnet: 'mainnet',
+  goerli: 'testnet'
+}
+
+const polygonSdkVersion: Record<string, string> = {
+  mainnet: 'v1',
+  goerli: 'blueberry'
+}
 
 class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   ready: boolean = false
@@ -13,22 +34,34 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   l2Wallet: Signer
   chainId: number
   apiUrl: string
-  polygonzkMainnetChainId: number = 1101
+  polygonNetwork: string
   zkEvmClient: ZkEvmClient
   messengerAddress: string
+  l1Network: string
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${
-      this.chainId === this.polygonzkMainnetChainId ? 'matic' : 'mumbai'
-    }/block-included`
+    for (const network in networks) {
+      const chainId = networks[network as NetworkSlug]?.polygonzk?.networkId
+      if (chainId === this.chainId) {
+        this.l1Network = network
+        break
+      }
+    }
+
+    if (!this.l1Network) {
+      throw new Error('polygon network name not found')
+    }
+
+    const polygonNetwork = polygonChainSlugs[this.l1Network]
+    this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.zkEvmClient = new ZkEvmClient()
-    this.messengerAddress = this.chainId === this.polygonzkMainnetChainId ? '0x2a3DD3EB832aF982ec71669E178424b10Dca2EDe' : '0xF6BEEeBB578e214CA9E23B0e9683454Ff88Ed2A7'
+    this.messengerAddress = polygonMessengers[this.l1Network]
 
     this.init()
       .catch((err: any) => {
@@ -38,9 +71,11 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
 
   async init () {
     const from = await this.l1Wallet.getAddress()
+    const sdkNetwork = polygonSdkNetwork[this.l1Network]
+    const sdkVersion = polygonSdkVersion[this.l1Network]
     await this.zkEvmClient.init({
-      network: this.chainId === this.polygonzkMainnetChainId ? 'mainnet' : 'testnet',
-      version: this.chainId === this.polygonzkMainnetChainId ? 'v1' : 'blueberry',
+      network: sdkNetwork,
+      version: sdkVersion,
       parent: {
         provider: this.l1Wallet,
         defaultConfig: {

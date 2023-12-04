@@ -61,7 +61,7 @@ class ZkSyncBridge extends AbstractChainBridge implements IChainBridge {
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const rpcUrl = (globalConfig.networks as any)[chainSlug]?.rpcUrl
+    const rpcUrl = globalConfig.networks[chainSlug]?.rpcUrl
     this.zkSyncProvider = new ZkSyncProvider(rpcUrl)
   }
 

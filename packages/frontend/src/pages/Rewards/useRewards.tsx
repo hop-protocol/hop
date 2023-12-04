@@ -43,7 +43,7 @@ export const useRewards = (props: Props) => {
   const [countdown, setCountdown] = useState('')
   const [inputValue, setInputValue] = useState('')
   const [withdrawn, setWithdrawn] = useState(BigNumber.from(0))
-  const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : (isMainnet ? 'https://optimism-fee-refund-api.hop.exchange' : '')
+  const apiBaseUrl = isMainnet ? 'https://optimism-fee-refund-api.hop.exchange' : (isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : '')
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
@@ -269,6 +269,9 @@ export const useRewards = (props: Props) => {
     try {
       if (!pollUnclaimableAmountFromBackend) {
         return
+      }
+      if (!apiBaseUrl) {
+        throw new Error(`apiBasUrl not set for network ${reactAppNetwork}`)
       }
       const url = `${apiBaseUrl}/v1/rewards-info`
       const res = await fetch(url)

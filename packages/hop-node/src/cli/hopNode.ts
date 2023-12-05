@@ -3,8 +3,6 @@ import { AssetSymbol } from '@hop-protocol/core/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
-  ShouldIgnoreBlockHashValidation,
-  ShouldIgnoreProxy,
   gitRev,
   config as globalConfig,
   slackAuthToken,
@@ -133,27 +131,6 @@ async function main (source: any) {
         if (token in totalStake) {
           logger.info(`bonder total stake for ${token}: ${totalStake[token as AssetSymbol]}`)
         }
-      }
-    }
-  }
-
-  for (const token of tokens) {
-    for (const k in globalConfig.networks) {
-      if (!Object.keys(enabledNetworks).includes(k)) continue
-
-      const chainAddresses = globalConfig.addresses[token][k]
-      if (
-        chainAddresses?.proxy &&
-        !ShouldIgnoreProxy
-      ) {
-        logger.info(`using proxy for ${token} on ${k}: ${chainAddresses.proxy}`)
-      }
-
-      if (
-        chainAddresses?.validator &&
-        !ShouldIgnoreBlockHashValidation
-      ) {
-        logger.info(`using validator for ${token} on ${k}: ${chainAddresses.validator}`)
       }
     }
   }

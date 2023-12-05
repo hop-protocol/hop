@@ -11,10 +11,7 @@ import { Chain } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
 import { Hop } from '@hop-protocol/sdk'
 import { L2_Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import {
-  getBridgeWriteContractAddress,
-  config as globalConfig
-} from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 export default class L2Bridge extends Bridge {
   ammWrapper: L2AmmWrapper
@@ -22,7 +19,6 @@ export default class L2Bridge extends Bridge {
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
   TransferFromL1Completed: string = 'TransferFromL1Completed'
-  l2BridgeWriteContract: L2BridgeContract
 
   constructor (private readonly l2BridgeContract: L2BridgeContract) {
     super(l2BridgeContract)
@@ -45,9 +41,6 @@ export default class L2Bridge extends Bridge {
       )
       this.amm = new L2Amm(ammContract)
     }
-
-    const bridgeWriteAddress = getBridgeWriteContractAddress(this.tokenSymbol, this.chainSlug)
-    this.l2BridgeWriteContract = this.l2BridgeContract.attach(bridgeWriteAddress)
   }
 
   getL1Bridge = async (): Promise<L1Bridge> => {
@@ -171,7 +164,7 @@ export default class L2Bridge extends Bridge {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
     }
 
-    return await this.l2BridgeWriteContract.send(
+    return await this.l2BridgeContract.send(
       destinationChainId,
       recipient,
       amount,
@@ -290,7 +283,7 @@ export default class L2Bridge extends Bridge {
     destinationChainId: number,
     contractAddress?: string
   ): Promise<providers.TransactionResponse> => {
-    let contract = this.l2BridgeWriteContract
+    let contract = this.l2BridgeContract
     if (contractAddress) {
       contract = contract.attach(contractAddress)
     }
@@ -339,7 +332,7 @@ export default class L2Bridge extends Bridge {
       txOverrides
     ] as const
 
-    const tx = await this.l2BridgeWriteContract.bondWithdrawalAndDistribute(...payload)
+    const tx = await this.l2BridgeContract.bondWithdrawalAndDistribute(...payload)
     return tx
   }
 

@@ -57,17 +57,6 @@ class Example {
       }, 100)
     })
   })
-
-  triggerBlockHashValidationError = rateLimitRetry(async () => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        this.counter++
-        reject(new Error(
-          'BHV:'
-        ))
-      }, 100)
-    })
-  })
 }
 
 describe('rateLimitRetry', () => {
@@ -101,18 +90,6 @@ describe('rateLimitRetry', () => {
     let errMsg: string | undefined
     try {
       await example.triggerCallRevertError()
-    } catch (err) {
-      errMsg = err.message
-    }
-    expect(errMsg).toBeTruthy()
-    expect(example.counter).toBe(1)
-  }, 60 * 1000)
-  it.only('should not retry BlockHashValidationError', async () => {
-    const example = new Example()
-    expect(example.counter).toBe(0)
-    let errMsg: string | undefined
-    try {
-      await example.triggerBlockHashValidationError()
     } catch (err) {
       errMsg = err.message
     }

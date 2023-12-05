@@ -1,9 +1,6 @@
-import * as hopMetadata from '@hop-protocol/core/metadata'
+import { chains as chainsMetadata, tokens as tokensMetadata } from '@hop-protocol/core/metadata'
 
 export const metadata: any = {
-  tokens: {
-    goerli: hopMetadata.goerli.tokens,
-    mainnet: hopMetadata.mainnet.tokens
-  },
-  networks: hopMetadata.chains
+  networks: chainsMetadata,
+  tokens: tokensMetadata
 }

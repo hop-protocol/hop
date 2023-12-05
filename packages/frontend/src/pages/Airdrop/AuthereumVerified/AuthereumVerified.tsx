@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import Alert from 'src/components/alert/Alert'
+import { Alert } from 'src/components/Alert'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { useQueryParams } from 'src/hooks'
 import { Input } from 'src/components/ui'
-import Button from 'src/components/buttons/Button'
-import { StyledButton } from 'src/components/buttons/StyledButton'
+import { Button } from 'src/components/Button'
+import { StyledButton } from 'src/components/Button/StyledButton'
 import ReCAPTCHA from 'react-google-recaptcha'
 import CheckIcon from '@material-ui/icons/Check'
 import { updateQueryParams } from 'src/utils/updateQueryParams'
@@ -83,8 +83,8 @@ export function AuthereumVerified() {
     setLoading(false)
   }
 
-  const onCaptchaChange = (value: string) => {
-    setCaptchaResponseToken(value)
+  const onCaptchaChange = (value: string | null) => {
+    setCaptchaResponseToken(value || '')
   }
 
   const isEligible = userData?.userId

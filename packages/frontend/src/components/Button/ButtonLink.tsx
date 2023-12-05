@@ -1,7 +1,7 @@
 import React from 'react'
-import { StyledButton } from '../buttons/StyledButton'
-import { Div, Flex, SvgImg } from '../ui'
-import { StyledLink } from '../ui/StyledLink'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { Div, Flex, SvgImg } from 'src/components/ui'
+import { StyledLink } from 'src/components/ui/StyledLink'
 
 interface ButtonLinkProps {
   href: string

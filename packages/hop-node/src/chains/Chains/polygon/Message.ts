@@ -2,6 +2,7 @@ import MessageService, { IMessageService } from '../../Services/MessageService'
 import fetch from 'node-fetch'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
+import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import { providers, utils } from 'ethers'
@@ -14,17 +15,44 @@ type RelayOpts = {
   rootTunnelAddress: string
 }
 
+const polygonChainSlugs: Record<string, string> = {
+  mainnet: 'matic',
+  goerli: 'mumbai'
+}
+
+const polygonSdkNetwork: Record<string, string> = {
+  mainnet: 'mainnet',
+  goerli: 'testnet'
+}
+
+const polygonSdkVersion: Record<string, string> = {
+  mainnet: 'v1',
+  goerli: 'mumbai'
+}
+
 export class Message extends MessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
-  polygonMainnetChainId: number = 137
+  l1Network: string
   maticClient: any
 
   constructor (chainSlug: string) {
     super(chainSlug)
-    this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${
-      this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
-    }/block-included`
+
+    for (const network in networks) {
+      const chainId = networks[network as NetworkSlug]?.polygon?.networkId
+      if (chainId === this.chainId) {
+        this.l1Network = network
+        break
+      }
+    }
+
+    if (!this.l1Network) {
+      throw new Error('polygon network name not found')
+    }
+
+    const polygonNetwork = polygonChainSlugs[this.l1Network]
+    this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
@@ -47,9 +75,11 @@ export class Message extends MessageService<PolygonMessage, PolygonMessageStatus
 
   private async _initClient (rootTunnelAddress: string): Promise<void> {
     const from = await this.l1Wallet.getAddress()
+    const sdkNetwork = polygonSdkNetwork[this.l1Network]
+    const sdkVersion = polygonSdkVersion[this.l1Network]
     await this.maticClient.init({
-      network: this.chainId === this.polygonMainnetChainId ? 'mainnet' : 'testnet',
-      version: this.chainId === this.polygonMainnetChainId ? 'v1' : 'mumbai',
+      network: sdkNetwork,
+      version: sdkVersion,
       parent: {
         provider: this.l1Wallet,
         defaultConfig: {

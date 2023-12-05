@@ -30,10 +30,15 @@ import {
   blocknativeApiKey,
   gasBoostErrorSlackChannel,
   gasBoostWarnSlackChannel,
+  config as globalConfig,
   hostname
 } from 'src/config'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import { v4 as uuidv4 } from 'uuid'
+
+type TransactionRequestWithHash = providers.TransactionRequest & {
+  hash: string
+}
 
 enum State {
   Confirmed = 'confirmed',
@@ -49,7 +54,7 @@ type InflightItem = {
   sentAt: number
 }
 
-type MarshalledItem = {
+export type MarshalledTx = {
   id: string
   createdAt: number
   txHash?: string
@@ -88,7 +93,18 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+type EventEmitterState = {
+  [key in State]: any
+}
+
+type EventEmitterEvents = EventEmitter & {
+  _events: any
+}
+
+const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
+const gasFeeDataCache: Record<string, Partial<GasFeeData>> = {}
+const gasFeeDataCacheTimestamp: Record<string, number> = {}
 
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
@@ -122,6 +138,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   reorgConfirmationBlocks: number = 1
   originalTxParams: providers.TransactionRequest
+  _events: any[] // implemented by EventEmitter
 
   type?: number
 
@@ -207,19 +224,25 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private setGasProperties (tx: providers.TransactionResponse) {
+  private setGasProperties (tx: TransactionRequestWithHash) {
     // things get complicated with boosting 1559 when initial tx is using gasPrice
     // so we explicitly set gasPrice here again
-    const shouldUseGasPrice = this.gasPrice && !tx.gasPrice && tx.maxFeePerGas && tx.maxPriorityFeePerGas && tx.maxFeePerGas.eq(tx.maxPriorityFeePerGas)
+    const shouldUseGasPrice = (
+      this.gasPrice &&
+      !tx.gasPrice &&
+      tx.maxFeePerGas &&
+      tx.maxPriorityFeePerGas &&
+      (tx.maxFeePerGas as BigNumber).eq(tx.maxPriorityFeePerGas)
+    )
     if (shouldUseGasPrice) {
       this.type = undefined
-      this.gasPrice = tx.maxFeePerGas
+      this.gasPrice = (tx.maxFeePerGas as BigNumber)
       this.maxFeePerGas = undefined
       this.maxPriorityFeePerGas = undefined
     } else {
-      this.gasPrice = tx.gasPrice!
-      this.maxFeePerGas = tx.maxFeePerGas!
-      this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
+      this.gasPrice = (tx.gasPrice! as BigNumber)
+      this.maxFeePerGas = (tx.maxFeePerGas! as BigNumber)
+      this.maxPriorityFeePerGas = (tx.maxPriorityFeePerGas! as BigNumber)
       if (tx.type != null) {
         this.type = tx.type
       }
@@ -292,10 +315,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.store) {
       return
     }
-    await this.store.updateItem(this.id, this.marshal())
+    await this.store.update(this.id, this.marshal())
   }
 
-  marshal (): MarshalledItem {
+  marshal (): MarshalledTx {
     return {
       id: this.id,
       createdAt: this.createdAt,
@@ -318,7 +341,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return await GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
-  static async unmarshal (item: MarshalledItem, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static async unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,
@@ -359,15 +382,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
     // clamp gas values to max if they go over max for initial tx send
     gasFeeData = this.clampMaxGasFeeData(gasFeeData)
-    const tx = await this._sendTransaction(gasFeeData)
+    const tx: TransactionRequestWithHash = await this._sendTransaction(gasFeeData)
 
     // store populated and normalized values
-    this.from = tx.from
+    this.from = tx.from!
     this.to = tx.to!
-    this.data = tx.data
-    this.value = tx.value
-    this.gasLimit = tx.gasLimit
-    this.nonce = tx.nonce
+    this.data = (tx.data as string)
+    this.value = (tx.value as BigNumber)
+    this.gasLimit = (tx.gasLimit as BigNumber)
+    this.nonce = (tx.nonce as number)
     this.setGasProperties(tx)
 
     this.logger.debug(`beginning tracking for ${tx.hash}`)
@@ -411,8 +434,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
-    if (isMainnet) {
+    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum && globalConfig.isMainnet
+    if (isEthereumMainnet) {
       try {
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
@@ -444,7 +467,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       try {
         return await this.getOruMaxFeePerGas(this.chainSlug)
       } catch (err) {
-        this.logger.error(`oru max fee per gas call failed: ${err}`)
+        this.logger.error('oru max fee per gas call failed:', err)
       }
     }
 
@@ -482,6 +505,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
+    const now = Date.now()
+    const cacheTimestampMs = gasFeeDataCacheTimestamp?.[this.chainSlug] ?? 0
+    const isCacheExpired = now - cacheTimestampMs > cacheTimeMs
+    if (!isCacheExpired) {
+      this.logger.debug(`returning cached gas fee data for ${this.chainSlug}: ${JSON.stringify(gasFeeDataCache[this.chainSlug])}`)
+      return gasFeeDataCache[this.chainSlug]!
+    }
+
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 
     if (use1559) {
@@ -498,18 +529,22 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
       maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
 
-      return {
+      gasFeeDataCacheTimestamp[this.chainSlug] = now
+      gasFeeDataCache[this.chainSlug] = {
         gasPrice: undefined,
         maxFeePerGas,
         maxPriorityFeePerGas
       }
+      return gasFeeDataCache[this.chainSlug]!
     }
 
-    return {
+    gasFeeDataCacheTimestamp[this.chainSlug] = now
+    gasFeeDataCache[this.chainSlug] = {
       gasPrice: await this.getBumpedGasPrice(multiplier),
       maxFeePerGas: undefined,
       maxPriorityFeePerGas: undefined
     }
+    return gasFeeDataCache[this.chainSlug]!
   }
 
   clampMaxGasFeeData (gasFeeData: Partial<GasFeeData>): Partial<GasFeeData> {
@@ -590,14 +625,17 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     return await new Promise((resolve, reject) => {
       this
-        .on(State.Confirmed, (tx) => {
-          this.logger.debug('state confirmed')
+        .on(State.Confirmed, (tx: providers.TransactionReceipt) => {
+          this.logger.debug(`wait() confirmed, tx: ${this.hash} with status ${tx.status}`)
+          if (tx.status === 0) {
+            reject(new Error(`GAS_BOOST_TRANSACTION_CALL_EXCEPTION: ${JSON.stringify(tx)}`))
+          }
           resolve(tx)
         })
         .on(State.Error, (err) => {
           reject(err)
         })
-      const listeners = (this as any)._events
+      const listeners = (this as EventEmitterEvents)._events as EventEmitterState
       this.logger.debug(`subscribers: "${State.Confirmed}": ${listeners?.[State.Confirmed]?.length}, "Err": ${listeners?.[State.Error]?.length}`)
     })
   }
@@ -750,7 +788,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.emit(State.Boosted, tx, this.boostIndex)
   }
 
-  private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<providers.TransactionResponse> {
+  private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<TransactionRequestWithHash> {
     const maxRetries = 10
     let i = 0
     while (true) {
@@ -780,10 +818,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         }
 
         if (i === 1) {
-          const timeLimitMs = 60 * 1000
           let shouldCheck = true
           if (enoughFundsCheckCache[this.chainSlug]) {
-            shouldCheck = enoughFundsCheckCache[this.chainSlug] + timeLimitMs < Date.now()
+            shouldCheck = enoughFundsCheckCache[this.chainSlug] + cacheTimeMs < Date.now()
           }
           if (shouldCheck) {
             this.logger.debug(`tx index ${i}: checking for enough funds`)
@@ -795,16 +832,19 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           }
         }
 
+        this.logger.debug(`DEBUG: tx index ${i} tx: ${JSON.stringify(payload)}`)
         this.logger.debug(`tx index ${i}: sending transaction`)
 
         const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} `
-        // await here is intentional to catch error below
         console.time(_timeId)
-        const tx = await this.signer.sendTransaction(payload)
+        const txHash: string = await this.sendUncheckedTransaction(payload)
         console.timeEnd(_timeId)
 
         this.logger.debug(`tx index ${i} completed`)
-        return tx
+        return {
+          ...payload,
+          hash: txHash
+        }
       } catch (err: any) {
         this.logger.debug(`tx index ${i} error: ${err.message}`)
 
@@ -887,7 +927,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private track (tx: providers.TransactionResponse) {
+  private track (tx: TransactionRequestWithHash) {
     this.logger.debug('tracking')
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
@@ -903,7 +943,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
-    tx.wait().then((receipt: providers.TransactionReceipt) => {
+    this.signer.provider!.waitForTransaction(tx.hash).then((receipt: providers.TransactionReceipt) => {
       this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
       this.handleConfirmation(tx.hash, receipt)
     })
@@ -1003,7 +1043,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.send()
   }
 
-  private async rebroadcastLatestTx () {
+  private async rebroadcastLatestTx (): Promise<TransactionRequestWithHash | undefined> {
     this.logger.debug(`attempting to rebroadcast latest transaction with index ${this.rebroadcastIndex}`)
     const payload: providers.TransactionRequest = {
       type: this.type,
@@ -1029,10 +1069,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       return
     }
 
-    const tx = await this.signer.sendTransaction(payload)
-    this.logger.debug(`rebroadcasted transaction, tx hash: ${tx.hash}`)
+    const txHash: string = await this.sendUncheckedTransaction(payload)
+    this.logger.debug(`rebroadcasted transaction, tx hash: ${txHash}`)
 
-    return tx
+    return {
+      ...payload,
+      hash: txHash
+    }
   }
 
   private reset () {
@@ -1047,6 +1090,18 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.maxPriorityFeePerGas = undefined
     this.clearInflightTxs()
     this.setOwnTxParams(this.originalTxParams)
+  }
+
+  // Use this to speed up transactions. Unchecked transactions mean that ethers will not wait for
+  // the node to respond with the tx response, which might add ms or s to the transaction. This
+  // function retains all the same validation properties as sendTransaction.
+  async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<string> {
+    const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
+    const signedTx: string = await this.signer.signTransaction(tx)
+    const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
+    const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [signedTx])
+
+    return txHash
   }
 }
 

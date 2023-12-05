@@ -1,23 +1,23 @@
-import { goerli as goerliAddresses } from '@hop-protocol/core/addresses'
-import { goerli as goerliNetworks } from '@hop-protocol/core/networks'
+import { goerli as _goerliAddresses } from '@hop-protocol/core/addresses'
+import { goerli as _goerliNetworks } from '@hop-protocol/core/networks'
 import { HopAddresses, Networks } from './interfaces'
 
-export const addresses: HopAddresses = {
+export const goerliAddresses: HopAddresses = {
   governance: {
     l1Hop: '',
     stakingRewardsFactory: '',
     stakingRewards: '',
     governorAlpha: '',
   },
-  tokens: goerliAddresses.bridges,
-  bonders: goerliAddresses.bonders,
+  tokens: _goerliAddresses.bridges,
+  bonders: _goerliAddresses.bonders,
 }
 
-const _networks = goerliNetworks as any
-const networks: Networks = {}
+const _networks = _goerliNetworks as any
+const goerliNetworks: Networks = {}
 
 for (const chainSlug in _networks) {
-  networks[chainSlug] = {
+  goerliNetworks[chainSlug] = {
     networkId: _networks[chainSlug].networkId,
     rpcUrl: _networks[chainSlug].publicRpcUrl,
     fallbackRpcUrls: _networks[chainSlug].fallbackPublicRpcUrls,
@@ -26,4 +26,4 @@ for (const chainSlug in _networks) {
   }
 }
 
-export { networks }
+export { goerliNetworks }

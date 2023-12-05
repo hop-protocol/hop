@@ -1,5 +1,5 @@
 import { ChainSlug, Slug, CanonicalToken } from '@hop-protocol/sdk'
-import capitalize from 'lodash/capitalize'
+import { capitalize } from 'src/utils/capitalize'
 import logger from 'src/logger'
 import { discordUrl } from 'src/utils'
 

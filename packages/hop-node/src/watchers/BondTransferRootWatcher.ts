@@ -70,8 +70,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         committedAt,
         sourceChainId,
-        transferIds,
-        commitTxBlockNumber
+        transferIds
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
 
@@ -93,8 +92,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         committedAt,
         sourceChainId,
-        transferIds,
-        commitTxBlockNumber
+        transferIds
       ))
     }
 
@@ -108,8 +106,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     destinationChainId: number,
     committedAt: number,
     sourceChainId: number,
-    transferIds: string[],
-    commitTxBlockNumber: number
+    transferIds: string[]
   ) {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
@@ -143,7 +140,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('transferRootId:', transferRootId)
     logger.debug('transferRootHash:', transferRootHash)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
-    logger.debug('transferRootId:', transferRootId)
 
     const pendingTransfers: string[] = transferIds ?? []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
@@ -198,7 +194,12 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
-      let { rootBondBackoffIndex } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+      const transferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+      if (!transferRoot) {
+        throw new Error('transferRoot not found in db')
+      }
+
+      let { rootBondBackoffIndex } = transferRoot
       if (!rootBondBackoffIndex) {
         rootBondBackoffIndex = 0
       }
@@ -247,22 +248,20 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async preTransactionValidation (txParams: SendBondTransferRootTxParams): Promise<void> {
-    const logger = this.logger.create({ root: txParams.transferRootId })
-
     // Perform this check as late as possible before the transaction is sent
-    logger.debug('validating db existence')
-    await this.validateDbExistence(txParams)
-    logger.debug('validating destination chain id')
-    await this.validateDestinationChainId(txParams)
-    logger.debug('validating uniqueness')
-    await this.validateUniqueness(txParams)
-    logger.debug('validating logs with redundant rpcs')
-    await this.validateLogsWithRedundantRpcs(txParams)
+    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+
+    await this.validateDbExistence(txParams, calculatedDbTransferRoot)
+    await this.validateDestinationChainId(txParams, calculatedDbTransferRoot)
+    await this.validateUniqueness(txParams, calculatedDbTransferRoot)
+    await this.validateLogsWithRedundantRpcs(txParams, calculatedDbTransferRoot)
   }
 
-  async validateDbExistence (txParams: SendBondTransferRootTxParams): Promise<void> {
+  async validateDbExistence (txParams: SendBondTransferRootTxParams, calculatedDbTransferRoot: TransferRoot): Promise<void> {
     // Validate DB existence with calculated transferRootId
-    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+    const logger = this.logger.create({ root: txParams.transferRootId })
+    logger.debug('validating db existence')
+
     if (!calculatedDbTransferRoot?.transferRootId || !txParams?.transferRootId) {
       throw new PossibleReorgDetected(`Calculated transferRootId (${calculatedDbTransferRoot?.transferRootId}) or transferIds (${txParams?.transferRootId}) is missing`)
     }
@@ -271,9 +270,10 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async validateDestinationChainId (txParams: SendBondTransferRootTxParams): Promise<void> {
-    // Validate that the destination chain id matches the db entry
-    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+  async validateDestinationChainId (txParams: SendBondTransferRootTxParams, calculatedDbTransferRoot: TransferRoot): Promise<void> {
+    // Validate that the destination chain id matches the db item
+    const logger = this.logger.create({ root: txParams.transferRootId })
+    logger.debug('validating destination chain id')
     if (!calculatedDbTransferRoot?.destinationChainId || !txParams?.destinationChainId) {
       throw new PossibleReorgDetected(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${txParams?.destinationChainId}) is missing`)
     }
@@ -282,12 +282,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async validateUniqueness (txParams: SendBondTransferRootTxParams): Promise<void> {
+  async validateUniqueness (txParams: SendBondTransferRootTxParams, calculatedDbTransferRoot: TransferRoot): Promise<void> {
     // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
+    const logger = this.logger.create({ root: txParams.transferRootId })
+    logger.debug('validating uniqueness')
     const transferIds = txParams.transferIds.map((x: string) => x.toLowerCase())
 
     // Only use roots that are not the current root, from the source chain, and have associated transferIds
-    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromTwoWeeks())
+    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromWeek())
       .filter(dbTransferRoot => dbTransferRoot.transferRootId !== txParams.transferRootId)
       .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
       .filter(dbTransferRoot => dbTransferRoot?.transferIds?.length)
@@ -306,11 +308,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async validateLogsWithRedundantRpcs (txParams: SendBondTransferRootTxParams): Promise<void> {
+  async validateLogsWithRedundantRpcs (txParams: SendBondTransferRootTxParams, calculatedDbTransferRoot: TransferRoot): Promise<void> {
     const logger = this.logger.create({ root: txParams.transferRootId })
+    logger.debug('validating logs with redundant rpcs')
 
     // Validate logs with redundant RPC endpoint, if it exists
-    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     const blockNumber = calculatedDbTransferRoot?.commitTxBlockNumber
     if (!blockNumber) {
       // This might occur if an event is simply missed or not written to the DB. In this case, this is not necessarily a reorg, so throw a normal error

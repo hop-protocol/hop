@@ -12,6 +12,7 @@ import {
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { FinalityService } from 'src/finality/FinalityService'
+import { FinalityStrategyType } from 'src/finality/strategies/IFinalityStrategy'
 import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'
 
 export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
@@ -35,12 +36,11 @@ export default class ContractBase extends EventEmitter {
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
 
-    // TODO: Remove as any when bonder finality logic is independent
-    const syncType = getNetworkCustomSyncType(this.chainSlug) ?? SyncType.Bonder
+    const syncType = getNetworkCustomSyncType(this.chainSlug) ?? SyncType.Bonder as unknown // note: ts type checker suggests using 'unknown' type first to fix type error
     this.finalityService = new FinalityService(
       this.contract.provider,
       this.chainSlug,
-      syncType as any
+      syncType as FinalityStrategyType
     )
 
     if (syncType !== SyncType.Bonder) {

@@ -10,6 +10,14 @@ import {
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from 'src/constants'
+import {
+  CoingeckoApiKey,
+  getBridgeWriteContractAddress,
+  getNetworkCustomSyncType,
+  getProxyAddressForChain,
+  config as globalConfig,
+  isProxyAddressForChain
+} from 'src/config'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -20,13 +28,6 @@ import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
-import {
-  getBridgeWriteContractAddress,
-  getNetworkCustomSyncType,
-  getProxyAddressForChain,
-  config as globalConfig,
-  isProxyAddressForChain
-} from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -38,6 +39,14 @@ export type CanonicalTokenConvertOptions = {
   shouldSkipNearestCheck?: boolean
 }
 
+export type GasCostEstimationRes = {
+  gasCost: BigNumber
+  gasCostInToken: BigNumber
+  gasLimit: BigNumber
+  tokenPriceUsd: number
+  nativeTokenPriceUsd: number
+}
+
 type BlockValues = {
   end: number
   start: number
@@ -46,10 +55,18 @@ type BlockValues = {
   latestBlockInBatch: number
 }
 
+export type DecodedSettleBondedWithdrawalsDataRes = {
+  bonder: string
+  transferIds: string[]
+  totalAmount: BigNumber
+}
+
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
 type BridgeContract = L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
 
-const priceFeed = new PriceFeed()
+const priceFeed = new PriceFeed({
+  coingecko: CoingeckoApiKey ?? undefined
+})
 
 export default class Bridge extends ContractBase {
   db: DbSet
@@ -291,7 +308,9 @@ export default class Bridge extends ContractBase {
     return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
-  getParamsFromMultipleSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
+  getParamsFromMultipleSettleEventTransaction = async (
+    multipleWithdrawalsSettledTxHash: string
+  ): Promise<DecodedSettleBondedWithdrawalsDataRes> => {
     const tx = await this.getTransaction(multipleWithdrawalsSettledTxHash)
     if (!tx) {
       throw new Error('expected tx object')
@@ -351,7 +370,7 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  decodeSettleBondedWithdrawalsData (data: string): any {
+  decodeSettleBondedWithdrawalsData (data: string): DecodedSettleBondedWithdrawalsDataRes {
     if (!data) {
       throw new Error('data to decode is required')
     }
@@ -566,6 +585,7 @@ export default class Bridge extends ContractBase {
   ): Promise<R[]> {
     let i = 0
     const promises: R[] = []
+    // This will grow unbounded in memory and cause OOM issues if the sync range is too large
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await getEventsMethod(start, end)
       events = events.reverse()
@@ -585,7 +605,7 @@ export default class Bridge extends ContractBase {
 
     // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
     let syncCacheKey = ''
-    let state: State | undefined
+    let state: State | null = null
     if (options.syncCacheKey) {
       syncCacheKey = this.getSyncCacheKeyFromKey(
         this.chainId,
@@ -593,23 +613,26 @@ export default class Bridge extends ContractBase {
         options.syncCacheKey
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
+      if (state) {
+        const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+        if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
+          // If a head sync does not have state or the state is stale, use the state of
+          // its finalized counterpart. The finalized counterpart is guaranteed to have updated
+          // state since the bonder performs a full sync before beginning any other operations.
+          // * The head sync will not have state upon fresh bonder sync.
+          // * The head sync will have stale data if they use the head syncer, turn it off
+          //   for some time, and then turn it back on again.
+          const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
+          const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
+          if (!finalizedState) {
+            throw new Error(`expected finalizedState for key ${finalizedStateKey}`)
+          }
 
-      const customSyncKeySuffix = this.getCustomSyncKeySuffix()
-      if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
-        // If a head sync does not have state or the state is stale, use the state of
-        // its finalized counterpart. The finalized counterpart is guaranteed to have updated
-        // state since the bonder performs a full sync before beginning any other operations.
-        // * The head sync will not have state upon fresh bonder sync.
-        // * The head sync will have stale data if they use the head syncer, turn it off
-        //   for some time, and then turn it back on again.
-        const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
-        const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
-
-        const doesCustomSyncDbExist = !!state?.latestBlockSynced
-        const isCustomSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
-        if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
-          state = finalizedState
-          state.key = syncCacheKey
+          const doesCustomSyncDbExist = !!state.latestBlockSynced
+          const isCustomSyncDataStale = state.latestBlockSynced < finalizedState.latestBlockSynced
+          if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
+            state = finalizedState
+          }
         }
       }
     }
@@ -679,7 +702,7 @@ export default class Bridge extends ContractBase {
     return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State): Promise<BlockValues> => {
+  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
     const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number
@@ -861,7 +884,7 @@ export default class Bridge extends ContractBase {
     transactionType: GasCostTransactionType,
     data?: string,
     to?: string
-  ) {
+  ): Promise<GasCostEstimationRes> {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     let gasCost: BigNumber = BigNumber.from('0')
     if (transactionType === GasCostTransactionType.Relay) {
@@ -924,7 +947,12 @@ export default class Bridge extends ContractBase {
 
   async getGasCostTokenValues (symbol: string) {
     const decimals = getTokenDecimals(symbol)
-    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
+    let priceUsd
+    try {
+      priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
+    } catch (err) {
+      throw new Error(`failed to get price for ${symbol} with error message: ${err.message}`)
+    }
     if (typeof priceUsd !== 'number') {
       throw new Error('expected price to be number type')
     }

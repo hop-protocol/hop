@@ -7,9 +7,9 @@ export const config : Config = {
       polygon: 500,
       gnosis: 500,
       optimism: 500,
-      arbitrum: 500,
       zksync: 500,
       linea: 500,
+      arbitrum: 500,
       scrollzk: 500,
       base: 500,
       polygonzk: 500
@@ -39,8 +39,8 @@ export const config : Config = {
     USDT: {
       ethereum: 500,
       polygon: 500,
-      optimism: 500,
       arbitrum: 500,
+      optimism: 500,
       zksync: 500,
       linea: 500,
       scrollzk: 500,
@@ -50,8 +50,8 @@ export const config : Config = {
       ethereum: 500,
       polygon: 500,
       optimism: 500,
-      arbitrum: 500,
       zksync: 500,
+      arbitrum: 500,
       linea: 500,
       scrollzk: 500,
       base: 500
@@ -60,10 +60,10 @@ export const config : Config = {
       ethereum: 500,
       polygon: 500,
       optimism: 500,
-      arbitrum: 500,
       zksync: 500,
       linea: 500,
       scrollzk: 500,
+      arbitrum: 500,
       base: 500
     }
   },
@@ -77,25 +77,25 @@ export const config : Config = {
   },
   destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
-    polygon: true,
-    optimism: true,
-    arbitrum: true,
-    zksync: true,
-    linea: true,
-    scrollzk: true,
-    base: true,
-    polygonzk: true
+    polygon: false,
+    optimism: false,
+    arbitrum: false,
+    zksync: false,
+    linea: false,
+    scrollzk: false,
+    base: false,
+    polygonzk: false
   },
   relayerFeeWei: {
-    linea: '1000000000000000'
+    linea: '100000000000000'
   },
   proxyEnabled: {
     ETH: {
       ethereum: false,
       polygon: false,
+      arbitrum: false,
       gnosis: false,
       optimism: false,
-      arbitrum: false,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -106,8 +106,8 @@ export const config : Config = {
       ethereum: false,
       polygon: false,
       gnosis: false,
-      optimism: false,
       arbitrum: false,
+      optimism: false,
       zksync: false,
       linea: false,
       scrollzk: false,
@@ -157,5 +157,29 @@ export const config : Config = {
   },
   bridgeDeprecated: {
     USDC: true
+  },
+  defaultSendGasLimit: {
+    native: {
+      ethereum: 130000,
+      optimism: 225000,
+      gnosis: 260000,
+      arbitrum: 260000,
+      polygon: 260000,
+      linea: 500000,
+      scrollzk: 500000,
+      base: 225000,
+      polygonzk: 500000
+    },
+    token: {
+      ethereum: 180000,
+      optimism: 240000,
+      gnosis: 260000,
+      polygon: 260000,
+      arbitrum: 260000,
+      linea: 700000,
+      scrollzk: 700000,
+      base: 240000,
+      polygonzk: 700000
+    }
   }
 }

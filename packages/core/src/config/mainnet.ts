@@ -98,16 +98,42 @@ export const config : Config = {
     nova: false,
     base: false,
     zksync: false,
-    linea: false,
+    linea: true,
     scrollzk: false,
     polygonzk: false
   },
   relayerFeeWei: {
-    linea: '0'
+    linea: '1000000000000000'
   },
   proxyEnabled: {},
   bridgeDeprecated: {
     SNX: true,
     sUSD: true
+  },
+  defaultSendGasLimit: {
+    native: {
+      ethereum: 130000,
+      arbitrum: 500000,
+      optimism: 225000,
+      gnosis: 260000,
+      polygon: 260000,
+      nova: 500000,
+      linea: 500000,
+      scrollzk: 500000,
+      base: 225000,
+      polygonzk: 500000
+    },
+    token: {
+      ethereum: 180000,
+      arbitrum: 700000,
+      optimism: 240000,
+      gnosis: 260000,
+      polygon: 260000,
+      nova: 700000,
+      linea: 700000,
+      scrollzk: 700000,
+      base: 240000,
+      polygonzk: 700000
+    }
   }
 }

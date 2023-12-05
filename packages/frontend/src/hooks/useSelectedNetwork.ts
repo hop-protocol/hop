@@ -27,7 +27,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
   const { queryParams, updateQueryParams } = useQueryParams()
 
   useEffect(() => {
-    if (queryParams?.sourceNetwork !== selectedNetwork.slug) {
+    if (queryParams?.sourceNetwork !== selectedNetwork?.slug) {
       const matchingNetwork = findNetworkBySlug(
         queryParams.sourceNetwork as string,
         opts.availableNetworks

@@ -55,7 +55,7 @@ async function main (source: any) {
         throw new Error('TransferId does not exist in the DB')
       }
       if (dbTransfer.sourceChainSlug !== chain) {
-        throw new Error('Source chain from DB does not match the source chain')
+        throw new Error(`Source chain from DB does not match the source chain: dbTransfer.sourceChainSlug=${dbTransfer.sourceChainSlug}, chain=${chain}`)
       }
       const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
       if (attemptSwap && isL1ChainId(dbTransfer.destinationChainId!)) {
@@ -64,7 +64,6 @@ async function main (source: any) {
 
       const txParams: SendBondWithdrawalTxParams = {
         transferId: dbTransfer.transferId,
-        sender: dbTransfer.sender!,
         recipient: dbTransfer.recipient!,
         amount: dbTransfer.amount!,
         transferNonce: dbTransfer.transferNonce!,
@@ -74,6 +73,7 @@ async function main (source: any) {
         amountOutMin: dbTransfer.amountOutMin!,
         deadline: dbTransfer.deadline!,
         transferSentIndex: dbTransfer.transferSentIndex!,
+        transferSentTimestamp: dbTransfer.transferSentTimestamp!,
         isFinalized: dbTransfer.isFinalized!
       }
       await watcher.sendBondWithdrawalTx(txParams)

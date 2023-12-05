@@ -1,9 +1,10 @@
 import OsWatcher from 'src/watchers/OsWatcher'
+import { AssetSymbol } from '@hop-protocol/core/config'
 import {
   BondThreshold,
+  BondWithdrawalBatchSize,
   ShouldIgnoreBlockHashValidation,
   ShouldIgnoreProxy,
-  bondWithdrawalBatchSize,
   gitRev,
   config as globalConfig,
   slackAuthToken,
@@ -11,7 +12,6 @@ import {
   slackUsername
 } from 'src/config'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
-
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { computeAddress } from 'ethers/lib/utils'
 import { printHopArt } from './shared/art'
@@ -103,7 +103,7 @@ async function main (source: any) {
         config.settleBondedWithdrawals?.thresholdPercent
     }
   }
-  logger.debug(`bondWithdrawalBatchSize: ${bondWithdrawalBatchSize}`)
+  logger.debug(`BondWithdrawalBatchSize: ${BondWithdrawalBatchSize}`)
   const slackEnabled = slackAuthToken && slackChannel && slackUsername
   if (slackEnabled) {
     logger.debug(`slack notifications enabled. channel #${slackChannel}`)
@@ -131,7 +131,7 @@ async function main (source: any) {
     if (totalStake) {
       for (const token of tokens) {
         if (token in totalStake) {
-          logger.info(`bonder total stake for ${token}: ${(totalStake as any)[token]}`)
+          logger.info(`bonder total stake for ${token}: ${totalStake[token as AssetSymbol]}`)
         }
       }
     }

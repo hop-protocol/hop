@@ -1,23 +1,27 @@
 import { mainnetAddresses, mainnetNetworks } from './mainnet'
-import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
+import { goerliAddresses, goerliNetworks } from './goerli'
+import { sepoliaAddresses, sepoliaNetworks } from './sepolia'
 import { Slug } from '@hop-protocol/sdk'
 import { gitRevision } from './config'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
-const hopAppNetwork = reactAppNetwork
 let addresses: any
 let networks: any
-const isMainnet = hopAppNetwork === Slug.mainnet
-const isGoerli = hopAppNetwork === Slug.goerli
+const isMainnet = reactAppNetwork === Slug.mainnet
+const isGoerli = reactAppNetwork === Slug.goerli
+const isSepolia = reactAppNetwork === Slug.sepolia
 
 if (isMainnet) {
   addresses = mainnetAddresses
   networks = mainnetNetworks
-} else if (hopAppNetwork === Slug.goerli) {
+} else if (isGoerli) {
   addresses = goerliAddresses
   networks = goerliNetworks
+} else if (isSepolia) {
+  addresses = sepoliaAddresses
+  networks = sepoliaNetworks
 } else {
-  throw new Error(`Invalid network: ${hopAppNetwork}`)
+  throw new Error(`Invalid network: ${reactAppNetwork}`)
 }
 
 let enabledTokens: string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
@@ -32,9 +36,10 @@ if (enabledTokens) {
   addresses.tokens = filteredAddresses
 }
 
+const chainsWithConfig = new Set(Object.values(addresses.tokens).map((x: any) => Object.keys(x)).flat())
+
 const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
 
-// TODO: mv to src/config/networks
 let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
 if (enabledChains) {
   enabledChains = enabledChains.split(',').map(x => x.trim())
@@ -45,10 +50,14 @@ if (enabledChains) {
     }
   }
   networks = filteredNetworks
-}
-
-if (!enabledChains) {
-  enabledChains = ['ethereum', 'polygon', 'gnosis']
+} else {
+  const filteredNetworks: { [key: string]: any } = {
+    ethereum: networks.ethereum
+  }
+  for (const chain of chainsWithConfig) {
+    filteredNetworks[chain] = networks[chain]
+  }
+  networks = filteredNetworks
 }
 
 if (process.env.NODE_ENV !== 'test') {
@@ -63,7 +72,7 @@ if (process.env.NODE_ENV !== 'test') {
 `)
   console.log('Welcome 🐰')
   console.debug('ui version:', gitRevision)
-  console.debug('config hop app network:', hopAppNetwork)
+  console.debug('config react app network:', reactAppNetwork)
   console.debug('config chains (networks):', networks)
   console.debug('config addresses:', addresses.tokens)
   console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
@@ -188,13 +197,11 @@ const hopStakingRewardsContracts = {
 export {
   addresses,
   reactAppNetwork,
-  hopAppNetwork,
   networks,
   isMainnet,
   isGoerli,
   blocknativeDappid,
   stakingRewardsContracts,
   hopStakingRewardsContracts,
-  enabledChains,
   deprecatedTokens
 }

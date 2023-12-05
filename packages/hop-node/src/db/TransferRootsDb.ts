@@ -545,19 +545,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
       let sentTxTimestampOk = true
       if (item.sentRelayTxAt) {
-        if (
-          item.relayTxError === TxError.UnfinalizedTransferBondError ||
-          item.relayTxError === TxError.MessageUnknownStatus ||
-          item.relayTxError === TxError.MessageRelayTooEarly
-        ) {
-          const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
-          if (delayMs > OneWeekMs) {
-            return false
-          }
-          sentTxTimestampOk = item.sentRelayTxAt + delayMs < Date.now()
-        } else {
-          sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
-        }
+        sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
       }
 
       return (
@@ -692,15 +680,6 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
   protected readonly sortItems = (a: any, b: any) => {
     return a?.committedAt - b?.committedAt
-  }
-
-  async getRelayBackoffIndexForTransferRootId (transferRootId: string) {
-    let { relayBackoffIndex } = await this.getByTransferRootId(transferRootId)
-    if (!relayBackoffIndex) {
-      relayBackoffIndex = 0
-    }
-
-    return relayBackoffIndex
   }
 }
 

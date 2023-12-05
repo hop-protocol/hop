@@ -49,6 +49,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
       transferRootId
     )
+    if (!dbTransferRoot) {
+      this.logger.error('db transfer root not found')
+      return
+    }
     const {
       transferRootHash,
       sourceChainId,

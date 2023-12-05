@@ -16,7 +16,7 @@ import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
 } from 'src/constants'
-import { DbSet, getDbSet } from 'src/db'
+import { DbSet, getDbSet, isDbSetReady } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -146,7 +146,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   prePollHandler (): boolean {
     const initialSyncCompleted = this.isAllSiblingWatchersInitialSyncCompleted()
-    if (!initialSyncCompleted) {
+    const dbSetReady = isDbSetReady(this.tokenSymbol)
+    if (!initialSyncCompleted || !dbSetReady) {
       return false
     }
 

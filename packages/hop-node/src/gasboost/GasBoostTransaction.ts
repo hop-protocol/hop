@@ -12,18 +12,17 @@ import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import {
-  BlockHashValidationError,
-  EstimateGasError,
-  KmsSignerError,
-  NonceTooLowError
-} from 'src/types/error'
-import {
   Chain,
   InitialTxGasPriceMultiplier,
   MaxGasPriceMultiplier,
   MaxPriorityFeeConfidenceLevel,
   PriorityFeePerGasCap
 } from 'src/constants'
+import {
+  EstimateGasError,
+  KmsSignerError,
+  NonceTooLowError
+} from 'src/types/error'
 import { EventEmitter } from 'events'
 import { Notifier } from 'src/notifier'
 import {
@@ -54,7 +53,7 @@ type InflightItem = {
   sentAt: number
 }
 
-type MarshalledItem = {
+export type MarshalledTx = {
   id: string
   createdAt: number
   txHash?: string
@@ -315,10 +314,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.store) {
       return
     }
-    await this.store.updateItem(this.id, this.marshal())
+    await this.store.update(this.id, this.marshal())
   }
 
-  marshal (): MarshalledItem {
+  marshal (): MarshalledTx {
     return {
       id: this.id,
       createdAt: this.createdAt,
@@ -341,7 +340,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return await GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
-  static async unmarshal (item: MarshalledItem, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static async unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,
@@ -836,13 +835,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         this.logger.debug(`tx index ${i}: sending transaction`)
 
         const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} `
-        // await here is intentional to catch error below
         console.time(_timeId)
-        const tx = await this.sendUncheckedTransaction(payload)
+        const txHash: string = await this.sendUncheckedTransaction(payload)
         console.timeEnd(_timeId)
 
         this.logger.debug(`tx index ${i} completed`)
-        return tx
+        return {
+          ...payload,
+          hash: txHash
+        }
       } catch (err: any) {
         this.logger.debug(`tx index ${i} error: ${err.message}`)
 
@@ -852,13 +853,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           isAlreadyKnown,
           isFeeTooLow,
           serverError,
-          kmsSignerError,
-          blockHashValidationError
+          kmsSignerError
         } = this.parseErrorString(err.message)
-
-        if (blockHashValidationError) {
-          throw new BlockHashValidationError(err.message)
-        }
 
         // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
         if (nonceTooLow) {
@@ -996,7 +992,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
     const serverError = /SERVER_ERROR/g.test(errMessage)
     const kmsSignerError = /Error signing message/g.test(errMessage)
-    const blockHashValidationError = /BHV:/g.test(errMessage)
 
     return {
       nonceTooLow,
@@ -1004,8 +999,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       isAlreadyKnown,
       isFeeTooLow,
       serverError,
-      kmsSignerError,
-      blockHashValidationError
+      kmsSignerError
     }
   }
 
@@ -1041,7 +1035,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.send()
   }
 
-  private async rebroadcastLatestTx () {
+  private async rebroadcastLatestTx (): Promise<TransactionRequestWithHash | undefined> {
     this.logger.debug(`attempting to rebroadcast latest transaction with index ${this.rebroadcastIndex}`)
     const payload: providers.TransactionRequest = {
       type: this.type,
@@ -1067,10 +1061,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       return
     }
 
-    const tx = await this.signer.sendTransaction(payload)
-    this.logger.debug(`rebroadcasted transaction, tx hash: ${tx.hash}`)
+    const txHash: string = await this.sendUncheckedTransaction(payload)
+    this.logger.debug(`rebroadcasted transaction, tx hash: ${txHash}`)
 
-    return tx
+    return {
+      ...payload,
+      hash: txHash
+    }
   }
 
   private reset () {
@@ -1087,33 +1084,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.setOwnTxParams(this.originalTxParams)
   }
 
-  // Other than the eth_sendRawTransaction method and return, this method is identical to ethers signer.sendTransaction
-  async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<TransactionRequestWithHash> {
-    const _debugMsg = `GasBoostTransaction signer.sendTransaction elapsed DEBUG ${this.logId}`
-    const _debugMsgA = _debugMsg + ' A'
-    const _debugMsgB = _debugMsg + ' B'
-    const _debugMsgC = _debugMsg + ' C'
-    const _debugMsgD = _debugMsg + ' D'
-
-    console.time(_debugMsgA)
+  // Use this to speed up transactions. Unchecked transactions mean that ethers will not wait for
+  // the node to respond with the tx response, which might add ms or s to the transaction. This
+  // function retains all the same validation properties as sendTransaction.
+  async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<string> {
     const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
-    console.timeEnd(_debugMsgA)
-    console.time(_debugMsgB)
     const signedTx: string = await this.signer.signTransaction(tx)
-    console.timeEnd(_debugMsgB)
-    console.time(_debugMsgC)
     const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
-    console.timeEnd(_debugMsgC)
-    console.time(_debugMsgD)
-
     const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [signedTx])
-    console.timeEnd(_debugMsgD)
 
-    // Only populated response field is the hash
-    return {
-      ...tx,
-      hash: txHash
-    }
+    return txHash
   }
 }
 

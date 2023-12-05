@@ -64,6 +64,9 @@ class ChallengeWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
       transferRootId
     )
+    if (!dbTransferRoot) {
+      throw new Error('db transfer root not found')
+    }
 
     const { bondTxHash } = dbTransferRoot
     if (!bondTxHash) {

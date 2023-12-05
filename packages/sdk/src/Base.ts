@@ -138,7 +138,6 @@ export class Base {
   destinationFeeGasPriceMultiplier : number = 1
   relayerFeeEnabled: Record<string, boolean>
   relayerFeeWei: Record<string, string>
-  proxyEnabled: { [token: string]: Record<string, boolean>}
   bridgeDeprecated: Record<string, boolean>
 
   baseExplorerUrl: string = 'https://explorer.hop.exchange'
@@ -234,7 +233,6 @@ export class Base {
     this.destinationFeeGasPriceMultiplier = config[network].destinationFeeGasPriceMultiplier
     this.relayerFeeEnabled = config[network].relayerFeeEnabled
     this.relayerFeeWei = config[network].relayerFeeWei
-    this.proxyEnabled = config[network].proxyEnabled
     this.bridgeDeprecated = config[network].bridgeDeprecated
     if (this.network !== NetworkSlug.Mainnet) {
       this.baseExplorerUrl = `https://${this.network}.explorer.hop.exchange`
@@ -268,9 +266,6 @@ export class Base {
         }
         if (data.relayerFeeWei) {
           this.relayerFeeWei = data.relayerFeeWei
-        }
-        if (data.proxyEnabled) {
-          this.proxyEnabled = data.proxyEnabled
         }
         if (data.bridgeDeprecated) {
           this.bridgeDeprecated = data.bridgeDeprecated
@@ -648,7 +643,11 @@ export class Base {
 
     const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
     if (minGasPrice) {
-      txOptions.gasPrice = BigNumber.from(minGasPrice)
+      const currentGasPrice = await this.getGasPrice(sourceChain.provider)
+      const minGasPriceBn = BigNumber.from(minGasPrice)
+      if (currentGasPrice.lte(minGasPriceBn)) {
+        txOptions.gasPrice = minGasPriceBn
+      }
     }
 
     const minGasLimit = getMinGasLimit(this.network, sourceChain.slug)
@@ -677,20 +676,6 @@ export class Base {
     }
 
     return bonder
-  }
-
-  protected async _getStakerAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<string> {
-    await this.fetchConfigFromS3()
-    token = this.toTokenModel(token)
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-
-    const staker = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.proxy
-    if (!staker) {
-      console.warn(`staker address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
-    }
-
-    return staker
   }
 
   protected async _getMessengerWrapperAddress (token: TToken, destinationChain: TChain): Promise<string> {
@@ -733,20 +718,6 @@ export class Base {
 
   getDestinationFeeGasPriceMultiplier (): number {
     return this.destinationFeeGasPriceMultiplier
-  }
-
-  public async getProxyEnabled (token: TToken, destinationChain: TChain): Promise<boolean> {
-    await this.fetchConfigFromS3()
-    token = this.toTokenModel(token)
-    destinationChain = this.toChainModel(destinationChain)
-    if (!token) {
-      throw new Error('token is required')
-    }
-    if (!destinationChain) {
-      throw new Error('destinationChain is required')
-    }
-    const proxyEnabled = this.proxyEnabled?.[token?.canonicalSymbol]
-    return proxyEnabled?.[destinationChain.slug] || false
   }
 
   public async getIsBridgeDeprecated (token: TToken): Promise<boolean> {

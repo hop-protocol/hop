@@ -73,6 +73,7 @@ async function main (source: any) {
         amountOutMin: dbTransfer.amountOutMin!,
         deadline: dbTransfer.deadline!,
         transferSentIndex: dbTransfer.transferSentIndex!,
+        transferSentTimestamp: dbTransfer.transferSentTimestamp!,
         isFinalized: dbTransfer.isFinalized!
       }
       await watcher.sendBondWithdrawalTx(txParams)

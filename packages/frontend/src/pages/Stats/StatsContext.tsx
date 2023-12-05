@@ -304,11 +304,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
             continue
           }
           for (const destinationChain in config.addresses.bonders?.[token.symbol]?.[network.slug]) {
-            // Use proxy if available
-            let bonder = config.addresses.tokens?.[token.symbol]?.[network.slug]?.proxy
-            if (!bonder) {
-              bonder = config.addresses.bonders?.[token.symbol][network.slug][destinationChain]
-            }
+            const bonder = config.addresses.bonders?.[token.symbol][network.slug][destinationChain]
             if (bonder) {
               bonders.add(bonder)
             }

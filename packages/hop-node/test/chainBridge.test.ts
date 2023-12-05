@@ -44,18 +44,8 @@ async function main () {
     l2BlockNumber
   }
 
-  // await testGetHiddenCalldataForDestinationChain(opts)
   await testGetL1InclusionTx(opts)
   // await testGetL2InclusionTx(opts)
-}
-
-async function testGetHiddenCalldataForDestinationChain (opts: any): Promise<void> {
-  const { chainWatcher, destinationChainSlug, l2TxHash, l2BlockNumber } = opts
-  const hiddenCalldata = await chainWatcher.getHiddenCalldataForDestinationChain(destinationChainSlug, l2TxHash, l2BlockNumber)
-  if (hiddenCalldata === undefined) {
-    throw new Error('shouldn\'t have failed')
-  }
-  console.log(hiddenCalldata)
 }
 
 async function testGetL1InclusionTx (opts: any): Promise<void> {

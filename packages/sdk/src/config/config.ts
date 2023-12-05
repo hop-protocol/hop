@@ -33,7 +33,6 @@ for (const network in chainNetworks) {
   const destinationFeeGasPriceMultiplier = (coreConfig as any)[network].destinationFeeGasPriceMultiplier
   const relayerFeeEnabled = (coreConfig as any)[network].relayerFeeEnabled
   const relayerFeeWei = (coreConfig as any)[network].relayerFeeWei
-  const proxyEnabled = (coreConfig as any)[network].proxyEnabled
   const bridgeDeprecated = (coreConfig as any)[network].bridgeDeprecated
 
   config[network] = {
@@ -44,7 +43,6 @@ for (const network in chainNetworks) {
     destinationFeeGasPriceMultiplier,
     relayerFeeEnabled,
     relayerFeeWei,
-    proxyEnabled,
     bridgeDeprecated
   }
 }

@@ -52,14 +52,6 @@ type RelayerFeeEnabled = {
   [key in ChainSlug]: boolean
 }
 
-export type EnabledStatus = {
-  [key in ChainSlug]: boolean
-}
-
-export type ProxyEnabled = {
-  [key in AssetSymbol]: Partial<EnabledStatus>
-}
-
 export type BridgeDeprecated = {
   [key in AssetSymbol]: boolean
 }
@@ -83,7 +75,6 @@ export type Config = {
   destinationFeeGasPriceMultiplier: number
   relayerFeeWei: Partial<RelayerFeeWei>
   relayerFeeEnabled: Partial<RelayerFeeEnabled>
-  proxyEnabled: Partial<ProxyEnabled>
   bridgeDeprecated: Partial<BridgeDeprecated>
   defaultSendGasLimit: Partial<DefaultSendGasLimit>
 }

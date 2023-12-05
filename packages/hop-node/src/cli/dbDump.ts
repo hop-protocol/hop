@@ -76,16 +76,16 @@ async function main (source: any) {
       const output: any[] = []
       for (const transferRootId of inputFileList) {
         const item = await db.transferRoots.getByTransferRootId(transferRootId)
-        output.push(item || { transferRootId })
+        output.push(item ?? { transferRootId })
       }
       const filtered = output.map((x: any) => {
-        const { transferRootId, transferRootHash, totalAmount, bonded, comitted, committedAt, confirmed, rootSetTimestamp } = x
+        const { transferRootId, transferRootHash, totalAmount, bonded, committed, committedAt, confirmed, rootSetTimestamp } = x
         return {
           transferRootId,
           transferRootHash,
           totalAmount,
           bonded,
-          comitted,
+          committed,
           committedAt,
           confirmed,
           rootSetTimestamp
@@ -107,7 +107,7 @@ async function main (source: any) {
       const output: any[] = []
       for (const transferId of inputFileList) {
         const item = await db.transfers.getByTransferId(transferId)
-        output.push(item || { transferId })
+        output.push(item ?? { transferId })
       }
       const filtered = output.map((x: any) => {
         const { transferId, amount, transferSentTimestamp, withdrawalBonded, isBondable, withdrawalBondTxError, bondWithdrawalAttemptedAt } = x
@@ -129,7 +129,7 @@ async function main (source: any) {
       })
     }
   } else if (dbName === 'sync-state') {
-    items = await db.syncState.getItems()
+    items = await db.syncState.getAllItems()
   } else if (dbName === 'gas-cost') {
     if (tokenSymbol && nearest) {
       if (!chain) {
@@ -141,7 +141,7 @@ async function main (source: any) {
         db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.Relay, nearest)
       ])
     } else {
-      items = await db.gasCost.getItems()
+      items = await db.gasCost.getAllItems()
     }
   } else {
     throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)

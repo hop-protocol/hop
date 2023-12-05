@@ -199,8 +199,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
   private readonly shouldUsePendingCountCommitThreshold = (sourceChain: string, destinationChain: string): boolean => {
     return (
-      sourceChain === Chain.Polygon ||
-      destinationChain === Chain.Linea
+      sourceChain === Chain.Polygon
     )
   }
 }

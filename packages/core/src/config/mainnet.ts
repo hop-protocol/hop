@@ -105,7 +105,6 @@ export const config : Config = {
   relayerFeeWei: {
     linea: '1000000000000000'
   },
-  proxyEnabled: {},
   bridgeDeprecated: {
     SNX: true,
     sUSD: true

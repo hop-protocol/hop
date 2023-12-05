@@ -1,6 +1,6 @@
 export default class MemoryStore {
   items: any = {}
-  async updateItem (key: string, value: any): Promise<void> {
+  async update (key: string, value: any): Promise<void> {
     this.items[key] = Object.assign({}, this.items[key], value)
   }
 

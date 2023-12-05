@@ -146,7 +146,7 @@ class OsWatcher {
   async logHeapdump () {
     const heapdump = await import('heapdump')
     this.heapIndex++
-    const location = `/tmp/heapdump_${Date.now()}.heapsnapshot`
+    const location = `/root/heapdump_${Date.now()}.heapsnapshot`
     this.logger.debug('generating heapdump snapshot')
     // note: if you see the error "Segmentation fault (core dumped)" on node v14,
     // try using node v12

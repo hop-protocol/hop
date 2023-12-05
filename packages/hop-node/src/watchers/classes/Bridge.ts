@@ -12,11 +12,8 @@ import {
 } from 'src/constants'
 import {
   CoingeckoApiKey,
-  getBridgeWriteContractAddress,
   getNetworkCustomSyncType,
-  getProxyAddressForChain,
-  config as globalConfig,
-  isProxyAddressForChain
+  config as globalConfig
 } from 'src/config'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
@@ -81,7 +78,6 @@ export default class Bridge extends ContractBase {
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
   logger: Logger
-  bridgeWriteContract: BridgeContract
 
   constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
@@ -109,9 +105,6 @@ export default class Bridge extends ContractBase {
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
 
-    const bridgeWriteAddress = getBridgeWriteContractAddress(this.tokenSymbol, this.chainSlug)
-    this.bridgeWriteContract = this.bridgeContract.attach(bridgeWriteAddress)
-
     this.logger = new Logger({
       tag: 'Bridge',
       prefix: `${this.chainSlug}.${this.tokenSymbol}`
@@ -126,41 +119,42 @@ export default class Bridge extends ContractBase {
     return address
   }
 
-  async getStakerAddress (): Promise<string> {
-    if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug)) {
-      return getProxyAddressForChain(this.tokenSymbol, this.chainSlug)
-    } else {
-      return await (this.bridgeContract as Contract).signer.getAddress()
-    }
-  }
-
   isBonder = async (): Promise<boolean> => {
-    const stakerAddress = await this.getStakerAddress()
-    return this.bridgeContract.getIsBonder(stakerAddress)
+    const bonder = await this.getBonderAddress()
+    return await this.bridgeContract.getIsBonder(bonder)
   }
 
-  getCredit = async (address?: string): Promise<BigNumber> => {
-    const stakerAddress = address ?? (await this.getStakerAddress())
-    return this.bridgeContract.getCredit(stakerAddress)
+  getCredit = async (bonder?: string): Promise<BigNumber> => {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
+    const credit = await this.bridgeContract.getCredit(bonder)
+    return credit
   }
 
-  getDebit = async (address?: string): Promise<BigNumber> => {
-    const stakerAddress = address ?? (await this.getStakerAddress())
-    return this.bridgeContract.getDebitAndAdditionalDebit(stakerAddress)
-  }
-
-  getRawDebit = async (address?: string): Promise<BigNumber> => {
-    const stakerAddress = address ?? await this.getStakerAddress()
-    const debit = await this.bridgeContract.getRawDebit(stakerAddress)
+  getDebit = async (bonder?: string): Promise<BigNumber> => {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
+    const debit = await this.bridgeContract.getDebitAndAdditionalDebit(
+      bonder
+    )
     return debit
   }
 
-  async getBaseAvailableCredit (address?: string): Promise<BigNumber> {
-    const [credit, debit] = await Promise.all([
-      this.getCredit(address),
-      this.getDebit(address)
-    ])
+  getRawDebit = async (bonder?: string): Promise<BigNumber> => {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
+    const debit = await this.bridgeContract.getRawDebit(bonder)
+    return debit
+  }
 
+  async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
+    const [credit, debit] = await Promise.all([
+      this.getCredit(bonder),
+      this.getDebit(bonder)
+    ])
     return credit.sub(debit)
   }
 
@@ -451,7 +445,7 @@ export default class Bridge extends ContractBase {
   }
 
   stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
-    const bonder = await this.getStakerAddress()
+    const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
     if (
       this.chainSlug === Chain.Ethereum &&
@@ -460,7 +454,7 @@ export default class Bridge extends ContractBase {
       txOverrides.value = amount
     }
 
-    const tx = await this.bridgeWriteContract.stake(
+    const tx = await this.bridgeContract.stake(
       bonder,
       amount,
       txOverrides
@@ -470,7 +464,7 @@ export default class Bridge extends ContractBase {
   }
 
   unstake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeWriteContract.unstake(
+    const tx = await this.bridgeContract.unstake(
       amount,
       await this.txOverrides()
     )
@@ -503,7 +497,7 @@ export default class Bridge extends ContractBase {
       txOverrides
     ] as const
 
-    const tx = await this.bridgeWriteContract.bondWithdrawal(...payload)
+    const tx = await this.bridgeContract.bondWithdrawal(...payload)
     return tx
   }
 
@@ -512,7 +506,7 @@ export default class Bridge extends ContractBase {
     transferIds: string[],
     amount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeWriteContract.settleBondedWithdrawals(
+    const tx = await this.bridgeContract.settleBondedWithdrawals(
       bonder,
       transferIds,
       amount,
@@ -535,7 +529,7 @@ export default class Bridge extends ContractBase {
     siblings: string[],
     totalLeaves: number
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeWriteContract.withdraw(
+    const tx = await this.bridgeContract.withdraw(
       recipient,
       amount,
       transferNonce,
@@ -554,8 +548,10 @@ export default class Bridge extends ContractBase {
   }
 
   async getEthBalance (): Promise<BigNumber> {
-    // ETH balance will always be from the bonder EOA address
-    const bonder = await (this.bridgeContract as Contract).signer.getAddress()
+    const bonder = await this.getBonderAddress()
+    if (!bonder) {
+      throw new Error('expected bonder address')
+    }
     return await this.getBalance(bonder)
   }
 
@@ -585,6 +581,7 @@ export default class Bridge extends ContractBase {
   ): Promise<R[]> {
     let i = 0
     const promises: R[] = []
+    // This will grow unbounded in memory and cause OOM issues if the sync range is too large
     await this.eventsBatch(async (start: number, end: number) => {
       let events = await getEventsMethod(start, end)
       events = events.reverse()
@@ -604,7 +601,7 @@ export default class Bridge extends ContractBase {
 
     // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
     let syncCacheKey = ''
-    let state: State | undefined
+    let state: State | null = null
     if (options.syncCacheKey) {
       syncCacheKey = this.getSyncCacheKeyFromKey(
         this.chainId,
@@ -612,23 +609,26 @@ export default class Bridge extends ContractBase {
         options.syncCacheKey
       )
       state = await this.db.syncState.getByKey(syncCacheKey)
+      if (state) {
+        const customSyncKeySuffix = this.getCustomSyncKeySuffix()
+        if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
+          // If a head sync does not have state or the state is stale, use the state of
+          // its finalized counterpart. The finalized counterpart is guaranteed to have updated
+          // state since the bonder performs a full sync before beginning any other operations.
+          // * The head sync will not have state upon fresh bonder sync.
+          // * The head sync will have stale data if they use the head syncer, turn it off
+          //   for some time, and then turn it back on again.
+          const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
+          const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
+          if (!finalizedState) {
+            throw new Error(`expected finalizedState for key ${finalizedStateKey}`)
+          }
 
-      const customSyncKeySuffix = this.getCustomSyncKeySuffix()
-      if (customSyncKeySuffix && syncCacheKey.endsWith(customSyncKeySuffix)) {
-        // If a head sync does not have state or the state is stale, use the state of
-        // its finalized counterpart. The finalized counterpart is guaranteed to have updated
-        // state since the bonder performs a full sync before beginning any other operations.
-        // * The head sync will not have state upon fresh bonder sync.
-        // * The head sync will have stale data if they use the head syncer, turn it off
-        //   for some time, and then turn it back on again.
-        const finalizedStateKey = syncCacheKey.replace(customSyncKeySuffix, '')
-        const finalizedState = await this.db.syncState.getByKey(finalizedStateKey)
-
-        const doesCustomSyncDbExist = !!state?.latestBlockSynced
-        const isCustomSyncDataStale = state?.latestBlockSynced < finalizedState.latestBlockSynced
-        if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
-          state = finalizedState
-          state.key = syncCacheKey
+          const doesCustomSyncDbExist = !!state.latestBlockSynced
+          const isCustomSyncDataStale = state.latestBlockSynced < finalizedState.latestBlockSynced
+          if (!doesCustomSyncDbExist || isCustomSyncDataStale) {
+            state = finalizedState
+          }
         }
       }
     }
@@ -698,7 +698,7 @@ export default class Bridge extends ContractBase {
     return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state?: State): Promise<BlockValues> => {
+  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
     const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number

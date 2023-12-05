@@ -6,8 +6,6 @@ import wait from 'src/utils/wait'
 import { BigNumber, constants } from 'ethers'
 import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
-import { Interface } from 'ethers/lib/utils'
-import { ShouldIgnoreProxy, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
 import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
@@ -21,22 +19,16 @@ root
   .option('--token <symbol>', 'Token', parseString)
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
   .option('--skip-send-to-l2 [boolean]', 'Stake hTokens that already exist on L2', parseBool)
-  .option('--ignore-proxy [boolean]', 'Ignore the proxy address', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, token, amount, skipSendToL2, ignoreProxy } = source
+  const { chain, token, amount, skipSendToL2 } = source
 
   if (!amount) {
     throw new Error('amount is required. E.g. 100')
   }
   if (!chain) {
     throw new Error('chain is required')
-  }
-
-  if (ignoreProxy && !ShouldIgnoreProxy) {
-    logger.warn('In order to ignore the proxy address, please add the environment variable SHOULD_IGNORE_PROXY=true and run this again')
-    return
   }
 
   const bridge: L2Bridge | L1Bridge = await getBridge(token, chain)
@@ -51,8 +43,7 @@ async function main (source: any) {
   const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
   if (shouldSendToL2) {
     const l1Bridge: L1Bridge = (await getBridge(token, Chain.Ethereum)) as L1Bridge
-    const l2Bridge: L2Bridge = bridge as L2Bridge
-    await sendTokensToL2(l1Bridge, l2Bridge, parsedAmount, chain)
+    await sendTokensToL2(l1Bridge, parsedAmount, chain)
     logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
     await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)
     logger.debug('Tokens received on L2.')
@@ -62,17 +53,18 @@ async function main (source: any) {
 }
 
 async function sendTokensToL2 (
-  l1Bridge: L1Bridge,
-  l2Bridge: L2Bridge,
+  bridge: L1Bridge,
   parsedAmount: BigNumber,
   chain: string
 ) {
-  const token: Token | void = await getToken(l1Bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
+  const recipient = await bridge.getBonderAddress()
+  const spender = bridge.getAddress()
+
+  const token: Token | void = await getToken(bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
 
   let tx
   if (token) {
     logger.debug('Approving L2 token send, if needed')
-    const spender = await token.contract.signer.getAddress()
     tx = await token.approve(spender, parsedAmount)
     await tx?.wait()
   }
@@ -81,8 +73,7 @@ async function sendTokensToL2 (
   const options: CanonicalTokenConvertOptions = {
     shouldSkipNearestCheck: true
   }
-  const recipient = await l2Bridge.getBonderAddress()
-  tx = await l1Bridge.convertCanonicalTokenToHopToken(
+  tx = await bridge.convertCanonicalTokenToHopToken(
     chainSlugToId(chain),
     parsedAmount,
     recipient,
@@ -112,26 +103,7 @@ async function stake (
   if (token) {
     logger.debug('Approving token stake, if needed')
     const spender = bridge.getAddress()
-    if (isProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)) {
-      // Send proxy the tokens since it does not pull them on stake
-      const proxyAddress = getProxyAddressForChain(bridge.tokenSymbol, bridge.chainSlug)
-      tx = await token.transfer(proxyAddress, parsedAmount)
-      await tx?.wait()
-
-      // Approve the bridge to spend proxy tokens
-      const abi = ['function approveBridge(address,uint256)']
-      const iface = new Interface(abi)
-      const data = iface.encodeFunctionData(
-        'approveBridge', [token.address, parsedAmount]
-      )
-      tx = await token.contract.signer.sendTransaction({
-        to: proxyAddress,
-        data
-      })
-      await tx?.wait()
-    } else {
-      tx = await token.approve(spender, parsedAmount)
-    }
+    tx = await token.approve(spender, parsedAmount)
     await tx?.wait()
   }
 

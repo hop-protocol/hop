@@ -278,6 +278,7 @@ class AMM extends Base {
     }
 
     const overrides = await this.txOverrides(this.chain)
+
     return saddleSwap.calculateTokenAmount(
       recipient,
       amounts,
@@ -310,13 +311,15 @@ class AMM extends Base {
     if (!recipient) {
       throw new Error('recipient address is required')
     }
+
     const isDeposit = false
+    const overrides = await this.txOverrides(this.chain)
 
     return saddleSwap.calculateTokenAmount(
       recipient,
       amounts,
       isDeposit,
-      await this.txOverrides(this.chain)
+      overrides
     )
   }
 

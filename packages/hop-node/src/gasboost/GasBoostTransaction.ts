@@ -1097,7 +1097,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   // function retains all the same validation properties as sendTransaction.
   async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<string> {
     const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
-    const uncheckedSigner = jsonRpcProvider.getUncheckedSigner()
+    const uncheckedSigner = jsonRpcProvider.getUncheckedSigner(await this.signer.getAddress())
     const txHash = await uncheckedSigner.sendUncheckedTransaction(transaction)
     return txHash
   }

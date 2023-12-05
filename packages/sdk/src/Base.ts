@@ -643,7 +643,11 @@ export class Base {
 
     const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
     if (minGasPrice) {
-      txOptions.gasPrice = BigNumber.from(minGasPrice)
+      const currentGasPrice = await this.getGasPrice(sourceChain.provider)
+      const minGasPriceBn = BigNumber.from(minGasPrice)
+      if (currentGasPrice.lte(minGasPriceBn)) {
+        txOptions.gasPrice = minGasPriceBn
+      }
     }
 
     const minGasLimit = getMinGasLimit(this.network, sourceChain.slug)

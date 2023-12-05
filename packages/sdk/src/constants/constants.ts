@@ -27,7 +27,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   nova: 19843,
   base: 8545,
   zksync: 10000, // TODO
-  linea: 10000, // TODO
+  linea: 10416,
   scrollzk: 10000, // TODO
   polygonzk: 10000 // TODO
 }

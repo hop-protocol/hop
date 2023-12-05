@@ -4,8 +4,6 @@ export interface L1BridgeProps {
   l1CanonicalToken: string
   l1Bridge: string
   bridgeDeployedBlockNumber: number
-  proxy?: string
-  validator?: string
 }
 
 export interface L2BridgeProps {
@@ -18,8 +16,6 @@ export interface L2BridgeProps {
   l2AmmWrapper: string
   l2SaddleSwap: string
   l2SaddleLpToken: string
-  proxy?: string
-  validator?: string
   bridgeDeployedBlockNumber: number
 }
 

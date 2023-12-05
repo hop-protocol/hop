@@ -1,19 +1,19 @@
 import { BigNumber } from 'ethers'
 
-export function normalizeDbItem (item: any) {
-  for (const key in item) {
-    if (item[key]?.type === 'BigNumber') {
-      item = normalizeBigNumber(item, key)
+export function normalizeDbValue (value: any) {
+  for (const prop in value) {
+    if (value[prop]?.type === 'BigNumber') {
+      value = normalizeBigNumber(value, prop)
     }
   }
 
-  return item
+  return value
 }
 
-function normalizeBigNumber (item: any, prop: string): any {
-  if (item?.[prop] && item?.[prop]?.type === 'BigNumber') {
-    item[prop] = BigNumber.from(item[prop]?.hex)
+function normalizeBigNumber (value: any, prop: string): any {
+  if (value?.[prop] && value?.[prop]?.type === 'BigNumber') {
+    value[prop] = BigNumber.from(value[prop]?.hex)
   }
 
-  return item
+  return value
 }

@@ -471,6 +471,17 @@ export const getBonderTotalStake = (token: string): number | undefined => {
   return config.bonderConfig?.totalStake?.[token as AssetSymbol]
 }
 
+const getConfigBondersForToken = (token: string) => {
+  return config.bonders?.[token as AssetSymbol]
+}
+
+export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
+  const bonders = getConfigBondersForToken(token)
+  const bonder = bonders?.[sourceChain as Chain]?.[destinationChain as Chain]
+  return bonder
+}
+
+
 export { Bonders }
 export * from './validation'
 export * from './fileOps'

@@ -1096,9 +1096,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   // the node to respond with the tx response, which might add ms or s to the transaction. This
   // function retains all the same validation properties as sendTransaction.
   async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<string> {
+    const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
+    const signedTx: string = await this.signer.signTransaction(tx)
     const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
-    const uncheckedSigner = jsonRpcProvider.getUncheckedSigner(await this.signer.getAddress())
-    const txHash = await uncheckedSigner.sendUncheckedTransaction(transaction)
+    const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [signedTx])
+
     return txHash
   }
 }

@@ -9,15 +9,6 @@ import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, providers } from 'ethers'
 import {
-  BlockHashValidationError,
-  BonderFeeTooLowError,
-  BonderTooEarlyError,
-  NonceTooLowError,
-  PossibleReorgDetected,
-  RedundantProviderOutOfSync,
-  UnfinalizedTransferBondError
-} from 'src/types/error'
-import {
   BondThreshold,
   BondWithdrawalBatchSize,
   enableEmergencyMode,
@@ -25,6 +16,14 @@ import {
   getNetworkCustomSyncType,
   config as globalConfig
 } from 'src/config'
+import {
+  BonderFeeTooLowError,
+  BonderTooEarlyError,
+  NonceTooLowError,
+  PossibleReorgDetected,
+  RedundantProviderOutOfSync,
+  UnfinalizedTransferBondError
+} from 'src/types/error'
 import {
   GasCostTransactionType,
   SyncType,
@@ -292,12 +291,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         await this.db.transfers.update(transferId, {
           isBondable: false
         })
-      }
-
-      if (err instanceof BlockHashValidationError) {
-        logger.debug('blockHash validation failed. marking item not found')
-        await this.db.transfers.update(transferId, { isNotFound: true })
-        return
       }
 
       const isCallExceptionError = isFetchExecutionError(err.message)

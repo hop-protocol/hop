@@ -16,7 +16,7 @@ import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { formatUnits } from 'ethers/lib/utils'
-import { getEnabledTokens, getProxyAddressForChain, isProxyAddressForChain } from 'src/config'
+import { getEnabledTokens } from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Options = {
@@ -499,14 +499,7 @@ class IncompleteSettlementsWatcher {
         return
       }
 
-      let bonder: string = bondWithdrawalEvent.from
-      if (isProxyAddressForChain(token, destinationChain)) {
-        const proxyAddress = getProxyAddressForChain(token, destinationChain)
-        if (bondWithdrawalEvent.to === proxyAddress) {
-          bonder = bondWithdrawalEvent.to
-        }
-      }
-
+      const bonder = bondWithdrawalEvent.from
       const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
       if (bondedWithdrawalAmount.gt(0)) {
         const amount = bondedWithdrawalAmount.toString()

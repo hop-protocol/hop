@@ -47,9 +47,7 @@ import {
   SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
-  getProxyAddressForChain,
   config as globalConfig,
-  isProxyAddressForChain,
   minEthBonderFeeBn,
   oruChains,
   wsEnabledChains
@@ -1112,13 +1110,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    let calculatedBonder: string = tx.from
-    if (isProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)) {
-      const proxyAddress = getProxyAddressForChain(this.tokenSymbol, Chain.Ethereum)
-      if (tx.to === proxyAddress) {
-        calculatedBonder = tx.to
-      }
-    }
+    const { from } = tx
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
 
     if (!timestamp) {
@@ -1127,11 +1119,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    logger.debug(`bonder: ${calculatedBonder}`)
+    logger.debug(`bonder: ${from}`)
     logger.debug(`bondedAt: ${timestamp}`)
 
     await this.db.transferRoots.update(transferRootId, {
-      bonder: calculatedBonder,
+      bonder: from,
       bondedAt: timestamp
     })
   }
@@ -1647,11 +1639,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     this.logger.debug(`starting pollGasCost, chainSlug: ${this.chainSlug}`)
-    const bridgeContract = this.bridge.bridgeWriteContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
+    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const staker = await this.bridge.getBonderAddress()
+    const bonder = await this.bridge.getBonderAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 
@@ -1668,7 +1660,7 @@ class SyncWatcher extends BaseWatcher {
           transferNonce,
           bonderFee,
           {
-            from: staker
+            from: bonder
           }
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
@@ -1687,7 +1679,7 @@ class SyncWatcher extends BaseWatcher {
             amountOutMin,
             deadline,
             {
-              from: staker
+              from: bonder
             }
           ] as const
           const gasLimit = await l2BridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)

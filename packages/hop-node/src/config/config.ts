@@ -1,7 +1,5 @@
 import buildInfo from 'src/.build-info.json'
-import isL1 from 'src/utils/isL1'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
-import normalizeEnvVarBool from './utils/normalizeEnvVarBool'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
@@ -51,10 +49,8 @@ export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
-export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 25
-export const relayTransactionBatchSize = bondWithdrawalBatchSize
-export const ShouldIgnoreProxy = normalizeEnvVarBool(process.env.SHOULD_IGNORE_PROXY) ?? false
-export const ShouldIgnoreBlockHashValidation = normalizeEnvVarBool(process.env.SHOULD_IGNORE_BLOCK_HASH_VALIDATION) ?? false
+export const BondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 25
+export const RelayTransactionBatchSize = BondWithdrawalBatchSize
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -467,36 +463,15 @@ export function enableEmergencyMode () {
   config.emergencyDryMode = true
 }
 
-export function getProxyAddressForChain (token: string, chainSlug: string): string {
-  const address = config.addresses?.[token]?.[chainSlug]?.proxy
-  if (!address || ShouldIgnoreProxy) {
-    throw new Error(`Proxy address not found for token ${token} on chain ${chainSlug}`)
-  }
-  return address
-}
-
-export function isProxyAddressForChain (token: string, chainSlug: string): boolean {
-  return !!config.addresses?.[token]?.[chainSlug]?.proxy && !ShouldIgnoreProxy
-}
-
-export function getBridgeWriteContractAddress (token: string, chainSlug: string): string {
-  if (isProxyAddressForChain(token, chainSlug)) {
-    return getProxyAddressForChain(token, chainSlug)
-  }
-
-  const addresses = config.addresses?.[token]?.[chainSlug]
-  if (isL1(chainSlug)) {
-    return addresses.l1Bridge
-  } else {
-    return addresses.l2Bridge
-  }
-}
-
 export function getCanonicalAddressesForChain (chainSlug: string): any {
   return config.canonicalAddresses?.[chainSlug]
 }
 
-export const getConfigBondersForToken = (token: string) => {
+export const getBonderTotalStake = (token: string): number | undefined => {
+  return config.bonderConfig?.totalStake?.[token as AssetSymbol]
+}
+
+const getConfigBondersForToken = (token: string) => {
   return config.bonders?.[token as AssetSymbol]
 }
 
@@ -504,10 +479,6 @@ export const getConfigBonderForRoute = (token: string, sourceChain: string, dest
   const bonders = getConfigBondersForToken(token)
   const bonder = bonders?.[sourceChain as Chain]?.[destinationChain as Chain]
   return bonder
-}
-
-export const getBonderTotalStake = (token: string): number | undefined => {
-  return config.bonderConfig?.totalStake?.[token as AssetSymbol]
 }
 
 export { Bonders }

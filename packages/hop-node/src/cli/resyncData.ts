@@ -78,7 +78,7 @@ async function handleTransferIds (watcher: any, chain: string, transferIds: stri
     const blockNumber = blockNumbers[i]
 
     const l2BridgeContract = this.bridge.l2BridgeContract as L2BridgeContract
-    const events = await bridge.bridgeContract.queryFilter(
+    const events = await l2BridgeContract.queryFilter(
       l2BridgeContract.filters.TransferSent(),
       blockNumber,
       blockNumber
@@ -114,7 +114,7 @@ async function handleTransferRoots (watcher: any, chain: string, token: string, 
     const blockNumber = blockNumbers[i]
 
     const l2BridgeContract = this.bridge.l2BridgeContract as L2BridgeContract
-    const events = await bridge.bridgeContract.queryFilter(
+    const events = await l2BridgeContract.queryFilter(
       l2BridgeContract.filters.TransfersCommitted(),
       blockNumber,
       blockNumber

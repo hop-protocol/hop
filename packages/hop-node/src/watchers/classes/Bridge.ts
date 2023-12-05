@@ -142,8 +142,10 @@ export default class Bridge extends ContractBase {
     return debit
   }
 
-  getRawDebit = async (): Promise<BigNumber> => {
-    const bonder = await this.getBonderAddress()
+  getRawDebit = async (bonder?: string): Promise<BigNumber> => {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
     const debit = await this.bridgeContract.getRawDebit(bonder)
     return debit
   }

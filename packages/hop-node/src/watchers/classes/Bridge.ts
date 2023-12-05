@@ -12,7 +12,6 @@ import {
 } from 'src/constants'
 import {
   CoingeckoApiKey,
-  getBridgeWriteContractAddress,
   getNetworkCustomSyncType,
   config as globalConfig
 } from 'src/config'
@@ -79,7 +78,6 @@ export default class Bridge extends ContractBase {
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
   logger: Logger
-  bridgeWriteContract: BridgeContract
 
   constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
@@ -106,9 +104,6 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
-
-    const bridgeWriteAddress = getBridgeWriteContractAddress(this.tokenSymbol, this.chainSlug)
-    this.bridgeWriteContract = this.bridgeContract.attach(bridgeWriteAddress)
 
     this.logger = new Logger({
       tag: 'Bridge',
@@ -457,7 +452,7 @@ export default class Bridge extends ContractBase {
       txOverrides.value = amount
     }
 
-    const tx = await this.bridgeWriteContract.stake(
+    const tx = await this.bridgeContract.stake(
       bonder,
       amount,
       txOverrides
@@ -467,7 +462,7 @@ export default class Bridge extends ContractBase {
   }
 
   unstake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeWriteContract.unstake(
+    const tx = await this.bridgeContract.unstake(
       amount,
       await this.txOverrides()
     )
@@ -500,7 +495,7 @@ export default class Bridge extends ContractBase {
       txOverrides
     ] as const
 
-    const tx = await this.bridgeWriteContract.bondWithdrawal(...payload)
+    const tx = await this.bridgeContract.bondWithdrawal(...payload)
     return tx
   }
 
@@ -509,7 +504,7 @@ export default class Bridge extends ContractBase {
     transferIds: string[],
     amount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeWriteContract.settleBondedWithdrawals(
+    const tx = await this.bridgeContract.settleBondedWithdrawals(
       bonder,
       transferIds,
       amount,
@@ -532,7 +527,7 @@ export default class Bridge extends ContractBase {
     siblings: string[],
     totalLeaves: number
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.bridgeWriteContract.withdraw(
+    const tx = await this.bridgeContract.withdraw(
       recipient,
       amount,
       transferNonce,

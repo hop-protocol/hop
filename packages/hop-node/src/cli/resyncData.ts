@@ -1,5 +1,6 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import getTransferSent from 'src/theGraph/getTransferSent'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondWithdrawalWatcher
@@ -76,8 +77,9 @@ async function handleTransferIds (watcher: any, chain: string, transferIds: stri
     const transferId = transferIds[i]
     const blockNumber = blockNumbers[i]
 
+    const l2BridgeContract = this.bridge.l2BridgeContract as L2BridgeContract
     const events = await bridge.bridgeContract.queryFilter(
-      bridge.l2BridgeWriteContract.filters.TransferSent(),
+      l2BridgeContract.filters.TransferSent(),
       blockNumber,
       blockNumber
     )
@@ -111,8 +113,9 @@ async function handleTransferRoots (watcher: any, chain: string, token: string, 
     const transferRoot = transferRoots[i]
     const blockNumber = blockNumbers[i]
 
+    const l2BridgeContract = this.bridge.l2BridgeContract as L2BridgeContract
     const events = await bridge.bridgeContract.queryFilter(
-      bridge.l2BridgeWriteContract.filters.TransfersCommitted(),
+      l2BridgeContract.filters.TransfersCommitted(),
       blockNumber,
       blockNumber
     )

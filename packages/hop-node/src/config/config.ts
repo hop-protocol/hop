@@ -1,5 +1,4 @@
 import buildInfo from 'src/.build-info.json'
-import isL1 from 'src/utils/isL1'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
@@ -462,15 +461,6 @@ export enum Watchers {
 
 export function enableEmergencyMode () {
   config.emergencyDryMode = true
-}
-
-export function getBridgeWriteContractAddress (token: string, chainSlug: string): string {
-  const addresses = config.addresses?.[token]?.[chainSlug]
-  if (isL1(chainSlug)) {
-    return addresses.l1Bridge
-  } else {
-    return addresses.l2Bridge
-  }
 }
 
 export function getCanonicalAddressesForChain (chainSlug: string): any {

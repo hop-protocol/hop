@@ -198,7 +198,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getBonderAddress (destinationChain: string): Promise<string> {
     const routeBonder = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
-    return (routeBonder || await this.bridge.getBonderAddress())?.toLowerCase()
+    return (routeBonder ?? await this.bridge.getBonderAddress())?.toLowerCase()
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {

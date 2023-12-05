@@ -481,7 +481,6 @@ export const getConfigBonderForRoute = (token: string, sourceChain: string, dest
   return bonder
 }
 
-
 export { Bonders }
 export * from './validation'
 export * from './fileOps'

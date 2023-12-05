@@ -182,6 +182,7 @@ workflows:
                 - develop-bonder
                 - goerli-bonder
                 - sepolia-bonder
+                - feat/rm-proxy-concept
               ignore: /.*/
       - build_stats_worker:
           filters:

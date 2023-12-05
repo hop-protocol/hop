@@ -14,9 +14,7 @@ import {
   CoingeckoApiKey,
   getBridgeWriteContractAddress,
   getNetworkCustomSyncType,
-  getProxyAddressForChain,
-  config as globalConfig,
-  isProxyAddressForChain
+  config as globalConfig
 } from 'src/config'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
@@ -126,41 +124,40 @@ export default class Bridge extends ContractBase {
     return address
   }
 
-  async getStakerAddress (): Promise<string> {
-    if (isProxyAddressForChain(this.tokenSymbol, this.chainSlug)) {
-      return getProxyAddressForChain(this.tokenSymbol, this.chainSlug)
-    } else {
-      return await (this.bridgeContract as Contract).signer.getAddress()
-    }
-  }
-
   isBonder = async (): Promise<boolean> => {
-    const stakerAddress = await this.getStakerAddress()
-    return this.bridgeContract.getIsBonder(stakerAddress)
+    const bonder = await this.getBonderAddress()
+    return await this.bridgeContract.getIsBonder(bonder)
   }
 
-  getCredit = async (address?: string): Promise<BigNumber> => {
-    const stakerAddress = address ?? (await this.getStakerAddress())
-    return this.bridgeContract.getCredit(stakerAddress)
+  getCredit = async (bonder?: string): Promise<BigNumber> => {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
+    const credit = await this.bridgeContract.getCredit(bonder)
+    return credit
   }
 
-  getDebit = async (address?: string): Promise<BigNumber> => {
-    const stakerAddress = address ?? (await this.getStakerAddress())
-    return this.bridgeContract.getDebitAndAdditionalDebit(stakerAddress)
-  }
-
-  getRawDebit = async (address?: string): Promise<BigNumber> => {
-    const stakerAddress = address ?? await this.getStakerAddress()
-    const debit = await this.bridgeContract.getRawDebit(stakerAddress)
+  getDebit = async (bonder?: string): Promise<BigNumber> => {
+    if (!bonder) {
+      bonder = await this.getBonderAddress()
+    }
+    const debit = await this.bridgeContract.getDebitAndAdditionalDebit(
+      bonder
+    )
     return debit
   }
 
-  async getBaseAvailableCredit (address?: string): Promise<BigNumber> {
-    const [credit, debit] = await Promise.all([
-      this.getCredit(address),
-      this.getDebit(address)
-    ])
+  getRawDebit = async (): Promise<BigNumber> => {
+    const bonder = await this.getBonderAddress()
+    const debit = await this.bridgeContract.getRawDebit(bonder)
+    return debit
+  }
 
+  async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
+    const [credit, debit] = await Promise.all([
+      this.getCredit(bonder),
+      this.getDebit(bonder)
+    ])
     return credit.sub(debit)
   }
 
@@ -451,7 +448,7 @@ export default class Bridge extends ContractBase {
   }
 
   stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
-    const bonder = await this.getStakerAddress()
+    const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
     if (
       this.chainSlug === Chain.Ethereum &&
@@ -554,8 +551,10 @@ export default class Bridge extends ContractBase {
   }
 
   async getEthBalance (): Promise<BigNumber> {
-    // ETH balance will always be from the bonder EOA address
-    const bonder = await (this.bridgeContract as Contract).signer.getAddress()
+    const bonder = await this.getBonderAddress()
+    if (!bonder) {
+      throw new Error('expected bonder address')
+    }
     return await this.getBalance(bonder)
   }
 

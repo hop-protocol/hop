@@ -141,8 +141,6 @@ export const DoesSupportCustomFinality: Record<string, boolean> = {
   [Chain.Base]: true
 }
 
-export const NumStoredBlockHashes: number = 256
-
 // Poll certain chains at a slower cadence if they are not widely used
 export const ChainPollMultiplier: Record<string, number> = {
   [Chain.Ethereum]: 1,

@@ -8,7 +8,6 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
-  getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityRoutes, oruChains
@@ -197,8 +196,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getBonderAddress (destinationChain: string): Promise<string> {
-    const routeBonder = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
-    return (routeBonder ?? await this.bridge.getBonderAddress())?.toLowerCase()
+    const watcher = this.getSiblingWatcherByChainSlug(destinationChain)
+    return (await watcher.bridge.getStakerAddress())?.toLowerCase()
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {

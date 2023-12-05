@@ -10,8 +10,6 @@ export const config : Config = {
   },
   relayerFeeWei: {
   },
-  proxyEnabled: {
-  },
   bridgeDeprecated: {
   },
   defaultSendGasLimit: {

@@ -2,21 +2,13 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, providers } from 'ethers'
-import {
-  BlockHashValidationError,
-  BonderFeeTooLowError,
-  BonderTooEarlyError,
-  NonceTooLowError,
-  PossibleReorgDetected,
-  RedundantProviderOutOfSync,
-  UnfinalizedTransferBondError
-} from 'src/types/error'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
@@ -26,7 +18,17 @@ import {
   config as globalConfig
 } from 'src/config'
 import {
+  BonderFeeTooLowError,
+  BonderTooEarlyError,
+  NonceTooLowError,
+  PossibleReorgDetected,
+  RedundantProviderOutOfSync,
+  UnfinalizedTransferBondError
+} from 'src/types/error'
+import {
+  Chain,
   GasCostTransactionType,
+  OneHourSeconds,
   SyncType,
   TxError
 } from 'src/constants'
@@ -294,12 +296,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         })
       }
 
-      if (err instanceof BlockHashValidationError) {
-        logger.debug('blockHash validation failed. marking item not found')
-        await this.db.transfers.update(transferId, { isNotFound: true })
-        return
-      }
-
       const isCallExceptionError = isFetchExecutionError(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
@@ -435,17 +431,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  private async filterTransfersBySyncTypeBonder (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
+  private filterTransfersBySyncTypeBonder (dbTransfers: UnbondedSentTransfer[]): UnbondedSentTransfer[] {
     // Bonder sync type returns all finalized transfers
     return dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
   }
 
   private async filterTransfersBySyncTypeThreshold (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
-    // Threshold sync type returns all unfinalized transfers within the threshold plus all finalized transfers
-    const finalizedTransfers: UnbondedSentTransfer[] = await this.filterTransfersBySyncTypeBonder(dbTransfers)
+    const finalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
 
     const decimals = getTokenDecimals(this.tokenSymbol)
-    const inFlightAmount: BigNumber = await this.getInFlightAmount()
+    const inFlightAmount: BigNumber = await this.getInFlightAmount(dbTransfers)
     const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
     const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
     if (amountWithinThreshold.lt(0)) {
@@ -508,8 +503,28 @@ class BondWithdrawalWatcher extends BaseWatcher {
     ]
   }
 
-  private async getInFlightAmount (): Promise<BigNumber> {
-    const inFlightTransfers: Transfer[] = await this.db.transfers.getInFlightTransfers()
+  private async getInFlightAmount (dbTransfers: UnbondedSentTransfer[]): Promise<BigNumber> {
+    // Unbonded should not be in flight for more than 1 hour
+    const inFlightCutoffTimestampSec = Math.floor(Date.now() / 1000) - OneHourSeconds
+    const inFlightTransfers = dbTransfers.filter(dbTransfer => {
+      if (!dbTransfer?.sourceChainId || !dbTransfer?.transferId || !dbTransfer?.isBondable) {
+        return false
+      }
+
+      // L1 to L2 transfers are not bonded by the bonder so they are not considered in flight.
+      // Checking bonderFeeTooLow could be a false positive since the bonder bonds relative to the current gas price.
+      const sourceChainSlug = chainIdToSlug(dbTransfer.sourceChainId)
+      return (
+        sourceChainSlug !== Chain.Ethereum &&
+        dbTransfer.transferSentTimestamp >= inFlightCutoffTimestampSec &&
+        dbTransfer.transferId &&
+        dbTransfer.isBondable &&
+        !dbTransfer?.withdrawalBonded &&
+        !dbTransfer?.isTransferSpent &&
+        !dbTransfer?.isFinalized
+      )
+    })
+
     let inFlightAmount = BigNumber.from(0)
     for (const inFlightTransfer of inFlightTransfers) {
       if (!inFlightTransfer.amount) continue

@@ -65,7 +65,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   nova: 19843,
   base: 8545,
   zksync: 10000, // TODO
-  linea: 10000, // TODO
+  linea: 10416,
   scrollzk: 10000, // TODO
   polygonzk: 10000 // TODO
 }
@@ -143,8 +143,6 @@ export const DoesSupportCustomFinality: Record<string, boolean> = {
   [Chain.Optimism]: true,
   [Chain.Base]: true
 }
-
-export const NumStoredBlockHashes: number = 256
 
 // Poll certain chains at a slower cadence if they are not widely used
 export const ChainPollMultiplier: Record<string, number> = {

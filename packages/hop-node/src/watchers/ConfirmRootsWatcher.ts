@@ -123,6 +123,11 @@ class ConfirmRootsWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
+
+    if (!chainBridge.relayL2ToL1Message) {
+      throw new Error(`chainBridge.relayL2ToL1Message not found for ${this.chainSlug}`)
+    }
+
     const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
 
     if (!tx) {

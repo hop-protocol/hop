@@ -14,7 +14,7 @@ import {
   MessageUnknownError
 } from 'src/chains/Services/MessageService'
 import { RelayTransactionBatchSize, config as globalConfig } from 'src/config'
-import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
+import { RelayableTransferRoot, TransferRootRelayProps } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
@@ -356,6 +356,37 @@ class RelayWatcher extends BaseWatcher {
     } catch (err) {
       logger.error('transferRootSet error:', err.message)
 
+      // TODO: Should be same err handler as checkTransferSentToL2
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as RelayableTransferRoot
+      if (!dbTransferRoot) {
+        this.logger.warn(`transferRoot id "${transferRootId}" not found in db`)
+        return
+      }
+
+      let { relayBackoffIndex } = dbTransferRoot
+      if (!relayBackoffIndex) {
+        relayBackoffIndex = 0
+      }
+
+      if (
+        err instanceof MessageUnknownError ||
+        err instanceof MessageInFlightError ||
+        err instanceof MessageRelayedError ||
+        err instanceof MessageInvalidError
+      ) {
+        const {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
+        await this.db.transferRoots.update(transferRootId, {
+          relayTxError,
+          relayBackoffIndex: backoffIndex,
+          isRelayable
+        })
+        return
+      }
+
       throw err
     }
   }
@@ -399,12 +430,11 @@ class RelayWatcher extends BaseWatcher {
     return chainWatcher.relayL1ToL2Message(txHash, messageIndex)
   }
 
-  // TODO: Not any
   private async handleMessageStatusError (
-    err: any,
+    err: Error,
     relayBackoffIndex: number,
     logger: Logger
-  ): Promise<any> {
+  ): Promise<TransferRootRelayProps> {
     if (err instanceof MessageUnknownError) {
       logger.debug('message unknown. retrying')
       relayBackoffIndex++

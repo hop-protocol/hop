@@ -7,6 +7,7 @@ import {
   LineaSDKOptions,
   OnChainMessageStatus
 } from '@consensys/linea-sdk'
+import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 
 // TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
@@ -24,16 +25,27 @@ type RelayOpts = {
 
 export class Message extends MessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
   LineaSDK: LineaSDK
-  // TODO: More native way of doing this
-  lineaMainnetChainId: number = 59144
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
+    let lineaNetwork: any
+    for (const network in networks) {
+      const chainId = networks[network as NetworkSlug]?.linea?.networkId
+      if (chainId === this.chainId) {
+        lineaNetwork = `linea-${network}`
+        break
+      }
+    }
+
+    if (!lineaNetwork) {
+      throw new Error('linea sdk network name not found')
+    }
+
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     const sdkOptions: Partial<LineaSDKOptions> = {
       mode: 'read-only',
-      network: this.chainId === this.lineaMainnetChainId ? 'linea-mainnet' : 'linea-goerli'
+      network: lineaNetwork // options are: "linea-mainnet", "linea-goerli
     }
     this.LineaSDK = new LineaSDK({
       l1RpcUrl: getRpcUrlFromProvider(this.l1Wallet.provider!),

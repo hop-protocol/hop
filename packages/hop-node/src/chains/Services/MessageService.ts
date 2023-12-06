@@ -13,7 +13,7 @@ export enum MessageDirection {
 
 export interface IMessageService {
   relayL1ToL2Message?(l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
-  relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
+  relayL2ToL1Message?(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
 }
 
 abstract class MessageService<Message, MessageStatus, RelayOptions = null> extends AbstractService {

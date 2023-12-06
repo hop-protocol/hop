@@ -170,18 +170,18 @@ export class Message extends MessageService<PolygonMessage, PolygonMessageStatus
   }
 
   protected async getMessageStatus (message: PolygonMessage): Promise<PolygonMessageStatus> {
-    // Polygon status is defined by the message, so we return that
+    // Polygon status is defined by the message (txHash), so we return that
     return message
   }
 
   protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiResMessage = await this._fetchBlockIncluded(messageStatus)
-    return apiResMessage === 'No block found'
+    const apiRes = await this._fetchBlockIncluded(messageStatus)
+    return apiRes.message === 'No block found'
   }
 
   protected async isMessageRelayable (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiResMessage = await this._fetchBlockIncluded(messageStatus)
-    return apiResMessage === 'success'
+    const apiRes = await this._fetchBlockIncluded(messageStatus)
+    return apiRes.message === 'success'
   }
 
   protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {

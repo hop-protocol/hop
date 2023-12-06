@@ -12,7 +12,6 @@ import {
   MessageRelayedError,
   MessageUnknownError
 } from 'src/chains/Services/MessageService'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { MessageAlreadyClaimedError, NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayL1ToL2MessageOpts } from 'src/chains/IChainBridge'
 import { RelayTransactionBatchSize, config as globalConfig } from 'src/config'
@@ -356,27 +355,7 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      // TODO: Should be same err handler as checkTransferSentToL2
       logger.error('transferRootSet error:', err.message)
-      const relayBackoffIndex = await this.db.transferRoots.getRelayBackoffIndexForTransferRootId(transferRootId)
-      if (
-        err instanceof MessageUnknownError ||
-        err instanceof MessageInFlightError ||
-        err instanceof MessageRelayedError ||
-        err instanceof MessageInvalidError
-      ) {
-        const {
-          relayTxError,
-          relayBackoffIndex: backoffIndex,
-          isRelayable
-        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
-        await this.db.transferRoots.update(transferRootId, {
-          relayTxError,
-          relayBackoffIndex: backoffIndex,
-          isRelayable
-        })
-        return
-      }
 
       throw err
     }

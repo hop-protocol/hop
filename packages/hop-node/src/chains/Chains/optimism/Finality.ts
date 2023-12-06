@@ -1,6 +1,5 @@
-import FinalityService from '../../Services/FinalityService'
-import { IFinalityService } from '../../IChainBridge'
-import { IInclusionService } from './inclusion/IInclusionService'
+import FinalityService, { IFinalityService } from '../../Services/FinalityService'
+import { IInclusionService } from '../../Services/InclusionService'
 import { providers } from 'ethers'
 
 type CachedCustomSafeBlockNumber = {

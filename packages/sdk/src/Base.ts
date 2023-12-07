@@ -787,7 +787,11 @@ export class Base {
       return await this.fetchCoreConfigData()
     } catch (err: any) {
       if (this.baseConfigUrl === defaultBaseConfigUrl) {
-        return await this.fetchIpfsCoreConfigData()
+        try {
+          return await this.fetchIpfsCoreConfigData()
+        } catch (err2: any) {
+          throw new Error(`fetchCoreConfigData error: ${err.message}, fetchIpfsCoreConfigData error: ${err2.message}`)
+        }
       } else {
         throw err
       }
@@ -837,7 +841,11 @@ export class Base {
       return await this.fetchBonderAvailableLiquidityData()
     } catch (err: any) {
       if (this.baseConfigUrl === defaultBaseConfigUrl) {
-        return await this.fetchIpfsBonderAvailableLiquidityData()
+        try {
+          return await this.fetchIpfsBonderAvailableLiquidityData()
+        } catch (err2: any) {
+          throw new Error(`fetchBonderAvailableLiquidityData error: ${err.message}, fetchIpfsBonderAvailableLiquidityData error: ${err2.message}`)
+        }
       } else {
         throw err
       }

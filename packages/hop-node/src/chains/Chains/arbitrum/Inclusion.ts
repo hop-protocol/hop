@@ -1,6 +1,5 @@
 import InclusionService, { IInclusionService } from '../../Services/InclusionService'
 import fetch from 'node-fetch'
-import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
@@ -53,10 +52,9 @@ export class Inclusion extends InclusionService implements IInclusionService {
 
     let l1BatchNumber: BigNumber
     try {
-      // Use the nonRetryableProvider to avoid rateLimitRetry, since this call fails if the tx is not yet checkpointed
       // If the batch does not yet exist, this will throw with 'requested block x is after latest on-chain block y published in batch z'
-      const nonRetryableProvider = getNonRetryableRpcProvider(this.chainSlug)!
-      l1BatchNumber = await this.nodeInterfaceContract.connect(nonRetryableProvider).findBatchContainingBlock(l2TxReceipt.blockNumber)
+      // Note: this should throw a CALL_EXCEPTION error if the block is not yet posted, and the rateLimitRetry provider should not retry.
+      l1BatchNumber = await this.nodeInterfaceContract.findBatchContainingBlock(l2TxReceipt.blockNumber)
     } catch (err) {
       if (err.message.includes('is after latest on-chain block')) {
         this.logger.debug(`l1BatchNumber not yet posted for l2TxHash ${l2TxHash}`)

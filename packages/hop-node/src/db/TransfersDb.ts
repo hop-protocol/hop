@@ -4,7 +4,6 @@ import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs
 import { BigNumber } from 'ethers'
 import {
   Chain,
-  FiveMinutesMs,
   OneDayMs,
   OneHourMs,
   OneWeekMs,

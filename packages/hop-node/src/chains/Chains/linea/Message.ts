@@ -1,4 +1,4 @@
-import MessageService, { IMessageService } from '../../Services/MessageService'
+import MessageService, { IMessageService, MessageDirection } from '../../Services/MessageService'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
 import {
@@ -57,25 +57,23 @@ export class Message extends MessageService<LineaMessage, OnChainMessageStatus, 
 
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const signer = this.l2Wallet
-    const isSourceTxOnL1 = true
 
-    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer, messageIndex)
+    return await this._relayXDomainMessage(l1TxHash, MessageDirection.L1_TO_L2, signer, messageIndex)
   }
 
   async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const signer = this.l1Wallet
-    const isSourceTxOnL1 = false
 
-    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer, messageIndex)
+    return this._relayXDomainMessage(l2TxHash, MessageDirection.L2_TO_L1, signer, messageIndex)
   }
 
-  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer, messageIndex?: number): Promise<providers.TransactionResponse> {
+  private async _relayXDomainMessage (txHash: string, messageDirection: MessageDirection, wallet: Signer, messageIndex?: number): Promise<providers.TransactionResponse> {
     // TODO: Add types to this and the bridge. Maybe define these in parent methods and pass thru
     const l1Contract = this.LineaSDK.getL1Contract()
     const l2Contract = this.LineaSDK.getL2Contract()
 
-    const sourceBridge = isSourceTxOnL1 ? l1Contract : l2Contract
-    const destBridge = isSourceTxOnL1 ? l2Contract : l1Contract
+    const sourceBridge = messageDirection === MessageDirection.L1_TO_L2 ? l1Contract : l2Contract
+    const destBridge = messageDirection === MessageDirection.L1_TO_L2 ? l2Contract : l1Contract
 
     const relayOpts: RelayOpts = {
       sourceBridge,

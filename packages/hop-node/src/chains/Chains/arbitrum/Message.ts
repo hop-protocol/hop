@@ -2,7 +2,6 @@ import MessageService, {
   IMessageService,
   MessageDirection
 } from '../../Services/MessageService'
-import getNonRetryableRpcProvider from 'src/utils/getNonRetryableRpcProvider'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import {
   IL1ToL2MessageWriter,
@@ -54,33 +53,31 @@ export class Message extends MessageService<MessageType, MessageStatus, RelayOpt
     const { messageDirection, messageIndex } = relayOpts
 
     let messages: MessageType[]
-    const nonRetryableProvider = getNonRetryableRpcProvider(this.chainSlug)!
     if (messageDirection === MessageDirection.L1_TO_L2) {
       const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
       if (!txReceipt) {
         throw new Error(`txReceipt not found for tx hash ${txHash}`)
       }
       const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
-      const l2Wallet = this.l2Wallet.connect(nonRetryableProvider)
-      messages = await arbitrumTxReceipt.getL1ToL2Messages(l2Wallet)
+      messages = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet.provider!) as MessageType[]
     } else {
       const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
       if (!txReceipt) {
         throw new Error(`txReceipt not found for tx hash ${txHash}`)
       }
       const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
-      const l2Wallet = this.l2Wallet.connect(nonRetryableProvider)
-      messages = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, l2Wallet.provider!)
+      messages = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!) as MessageType[]
     }
 
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
+
     return messages[messageIndex]
   }
 
   protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
-    // We cannot use our provider here because the SDK will rateLimitRetry and exponentially backoff as it retries an on-chain call
+    // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
     const res = await (message as IL1ToL2MessageWriter).waitForStatus()
     return res.status
   }

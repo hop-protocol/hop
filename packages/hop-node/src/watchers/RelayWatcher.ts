@@ -6,13 +6,13 @@ import getChainBridge from 'src/chains/getChainBridge'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import {
   MessageInFlightError,
   MessageInvalidError,
   MessageRelayedError,
   MessageUnknownError
 } from 'src/chains/Services/MessageService'
+import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayTransactionBatchSize, config as globalConfig } from 'src/config'
 import { RelayableTransferRoot, TransferRootRelayProps } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'

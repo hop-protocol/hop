@@ -2,13 +2,13 @@ import '../src/moduleAlias'
 import getChainBridge from 'src/chains/getChainBridge'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { Chain } from 'src/constants'
+import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
 import { providers } from 'ethers'
-import { FinalityBlockTag } from 'src/chains/IChainBridge'
 
 // Run this with
 // NETWORK=goerli npx ts-node test/chainBridge.test.ts
@@ -104,7 +104,7 @@ async function _getL2TxHashToTest (chain: string, l2Provider: providers.Provider
   throw new Error('no tx found')
 }
 
-async function testGetCustomBlockNumber(opts: any): Promise<void> {
+async function testGetCustomBlockNumber (opts: any): Promise<void> {
   const { chainBridge } = opts
   const customBlockNumber = await chainBridge.getCustomBlockNumber!(FinalityBlockTag.Finalized)
   if (!customBlockNumber) {

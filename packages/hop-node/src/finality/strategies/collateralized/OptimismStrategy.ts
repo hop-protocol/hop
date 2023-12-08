@@ -1,10 +1,10 @@
 import { FinalityStrategy } from '../FinalityStrategy'
 import { IFinalityStrategy } from '../IFinalityStrategy'
-import { getCustomOptimismSafeBlockNumber } from '../utils'
+import { FinalityBlockTag } from 'src/chains/IChainBridge'
 
 export class OptimismStrategy extends FinalityStrategy implements IFinalityStrategy {
   getSafeBlockNumber = async (): Promise<number> => {
-    const blockNumber = await getCustomOptimismSafeBlockNumber(this.chainSlug)
+    const blockNumber = await this._getCustomBlockNumber(FinalityBlockTag.Safe)
     if (blockNumber) {
       return blockNumber
     }

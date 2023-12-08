@@ -8,13 +8,14 @@ import {
   setGlobalConfigFromConfigFile
 } from 'src/config'
 import { providers } from 'ethers'
+import { FinalityBlockTag } from 'src/chains/IChainBridge'
 
 // Run this with
 // NETWORK=goerli npx ts-node test/chainBridge.test.ts
 // NOTE: import moduleAlias first to avoid errors
 
 async function main () {
-  const chain = Chain.Arbitrum
+  const chain = Chain.PolygonZk
   const destinationChainSlug = Chain.Optimism
   const token = 'ETH'
   const dryMode = true
@@ -44,8 +45,9 @@ async function main () {
     l2BlockNumber
   }
 
-  await testGetL1InclusionTx(opts)
+  // await testGetL1InclusionTx(opts)
   // await testGetL2InclusionTx(opts)
+  await testGetCustomBlockNumber(opts)
 }
 
 async function testGetL1InclusionTx (opts: any): Promise<void> {
@@ -100,6 +102,15 @@ async function _getL2TxHashToTest (chain: string, l2Provider: providers.Provider
   }
 
   throw new Error('no tx found')
+}
+
+async function testGetCustomBlockNumber(opts: any): Promise<void> {
+  const { chainBridge } = opts
+  const customBlockNumber = await chainBridge.getCustomBlockNumber!(FinalityBlockTag.Finalized)
+  if (!customBlockNumber) {
+    throw new Error('getCustomBlockNumber failed')
+  }
+  console.log('customBlockNumber', customBlockNumber)
 }
 
 main().catch(console.error).finally(() => process.exit(0))

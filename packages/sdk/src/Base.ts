@@ -655,9 +655,17 @@ export class Base {
       txOptions.gasLimit = BigNumber.from(minGasLimit)
     }
 
-    // Post-bedrock L1 to L2 message transactions don't estimate correctly
+    // Optimism and Arbitrum messages are a function of gasPrice and gasLimit. This causes
+    // RPC endpoints to incorrectly estimate gas.
     // TODO: Remove this when estimation is fixed
-    if (sourceChain.equals(Chain.Ethereum) && (destinationChain?.equals(Chain.Optimism) || destinationChain?.equals(Chain.Base))) {
+    if (
+      sourceChain.equals(Chain.Ethereum) &&
+      (
+        destinationChain?.equals(Chain.Optimism) ||
+        destinationChain?.equals(Chain.Base) ||
+        destinationChain?.equals(Chain.Arbitrum) ||
+        destinationChain?.equals(Chain.Nova)
+      )) {
       txOptions.gasLimit = 500000
     }
 
@@ -779,7 +787,11 @@ export class Base {
       return await this.fetchCoreConfigData()
     } catch (err: any) {
       if (this.baseConfigUrl === defaultBaseConfigUrl) {
-        return await this.fetchIpfsCoreConfigData()
+        try {
+          return await this.fetchIpfsCoreConfigData()
+        } catch (err2: any) {
+          throw new Error(`fetchCoreConfigData error: ${err.message}, fetchIpfsCoreConfigData error: ${err2.message}`)
+        }
       } else {
         throw err
       }
@@ -829,7 +841,11 @@ export class Base {
       return await this.fetchBonderAvailableLiquidityData()
     } catch (err: any) {
       if (this.baseConfigUrl === defaultBaseConfigUrl) {
-        return await this.fetchIpfsBonderAvailableLiquidityData()
+        try {
+          return await this.fetchIpfsBonderAvailableLiquidityData()
+        } catch (err2: any) {
+          throw new Error(`fetchBonderAvailableLiquidityData error: ${err.message}, fetchIpfsBonderAvailableLiquidityData error: ${err2.message}`)
+        }
       } else {
         throw err
       }

@@ -1,6 +1,10 @@
 import { IAbstractChainBridge } from './IAbstractChainBridge'
 import { providers } from 'ethers'
 
+export enum FinalityBlockTag {
+  Safe = 'safe',
+  Finalized = 'finalized'
+}
 export type RelayL1ToL2MessageOpts = {
   messageIndex?: number
 }
@@ -15,5 +19,5 @@ export interface IChainBridge extends IAbstractChainBridge {
   getL2InclusionTx?(l1TxHash: string): Promise<providers.TransactionReceipt | undefined>
 
   // Finality
-  getCustomSafeBlockNumber?(): Promise<number | undefined>
+  getCustomBlockNumber?(blockTag: FinalityBlockTag): Promise<number | undefined>
 }

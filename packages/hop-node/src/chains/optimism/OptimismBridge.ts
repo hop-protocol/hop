@@ -3,22 +3,17 @@ import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
 import Derive from './Derive'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
-import { IChainBridge } from '../IChainBridge'
+import { FinalityBlockTag, IChainBridge } from '../IChainBridge'
 import { IInclusionService, InclusionServiceConfig } from './inclusion/IInclusionService'
 import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
 
-type CachedCustomSafeBlockNumber = {
-  lastCacheTimestampMs: number
-  l2BlockNumberCustomSafe: number
-}
 
 class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   csm: CrossChainMessenger
   derive: Derive = new Derive()
   inclusionService: IInclusionService | undefined
-  private customSafeBlockNumberCache: CachedCustomSafeBlockNumber
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -31,10 +26,6 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l2SignerOrProvider: this.l2Wallet
     })
 
-    this.customSafeBlockNumberCache = {
-      lastCacheTimestampMs: 0,
-      l2BlockNumberCustomSafe: 0
-    }
 
     const inclusionServiceConfig: InclusionServiceConfig = {
       chainSlug: this.chainSlug,
@@ -114,7 +105,30 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
     return this.inclusionService.getL2InclusionTx(l1TxHash)
   }
 
-  async getCustomSafeBlockNumber (): Promise<number | undefined> {
+  async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+    if (!this.#isCustomBlockNumberSupported(blockTag)) {
+      throw new Error(`getCustomBlockNumber: blockTag ${blockTag} not supported`)
+    }
+
+    // Use a cache since the granularity of finality updates on l1 is on the order of minutes
+    const customBlockNumberCacheKey = `${this.chainSlug}-${blockTag}`
+    const cacheValue = this.getCacheValue(customBlockNumberCacheKey)
+    if (cacheValue) {
+      this.logger.debug('getCustomBlockNumber: using cached value')
+      return cacheValue
+    }
+
+    const customBlockNumber = await this.#getCustomBlockNumber(blockTag)
+    if (!customBlockNumber) {
+      this.logger.error('getCustomBlockNumber: no customBlockNumber found')
+      return
+    }
+
+    this.updateCache(customBlockNumberCacheKey, customBlockNumber)
+    return customBlockNumber
+  }
+
+  async #getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     if (
       !this.inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
       !this.inclusionService?.getLatestL2TxFromL1ChannelTx
@@ -122,21 +136,6 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       this.logger.error('getCustomSafeBlockNumber: includeService not available')
       return
     }
-
-    // Use a cache since the granularity of finality updates on l1 is on the order of minutes
-    if (
-      this._hasCacheBeenSet() &&
-      !this._isCacheExpired()
-    ) {
-      const cacheValue = this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
-      this.logger.info(`getCustomSafeBlockNumber: using cached value ${cacheValue}`)
-      return cacheValue
-    }
-
-    // Always update the cache with the latest block number. If the following calls fail, the cache
-    // will never be updated and we will get into a loop.
-    const now = Date.now()
-    this._updateCache(now)
 
     // Get the latest checkpoint on L1
     const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
@@ -154,27 +153,14 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       return
     }
 
-    this._updateCache(now, customSafeBlockNumber)
     return customSafeBlockNumber
   }
 
-  private _hasCacheBeenSet (): boolean {
-    return this.customSafeBlockNumberCache.l2BlockNumberCustomSafe !== 0
-  }
-
-  private _isCacheExpired (): boolean {
-    const now = Date.now()
-    const cacheExpirationTimeMs = 60 * 1000
-    const lastCacheTimestampMs = this.customSafeBlockNumberCache.lastCacheTimestampMs
-    return now - lastCacheTimestampMs > cacheExpirationTimeMs
-  }
-
-  private _updateCache (lastCacheTimestampMs: number, l2BlockNumber?: number): void {
-    const l2BlockNumberCustomSafe: number = l2BlockNumber ?? this.customSafeBlockNumberCache.l2BlockNumberCustomSafe
-    this.customSafeBlockNumberCache = {
-      lastCacheTimestampMs,
-      l2BlockNumberCustomSafe
+  #isCustomBlockNumberSupported (blockTag: FinalityBlockTag): boolean {
+    if (blockTag === FinalityBlockTag.Safe) {
+      return true
     }
+    return false
   }
 }
 

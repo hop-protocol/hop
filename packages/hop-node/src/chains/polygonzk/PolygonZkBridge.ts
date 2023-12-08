@@ -124,17 +124,17 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
     }
   }
 
-  private async _tilReady (): Promise<boolean> {
+  async #tilReady (): Promise<boolean> {
     if (this.ready) {
       return true
     }
 
     await wait(100)
-    return await this._tilReady()
+    return await this.#tilReady()
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    await this.#tilReady()
 
     const isSourceTxOnL1 = true
     const signer = this.l2Wallet
@@ -142,7 +142,7 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    await this.#tilReady()
 
     const isSourceTxOnL1 = false
     const signer = this.l1Wallet
@@ -205,6 +205,8 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+    await this.#tilReady()
+
     if (!this.doesSupportZkEvmRpc) {
       this.logger.error('getCustomBlockNumber: RPC endpoint does not support zkEVM_* methods')
       return
@@ -223,7 +225,6 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
       return cacheValue
     }
 
-    // maybe try and then set cache?
     const customBlockNumber = await this.#getCustomBlockNumber(blockTag)
     if (!customBlockNumber) {
       this.logger.error('getCustomBlockNumber: no customBlockNumber found')

@@ -4,6 +4,7 @@ import { GnosisStrategy } from './GnosisStrategy'
 import { LineaStrategy } from './LineaStrategy'
 import { OptimismStrategy } from './OptimismStrategy'
 import { PolygonStrategy } from './PolygonStrategy'
+import { PolygonZkStrategy } from './PolygonZkStrategy'
 
 import { Chain } from 'src/constants'
 import { Strategies } from '../IFinalityStrategy'
@@ -16,7 +17,8 @@ const DefaultStrategiesMap: Strategies = {
   [Chain.Base]: OptimismStrategy,
   [Chain.Arbitrum]: ArbitrumStrategy,
   [Chain.Nova]: ArbitrumStrategy,
-  [Chain.Linea]: LineaStrategy
+  [Chain.Linea]: LineaStrategy,
+  [Chain.PolygonZk]: PolygonZkStrategy
 }
 
 export default DefaultStrategiesMap

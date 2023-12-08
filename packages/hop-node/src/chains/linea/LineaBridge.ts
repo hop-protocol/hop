@@ -57,7 +57,7 @@ class LineaBridge extends AbstractChainBridge implements IChainBridge {
     const destinationBridge = isSourceTxOnL1 ? this.lineaL2Contract : this.lineaL1Contract
 
     const messages = await sourceBridge.getMessagesByTransactionHash(txHash)
-    if (!messages) {
+    if (!messages?.length) {
       throw new Error('could not find messages for tx hash')
     }
 

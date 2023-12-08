@@ -5,9 +5,9 @@ import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { IChainBridge } from '../IChainBridge'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
+import { defaultAbiCoder } from 'ethers/lib/utils'
 import { providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
-import { defaultAbiCoder } from 'ethers/lib/utils'
 
 const polygonChainSlugs: Record<string, string> = {
   mainnet: 'matic',

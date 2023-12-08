@@ -1,11 +1,11 @@
 import AbstractChainBridge from '../AbstractChainBridge'
 import wait from 'src/utils/wait'
+import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { IChainBridge } from '../IChainBridge'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
-import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 
 interface ZkEvmBridges {
   sourceBridge: ZkEvmBridge

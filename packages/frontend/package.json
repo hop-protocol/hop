@@ -14,7 +14,7 @@
     "@gnosis.pm/safe-apps-react-sdk": "^4.6.2",
     "@gnosis.pm/safe-apps-sdk": "^7.8.0",
     "@hop-protocol/core": "0.0.1-beta.210",
-    "@hop-protocol/sdk": "0.0.1-beta.579",
+    "@hop-protocol/sdk": "0.0.1-beta.581",
     "@material-ui/core": "4.12.4",
     "@material-ui/icons": "4.11.3",
     "@material-ui/lab": "4.0.0-alpha.60",
@@ -68,17 +68,18 @@
     "react-error-overlay": "6.0.9"
   },
   "scripts": {
-    "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
+    "start": "npm run tempfix && REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
     "dev": "BROWSER=none npm start",
     "clean": "rimraf build",
     "lint": "npx eslint --fix \"**/*.{ts,tsx}\"",
-    "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
+    "build": "npm run tempfix && REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "deploy": "npx --yes netlify-cli deploy --prod",
     "deploy:ipfs": "npx --yes ipfs-deploy -p infura build --no-open --no-clipboard",
     "deploy:local": "git stash && yarn clean && yarn build && yarn deploy",
-    "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>&1 | tail -1) node ./scripts/update_dnslink.js"
+    "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>&1 | tail -1) node ./scripts/update_dnslink.js",
+    "tempfix": "./scripts/walletconnect_fix.sh"
   },
   "eslintConfig": {
     "extends": [

@@ -13,6 +13,7 @@ export async function fetchJsonOrThrow (url: string, timeoutMs: number = 5 * 100
       setTimeout(() => controller.abort(), timeoutMs)
       signal = controller.signal
     }
+
     const res = await (signal ? fetch(url, { signal }) : promiseTimeout(fetch(url), timeoutMs))
     const json = await res.json()
     if (!json || !(json instanceof Object)) {
@@ -24,6 +25,6 @@ export async function fetchJsonOrThrow (url: string, timeoutMs: number = 5 * 100
       throw new Error(`fetchJsonOrThrow: Request to "${url}" timedout after ${timeoutMs}ms. Error: ${err.message}`)
     }
 
-    throw new Error(`fetchJsonOrThrow error: ${err.message}`)
+    throw new Error(`fetchJsonOrThrow error: ${err.message} errObj: ${JSON.stringify(err)}`)
   }
 }

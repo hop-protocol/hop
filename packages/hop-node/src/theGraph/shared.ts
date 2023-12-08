@@ -19,7 +19,7 @@ for (const network in networks) {
     if (!networkId) {
       continue
     }
-    chainIdToSlug[networkId] = network
+    chainIdToSlug[networkId] = chain
   }
 }
 

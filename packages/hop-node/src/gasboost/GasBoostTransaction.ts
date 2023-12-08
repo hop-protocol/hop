@@ -102,8 +102,6 @@ type EventEmitterEvents = EventEmitter & {
 
 const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
-const gasFeeDataCache: Record<string, Partial<GasFeeData>> = {}
-const gasFeeDataCacheTimestamp: Record<string, number> = {}
 
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
@@ -504,14 +502,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
-    const now = Date.now()
-    const cacheTimestampMs = gasFeeDataCacheTimestamp?.[this.chainSlug] ?? 0
-    const isCacheExpired = now - cacheTimestampMs > cacheTimeMs
-    if (!isCacheExpired) {
-      this.logger.debug(`returning cached gas fee data for ${this.chainSlug}: ${JSON.stringify(gasFeeDataCache[this.chainSlug])}`)
-      return gasFeeDataCache[this.chainSlug]!
-    }
-
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 
     if (use1559) {
@@ -528,22 +518,18 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
       maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
 
-      gasFeeDataCacheTimestamp[this.chainSlug] = now
-      gasFeeDataCache[this.chainSlug] = {
+      return {
         gasPrice: undefined,
         maxFeePerGas,
         maxPriorityFeePerGas
       }
-      return gasFeeDataCache[this.chainSlug]!
     }
 
-    gasFeeDataCacheTimestamp[this.chainSlug] = now
-    gasFeeDataCache[this.chainSlug] = {
+    return {
       gasPrice: await this.getBumpedGasPrice(multiplier),
       maxFeePerGas: undefined,
       maxPriorityFeePerGas: undefined
     }
-    return gasFeeDataCache[this.chainSlug]!
   }
 
   clampMaxGasFeeData (gasFeeData: Partial<GasFeeData>): Partial<GasFeeData> {

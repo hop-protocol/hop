@@ -33,50 +33,59 @@ const polygonSdkVersion: Record<string, string> = {
 export class Message extends MessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
-  l1Network: string
   maticClient: any
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
+    let l1Network: string | undefined
     for (const network in networks) {
       const chainId = networks[network as NetworkSlug]?.polygon?.networkId
       if (chainId === this.chainId) {
-        this.l1Network = network
+        l1Network = network
         break
       }
     }
 
-    if (!this.l1Network) {
+    if (!l1Network) {
       throw new Error('polygon network name not found')
     }
 
-    const polygonNetwork = polygonChainSlugs[this.l1Network]
+    const polygonNetwork = polygonChainSlugs[l1Network]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.maticClient = new FxPortalClient()
+
+    this.#_initClient(l1Network)
+      .then(() => {
+        this.ready = true
+        console.log('Matic client initialized')
+      })
+      .catch((err: any) => {
+        this.logger.error('Matic client initialize error:', err)
+      })
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
     const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
-    await this._initClient(rootTunnelAddress)
 
     // Message is a txHash for Polygon
     const relayOpts = {
       rootTunnelAddress
     }
+
     return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
   }
 
-  private async _initClient (rootTunnelAddress: string): Promise<void> {
+  async #_initClient (l1Network: string): Promise<void> {
     const from = await this.l1Wallet.getAddress()
-    const sdkNetwork = polygonSdkNetwork[this.l1Network]
-    const sdkVersion = polygonSdkVersion[this.l1Network]
+    const sdkNetwork = polygonSdkNetwork[l1Network]
+    const sdkVersion = polygonSdkVersion[l1Network]
     await this.maticClient.init({
       network: sdkNetwork,
       version: sdkVersion,
@@ -91,9 +100,6 @@ export class Message extends MessageService<PolygonMessage, PolygonMessageStatus
         defaultConfig: {
           from
         }
-      },
-      erc20: {
-        rootTunnel: rootTunnelAddress
       }
     })
     this.ready = true

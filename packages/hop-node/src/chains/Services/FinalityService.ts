@@ -1,7 +1,8 @@
 import AbstractService from './AbstractService'
+import { FinalityBlockTag } from 'src/chains/IChainBridge'
 
 export interface IFinalityService {
-  getCustomSafeBlockNumber?(): Promise<number | undefined>
+  getCustomBlockNumber?(blockTag: FinalityBlockTag): Promise<number | undefined>
 }
 
 abstract class FinalityService extends AbstractService {}

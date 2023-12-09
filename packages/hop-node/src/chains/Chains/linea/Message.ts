@@ -107,7 +107,7 @@ export class Message extends MessageService<LineaMessage, OnChainMessageStatus, 
   protected async getMessage (txHash: string, opts: RelayOpts): Promise<LineaMessage> {
     const { sourceBridge, messageIndex } = opts
     const messages: LineaMessage[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
-    if (!messages) {
+    if (!messages?.length) {
       throw new Error('could not find messages for tx hash')
     }
     return messages[messageIndex]

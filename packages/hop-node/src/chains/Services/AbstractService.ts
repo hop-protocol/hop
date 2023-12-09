@@ -1,6 +1,7 @@
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
+import { CacheService } from './CacheService'
 import { Chain } from 'src/constants'
 import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
@@ -9,7 +10,7 @@ export interface IAbstractService {
   getLogger(): Logger
 }
 
-abstract class AbstractService implements IAbstractService {
+abstract class AbstractService extends CacheService implements IAbstractService {
   logger: Logger
   chainSlug: string
   chainId: number
@@ -17,6 +18,7 @@ abstract class AbstractService implements IAbstractService {
   l2Wallet: Signer
 
   constructor (chainSlug: string) {
+    super()
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(chainSlug)) {
       throw new Error(`Chain ${chainSlug} is not enabled`)

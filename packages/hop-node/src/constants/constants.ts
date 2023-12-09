@@ -14,7 +14,7 @@ for (const chain in chains) {
 
 export { nativeChainTokens }
 
-const relayablChainsSet = new Set<string>([])
+const relayableChainsSet = new Set<string>([])
 const AvgBlockTimeSeconds: Record<string, number> = {}
 const OruExitTimeMs: Record<string, number> = {}
 const TimeToIncludeOnL1Sec: Record<string, number> = {}
@@ -29,7 +29,7 @@ for (const network in networks) {
       AvgBlockTimeSeconds[chain] = seconds
     }
     if (chainObj?.isRelayable) {
-      relayablChainsSet.add(chain)
+      relayableChainsSet.add(chain)
     }
     if (chainObj?.oruExitTimeSeconds != null) {
       OruExitTimeMs[chain] = chainObj.oruExitTimeSeconds * 1000
@@ -54,7 +54,7 @@ export {
   L1ToL2CheckpointTimeInL1Blocks
 }
 
-export const RelayableChains = Array.from(relayablChainsSet)
+export const RelayableChains = Array.from(relayableChainsSet)
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,

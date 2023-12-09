@@ -3,13 +3,15 @@ import { BigNumber } from 'ethers'
 import { Chain } from '../models'
 import { IRelayerFee } from './IRelayerFee'
 import { LineaRelayerFee } from './LineaRelayerFee'
+import { PolygonZkRelayerFee } from './PolygonZkRelayerFee'
 
 type RelayerFeeClass = new (network: string, chain: string, token: string) => IRelayerFee
 
 const RelayerFees: Record<string, RelayerFeeClass> = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
   [Chain.Nova.slug]: ArbitrumRelayerFee,
-  [Chain.Linea.slug]: LineaRelayerFee
+  [Chain.Linea.slug]: LineaRelayerFee,
+  [Chain.PolygonZk.slug]: PolygonZkRelayerFee
 }
 
 class RelayerFee {

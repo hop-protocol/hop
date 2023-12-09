@@ -29,18 +29,18 @@ export interface NetworkTokenEntity {
   amount: string
 }
 
-const relayablChainsSet = new Set(<string[]>[])
+const relayableChainsSet = new Set(<string[]>[])
 for (const network in networks) {
   const networkObj = networks[network]
   for (const chain in networkObj) {
     const chainObj = networkObj[chain]
     if (chainObj?.isRelayable) {
-      relayablChainsSet.add(chain)
+      relayableChainsSet.add(chain)
     }
   }
 }
 
-export const RelayableChains = Array.from(relayablChainsSet)
+export const RelayableChains = Array.from(relayableChainsSet)
 
 export const stableCoins = new Set(<string[]>[])
 for (const tokenSymbol in tokens) {

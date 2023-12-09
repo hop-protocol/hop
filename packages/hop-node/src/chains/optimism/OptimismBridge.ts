@@ -9,7 +9,6 @@ import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
 
-
 class OptimismBridge extends AbstractChainBridge implements IChainBridge {
   csm: CrossChainMessenger
   derive: Derive = new Derive()
@@ -25,7 +24,6 @@ class OptimismBridge extends AbstractChainBridge implements IChainBridge {
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet
     })
-
 
     const inclusionServiceConfig: InclusionServiceConfig = {
       chainSlug: this.chainSlug,

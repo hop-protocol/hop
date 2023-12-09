@@ -1,14 +1,13 @@
 import AbstractChainBridge from '../AbstractChainBridge'
+import fetch from 'node-fetch'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import wait from 'src/utils/wait'
-import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
+import { CanonicalMessengerRootConfirmationGasLimit, Chain } from 'src/constants'
 import { FinalityBlockTag, IChainBridge } from '../IChainBridge'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
-import { Chain } from 'src/constants'
-import getRpcUrl from 'src/utils/getRpcUrl'
-import fetch from 'node-fetch'
 
 interface ZkEvmBridges {
   sourceBridge: ZkEvmBridge
@@ -46,7 +45,7 @@ type Batch = {
   accInputHash: string
   timestamp: string
   sendSequencesTxHash: string
-  // exists only if batch has been verified (finalized) 
+  // exists only if batch has been verified (finalized)
   verifyBatchTxHash: string | null
   // closed is true after all txs have been included, maybe 1-2s after the batch is created.
   closed: boolean
@@ -125,17 +124,17 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
     }
   }
 
-  private async _tilReady (): Promise<boolean> {
+  async #tilReady (): Promise<boolean> {
     if (this.ready) {
       return true
     }
 
     await wait(100)
-    return await this._tilReady()
+    return await this.#tilReady()
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    await this.#tilReady()
 
     const isSourceTxOnL1 = true
     const signer = this.l2Wallet
@@ -143,7 +142,7 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    await this.#tilReady()
 
     const isSourceTxOnL1 = false
     const signer = this.l1Wallet
@@ -206,6 +205,8 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+    await this.#tilReady()
+
     if (!this.doesSupportZkEvmRpc) {
       this.logger.error('getCustomBlockNumber: RPC endpoint does not support zkEVM_* methods')
       return
@@ -224,7 +225,6 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
       return cacheValue
     }
 
-    // maybe try and then set cache?
     const customBlockNumber = await this.#getCustomBlockNumber(blockTag)
     if (!customBlockNumber) {
       this.logger.error('getCustomBlockNumber: no customBlockNumber found')
@@ -286,7 +286,7 @@ class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
   async #getBatch (batchNumber: number): Promise<Batch | undefined> {
     let batch: Batch | undefined
     try {
-      batch = await this.#fetchRpcCall(`zkevm_getBatchByNumber`, [batchNumber])
+      batch = await this.#fetchRpcCall('zkevm_getBatchByNumber', [batchNumber])
     } catch {
       return
     }

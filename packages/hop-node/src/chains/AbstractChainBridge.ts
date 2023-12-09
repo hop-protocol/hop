@@ -59,7 +59,7 @@ abstract class AbstractChainBridge implements IAbstractChainBridge {
   }
 
   protected updateCache (cacheKey: string, cacheValue: number): void {
-    this.#cache[cacheKey]= {
+    this.#cache[cacheKey] = {
       lastCacheTimestampMs: Date.now(),
       cacheValue
     }

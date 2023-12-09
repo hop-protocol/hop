@@ -5,7 +5,7 @@ import { LineaBridge } from './Chains/linea/LineaBridge'
 import { OptimismBridge } from './Chains/optimism/OptimismBridge'
 import { PolygonBridge } from './Chains/polygon/PolygonBridge'
 import { PolygonZkBridge } from './Chains/polygonzk/PolygonZkBridge'
-import { ScrollBridge } from './Chains/scroll/ScrollBridge'
+import { ScrollZkBridge } from './Chains/scroll/ScrollBridge'
 import { ZkSyncBridge } from './Chains/zksync/ZkSyncBridge'
 
 import { Chain } from 'src/constants'
@@ -22,7 +22,7 @@ const chainToBridgeMap: Record<string, new () => IChainBridge> = {
   [Chain.Polygon]: PolygonBridge,
   [Chain.ZkSync]: ZkSyncBridge,
   [Chain.Linea]: LineaBridge,
-  [Chain.ScrollZk]: ScrollBridge,
+  [Chain.ScrollZk]: ScrollZkBridge,
   [Chain.PolygonZk]: PolygonZkBridge
 }
 

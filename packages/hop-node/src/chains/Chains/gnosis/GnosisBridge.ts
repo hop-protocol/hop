@@ -1,9 +1,8 @@
-import { AbstractChainBridge } from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
 import { GnosisMessageService } from './Message'
-import { IChainBridge } from '../../IChainBridge'
+import { createChainBridgeClass } from 'src/chains/Factories/ChainBridgeFactory'
 
-export class GnosisBridge extends AbstractChainBridge implements IChainBridge {
-  chainSlug = Chain.Gnosis
-  message = new GnosisMessageService()
-}
+export const GnosisBridge = createChainBridgeClass(
+  Chain.Gnosis,
+  GnosisMessageService
+)

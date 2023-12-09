@@ -1,9 +1,8 @@
-import { AbstractChainBridge } from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
-import { IChainBridge } from '../../IChainBridge'
 import { ScrollMessageService } from './Message'
+import { createChainBridgeClass } from 'src/chains/Factories/ChainBridgeFactory'
 
-export class ScrollBridge extends AbstractChainBridge implements IChainBridge {
-  chainSlug = Chain.ScrollZk
-  message = new ScrollMessageService()
-}
+export const ScrollZkBridge = createChainBridgeClass(
+  Chain.ScrollZk,
+  ScrollMessageService
+)

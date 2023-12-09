@@ -43,13 +43,13 @@ import {
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RelayerFee } from '@hop-protocol/sdk'
 import {
+  BondTransferRootChains,
   SyncCyclesPerFullSync,
   SyncIntervalMultiplier,
   SyncIntervalSec,
   getEnabledNetworks,
   config as globalConfig,
   minEthBonderFeeBn,
-  oruChains,
   wsEnabledChains
 } from 'src/config'
 import { Transfer } from 'src/db/TransfersDb'
@@ -833,7 +833,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = oruChains.has(sourceChainSlug)
+      const shouldBondTransferRoot = BondTransferRootChains.has(sourceChainSlug)
 
       logger.debug('handling TransfersCommitted event', JSON.stringify({
         transferRootId,

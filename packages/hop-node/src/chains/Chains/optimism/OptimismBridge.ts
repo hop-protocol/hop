@@ -1,14 +1,13 @@
-import AbstractChainBridge from '../../AbstractChainBridge'
-import Finality from './Finality'
-import Inclusion from './Inclusion'
-import Message from './Message'
+import { AbstractChainBridge } from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
 import { IChainBridge } from '../../IChainBridge'
+import { OptimismFinalityService } from './Finality'
+import { OptimismInclusionService } from './Inclusion'
+import { OptimismMessageService } from './Message'
 
-class OptimismBridge extends AbstractChainBridge implements IChainBridge {
-  constructor (chainSlug: Chain) {
-    super(chainSlug, Message, Inclusion, Finality)
-  }
+export class OptimismBridge extends AbstractChainBridge implements IChainBridge {
+  chainSlug = Chain.Optimism
+  message = new OptimismMessageService()
+  inclusion = new OptimismInclusionService()
+  finality = new OptimismFinalityService(this.inclusion)
 }
-
-export default OptimismBridge

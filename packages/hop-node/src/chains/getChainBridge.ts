@@ -1,19 +1,19 @@
 import '../moduleAlias'
-import ArbitrumBridge from './Chains/arbitrum/ArbitrumBridge'
-import GnosisBridge from './Chains/gnosis/GnosisBridge'
-import LineaBridge from './Chains/linea/LineaBridge'
-import OptimismBridge from './Chains/optimism/OptimismBridge'
-import PolygonBridge from './Chains/polygon/PolygonBridge'
-import PolygonZkBridge from './Chains/polygonzk/PolygonZkBridge'
-import ScrollBridge from './Chains/scroll/ScrollBridge'
-import ZkSyncBridge from './Chains/zksync/ZkSyncBridge'
+import { ArbitrumBridge } from './Chains/arbitrum/ArbitrumBridge'
+import { GnosisBridge } from './Chains/gnosis/GnosisBridge'
+import { LineaBridge } from './Chains/linea/LineaBridge'
+import { OptimismBridge } from './Chains/optimism/OptimismBridge'
+import { PolygonBridge } from './Chains/polygon/PolygonBridge'
+import { PolygonZkBridge } from './Chains/polygonzk/PolygonZkBridge'
+import { ScrollBridge } from './Chains/scroll/ScrollBridge'
+import { ZkSyncBridge } from './Chains/zksync/ZkSyncBridge'
 
 import { Chain } from 'src/constants'
 import { IChainBridge } from './IChainBridge'
 
 const chainWatchers: Record<string, IChainBridge> = {}
 
-const chainToBridgeMap: Record<string, new (slug: string) => IChainBridge> = {
+const chainToBridgeMap: Record<string, new () => IChainBridge> = {
   [Chain.Optimism]: OptimismBridge,
   [Chain.Base]: OptimismBridge,
   [Chain.Arbitrum]: ArbitrumBridge,
@@ -35,7 +35,7 @@ export default function getChainBridge (chainSlug: string): IChainBridge {
     return chainWatchers[chainSlug]
   }
 
-  const chainWatcher: IChainBridge = new chainToBridgeMap[chainSlug](chainSlug)
+  const chainWatcher: IChainBridge = new chainToBridgeMap[chainSlug]()
   chainWatchers[chainSlug] = chainWatcher
   return chainWatcher
 }

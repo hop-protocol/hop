@@ -1,12 +1,11 @@
-import AbstractChainBridge from '../../AbstractChainBridge'
-import Message from './Message'
+import { AbstractChainBridge } from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
 import { IChainBridge } from '../../IChainBridge'
+import { PolygonZkFinalityService } from './Finality'
+import { PolygonZkMessageService } from './Message'
 
-class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
-  constructor (chainSlug: Chain) {
-    super(chainSlug, Message)
-  }
+export class PolygonZkBridge extends AbstractChainBridge implements IChainBridge {
+  chainSlug = Chain.Polygon
+  message = new PolygonZkMessageService()
+  finality = new PolygonZkFinalityService()
 }
-
-export default PolygonZkBridge

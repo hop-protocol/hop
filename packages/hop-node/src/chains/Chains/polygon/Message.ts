@@ -1,7 +1,7 @@
-import MessageService, { IMessageService } from '../../Services/MessageService'
 import fetch from 'node-fetch'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
+import { IMessageService, MessageService } from '../../Services/MessageService'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
@@ -30,13 +30,13 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'mumbai'
 }
 
-export class Message extends MessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
+export class PolygonMessageService extends MessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   maticClient: any
 
-  constructor (chainSlug: string) {
-    super(chainSlug)
+  constructor () {
+    super()
 
     let l1Network: string | undefined
     for (const network in networks) {
@@ -202,5 +202,3 @@ export class Message extends MessageService<PolygonMessage, PolygonMessageStatus
     return res.json()
   }
 }
-
-export default Message

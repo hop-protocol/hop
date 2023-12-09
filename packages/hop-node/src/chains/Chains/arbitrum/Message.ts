@@ -1,7 +1,3 @@
-import MessageService, {
-  IMessageService,
-  MessageDirection
-} from '../../Services/MessageService'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import {
   IL1ToL2MessageWriter,
@@ -11,6 +7,11 @@ import {
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
+import {
+  IMessageService,
+  MessageDirection,
+  MessageService
+} from '../../Services/MessageService'
 import { providers } from 'ethers'
 
 type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter
@@ -20,7 +21,7 @@ type RelayOpts = {
   messageIndex: number
 }
 
-export class Message extends MessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
+export class ArbitrumMessageService extends MessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const relayOpts: RelayOpts = {
       messageDirection: MessageDirection.L1_TO_L2,
@@ -103,5 +104,3 @@ export class Message extends MessageService<MessageType, MessageStatus, RelayOpt
     )
   }
 }
-
-export default Message

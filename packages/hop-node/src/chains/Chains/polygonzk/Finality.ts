@@ -1,7 +1,7 @@
-import FinalityService, { IFinalityService } from '../../Services/FinalityService'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
+import { FinalityService, IFinalityService } from '../../Services/FinalityService'
 import { IInclusionService } from '../../Services/InclusionService'
 import { providers } from 'ethers'
 
@@ -34,14 +34,12 @@ type RpcResponse = {
   result: any
 }
 
-export class Finality extends FinalityService implements IFinalityService {
+export class PolygonZkFinalityService extends FinalityService implements IFinalityService {
   private readonly inclusionService: IInclusionService
   doesSupportZkEvmRpc: boolean
 
-  constructor (chainSlug: string, inclusionService: IInclusionService) {
-    super(chainSlug)
-
-    this.inclusionService = inclusionService
+  constructor () {
+    super()
 
     this.#init()
       .catch((err: any) => {
@@ -179,5 +177,3 @@ export class Finality extends FinalityService implements IFinalityService {
     return false
   }
 }
-
-export default Finality

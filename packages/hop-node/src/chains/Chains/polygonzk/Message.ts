@@ -1,6 +1,6 @@
-import MessageService, { IMessageService } from '../../Services/MessageService'
 import wait from 'src/utils/wait'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
+import { IMessageService, MessageService } from '../../Services/MessageService'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
@@ -30,13 +30,13 @@ const polygonSdkVersion: Record<string, string> = {
 type MessageType = string
 type MessageStatus = string
 
-export class Message extends MessageService<MessageType, MessageStatus> implements IMessageService {
+export class PolygonZkMessageService extends MessageService<MessageType, MessageStatus> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   zkEvmClient: ZkEvmClient
 
-  constructor (chainSlug: string) {
-    super(chainSlug)
+  constructor () {
+    super()
 
     let l1Network: string | undefined
     for (const network in networks) {
@@ -194,5 +194,3 @@ export class Message extends MessageService<MessageType, MessageStatus> implemen
     throw new Error('implement')
   }
 }
-
-export default Message

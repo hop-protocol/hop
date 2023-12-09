@@ -1,20 +1,20 @@
-import InclusionService, { IInclusionService } from '../../Services/InclusionService'
 import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
+import { IInclusionService, InclusionService } from '../../Services/InclusionService'
 import { getCanonicalAddressesForChain } from 'src/config'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
 }
 
-export class Inclusion extends InclusionService implements IInclusionService {
+export class ArbitrumInclusionService extends InclusionService implements IInclusionService {
   private readonly nodeInterfaceContract: Contract
   private readonly sequencerInboxContract: Contract
 
-  constructor (chainSlug: string) {
-    super(chainSlug)
+  constructor () {
+    super()
 
     // Addresses from config
     const canonicalAddresses: ArbitrumSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
@@ -118,5 +118,3 @@ export class Inclusion extends InclusionService implements IInclusionService {
     )
   }
 }
-
-export default Inclusion

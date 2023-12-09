@@ -1,13 +1,13 @@
 import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
-import InclusionService, { IInclusionService } from '../../Services/InclusionService'
+import { IInclusionService, InclusionService } from '../../Services/InclusionService'
 import { IOptimismInclusionService, IOptimismInclusionServiceConfig } from './inclusion/IOptimismInclusionService'
 import { providers } from 'ethers'
 
-export class Inclusion extends InclusionService implements IInclusionService {
+export class OptimismInclusionService extends InclusionService implements IInclusionService {
   private readonly inclusionService: IOptimismInclusionService | undefined
 
-  constructor (chainSlug: string) {
-    super(chainSlug)
+  constructor () {
+    super()
 
     const inclusionServiceConfig: IOptimismInclusionServiceConfig = {
       chainSlug: this.chainSlug,
@@ -29,5 +29,3 @@ export class Inclusion extends InclusionService implements IInclusionService {
     return this.inclusionService.getL2InclusionTx(l1TxHash)
   }
 }
-
-export default Inclusion

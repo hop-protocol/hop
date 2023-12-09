@@ -3,10 +3,7 @@ import { CacheService } from './Services/CacheService'
 import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import {
-  FinalityService,
-  IChainBridge,
-  InclusionService,
-  MessageService
+  IChainBridge
 } from './IChainBridge'
 import { IFinalityService } from './Services/FinalityService'
 import { IInclusionService } from './Services/InclusionService'
@@ -15,10 +12,10 @@ import { Logger } from 'src/logger'
 import { Signer, providers } from 'ethers'
 import { chainSlugToId } from 'src/utils/chainSlugToId'
 
-abstract class AbstractChainBridge extends CacheService implements IChainBridge {
-  private readonly message: IMessageService | undefined
-  private readonly inclusion: IInclusionService | undefined
-  private readonly finality: IFinalityService | undefined
+export abstract class AbstractChainBridge extends CacheService implements IChainBridge {
+  protected readonly message: IMessageService | undefined
+  protected readonly inclusion: IInclusionService | undefined
+  protected readonly finality: IFinalityService | undefined
 
   logger: Logger
   chainSlug: string
@@ -26,19 +23,11 @@ abstract class AbstractChainBridge extends CacheService implements IChainBridge 
   l1Wallet: Signer
   l2Wallet: Signer
 
-  constructor (chainSlug: Chain, Message: MessageService, Inclusion?: InclusionService, Finality?: FinalityService) {
+  constructor () {
     super()
-    this.message = new Message(chainSlug)
-    if (Inclusion) {
-      this.inclusion = new Inclusion(chainSlug)
-    }
-    if (Finality) {
-      this.finality = new Finality(chainSlug, this.inclusion)
-    }
 
     // Set up config
-    this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)
+    this.chainId = chainSlugToId(this.chainSlug)
     const prefix = `${this.chainSlug}`
     const tag = this.constructor.name
     this.logger = new Logger({
@@ -49,7 +38,7 @@ abstract class AbstractChainBridge extends CacheService implements IChainBridge 
 
     // Set up signers
     this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(chainSlug)
+    this.l2Wallet = wallets.get(this.chainSlug)
   }
 
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
@@ -87,5 +76,3 @@ abstract class AbstractChainBridge extends CacheService implements IChainBridge 
     return this.finality.getCustomBlockNumber(blockTag)
   }
 }
-
-export default AbstractChainBridge

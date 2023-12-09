@@ -1,12 +1,9 @@
-import AbstractChainBridge from '../../AbstractChainBridge'
-import Message from './Message'
+import { AbstractChainBridge } from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
 import { IChainBridge } from '../../IChainBridge'
+import { ZkSyncMessageService } from './Message'
 
-class ZkSyncBridgeBridge extends AbstractChainBridge implements IChainBridge {
-  constructor (chainSlug: Chain) {
-    super(chainSlug, Message)
-  }
+export class ZkSyncBridge extends AbstractChainBridge implements IChainBridge {
+  chainSlug = Chain.ScrollZk
+  message = new ZkSyncMessageService()
 }
-
-export default ZkSyncBridgeBridge

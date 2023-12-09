@@ -1,10 +1,10 @@
-import MessageService, { IMessageService } from '../../Services/MessageService'
+import { IMessageService, MessageService } from '../../Services/MessageService'
 import { providers } from 'ethers'
 
 type MessageType = string
 type MessageStatus = string
 
-export class Message extends MessageService<MessageType, MessageStatus> implements IMessageService {
+export class ScrollMessageService extends MessageService<MessageType, MessageStatus> implements IMessageService {
   async relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
@@ -33,5 +33,3 @@ export class Message extends MessageService<MessageType, MessageStatus> implemen
     throw new Error('implement')
   }
 }
-
-export default Message

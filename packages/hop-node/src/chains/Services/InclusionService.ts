@@ -1,4 +1,4 @@
-import AbstractService from './AbstractService'
+import { AbstractService } from './AbstractService'
 import { providers } from 'ethers'
 
 export interface IInclusionService {
@@ -8,6 +8,4 @@ export interface IInclusionService {
   getLatestL2TxFromL1ChannelTx?(l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined>
 }
 
-abstract class InclusionService extends AbstractService {}
-
-export default InclusionService
+export abstract class InclusionService extends AbstractService {}

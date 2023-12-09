@@ -1,9 +1,9 @@
-import MessageService, { IMessageService, MessageDirection } from '../../Services/MessageService'
 import {
   CrossChainMessage,
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
+import { IMessageService, MessageDirection, MessageService } from '../../Services/MessageService'
 import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
@@ -13,11 +13,11 @@ type RelayOpts = {
   messageIndex: number
 }
 
-export class Message extends MessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
+export class OptimismMessageService extends MessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
   private readonly csm: CrossChainMessenger
 
-  constructor (chainSlug: string) {
-    super(chainSlug)
+  constructor () {
+    super()
 
     this.csm = new CrossChainMessenger({
       bedrock: true,
@@ -91,5 +91,3 @@ export class Message extends MessageService<CrossChainMessage, MessageStatus, Re
     return messageStatus === MessageStatus.RELAYED
   }
 }
-
-export default Message

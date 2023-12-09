@@ -1,13 +1,11 @@
-import AbstractChainBridge from '../../AbstractChainBridge'
-import Inclusion from './Inclusion'
-import Message from './Message'
+import { AbstractChainBridge } from '../../AbstractChainBridge'
+import { ArbitrumInclusionService } from './Inclusion'
+import { ArbitrumMessageService } from './Message'
 import { Chain } from 'src/constants'
 import { IChainBridge } from '../../IChainBridge'
 
-class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
-  constructor (chainSlug: Chain) {
-    super(chainSlug, Message, Inclusion)
-  }
+export class ArbitrumBridge extends AbstractChainBridge implements IChainBridge {
+  chainSlug = Chain.Arbitrum
+  message = new ArbitrumMessageService()
+  inclusion = new ArbitrumInclusionService()
 }
-
-export default ArbitrumBridge

@@ -1,14 +1,13 @@
-import FinalityService, { IFinalityService } from '../../Services/FinalityService'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
+import { FinalityService, IFinalityService } from '../../Services/FinalityService'
 import { IInclusionService } from '../../Services/InclusionService'
 import { providers } from 'ethers'
 
-export class Finality extends FinalityService implements IFinalityService {
+export class OptimismFinalityService extends FinalityService implements IFinalityService {
   private readonly inclusionService: IInclusionService
 
-  constructor (chainSlug: string, inclusionService: IInclusionService) {
-    super(chainSlug)
-
+  constructor (inclusionService: IInclusionService) {
+    super()
     this.inclusionService = inclusionService
   }
 
@@ -51,5 +50,3 @@ export class Finality extends FinalityService implements IFinalityService {
     return false
   }
 }
-
-export default Finality

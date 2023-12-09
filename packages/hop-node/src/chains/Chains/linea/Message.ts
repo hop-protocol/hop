@@ -1,6 +1,6 @@
-import MessageService, { IMessageService, MessageDirection } from '../../Services/MessageService'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
+import { IMessageService, MessageDirection, MessageService } from '../../Services/MessageService'
 import {
   Message as LineaMessage,
   LineaSDK,
@@ -23,11 +23,11 @@ type RelayOpts = {
   messageIndex: number
 }
 
-export class Message extends MessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
+export class LineaMessageService extends MessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
   LineaSDK: LineaSDK
 
-  constructor (chainSlug: string) {
-    super(chainSlug)
+  constructor () {
+    super()
 
     let lineaNetwork: any
     for (const network in networks) {
@@ -130,5 +130,3 @@ export class Message extends MessageService<LineaMessage, OnChainMessageStatus, 
     return messageStatus === OnChainMessageStatus.CLAIMED
   }
 }
-
-export default Message

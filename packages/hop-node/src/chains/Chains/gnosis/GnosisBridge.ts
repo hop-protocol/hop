@@ -1,12 +1,9 @@
-import AbstractChainBridge from '../../AbstractChainBridge'
-import Message from './Message'
+import { AbstractChainBridge } from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
+import { GnosisMessageService } from './Message'
 import { IChainBridge } from '../../IChainBridge'
 
-class GnosisBridge extends AbstractChainBridge implements IChainBridge {
-  constructor (chainSlug: Chain) {
-    super(chainSlug, Message)
-  }
+export class GnosisBridge extends AbstractChainBridge implements IChainBridge {
+  chainSlug = Chain.Gnosis
+  message = new GnosisMessageService()
 }
-
-export default GnosisBridge

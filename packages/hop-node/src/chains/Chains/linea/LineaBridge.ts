@@ -1,12 +1,9 @@
-import AbstractChainBridge from '../../AbstractChainBridge'
-import Message from './Message'
+import { AbstractChainBridge } from '../../AbstractChainBridge'
 import { Chain } from 'src/constants'
 import { IChainBridge } from '../../IChainBridge'
+import { LineaMessageService } from './Message'
 
-class LineaBridge extends AbstractChainBridge implements IChainBridge {
-  constructor (chainSlug: Chain) {
-    super(chainSlug, Message)
-  }
+export class LineaBridge extends AbstractChainBridge implements IChainBridge {
+  chainSlug = Chain.Linea
+  message = new LineaMessageService()
 }
-
-export default LineaBridge

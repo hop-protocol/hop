@@ -1,21 +1,22 @@
 import wallets from 'src/wallets'
-import { CacheService } from './Services/CacheService'
+// import { CacheService } from 'src/chains/Services/CacheService'
 import { Chain } from 'src/constants'
-import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import {
+  FinalityBlockTag,
   IChainBridge
-} from './IChainBridge'
-import { IFinalityService } from './Services/FinalityService'
-import { IInclusionService } from './Services/InclusionService'
-import { IMessageService } from './Services/MessageService'
+} from 'src/chains/IChainBridge'
+import { IFinalityService } from 'src/chains/Services/FinalityService'
+import { IInclusionService } from 'src/chains/Services/InclusionService'
+import { IMessageService } from 'src/chains/Services/MessageService'
 import { Logger } from 'src/logger'
 import { Signer, providers } from 'ethers'
 import { chainSlugToId } from 'src/utils/chainSlugToId'
+import { getEnabledNetworks } from 'src/config'
 
-export abstract class AbstractChainBridge extends CacheService implements IChainBridge {
-  protected readonly message: IMessageService | undefined
-  protected readonly inclusion: IInclusionService | undefined
-  protected readonly finality: IFinalityService | undefined
+export abstract class AbstractChainBridge implements IChainBridge {
+  protected readonly message?: IMessageService
+  protected readonly inclusion?: IInclusionService
+  protected readonly finality?: IFinalityService
 
   logger: Logger
   chainSlug: string
@@ -24,7 +25,10 @@ export abstract class AbstractChainBridge extends CacheService implements IChain
   l2Wallet: Signer
 
   constructor () {
-    super()
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(this.chainSlug)) {
+      throw new Error(`Chain ${this.chainSlug} is not enabled`)
+    }
 
     // Set up config
     this.chainId = chainSlugToId(this.chainSlug)

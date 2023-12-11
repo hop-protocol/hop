@@ -1,7 +1,7 @@
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
-import { CacheService } from './CacheService'
+import { CacheService } from 'src/chains/Services/CacheService'
 import { Chain } from 'src/constants'
 import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'

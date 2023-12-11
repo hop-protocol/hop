@@ -1,15 +1,15 @@
 import '../moduleAlias'
-import { ArbitrumBridge } from './Chains/arbitrum/ArbitrumBridge'
-import { GnosisBridge } from './Chains/gnosis/GnosisBridge'
-import { LineaBridge } from './Chains/linea/LineaBridge'
-import { OptimismBridge } from './Chains/optimism/OptimismBridge'
-import { PolygonBridge } from './Chains/polygon/PolygonBridge'
-import { PolygonZkBridge } from './Chains/polygonzk/PolygonZkBridge'
-import { ScrollZkBridge } from './Chains/scroll/ScrollBridge'
-import { ZkSyncBridge } from './Chains/zksync/ZkSyncBridge'
+import { ArbitrumBridge } from 'src/chains/Chains/arbitrum/ArbitrumBridge'
+import { GnosisBridge } from 'src/chains/Chains/gnosis/GnosisBridge'
+import { LineaBridge } from 'src/chains/Chains/linea/LineaBridge'
+import { OptimismBridge } from 'src/chains/Chains/optimism/OptimismBridge'
+import { PolygonBridge } from 'src/chains/Chains/polygon/PolygonBridge'
+import { PolygonZkBridge } from 'src/chains/Chains/polygonzk/PolygonZkBridge'
+import { ScrollZkBridge } from 'src/chains/Chains/scroll/ScrollBridge'
+import { ZkSyncBridge } from 'src/chains/Chains/zksync/ZkSyncBridge'
 
 import { Chain } from 'src/constants'
-import { IChainBridge } from './IChainBridge'
+import { IChainBridge } from 'src/chains/IChainBridge'
 
 const chainWatchers: Record<string, IChainBridge> = {}
 

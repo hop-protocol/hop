@@ -11,7 +11,7 @@ import {
   IMessageService,
   MessageDirection,
   MessageService
-} from '../../Services/MessageService'
+} from 'src/chains/Services/MessageService'
 import { providers } from 'ethers'
 
 type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter

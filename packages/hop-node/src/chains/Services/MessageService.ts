@@ -1,4 +1,4 @@
-import { AbstractService } from './AbstractService'
+import { AbstractService } from 'src/chains/Services/AbstractService'
 import { providers } from 'ethers'
 
 export class MessageUnknownError extends Error {}

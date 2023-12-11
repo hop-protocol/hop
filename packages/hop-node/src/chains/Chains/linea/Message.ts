@@ -1,6 +1,6 @@
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
-import { IMessageService, MessageDirection, MessageService } from '../../Services/MessageService'
+import { IMessageService, MessageDirection, MessageService } from 'src/chains/Services/MessageService'
 import {
   Message as LineaMessage,
   LineaSDK,
@@ -45,7 +45,7 @@ export class LineaMessageService extends MessageService<LineaMessage, OnChainMes
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     const sdkOptions: Partial<LineaSDKOptions> = {
       mode: 'read-only',
-      network: lineaNetwork // options are: "linea-mainnet", "linea-goerli
+      network: lineaNetwork // options are: "linea-mainnet", "linea-goerli"
     }
     this.LineaSDK = new LineaSDK({
       l1RpcUrl: getRpcUrlFromProvider(this.l1Wallet.provider!),

@@ -1,6 +1,6 @@
 import wait from 'src/utils/wait'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { IMessageService, MessageService } from '../../Services/MessageService'
+import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'

@@ -1,23 +1,22 @@
+import assert from 'assert'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
-import { IMessageService, MessageService } from '../../Services/MessageService'
+import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
 import { getCanonicalAddressesForChain } from 'src/config'
 import { solidityKeccak256 } from 'ethers/lib/utils'
-
-// https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
-const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
-const { toHex } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
+import { toHex } from 'web3-utils'
 
 type MessageType = string
 type MessageStatus = string
 
-// reference:
+// references:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
+// https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 export class GnosisMessageService extends MessageService<MessageStatus, MessageStatus> implements IMessageService {
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB

@@ -1,14 +1,11 @@
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { FinalityService, IFinalityService } from '../../Services/FinalityService'
-import { IInclusionService } from '../../Services/InclusionService'
+import { FinalityService, IFinalityService } from 'src/chains/Services/FinalityService'
+import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { providers } from 'ethers'
 
 export class OptimismFinalityService extends FinalityService implements IFinalityService {
-  private readonly inclusionService: IInclusionService
-
-  constructor (inclusionService: IInclusionService) {
+  constructor (private readonly inclusionService: IInclusionService) {
     super()
-    this.inclusionService = inclusionService
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
@@ -44,9 +41,6 @@ export class OptimismFinalityService extends FinalityService implements IFinalit
   }
 
   #isCustomBlockNumberSupported (blockTag: FinalityBlockTag): boolean {
-    if (blockTag === FinalityBlockTag.Safe) {
-      return true
-    }
-    return false
+    return blockTag === FinalityBlockTag.Safe
   }
 }

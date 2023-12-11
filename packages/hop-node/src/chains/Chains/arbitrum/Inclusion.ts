@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
-import { IInclusionService, InclusionService } from '../../Services/InclusionService'
+import { IInclusionService, InclusionService } from 'src/chains/Services/InclusionService'
 import { getCanonicalAddressesForChain } from 'src/config'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {

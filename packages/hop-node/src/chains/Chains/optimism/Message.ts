@@ -3,7 +3,7 @@ import {
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
-import { IMessageService, MessageDirection, MessageService } from '../../Services/MessageService'
+import { IMessageService, MessageDirection, MessageService } from 'src/chains/Services/MessageService'
 import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'

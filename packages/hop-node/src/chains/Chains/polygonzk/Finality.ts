@@ -1,8 +1,8 @@
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { FinalityService, IFinalityService } from '../../Services/FinalityService'
-import { IInclusionService } from '../../Services/InclusionService'
+import { FinalityService, IFinalityService } from 'src/chains/Services/FinalityService'
+import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { providers } from 'ethers'
 
 const finalityNameMap: Record<string, string> = {

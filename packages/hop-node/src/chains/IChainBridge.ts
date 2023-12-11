@@ -1,6 +1,6 @@
-import { IFinalityService } from './Services/FinalityService'
-import { IInclusionService } from './Services/InclusionService'
-import { IMessageService } from './Services/MessageService'
+import { IFinalityService } from 'src/chains/Services/FinalityService'
+import { IInclusionService } from 'src/chains/Services/InclusionService'
+import { IMessageService } from 'src/chains/Services/MessageService'
 
 export enum FinalityBlockTag {
   Safe = 'safe',

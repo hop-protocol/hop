@@ -1,6 +1,6 @@
-import AlchemyInclusionService from './inclusion/AlchemyInclusionService'
-import { IInclusionService, InclusionService } from '../../Services/InclusionService'
-import { IOptimismInclusionService, IOptimismInclusionServiceConfig } from './inclusion/IOptimismInclusionService'
+import AlchemyInclusionService from 'src/chains/Chains/optimism/inclusion/AlchemyInclusionService'
+import { IInclusionService, InclusionService } from 'src/chains/Services/InclusionService'
+import { IOptimismInclusionService, IOptimismInclusionServiceConfig } from 'src/chains/Chains/optimism/inclusion/IOptimismInclusionService'
 import { providers } from 'ethers'
 
 export class OptimismInclusionService extends InclusionService implements IInclusionService {

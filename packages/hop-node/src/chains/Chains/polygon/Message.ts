@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
-import { IMessageService, MessageService } from '../../Services/MessageService'
+import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'

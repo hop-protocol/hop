@@ -1,4 +1,4 @@
-import { AbstractService } from './AbstractService'
+import { AbstractService } from 'src/chains/Services/AbstractService'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
 
 export interface IFinalityService {

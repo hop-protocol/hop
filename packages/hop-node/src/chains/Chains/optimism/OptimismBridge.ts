@@ -1,7 +1,7 @@
 import { Chain } from 'src/constants'
-import { OptimismFinalityService } from './Finality'
-import { OptimismInclusionService } from './Inclusion'
-import { OptimismMessageService } from './Message'
+import { OptimismFinalityService } from 'src/chains/Chains/optimism/Finality'
+import { OptimismInclusionService } from 'src/chains/Chains/optimism/Inclusion'
+import { OptimismMessageService } from 'src/chains/Chains/optimism/Message'
 import { createChainBridgeClass } from 'src/chains/Factories/ChainBridgeFactory'
 
 export const OptimismBridge = createChainBridgeClass(

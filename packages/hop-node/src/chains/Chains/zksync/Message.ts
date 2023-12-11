@@ -1,4 +1,4 @@
-import { IMessageService, MessageService } from '../../Services/MessageService'
+import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
 import { providers } from 'ethers'
 
 type MessageType = string

@@ -930,6 +930,31 @@ describe.skip('getTransferStatus', () => {
   })
 })
 
+describe.only('getTransferTimes', () => {
+  it('should return transfer times for optimism to arbitrum route', async () => {
+    const hop = new Hop('mainnet')
+    const sourceChain = 'optimism'
+    const destinationChain = 'arbitrum'
+    const times = await hop.getTransferTimes(sourceChain, destinationChain)
+    console.log('times', times)
+
+    expect(times.avg > 0).toBe(true)
+    expect(times.median > 0).toBe(true)
+    expect(times.percentile90 > 0).toBe(true)
+  })
+  it.only('should return transfer times for ethereum to polygon route', async () => {
+    const hop = new Hop('mainnet')
+    const sourceChain = 'ethereum'
+    const destinationChain = 'polygon'
+    const times = await hop.getTransferTimes(sourceChain, destinationChain)
+    console.log('times', times)
+
+    expect(times.avg > 0).toBe(true)
+    expect(times.median > 0).toBe(true)
+    expect(times.percentile90 > 0).toBe(true)
+  })
+})
+
 describe.skip('calcAmountOutMin', () => {
   it('should return min amount out given slippage tolerance', async () => {
     const hop = new Hop('mainnet')

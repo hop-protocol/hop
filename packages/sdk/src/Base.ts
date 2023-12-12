@@ -289,7 +289,7 @@ export class Base {
     return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
   }
 
-  async checkBlocklist () {
+  async checkBlocklist (): Promise<void> {
     if (this.signer && this.blocklist) {
       const address = (await (this.signer as Signer).getAddress()).toLowerCase()
       for (const blockAddress in this.blocklist) {
@@ -511,7 +511,7 @@ export class Base {
    *console.log(address)
    *```
    */
-  public async getSignerAddress (): Promise<string> {
+  public async getSignerAddress (): Promise<string | undefined> {
     if (Signer.isSigner(this.signer)) {
       return this.signer.getAddress()
     }
@@ -1074,7 +1074,7 @@ export class Base {
     }
   }
 
-  getDebugTimeLogs () {
+  getDebugTimeLogs (): any[] {
     if (!this.debugTimeLogsCacheEnabled) {
       console.warn('debugTimeLogsCacheEnabled is false')
     }

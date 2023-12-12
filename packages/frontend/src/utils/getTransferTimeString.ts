@@ -1,11 +1,17 @@
-import { getTransferTimeMinutes } from './getTransferTimeMinutes'
+import pluralize from 'pluralize'
+import { getTransferTimeSeconds } from './getTransferTimeSeconds'
 
 export function getTransferTimeString (fromChainSlug: string, toChainSlug: string) {
   if (!(fromChainSlug && toChainSlug)) {
     return
   }
-  const minutes = getTransferTimeMinutes(fromChainSlug, toChainSlug)
-  if (minutes) {
-    return `~${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`
+  const seconds = getTransferTimeSeconds(fromChainSlug, toChainSlug)
+  const minutes = Math.round(seconds / 60)
+  const isUnderMinute = seconds <= 60
+  if (seconds) {
+    if (isUnderMinute) {
+      return '~1 minute'
+    }
+    return `${minutes} ${pluralize('minutes', minutes)}`
   }
 }

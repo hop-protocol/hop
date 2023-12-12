@@ -11,6 +11,7 @@ import { useSendingTransaction } from './useSendingTransaction'
 import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
 import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -51,7 +52,7 @@ const ConfirmSend = (props: Props) => {
     source,
   })
 
-  const { fixedTimeEstimate, medianTimeEstimate } = useTransferTimeEstimate(
+  const { fixedTimeEstimate, medianTimeEstimate, isLoading } = useTransferTimeEstimate(
     source?.network?.slug,
     dest?.network?.slug
   )
@@ -100,7 +101,7 @@ const ConfirmSend = (props: Props) => {
               Estimated Wait
             </Typography>
             <Typography variant="subtitle2" color="textPrimary">
-              {transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate)}
+              {isLoading ? <Skeleton animation="wave" width={'100px'} /> : transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate)}
             </Typography>
           </Grid>
         </Grid>

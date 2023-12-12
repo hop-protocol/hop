@@ -1,29 +1,25 @@
 import pluralize from 'pluralize'
 
-export function transferTimeDisplay (medianTimeEstimateSeconds: number | null, fixedTimeEstimateSeconds: number | null): string {
-  if (medianTimeEstimateSeconds == null && fixedTimeEstimateSeconds == null) {
-    return ''
-  }
-
-  let seconds = 0
+export function transferTimeDisplay(medianTimeEstimateSeconds: number | null, fixedTimeEstimateSeconds: number | null): string {
+  // Determine the valid time estimate or default to 0
+  let seconds = 0;
   if (medianTimeEstimateSeconds != null && medianTimeEstimateSeconds > 0) {
-    seconds = medianTimeEstimateSeconds
+    seconds = medianTimeEstimateSeconds;
   } else if (fixedTimeEstimateSeconds != null && fixedTimeEstimateSeconds > 0) {
-    seconds = fixedTimeEstimateSeconds
+    seconds = fixedTimeEstimateSeconds;
   }
 
+  // Return empty string for no time or zero seconds
   if (!seconds) {
     return ''
   }
 
-  const minutes = Math.round(seconds / 60)
-  const isUnderMinute = seconds <= 60
-  if (seconds) {
-    if (isUnderMinute) {
-      return '~1 minute'
-    }
-    return `${minutes} ${pluralize('minutes', minutes)}`
+  // For under one minute, return '~1 minute'
+  if (seconds <= 60) {
+    return '~1 minute'
   }
 
-  return ''
+  // Calculate and return pluralized minutes
+  const minutes = Math.round(seconds / 60)
+  return `${minutes} ${pluralize('minutes', minutes)}`
 }

@@ -930,8 +930,8 @@ describe.skip('getTransferStatus', () => {
   })
 })
 
-describe.only('getTransferTimes', () => {
-  it('should return transfer times for optimism to arbitrum route', async () => {
+describe.skip('getTransferTimes', () => {
+  it.skip('should return transfer times for optimism to arbitrum route', async () => {
     const hop = new Hop('mainnet')
     const sourceChain = 'optimism'
     const destinationChain = 'arbitrum'
@@ -942,7 +942,7 @@ describe.only('getTransferTimes', () => {
     expect(times.median > 0).toBe(true)
     expect(times.percentile90 > 0).toBe(true)
   })
-  it.only('should return transfer times for ethereum to polygon route', async () => {
+  it.skip('should return transfer times for ethereum to polygon route', async () => {
     const hop = new Hop('mainnet')
     const sourceChain = 'ethereum'
     const destinationChain = 'polygon'

@@ -4,12 +4,12 @@ import { useApp } from 'src/contexts/AppContext'
 import { getTransferTimeSeconds } from 'src/utils/getTransferTimeSeconds'
 
 // return statistical data in whole minutes given recent transaction times
-export const useTransferTimeEstimate = (sourceChainSlug?: string, destinationChainSlug?: string) => {
+export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destinationChainSlug?: string | null) => {
   const { sdk } = useApp()
 
   const sourceChain = sourceChainSlug ? Chain.fromSlug(sourceChainSlug) : null
   const destinationChain = destinationChainSlug ? Chain.fromSlug(destinationChainSlug) : null
-  const fixedTimeEstimate = sourceChain && destinationChain ? getTransferTimeSeconds(sourceChain?.slug, destinationChain?.slug) : ''
+  const fixedTimeEstimate = sourceChain && destinationChain ? getTransferTimeSeconds(sourceChain?.slug, destinationChain?.slug) : 0
 
   const [averageTimeEstimate, setAverageTimeEstimate] = useState<number | null>(null)
   const [medianTimeEstimate, setMedianTimeEstimate] = useState<number | null>(null)

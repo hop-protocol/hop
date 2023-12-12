@@ -27,63 +27,45 @@ const polygonSdkVersion: Record<string, string> = {
 class PolygonBridge extends AbstractChainBridge implements IChainBridge {
   ready: boolean = false
   apiUrl: string
-  l1Network: string
   maticClient: any
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
+    let l1Network: string | undefined
     for (const network in networks) {
       const chainId = networks[network as NetworkSlug]?.polygon?.networkId
       if (chainId === this.chainId) {
-        this.l1Network = network
+        l1Network = network
         break
       }
     }
 
-    if (!this.l1Network) {
+    if (!l1Network) {
       throw new Error('polygon network name not found')
     }
 
-    const polygonNetwork = polygonChainSlugs[this.l1Network]
+    const polygonNetwork = polygonChainSlugs[l1Network]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.maticClient = new FxPortalClient()
+    this.#initClient(l1Network)
+      .then(() => {
+        this.ready = true
+        console.log('Matic client initialized')
+      })
+      .catch((err: any) => {
+        this.logger.error('Matic client initialize error:', err)
+      })
   }
 
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
-    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
-    const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
-    await this._initClient(rootTunnelAddress)
-
-    const isCheckpointed = await this._isCheckpointed(l2TxHash)
-    if (!isCheckpointed) {
-      throw new Error(`l2TxHash ${l2TxHash} is not checkpointed`)
-    }
-
-    // Generate payload
-    const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
-    const payload = await this.maticClient.exitUtil.buildPayloadForExit(l2TxHash, logEventSig, true)
-
-    // Create tx data and send
-    const abi = ['function receiveMessage(bytes)']
-    const iface = new utils.Interface(abi)
-    const data = iface.encodeFunctionData('receiveMessage', [payload])
-    return this.l1Wallet.sendTransaction({
-      to: rootTunnelAddress,
-      data,
-      gasLimit: CanonicalMessengerRootConfirmationGasLimit
-    })
-  }
-
-  private async _initClient (rootTunnelAddress: string): Promise<void> {
+  async #initClient (l1Network: string): Promise<void> {
     const from = await this.l1Wallet.getAddress()
-    const sdkNetwork = polygonSdkNetwork[this.l1Network]
-    const sdkVersion = polygonSdkVersion[this.l1Network]
+    const sdkNetwork = polygonSdkNetwork[l1Network]
+    const sdkVersion = polygonSdkVersion[l1Network]
     await this.maticClient.init({
       network: sdkNetwork,
       version: sdkVersion,
@@ -98,12 +80,32 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
         defaultConfig: {
           from
         }
-      },
-      erc20: {
-        rootTunnel: rootTunnelAddress
       }
     })
-    this.ready = true
+  }
+
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
+    // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
+    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
+    const isCheckpointed = await this._isCheckpointed(l2TxHash)
+    if (!isCheckpointed) {
+      throw new Error(`l2TxHash ${l2TxHash} is not checkpointed`)
+    }
+
+    // Generate payload
+    const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
+    const payload = await this.maticClient.exitUtil.buildPayloadForExit(l2TxHash, logEventSig, true)
+
+    // Create tx data and send
+    const abi = ['function receiveMessage(bytes)']
+    const iface = new utils.Interface(abi)
+    const data = iface.encodeFunctionData('receiveMessage', [payload])
+    const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
+    return this.l1Wallet.sendTransaction({
+      to: rootTunnelAddress,
+      data,
+      gasLimit: CanonicalMessengerRootConfirmationGasLimit
+    })
   }
 
   async _isCheckpointed (l2TxHash: string) {

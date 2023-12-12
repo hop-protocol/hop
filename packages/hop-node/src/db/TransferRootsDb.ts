@@ -14,8 +14,8 @@ import {
   TxError
 } from 'src/constants'
 import {
+  BondTransferRootChains,
   TxRetryDelayMs,
-  oruChains
 } from 'src/config'
 import { transferRootsMigrations } from './migrations'
 
@@ -417,8 +417,8 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
       let oruTimestampOk = true
       const sourceChain = chainIdToSlug(item.sourceChainId)
-      const isSourceOru = oruChains.has(sourceChain)
-      if (isSourceOru && item.committedAt) {
+      const doesChainSupportRootBond = BondTransferRootChains.has(sourceChain)
+      if (doesChainSupportRootBond && item.committedAt) {
         const committedAtMs = item.committedAt * 1000
         const exitTimeMs = OruExitTimeMs?.[sourceChain]
         if (!exitTimeMs) {
@@ -431,7 +431,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       // might occur is if someone fills a root with a giant transfer that is greater than the bonder's entire
       // liquidity.
       let shouldExitOru = true
-      if (isSourceOru && item?.challenged !== true && item?.bondedAt) {
+      if (doesChainSupportRootBond && item?.challenged !== true && item?.bondedAt) {
         shouldExitOru = false
       }
 
@@ -578,8 +578,8 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
       let isWithinChallengePeriod = true
       const sourceChain = chainIdToSlug(item?.sourceChainId)
-      const isSourceOru = oruChains.has(sourceChain)
-      if (isSourceOru && item?.bondedAt) {
+      const doesChainSupportRootBond = BondTransferRootChains.has(sourceChain)
+      if (doesChainSupportRootBond && item?.bondedAt) {
         const bondedAtMs: number = item.bondedAt * 1000
         const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
         if (isChallengePeriodOver) {

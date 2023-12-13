@@ -5,7 +5,6 @@ import { BigNumber } from 'ethers'
 import {
   Chain,
   ChallengePeriodMs,
-  FiveMinutesMs,
   OneWeekMs,
   OruExitTimeMs,
   RelayableChains,
@@ -37,6 +36,9 @@ interface BaseTransferRoot {
   confirmTxHash?: string
   destinationChainId?: number
   isNotFound?: boolean
+  isRelayable?: boolean
+  relayBackoffIndex?: number
+  relayTxError?: TxError
   multipleWithdrawalsSettledTxHash?: string
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
@@ -105,6 +107,12 @@ export type ExitableTransferRoot = {
   committedAt: number
 }
 
+export type TransferRootRelayProps = {
+  isRelayable?: boolean
+  relayBackoffIndex?: number
+  relayTxError?: TxError
+}
+
 export type RelayableTransferRoot = {
   transferRootId: string
   transferRootHash: string
@@ -112,7 +120,7 @@ export type RelayableTransferRoot = {
   destinationChainId: number
   confirmTxHash?: string
   bondTxHash?: string
-}
+} & TransferRootRelayProps
 
 export type ChallengeableTransferRoot = {
   transferRootId: string
@@ -530,22 +538,28 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      // TODO: This is temp. Rm.
-      const lineaRelayTime = 6 * FiveMinutesMs
-      if (destinationChain === Chain.Linea) {
-        const timestampMs = item?.bondedAt ?? item?.confirmedAt
-        if (timestampMs) {
-          if ((timestampMs * 1000) + lineaRelayTime > Date.now()) {
-            return false
-          }
-        }
+      // It is fine if isRelayable is undefined. We just need to ensure it is not false.
+      if (item?.isRelayable === false) {
+        return false
       }
 
       const isSeenOnL1 = item?.bonded ?? item?.confirmed
 
       let sentTxTimestampOk = true
       if (item.sentRelayTxAt) {
-        sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+        if (
+          item.relayTxError === TxError.UnfinalizedTransferBondError ||
+          item.relayTxError === TxError.MessageUnknownStatus ||
+          item.relayTxError === TxError.MessageRelayTooEarly
+        ) {
+          const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
+          if (delayMs > OneWeekMs) {
+            return false
+          }
+          sentTxTimestampOk = item.sentRelayTxAt + delayMs < Date.now()
+        } else {
+          sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+        }
       }
 
       return (

@@ -157,7 +157,7 @@ class CommitTransfersWatcher extends BaseWatcher {
           minThresholdAmount
         )
         this.logger.warn(
-          `destinationChainid: ${destinationChainId}, pending amount ${formattedPendingAmount} is less than min of ${formattedThreshold}`
+          `destinationChainId: ${destinationChainId}, pending amount ${formattedPendingAmount} is less than min of ${formattedThreshold}`
         )
       }
       return

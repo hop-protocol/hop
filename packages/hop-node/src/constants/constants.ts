@@ -100,8 +100,11 @@ export enum TxError {
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
   RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
   RpcServerError = 'RPC_SERVER_ERROR',
-  BondTooEarly = 'BOND_TOO_EARLY',
-  UnfinalizedTransferBondError= 'UNFINALIZED_TRANSFER_BOND_ERROR',
+  UnfinalizedTransferBondError = 'UNFINALIZED_TRANSFER_BOND_ERROR',
+  MessageUnknownStatus = 'MESSAGE_UNKNOWN_STATUS',
+  MessageRelayTooEarly = 'MESSAGE_RELAY_TOO_EARLY',
+  MessageAlreadyRelayed = 'MESSAGE_ALREADY_RELAYED',
+  MessageInvalidState = 'MESSAGE_INVALID_STATE'
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95

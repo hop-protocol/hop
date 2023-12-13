@@ -7,7 +7,7 @@ import getChainBridge from 'src/chains/getChainBridge'
 import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
-import { ChallengePeriodMs } from 'src/constants'
+import { Chain, ChallengePeriodMs } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
@@ -108,7 +108,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    const chainBridge = getChainBridge(this.chainSlug)
+    const chainBridge = getChainBridge(this.chainSlug as Chain)
     if (!chainBridge) {
       logger.warn(`chainBridge for ${this.chainSlug} is not implemented yet`)
       return
@@ -123,7 +123,12 @@ class ConfirmRootsWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
-    const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
+
+    if (!chainBridge.hasOwnImplementation('relayL2ToL1Message')) {
+      throw new Error(`chainBridge.relayL2ToL1Message not found for ${this.chainSlug}`)
+    }
+
+    const tx = await chainBridge.relayL2ToL1Message!(commitTxHash)
 
     if (!tx) {
       throw new Error('tx relayL2ToL2Message tx found')

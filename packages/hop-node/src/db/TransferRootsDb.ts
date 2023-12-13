@@ -3,6 +3,10 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
 import {
+  BondTransferRootChains,
+  TxRetryDelayMs
+} from 'src/config'
+import {
   Chain,
   ChallengePeriodMs,
   OneWeekMs,
@@ -12,10 +16,6 @@ import {
   TenMinutesMs,
   TxError
 } from 'src/constants'
-import {
-  BondTransferRootChains,
-  TxRetryDelayMs,
-} from 'src/config'
 import { transferRootsMigrations } from './migrations'
 
 interface BaseTransferRoot {

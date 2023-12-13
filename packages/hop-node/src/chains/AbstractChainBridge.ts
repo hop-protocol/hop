@@ -106,4 +106,10 @@ export abstract class AbstractChainBridge implements IChainBridge {
     }
     return this.finality.getCustomBlockNumber(blockTag)
   }
+
+  hasOwnImplementation (methodName: keyof AbstractChainBridge): boolean {
+    const baseMethod = AbstractChainBridge.prototype[methodName]
+    const derivedMethod = Object.getPrototypeOf(this)[methodName]
+    return derivedMethod !== baseMethod
+  }
 }

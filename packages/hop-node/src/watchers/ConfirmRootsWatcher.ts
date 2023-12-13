@@ -124,11 +124,11 @@ class ConfirmRootsWatcher extends BaseWatcher {
       sentConfirmTxAt: Date.now()
     })
 
-    if (!chainBridge.relayL2ToL1Message) {
+    if (!chainBridge.hasOwnImplementation('relayL2ToL1Message')) {
       throw new Error(`chainBridge.relayL2ToL1Message not found for ${this.chainSlug}`)
     }
 
-    const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
+    const tx = await chainBridge.relayL2ToL1Message!(commitTxHash)
 
     if (!tx) {
       throw new Error('tx relayL2ToL2Message tx found')

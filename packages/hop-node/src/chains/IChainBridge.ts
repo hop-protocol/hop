@@ -11,4 +11,6 @@ export type MessageService = new () => IMessageService
 export type InclusionService = new () => IInclusionService
 export type FinalityService = new (inclusionService?: IInclusionService) => IFinalityService
 
-export interface IChainBridge extends IMessageService, IInclusionService, IFinalityService {}
+export interface IChainBridge extends IMessageService, IInclusionService, IFinalityService {
+  hasOwnImplementation(methodName: keyof IChainBridge): boolean
+}

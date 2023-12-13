@@ -4,5 +4,7 @@ import { ZkSyncMessageService } from 'src/chains/Chains/zksync/ZkSyncMessageServ
 
 export const ZkSyncBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.ZkSync,
-  Message: ZkSyncMessageService
+  chainServices: {
+    MessageService: ZkSyncMessageService
+  }
 }

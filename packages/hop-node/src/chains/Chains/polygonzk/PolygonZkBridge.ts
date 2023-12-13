@@ -5,6 +5,8 @@ import { PolygonZkMessageService } from 'src/chains/Chains/polygonzk/PolygonZkMe
 
 export const PolygonZkBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.PolygonZk,
-  Message: PolygonZkMessageService,
-  Finality: PolygonZkFinalityService
+  chainServices: {
+    MessageService: PolygonZkMessageService,
+    FinalityService: PolygonZkFinalityService
+  }
 }

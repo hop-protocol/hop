@@ -6,7 +6,9 @@ import { OptimismMessageService } from 'src/chains/Chains/optimism/OptimismMessa
 
 export const OptimismBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.Optimism,
-  Message: OptimismMessageService,
-  Inclusion: OptimismInclusionService,
-  Finality: OptimismFinalityService
+  chainServices: {
+    MessageService: OptimismMessageService,
+    InclusionService: OptimismInclusionService,
+    FinalityService: OptimismFinalityService
+  }
 }

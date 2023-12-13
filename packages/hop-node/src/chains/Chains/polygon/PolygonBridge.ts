@@ -4,5 +4,7 @@ import { PolygonMessageService } from 'src/chains/Chains/polygon/PolygonMessageS
 
 export const PolygonBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.Polygon,
-  Message: PolygonMessageService
+  chainServices: {
+    MessageService: PolygonMessageService
+  }
 }

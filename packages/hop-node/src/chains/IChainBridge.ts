@@ -10,6 +10,11 @@ export enum FinalityBlockTag {
 export type MessageService = new () => IMessageService
 export type InclusionService = new () => IInclusionService
 export type FinalityService = new (inclusionService?: IInclusionService) => IFinalityService
+export type ChainServices = {
+  MessageService?: MessageService
+  InclusionService?: InclusionService
+  FinalityService?: FinalityService
+}
 
 export interface IChainBridge extends IMessageService, IInclusionService, IFinalityService {
   hasOwnImplementation(methodName: keyof IChainBridge): boolean

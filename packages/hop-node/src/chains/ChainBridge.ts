@@ -1,5 +1,6 @@
 import { Chain } from 'src/constants'
 import {
+  ChainServices,
   FinalityBlockTag,
   FinalityService,
   IChainBridge,
@@ -14,9 +15,7 @@ import { getEnabledNetworks } from 'src/config'
 
 export type ChainBridgeParams = {
   chainSlug: Chain
-  Message?: MessageService
-  Inclusion?: InclusionService
-  Finality?: FinalityService
+  chainServices?: ChainServices
 }
 
 export class ChainBridge implements IChainBridge {
@@ -26,7 +25,8 @@ export class ChainBridge implements IChainBridge {
   private readonly finality?: IFinalityService
 
   constructor (params: ChainBridgeParams) {
-    const { chainSlug, Message, Inclusion, Finality } = params
+    const { chainSlug, chainServices } = params
+    const { MessageService, InclusionService, FinalityService } = chainServices ?? {}
 
     if (!chainSlug) {
       throw new Error('chainSlug not set')
@@ -34,14 +34,17 @@ export class ChainBridge implements IChainBridge {
 
     this.chainSlug = chainSlug
 
-    if (Message) {
-      this.message = new Message()
+    if (MessageService) {
+      this.message = new MessageService()
     }
-    if (Inclusion) {
-      this.inclusion = new Inclusion()
+    if (InclusionService) {
+      this.inclusion = new InclusionService()
     }
-    if (Finality) {
-      this.finality = new Finality(this.inclusion)
+    if (FinalityService) {
+      if (!this.inclusion) {
+        throw new Error('InclusionService required for FinalityService')
+      }
+      this.finality = new FinalityService(this.inclusion)
     }
 
     const enabledNetworks = getEnabledNetworks()

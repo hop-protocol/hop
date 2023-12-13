@@ -4,5 +4,7 @@ import { LineaMessageService } from 'src/chains/Chains/linea/LineaMessageService
 
 export const LineaBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.Linea,
-  Message: LineaMessageService
+  chainServices: {
+    MessageService: LineaMessageService
+  }
 }

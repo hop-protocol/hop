@@ -4,5 +4,7 @@ import { GnosisMessageService } from 'src/chains/Chains/gnosis/GnosisMessageServ
 
 export const GnosisBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.Gnosis,
-  Message: GnosisMessageService
+  chainServices: {
+    MessageService: GnosisMessageService
+  }
 }

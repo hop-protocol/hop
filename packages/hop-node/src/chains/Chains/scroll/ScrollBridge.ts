@@ -4,5 +4,7 @@ import { ScrollMessageService } from 'src/chains/Chains/scroll/ScrollMessageServ
 
 export const ScrollZkBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.ScrollZk,
-  Message: ScrollMessageService
+  chainServices: {
+    MessageService: ScrollMessageService
+  }
 }

@@ -5,6 +5,9 @@ import { ChainBridgeParams } from 'src/chains/ChainBridge'
 
 export const ArbitrumBridgeParams: ChainBridgeParams = {
   chainSlug: Chain.Arbitrum,
-  Message: ArbitrumMessageService,
-  Inclusion: ArbitrumInclusionService
+  chainServices: {
+    MessageService: ArbitrumMessageService,
+    InclusionService: ArbitrumInclusionService
+  }
+
 }

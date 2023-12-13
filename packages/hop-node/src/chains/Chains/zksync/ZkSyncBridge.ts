@@ -1,8 +1,8 @@
 import { Chain } from 'src/constants'
+import { ChainBridgeParams } from 'src/chains/AbstractChainBridge'
 import { ZkSyncMessageService } from 'src/chains/Chains/zksync/ZkSyncMessageService'
-import { createChainBridgeClass } from 'src/chains/Factories/ChainBridgeFactory'
 
-export const ZkSyncBridge = createChainBridgeClass(
-  Chain.ZkSync,
-  ZkSyncMessageService
-)
+export const ZkSyncBridgeParams: ChainBridgeParams = {
+  chainSlug: Chain.ZkSync,
+  Message: ZkSyncMessageService
+}

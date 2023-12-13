@@ -1,10 +1,10 @@
 import { ArbitrumInclusionService } from 'src/chains/Chains/arbitrum/ArbitrumInclusionService'
 import { ArbitrumMessageService } from 'src/chains/Chains/arbitrum/ArbitrumMessageService'
 import { Chain } from 'src/constants'
-import { createChainBridgeClass } from 'src/chains/Factories/ChainBridgeFactory'
+import { ChainBridgeParams } from 'src/chains/AbstractChainBridge'
 
-export const ArbitrumBridge = createChainBridgeClass(
-  Chain.Arbitrum,
-  ArbitrumMessageService,
-  ArbitrumInclusionService
-)
+export const ArbitrumBridgeParams: ChainBridgeParams = {
+  chainSlug: Chain.Arbitrum,
+  Message: ArbitrumMessageService,
+  Inclusion: ArbitrumInclusionService
+}

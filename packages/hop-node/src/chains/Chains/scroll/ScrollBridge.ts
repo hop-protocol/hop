@@ -1,8 +1,8 @@
 import { Chain } from 'src/constants'
+import { ChainBridgeParams } from 'src/chains/AbstractChainBridge'
 import { ScrollMessageService } from 'src/chains/Chains/scroll/ScrollMessageService'
-import { createChainBridgeClass } from 'src/chains/Factories/ChainBridgeFactory'
 
-export const ScrollZkBridge = createChainBridgeClass(
-  Chain.ScrollZk,
-  ScrollMessageService
-)
+export const ScrollZkBridgeParams: ChainBridgeParams = {
+  chainSlug: Chain.ScrollZk,
+  Message: ScrollMessageService
+}

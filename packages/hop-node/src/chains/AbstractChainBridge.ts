@@ -3,7 +3,10 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import {
   FinalityBlockTag,
-  IChainBridge
+  FinalityService,
+  IChainBridge,
+  InclusionService,
+  MessageService
 } from 'src/chains/IChainBridge'
 import { IFinalityService } from 'src/chains/Services/FinalityService'
 import { IInclusionService } from 'src/chains/Services/InclusionService'
@@ -13,18 +16,37 @@ import { Signer, providers } from 'ethers'
 import { chainSlugToId } from 'src/utils/chainSlugToId'
 import { getEnabledNetworks } from 'src/config'
 
+export type ChainBridgeParams = {
+  chainSlug: Chain
+  Message?: MessageService
+  Inclusion?: InclusionService
+  Finality?: FinalityService
+}
+
 export abstract class AbstractChainBridge implements IChainBridge {
-  protected readonly message?: IMessageService
-  protected readonly inclusion?: IInclusionService
-  protected readonly finality?: IFinalityService
+  private readonly chainSlug: Chain
+  private readonly message?: IMessageService
+  private readonly inclusion?: IInclusionService
+  private readonly finality?: IFinalityService
 
   logger: Logger
-  chainSlug: string
   chainId: number
   l1Wallet: Signer
   l2Wallet: Signer
 
-  constructor () {
+  constructor (params: ChainBridgeParams) {
+    const { chainSlug, Message, Inclusion, Finality } = params
+    this.chainSlug = chainSlug
+    if (Message) {
+      this.message = new Message()
+    }
+    if (Inclusion) {
+      this.inclusion = new Inclusion()
+    }
+    if (Finality) {
+      this.finality = new Finality(this.inclusion)
+    }
+
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(this.chainSlug)) {
       throw new Error(`Chain ${this.chainSlug} is not enabled`)

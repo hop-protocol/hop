@@ -1,11 +1,10 @@
 import { Chain } from 'src/constants'
+import { ChainBridgeParams } from 'src/chains/AbstractChainBridge'
 import { PolygonZkFinalityService } from 'src/chains/Chains/polygonzk/PolygonZkFinalityService'
 import { PolygonZkMessageService } from 'src/chains/Chains/polygonzk/PolygonZkMessageService'
-import { createChainBridgeClass } from 'src/chains/Factories/ChainBridgeFactory'
 
-export const PolygonZkBridge = createChainBridgeClass(
-  Chain.PolygonZk,
-  PolygonZkMessageService,
-  null,
-  PolygonZkFinalityService
-)
+export const PolygonZkBridgeParams: ChainBridgeParams = {
+  chainSlug: Chain.PolygonZk,
+  Message: PolygonZkMessageService,
+  Finality: PolygonZkFinalityService
+}

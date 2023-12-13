@@ -13,11 +13,11 @@ import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { IMessageService } from 'src/chains/Services/MessageService'
 import { Logger } from 'src/logger'
 import { Signer, providers } from 'ethers'
-import { chainSlugToId } from 'src/utils/chainSlugToId'
 import { getEnabledNetworks } from 'src/config'
 
 export type ChainBridgeParams = {
   chainSlug: Chain
+  chainId?: number
   Message?: MessageService
   Inclusion?: InclusionService
   Finality?: FinalityService
@@ -25,18 +25,28 @@ export type ChainBridgeParams = {
 
 export abstract class AbstractChainBridge implements IChainBridge {
   private readonly chainSlug: Chain
+  private readonly chainId: number
   private readonly message?: IMessageService
   private readonly inclusion?: IInclusionService
   private readonly finality?: IFinalityService
-
-  logger: Logger
-  chainId: number
-  l1Wallet: Signer
-  l2Wallet: Signer
+  private readonly logger: Logger
+  private readonly l1Wallet: Signer
+  private readonly l2Wallet: Signer
 
   constructor (params: ChainBridgeParams) {
-    const { chainSlug, Message, Inclusion, Finality } = params
+    const { chainSlug, chainId, Message, Inclusion, Finality } = params
+
+    if (!chainSlug) {
+      throw new Error('chainSlug not set')
+    }
+
+    if (!chainId) {
+      throw new Error('chainId not set')
+    }
+
     this.chainSlug = chainSlug
+    this.chainId = chainId
+
     if (Message) {
       this.message = new Message()
     }
@@ -52,17 +62,12 @@ export abstract class AbstractChainBridge implements IChainBridge {
       throw new Error(`Chain ${this.chainSlug} is not enabled`)
     }
 
-    // Set up config
-    this.chainId = chainSlugToId(this.chainSlug)
-    const prefix = `${this.chainSlug}`
-    const tag = this.constructor.name
     this.logger = new Logger({
-      tag,
-      prefix,
+      tag: `${this.chainSlug}`,
+      prefix: this.constructor.name,
       color: 'blue'
     })
 
-    // Set up signers
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(this.chainSlug)
   }

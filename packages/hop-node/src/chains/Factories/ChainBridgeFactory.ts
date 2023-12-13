@@ -23,7 +23,7 @@ const chainToBridgeParamsMap: Record<string, ChainBridgeParams> = {
   [Chain.PolygonZk]: PolygonZkBridgeParams
 }
 
-export function createChainBridgeInstance (chainSlug: Chain): IChainBridge {
+export function createChainBridgeInstance (chainSlug: Chain, chainId: number): IChainBridge {
   if (!chainToBridgeParamsMap[chainSlug]) {
     throw new Error(`Chain ${chainSlug} is not supported`)
   }
@@ -31,5 +31,5 @@ export function createChainBridgeInstance (chainSlug: Chain): IChainBridge {
   class ChainBridge extends AbstractChainBridge implements IChainBridge {}
 
   const bridgeParams: ChainBridgeParams = chainToBridgeParamsMap[chainSlug]
-  return new ChainBridge(bridgeParams)
+  return new ChainBridge({ ...bridgeParams, chainId })
 }

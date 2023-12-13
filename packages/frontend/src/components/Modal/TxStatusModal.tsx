@@ -40,7 +40,7 @@ export function TxStatusModal(props: Props) {
   )
   const { success, addTokenToDestNetwork } = useAddTokenToMetamask(tx.token, tx.destNetworkName)
 
-  function InfoContent(props) {
+  function InfoContent(props: any) {
     const { tx, medianTimeEstimate, percentileTimeEstimate, fixedTimeEstimate } = props
 
     if (tx && tx.token && medianTimeEstimate) {

@@ -11,11 +11,11 @@ export interface IAbstractService {
 }
 
 export abstract class AbstractService extends CacheService implements IAbstractService {
-  readonly chainSlug: string
-  readonly logger: Logger
-  readonly chainId: number
-  readonly l1Wallet: Signer
-  readonly l2Wallet: Signer
+  protected readonly chainSlug: string
+  protected readonly logger: Logger
+  protected readonly chainId: number
+  protected readonly l1Wallet: Signer
+  protected readonly l2Wallet: Signer
 
   constructor () {
     super()

@@ -1,5 +1,3 @@
-import wallets from 'src/wallets'
-// import { CacheService } from 'src/chains/Services/CacheService'
 import { Chain } from 'src/constants'
 import {
   FinalityBlockTag,
@@ -11,41 +9,30 @@ import {
 import { IFinalityService } from 'src/chains/Services/FinalityService'
 import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { IMessageService } from 'src/chains/Services/MessageService'
-import { Logger } from 'src/logger'
-import { Signer, providers } from 'ethers'
+import { providers } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
 
 export type ChainBridgeParams = {
   chainSlug: Chain
-  chainId?: number
   Message?: MessageService
   Inclusion?: InclusionService
   Finality?: FinalityService
 }
 
-export abstract class AbstractChainBridge implements IChainBridge {
+export class ChainBridge implements IChainBridge {
   private readonly chainSlug: Chain
-  private readonly chainId: number
   private readonly message?: IMessageService
   private readonly inclusion?: IInclusionService
   private readonly finality?: IFinalityService
-  private readonly logger: Logger
-  private readonly l1Wallet: Signer
-  private readonly l2Wallet: Signer
 
   constructor (params: ChainBridgeParams) {
-    const { chainSlug, chainId, Message, Inclusion, Finality } = params
+    const { chainSlug, Message, Inclusion, Finality } = params
 
     if (!chainSlug) {
       throw new Error('chainSlug not set')
     }
 
-    if (!chainId) {
-      throw new Error('chainId not set')
-    }
-
     this.chainSlug = chainSlug
-    this.chainId = chainId
 
     if (Message) {
       this.message = new Message()
@@ -61,15 +48,6 @@ export abstract class AbstractChainBridge implements IChainBridge {
     if (!enabledNetworks.includes(this.chainSlug)) {
       throw new Error(`Chain ${this.chainSlug} is not enabled`)
     }
-
-    this.logger = new Logger({
-      tag: `${this.chainSlug}`,
-      prefix: this.constructor.name,
-      color: 'blue'
-    })
-
-    this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(this.chainSlug)
   }
 
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
@@ -107,8 +85,8 @@ export abstract class AbstractChainBridge implements IChainBridge {
     return this.finality.getCustomBlockNumber(blockTag)
   }
 
-  hasOwnImplementation (methodName: keyof AbstractChainBridge): boolean {
-    const baseMethod = AbstractChainBridge.prototype[methodName]
+  hasOwnImplementation (methodName: keyof ChainBridge): boolean {
+    const baseMethod = ChainBridge.prototype[methodName]
     const derivedMethod = Object.getPrototypeOf(this)[methodName]
     return derivedMethod !== baseMethod
   }

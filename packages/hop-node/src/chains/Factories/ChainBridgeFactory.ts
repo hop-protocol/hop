@@ -1,4 +1,4 @@
-import { AbstractChainBridge, ChainBridgeParams } from 'src/chains/AbstractChainBridge'
+import { ChainBridge, ChainBridgeParams } from 'src/chains/ChainBridge'
 import { ArbitrumBridgeParams } from 'src/chains/Chains/arbitrum/ArbitrumBridge'
 import { Chain } from 'src/constants'
 import { GnosisBridgeParams } from 'src/chains/Chains/gnosis/GnosisBridge'
@@ -23,13 +23,11 @@ const chainToBridgeParamsMap: Record<string, ChainBridgeParams> = {
   [Chain.PolygonZk]: PolygonZkBridgeParams
 }
 
-export function createChainBridgeInstance (chainSlug: Chain, chainId: number): IChainBridge {
+export function createChainBridgeInstance (chainSlug: Chain): IChainBridge {
   if (!chainToBridgeParamsMap[chainSlug]) {
     throw new Error(`Chain ${chainSlug} is not supported`)
   }
 
-  class ChainBridge extends AbstractChainBridge implements IChainBridge {}
-
   const bridgeParams: ChainBridgeParams = chainToBridgeParamsMap[chainSlug]
-  return new ChainBridge({ ...bridgeParams, chainId })
+  return new ChainBridge({ ...bridgeParams })
 }

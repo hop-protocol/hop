@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { ChainBridgeParams } from 'src/chains/AbstractChainBridge'
+import { ChainBridgeParams } from 'src/chains/ChainBridge'
 import { ScrollMessageService } from 'src/chains/Chains/scroll/ScrollMessageService'
 
 export const ScrollZkBridgeParams: ChainBridgeParams = {

@@ -1,23 +1,16 @@
-import { IAbstractChainBridge } from './IAbstractChainBridge'
-import { providers } from 'ethers'
+import { IFinalityService } from 'src/chains/Services/FinalityService'
+import { IInclusionService } from 'src/chains/Services/InclusionService'
+import { IMessageService } from 'src/chains/Services/MessageService'
 
 export enum FinalityBlockTag {
   Safe = 'safe',
   Finalized = 'finalized'
 }
-export type RelayL1ToL2MessageOpts = {
-  messageIndex?: number
-}
 
-export interface IChainBridge extends IAbstractChainBridge {
-  // Relay
-  relayL1ToL2Message?(l1TxHash: string, opts?: RelayL1ToL2MessageOpts): Promise<providers.TransactionResponse>
-  relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse>
+export type MessageService = new () => IMessageService
+export type InclusionService = new () => IInclusionService
+export type FinalityService = new (inclusionService?: IInclusionService) => IFinalityService
 
-  // Inclusion
-  getL1InclusionTx?(l2TxHash: string): Promise<providers.TransactionReceipt | undefined>
-  getL2InclusionTx?(l1TxHash: string): Promise<providers.TransactionReceipt | undefined>
-
-  // Finality
-  getCustomBlockNumber?(blockTag: FinalityBlockTag): Promise<number | undefined>
+export interface IChainBridge extends IMessageService, IInclusionService, IFinalityService {
+  hasOwnImplementation(methodName: keyof IChainBridge): boolean
 }

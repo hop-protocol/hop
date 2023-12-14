@@ -4,7 +4,6 @@ import {
   IChainBridge,
 } from 'src/chains/IChainBridge'
 import { IFinalityService } from 'src/chains/Services/FinalityService'
-import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { IMessageService } from 'src/chains/Services/MessageService'
 import { providers } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
@@ -16,28 +15,18 @@ type ChainBridgeParams = {
 
 export abstract class AbstractChainBridge implements IChainBridge {
   private readonly messageService?: IMessageService
-  private readonly inclusionService?: IInclusionService
   private readonly finalityService?: IFinalityService
 
   constructor (params: ChainBridgeParams) {
     const { chainSlug, chainServices } = params
-    const { MessageService, InclusionService, FinalityService } = chainServices ?? {}
+    const { messageService, finalityService } = chainServices ?? {}
 
     if (!chainSlug) {
       throw new Error('chainSlug not set')
     }
 
-    if (MessageService) {
-      this.messageService = new MessageService(chainSlug)
-    }
-
-    if (InclusionService) {
-      this.inclusionService = new InclusionService(chainSlug)
-    }
-
-    if (FinalityService) {
-      this.finalityService = new FinalityService(chainSlug, this.inclusionService)
-    }
+    this.messageService = messageService
+    this.finalityService = finalityService
 
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(chainSlug)) {
@@ -60,17 +49,17 @@ export abstract class AbstractChainBridge implements IChainBridge {
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.inclusionService?.getL1InclusionTx) {
+    if (!this.finalityService?.getL1InclusionTx) {
       throw new Error('getL1InclusionTx not implemented')
     }
-    return this.inclusionService.getL1InclusionTx(l2TxHash)
+    return this.finalityService.getL1InclusionTx(l2TxHash)
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.inclusionService?.getL2InclusionTx) {
+    if (!this.finalityService?.getL2InclusionTx) {
       throw new Error('getL2InclusionTx not implemented')
     }
-    return this.inclusionService.getL2InclusionTx(l1TxHash)
+    return this.finalityService.getL2InclusionTx(l1TxHash)
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
@@ -80,9 +69,21 @@ export abstract class AbstractChainBridge implements IChainBridge {
     return this.finalityService.getCustomBlockNumber(blockTag)
   }
 
-  hasOwnImplementation (methodName: keyof ChainBridge): boolean {
-    const baseMethod = ChainBridge.prototype[methodName]
-    const derivedMethod = Object.getPrototypeOf(this)[methodName]
-    return derivedMethod !== baseMethod
+
+  hasOwnImplementation(methodName: keyof IChainBridge): boolean {
+    switch (methodName) {
+      case 'relayL1ToL2Message':
+        return !!this.messageService?.relayL1ToL2Message;
+      case 'relayL2ToL1Message':
+        return !!this.messageService?.relayL2ToL1Message;
+      case 'getL1InclusionTx':
+        return !!this.finalityService?.getL1InclusionTx;
+      case 'getL2InclusionTx':
+        return !!this.finalityService?.getL2InclusionTx;
+      case 'getCustomBlockNumber':
+        return !!this.finalityService?.getCustomBlockNumber;
+      default:
+        return false;
+    }
   }
 }

@@ -22,8 +22,8 @@ interface Batch {
 abstract class OptimismInclusionService {
   derive: Derive = new Derive()
   chainSlug: string
-  l1Wallet: Signer
-  l2Wallet: Signer
+  l1Provider: providers.Provider
+  l2Provider: providers.Provider
   logger: Logger
   batcherAddress: string
   batchInboxAddress: string
@@ -33,8 +33,8 @@ abstract class OptimismInclusionService {
 
   constructor (config: IOptimismInclusionServiceConfig) {
     this.chainSlug = config.chainSlug
-    this.l1Wallet = config.l1Wallet
-    this.l2Wallet = config.l2Wallet
+    this.l1Provider = config.l1Provider
+    this.l2Provider = config.l2Provider
     const prefix = `${this.chainSlug}`
     const tag = this.constructor.name
     this.logger = new Logger({
@@ -61,7 +61,7 @@ abstract class OptimismInclusionService {
       'function timestamp() view returns (uint64)',
       'function setL1BlockValues(uint64, uint64, uint256, bytes32, uint64, bytes32, uint256, uint256)'
     ]
-    this.l1BlockContract = new Contract(this.l1BlockAddress, l1BlockAbi, this.l2Wallet)
+    this.l1BlockContract = new Contract(this.l1BlockAddress, l1BlockAbi, this.l2Provider)
   }
 
   async getApproximateL2BlockNumberAtL1Timestamp (l1Timestamp: number): Promise<number> {
@@ -71,7 +71,7 @@ abstract class OptimismInclusionService {
     const l1TimestampDiffInL2Blocks = Math.floor(l1TimestampDiffSec / AvgBlockTimeSeconds[this.chainSlug])
 
     // Get the l2 block number at the desired l1 timestamp
-    const currentL2BlockNumber: number = await this.l2Wallet.provider!.getBlockNumber()
+    const currentL2BlockNumber: number = await this.l2Provider.getBlockNumber()
     const l2BlockNumberAtTimeOfL1Tx: number = currentL2BlockNumber - l1TimestampDiffInL2Blocks
 
     // Include the constant buffer time it takes for a message to go from L1 to L2
@@ -81,7 +81,7 @@ abstract class OptimismInclusionService {
   }
 
   async getL2TxHashesInChannel (l1TxHash: string): Promise<Channel> {
-    const tx = await this.l1Wallet.provider!.getTransaction(l1TxHash)
+    const tx = await this.l1Provider.getTransaction(l1TxHash)
     const frames: Frame[] = await this.derive.parseFrames(tx.data)
 
     let numL1BlocksInChannel: number = 0

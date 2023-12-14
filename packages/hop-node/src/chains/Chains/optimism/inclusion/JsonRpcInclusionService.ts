@@ -5,8 +5,8 @@ import { providers } from 'ethers'
 
 class JsonRpcInclusionService extends OptimismInclusionService {
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const safeL2Block: providers.Block = await this.l2Wallet.provider!.getBlock('safe')
+    const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
+    const safeL2Block: providers.Block = await this.l2Provider.getBlock('safe')
 
     // If the tx is not yet safe, it is not checkpointed
     if (receipt.blockNumber > safeL2Block.number) {
@@ -55,7 +55,7 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     for (const checkpointBlock of possibleCheckpointBlocks) {
       for (const tx of checkpointBlock.transactions) {
         if (this.isBatcherTx(tx)) {
-          return this.l1Wallet.provider!.getTransactionReceipt(tx.hash)
+          return this.l1Provider.getTransactionReceipt(tx.hash)
         }
       }
     }
@@ -71,7 +71,7 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     for (const checkpointBlock of possibleCheckpointBlocks) {
       for (const tx of checkpointBlock.transactions) {
         if (this.isBatcherTx(tx)) {
-          return this.l1Wallet.provider!.getTransactionReceipt(tx.hash)
+          return this.l1Provider.getTransactionReceipt(tx.hash)
         }
       }
     }
@@ -79,28 +79,28 @@ class JsonRpcInclusionService extends OptimismInclusionService {
 
   private async _getPossibleCheckpointBlock (expectedCheckpointBlockNum: number): Promise<BlockWithTransactions[]> {
     return Promise.all([
-      await this.l1Wallet.provider!.getBlockWithTransactions(expectedCheckpointBlockNum - 1),
-      await this.l1Wallet.provider!.getBlockWithTransactions(expectedCheckpointBlockNum),
-      await this.l1Wallet.provider!.getBlockWithTransactions(expectedCheckpointBlockNum + 1)
+      await this.l1Provider.getBlockWithTransactions(expectedCheckpointBlockNum - 1),
+      await this.l1Provider.getBlockWithTransactions(expectedCheckpointBlockNum),
+      await this.l1Provider.getBlockWithTransactions(expectedCheckpointBlockNum + 1)
     ])
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    const l1TxBlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
+    const l1TxBlockNumber: number = (await this.l1Provider.getTransactionReceipt(l1TxHash)).blockNumber
     const l2InclusionBlockNumber = await this._traverseL2BlocksForInclusion(l1TxBlockNumber)
 
-    const txs = (await this.l2Wallet.provider!.getBlockWithTransactions(l2InclusionBlockNumber)).transactions
+    const txs = (await this.l2Provider.getBlockWithTransactions(l2InclusionBlockNumber)).transactions
     for (const tx of txs) {
       if (this.isL1BlockUpdateTx(tx)) {
         if (this.doesL1BlockUpdateExceedL1BlockNumber(tx.data, l1TxBlockNumber)) {
-          return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
+          return this.l2Provider.getTransactionReceipt(tx.hash)
         }
       }
     }
   }
 
   private async _traverseL2BlocksForInclusion (l1BlockNumber: number): Promise<number> {
-    const l1Block = await this.l1Wallet.provider!.getBlock(l1BlockNumber)
+    const l1Block = await this.l1Provider.getBlock(l1BlockNumber)
     let l2BlockNumber = await this.getApproximateL2BlockNumberAtL1Timestamp(l1Block.timestamp)
     let includedL1BlockNumber: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))
 

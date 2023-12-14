@@ -7,8 +7,8 @@ export class PolygonZkBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: PolygonZkMessageService,
-        FinalityService: PolygonZkFinalityService
+        messageService: new PolygonZkMessageService(chainSlug),
+        finalityService: new PolygonZkFinalityService(chainSlug)
       }
     })
   }

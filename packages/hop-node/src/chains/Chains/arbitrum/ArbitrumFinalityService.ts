@@ -2,14 +2,14 @@ import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
-import { IInclusionService, InclusionService } from 'src/chains/Services/InclusionService'
+import { IFinalityService, FinalityService } from 'src/chains/Services/FinalityService'
 import { getCanonicalAddressesForChain } from 'src/config'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
 }
 
-export class ArbitrumInclusionService extends InclusionService implements IInclusionService {
+export class ArbitrumFinalityService extends FinalityService implements IFinalityService {
   private readonly nodeInterfaceContract: Contract
   private readonly sequencerInboxContract: Contract
 

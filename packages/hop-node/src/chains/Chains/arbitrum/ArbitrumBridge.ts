@@ -1,4 +1,4 @@
-import { ArbitrumInclusionService } from 'src/chains/Chains/arbitrum/ArbitrumInclusionService'
+import { ArbitrumFinalityService } from 'src/chains/Chains/arbitrum/ArbitrumFinalityService'
 import { ArbitrumMessageService } from 'src/chains/Chains/arbitrum/ArbitrumMessageService'
 import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
 
@@ -7,8 +7,8 @@ export class ArbitrumBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: ArbitrumMessageService,
-        InclusionService: ArbitrumInclusionService
+        messageService: new ArbitrumMessageService(chainSlug),
+        finalityService: new ArbitrumFinalityService(chainSlug)
       }
     })
   }

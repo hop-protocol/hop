@@ -1,5 +1,4 @@
 import { IFinalityService } from 'src/chains/Services/FinalityService'
-import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { IMessageService } from 'src/chains/Services/MessageService'
 
 export enum FinalityBlockTag {
@@ -7,16 +6,11 @@ export enum FinalityBlockTag {
   Finalized = 'finalized'
 }
 
-type MessageService = new (chainSlug: string) => IMessageService
-type InclusionService = new (chainSlug: string) => IInclusionService
-type FinalityService = new (chainSlug: string, inclusionService?: IInclusionService) => IFinalityService
-
 export type ChainServices = {
-  MessageService?: MessageService
-  InclusionService?: InclusionService
-  FinalityService?: FinalityService
+  messageService?: IMessageService
+  finalityService?: IFinalityService
 }
 
-export interface IChainBridge extends IMessageService, IInclusionService, IFinalityService {
+export interface IChainBridge extends IMessageService, IFinalityService {
   hasOwnImplementation(methodName: keyof IChainBridge): boolean
 }

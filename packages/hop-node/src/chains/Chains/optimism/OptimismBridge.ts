@@ -1,5 +1,4 @@
 import { OptimismFinalityService } from 'src/chains/Chains/optimism/OptimismFinalityService'
-import { OptimismInclusionService } from 'src/chains/Chains/optimism/OptimismInclusionService'
 import { OptimismMessageService } from 'src/chains/Chains/optimism/OptimismMessageService'
 import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
 
@@ -8,9 +7,8 @@ export class OptimismBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: OptimismMessageService,
-        InclusionService: OptimismInclusionService,
-        FinalityService: OptimismFinalityService
+        messageService: new OptimismMessageService(chainSlug),
+        finalityService: new OptimismFinalityService(chainSlug)
       }
     })
   }

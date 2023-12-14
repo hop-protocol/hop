@@ -6,7 +6,7 @@ export class ZkSyncBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: ZkSyncMessageService
+        messageService: new ZkSyncMessageService(chainSlug)
       }
     })
   }

@@ -6,7 +6,7 @@ export class ScrollZkBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: ScrollMessageService
+        messageService: new ScrollMessageService(chainSlug)
       }
     })
   }

@@ -16,15 +16,12 @@ interface GetInclusionTxHashes {
 }
 
 class AlchemyInclusionService extends OptimismInclusionService implements IOptimismInclusionService {
-  private readonly maxNumL1BlocksWithoutInclusion: number
+  readonly #maxNumL1BlocksWithoutInclusion: number = 50
   private isInitialized: boolean
   private ready: boolean
 
   constructor (config: IOptimismInclusionServiceConfig) {
     super(config)
-
-    // TODO: Remove this when generalizing this class since it is Optimism-specific
-    this.maxNumL1BlocksWithoutInclusion = 50
 
     // Async init
     this.init()
@@ -43,8 +40,8 @@ class AlchemyInclusionService extends OptimismInclusionService implements IOptim
 
   async init () {
     const [l1RpcProviderName, l2RpcProviderName] = await Promise.all([
-      getRpcRootProviderName(this.l1Wallet.provider!),
-      getRpcRootProviderName(this.l2Wallet.provider!)
+      getRpcRootProviderName(this.l1Provider),
+      getRpcRootProviderName(this.l2Provider)
     ])
     if (
       l1RpcProviderName !== RootProviderName.Alchemy ||
@@ -72,14 +69,14 @@ class AlchemyInclusionService extends OptimismInclusionService implements IOptim
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     if (!this._isReadyAndInitialized()) return
 
-    const l2TxBlockNumber: number = (await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)).blockNumber
+    const l2TxBlockNumber: number = (await this.l2Provider.getTransactionReceipt(l2TxHash)).blockNumber
     const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2TxBlockNumber }))
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(l1OriginBlockNum)
 
     for (const inclusionTxHash of inclusionTxHashes) {
       const { transactionHashes } = await this.getL2TxHashesInChannel(inclusionTxHash)
       if (transactionHashes.includes(l2TxHash.toLowerCase())) {
-        return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHash)
+        return this.l1Provider.getTransactionReceipt(inclusionTxHash)
       }
     }
   }
@@ -87,17 +84,17 @@ class AlchemyInclusionService extends OptimismInclusionService implements IOptim
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     if (!this._isReadyAndInitialized()) return
 
-    const l1TxBlockNumber: number = (await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)).blockNumber
-    const l1Block: providers.Block = await this.l1Wallet.provider!.getBlock(l1TxBlockNumber)
+    const l1TxBlockNumber: number = (await this.l1Provider.getTransactionReceipt(l1TxHash)).blockNumber
+    const l1Block: providers.Block = await this.l1Provider.getBlock(l1TxBlockNumber)
 
     const l2StartBlockNumber = await this.getApproximateL2BlockNumberAtL1Timestamp(l1Block.timestamp)
     const inclusionTxHashes: string[] = await this._getL1lToL2InclusionTxHashes(l2StartBlockNumber)
 
     for (const inclusionTxHash of inclusionTxHashes) {
-      const tx = await this.l2Wallet.provider!.getTransaction(inclusionTxHash)
+      const tx = await this.l2Provider.getTransaction(inclusionTxHash)
       if (this.isL1BlockUpdateTx(tx)) {
         if (this.doesL1BlockUpdateExceedL1BlockNumber(tx.data, l1TxBlockNumber)) {
-          return this.l2Wallet.provider!.getTransactionReceipt(tx.hash)
+          return this.l2Provider.getTransactionReceipt(tx.hash)
         }
       }
     }
@@ -106,9 +103,9 @@ class AlchemyInclusionService extends OptimismInclusionService implements IOptim
   async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
     if (!this._isReadyAndInitialized()) return
 
-    const startBlockNumber = l1BlockNumber - this.maxNumL1BlocksWithoutInclusion
+    const startBlockNumber = l1BlockNumber - this.#maxNumL1BlocksWithoutInclusion
     const inclusionTxHashes: string[] = await this._getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
-    return this.l1Wallet.provider!.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
+    return this.l1Provider.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
   }
 
   async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
@@ -120,12 +117,12 @@ class AlchemyInclusionService extends OptimismInclusionService implements IOptim
       this.logger.error(`no L2 tx found for L1 inclusion tx ${l1InclusionTx}`)
       return
     }
-    return this.l2Wallet.provider!.getTransactionReceipt(latestL2TxHash)
+    return this.l2Provider.getTransactionReceipt(latestL2TxHash)
   }
 
   private async _getL2ToL1InclusionTxHashes (startBlockNumber: number, endBlockNumber?: number): Promise<string[]> {
     return this._getInclusionTxHashes({
-      destChainProvider: this.l1Wallet.provider!,
+      destChainProvider: this.l1Provider,
       fromAddress: this.batcherAddress,
       toAddress: this.batchInboxAddress,
       startBlockNumber,
@@ -135,7 +132,7 @@ class AlchemyInclusionService extends OptimismInclusionService implements IOptim
 
   private async _getL1lToL2InclusionTxHashes (startBlockNumber: number, endBlockNumber?: number): Promise<string[]> {
     return this._getInclusionTxHashes({
-      destChainProvider: this.l2Wallet.provider!,
+      destChainProvider: this.l2Provider,
       fromAddress: this.l1BlockSetterAddress,
       toAddress: this.l1BlockAddress,
       startBlockNumber,
@@ -194,7 +191,7 @@ class AlchemyInclusionService extends OptimismInclusionService implements IOptim
     // Defined the from and to block numbers
     const destHeadBlockNumber = await destChainProvider.getBlockNumber()
 
-    let endBlockNumber = startBlockNumber + this.maxNumL1BlocksWithoutInclusion
+    let endBlockNumber = startBlockNumber + this.#maxNumL1BlocksWithoutInclusion
 
     // Handle case where blocks exceed current head
     if (startBlockNumber > destHeadBlockNumber) {

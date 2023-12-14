@@ -2,7 +2,6 @@ import getRpcUrl from 'src/utils/getRpcUrl'
 import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import { FinalityService, IFinalityService } from 'src/chains/Services/FinalityService'
-import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { providers } from 'ethers'
 
 const finalityNameMap: Record<string, string> = {
@@ -35,7 +34,6 @@ type RpcResponse = {
 }
 
 export class PolygonZkFinalityService extends FinalityService implements IFinalityService {
-  private readonly inclusionService: IInclusionService
   doesSupportZkEvmRpc: boolean
 
   constructor (chainSlug: string) {

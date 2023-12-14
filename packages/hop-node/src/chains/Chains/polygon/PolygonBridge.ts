@@ -6,7 +6,7 @@ export class PolygonBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: PolygonMessageService,
+        messageService: new PolygonMessageService(chainSlug)
       }
     })
   }

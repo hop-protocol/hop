@@ -6,7 +6,7 @@ export class GnosisBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: GnosisMessageService,
+        messageService: new GnosisMessageService(chainSlug)
       }
     })
   }

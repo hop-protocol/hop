@@ -6,7 +6,7 @@ export class LineaBridge extends AbstractChainBridge {
     super({
       chainSlug,
       chainServices: {
-        MessageService: LineaMessageService
+        messageService: new LineaMessageService(chainSlug)
       }
     })
   }

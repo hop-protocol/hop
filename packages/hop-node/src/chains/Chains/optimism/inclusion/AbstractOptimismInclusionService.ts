@@ -1,13 +1,12 @@
 import Derive, { Frame } from './Derive'
-import Logger from 'src/logger'
 import zlib from 'zlib'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
 import { Contract, providers } from 'ethers'
-import { IOptimismInclusionServiceConfig } from './IOptimismInclusionService'
 import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 import { getCanonicalAddressesForChain } from 'src/config'
+import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionService'
 
 interface Channel {
   transactionHashes: string[]
@@ -19,29 +18,16 @@ interface Batch {
   numL1BlocksInBatch: number
 }
 
-abstract class OptimismInclusionService {
-  derive: Derive = new Derive()
-  chainSlug: string
-  l1Provider: providers.Provider
-  l2Provider: providers.Provider
-  logger: Logger
-  batcherAddress: string
-  batchInboxAddress: string
-  l1BlockSetterAddress: string
-  l1BlockAddress: string
-  l1BlockContract: Contract
+export abstract class AbstractOptimismInclusionService extends AbstractInclusionService {
+  protected readonly derive: Derive = new Derive()
+  protected readonly batcherAddress: string
+  protected readonly batchInboxAddress: string
+  protected readonly l1BlockSetterAddress: string
+  protected readonly l1BlockAddress: string
+  protected readonly l1BlockContract: Contract
 
-  constructor (config: IOptimismInclusionServiceConfig) {
-    this.chainSlug = config.chainSlug
-    this.l1Provider = config.l1Provider
-    this.l2Provider = config.l2Provider
-    const prefix = `${this.chainSlug}`
-    const tag = this.constructor.name
-    this.logger = new Logger({
-      tag,
-      prefix,
-      color: 'blue'
-    })
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     // System addresses and precompiles
     this.l1BlockSetterAddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0001'
@@ -189,5 +175,3 @@ abstract class OptimismInclusionService {
     return false
   }
 }
-
-export default OptimismInclusionService

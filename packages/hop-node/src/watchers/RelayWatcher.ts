@@ -11,7 +11,7 @@ import {
   MessageInvalidError,
   MessageRelayedError,
   MessageUnknownError
-} from 'src/chains/Services/MessageService'
+} from 'src/chains/Services/AbstractMessageService'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayTransactionBatchSize, config as globalConfig } from 'src/config'
 import { RelayableTransferRoot, TransferRootRelayProps } from 'src/db/TransferRootsDb'

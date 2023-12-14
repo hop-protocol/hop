@@ -1,9 +1,10 @@
-import OptimismInclusionService from './OptimismInclusionService'
+import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService'
 import { AvgBlockTimeSeconds, Chain } from 'src/constants'
 import { BlockWithTransactions } from '@ethersproject/abstract-provider'
 import { providers } from 'ethers'
+import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 
-class JsonRpcInclusionService extends OptimismInclusionService {
+export class JsonRpcInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
     const safeL2Block: providers.Block = await this.l2Provider.getBlock('safe')
@@ -130,5 +131,3 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     return l2BlockNumber
   }
 }
-
-export default JsonRpcInclusionService

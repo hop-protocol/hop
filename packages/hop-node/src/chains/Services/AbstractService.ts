@@ -1,13 +1,8 @@
 import Logger from 'src/logger'
-import wallets from 'src/wallets'
-import { Chain } from 'src/constants'
-import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
 
 export abstract class AbstractService {
   protected readonly chainSlug: string
-  protected readonly l1Wallet: Signer
-  protected readonly l2Wallet: Signer
   protected readonly logger: Logger
 
   constructor (chainSlug: string) {
@@ -25,9 +20,5 @@ export abstract class AbstractService {
       prefix,
       color: 'blue'
     })
-
-    // Set up signers
-    this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(this.chainSlug)
   }
 }

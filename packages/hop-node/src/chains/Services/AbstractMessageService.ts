@@ -1,5 +1,8 @@
 import { AbstractService } from 'src/chains/Services/AbstractService'
 import { providers } from 'ethers'
+import wallets from 'src/wallets'
+import { Chain } from 'src/constants'
+import { Signer } from 'ethers'
 
 export class MessageUnknownError extends Error {}
 export class MessageInFlightError extends Error {}
@@ -16,8 +19,10 @@ export interface IMessageService {
   relayL2ToL1Message?(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
 }
 
-
 export abstract class AbstractMessageService<Message, MessageStatus, RelayOptions = null> extends AbstractService {
+  protected readonly l1Wallet: Signer
+  protected readonly l2Wallet: Signer
+
   protected abstract getMessage (txHash: string, opts: RelayOptions | null): Promise<Message>
   protected abstract getMessageStatus (message: Message, opts: RelayOptions | null): Promise<MessageStatus>
   protected abstract sendRelayTransaction (message: Message, relayOpts: RelayOptions | null): Promise<providers.TransactionResponse>
@@ -25,19 +30,26 @@ export abstract class AbstractMessageService<Message, MessageStatus, RelayOption
   protected abstract isMessageRelayable (messageStatus: MessageStatus): Promise<boolean> | boolean
   protected abstract isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> | boolean
 
-  // Call a private method so the validation is guaranteed to run in order
-  protected async validateMessageAndSendTransaction (txHash: string, relayOpts: RelayOptions | null = null): Promise<providers.TransactionResponse> {
-    return this._validateMessageAndSendTransaction(txHash, relayOpts)
+  constructor (chainSlug: string) {
+    super(chainSlug)
+
+    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l2Wallet = wallets.get(this.chainSlug)
   }
 
-  private async _validateMessageAndSendTransaction (txHash: string, relayOpts: RelayOptions | null): Promise<providers.TransactionResponse> {
+  // Call a private method so the validation is guaranteed to run in order
+  protected async validateMessageAndSendTransaction (txHash: string, relayOpts: RelayOptions | null = null): Promise<providers.TransactionResponse> {
+    return this.#validateMessageAndSendTransaction(txHash, relayOpts)
+  }
+
+  async #validateMessageAndSendTransaction (txHash: string, relayOpts: RelayOptions | null): Promise<providers.TransactionResponse> {
     const message: Message = await this.getMessage(txHash, relayOpts)
     const messageStatus: MessageStatus = await this.getMessageStatus(message, relayOpts)
-    await this.validateMessageStatus(messageStatus)
+    await this.#validateMessageStatus(messageStatus)
     return this.sendRelayTransaction(message, relayOpts)
   }
 
-  private async validateMessageStatus (messageStatus: MessageStatus): Promise<void> {
+  async #validateMessageStatus (messageStatus: MessageStatus): Promise<void> {
     if (!messageStatus) {
       throw new MessageUnknownError('validateMessageStatus: Unknown message status')
     }

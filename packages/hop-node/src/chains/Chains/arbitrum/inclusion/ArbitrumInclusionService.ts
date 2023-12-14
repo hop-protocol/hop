@@ -2,14 +2,14 @@ import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
-import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
 import { getCanonicalAddressesForChain } from 'src/config'
+import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
 }
 
-export class ArbitrumFinalityService extends AbstractFinalityService implements IFinalityService {
+export class ArbitrumInclusionService extends AbstractInclusionService implements IInclusionService {
   private readonly nodeInterfaceContract: Contract
   private readonly sequencerInboxContract: Contract
 
@@ -36,8 +36,8 @@ export class ArbitrumFinalityService extends AbstractFinalityService implements 
     const sequencerInboxAbi: string[] = [
       `event SequencerBatchDelivered(uint256 indexed batchSequenceNumber, bytes32 indexed beforeAcc, bytes32 indexed afterAcc, bytes32 delayedAcc, uint256 afterDelayedMessagesRead, ${timeBoundsStruct} timeBounds, ${batchDataLocationEnum} dataLocation)`
     ]
-    this.nodeInterfaceContract = new Contract(nodeInterfaceAddress, nodeInterfaceAbi, this.l2Wallet)
-    this.sequencerInboxContract = new Contract(sequencerInboxAddress, sequencerInboxAbi, this.l1Wallet)
+    this.nodeInterfaceContract = new Contract(nodeInterfaceAddress, nodeInterfaceAbi, this.l2Provider)
+    this.sequencerInboxContract = new Contract(sequencerInboxAddress, sequencerInboxAbi, this.l1Provider)
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
@@ -69,7 +69,7 @@ export class ArbitrumFinalityService extends AbstractFinalityService implements 
     // Number needs to be large enough to account for sequencer down time but small enough to fit
     // in a getLogs batch request.
     const numForwardLookingBlocks = 1000
-    const l1BlockHead: number = await this.l1Wallet.provider!.getBlockNumber()
+    const l1BlockHead: number = await this.l1Provider.getBlockNumber()
     const startBlockNumber = Number(l2TxReceipt.l1BlockNumber)
     const endBlockNumber = Math.min(startBlockNumber + numForwardLookingBlocks, l1BlockHead)
     const sequencerBatchDeliveredEvents: any[] = await this._fetchSequencerBatchDeliveredEvents(startBlockNumber, endBlockNumber)
@@ -78,7 +78,7 @@ export class ArbitrumFinalityService extends AbstractFinalityService implements 
     // correct l1BatchNumber is the correct event.
     for (const event of sequencerBatchDeliveredEvents) {
       if (event.args.batchSequenceNumber.eq(l1BatchNumber)) {
-        return await this.l1Wallet.provider!.getTransactionReceipt(event.transactionHash)
+        return await this.l1Provider.getTransactionReceipt(event.transactionHash)
       }
     }
 

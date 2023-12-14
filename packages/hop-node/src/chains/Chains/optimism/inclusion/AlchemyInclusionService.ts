@@ -1,11 +1,11 @@
-import OptimismInclusionService from './OptimismInclusionService'
 import fetch from 'node-fetch'
 import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import wait from 'src/utils/wait'
-import { IOptimismInclusionService, IOptimismInclusionServiceConfig } from './IOptimismInclusionService'
+import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService'
 import { RootProviderName } from 'src/constants'
 import { providers } from 'ethers'
+import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 
 interface GetInclusionTxHashes {
   destChainProvider: providers.Provider
@@ -15,13 +15,13 @@ interface GetInclusionTxHashes {
   endBlockNumber?: number
 }
 
-class AlchemyInclusionService extends OptimismInclusionService implements IOptimismInclusionService {
+class AlchemyInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
   readonly #maxNumL1BlocksWithoutInclusion: number = 50
   private isInitialized: boolean
   private ready: boolean
 
-  constructor (config: IOptimismInclusionServiceConfig) {
-    super(config)
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     // Async init
     this.init()

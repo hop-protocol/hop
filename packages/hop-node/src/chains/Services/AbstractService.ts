@@ -5,6 +5,7 @@ import { CacheService } from 'src/chains/Services/CacheService'
 import { Chain } from 'src/constants'
 import { Signer } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
+import { getNetworkSlugByChainId } from 'src/chains/utils'
 
 export interface IAbstractService {
   getLogger(): Logger
@@ -12,8 +13,8 @@ export interface IAbstractService {
 
 export abstract class AbstractService extends CacheService implements IAbstractService {
   protected readonly chainSlug: string
+  protected readonly networkSlug: string
   protected readonly logger: Logger
-  protected readonly chainId: number
   protected readonly l1Wallet: Signer
   protected readonly l2Wallet: Signer
 
@@ -27,7 +28,13 @@ export abstract class AbstractService extends CacheService implements IAbstractS
     }
 
     // Set up config
-    this.chainId = chainSlugToId(this.chainSlug)
+    const chainId = chainSlugToId(this.chainSlug)
+    const networkSlug = getNetworkSlugByChainId(chainId)
+    if (!networkSlug) {
+      throw new Error(`Network slug not found for chain id ${chainId}`)
+    }
+    this.networkSlug = networkSlug
+
     const prefix = `${this.chainSlug}`
     const tag = this.constructor.name
     this.logger = new Logger({

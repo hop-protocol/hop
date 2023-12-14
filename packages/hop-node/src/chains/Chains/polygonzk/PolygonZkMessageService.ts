@@ -38,20 +38,7 @@ export class PolygonZkMessageService extends MessageService<MessageType, Message
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    let l1Network: string | undefined
-    for (const network in networks) {
-      const chainId = networks[network as NetworkSlug]?.polygonzk?.networkId
-      if (chainId === this.chainId) {
-        l1Network = network
-        break
-      }
-    }
-
-    if (!l1Network) {
-      throw new Error('polygon network name not found')
-    }
-
-    const polygonNetwork = polygonChainSlugs[l1Network]
+    const polygonNetwork = polygonChainSlugs[this.networkSlug]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
@@ -59,7 +46,7 @@ export class PolygonZkMessageService extends MessageService<MessageType, Message
 
     this.zkEvmClient = new ZkEvmClient()
 
-    this.#init(l1Network)
+    this.#init(this.networkSlug)
       .then(() => {
         this.ready = true
         this.logger.debug('zkEVM client initialized')

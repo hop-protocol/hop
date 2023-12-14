@@ -1,9 +1,9 @@
 import AlchemyInclusionService from 'src/chains/Chains/optimism/inclusion/AlchemyInclusionService'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { FinalityService, IFinalityService } from 'src/chains/Services/FinalityService'
+import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
 import { providers } from 'ethers'
 
-export class OptimismFinalityService extends FinalityService implements IFinalityService {
+export class OptimismFinalityService extends AbstractFinalityService implements IFinalityService {
   readonly #inclusionService: AlchemyInclusionService
 
   constructor (chainSlug: string) {

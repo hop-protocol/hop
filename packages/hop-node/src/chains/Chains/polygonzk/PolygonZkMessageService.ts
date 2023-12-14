@@ -1,7 +1,6 @@
 import wait from 'src/utils/wait'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
-import { NetworkSlug, networks } from '@hop-protocol/core/networks'
+import { IMessageService, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
@@ -30,7 +29,7 @@ const polygonSdkVersion: Record<string, string> = {
 type MessageType = string
 type MessageStatus = string
 
-export class PolygonZkMessageService extends MessageService<MessageType, MessageStatus> implements IMessageService {
+export class PolygonZkMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   zkEvmClient: ZkEvmClient

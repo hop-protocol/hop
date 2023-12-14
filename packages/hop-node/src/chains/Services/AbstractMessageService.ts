@@ -16,7 +16,8 @@ export interface IMessageService {
   relayL2ToL1Message?(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
 }
 
-export abstract class MessageService<Message, MessageStatus, RelayOptions = null> extends AbstractService {
+
+export abstract class AbstractMessageService<Message, MessageStatus, RelayOptions = null> extends AbstractService {
   protected abstract getMessage (txHash: string, opts: RelayOptions | null): Promise<Message>
   protected abstract getMessageStatus (message: Message, opts: RelayOptions | null): Promise<MessageStatus>
   protected abstract sendRelayTransaction (message: Message, relayOpts: RelayOptions | null): Promise<providers.TransactionResponse>

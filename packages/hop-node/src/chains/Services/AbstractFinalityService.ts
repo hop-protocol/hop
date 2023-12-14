@@ -11,4 +11,4 @@ export interface IFinalityService {
   getCustomBlockNumber?(blockTag: FinalityBlockTag): Promise<number | undefined>
 }
 
-export abstract class FinalityService extends AbstractService {}
+export abstract class AbstractFinalityService extends AbstractService {}

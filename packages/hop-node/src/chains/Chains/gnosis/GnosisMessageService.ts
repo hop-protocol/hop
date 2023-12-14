@@ -4,7 +4,7 @@ import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
-import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
+import { IMessageService, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
 import { getCanonicalAddressesForChain } from 'src/config'
@@ -17,7 +17,7 @@ type MessageStatus = string
 // references:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
-export class GnosisMessageService extends MessageService<MessageStatus, MessageStatus> implements IMessageService {
+export class GnosisMessageService extends AbstractMessageService<MessageStatus, MessageStatus> implements IMessageService {
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB
 

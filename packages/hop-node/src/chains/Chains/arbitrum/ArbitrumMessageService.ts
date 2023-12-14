@@ -10,8 +10,8 @@ import {
 import {
   IMessageService,
   MessageDirection,
-  MessageService
-} from 'src/chains/Services/MessageService'
+  AbstractMessageService
+} from 'src/chains/Services/AbstractMessageService'
 import { providers } from 'ethers'
 
 type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter
@@ -21,7 +21,7 @@ type RelayOpts = {
   messageIndex: number
 }
 
-export class ArbitrumMessageService extends MessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
+export class ArbitrumMessageService extends AbstractMessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const relayOpts: RelayOpts = {
       messageDirection: MessageDirection.L1_TO_L2,

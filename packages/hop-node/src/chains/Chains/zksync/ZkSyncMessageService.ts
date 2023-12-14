@@ -1,10 +1,10 @@
-import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
+import { IMessageService, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
 import { providers } from 'ethers'
 
 type MessageType = string
 type MessageStatus = string
 
-export class ZkSyncMessageService extends MessageService<MessageType, MessageStatus> implements IMessageService {
+export class ZkSyncMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
   async relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }

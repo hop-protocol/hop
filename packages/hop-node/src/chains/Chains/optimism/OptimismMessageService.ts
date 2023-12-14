@@ -3,17 +3,18 @@ import {
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
-import { IMessageService, MessageDirection, MessageService } from 'src/chains/Services/MessageService'
+import { IMessageService, MessageDirection, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
 import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
+import chainSlugToId from 'src/utils/chainSlugToId'
 
 type RelayOpts = {
   messageDirection: MessageDirection
   messageIndex: number
 }
 
-export class OptimismMessageService extends MessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
+export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
   private readonly csm: CrossChainMessenger
 
   constructor (chainSlug: string) {
@@ -22,7 +23,7 @@ export class OptimismMessageService extends MessageService<CrossChainMessage, Me
     this.csm = new CrossChainMessenger({
       bedrock: true,
       l1ChainId: networkSlugToId(globalConfig.network),
-      l2ChainId: this.chainId,
+      l2ChainId: chainSlugToId(this.chainSlug),
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet
     })

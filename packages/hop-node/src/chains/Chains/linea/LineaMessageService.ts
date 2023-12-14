@@ -1,6 +1,6 @@
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
-import { IMessageService, MessageDirection, MessageService } from 'src/chains/Services/MessageService'
+import { IMessageService, MessageDirection, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
 import {
   Message as LineaMessage,
   LineaSDK,
@@ -8,8 +8,6 @@ import {
   Network,
   OnChainMessageStatus
 } from '@consensys/linea-sdk'
-import { NetworkSlug, networks } from '@hop-protocol/core/networks'
-import { getNetworkSlugByChainId } from 'src/chains/utils'
 
 // TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
@@ -25,7 +23,7 @@ type RelayOpts = {
   messageIndex: number
 }
 
-export class LineaMessageService extends MessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
+export class LineaMessageService extends AbstractMessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
   LineaSDK: LineaSDK
 
   constructor (chainSlug: string) {

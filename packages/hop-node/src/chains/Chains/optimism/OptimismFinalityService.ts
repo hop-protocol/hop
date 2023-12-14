@@ -23,7 +23,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
 
     // Use a cache since the granularity of finality updates on l1 is on the order of minutes
     const customBlockNumberCacheKey = `${this.chainSlug}-${blockTag}`
-    const cacheValue = this.getCacheValue(customBlockNumberCacheKey)
+    const cacheValue = this.cache.getCacheValue(customBlockNumberCacheKey)
     if (cacheValue) {
       this.logger.debug('getCustomBlockNumber: using cached value')
       return cacheValue
@@ -35,7 +35,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
       return
     }
 
-    this.updateCache(customBlockNumberCacheKey, customBlockNumber)
+    this.cache.updateCache(customBlockNumberCacheKey, customBlockNumber)
     return customBlockNumber
   }
 

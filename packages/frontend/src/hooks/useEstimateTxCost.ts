@@ -25,7 +25,7 @@ async function getEstimateGasPrice(network: Network, sdk: Hop): Promise<BigNumbe
       if (feeData.gasPrice?.gt(gasPrice)) {
         gasPrice = feeData.gasPrice
       }
-      const maxFeePerGas = feeData?.maxFeePerGas?.sub(feeData?.maxPriorityFeePerGas)
+      const maxFeePerGas = feeData?.maxFeePerGas?.sub(feeData?.maxPriorityFeePerGas ?? 0)
       if (maxFeePerGas?.gt(gasPrice)) {
         gasPrice = maxFeePerGas
       }

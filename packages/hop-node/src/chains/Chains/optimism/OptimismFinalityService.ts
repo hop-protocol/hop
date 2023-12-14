@@ -1,6 +1,6 @@
+import AlchemyInclusionService from 'src/chains/Chains/optimism/inclusion/AlchemyInclusionService'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import { FinalityService, IFinalityService } from 'src/chains/Services/FinalityService'
-import AlchemyInclusionService from 'src/chains/Chains/optimism/inclusion/AlchemyInclusionService'
 import { providers } from 'ethers'
 
 

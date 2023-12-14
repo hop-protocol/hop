@@ -1,5 +1,5 @@
-import { LineaMessageService } from 'src/chains/Chains/linea/LineaMessageService'
 import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
+import { LineaMessageService } from 'src/chains/Chains/linea/LineaMessageService'
 
 export class LineaBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

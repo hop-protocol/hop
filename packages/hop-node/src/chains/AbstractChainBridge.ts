@@ -1,12 +1,12 @@
 import {
   ChainServices,
   FinalityBlockTag,
-  IChainBridge,
+  IChainBridge
 } from 'src/chains/IChainBridge'
 import { IFinalityService } from 'src/chains/Services/FinalityService'
 import { IMessageService } from 'src/chains/Services/MessageService'
-import { providers } from 'ethers'
 import { getEnabledNetworks } from 'src/config'
+import { providers } from 'ethers'
 
 type ChainBridgeParams = {
   chainSlug: string
@@ -70,20 +70,20 @@ export abstract class AbstractChainBridge implements IChainBridge {
   }
 
 
-  hasOwnImplementation(methodName: keyof IChainBridge): boolean {
+  hasOwnImplementation (methodName: keyof IChainBridge): boolean {
     switch (methodName) {
       case 'relayL1ToL2Message':
-        return !!this.messageService?.relayL1ToL2Message;
+        return !!this.messageService?.relayL1ToL2Message
       case 'relayL2ToL1Message':
-        return !!this.messageService?.relayL2ToL1Message;
+        return !!this.messageService?.relayL2ToL1Message
       case 'getL1InclusionTx':
-        return !!this.finalityService?.getL1InclusionTx;
+        return !!this.finalityService?.getL1InclusionTx
       case 'getL2InclusionTx':
-        return !!this.finalityService?.getL2InclusionTx;
+        return !!this.finalityService?.getL2InclusionTx
       case 'getCustomBlockNumber':
-        return !!this.finalityService?.getCustomBlockNumber;
+        return !!this.finalityService?.getCustomBlockNumber
       default:
-        return false;
+        return false
     }
   }
 }

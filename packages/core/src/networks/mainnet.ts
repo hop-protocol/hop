@@ -80,7 +80,10 @@ export const networks: Networks = {
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-xdai',
     etherscanApiUrl: 'https://api.gnosisscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
-    averageBlockTimeSeconds: 6
+    averageBlockTimeSeconds: 6,
+    txOverrides: {
+      minGasPrice: 1500000000 // 1.5 gwei
+    }
   },
   polygon: {
     name: chains.polygon.name,

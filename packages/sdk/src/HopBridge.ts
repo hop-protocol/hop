@@ -500,10 +500,16 @@ class HopBridge extends Base {
       // a `from` address is required if using only provider (not signer)
       populatedTx.from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
     }
-    return this.estimateGas(sourceChain.provider, {
-      ...populatedTx,
-      gasLimit: 500000
-    })
+    const provider = await this.getSignerOrProvider(sourceChain)
+    try {
+      return await this.estimateGas(provider, populatedTx)
+    } catch (err: any) {
+      console.warn('hop sdk getEstimatedGasLimit error estimating gas limit. trying fixed gasLimit for estimateGas')
+      return await this.estimateGas(provider, {
+        ...populatedTx,
+        gasLimit: sourceChain.equals(Chain.Arbitrum) ? 1_000_000 : 500_000
+      })
+    }
   }
 
   public async getSendEstimatedGasCost (

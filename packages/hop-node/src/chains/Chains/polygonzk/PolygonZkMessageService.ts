@@ -4,6 +4,7 @@ import { IMessageService, AbstractMessageService } from 'src/chains/Services/Abs
 import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
+import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 
 interface ZkEvmBridges {
   sourceBridge: ZkEvmBridge
@@ -37,7 +38,11 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const polygonNetwork = polygonChainSlugs[this.networkSlug]
+    const networkSlug = getNetworkSlugByChainSlug(chainSlug)
+    if (!networkSlug) {
+      throw new Error(`Network slug not found for chain slug ${chainSlug}`)
+    }
+    const polygonNetwork: string = polygonChainSlugs[networkSlug]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
@@ -45,7 +50,7 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
 
     this.zkEvmClient = new ZkEvmClient()
 
-    this.#init(this.networkSlug)
+    this.#init(networkSlug)
       .then(() => {
         this.ready = true
         this.logger.debug('zkEVM client initialized')

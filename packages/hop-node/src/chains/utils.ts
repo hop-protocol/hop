@@ -1,4 +1,5 @@
 import { ChainSlug, NetworkSlug, networks } from '@hop-protocol/core/networks'
+import chainSlugToId from 'src/utils/chainSlugToId'
 
 export function getNetworkSlugByChainId(chainId: number): string | undefined {
   for (const network in networks) {
@@ -10,4 +11,9 @@ export function getNetworkSlugByChainId(chainId: number): string | undefined {
       }
     }
   }
+}
+
+export function getNetworkSlugByChainSlug(chainSlug: string): string | undefined {
+  const chainId = chainSlugToId(chainSlug)
+  return getNetworkSlugByChainId(chainId)
 }

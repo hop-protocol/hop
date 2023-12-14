@@ -15,7 +15,7 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     }
 
     // Retrieve the L1 block the tx was included in
-    const l1InclusionTxForSafeBlock = await this._getL1InclusionTxFromSafeL2Block(safeL2Block)
+    const l1InclusionTxForSafeBlock = await this.#getL1InclusionTxFromSafeL2Block(safeL2Block)
     if (!l1InclusionTxForSafeBlock) {
       this.logger.debug(`could not find l1 inclusion tx for l2 tx hash ${l2TxHash}`)
       return
@@ -33,10 +33,10 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     // To look back farther, we can put the next function through a while loop until found
 
     // Return the previous checkpoint block
-    return this._getPreviousCheckpointBlock(l1InclusionTxForSafeBlock)
+    return this.#getPreviousCheckpointBlock(l1InclusionTxForSafeBlock)
   }
 
-  private async _getL1InclusionTxFromSafeL2Block (safeL2Block: providers.Block | BlockWithTransactions): Promise<providers.TransactionReceipt | undefined> {
+  async #getL1InclusionTxFromSafeL2Block (safeL2Block: providers.Block | BlockWithTransactions): Promise<providers.TransactionReceipt | undefined> {
     const [
       l1OriginBlockNum,
       l1OriginTimestamp
@@ -51,7 +51,7 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     const expectedCheckpointBlock = l1OriginBlockNum + numL1BlocksAfterOriginTx
 
     // Some variance may exist so get multiple blocks
-    const possibleCheckpointBlocks = await this._getPossibleCheckpointBlock(expectedCheckpointBlock)
+    const possibleCheckpointBlocks = await this.#getPossibleCheckpointBlock(expectedCheckpointBlock)
     for (const checkpointBlock of possibleCheckpointBlocks) {
       for (const tx of checkpointBlock.transactions) {
         if (this.isBatcherTx(tx)) {
@@ -61,12 +61,12 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     }
   }
 
-  private async _getPreviousCheckpointBlock (l1InclusionTx: providers.TransactionReceipt): Promise<providers.TransactionReceipt | undefined> {
+  async #getPreviousCheckpointBlock (l1InclusionTx: providers.TransactionReceipt): Promise<providers.TransactionReceipt | undefined> {
     const { numL1BlocksInChannel } = await this.getL2TxHashesInChannel(l1InclusionTx.transactionHash)
 
     // Some variance may exist so get multiple blocks
     const expectedCheckpointBlock = l1InclusionTx.blockNumber - numL1BlocksInChannel
-    const possibleCheckpointBlocks = await this._getPossibleCheckpointBlock(expectedCheckpointBlock)
+    const possibleCheckpointBlocks = await this.#getPossibleCheckpointBlock(expectedCheckpointBlock)
 
     for (const checkpointBlock of possibleCheckpointBlocks) {
       for (const tx of checkpointBlock.transactions) {
@@ -77,7 +77,7 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     }
   }
 
-  private async _getPossibleCheckpointBlock (expectedCheckpointBlockNum: number): Promise<BlockWithTransactions[]> {
+  async #getPossibleCheckpointBlock (expectedCheckpointBlockNum: number): Promise<BlockWithTransactions[]> {
     return Promise.all([
       await this.l1Provider.getBlockWithTransactions(expectedCheckpointBlockNum - 1),
       await this.l1Provider.getBlockWithTransactions(expectedCheckpointBlockNum),
@@ -87,7 +87,7 @@ class JsonRpcInclusionService extends OptimismInclusionService {
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const l1TxBlockNumber: number = (await this.l1Provider.getTransactionReceipt(l1TxHash)).blockNumber
-    const l2InclusionBlockNumber = await this._traverseL2BlocksForInclusion(l1TxBlockNumber)
+    const l2InclusionBlockNumber = await this.#traverseL2BlocksForInclusion(l1TxBlockNumber)
 
     const txs = (await this.l2Provider.getBlockWithTransactions(l2InclusionBlockNumber)).transactions
     for (const tx of txs) {
@@ -99,7 +99,7 @@ class JsonRpcInclusionService extends OptimismInclusionService {
     }
   }
 
-  private async _traverseL2BlocksForInclusion (l1BlockNumber: number): Promise<number> {
+  async #traverseL2BlocksForInclusion (l1BlockNumber: number): Promise<number> {
     const l1Block = await this.l1Provider.getBlock(l1BlockNumber)
     let l2BlockNumber = await this.getApproximateL2BlockNumberAtL1Timestamp(l1Block.timestamp)
     let includedL1BlockNumber: number = Number(await this.l1BlockContract.number({ blockTag: l2BlockNumber }))

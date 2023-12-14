@@ -1,4 +1,3 @@
-import '../moduleAlias'
 import { Chain } from 'src/constants'
 import { IChainBridge } from 'src/chains/IChainBridge'
 import { createChainBridgeInstance } from 'src/chains/Factories/ChainBridgeFactory'

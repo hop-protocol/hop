@@ -64,7 +64,7 @@ abstract class OptimismInclusionService {
     this.l1BlockContract = new Contract(this.l1BlockAddress, l1BlockAbi, this.l2Provider)
   }
 
-  async getApproximateL2BlockNumberAtL1Timestamp (l1Timestamp: number): Promise<number> {
+  protected async getApproximateL2BlockNumberAtL1Timestamp (l1Timestamp: number): Promise<number> {
     // Get the difference between the desired l1 timestamp and the current l2 timestamp
     const currentL1TimestampOnL2: number = Number(await this.l1BlockContract.timestamp())
     const l1TimestampDiffSec = currentL1TimestampOnL2 - l1Timestamp
@@ -80,18 +80,18 @@ abstract class OptimismInclusionService {
     return l2BlockNumberAtTimeOfL1Tx + l1DataLagInL2Blocks
   }
 
-  async getL2TxHashesInChannel (l1TxHash: string): Promise<Channel> {
+  protected async getL2TxHashesInChannel (l1TxHash: string): Promise<Channel> {
     const tx = await this.l1Provider.getTransaction(l1TxHash)
     const frames: Frame[] = await this.derive.parseFrames(tx.data)
 
     let numL1BlocksInChannel: number = 0
     const l2TxHashes: string[] = []
     for (const frame of frames) {
-      const decompressedChannel: Buffer = await this._decompressChannel(frame.data)
+      const decompressedChannel: Buffer = await this.#decompressChannel(frame.data)
       const {
         transactionHashes,
         numL1BlocksInBatch
-      } = await this._decodeBatch(decompressedChannel)
+      } = await this.#decodeBatch(decompressedChannel)
       numL1BlocksInChannel += numL1BlocksInBatch
       for (const txHash of transactionHashes) {
         l2TxHashes.push(txHash.toLowerCase())
@@ -103,7 +103,7 @@ abstract class OptimismInclusionService {
     }
   }
 
-  private async _decompressChannel (frameData: Buffer): Promise<Buffer> {
+  async #decompressChannel (frameData: Buffer): Promise<Buffer> {
     // When decompressing a channel, we limit the amount of decompressed data to MAX_RLP_BYTES_PER_CHANNEL
     // (currently 10,000,000 bytes), in order to avoid "zip-bomb" types of attack (where a small compressed
     // input decompresses to a humongous amount of data). If the decompressed data exceeds the limit, things
@@ -117,7 +117,7 @@ abstract class OptimismInclusionService {
     return zlib.inflateSync(channelCompressed, { maxOutputLength })
   }
 
-  private async _decodeBatch (channelDecompressed: Buffer): Promise<Batch> {
+  async #decodeBatch (channelDecompressed: Buffer): Promise<Batch> {
     // NOTE: We are using ethereumjs RPL package since ethers does not allow for a stream
     const stream = true
     let remainingBatches: Buffer = channelDecompressed
@@ -154,7 +154,7 @@ abstract class OptimismInclusionService {
     }
   }
 
-  isBatcherTx (tx: providers.TransactionResponse): boolean {
+  protected isBatcherTx (tx: providers.TransactionResponse): boolean {
     if (
       tx.to &&
       tx.to.toLowerCase() === this.batchInboxAddress.toLowerCase() &&
@@ -165,7 +165,7 @@ abstract class OptimismInclusionService {
     return false
   }
 
-  isL1BlockUpdateTx (tx: providers.TransactionResponse): boolean {
+  protected isL1BlockUpdateTx (tx: providers.TransactionResponse): boolean {
     if (
       tx.to &&
       tx.to.toLowerCase() === this.l1BlockAddress.toLowerCase() &&
@@ -176,7 +176,7 @@ abstract class OptimismInclusionService {
     return false
   }
 
-  doesL1BlockUpdateExceedL1BlockNumber (txData: string, l1BlockNumber: number): boolean {
+  protected doesL1BlockUpdateExceedL1BlockNumber (txData: string, l1BlockNumber: number): boolean {
     const setL1BlockValuesCalldata = this.l1BlockContract.interface.decodeFunctionData(
       'setL1BlockValues',
       txData

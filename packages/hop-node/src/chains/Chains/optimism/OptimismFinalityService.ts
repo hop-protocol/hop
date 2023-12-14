@@ -13,8 +13,7 @@ export class OptimismFinalityService extends FinalityService implements IFinalit
     this.#inclusionService = new AlchemyInclusionService({
       chainSlug,
       l1Provider: this.l1Wallet.provider!,
-      l2Provider: this.l2Wallet.provider!,
-      logger: this.logger
+      l2Provider: this.l2Wallet.provider!
     })
   }
 

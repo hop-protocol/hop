@@ -112,7 +112,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
 
     // Get latest block number from batch. The latest block number is the last block in the batch.
     const latestBlockHashInBatch = batch.blocks[batch.blocks.length - 1]
-    const latestBlockInBatch: providers.Block = await this.l2Wallet.provider!.getBlock(latestBlockHashInBatch)
+    const latestBlockInBatch: providers.Block = await this.l2Provider.getBlock(latestBlockHashInBatch)
     if (!latestBlockInBatch?.number) {
       this.logger.error('getCustomBlockNumber: no latestBlockInBatch found')
       return

@@ -9,11 +9,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    this.#inclusionService = new AlchemyInclusionService({
-      chainSlug,
-      l1Provider: this.l1Wallet.provider!,
-      l2Provider: this.l2Wallet.provider!
-    })
+    this.#inclusionService = new AlchemyInclusionService(chainSlug)
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
@@ -53,7 +49,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
     }
 
     // Get the latest checkpoint on L1
-    const l1SafeBlock: providers.Block = await this.l1Wallet.provider!.getBlock('safe')
+    const l1SafeBlock: providers.Block = await this.l1Provider.getBlock('safe')
     const l1InclusionTx = await this.#inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
     if (!l1InclusionTx) {
       this.logger.error(`getCustomSafeBlockNumber: no L1 inclusion tx found before block ${l1SafeBlock.number}`)

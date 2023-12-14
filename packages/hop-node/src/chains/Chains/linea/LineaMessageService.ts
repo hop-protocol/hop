@@ -10,7 +10,7 @@ import {
 } from '@consensys/linea-sdk'
 import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 
-// TODO: Get these from the SDK when they become exported
+// TODO: Get these from the SDK when they become exported 
 interface LineaMessageServiceContract {
   getMessagesByTransactionHash(transactionHash: string): Promise<LineaMessage[] | null>
   getMessageStatus(messageHash: BytesLike, overrides?: CallOverrides): Promise<OnChainMessageStatus>
@@ -62,7 +62,7 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
   }
 
   private async _relayXDomainMessage (txHash: string, messageDirection: MessageDirection, wallet: Signer, messageIndex?: number): Promise<providers.TransactionResponse> {
-    // TODO: Add types to this and the bridge. Maybe define these in parent methods and pass thru
+    // TODO: Add types to this and the bridge. Maybe define these in parent methods and pass thru 
     const l1Contract = this.LineaSDK.getL1Contract()
     const l2Contract = this.LineaSDK.getL2Contract()
 

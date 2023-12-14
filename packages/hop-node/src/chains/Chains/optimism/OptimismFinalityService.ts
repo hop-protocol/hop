@@ -70,17 +70,6 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
 
     return customSafeBlockNumber
   }
-
-  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.#inclusionService?.getL1InclusionTx) return
-    return this.#inclusionService.getL1InclusionTx(l2TxHash)
-  }
-
-  async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.#inclusionService?.getL2InclusionTx) return
-    return this.#inclusionService.getL2InclusionTx(l1TxHash)
-  }
-
   #isCustomBlockNumberSupported (blockTag: FinalityBlockTag): boolean {
     return blockTag === FinalityBlockTag.Safe
   }

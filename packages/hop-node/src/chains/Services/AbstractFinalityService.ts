@@ -4,11 +4,6 @@ import { providers } from 'ethers'
 import { CacheService } from 'src/chains/Services/CacheService'
 
 export interface IFinalityService {
-  // Inclusion
-  getL1InclusionTx?(l2TxHash: string): Promise<providers.TransactionReceipt | undefined>
-  getL2InclusionTx?(l1TxHash: string): Promise<providers.TransactionReceipt | undefined>
-
-  // Block number
   getCustomBlockNumber?(blockTag: FinalityBlockTag): Promise<number | undefined>
 }
 

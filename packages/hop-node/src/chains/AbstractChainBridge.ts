@@ -3,8 +3,8 @@ import {
   FinalityBlockTag,
   IChainBridge
 } from 'src/chains/IChainBridge'
-import { IFinalityService } from 'src/chains/Services/FinalityService'
-import { IMessageService } from 'src/chains/Services/MessageService'
+import { IFinalityService } from 'src/chains/Services/AbstractFinalityService'
+import { IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { getEnabledNetworks } from 'src/config'
 import { providers } from 'ethers'
 
@@ -47,21 +47,6 @@ export abstract class AbstractChainBridge implements IChainBridge {
     }
     return this.messageService.relayL2ToL1Message(l2TxHash, messageIndex)
   }
-
-  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.finalityService?.getL1InclusionTx) {
-      throw new Error('getL1InclusionTx not implemented')
-    }
-    return this.finalityService.getL1InclusionTx(l2TxHash)
-  }
-
-  async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.finalityService?.getL2InclusionTx) {
-      throw new Error('getL2InclusionTx not implemented')
-    }
-    return this.finalityService.getL2InclusionTx(l1TxHash)
-  }
-
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     if (!this.finalityService?.getCustomBlockNumber) {
       throw new Error('getCustomBlockNumber not implemented')

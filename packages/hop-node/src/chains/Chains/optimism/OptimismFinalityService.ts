@@ -3,7 +3,6 @@ import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import { FinalityService, IFinalityService } from 'src/chains/Services/FinalityService'
 import { providers } from 'ethers'
 
-
 export class OptimismFinalityService extends FinalityService implements IFinalityService {
   readonly #inclusionService: AlchemyInclusionService
 

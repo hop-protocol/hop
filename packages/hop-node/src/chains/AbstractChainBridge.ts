@@ -69,21 +69,9 @@ export abstract class AbstractChainBridge implements IChainBridge {
     return this.finalityService.getCustomBlockNumber(blockTag)
   }
 
-
-  hasOwnImplementation (methodName: keyof IChainBridge): boolean {
-    switch (methodName) {
-      case 'relayL1ToL2Message':
-        return !!this.messageService?.relayL1ToL2Message
-      case 'relayL2ToL1Message':
-        return !!this.messageService?.relayL2ToL1Message
-      case 'getL1InclusionTx':
-        return !!this.finalityService?.getL1InclusionTx
-      case 'getL2InclusionTx':
-        return !!this.finalityService?.getL2InclusionTx
-      case 'getCustomBlockNumber':
-        return !!this.finalityService?.getCustomBlockNumber
-      default:
-        return false
-    }
+  hasOwnImplementation (methodName: keyof AbstractChainBridge): boolean {
+    const baseMethod = AbstractChainBridge.prototype[methodName]
+    const derivedMethod = Object.getPrototypeOf(this)[methodName]
+    return derivedMethod !== baseMethod
   }
 }

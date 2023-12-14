@@ -26,8 +26,8 @@ type RelayOpts = {
 export class LineaMessageService extends MessageService<LineaMessage, OnChainMessageStatus, RelayOpts> implements IMessageService {
   LineaSDK: LineaSDK
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     let lineaNetwork: any
     for (const network in networks) {

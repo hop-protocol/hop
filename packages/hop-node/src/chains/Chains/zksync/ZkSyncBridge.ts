@@ -1,10 +1,13 @@
-import { Chain } from 'src/constants'
-import { ChainBridgeParams } from 'src/chains/ChainBridge'
 import { ZkSyncMessageService } from 'src/chains/Chains/zksync/ZkSyncMessageService'
+import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
 
-export const ZkSyncBridgeParams: ChainBridgeParams = {
-  chainSlug: Chain.ZkSync,
-  chainServices: {
-    MessageService: ZkSyncMessageService
+export class ZkSyncBridge extends AbstractChainBridge {
+  constructor (chainSlug: string) {
+    super({
+      chainSlug,
+      chainServices: {
+        MessageService: ZkSyncMessageService
+      }
+    })
   }
 }

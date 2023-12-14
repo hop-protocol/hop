@@ -35,8 +35,8 @@ export class PolygonZkMessageService extends MessageService<MessageType, Message
   apiUrl: string
   zkEvmClient: ZkEvmClient
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     let l1Network: string | undefined
     for (const network in networks) {

@@ -21,8 +21,8 @@ export class GnosisMessageService extends MessageService<MessageStatus, MessageS
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     // Get chain contracts
     const canonicalAddresses: GnosisCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)

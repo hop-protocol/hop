@@ -35,8 +35,8 @@ export class PolygonMessageService extends MessageService<PolygonMessage, Polygo
   apiUrl: string
   maticClient: any
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     let l1Network: string | undefined
     for (const network in networks) {

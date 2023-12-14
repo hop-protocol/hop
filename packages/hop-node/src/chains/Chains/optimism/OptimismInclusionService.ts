@@ -6,8 +6,8 @@ import { providers } from 'ethers'
 export class OptimismInclusionService extends InclusionService implements IInclusionService {
   private readonly inclusionService: IOptimismInclusionService | undefined
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     const inclusionServiceConfig: IOptimismInclusionServiceConfig = {
       chainSlug: this.chainSlug,

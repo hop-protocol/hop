@@ -38,8 +38,8 @@ export class PolygonZkFinalityService extends FinalityService implements IFinali
   private readonly inclusionService: IInclusionService
   doesSupportZkEvmRpc: boolean
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     this.#init()
       .catch((err: any) => {

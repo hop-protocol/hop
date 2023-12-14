@@ -7,9 +7,10 @@ export enum FinalityBlockTag {
   Finalized = 'finalized'
 }
 
-export type MessageService = new () => IMessageService
-export type InclusionService = new () => IInclusionService
-export type FinalityService = new (inclusionService?: IInclusionService) => IFinalityService
+type MessageService = new (chainSlug: string) => IMessageService
+type InclusionService = new (chainSlug: string) => IInclusionService
+type FinalityService = new (chainSlug: string, inclusionService?: IInclusionService) => IFinalityService
+
 export type ChainServices = {
   MessageService?: MessageService
   InclusionService?: InclusionService

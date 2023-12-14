@@ -13,8 +13,8 @@ export class ArbitrumInclusionService extends InclusionService implements IInclu
   private readonly nodeInterfaceContract: Contract
   private readonly sequencerInboxContract: Contract
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     // Addresses from config
     const canonicalAddresses: ArbitrumSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)

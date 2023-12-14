@@ -1,10 +1,13 @@
-import { Chain } from 'src/constants'
-import { ChainBridgeParams } from 'src/chains/ChainBridge'
 import { GnosisMessageService } from 'src/chains/Chains/gnosis/GnosisMessageService'
+import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
 
-export const GnosisBridgeParams: ChainBridgeParams = {
-  chainSlug: Chain.Gnosis,
-  chainServices: {
-    MessageService: GnosisMessageService
+export class GnosisBridge extends AbstractChainBridge {
+  constructor (chainSlug: string) {
+    super({
+      chainSlug,
+      chainServices: {
+        MessageService: GnosisMessageService,
+      }
+    })
   }
 }

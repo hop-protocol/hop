@@ -1,14 +1,17 @@
-import { Chain } from 'src/constants'
-import { ChainBridgeParams } from 'src/chains/ChainBridge'
 import { OptimismFinalityService } from 'src/chains/Chains/optimism/OptimismFinalityService'
 import { OptimismInclusionService } from 'src/chains/Chains/optimism/OptimismInclusionService'
 import { OptimismMessageService } from 'src/chains/Chains/optimism/OptimismMessageService'
+import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
 
-export const OptimismBridgeParams: ChainBridgeParams = {
-  chainSlug: Chain.Optimism,
-  chainServices: {
-    MessageService: OptimismMessageService,
-    InclusionService: OptimismInclusionService,
-    FinalityService: OptimismFinalityService
+export class OptimismBridge extends AbstractChainBridge {
+  constructor (chainSlug: string) {
+    super({
+      chainSlug,
+      chainServices: {
+        MessageService: OptimismMessageService,
+        InclusionService: OptimismInclusionService,
+        FinalityService: OptimismFinalityService
+      }
+    })
   }
 }

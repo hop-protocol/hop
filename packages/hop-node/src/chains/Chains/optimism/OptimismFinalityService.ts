@@ -4,8 +4,8 @@ import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { providers } from 'ethers'
 
 export class OptimismFinalityService extends FinalityService implements IFinalityService {
-  constructor (private readonly inclusionService: IInclusionService) {
-    super()
+  constructor (chainSlug: string, private readonly inclusionService: IInclusionService) {
+    super(chainSlug)
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {

@@ -16,8 +16,8 @@ type RelayOpts = {
 export class OptimismMessageService extends MessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
   private readonly csm: CrossChainMessenger
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     this.csm = new CrossChainMessenger({
       bedrock: true,

@@ -17,11 +17,10 @@ export abstract class AbstractService extends CacheService implements IAbstractS
   protected readonly l1Wallet: Signer
   protected readonly l2Wallet: Signer
 
-  constructor () {
+  constructor (chainSlug: string) {
     super()
-    if (!this.chainSlug) {
-      throw new Error('chainSlug not set')
-    }
+
+    this.chainSlug = chainSlug
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(this.chainSlug)) {
       throw new Error(`Chain ${this.chainSlug} is not enabled`)

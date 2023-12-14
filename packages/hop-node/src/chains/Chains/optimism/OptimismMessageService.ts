@@ -79,16 +79,24 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
 
   protected isMessageInFlight (messageStatus: MessageStatus): boolean {
     return (
-      messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE,
+      messageStatus === MessageStatus.UNCONFIRMED_L1_TO_L2_MESSAGE ||
       messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED
     )
   }
 
   protected isMessageRelayable (messageStatus: MessageStatus): boolean {
-    return messageStatus === MessageStatus.READY_FOR_RELAY
+    // Relay is the term for L1_TO_L2 while prove is the term for L2_TO_L1
+    return (
+      messageStatus === MessageStatus.READY_FOR_RELAY ||
+      messageStatus === MessageStatus.READY_TO_PROVE
+    )
   }
 
   protected isMessageRelayed (messageStatus: MessageStatus): boolean {
-    return messageStatus === MessageStatus.RELAYED
+    // This class is only concerned with the proving of a message on L1, not the finalizing
+    return (
+      messageStatus === MessageStatus.IN_CHALLENGE_PERIOD ||
+      messageStatus === MessageStatus.RELAYED
+    )
   }
 }

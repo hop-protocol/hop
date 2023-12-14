@@ -17,7 +17,7 @@ type MessageStatus = string
 // references:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
-export class GnosisMessageService extends AbstractMessageService<MessageStatus, MessageStatus> implements IMessageService {
+export class GnosisMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
   l1Amb: L1_xDaiAMB
   l2Amb: L2_xDaiAMB
 
@@ -95,10 +95,6 @@ export class GnosisMessageService extends AbstractMessageService<MessageStatus, 
     return `0x${msgLength}${v}${r}${s}`
   }
 
-  protected async isMessageInFlight (message: string): Promise<boolean> {
-    return this._isMessageInFlight(message)
-  }
-
   protected async sendRelayTransaction (message: MessageStatus): Promise<providers.TransactionResponse> {
     const messageHash: string = this._getMessageHash(message)
     const requiredSigs = (await this.l2Amb.requiredSignatures()).toNumber()
@@ -120,7 +116,7 @@ export class GnosisMessageService extends AbstractMessageService<MessageStatus, 
     return this.l1Amb.executeSignatures(message, packedSigs, overrides)
   }
 
-  protected async getMessage (txHash: string): Promise<MessageStatus> {
+  protected async getMessage (txHash: string): Promise<MessageType> {
     const sigEvent = await this._getValidSigEvent(txHash)
     if (!sigEvent?.args) {
       throw new Error(`args for sigEvent not found for ${txHash}`)
@@ -135,28 +131,32 @@ export class GnosisMessageService extends AbstractMessageService<MessageStatus, 
     return message
   }
 
-  protected async getMessageStatus (message: string): Promise<MessageType> {
-    // Gnosis status is defined by the message, so we return that
+  protected async getMessageStatus (message: MessageType): Promise<MessageType> {
+    // Gnosis status is validated by just the message, so we return that
     return message
   }
 
+  protected async isMessageInFlight (message: MessageType): Promise<boolean> {
+    return this.#isMessageInFlight(message)
+  }
+
   protected async isMessageRelayable (messageStatus: MessageType): Promise<boolean> {
-    const isInFlight = await this._isMessageInFlight(messageStatus)
-    const isRelayed = await this._isMessageRelayed(messageStatus)
+    const isInFlight = await this.#isMessageInFlight(messageStatus)
+    const isRelayed = await this.#isMessageRelayed(messageStatus)
     return !isInFlight && !isRelayed
   }
 
-  protected async isMessageRelayed (messageStatus: MessageType): Promise<boolean> {
-    return this._isMessageRelayed(messageStatus)
+  protected async isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
+    return this.#isMessageRelayed(messageStatus)
   }
 
-  private async _isMessageInFlight (messageStatus: MessageType): Promise<boolean> {
+  async #isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
     const msgHash = this._getMessageHash(messageStatus)
     const messageId = this.l2Amb.numMessagesSigned(msgHash)
     return this.l2Amb.isAlreadyProcessed(messageId)
   }
 
-  private async _isMessageRelayed (messageStatus: MessageType): Promise<boolean> {
+  async #isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
     const messageId =
       '0x' +
       Buffer.from(this._strip0x(messageStatus), 'hex')

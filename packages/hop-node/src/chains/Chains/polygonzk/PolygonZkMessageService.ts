@@ -1,7 +1,7 @@
 import wait from 'src/utils/wait'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { IMessageService, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
-import { Signer, providers } from 'ethers'
+import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
+import { providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
 import { getNetworkSlugByChainSlug } from 'src/chains/utils'
@@ -26,11 +26,14 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'blueberry'
 }
 
-// TODO: Implement
+type RelayOpts = {
+  messageDirection: MessageDirection
+}
+
 type MessageType = string
 type MessageStatus = string
 
-export class PolygonZkMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
+export class PolygonZkMessageService extends AbstractMessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   zkEvmClient: ZkEvmClient
@@ -82,42 +85,56 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
     })
   }
 
-  private async _tilReady (): Promise<boolean> {
+  async #tilReady (): Promise<boolean> {
     if (this.ready) {
       return true
     }
     await wait(100)
-    return await this._tilReady()
+    return await this.#tilReady()
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    await this.#tilReady()
+    const relayOpts: RelayOpts = {
+      messageDirection: MessageDirection.L1_TO_L2
+    }
 
-    const isSourceTxOnL1 = true
-    const signer = this.l2Wallet
-    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer)
+    return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
-
-    const isSourceTxOnL1 = false
-    const signer = this.l1Wallet
-    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer)
-  }
-
-  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
-    const isRelayable = await this._isCheckpointed(txHash, isSourceTxOnL1)
-    if (!isRelayable) {
-      throw new Error('expected deposit to be claimable')
+    await this.#tilReady()
+    const relayOpts: RelayOpts = {
+      messageDirection: MessageDirection.L2_TO_L1
     }
 
+    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
+  }
+
+  #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return {
+        sourceBridge: this.zkEvmClient.rootChainBridge,
+        destBridge: this.zkEvmClient.childChainBridge
+      }
+    } else {
+      return {
+        sourceBridge: this.zkEvmClient.childChainBridge,
+        destBridge: this.zkEvmClient.rootChainBridge
+      }
+    }
+  }
+
+  protected async sendRelayTransaction (message: MessageType, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
+    const { messageDirection } = relayOpts
+
     // The bridge to claim on will be on the opposite chain that the source tx is on
-    const { sourceBridge, destBridge } = this.#getSourceAndDestBridge(isSourceTxOnL1)
+    const { sourceBridge, destBridge } = this.#getSourceAndDestBridge(messageDirection)
 
     // Get the payload to claim the tx
+    const isL1ToL2: boolean = messageDirection === MessageDirection.L1_TO_L2
     const networkId: number = await sourceBridge.networkID()
-    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isSourceTxOnL1, networkId)
+    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(message, isL1ToL2, networkId)
 
     // Execute the claim tx
     const claimMessageTx = await destBridge.claimMessage(
@@ -137,40 +154,19 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
     )
 
     const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
+
+    const wallet = messageDirection === MessageDirection.L1_TO_L2 ? this.l2Wallet : this.l1Wallet
     return await wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
-  private async _isCheckpointed (txHash: string, isSourceTxOnL1: boolean): Promise<boolean> {
-    if (isSourceTxOnL1) {
-      return this.zkEvmClient.isDepositClaimable(txHash)
-    }
-    return this.zkEvmClient.isWithdrawExitable(txHash)
-  }
-
-  #getSourceAndDestBridge (isSourceTxOnL1: boolean): ZkEvmBridges {
-    if (isSourceTxOnL1) {
-      return {
-        sourceBridge: this.zkEvmClient.rootChainBridge,
-        destBridge: this.zkEvmClient.childChainBridge
-      }
-    } else {
-      return {
-        sourceBridge: this.zkEvmClient.childChainBridge,
-        destBridge: this.zkEvmClient.rootChainBridge
-      }
-    }
-  }
-
-  protected async sendRelayTransaction (message: MessageType): Promise<providers.TransactionResponse> {
-    throw new Error('implement')
-  }
-
-  protected async getMessage (txHash: string): Promise<MessageType> {
-    throw new Error('implement')
+  protected async getMessage (message: MessageType): Promise<MessageType> {
+    // PolygonZk message is the txHash
+    return message
   }
 
   protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
-    throw new Error('implement')
+    // PolygonZk status is validated by just the message, so we return that
+    return message
   }
 
   protected async isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
@@ -178,10 +174,20 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
   }
 
   protected async isMessageRelayable (messageStatus: MessageStatus): Promise<boolean> {
-    throw new Error('implement')
+    const isL1ToL2AndRelayable = await this.zkEvmClient.isDepositClaimable(messageStatus)
+    const isL2ToL1AndRelayable = await this.zkEvmClient.isWithdrawExitable(messageStatus)
+    return (
+      messageStatus === isL1ToL2AndRelayable ||
+      messageStatus === isL2ToL1AndRelayable
+    )
   }
 
   protected async isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
-    throw new Error('implement')
+    const isL1ToL2AndRelayed = await this.zkEvmClient.isDeposited(messageStatus)
+    const isL2ToL1AndRelayed = await this.zkEvmClient.isExited(messageStatus)
+    return (
+      messageStatus === isL1ToL2AndRelayed ||
+      messageStatus === isL2ToL1AndRelayed
+    )
   }
 }

@@ -172,21 +172,20 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   }
 
   protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiRes = await this._fetchBlockIncluded(messageStatus)
+    const apiRes = await this.#fetchBlockIncluded(messageStatus)
     return apiRes.message === 'No block found'
   }
 
   protected async isMessageRelayable (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiRes = await this._fetchBlockIncluded(messageStatus)
+    const apiRes = await this.#fetchBlockIncluded(messageStatus)
     return apiRes.message === 'success'
   }
 
   protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    // TODO: Figure out how to differentiate between checkpointed and relayed
     return false
   }
 
-  private async _fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<any> {
+  async #fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<any> {
     const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(messageStatus)
     const url = `${this.apiUrl}/${l2Block.blockNumber}`
     const res = await fetch(url)

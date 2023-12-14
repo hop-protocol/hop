@@ -21,6 +21,29 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
       throw new Error(`getCustomBlockNumber: blockTag ${blockTag} not supported`)
     }
 
+    // Use a cache since the granularity of finality updates on l1 is on the order of minutes
+    const customBlockNumberCacheKey = `${this.chainSlug}-${blockTag}`
+    const cacheValue = this.getCacheValue(customBlockNumberCacheKey)
+    if (cacheValue) {
+      this.logger.debug('getCustomBlockNumber: using cached value')
+      return cacheValue
+    }
+
+    const customBlockNumber = await this.#getCustomBlockNumber(blockTag)
+    if (!customBlockNumber) {
+      this.logger.error('getCustomBlockNumber: no customBlockNumber found')
+      return
+    }
+
+    this.updateCache(customBlockNumberCacheKey, customBlockNumber)
+    return customBlockNumber
+  }
+
+  async #getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+    if (!this.#isCustomBlockNumberSupported(blockTag)) {
+      throw new Error(`getCustomBlockNumber: blockTag ${blockTag} not supported`)
+    }
+
     if (
       !this.#inclusionService?.getLatestL1InclusionTxBeforeBlockNumber ||
       !this.#inclusionService?.getLatestL2TxFromL1ChannelTx

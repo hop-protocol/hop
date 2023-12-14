@@ -1,9 +1,9 @@
-import InclusionService from './InclusionService'
+import OptimismInclusionService from './OptimismInclusionService'
 import { AvgBlockTimeSeconds, Chain } from 'src/constants'
 import { BlockWithTransactions } from '@ethersproject/abstract-provider'
 import { providers } from 'ethers'
 
-class JsonRpcInclusionService extends InclusionService {
+class JsonRpcInclusionService extends OptimismInclusionService {
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
     const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     const safeL2Block: providers.Block = await this.l2Wallet.provider!.getBlock('safe')

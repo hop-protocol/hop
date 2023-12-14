@@ -33,12 +33,12 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const nonceTooLowErrorRegex = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i
         const estimateGasFailedErrorRegex = /eth_estimateGas/i
         const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
-        const feeTooLowErrorRegex = /FeeTooLowToCompete|transaction underpriced/
+        const feeTooLowErrorRegex = /(FeeTooLowToCompete|transaction underpriced)/
 
         // this invalid opcode error occurs when doing an on-chain lookup on a nested mapping where the index doesn't exist.
         // it doesn't necessary mean there's an error, only that the value at the index hasn't been set yet.
         // for example, l2Bridge.pendingTransferIdsForChainId(...)
-        const isCallLookupRevertErrorRegex = /missing revert data in call exception.*invalid opcode/
+        const isCallLookupRevertErrorRegex = /(missing revert data in call exception|invalid opcode|CALL_EXCEPTION)/
 
         const isRateLimitError = isFetchRateLimitError(errMsg)
         const isTimeoutError = isFetchTimeoutError(errMsg)

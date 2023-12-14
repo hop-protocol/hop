@@ -29,7 +29,7 @@ import { getMinGasLimit } from './utils/getMinGasLimit'
 import { getMinGasPrice } from './utils/getMinGasPrice'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { getUrlFromProvider } from './utils/getUrlFromProvider'
-import { parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
+import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 import { promiseTimeout } from './utils/promiseTimeout'
 import { rateLimitRetry } from './utils/rateLimitRetry'
 
@@ -673,7 +673,7 @@ export class Base {
         (destinationChain as Chain)?.equals!(Chain.Arbitrum) ||
         (destinationChain as Chain)?.equals!(Chain.Nova)
       )) {
-      txOptions.gasLimit = 500_000
+      txOptions.gasLimit = BigNumber.from(500_000)
     }
 
     return txOptions

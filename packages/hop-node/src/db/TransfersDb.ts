@@ -8,6 +8,7 @@ import {
   OneHourMs,
   OneWeekMs,
   RelayableChains,
+  RelayWaitTimeMs,
   TxError
 } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
@@ -358,7 +359,7 @@ class TransfersDb extends BaseDb<Transfer> {
     return filtered as UnbondedSentTransfer[]
   }
 
-  async getUnrelayedSentTransfers (
+  async getL1ToL2UnrelayedTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnrelayedSentTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromDay()
@@ -388,13 +389,30 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const destinationChainSlug = chainIdToSlug(item.destinationChainId)
-      if (!RelayableChains.includes(destinationChainSlug)) {
+      if (!item.transferSentTimestamp) {
         return false
       }
 
-      if (!item.transferSentTimestamp) {
+      // Check DB relayability
+      // It is fine if isRelayable is undefined. We just need to ensure it is not false.
+      if (item?.isRelayable === false) {
         return false
+      }
+
+      const destinationChain = chainIdToSlug(item.destinationChainId)
+      const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
+      if (!isRelayable) {
+        return false
+      }
+
+      let relayTimestampOk = true
+      if (isRelayable) {
+        const l1TxTimestampMs = item.transferSentTimestamp * 1000
+        const relayTimeMs = RelayWaitTimeMs.L1_TO_L2?.[destinationChain as Chain]
+        if (!relayTimeMs) {
+          return false
+        }
+        relayTimestampOk = l1TxTimestampMs + relayTimeMs < Date.now()
       }
 
       let timestampOk = true
@@ -425,6 +443,7 @@ class TransfersDb extends BaseDb<Transfer> {
         !item.isRelayed &&
         !item.transferFromL1Complete &&
         item.transferSentLogIndex &&
+        relayTimestampOk &&
         timestampOk
       )
     })

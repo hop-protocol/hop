@@ -53,7 +53,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async checkTransferSentToL2FromDb () {
-    const dbTransfers = await this.db.transfers.getUnrelayedSentTransfers(await this.getFilterRoute())
+    const dbTransfers = await this.db.transfers.getL1ToL2UnrelayedTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       this.logger.debug('no unrelayed transfer db items to check')
       return
@@ -93,7 +93,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async checkRelayableTransferRootsFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getRelayableTransferRoots(await this.getFilterRoute())
+    const dbTransferRoots = await this.db.transferRoots.getL1ToL2RelayableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       this.logger.debug('no relayable transfer root db items to check')
       return

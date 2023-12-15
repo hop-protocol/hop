@@ -11,7 +11,6 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
-  BondTransferRootChains,
   SyncCyclesPerFullSync,
   SyncIntervalMultiplier,
   SyncIntervalSec,
@@ -21,6 +20,7 @@ import {
   wsEnabledChains
 } from 'src/config'
 import {
+  BondTransferRootChains,
   Chain,
   ChainPollMultiplier,
   DoesRootProviderSupportWs,
@@ -111,7 +111,7 @@ class SyncWatcher extends BaseWatcher {
 
     const enabledNetworks = getEnabledNetworks()
     for (const enabledNetwork of enabledNetworks) {
-      if (RelayableChains.includes(enabledNetwork)) {
+      if (RelayableChains.L1_TO_L2.includes(enabledNetwork as Chain)) {
         this.isRelayableChainEnabled = true
         break
       }
@@ -528,7 +528,8 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getTransferSentPromises (): EventPromise {
-    // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
+    // Only listen for TransferSent events on L2 if the chain is L1_To_L2 relayable
+    // If the chain is not relayable, the slow syncer will process it
     if (this.isL1 && this.isRelayableChainEnabled) {
       return [this.getTransferSentToL2EventPromise()]
     }
@@ -833,7 +834,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = BondTransferRootChains.has(sourceChainSlug)
+      const shouldBondTransferRoot = BondTransferRootChains.includes(sourceChainSlug)
 
       logger.debug('handling TransfersCommitted event', JSON.stringify({
         transferRootId,
@@ -1692,7 +1693,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }
 
-        if (RelayableChains.includes(this.chainSlug)) {
+        if (RelayableChains.L1_TO_L2.includes(this.chainSlug as Chain)) {
           let gasCost: BigNumber
           try {
             gasCost = await RelayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)

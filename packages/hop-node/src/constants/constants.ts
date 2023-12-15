@@ -54,8 +54,6 @@ export {
   L1ToL2CheckpointTimeInL1Blocks
 }
 
-export const RelayableChains = Array.from(relayableChainsSet)
-
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
   polygon: 5933,
@@ -180,3 +178,50 @@ export enum SyncType {
   Collateralized = 'collateralized',
   Threshold = 'threshold'
 }
+
+
+//////////
+// TODO: Clean this up. Below this consider moving to core -- but consider pretty much all should be relayable both ways
+//////////
+
+type RelayableChains = {
+  L1_TO_L2: string[]
+  L2_TO_L1: string[]
+}
+
+export const RelayableChains: RelayableChains =  {
+  L1_TO_L2: [
+    Chain.Arbitrum,
+    Chain.Nova,
+    Chain.Linea,
+    Chain.PolygonZk
+  ],
+  L2_TO_L1: [
+    Chain.Gnosis,
+    Chain.Polygon,
+    Chain.PolygonZk
+  ]
+}
+
+
+export const RelayWaitTimeMs: any =  {
+  L1_TO_L2: {
+    [Chain.Arbitrum]: 12 * 60 * 1000, // L1 safe
+    [Chain.Nova]: 12 * 60 * 1000, // L1 safe
+    [Chain.Linea]: 25 * 60 * 1000, // L1 finalized
+    [Chain.PolygonZk]: 7 * 60 * 1000 // 32 L1 Blocks
+  },
+  L2_TO_L1: {
+    [Chain.Gnosis]: 1 * OneHourMs,
+    [Chain.Polygon]: 1 * OneHourMs,
+    [Chain.PolygonZk]: 1 * OneHourMs
+  }
+}
+
+export const BondTransferRootChains: string[] = [
+  Chain.Optimism,
+  Chain.Arbitrum,
+  Chain.Nova,
+  Chain.Base,
+  Chain.Linea
+]

@@ -62,7 +62,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
   }
 
   async checkExitableTransferRootsFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getExitableTransferRoots(await this.getFilterRoute())
+    const dbTransferRoots = await this.db.transferRoots.getL2ToL1RelayableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }

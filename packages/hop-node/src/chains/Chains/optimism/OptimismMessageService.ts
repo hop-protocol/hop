@@ -9,12 +9,12 @@ import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
 import chainSlugToId from 'src/utils/chainSlugToId'
 
-type RelayOpts = {
+type MessageOpts = {
   messageDirection: MessageDirection
   messageIndex: number
 }
 
-export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus, RelayOpts> implements IMessageService {
+export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus, MessageOpts> implements IMessageService {
   private readonly csm: CrossChainMessenger
 
   constructor (chainSlug: string) {
@@ -30,23 +30,23 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
   }
 
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const relayOpts: RelayOpts = {
+    const messageOpts: MessageOpts = {
       messageDirection: MessageDirection.L1_TO_L2,
       messageIndex: messageIndex ?? 0
     }
-    return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
+    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
   }
 
   async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const relayOpts: RelayOpts = {
+    const messageOpts: MessageOpts = {
       messageDirection: MessageDirection.L2_TO_L1,
       messageIndex: messageIndex ?? 0
     }
-    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
+    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
   }
 
-  protected async sendRelayTransaction (message: CrossChainMessage, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
-    const { messageDirection } = relayOpts
+  protected async sendRelayTransaction (message: CrossChainMessage, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+    const { messageDirection } = messageOpts
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return this.csm.proveMessage(message)
     } else {
@@ -63,8 +63,8 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
     }
   }
 
-  protected async getMessage (txHash: string, relayOpts: RelayOpts): Promise<CrossChainMessage> {
-    const { messageIndex } = relayOpts
+  protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<CrossChainMessage> {
+    const { messageIndex } = messageOpts
 
     const messages: CrossChainMessage[] = await this.csm.getMessagesByTransaction(txHash)
     if (!messages) {

@@ -11,7 +11,7 @@ import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 type PolygonMessage = string
 type PolygonMessageStatus = string
 
-type RelayOpts = {
+type MessageOpts = {
   rootTunnelAddress: string
 }
 
@@ -30,7 +30,7 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'mumbai'
 }
 
-export class PolygonMessageService extends AbstractMessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
+export class PolygonMessageService extends AbstractMessageService<PolygonMessage, PolygonMessageStatus, MessageOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   maticClient: any
@@ -69,12 +69,12 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
     const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
 
-    // Message is a txHash for Polygon
-    const relayOpts = {
+    const messageOpts: MessageOpts = {
       rootTunnelAddress
     }
 
-    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
+    // Message is a txHash for Polygon
+    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
   }
 
   async #_initClient (l1Network: string): Promise<void> {
@@ -147,8 +147,8 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     return defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
   }
 
-  protected async sendRelayTransaction (message: PolygonMessage, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
-    const { rootTunnelAddress } = relayOpts
+  protected async sendRelayTransaction (message: PolygonMessage, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+    const { rootTunnelAddress } = messageOpts
 
     // Generate payload
     const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'

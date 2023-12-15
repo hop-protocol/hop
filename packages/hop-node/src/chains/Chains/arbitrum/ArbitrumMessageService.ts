@@ -16,30 +16,30 @@ import { providers } from 'ethers'
 
 type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
-type RelayOpts = {
+type MessageOpts = {
   messageDirection: MessageDirection
   messageIndex: number
 }
 
-export class ArbitrumMessageService extends AbstractMessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
+export class ArbitrumMessageService extends AbstractMessageService<MessageType, MessageStatus, MessageOpts> implements IMessageService {
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const relayOpts: RelayOpts = {
+    const messageOpts: MessageOpts = {
       messageDirection: MessageDirection.L1_TO_L2,
       messageIndex: messageIndex ?? 0
     }
-    return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
+    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
   }
 
   async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const relayOpts: RelayOpts = {
+    const messageOpts: MessageOpts = {
       messageDirection: MessageDirection.L2_TO_L1,
       messageIndex: messageIndex ?? 0
     }
-    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
+    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
   }
 
-  protected async sendRelayTransaction (message: MessageType, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
-    const { messageDirection } = relayOpts
+  protected async sendRelayTransaction (message: MessageType, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+    const { messageDirection } = messageOpts
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return (message as IL1ToL2MessageWriter).redeem()
     } else {
@@ -50,8 +50,8 @@ export class ArbitrumMessageService extends AbstractMessageService<MessageType, 
     }
   }
 
-  protected async getMessage (txHash: string, relayOpts: RelayOpts): Promise<MessageType> {
-    const { messageDirection, messageIndex } = relayOpts
+  protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<MessageType> {
+    const { messageDirection, messageIndex } = messageOpts
 
     let messages: MessageType[]
     if (messageDirection === MessageDirection.L1_TO_L2) {

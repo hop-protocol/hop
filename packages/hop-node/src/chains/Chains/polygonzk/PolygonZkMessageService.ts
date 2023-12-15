@@ -26,14 +26,14 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'blueberry'
 }
 
-type RelayOpts = {
+type MessageOpts = {
   messageDirection: MessageDirection
 }
 
 type MessageType = string
 type MessageStatus = string
 
-export class PolygonZkMessageService extends AbstractMessageService<MessageType, MessageStatus, RelayOpts> implements IMessageService {
+export class PolygonZkMessageService extends AbstractMessageService<MessageType, MessageStatus, MessageOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   zkEvmClient: ZkEvmClient
@@ -96,38 +96,24 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     await this.#tilReady()
-    const relayOpts: RelayOpts = {
+    const messageOpts: MessageOpts = {
       messageDirection: MessageDirection.L1_TO_L2
     }
 
-    return this.validateMessageAndSendTransaction(l1TxHash, relayOpts)
+    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     await this.#tilReady()
-    const relayOpts: RelayOpts = {
+    const messageOpts: MessageOpts = {
       messageDirection: MessageDirection.L2_TO_L1
     }
 
-    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
+    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
   }
 
-  #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
-    if (messageDirection === MessageDirection.L1_TO_L2) {
-      return {
-        sourceBridge: this.zkEvmClient.rootChainBridge,
-        destBridge: this.zkEvmClient.childChainBridge
-      }
-    } else {
-      return {
-        sourceBridge: this.zkEvmClient.childChainBridge,
-        destBridge: this.zkEvmClient.rootChainBridge
-      }
-    }
-  }
-
-  protected async sendRelayTransaction (message: MessageType, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
-    const { messageDirection } = relayOpts
+  protected async sendRelayTransaction (message: MessageType, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+    const { messageDirection } = messageOpts
 
     // The bridge to claim on will be on the opposite chain that the source tx is on
     const { sourceBridge, destBridge } = this.#getSourceAndDestBridge(messageDirection)
@@ -160,35 +146,58 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
     return await wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
-  protected async getMessage (message: MessageType): Promise<MessageType> {
-    // PolygonZk message is the txHash
-    return message
+  protected async getMessage (txHash: string): Promise<MessageType> {
+    // PolygonZk message is just the tx hash
+    return txHash
   }
 
   protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
-    // PolygonZk status is validated by just the message, so we return that
+    // PolygonZk status is retrieved from the hash
     return message
   }
 
-  protected async isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
-    throw new Error('implement')
+  protected async isMessageInFlight (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    // A message is in flight if the client does not know about it
+    try {
+      if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+        await this.zkEvmClient.isDepositClaimable(messageStatus)
+      } else {
+        await this.zkEvmClient.isWithdrawExitable(messageStatus)
+      }
+    } catch (err) {
+      return true
+    }
+    return false
   }
 
-  protected async isMessageRelayable (messageStatus: MessageStatus): Promise<boolean> {
-    const isL1ToL2AndRelayable = await this.zkEvmClient.isDepositClaimable(messageStatus)
-    const isL2ToL1AndRelayable = await this.zkEvmClient.isWithdrawExitable(messageStatus)
-    return (
-      messageStatus === isL1ToL2AndRelayable ||
-      messageStatus === isL2ToL1AndRelayable
-    )
+  protected async isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      return this.zkEvmClient.isDepositClaimable(messageStatus)
+    } else {
+      return this.zkEvmClient.isWithdrawExitable(messageStatus)
+    }
   }
 
-  protected async isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
-    const isL1ToL2AndRelayed = await this.zkEvmClient.isDeposited(messageStatus)
-    const isL2ToL1AndRelayed = await this.zkEvmClient.isExited(messageStatus)
-    return (
-      messageStatus === isL1ToL2AndRelayed ||
-      messageStatus === isL2ToL1AndRelayed
-    )
+  protected async isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      return !!(this.zkEvmClient.isDeposited(messageStatus))
+    } else {
+      return !!(this.zkEvmClient.isExited(messageStatus))
+    }
   }
+
+  #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return {
+        sourceBridge: this.zkEvmClient.rootChainBridge,
+        destBridge: this.zkEvmClient.childChainBridge
+      }
+    } else {
+      return {
+        sourceBridge: this.zkEvmClient.childChainBridge,
+        destBridge: this.zkEvmClient.rootChainBridge
+      }
+    }
+  }
+
 }

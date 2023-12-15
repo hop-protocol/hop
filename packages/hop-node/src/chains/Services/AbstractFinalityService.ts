@@ -20,4 +20,10 @@ export abstract class AbstractFinalityService extends AbstractService {
     this.l1Provider = getRpcProvider(Chain.Ethereum)!
     this.l2Provider = getRpcProvider(this.chainSlug)!
   }
+  /**
+   * To be overridden by subclasses that support custom block numbers
+   */
+  async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+    throw new Error(`Custom block number not supported for ${this.chainSlug}`)
+  }
 }

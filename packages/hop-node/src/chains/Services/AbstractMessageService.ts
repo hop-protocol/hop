@@ -37,6 +37,13 @@ export abstract class AbstractMessageService<Message, MessageStatus, RelayOption
     this.l2Wallet = wallets.get(this.chainSlug)
   }
 
+  /**
+   * To be overridden by subclasses that support manual L1 to L2 message relaying
+   */
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    throw new Error('L1 to L2 message relay not supported. Messages may be relayed with a system tx.')
+  }
+
   // Call a private method so the validation is guaranteed to run in order
   protected async validateMessageAndSendTransaction (txHash: string, relayOpts: RelayOptions | null = null): Promise<providers.TransactionResponse> {
     return this.#validateMessageAndSendTransaction(txHash, relayOpts)

@@ -6,9 +6,6 @@ type MessageStatus = string
 
 export class ZkSyncMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    throw new Error('implement')
-  }
   async relayL2ToL1Message (l2THash: string): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }

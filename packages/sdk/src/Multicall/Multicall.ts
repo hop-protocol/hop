@@ -32,6 +32,7 @@ export type GetBalanceOptions = {
   method?: string
   address?: string
   tokenSymbol?: string
+  tokenDecimals?: number
 }
 
 export class Multicall {
@@ -112,7 +113,7 @@ export class Multicall {
   async getBalancesForChain (chainSlug: string, opts?: GetBalanceOptions[]): Promise<Balance[]> {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
-    const tokenAddresses = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
+    const tokenAddresses : GetBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
     const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
 
     const calls = tokenAddresses.map(({ address, abi, method }: TokenAddress & {abi: any, method: string}) => {
@@ -128,11 +129,11 @@ export class Multicall {
 
     const balancePromises = result.map(async (data: any, index: number) => {
       const returnData = data.returnData
-      const { tokenSymbol, address } = tokenAddresses[index]
+      const { tokenSymbol, address, tokenDecimals } = tokenAddresses[index]
       try {
         const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]
-        const tokenDecimals = getTokenDecimals(tokenSymbol)
-        const balanceFormatted = Number(formatUnits(balance, tokenDecimals))
+        const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol)
+        const balanceFormatted = Number(formatUnits(balance, _tokenDecimals))
         const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol) // don't fetch usd price if using custom abi
         const balanceUsd = tokenPrice ? balanceFormatted * tokenPrice : null
         return {

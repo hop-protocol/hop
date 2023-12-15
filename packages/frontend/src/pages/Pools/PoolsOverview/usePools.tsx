@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
 import { StakingRewards__factory } from '@hop-protocol/core/contracts'
+import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
+import { Multicall } from '@hop-protocol/sdk'
 import { addresses, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { findNetworkBySlug } from 'src/utils/networks'
 import { formatTokenDecimalString } from 'src/utils/format'
@@ -207,108 +210,174 @@ export function usePools () {
             const lpToken = bridge.getSaddleLpToken(pool.chain.slug)
             const tokenDecimals = bridge.getTokenDecimals()
             console.time(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:getSaddleSwapReserves`)
-            const [poolReserves, lpTokenTotalSupplyBn, lpBalance] = await Promise.all([
-              bridge.getSaddleSwapReserves(pool.chain.slug),
-              lpToken.totalSupply(),
-              lpToken.balanceOf(accountAddress)
-            ])
-            console.timeEnd(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:getSaddleSwapReserves`)
-            console.time(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:getPriceByTokenSymbol`)
-            const tokenUsdPrice = stableCoins.has(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
-            console.timeEnd(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:getPriceByTokenSymbol`)
-            if (lpTokenTotalSupplyBn.gt(0)) {
-              if (lpBalance.gt(0)) {
-                const token0Deposited = lpBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
-                const token1Deposited = lpBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn)
-                const userBalance = token0Deposited.add(token1Deposited)
-                const canonicalBalance = Number(formatUnits(userBalance, tokenDecimals))
-
-                pool.userBalanceBn = lpBalance
-                pool.userBalanceUsd = canonicalBalance * tokenUsdPrice
-                pool.userBalanceUsdFormatted = `$${formatTokenDecimalString(pool.userBalanceUsd, 0, 4)}`
-                pool.reserves = poolReserves
-                pool.totalSupply = lpTokenTotalSupplyBn
-              } else {
-                pool.userBalance = BigNumber.from(0)
-                pool.userBalanceUsdFormatted = '-'
-              }
-            }
 
             let hasStakingContract = false
             let totalStakedBalance = BigNumber.from(0)
 
-            if (lpTokenTotalSupplyBn.gt(0)) {
-              const stakingRewardsPromise = new Promise(async (resolve) => {
+              const lpTokenAddress = lpToken.address
+              const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+              const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+              const multicall = new Multicall({ network: reactAppNetwork, accountAddress })
+
+              const balancesOpts: any = []
+              balancesOpts.push({
+                abi: Erc20Abi,
+                method: 'balanceOf',
+                address: lpTokenAddress,
+                tokenSymbol,
+                tokenDecimals: 18
+              })
+              if (stakingContractAddress) {
+                balancesOpts.push({
+                  abi: StakingRewardsAbi,
+                  method: 'earned',
+                  address: stakingContractAddress,
+                  tokenSymbol: 'HOP'
+                })
+              }
+              if (hopStakingContractAddress) {
+                balancesOpts.push({
+                  abi: StakingRewardsAbi,
+                  method: 'earned',
+                  address: hopStakingContractAddress,
+                  tokenSymbol: 'HOP'
+                })
+              }
+
+              const balances = await multicall.getBalancesForChain(chainSlug, balancesOpts)
+
+              const lpBalance = BigNumber.from(balances[0].balance)
+              let stakingRewardsEarned = BigNumber.from(0)
+              let hopStakingRewardsEarned = BigNumber.from(0)
+              if (stakingContractAddress && hopStakingContractAddress) {
+                stakingRewardsEarned = BigNumber.from(balances[1].balance)
+                hopStakingRewardsEarned = BigNumber.from(balances[2].balance)
+              } else if (stakingContractAddress) {
+                stakingRewardsEarned = BigNumber.from(balances[1].balance)
+              } else if (hopStakingContractAddress) {
+                hopStakingRewardsEarned = BigNumber.from(balances[1].balance)
+              }
+
+              let poolReserves: any
+              let lpTokenTotalSupplyBn: any
+              let tokenUsdPrice : any
+
+              if (lpBalance.gt(0)) {
+                ([poolReserves, lpTokenTotalSupplyBn] = await Promise.all([
+                  bridge.getSaddleSwapReserves(pool.chain.slug),
+                  lpToken.totalSupply()
+                ]));
+                console.timeEnd(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:getSaddleSwapReserves`)
+                console.time(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:getPriceByTokenSymbol`)
+                tokenUsdPrice = stableCoins.has(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
+                console.timeEnd(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:getPriceByTokenSymbol`)
+                if (lpTokenTotalSupplyBn.gt(0)) {
+                  const token0Deposited = lpBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
+                  const token1Deposited = lpBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn)
+                  const userBalance = token0Deposited.add(token1Deposited)
+                  const canonicalBalance = Number(formatUnits(userBalance, tokenDecimals))
+
+                  pool.userBalanceBn = lpBalance
+                  pool.userBalanceUsd = canonicalBalance * tokenUsdPrice
+                  pool.userBalanceUsdFormatted = `$${formatTokenDecimalString(pool.userBalanceUsd, 0, 4)}`
+                  pool.reserves = poolReserves
+                  pool.totalSupply = lpTokenTotalSupplyBn
+                }
+              } else {
+                pool.userBalance = BigNumber.from(0)
+                pool.userBalanceUsdFormatted = '-'
+              }
+
+              if (stakingRewardsEarned.gt(0)) {
                 console.time(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:stakingRewardsPromise`)
-                const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
-                if (address) {
-                  hasStakingContract = true
-                  const _provider = sdk.getChainProvider(pool.chain.slug)
-                  const contract = StakingRewards__factory.connect(address, _provider)
-                  const [stakedBalance, earned] = await Promise.all([
-                    contract?.balanceOf(accountAddress!),
-                    contract?.earned(accountAddress!)
-                  ])
-                  if (stakedBalance.gt(0)) {
-                    totalStakedBalance = totalStakedBalance.add(stakedBalance)
-                    pool.stakingRewardsStaked = Number(formatUnits(stakedBalance, 18))
 
-                    const stakedToken0Deposited = stakedBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
-                    const stakedToken1Deposited = stakedBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn)
-                    const stakedCanonical = Number(formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
+                if (!poolReserves) {
+                  ([poolReserves, lpTokenTotalSupplyBn] = await Promise.all([
+                    bridge.getSaddleSwapReserves(pool.chain.slug),
+                    lpToken.totalSupply()
+                  ]));
+                }
+                if (lpTokenTotalSupplyBn?.gt(0)) {
+                  const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+                  if (address) {
+                    hasStakingContract = true
+                    const _provider = sdk.getChainProvider(pool.chain.slug)
+                    const contract = StakingRewards__factory.connect(address, _provider)
+                    const [stakedBalance, earned] = await Promise.all([
+                      contract?.balanceOf(accountAddress!),
+                      contract?.earned(accountAddress!)
+                    ])
+                    if (stakedBalance.gt(0)) {
+                      totalStakedBalance = totalStakedBalance.add(stakedBalance)
+                      pool.stakingRewardsStaked = Number(formatUnits(stakedBalance, 18))
 
-                    pool.stakingRewardsStakedUsd = stakedCanonical * tokenUsdPrice
-                    pool.stakingRewardsStakedUsdFormatted = `$${commafy(pool.stakingRewardsStakedUsd, 2)}`
-                  }
-                  if (earned.gt(0)) {
-                    pool.canClaim = true
+                      const stakedToken0Deposited = stakedBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
+                      const stakedToken1Deposited = stakedBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn)
+                      const stakedCanonical = Number(formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
+
+                      if (!tokenUsdPrice) {
+                        tokenUsdPrice = stableCoins.has(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
+                      }
+
+                      pool.stakingRewardsStakedUsd = stakedCanonical * tokenUsdPrice
+                      pool.stakingRewardsStakedUsdFormatted = `$${commafy(pool.stakingRewardsStakedUsd, 2)}`
+                    }
+                    if (earned.gt(0)) {
+                      pool.canClaim = true
+                    }
                   }
                 }
                 console.timeEnd(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:stakingRewardsPromise`)
-                resolve(null)
-              })
+              }
 
-              const hopStakingRewardsPromise = new Promise(async (resolve) => {
+              if (hopStakingRewardsEarned.gt(0)) {
                 console.time(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:hopStakingRewardsPromise`)
-                const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
-                if (hopStakingContractAddress) {
-                  hasStakingContract = true
-                  const _provider = sdk.getChainProvider(chainSlug)
-                  const contract = StakingRewards__factory.connect(hopStakingContractAddress, _provider)
-                  const [stakedBalance, earned] = await Promise.all([
-                    contract?.balanceOf(accountAddress!),
-                    contract?.earned(accountAddress!)
-                  ])
-                  if (stakedBalance.gt(0)) {
-                    totalStakedBalance = totalStakedBalance.add(stakedBalance)
-                    pool.hopRewardsStaked = Number(formatUnits(stakedBalance, 18))
+                if (!poolReserves) {
+                  ([poolReserves, lpTokenTotalSupplyBn] = await Promise.all([
+                    bridge.getSaddleSwapReserves(pool.chain.slug),
+                    lpToken.totalSupply()
+                  ]));
+                }
 
-                    const stakedToken0Deposited = stakedBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
-                    const stakedToken1Deposited = stakedBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn)
-                    const stakedCanonical = Number(formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
+                if (lpTokenTotalSupplyBn?.gt(0)) {
+                  const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+                  if (hopStakingContractAddress) {
+                    hasStakingContract = true
+                    const _provider = sdk.getChainProvider(chainSlug)
+                    const contract = StakingRewards__factory.connect(hopStakingContractAddress, _provider)
+                    const [stakedBalance, earned] = await Promise.all([
+                      contract?.balanceOf(accountAddress!),
+                      contract?.earned(accountAddress!)
+                    ])
+                    if (stakedBalance.gt(0)) {
+                      totalStakedBalance = totalStakedBalance.add(stakedBalance)
+                      pool.hopRewardsStaked = Number(formatUnits(stakedBalance, 18))
 
-                    pool.hopRewardsStakedUsd = stakedCanonical * tokenUsdPrice
-                    pool.hopRewardsStakedUsdFormatted = `$${commafy(pool.hopRewardsStakedUsd, 2)}`
-                  }
-                  if (earned.gt(0)) {
-                    pool.canClaim = true
+                      const stakedToken0Deposited = stakedBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
+                      const stakedToken1Deposited = stakedBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn)
+                      const stakedCanonical = Number(formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
+
+                      if (!tokenUsdPrice) {
+                        tokenUsdPrice = stableCoins.has(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
+                      }
+
+                      pool.hopRewardsStakedUsd = stakedCanonical * tokenUsdPrice
+                      pool.hopRewardsStakedUsdFormatted = `$${commafy(pool.hopRewardsStakedUsd, 2)}`
+                    }
+                    if (earned.gt(0)) {
+                      pool.canClaim = true
+                    }
                   }
                 }
                 console.timeEnd(`${timestamp} poolsOverview ${accountAddress}:${chainSlug}:${tokenSymbol}:hopStakingRewardsPromise`)
-                resolve(null)
-              })
-
-              await Promise.all([
-                stakingRewardsPromise,
-                hopStakingRewardsPromise
-              ])
+              }
 
               pool.hasStakingContract = hasStakingContract
               pool.hasStaked = totalStakedBalance.gt(0)
 
               const totalLpBalance = totalStakedBalance.add(lpBalance)
-              const totalToken0Deposited = totalLpBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
-              const totalToken1Deposited = totalLpBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn)
+              const totalToken0Deposited = totalLpBalance?.gt(0) ? totalLpBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn) : BigNumber.from(0)
+              const totalToken1Deposited = totalLpBalance?.gt(0) ? totalLpBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(lpTokenTotalSupplyBn) : BigNumber.from(0)
               const totalCanonical = Number(formatUnits(totalToken0Deposited.add(totalToken1Deposited), tokenDecimals))
               pool.userBalanceTotalUsd = totalCanonical * tokenUsdPrice
 
@@ -325,10 +394,10 @@ export function usePools () {
               cache[key].hasStakingContract = pool.hasStakingContract
               cache[key].stakingRewardsStakedTotalUsd = pool.stakingRewardsStakedTotalUsd
               cache[key].stakingRewardsStakedTotalUsdFormatted = pool.stakingRewardsStakedTotalUsdFormatted
-            }
-            setTimeout(() => {
-              setHasFetchedAccount(true)
-            }, 2 * 1000)
+
+              setTimeout(() => {
+                setHasFetchedAccount(true)
+              }, 2 * 1000)
           } catch (err: any) {
             if (!/noNetwork/.test(err.message)) {
               console.error('usePools error:', err)

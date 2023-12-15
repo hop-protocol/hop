@@ -186,7 +186,10 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   }
 
   protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    return false
+    // This is not accurate, but we don't have a way to check if a message has been relayed
+    // This will suffice for how the bonder uses this call, but will not work more broadly
+    const apiRes = await this.#fetchBlockIncluded(messageStatus)
+    return apiRes.message === 'success'
   }
 
   async #fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<any> {

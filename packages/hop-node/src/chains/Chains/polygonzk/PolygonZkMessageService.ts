@@ -30,10 +30,10 @@ type MessageOpts = {
   messageDirection: MessageDirection
 }
 
-type MessageType = string
+type Message = string
 type MessageStatus = string
 
-export class PolygonZkMessageService extends AbstractMessageService<MessageType, MessageStatus, MessageOpts> implements IMessageService {
+export class PolygonZkMessageService extends AbstractMessageService<Message, MessageStatus, MessageOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   zkEvmClient: ZkEvmClient
@@ -112,7 +112,7 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
     return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
   }
 
-  protected async sendRelayTransaction (message: MessageType, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+  protected async sendRelayTransaction (message: Message, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
     const { messageDirection } = messageOpts
 
     // The bridge to claim on will be on the opposite chain that the source tx is on
@@ -146,12 +146,12 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
     return await wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
-  protected async getMessage (txHash: string): Promise<MessageType> {
+  protected async getMessage (txHash: string): Promise<Message> {
     // PolygonZk message is just the tx hash
     return txHash
   }
 
-  protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
     // PolygonZk status is retrieved from the hash
     return message
   }

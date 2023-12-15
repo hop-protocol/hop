@@ -11,15 +11,15 @@ import { getCanonicalAddressesForChain } from 'src/config'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 import { toHex } from 'web3-utils'
 
-type MessageType = string
+type Message = string
 type MessageStatus = string
 
 // references:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
-export class GnosisMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
-  l1Amb: L1_xDaiAMB
-  l2Amb: L2_xDaiAMB
+export class GnosisMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
+  readonly #l1Amb: L1_xDaiAMB
+  readonly #l2Amb: L2_xDaiAMB
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -32,18 +32,18 @@ export class GnosisMessageService extends AbstractMessageService<MessageType, Me
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
 
-    this.l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, this.l1Wallet) as L1_xDaiAMB
-    this.l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
+    this.#l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, this.l1Wallet) as L1_xDaiAMB
+    this.#l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     return this.validateMessageAndSendTransaction(l2TxHash)
   }
 
-  private async _getValidSigEvent (l2TxHash: string) {
+  async #getValidSigEvent (l2TxHash: string) {
     const tx = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const sigEvents = await this.l2Amb.queryFilter(
-      this.l2Amb.filters.UserRequestForSignature(),
+    const sigEvents = await this.#l2Amb.queryFilter(
+      this.#l2Amb.filters.UserRequestForSignature(),
       tx.blockNumber,
       tx.blockNumber
     )
@@ -64,16 +64,16 @@ export class GnosisMessageService extends AbstractMessageService<MessageType, Me
     }
   }
 
-  private _getMessageHash (message: string): string {
+  #getMessageHash (message: string): string {
     return solidityKeccak256(['bytes'], [message])
   }
 
-  private _strip0x (value: string): string {
+  #strip0x (value: string): string {
     return value.replace(/^0x/i, '')
   }
 
-  private _signatureToVRS (rawSignature: any) {
-    const signature = this._strip0x(rawSignature)
+  #signatureToVRS (rawSignature: any) {
+    const signature = this.#strip0x(rawSignature)
     assert.strictEqual(signature.length, 2 + 32 * 2 + 32 * 2)
     const v = signature.substr(64 * 2)
     const r = signature.substr(0, 32 * 2)
@@ -81,8 +81,8 @@ export class GnosisMessageService extends AbstractMessageService<MessageType, Me
     return { v, r, s }
   }
 
-  private _packSignatures (array: any[]) {
-    const length = this._strip0x(toHex(array.length))
+  #packSignatures (array: any[]) {
+    const length = this.#strip0x(toHex(array.length))
     const msgLength = length.length === 1 ? `0${length}` : length
     let v = ''
     let r = ''
@@ -96,28 +96,28 @@ export class GnosisMessageService extends AbstractMessageService<MessageType, Me
   }
 
   protected async sendRelayTransaction (message: MessageStatus): Promise<providers.TransactionResponse> {
-    const messageHash: string = this._getMessageHash(message)
-    const requiredSigs = (await this.l2Amb.requiredSignatures()).toNumber()
+    const messageHash: string = this.#getMessageHash(message)
+    const requiredSigs = (await this.#l2Amb.requiredSignatures()).toNumber()
     const sigs: any[] = []
     for (let i = 0; i < requiredSigs; i++) {
-      const sig = await this.l2Amb.signature(messageHash, i)
+      const sig = await this.#l2Amb.signature(messageHash, i)
       const [v, r, s]: any[] = [[], [], []]
-      const vrs = this._signatureToVRS(sig)
+      const vrs = this.#signatureToVRS(sig)
       v.push(vrs.v)
       r.push(vrs.r)
       s.push(vrs.s)
       sigs.push(vrs)
     }
-    const packedSigs = this._packSignatures(sigs)
+    const packedSigs = this.#packSignatures(sigs)
 
     const overrides: any = {
       gasLimit: CanonicalMessengerRootConfirmationGasLimit
     }
-    return this.l1Amb.executeSignatures(message, packedSigs, overrides)
+    return this.#l1Amb.executeSignatures(message, packedSigs, overrides)
   }
 
-  protected async getMessage (txHash: string): Promise<MessageType> {
-    const sigEvent = await this._getValidSigEvent(txHash)
+  protected async getMessage (txHash: string): Promise<Message> {
+    const sigEvent = await this.#getValidSigEvent(txHash)
     if (!sigEvent?.args) {
       throw new Error(`args for sigEvent not found for ${txHash}`)
     }
@@ -131,16 +131,16 @@ export class GnosisMessageService extends AbstractMessageService<MessageType, Me
     return message
   }
 
-  protected async getMessageStatus (message: MessageType): Promise<MessageType> {
+  protected async getMessageStatus (message: Message): Promise<Message> {
     // Gnosis status is validated by just the message, so we return that
     return message
   }
 
-  protected async isMessageInFlight (message: MessageType): Promise<boolean> {
+  protected async isMessageInFlight (message: Message): Promise<boolean> {
     return this.#isMessageInFlight(message)
   }
 
-  protected async isMessageRelayable (messageStatus: MessageType): Promise<boolean> {
+  protected async isMessageRelayable (messageStatus: Message): Promise<boolean> {
     const isInFlight = await this.#isMessageInFlight(messageStatus)
     const isRelayed = await this.#isMessageRelayed(messageStatus)
     return !isInFlight && !isRelayed
@@ -151,17 +151,17 @@ export class GnosisMessageService extends AbstractMessageService<MessageType, Me
   }
 
   async #isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
-    const msgHash = this._getMessageHash(messageStatus)
-    const messageId = this.l2Amb.numMessagesSigned(msgHash)
-    return this.l2Amb.isAlreadyProcessed(messageId)
+    const msgHash = this.#getMessageHash(messageStatus)
+    const messageId = this.#l2Amb.numMessagesSigned(msgHash)
+    return this.#l2Amb.isAlreadyProcessed(messageId)
   }
 
   async #isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
     const messageId =
       '0x' +
-      Buffer.from(this._strip0x(messageStatus), 'hex')
+      Buffer.from(this.#strip0x(messageStatus), 'hex')
         .slice(0, 32)
         .toString('hex')
-    return this.l1Amb.relayedMessages(messageId)
+    return this.#l1Amb.relayedMessages(messageId)
   }
 }

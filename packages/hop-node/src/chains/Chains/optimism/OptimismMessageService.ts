@@ -15,15 +15,15 @@ type MessageOpts = {
 }
 
 export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus, MessageOpts> implements IMessageService {
-  private readonly csm: CrossChainMessenger
+  readonly #csm: CrossChainMessenger
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    this.csm = new CrossChainMessenger({
+    this.#csm = new CrossChainMessenger({
       bedrock: true,
       l1ChainId: networkSlugToId(globalConfig.network),
-      l2ChainId: chainSlugToId(this.chainSlug),
+      l2ChainId: chainSlugToId(chainSlug),
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet
     })
@@ -48,7 +48,7 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
   protected async sendRelayTransaction (message: CrossChainMessage, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
     const { messageDirection } = messageOpts
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      return this.csm.proveMessage(message)
+      return this.#csm.proveMessage(message)
     } else {
       // Need an arbitrary value that will always succeed
       // Signer is needed to execute tx with SDK
@@ -59,14 +59,14 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
           gasLimit
         }
       }
-      return this.csm.resendMessage(message, txOpts)
+      return this.#csm.resendMessage(message, txOpts)
     }
   }
 
   protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<CrossChainMessage> {
     const { messageIndex } = messageOpts
 
-    const messages: CrossChainMessage[] = await this.csm.getMessagesByTransaction(txHash)
+    const messages: CrossChainMessage[] = await this.#csm.getMessagesByTransaction(txHash)
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
@@ -74,7 +74,7 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
   }
 
   protected async getMessageStatus (message: CrossChainMessage): Promise<MessageStatus> {
-    return this.csm.getMessageStatus(message.transactionHash)
+    return this.#csm.getMessageStatus(message.transactionHash)
   }
 
   protected isMessageInFlight (messageStatus: MessageStatus): boolean {

@@ -67,7 +67,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
-    const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
+    const rootTunnelAddress: string = await this.#getRootTunnelAddressFromTxHash(l2TxHash)
 
     const messageOpts: MessageOpts = {
       rootTunnelAddress
@@ -100,7 +100,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     this.ready = true
   }
 
-  async _getRootTunnelAddressFromTxHash (l2TxHash: string): Promise<string> {
+  async #getRootTunnelAddressFromTxHash (l2TxHash: string): Promise<string> {
     // Get the bridge address from the logs
     // TransfersCommitted(uint256,bytes32,uint256,uint256)
     const logEvent = '0xf52ad20d3b4f50d1c40901dfb95a9ce5270b2fc32694e5c668354721cd87aa74'

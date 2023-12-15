@@ -1,23 +1,23 @@
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { providers } from 'ethers'
 
-type MessageType = string
+type Message = string
 type MessageStatus = string
 
-export class ZkSyncMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
+export class ZkSyncMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
   async relayL2ToL1Message (l2THash: string): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
 
-  protected async sendRelayTransaction (message: MessageType): Promise<providers.TransactionResponse> {
+  protected async sendRelayTransaction (message: Message): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
 
-  protected async getMessage (txHash: string): Promise<MessageType> {
+  protected async getMessage (txHash: string): Promise<Message> {
     throw new Error('implement')
   }
 
-  protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
     throw new Error('implement')
   }
 

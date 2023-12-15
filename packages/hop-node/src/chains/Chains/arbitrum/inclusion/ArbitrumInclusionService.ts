@@ -10,8 +10,8 @@ type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
 }
 
 export class ArbitrumInclusionService extends AbstractInclusionService implements IInclusionService {
-  private readonly nodeInterfaceContract: Contract
-  private readonly sequencerInboxContract: Contract
+  readonly #nodeInterfaceContract: Contract
+  readonly #sequencerInboxContract: Contract
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -36,8 +36,8 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     const sequencerInboxAbi: string[] = [
       `event SequencerBatchDelivered(uint256 indexed batchSequenceNumber, bytes32 indexed beforeAcc, bytes32 indexed afterAcc, bytes32 delayedAcc, uint256 afterDelayedMessagesRead, ${timeBoundsStruct} timeBounds, ${batchDataLocationEnum} dataLocation)`
     ]
-    this.nodeInterfaceContract = new Contract(nodeInterfaceAddress, nodeInterfaceAbi, this.l2Provider)
-    this.sequencerInboxContract = new Contract(sequencerInboxAddress, sequencerInboxAbi, this.l1Provider)
+    this.#nodeInterfaceContract = new Contract(nodeInterfaceAddress, nodeInterfaceAbi, this.l2Provider)
+    this.#sequencerInboxContract = new Contract(sequencerInboxAddress, sequencerInboxAbi, this.l1Provider)
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
@@ -45,7 +45,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     // are usually checkpointed within a few minutes after the L2 transaction is made. We can use this information
     // to look a few blocks ahead of the L1 block number for the l1BatchNumber.
 
-    const l2TxReceipt: ArbitrumTransactionReceipt = await this._getArbitrumTxReceipt(l2TxHash)
+    const l2TxReceipt: ArbitrumTransactionReceipt = await this.#getArbitrumTxReceipt(l2TxHash)
     if (!l2TxReceipt.l1BlockNumber || !l2TxReceipt.blockNumber) {
       throw new Error(`l2TxReceipt l1BlockNumber or blockNumber not found for tx hash ${l2TxHash}. l2TxReceipt: ${JSON.stringify(l2TxReceipt)}`)
     }
@@ -54,7 +54,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     try {
       // If the batch does not yet exist, this will throw with 'requested block x is after latest on-chain block y published in batch z'
       // Note: this should throw a CALL_EXCEPTION error if the block is not yet posted, and the rateLimitRetry provider should not retry.
-      l1BatchNumber = await this.nodeInterfaceContract.findBatchContainingBlock(l2TxReceipt.blockNumber)
+      l1BatchNumber = await this.#nodeInterfaceContract.findBatchContainingBlock(l2TxReceipt.blockNumber)
     } catch (err) {
       if (err.message.includes('is after latest on-chain block')) {
         this.logger.debug(`l1BatchNumber not yet posted for l2TxHash ${l2TxHash}`)
@@ -72,7 +72,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     const l1BlockHead: number = await this.l1Provider.getBlockNumber()
     const startBlockNumber = Number(l2TxReceipt.l1BlockNumber)
     const endBlockNumber = Math.min(startBlockNumber + numForwardLookingBlocks, l1BlockHead)
-    const sequencerBatchDeliveredEvents: any[] = await this._fetchSequencerBatchDeliveredEvents(startBlockNumber, endBlockNumber)
+    const sequencerBatchDeliveredEvents: any[] = await this.#fetchSequencerBatchDeliveredEvents(startBlockNumber, endBlockNumber)
 
     // l1BatchNumbers uniqueness is enforced onchain, so we know that the first event with the
     // correct l1BatchNumber is the correct event.
@@ -86,7 +86,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   }
 
   // Needed to get Arbitrum-specific tx info from raw RPC call since ethers doesn't handle custom chain data
-  private async _getArbitrumTxReceipt (txHash: string): Promise<ArbitrumTransactionReceipt> {
+  async #getArbitrumTxReceipt (txHash: string): Promise<ArbitrumTransactionReceipt> {
     const res = await fetch(getRpcUrl(this.chainSlug)!, {
       method: 'POST',
       headers: {
@@ -110,9 +110,9 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     return receipt.result
   }
 
-  private async _fetchSequencerBatchDeliveredEvents (startBlockNumber: number, endBlockNumber: number): Promise<any[]> {
-    return await this.sequencerInboxContract.queryFilter(
-      this.sequencerInboxContract.filters.SequencerBatchDelivered(),
+  async #fetchSequencerBatchDeliveredEvents (startBlockNumber: number, endBlockNumber: number): Promise<any[]> {
+    return await this.#sequencerInboxContract.queryFilter(
+      this.#sequencerInboxContract.filters.SequencerBatchDelivered(),
       startBlockNumber,
       endBlockNumber
     )

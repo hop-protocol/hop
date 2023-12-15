@@ -9,6 +9,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
   constructor (chainSlug: string) {
     super(chainSlug)
 
+    // TODO: Generalize for more services
     this.#inclusionService = new AlchemyInclusionService(chainSlug)
   }
 

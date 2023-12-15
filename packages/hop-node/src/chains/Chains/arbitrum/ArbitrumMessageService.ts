@@ -14,14 +14,14 @@ import {
 } from '@arbitrum/sdk'
 import { providers } from 'ethers'
 
-type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter
+type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
 type MessageOpts = {
   messageDirection: MessageDirection
   messageIndex: number
 }
 
-export class ArbitrumMessageService extends AbstractMessageService<MessageType, MessageStatus, MessageOpts> implements IMessageService {
+export class ArbitrumMessageService extends AbstractMessageService<Message, MessageStatus, MessageOpts> implements IMessageService {
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const messageOpts: MessageOpts = {
       messageDirection: MessageDirection.L1_TO_L2,
@@ -38,7 +38,7 @@ export class ArbitrumMessageService extends AbstractMessageService<MessageType, 
     return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
   }
 
-  protected async sendRelayTransaction (message: MessageType, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+  protected async sendRelayTransaction (message: Message, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
     const { messageDirection } = messageOpts
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return (message as IL1ToL2MessageWriter).redeem()
@@ -50,24 +50,24 @@ export class ArbitrumMessageService extends AbstractMessageService<MessageType, 
     }
   }
 
-  protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<MessageType> {
+  protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<Message> {
     const { messageDirection, messageIndex } = messageOpts
 
-    let messages: MessageType[]
+    let messages: Message[]
     if (messageDirection === MessageDirection.L1_TO_L2) {
       const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
       if (!txReceipt) {
         throw new Error(`txReceipt not found for tx hash ${txHash}`)
       }
       const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
-      messages = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet.provider!) as MessageType[]
+      messages = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet.provider!) as Message[]
     } else {
       const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
       if (!txReceipt) {
         throw new Error(`txReceipt not found for tx hash ${txHash}`)
       }
       const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
-      messages = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!) as MessageType[]
+      messages = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!) as Message[]
     }
 
     if (!messages) {
@@ -77,7 +77,7 @@ export class ArbitrumMessageService extends AbstractMessageService<MessageType, 
     return messages[messageIndex]
   }
 
-  protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
     // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
     const res = await (message as IL1ToL2MessageWriter).waitForStatus()
     return res.status

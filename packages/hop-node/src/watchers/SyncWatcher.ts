@@ -1501,7 +1501,7 @@ class SyncWatcher extends BaseWatcher {
      * In the worst case, there could be a bug and this could be expensive as well. Most lookups will take
      * on the order of seconds. Some low-used routes may take longer as the lookup traverses back through
      * the chain looking for transfers. Set a time that is reasonable for most cases, but will not block the bonder.
-     * 
+     *
      * Since this is rarely called, a timeout on the order of minutes is acceptable in order to find low-route
      * chains.
      *

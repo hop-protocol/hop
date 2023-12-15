@@ -3,9 +3,9 @@ import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import wait from 'src/utils/wait'
 import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService'
+import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { RootProviderName } from 'src/constants'
 import { providers } from 'ethers'
-import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 
 interface GetInclusionTxHashes {
   destChainProvider: providers.Provider

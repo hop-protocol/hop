@@ -1,13 +1,13 @@
+import chainSlugToId from 'src/utils/chainSlugToId'
+import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
 import {
   CrossChainMessage,
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
-import { IMessageService, MessageDirection, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
 import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
-import chainSlugToId from 'src/utils/chainSlugToId'
 
 type MessageOpts = {
   messageDirection: MessageDirection

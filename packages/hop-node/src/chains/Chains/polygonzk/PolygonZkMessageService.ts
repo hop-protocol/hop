@@ -1,10 +1,10 @@
 import wait from 'src/utils/wait'
-import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
-import { providers } from 'ethers'
+import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
 import { getNetworkSlugByChainSlug } from 'src/chains/utils'
+import { providers } from 'ethers'
 
 interface ZkEvmBridges {
   sourceBridge: ZkEvmBridge
@@ -200,5 +200,4 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
       }
     }
   }
-
 }

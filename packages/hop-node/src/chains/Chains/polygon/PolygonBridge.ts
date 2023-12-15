@@ -1,6 +1,6 @@
 import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
-import { PolygonMessageService } from 'src/chains/Chains/polygon/PolygonMessageService'
 import { PolygonFinalityService } from 'src/chains/Chains/polygon/PolygonFinalityService'
+import { PolygonMessageService } from 'src/chains/Chains/polygon/PolygonMessageService'
 
 export class PolygonBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

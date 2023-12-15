@@ -1,6 +1,6 @@
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
-import { BytesLike, CallOverrides, Contract, Signer, constants, providers } from 'ethers'
-import { IMessageService, MessageDirection, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
+import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
+import { BytesLike, CallOverrides, Contract, constants, providers } from 'ethers'
 import {
   Message as LineaMessage,
   LineaSDK,
@@ -10,7 +10,7 @@ import {
 } from '@consensys/linea-sdk'
 import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 
-// TODO: Get these from the SDK when they become exported 
+// TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
   getMessagesByTransactionHash(transactionHash: string): Promise<LineaMessage[] | null>
   getMessageStatus(messageHash: BytesLike, overrides?: CallOverrides): Promise<OnChainMessageStatus>

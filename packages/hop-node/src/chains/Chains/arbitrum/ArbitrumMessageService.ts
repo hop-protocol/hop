@@ -1,3 +1,8 @@
+import {
+  AbstractMessageService,
+  IMessageService,
+  MessageDirection
+} from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import {
   IL1ToL2MessageWriter,
@@ -7,11 +12,6 @@ import {
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
-import {
-  IMessageService,
-  MessageDirection,
-  AbstractMessageService
-} from 'src/chains/Services/AbstractMessageService'
 import { providers } from 'ethers'
 
 type MessageType = IL1ToL2MessageWriter | IL2ToL1MessageWriter

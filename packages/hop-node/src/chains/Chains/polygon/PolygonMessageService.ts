@@ -1,12 +1,12 @@
 import fetch from 'node-fetch'
+import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
-import { IMessageService, AbstractMessageService } from 'src/chains/Services/AbstractMessageService'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
+import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 import { providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
-import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string

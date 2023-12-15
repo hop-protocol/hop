@@ -102,7 +102,7 @@ async function main (source: any) {
         throw new Error('commitTxHash is required')
       }
 
-      await chainBridge.relayL2ToL1Message!(commitTxHash)
+      await chainBridge.relayL2ToL1Message(commitTxHash)
     }
   }
   console.log('done')

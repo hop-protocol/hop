@@ -1,6 +1,6 @@
 import AlchemyInclusionService from 'src/chains/Chains/optimism/inclusion/AlchemyInclusionService'
-import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
+import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import { providers } from 'ethers'
 
 export class OptimismFinalityService extends AbstractFinalityService implements IFinalityService {
@@ -66,6 +66,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
 
     return customSafeBlockNumber
   }
+
   #isCustomBlockNumberSupported (blockTag: FinalityBlockTag): boolean {
     return blockTag === FinalityBlockTag.Safe
   }

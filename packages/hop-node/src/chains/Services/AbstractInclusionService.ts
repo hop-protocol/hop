@@ -1,7 +1,7 @@
-import { providers } from 'ethers'
-import { AbstractService } from 'src/chains/Services/AbstractService'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import { AbstractService } from 'src/chains/Services/AbstractService'
 import { Chain } from 'src/constants'
+import { providers } from 'ethers'
 
 export interface IInclusionService {
   getL1InclusionTx?(l2TxHash: string): Promise<providers.TransactionReceipt | undefined>

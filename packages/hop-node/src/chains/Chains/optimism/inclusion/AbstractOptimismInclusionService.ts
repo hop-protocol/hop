@@ -1,12 +1,12 @@
 import Derive, { Frame } from './Derive'
 import zlib from 'zlib'
+import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 import { getCanonicalAddressesForChain } from 'src/config'
-import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionService'
 
 interface Channel {
   transactionHashes: string[]

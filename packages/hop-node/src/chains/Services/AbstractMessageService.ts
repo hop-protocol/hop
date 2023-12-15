@@ -1,8 +1,7 @@
-import { AbstractService } from 'src/chains/Services/AbstractService'
-import { providers } from 'ethers'
 import wallets from 'src/wallets'
+import { AbstractService } from 'src/chains/Services/AbstractService'
 import { Chain } from 'src/constants'
-import { Signer } from 'ethers'
+import { Signer, providers } from 'ethers'
 
 export class MessageUnknownError extends Error {}
 export class MessageInFlightError extends Error {}

@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
+import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
 import { getCanonicalAddressesForChain } from 'src/config'
-import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber

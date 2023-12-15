@@ -7,10 +7,6 @@ export enum FinalityBlockTag {
 }
 
 export type ChainServices = {
-  messageService?: IMessageService
-  finalityService?: IFinalityService
-}
-
-export interface IChainBridge extends IMessageService, IFinalityService {
-  hasOwnImplementation(methodName: keyof IChainBridge): boolean
+  messageService: IMessageService
+  finalityService: IFinalityService
 }

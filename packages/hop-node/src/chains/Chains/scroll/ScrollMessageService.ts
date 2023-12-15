@@ -5,7 +5,11 @@ type MessageType = string
 type MessageStatus = string
 
 export class ScrollMessageService extends AbstractMessageService<MessageType, MessageStatus> implements IMessageService {
-  async relayL2ToL1Message (txHash: string): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    throw new Error('implement')
+  }
+
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     throw new Error('implement')
   }
 

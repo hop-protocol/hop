@@ -36,6 +36,10 @@ export class GnosisMessageService extends AbstractMessageService<MessageType, Me
     this.l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
   }
 
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
+  }
+
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     return this.validateMessageAndSendTransaction(l2TxHash)
   }

@@ -60,6 +60,10 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
       })
   }
 
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
+  }
+
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually

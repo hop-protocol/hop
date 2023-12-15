@@ -15,8 +15,8 @@ export enum MessageDirection {
 }
 
 export interface IMessageService {
-  relayL1ToL2Message?(l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
-  relayL2ToL1Message?(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
+  relayL1ToL2Message(l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
+  relayL2ToL1Message(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
 }
 
 export abstract class AbstractMessageService<Message, MessageStatus, RelayOptions = null> extends AbstractService {

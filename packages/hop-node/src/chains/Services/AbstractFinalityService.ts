@@ -6,7 +6,7 @@ import { Chain } from 'src/constants'
 import getRpcProvider from 'src/utils/getRpcProvider'
 
 export interface IFinalityService {
-  getCustomBlockNumber?(blockTag: FinalityBlockTag): Promise<number | undefined>
+  getCustomBlockNumber(blockTag: FinalityBlockTag): Promise<number | undefined>
 }
 
 export abstract class AbstractFinalityService extends AbstractService {

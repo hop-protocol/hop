@@ -10,3 +10,5 @@ export type ChainServices = {
   messageService: IMessageService
   finalityService: IFinalityService
 }
+
+export interface IChainBridge extends IMessageService, IFinalityService {}

@@ -40,6 +40,7 @@ export abstract class AbstractChainBridge implements IChainBridge {
   async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     return this.messageService.relayL2ToL1Message(l2TxHash, messageIndex)
   }
+
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     return this.finalityService.getCustomBlockNumber(blockTag)
   }

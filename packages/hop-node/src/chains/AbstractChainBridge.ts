@@ -14,8 +14,8 @@ type ChainBridgeParams = {
 }
 
 export abstract class AbstractChainBridge implements IChainBridge {
-  private readonly messageService: IMessageService
-  private readonly finalityService: IFinalityService
+  readonly #messageService: IMessageService
+  readonly #finalityService: IFinalityService
 
   constructor (params: ChainBridgeParams) {
     const { chainSlug, chainServices } = params
@@ -24,8 +24,8 @@ export abstract class AbstractChainBridge implements IChainBridge {
       throw new Error('chainSlug not set')
     }
 
-    this.messageService = chainServices.messageService
-    this.finalityService = chainServices.finalityService
+    this.#messageService = chainServices.messageService
+    this.#finalityService = chainServices.finalityService
 
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(chainSlug)) {
@@ -34,14 +34,14 @@ export abstract class AbstractChainBridge implements IChainBridge {
   }
 
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    return this.messageService.relayL1ToL2Message(l1TxHash, messageIndex)
+    return this.#messageService.relayL1ToL2Message(l1TxHash, messageIndex)
   }
 
   async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    return this.messageService.relayL2ToL1Message(l2TxHash, messageIndex)
+    return this.#messageService.relayL2ToL1Message(l2TxHash, messageIndex)
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
-    return this.finalityService.getCustomBlockNumber(blockTag)
+    return this.#finalityService.getCustomBlockNumber(blockTag)
   }
 }

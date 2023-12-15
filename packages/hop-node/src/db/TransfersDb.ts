@@ -7,8 +7,8 @@ import {
   OneDayMs,
   OneHourMs,
   OneWeekMs,
-  RelayableChains,
   RelayWaitTimeMs,
+  RelayableChains,
   TxError
 } from 'src/constants'
 import { TxRetryDelayMs } from 'src/config'
@@ -408,7 +408,7 @@ class TransfersDb extends BaseDb<Transfer> {
       let relayTimestampOk = true
       if (isRelayable) {
         const l1TxTimestampMs = item.transferSentTimestamp * 1000
-        const relayTimeMs = RelayWaitTimeMs.L1_TO_L2?.[destinationChain as Chain]
+        const relayTimeMs = RelayWaitTimeMs.L1_TO_L2?.[destinationChain]
         if (!relayTimeMs) {
           return false
         }

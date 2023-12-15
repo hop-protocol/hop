@@ -179,17 +179,17 @@ export enum SyncType {
   Threshold = 'threshold'
 }
 
-
+/// ///////
 //////////
 // TODO: Clean this up. Below this consider moving to core -- but consider pretty much all should be relayable both ways
-//////////
+/// ///////
 
-type RelayableChains = {
+type IRelayableChains = {
   L1_TO_L2: string[]
   L2_TO_L1: string[]
 }
 
-export const RelayableChains: RelayableChains =  {
+export const RelayableChains: IRelayableChains = {
   L1_TO_L2: [
     Chain.Arbitrum,
     Chain.Nova,
@@ -203,8 +203,15 @@ export const RelayableChains: RelayableChains =  {
   ]
 }
 
-
-export const RelayWaitTimeMs: any =  {
+type IRelayableWaitTimeMs = {
+  L1_TO_L2: {
+    [chain: string]: number
+  }
+  L2_TO_L1: {
+    [chain: string]: number
+  }
+}
+export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
   L1_TO_L2: {
     [Chain.Arbitrum]: 12 * 60 * 1000, // L1 safe
     [Chain.Nova]: 12 * 60 * 1000, // L1 safe

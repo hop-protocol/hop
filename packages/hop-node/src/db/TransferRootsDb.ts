@@ -2,18 +2,18 @@ import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
-import { TxRetryDelayMs } from 'src/config'
 import {
   BondTransferRootChains,
   Chain,
   ChallengePeriodMs,
   OneWeekMs,
-  RelayableChains,
   RelayWaitTimeMs,
+  RelayableChains,
   RootSetSettleDelayMs,
   TenMinutesMs,
   TxError
 } from 'src/constants'
+import { TxRetryDelayMs } from 'src/config'
 import { transferRootsMigrations } from './migrations'
 
 interface BaseTransferRoot {
@@ -438,7 +438,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       let relayTimestampOk = true
       if (isRelayable) {
         const committedAtMs = item.committedAt * 1000
-        const relayTimeMs = RelayWaitTimeMs.L2_TO_L1?.[sourceChain as Chain]
+        const relayTimeMs = RelayWaitTimeMs.L2_TO_L1?.[sourceChain]
         if (!relayTimeMs) {
           return false
         }
@@ -556,7 +556,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       let relayTimestampOk = true
       if (isRelayable) {
         const l1TxTimestampMs = seenOnL1Timestamp * 1000
-        const relayTimeMs = RelayWaitTimeMs.L1_TO_L2?.[destinationChain as Chain]
+        const relayTimeMs = RelayWaitTimeMs.L1_TO_L2?.[destinationChain]
         if (!relayTimeMs) {
           return false
         }

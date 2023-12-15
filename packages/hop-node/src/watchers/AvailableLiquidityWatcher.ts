@@ -4,12 +4,6 @@ import L2Bridge from './classes/L2Bridge'
 import S3Upload from 'src/aws/s3Upload'
 import { BigNumber } from 'ethers'
 import {
-  getConfigBonderForRoute,
-  getEnabledNetworks,
-  config as globalConfig,
-  modifiedLiquidityRoutes
-} from 'src/config'
-import {
   BondTransferRootChains,
   Chain,
   TenMinutesMs
@@ -17,6 +11,12 @@ import {
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
+import {
+  getConfigBonderForRoute,
+  getEnabledNetworks,
+  config as globalConfig,
+  modifiedLiquidityRoutes
+} from 'src/config'
 
 type Config = {
   chainSlug: string

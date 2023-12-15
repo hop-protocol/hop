@@ -11,15 +11,6 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
-  SyncCyclesPerFullSync,
-  SyncIntervalMultiplier,
-  SyncIntervalSec,
-  getEnabledNetworks,
-  config as globalConfig,
-  minEthBonderFeeBn,
-  wsEnabledChains
-} from 'src/config'
-import {
   BondTransferRootChains,
   Chain,
   ChainPollMultiplier,
@@ -52,6 +43,15 @@ import {
   TransfersCommittedEvent
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RelayerFee } from '@hop-protocol/sdk'
+import {
+  SyncCyclesPerFullSync,
+  SyncIntervalMultiplier,
+  SyncIntervalSec,
+  getEnabledNetworks,
+  config as globalConfig,
+  minEthBonderFeeBn,
+  wsEnabledChains
+} from 'src/config'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'

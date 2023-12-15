@@ -27,6 +27,13 @@ export type TokenAddress = {
   address: string
 }
 
+export type GetBalanceOptions = {
+  abi?: any
+  method?: string
+  address?: string
+  tokenSymbol?: string
+}
+
 export class Multicall {
   network: string
   accountAddress: string
@@ -102,17 +109,18 @@ export class Multicall {
     return balances.flat()
   }
 
-  async getBalancesForChain (chainSlug: string): Promise<Balance[]> {
+  async getBalancesForChain (chainSlug: string, opts?: GetBalanceOptions[]): Promise<Balance[]> {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
-    const tokenAddresses = this.getTokenAddressesForChain(chainSlug)
+    const tokenAddresses = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
     const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
 
-    const calls = tokenAddresses.map(({ address }: TokenAddress) => {
-      const tokenContract = new Contract(address, ERC20Abi, provider)
+    const calls = tokenAddresses.map(({ address, abi, method }: TokenAddress & {abi: any, method: string}) => {
+      const tokenContract = new Contract(address, abi ?? ERC20Abi, provider)
+      const balanceMethod = method ?? 'balanceOf'
       return {
         target: address,
-        callData: tokenContract.interface.encodeFunctionData('balanceOf', [this.accountAddress])
+        callData: tokenContract.interface.encodeFunctionData(balanceMethod, [this.accountAddress])
       }
     })
 
@@ -125,8 +133,8 @@ export class Multicall {
         const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]
         const tokenDecimals = getTokenDecimals(tokenSymbol)
         const balanceFormatted = Number(formatUnits(balance, tokenDecimals))
-        const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(tokenSymbol)
-        const balanceUsd = balanceFormatted * tokenPrice
+        const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol) // don't fetch usd price if using custom abi
+        const balanceUsd = tokenPrice ? balanceFormatted * tokenPrice : null
         return {
           tokenSymbol,
           address,

@@ -103,7 +103,7 @@ async function main (source: any) {
       }
 
       if (!chainBridge.hasOwnImplementation('relayL2ToL1Message')) {
-        throw new Error(`chainBridge.relayL2ToL1Message not found for $${chain}`)
+        throw new Error(`chainBridge.relayL2ToL1Message not found for ${chain}`)
       }
 
       await chainBridge.relayL2ToL1Message!(commitTxHash)

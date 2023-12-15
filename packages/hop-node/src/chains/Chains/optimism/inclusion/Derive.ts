@@ -53,7 +53,7 @@ class Derive {
     }
 
     if (buf.length !== 0) {
-      throw new Error(`did not fully consume data: have ${frames.length} frames and $${buf.length} bytes left`)
+      throw new Error(`did not fully consume data: have ${frames.length} frames and ${buf.length} bytes left`)
     }
 
     if (frames.length === 0) {

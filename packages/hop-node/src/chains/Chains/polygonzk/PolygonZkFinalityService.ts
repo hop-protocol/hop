@@ -3,6 +3,8 @@ import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
 import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
 import { providers } from 'ethers'
+import fetch from 'node-fetch'
+import wait from 'src/utils/wait'
 
 const finalityNameMap: Record<string, string> = {
   safe: 'virtual',
@@ -34,14 +36,20 @@ type RpcResponse = {
 }
 
 export class PolygonZkFinalityService extends AbstractFinalityService implements IFinalityService {
-  doesSupportZkEvmRpc: boolean
+  #ready: boolean = false
+  #doesSupportZkEvmRpc: boolean
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
     this.#init()
+      .then(() => {
+        this.#ready = true
+        this.logger.debug('zkEVM client initialized')
+      })
       .catch((err: any) => {
-        this.logger.error('polygonZkEvm Finality initialize error:', err)
+        this.logger.error('zkEVM client initialize error:', err)
+        throw err
       })
   }
 
@@ -49,15 +57,26 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
     // Verify that the RPC endpoint supports the zkEVM_* RPC methods
     try {
       await this.#fetchRpcCall(`zkevm_${finalityNameMap[FinalityBlockTag.Safe]}BatchNumber`)
-      this.doesSupportZkEvmRpc = true
+      this.#doesSupportZkEvmRpc = true
     } catch (err) {
       this.logger.warn('RPC endpoint does not support zkEVM_* methods')
-      this.doesSupportZkEvmRpc = false
+      this.#doesSupportZkEvmRpc = false
+      throw err
     }
   }
 
+  async #tilReady (): Promise<boolean> {
+    if (this.#ready) {
+      return true
+    }
+    await wait(100)
+    return await this.#tilReady()
+  }
+
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
-    if (!this.doesSupportZkEvmRpc) {
+    await this.#tilReady()
+
+    if (!this.#doesSupportZkEvmRpc) {
       this.logger.error('getCustomBlockNumber: RPC endpoint does not support zkEVM_* methods')
       return
     }

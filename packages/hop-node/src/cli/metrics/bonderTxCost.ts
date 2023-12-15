@@ -49,7 +49,7 @@ async function main (source: any) {
         perChainSpend += gasCost
       }
 
-      console.log(`Chain spend on ${network} for ${hopAccountAddress} is $${perChainSpend}`)
+      console.log(`Chain spend on ${network} for ${hopAccountAddress} is ${perChainSpend}`)
     }
   }
 }

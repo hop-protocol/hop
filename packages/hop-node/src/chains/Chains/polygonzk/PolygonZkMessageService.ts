@@ -179,10 +179,11 @@ export class PolygonZkMessageService extends AbstractMessageService<MessageType,
   }
 
   protected async isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
     if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
-      return !!(this.zkEvmClient.isDeposited(messageStatus))
+      return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
     } else {
-      return !!(this.zkEvmClient.isExited(messageStatus))
+      return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
     }
   }
 

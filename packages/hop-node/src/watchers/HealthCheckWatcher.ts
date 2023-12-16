@@ -523,7 +523,7 @@ export class HealthCheckWatcher {
   }
 
   private async uploadToS3 (result: Result) {
-    this.logger.debug('poll data:', JSON.stringify(result, null, 2))
+    this.logger.debug('poll data:', JSON.stringify(result, null))
     if (this.s3Upload) {
       await this.s3Upload.upload(result)
       this.logger.debug(`uploaded to s3 at ${this.s3Filename}`)

@@ -1,3 +1,5 @@
+import { providers } from 'ethers'
+
 export const showBannerMessage = process.env.REACT_APP_SHOW_BANNER_MESSAGE || ''
 export const gitRevision = process.env.REACT_APP_GIT_SHA || ''
 
@@ -105,3 +107,14 @@ export const WaitConfirmations: Record<string, number> = {
   base: 222, // Optimism Safe + L1 Safe at 2 sec per block
   polygonzk: 1
 }
+
+const rpcProviderOverrides: Record<string, providers.Provider>  = {}
+
+for (const chain in WaitConfirmations) {
+  const rpcUrl = process.env[`REACT_APP_${chain.toUpperCase()}_RPC_URL`]
+  if (rpcUrl) {
+    rpcProviderOverrides[chain] = new providers.JsonRpcProvider(rpcUrl)
+  }
+}
+
+export { rpcProviderOverrides }

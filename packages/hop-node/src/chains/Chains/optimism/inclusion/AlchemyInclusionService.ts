@@ -1,9 +1,9 @@
-import InclusionService from './InclusionService'
+import OptimismInclusionService from './OptimismInclusionService'
 import fetch from 'node-fetch'
 import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import wait from 'src/utils/wait'
-import { IInclusionService, InclusionServiceConfig } from './IInclusionService'
+import { IOptimismInclusionService, IOptimismInclusionServiceConfig } from './IOptimismInclusionService'
 import { RootProviderName } from 'src/constants'
 import { providers } from 'ethers'
 
@@ -15,13 +15,12 @@ interface GetInclusionTxHashes {
   endBlockNumber?: number
 }
 
-// TODO: This is specific to Optimism but should be made more generic for other chains if they begin to need this functionality.
-class AlchemyInclusionService extends InclusionService implements IInclusionService {
+class AlchemyInclusionService extends OptimismInclusionService implements IOptimismInclusionService {
   private readonly maxNumL1BlocksWithoutInclusion: number
   private isInitialized: boolean
   private ready: boolean
 
-  constructor (config: InclusionServiceConfig) {
+  constructor (config: IOptimismInclusionServiceConfig) {
     super(config)
 
     // TODO: Remove this when generalizing this class since it is Optimism-specific

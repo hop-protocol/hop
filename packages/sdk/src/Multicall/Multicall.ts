@@ -27,6 +27,14 @@ export type TokenAddress = {
   address: string
 }
 
+export type GetMulticallBalanceOptions = {
+  abi?: any
+  method?: string
+  address?: string
+  tokenSymbol?: string
+  tokenDecimals?: number
+}
+
 export class Multicall {
   network: string
   accountAddress: string
@@ -102,17 +110,18 @@ export class Multicall {
     return balances.flat()
   }
 
-  async getBalancesForChain (chainSlug: string): Promise<Balance[]> {
+  async getBalancesForChain (chainSlug: string, opts?: GetMulticallBalanceOptions[]): Promise<Balance[]> {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
-    const tokenAddresses = this.getTokenAddressesForChain(chainSlug)
+    const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
     const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
 
-    const calls = tokenAddresses.map(({ address }: TokenAddress) => {
-      const tokenContract = new Contract(address, ERC20Abi, provider)
+    const calls = tokenAddresses.map(({ address, abi, method }: TokenAddress & {abi: any, method: string}) => {
+      const tokenContract = new Contract(address, abi ?? ERC20Abi, provider)
+      const balanceMethod = method ?? 'balanceOf'
       return {
         target: address,
-        callData: tokenContract.interface.encodeFunctionData('balanceOf', [this.accountAddress])
+        callData: tokenContract.interface.encodeFunctionData(balanceMethod, [this.accountAddress])
       }
     })
 
@@ -120,13 +129,13 @@ export class Multicall {
 
     const balancePromises = result.map(async (data: any, index: number) => {
       const returnData = data.returnData
-      const { tokenSymbol, address } = tokenAddresses[index]
+      const { tokenSymbol, address, tokenDecimals } = tokenAddresses[index]
       try {
         const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]
-        const tokenDecimals = getTokenDecimals(tokenSymbol)
-        const balanceFormatted = Number(formatUnits(balance, tokenDecimals))
-        const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(tokenSymbol)
-        const balanceUsd = balanceFormatted * tokenPrice
+        const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol)
+        const balanceFormatted = Number(formatUnits(balance, _tokenDecimals))
+        const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol) // don't fetch usd price if using custom abi
+        const balanceUsd = tokenPrice ? balanceFormatted * tokenPrice : null
         return {
           tokenSymbol,
           address,

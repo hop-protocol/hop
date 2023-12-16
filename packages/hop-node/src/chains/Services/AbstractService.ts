@@ -1,0 +1,48 @@
+import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import wallets from 'src/wallets'
+import { CacheService } from 'src/chains/Services/CacheService'
+import { Chain } from 'src/constants'
+import { Signer } from 'ethers'
+import { getEnabledNetworks } from 'src/config'
+
+export interface IAbstractService {
+  getLogger(): Logger
+}
+
+export abstract class AbstractService extends CacheService implements IAbstractService {
+  readonly chainSlug: string
+  readonly logger: Logger
+  readonly chainId: number
+  readonly l1Wallet: Signer
+  readonly l2Wallet: Signer
+
+  constructor () {
+    super()
+    if (!this.chainSlug) {
+      throw new Error('chainSlug not set')
+    }
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(this.chainSlug)) {
+      throw new Error(`Chain ${this.chainSlug} is not enabled`)
+    }
+
+    // Set up config
+    this.chainId = chainSlugToId(this.chainSlug)
+    const prefix = `${this.chainSlug}`
+    const tag = this.constructor.name
+    this.logger = new Logger({
+      tag,
+      prefix,
+      color: 'blue'
+    })
+
+    // Set up signers
+    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l2Wallet = wallets.get(this.chainSlug)
+  }
+
+  getLogger (): Logger {
+    return this.logger
+  }
+}

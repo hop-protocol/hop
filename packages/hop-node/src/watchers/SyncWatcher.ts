@@ -1501,23 +1501,26 @@ class SyncWatcher extends BaseWatcher {
      * In the worst case, there could be a bug and this could be expensive as well. Most lookups will take
      * on the order of seconds. Some low-used routes may take longer as the lookup traverses back through
      * the chain looking for transfers. Set a time that is reasonable for most cases, but will not block the bonder.
+     * 
+     * Since this is rarely called, a timeout on the order of minutes is acceptable in order to find low-route
+     * chains.
      *
      * This also handles the case of the first root per route. When a new chain is added to an old bridge
      * the result is that the old bridge will look all the way back to when it is deployed before ignoring the root.
      * This blocks the bonder process for many hours and uses excessive RPC calls. This will block that from
-     * happening without manually adding the first chain per route for each new bridge
+     * happening without manually adding the first chain per route for each new bridge.
      */
     let lookupTransferIdsRes
-    const onchainLookupTimeoutSec = 60_000
+    const onchainLookupTimeoutMs = FiveMinutesMs
     try {
       lookupTransferIdsRes = await promiseTimeout(this.lookupTransferIds(
         sourceBridge,
         transferRootHash,
         destinationChainId,
         eventBlockNumber
-      ), onchainLookupTimeoutSec)
+      ), onchainLookupTimeoutMs)
     } catch (err) {
-      logger.error(`checkTransferIdsForRootFromChain onchain lookup timed out after ${onchainLookupTimeoutSec} seconds`)
+      this.logger.error(`checkTransferIdsForRootFromChain onchain lookup timed out after ${onchainLookupTimeoutMs} ms`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }

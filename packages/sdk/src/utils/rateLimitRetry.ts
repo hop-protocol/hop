@@ -31,8 +31,8 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         const nonceTooLowErrorRegex = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i
         const estimateGasFailedErrorRegex = /eth_estimateGas/i
         const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
-        const feeTooLowErrorRegex = /FeeTooLowToCompete|transaction underpriced/
-        const isCallLookupRevertErrorRegex = /missing revert data in call exception/
+        const feeTooLowErrorRegex = /(FeeTooLowToCompete|transaction underpriced)/
+        const isCallLookupRevertErrorRegex = /(missing revert data in call exception|CALL_EXCEPTION)/
 
         const isRateLimitError = rateLimitErrorRegex.test(errMsg)
         const isTimeoutError = timeoutErrorRegex.test(errMsg)

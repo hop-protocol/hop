@@ -1,13 +1,19 @@
-import AbstractChainBridge from '../AbstractChainBridge'
 import fetch from 'node-fetch'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
-import { IChainBridge } from '../IChainBridge'
+import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import { providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
+
+type PolygonMessage = string
+type PolygonMessageStatus = string
+
+type RelayOpts = {
+  rootTunnelAddress: string
+}
 
 const polygonChainSlugs: Record<string, string> = {
   mainnet: 'matic',
@@ -24,13 +30,13 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'mumbai'
 }
 
-class PolygonBridge extends AbstractChainBridge implements IChainBridge {
+export class PolygonMessageService extends MessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   maticClient: any
 
-  constructor (chainSlug: string) {
-    super(chainSlug)
+  constructor () {
+    super()
 
     let l1Network: string | undefined
     for (const network in networks) {
@@ -52,7 +58,8 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.maticClient = new FxPortalClient()
-    this.#initClient(l1Network)
+
+    this.#_initClient(l1Network)
       .then(() => {
         this.ready = true
         console.log('Matic client initialized')
@@ -62,7 +69,20 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
       })
   }
 
-  async #initClient (l1Network: string): Promise<void> {
+  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
+    // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
+    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
+    const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
+
+    // Message is a txHash for Polygon
+    const relayOpts = {
+      rootTunnelAddress
+    }
+
+    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
+  }
+
+  async #_initClient (l1Network: string): Promise<void> {
     const from = await this.l1Wallet.getAddress()
     const sdkNetwork = polygonSdkNetwork[l1Network]
     const sdkVersion = polygonSdkVersion[l1Network]
@@ -82,38 +102,7 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
         }
       }
     })
-  }
-
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
-    // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
-    const isCheckpointed = await this._isCheckpointed(l2TxHash)
-    if (!isCheckpointed) {
-      throw new Error(`l2TxHash ${l2TxHash} is not checkpointed`)
-    }
-
-    // Generate payload
-    const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
-    const payload = await this.maticClient.exitUtil.buildPayloadForExit(l2TxHash, logEventSig, true)
-
-    // Create tx data and send
-    const abi = ['function receiveMessage(bytes)']
-    const iface = new utils.Interface(abi)
-    const data = iface.encodeFunctionData('receiveMessage', [payload])
-    const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
-    return this.l1Wallet.sendTransaction({
-      to: rootTunnelAddress,
-      data,
-      gasLimit: CanonicalMessengerRootConfirmationGasLimit
-    })
-  }
-
-  async _isCheckpointed (l2TxHash: string) {
-    const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
-    const url = `${this.apiUrl}/${l2Block.blockNumber}`
-    const res = await fetch(url)
-    const json = await res.json()
-    return json.message === 'success'
+    this.ready = true
   }
 
   async _getRootTunnelAddressFromTxHash (l2TxHash: string): Promise<string> {
@@ -162,6 +151,54 @@ class PolygonBridge extends AbstractChainBridge implements IChainBridge {
     }
     return defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
   }
-}
 
-export default PolygonBridge
+  protected async sendRelayTransaction (message: PolygonMessage, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
+    const { rootTunnelAddress } = relayOpts
+
+    // Generate payload
+    const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
+    const payload = await this.maticClient.exitUtil.buildPayloadForExit(message, logEventSig, true)
+
+    // Create tx data and send
+    const abi = ['function receiveMessage(bytes)']
+    const iface = new utils.Interface(abi)
+    const data = iface.encodeFunctionData('receiveMessage', [payload])
+    return this.l1Wallet.sendTransaction({
+      to: rootTunnelAddress,
+      data,
+      gasLimit: CanonicalMessengerRootConfirmationGasLimit
+    })
+  }
+
+  protected async getMessage (txHash: string): Promise<PolygonMessage> {
+    // Polygon message is defined by the txHash, so we return that
+    return txHash
+  }
+
+  protected async getMessageStatus (message: PolygonMessage): Promise<PolygonMessageStatus> {
+    // Polygon status is defined by the message (txHash), so we return that
+    return message
+  }
+
+  protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
+    const apiRes = await this._fetchBlockIncluded(messageStatus)
+    return apiRes.message === 'No block found'
+  }
+
+  protected async isMessageRelayable (messageStatus: PolygonMessageStatus): Promise<boolean> {
+    const apiRes = await this._fetchBlockIncluded(messageStatus)
+    return apiRes.message === 'success'
+  }
+
+  protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {
+    // TODO: Figure out how to differentiate between checkpointed and relayed
+    return false
+  }
+
+  private async _fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<any> {
+    const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(messageStatus)
+    const url = `${this.apiUrl}/${l2Block.blockNumber}`
+    const res = await fetch(url)
+    return res.json()
+  }
+}

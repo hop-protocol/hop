@@ -15,7 +15,7 @@ class Example {
     })
   })
 
-  triggerRevertError= rateLimitRetry(async () => {
+  triggerRevertError = rateLimitRetry(async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         this.counter++
@@ -57,6 +57,17 @@ class Example {
       }, 100)
     })
   })
+
+  triggerCallExceptionError = rateLimitRetry(async () => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        this.counter++
+        reject(new Error(
+          'missing revert data in call exception; Transaction reverted without a reason string [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (data="0x", transaction={"from":"0x81682250D4566B2986A2B33e23e7c52D401B7aB7","to":"0x00000000000000000000000000000000000000C8","data":"0x81f1adaf000000000000000000000000000000000000000000000000000000000965e4be","accessList":null}, error={"reason":"processing response error","code":"SERVER_ERROR","body":"{"jsonrpc":"2.0","id":44,"error":{"code":-32000,"message":"requested block 157672638 is after latest on-chain block 157671123 published in batch 432718"}}\n","error":{"code":-32000},"requestBody":"{"method":"eth_call","params":[{"from":"0x81682250d4566b2986a2b33e23e7c52d401b7ab7","to":"0x00000000000000000000000000000000000000c8","data":"0x81f1adaf000000000000000000000000000000000000000000000000000000000965e4be"},"latest"],"id":44,"jsonrpc":"2.0"}","requestMethod":"POST","url":"https://arb1.arbitrum.io/rpc"}, code=CALL_EXCEPTION, version=providers/5.7.2)'
+        ))
+      }, 100)
+    })
+  })
 }
 
 describe('rateLimitRetry', () => {
@@ -72,7 +83,7 @@ describe('rateLimitRetry', () => {
     await example.triggerGatewayTimeoutError()
     expect(example.counter).toBe(2)
   }, 60 * 1000)
-  it('should not retry', async () => {
+  it('should not retry revert error', async () => {
     const example = new Example()
     expect(example.counter).toBe(0)
     let errMsg: string | undefined
@@ -84,12 +95,24 @@ describe('rateLimitRetry', () => {
     expect(errMsg).toBeTruthy()
     expect(example.counter).toBe(1)
   }, 60 * 1000)
-  it('should not retry', async () => {
+  it('should not retry call revert', async () => {
     const example = new Example()
     expect(example.counter).toBe(0)
     let errMsg: string | undefined
     try {
       await example.triggerCallRevertError()
+    } catch (err) {
+      errMsg = err.message
+    }
+    expect(errMsg).toBeTruthy()
+    expect(example.counter).toBe(1)
+  }, 60 * 1000)
+  it('should not retry CALL_EXCEPTION', async () => {
+    const example = new Example()
+    expect(example.counter).toBe(0)
+    let errMsg: string | undefined
+    try {
+      await example.triggerCallExceptionError()
     } catch (err) {
       errMsg = err.message
     }

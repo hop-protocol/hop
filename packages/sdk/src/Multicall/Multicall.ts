@@ -27,7 +27,7 @@ export type TokenAddress = {
   address: string
 }
 
-export type GetBalanceOptions = {
+export type GetMulticallBalanceOptions = {
   abi?: any
   method?: string
   address?: string
@@ -110,10 +110,10 @@ export class Multicall {
     return balances.flat()
   }
 
-  async getBalancesForChain (chainSlug: string, opts?: GetBalanceOptions[]): Promise<Balance[]> {
+  async getBalancesForChain (chainSlug: string, opts?: GetMulticallBalanceOptions[]): Promise<Balance[]> {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
-    const tokenAddresses : GetBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
+    const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
     const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
 
     const calls = tokenAddresses.map(({ address, abi, method }: TokenAddress & {abi: any, method: string}) => {

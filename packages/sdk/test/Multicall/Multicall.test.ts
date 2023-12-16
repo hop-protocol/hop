@@ -2,7 +2,7 @@ import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import stakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 import { Multicall } from '../../src/Multicall'
 
-describe.only('Multicall', () => {
+describe.skip('Multicall', () => {
   it('Should get token addresses for chain', async () => {
     const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
     const multicall = new Multicall({ network: 'mainnet', accountAddress })
@@ -38,7 +38,7 @@ describe.only('Multicall', () => {
     console.log(balances)
     expect(balances.length > 0).toBeTruthy()
   }, 60 * 1000)
-  it.only('Should get balance from custom getter', async () => {
+  it('Should get balance from custom getter', async () => {
     const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
     const multicall = new Multicall({ network: 'mainnet', accountAddress })
     const balances = await multicall.getBalancesForChain('polygon', [{

@@ -1,1 +1,1 @@
-export { Multicall, Config, Balance, TokenAddress } from './Multicall'
+export { Multicall, Config, Balance, TokenAddress, GetMulticallBalanceOptions } from './Multicall'

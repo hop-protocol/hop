@@ -515,7 +515,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     return filtered as ExitableTransferRoot[]
   }
 
-  async getL1ToL2RelayableTransferRoots (
+  async getL1ToL2UnrelayedTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<RelayableTransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()

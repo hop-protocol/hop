@@ -83,7 +83,7 @@ class OneInch {
       throw new Error('chainId is required')
     }
     if (!fromTokenAddress) {
-      throw new Error('fromTokenAddrss is required')
+      throw new Error('fromTokenAddress is required')
     }
     if (!toTokenAddress) {
       throw new Error('toTokenAddress is required')
@@ -170,7 +170,7 @@ class OneInch {
       throw new Error('chainId is required')
     }
     if (!fromTokenAddress) {
-      throw new Error('fromTokenAddrss is required')
+      throw new Error('fromTokenAddress is required')
     }
     if (!toTokenAddress) {
       throw new Error('toTokenAddress is required')

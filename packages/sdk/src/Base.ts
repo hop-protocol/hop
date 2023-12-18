@@ -632,7 +632,12 @@ export class Base {
   }
 
   // Transaction overrides options
-  public async txOverrides (sourceChain: Chain, destinationChain?: Chain): Promise<any> {
+  public async txOverrides (sourceChain: TChain, destinationChain?: TChain): Promise<any> {
+    sourceChain = this.toChainModel(sourceChain)
+    if (destinationChain) {
+      destinationChain = this.toChainModel(destinationChain)
+    }
+
     const txOptions: any = {}
     if (this.gasPriceMultiplier > 0) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
@@ -647,6 +652,8 @@ export class Base {
       const minGasPriceBn = BigNumber.from(minGasPrice)
       if (currentGasPrice.lte(minGasPriceBn)) {
         txOptions.gasPrice = minGasPriceBn
+      } else {
+        txOptions.gasPrice = currentGasPrice
       }
     }
 
@@ -660,13 +667,13 @@ export class Base {
     // TODO: Remove this when estimation is fixed
     if (
       sourceChain.equals(Chain.Ethereum) &&
-      (
-        destinationChain?.equals(Chain.Optimism) ||
-        destinationChain?.equals(Chain.Base) ||
-        destinationChain?.equals(Chain.Arbitrum) ||
-        destinationChain?.equals(Chain.Nova)
+      destinationChain && (
+        (destinationChain as Chain)?.equals(Chain.Optimism) ||
+        (destinationChain as Chain)?.equals!(Chain.Base) ||
+        (destinationChain as Chain)?.equals!(Chain.Arbitrum) ||
+        (destinationChain as Chain)?.equals!(Chain.Nova)
       )) {
-      txOptions.gasLimit = 500000
+      txOptions.gasLimit = BigNumber.from(500_000)
     }
 
     return txOptions

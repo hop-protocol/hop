@@ -24,7 +24,7 @@ const aaveAddresses: Record<string, any> = {
   }
 }
 
-// note: aave v3 on arbitirum, aave v2 on ethereum (v3 not available on ethereum)
+// note: aave v3 on arbitrum, aave v2 on ethereum (v3 not available on ethereum)
 const tokenAddresses: Record<string, any> = {
   USDC: {
     arbitrum: {

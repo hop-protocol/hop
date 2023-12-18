@@ -4,7 +4,6 @@ import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs
 import { BigNumber } from 'ethers'
 import {
   Chain,
-  FiveMinutesMs,
   OneDayMs,
   OneHourMs,
   OneWeekMs,
@@ -398,20 +397,14 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      // TODO: This is temp. Rm.
-      const lineaRelayTime = 6 * FiveMinutesMs
-      if (destinationChainSlug === Chain.Linea) {
-        if ((item.transferSentTimestamp * 1000) + lineaRelayTime > Date.now()) {
-          return false
-        }
-      }
-
       let timestampOk = true
       if (item.relayAttemptedAt) {
         if (
           item.relayTxError === TxError.RelayerFeeTooLow ||
-          item.withdrawalBondTxError === TxError.RpcServerError ||
-          item.withdrawalBondTxError === TxError.UnfinalizedTransferBondError
+          item.relayTxError === TxError.RpcServerError ||
+          item.relayTxError === TxError.UnfinalizedTransferBondError ||
+          item.relayTxError === TxError.MessageUnknownStatus ||
+          item.relayTxError === TxError.MessageRelayTooEarly
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
           if (delayMs > OneWeekMs) {
@@ -480,7 +473,8 @@ class TransfersDb extends BaseDb<Transfer> {
 
     // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
     // up the root onchain.
-    const maxLookbackIndex = 14
+    // As a rough reference, a third-party Optimism provider looks back appx 1 day per index.
+    const maxLookbackIndex = 50
     const transferIds: string[] = []
 
     const now = Date.now()

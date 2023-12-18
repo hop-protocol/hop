@@ -32,6 +32,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
       .catch(() => {
         this.#isInitialized = false
         this.logger.warn('Unable to initialize AlchemyInclusionService')
+        process.exit(1)
       })
       .finally(() => {
         this.#ready = true

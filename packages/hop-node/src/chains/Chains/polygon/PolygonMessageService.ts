@@ -57,6 +57,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
       })
       .catch((err: any) => {
         this.logger.error('Matic client initialize error:', err)
+        process.exit(1)
       })
   }
 

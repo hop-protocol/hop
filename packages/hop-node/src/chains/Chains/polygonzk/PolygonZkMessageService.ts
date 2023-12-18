@@ -60,7 +60,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
       })
       .catch((err: any) => {
         this.logger.error('zkEvmClient initialize error:', err)
-        throw err
+        process.exit(1)
       })
   }
 

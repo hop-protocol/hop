@@ -49,7 +49,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
       })
       .catch((err: any) => {
         this.logger.error('zkEVM client initialize error:', err)
-        throw err
+        process.exit(1)
       })
   }
 

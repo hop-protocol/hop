@@ -11,6 +11,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
+  BondTransferRootChains,
   Chain,
   ChainPollMultiplier,
   DoesRootProviderSupportWs,
@@ -43,7 +44,6 @@ import {
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RelayerFee } from '@hop-protocol/sdk'
 import {
-  BondTransferRootChains,
   SyncCyclesPerFullSync,
   SyncIntervalMultiplier,
   SyncIntervalSec,
@@ -111,7 +111,7 @@ class SyncWatcher extends BaseWatcher {
 
     const enabledNetworks = getEnabledNetworks()
     for (const enabledNetwork of enabledNetworks) {
-      if (RelayableChains.includes(enabledNetwork)) {
+      if (RelayableChains.L1_TO_L2.includes(enabledNetwork as Chain)) {
         this.isRelayableChainEnabled = true
         break
       }
@@ -528,7 +528,8 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getTransferSentPromises (): EventPromise {
-    // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
+    // Only listen for TransferSent events on L2 if the chain is L1_To_L2 relayable
+    // If the chain is not relayable, the slow syncer will process it
     if (this.isL1 && this.isRelayableChainEnabled) {
       return [this.getTransferSentToL2EventPromise()]
     }
@@ -833,7 +834,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = BondTransferRootChains.has(sourceChainSlug)
+      const shouldBondTransferRoot = BondTransferRootChains.includes(sourceChainSlug)
 
       logger.debug('handling TransfersCommitted event', JSON.stringify({
         transferRootId,
@@ -1501,7 +1502,7 @@ class SyncWatcher extends BaseWatcher {
      * In the worst case, there could be a bug and this could be expensive as well. Most lookups will take
      * on the order of seconds. Some low-used routes may take longer as the lookup traverses back through
      * the chain looking for transfers. Set a time that is reasonable for most cases, but will not block the bonder.
-     * 
+     *
      * Since this is rarely called, a timeout on the order of minutes is acceptable in order to find low-route
      * chains.
      *
@@ -1692,7 +1693,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }
 
-        if (RelayableChains.includes(this.chainSlug)) {
+        if (RelayableChains.L1_TO_L2.includes(this.chainSlug as Chain)) {
           let gasCost: BigNumber
           try {
             gasCost = await RelayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)

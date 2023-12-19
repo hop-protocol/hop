@@ -29,7 +29,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   zksync: 10000, // TODO
   linea: 10416,
   scrollzk: 10000, // TODO
-  polygonzk: 10000 // TODO
+  polygonzk: 6270
 }
 
 export const LpFeeBps = 4

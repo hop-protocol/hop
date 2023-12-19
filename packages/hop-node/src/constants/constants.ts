@@ -54,8 +54,6 @@ export {
   L1ToL2CheckpointTimeInL1Blocks
 }
 
-export const RelayableChains = Array.from(relayableChainsSet)
-
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
   polygon: 5933,
@@ -67,7 +65,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   zksync: 10000, // TODO
   linea: 10416,
   scrollzk: 10000, // TODO
-  polygonzk: 10000 // TODO
+  polygonzk: 6270
 }
 
 export const DefaultBatchBlocks = 10000
@@ -180,3 +178,56 @@ export enum SyncType {
   Collateralized = 'collateralized',
   Threshold = 'threshold'
 }
+
+/// ///////
+// TODO: Convert this to chainTimingMetadata in core with length or finality status
+/// ///////
+
+type IRelayableChains = {
+  L1_TO_L2: string[]
+  L2_TO_L1: string[]
+}
+
+export const RelayableChains: IRelayableChains = {
+  L1_TO_L2: [
+    Chain.Arbitrum,
+    Chain.Nova,
+    Chain.Linea,
+    Chain.PolygonZk
+  ],
+  L2_TO_L1: [
+    Chain.Gnosis,
+    Chain.Polygon,
+    Chain.PolygonZk
+  ]
+}
+
+type IRelayableWaitTimeMs = {
+  L1_TO_L2: {
+    [chain: string]: number
+  }
+  L2_TO_L1: {
+    [chain: string]: number
+  }
+}
+export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
+  L1_TO_L2: {
+    [Chain.Arbitrum]: 12 * 60 * 1000, // L1 safe
+    [Chain.Nova]: 12 * 60 * 1000, // L1 safe
+    [Chain.Linea]: 25 * 60 * 1000, // L1 finalized
+    [Chain.PolygonZk]: 8 * 60 * 1000 // 32 L1 Blocks + buffer
+  },
+  L2_TO_L1: {
+    [Chain.Gnosis]: 1 * OneHourMs,
+    [Chain.Polygon]: 1 * OneHourMs,
+    [Chain.PolygonZk]: 1 * OneHourMs
+  }
+}
+
+export const BondTransferRootChains: string[] = [
+  Chain.Optimism,
+  Chain.Arbitrum,
+  Chain.Nova,
+  Chain.Base,
+  Chain.Linea
+]

@@ -4,6 +4,7 @@ import Logger from 'src/logger'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getChainBridge from 'src/chains/getChainBridge'
 import { GasCostTransactionType, TxError } from 'src/constants'
+import { IChainBridge } from 'src/chains/IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import {
@@ -11,7 +12,7 @@ import {
   MessageInvalidError,
   MessageRelayedError,
   MessageUnknownError
-} from 'src/chains/Services/MessageService'
+} from 'src/chains/Services/AbstractMessageService'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayTransactionBatchSize, config as globalConfig } from 'src/config'
 import { RelayableTransferRoot, TransferRootRelayProps } from 'src/db/TransferRootsDb'
@@ -52,7 +53,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async checkTransferSentToL2FromDb () {
-    const dbTransfers = await this.db.transfers.getUnrelayedSentTransfers(await this.getFilterRoute())
+    const dbTransfers = await this.db.transfers.getL1ToL2UnrelayedTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       this.logger.debug('no unrelayed transfer db items to check')
       return
@@ -92,7 +93,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async checkRelayableTransferRootsFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getRelayableTransferRoots(await this.getFilterRoute())
+    const dbTransferRoots = await this.db.transferRoots.getL1ToL2UnrelayedTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       this.logger.debug('no relayable transfer root db items to check')
       return
@@ -408,17 +409,13 @@ class RelayWatcher extends BaseWatcher {
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const destinationChainSlug = chainIdToSlug(destinationChainId)
-    const chainWatcher = getChainBridge(destinationChainSlug)
-    if (!chainWatcher) {
+    const chainBridge: IChainBridge = getChainBridge(destinationChainSlug)
+    if (!chainBridge) {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
     }
 
-    if (!chainWatcher?.relayL1ToL2Message) {
-      throw new Error(`RelayWatcher: sendRelayTx: no relayL1ToL2Message function for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
-    }
-
     this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} relayL1ToL2MessageOpts ${messageIndex ?? 0} destinationChainId: ${destinationChainId}`)
-    return chainWatcher.relayL1ToL2Message(txHash, messageIndex)
+    return chainBridge.relayL1ToL2Message(txHash, messageIndex)
   }
 
   private async handleMessageStatusError (

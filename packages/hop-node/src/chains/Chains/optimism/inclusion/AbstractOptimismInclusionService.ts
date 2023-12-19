@@ -1,9 +1,8 @@
 import Derive, { Frame } from './Derive'
-import Logger from 'src/logger'
 import zlib from 'zlib'
+import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
-import { Contract, Signer, providers } from 'ethers'
-import { IOptimismInclusionServiceConfig } from './IOptimismInclusionService'
+import { Contract, providers } from 'ethers'
 import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
@@ -19,29 +18,16 @@ interface Batch {
   numL1BlocksInBatch: number
 }
 
-abstract class OptimismInclusionService {
-  derive: Derive = new Derive()
-  chainSlug: string
-  l1Wallet: Signer
-  l2Wallet: Signer
-  logger: Logger
-  batcherAddress: string
-  batchInboxAddress: string
-  l1BlockSetterAddress: string
-  l1BlockAddress: string
-  l1BlockContract: Contract
+export abstract class AbstractOptimismInclusionService extends AbstractInclusionService {
+  protected readonly derive: Derive = new Derive()
+  protected readonly batcherAddress: string
+  protected readonly batchInboxAddress: string
+  protected readonly l1BlockSetterAddress: string
+  protected readonly l1BlockAddress: string
+  protected readonly l1BlockContract: Contract
 
-  constructor (config: IOptimismInclusionServiceConfig) {
-    this.chainSlug = config.chainSlug
-    this.l1Wallet = config.l1Wallet
-    this.l2Wallet = config.l2Wallet
-    const prefix = `${this.chainSlug}`
-    const tag = this.constructor.name
-    this.logger = new Logger({
-      tag,
-      prefix,
-      color: 'blue'
-    })
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     // System addresses and precompiles
     this.l1BlockSetterAddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0001'
@@ -61,17 +47,17 @@ abstract class OptimismInclusionService {
       'function timestamp() view returns (uint64)',
       'function setL1BlockValues(uint64, uint64, uint256, bytes32, uint64, bytes32, uint256, uint256)'
     ]
-    this.l1BlockContract = new Contract(this.l1BlockAddress, l1BlockAbi, this.l2Wallet)
+    this.l1BlockContract = new Contract(this.l1BlockAddress, l1BlockAbi, this.l2Provider)
   }
 
-  async getApproximateL2BlockNumberAtL1Timestamp (l1Timestamp: number): Promise<number> {
+  protected async getApproximateL2BlockNumberAtL1Timestamp (l1Timestamp: number): Promise<number> {
     // Get the difference between the desired l1 timestamp and the current l2 timestamp
     const currentL1TimestampOnL2: number = Number(await this.l1BlockContract.timestamp())
     const l1TimestampDiffSec = currentL1TimestampOnL2 - l1Timestamp
     const l1TimestampDiffInL2Blocks = Math.floor(l1TimestampDiffSec / AvgBlockTimeSeconds[this.chainSlug])
 
     // Get the l2 block number at the desired l1 timestamp
-    const currentL2BlockNumber: number = await this.l2Wallet.provider!.getBlockNumber()
+    const currentL2BlockNumber: number = await this.l2Provider.getBlockNumber()
     const l2BlockNumberAtTimeOfL1Tx: number = currentL2BlockNumber - l1TimestampDiffInL2Blocks
 
     // Include the constant buffer time it takes for a message to go from L1 to L2
@@ -80,18 +66,18 @@ abstract class OptimismInclusionService {
     return l2BlockNumberAtTimeOfL1Tx + l1DataLagInL2Blocks
   }
 
-  async getL2TxHashesInChannel (l1TxHash: string): Promise<Channel> {
-    const tx = await this.l1Wallet.provider!.getTransaction(l1TxHash)
+  protected async getL2TxHashesInChannel (l1TxHash: string): Promise<Channel> {
+    const tx = await this.l1Provider.getTransaction(l1TxHash)
     const frames: Frame[] = await this.derive.parseFrames(tx.data)
 
     let numL1BlocksInChannel: number = 0
     const l2TxHashes: string[] = []
     for (const frame of frames) {
-      const decompressedChannel: Buffer = await this._decompressChannel(frame.data)
+      const decompressedChannel: Buffer = await this.#decompressChannel(frame.data)
       const {
         transactionHashes,
         numL1BlocksInBatch
-      } = await this._decodeBatch(decompressedChannel)
+      } = await this.#decodeBatch(decompressedChannel)
       numL1BlocksInChannel += numL1BlocksInBatch
       for (const txHash of transactionHashes) {
         l2TxHashes.push(txHash.toLowerCase())
@@ -103,7 +89,7 @@ abstract class OptimismInclusionService {
     }
   }
 
-  private async _decompressChannel (frameData: Buffer): Promise<Buffer> {
+  async #decompressChannel (frameData: Buffer): Promise<Buffer> {
     // When decompressing a channel, we limit the amount of decompressed data to MAX_RLP_BYTES_PER_CHANNEL
     // (currently 10,000,000 bytes), in order to avoid "zip-bomb" types of attack (where a small compressed
     // input decompresses to a humongous amount of data). If the decompressed data exceeds the limit, things
@@ -117,7 +103,7 @@ abstract class OptimismInclusionService {
     return zlib.inflateSync(channelCompressed, { maxOutputLength })
   }
 
-  private async _decodeBatch (channelDecompressed: Buffer): Promise<Batch> {
+  async #decodeBatch (channelDecompressed: Buffer): Promise<Batch> {
     // NOTE: We are using ethereumjs RPL package since ethers does not allow for a stream
     const stream = true
     let remainingBatches: Buffer = channelDecompressed
@@ -154,7 +140,7 @@ abstract class OptimismInclusionService {
     }
   }
 
-  isBatcherTx (tx: providers.TransactionResponse): boolean {
+  protected isBatcherTx (tx: providers.TransactionResponse): boolean {
     if (
       tx.to &&
       tx.to.toLowerCase() === this.batchInboxAddress.toLowerCase() &&
@@ -165,7 +151,7 @@ abstract class OptimismInclusionService {
     return false
   }
 
-  isL1BlockUpdateTx (tx: providers.TransactionResponse): boolean {
+  protected isL1BlockUpdateTx (tx: providers.TransactionResponse): boolean {
     if (
       tx.to &&
       tx.to.toLowerCase() === this.l1BlockAddress.toLowerCase() &&
@@ -176,7 +162,7 @@ abstract class OptimismInclusionService {
     return false
   }
 
-  doesL1BlockUpdateExceedL1BlockNumber (txData: string, l1BlockNumber: number): boolean {
+  protected doesL1BlockUpdateExceedL1BlockNumber (txData: string, l1BlockNumber: number): boolean {
     const setL1BlockValuesCalldata = this.l1BlockContract.interface.decodeFunctionData(
       'setL1BlockValues',
       txData
@@ -189,5 +175,3 @@ abstract class OptimismInclusionService {
     return false
   }
 }
-
-export default OptimismInclusionService

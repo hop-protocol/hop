@@ -180,8 +180,7 @@ export enum SyncType {
 }
 
 /// ///////
-//////////
-// TODO: Clean this up. Below this consider moving to core -- but consider pretty much all should be relayable both ways
+// TODO: Convert this to chainTimingMetadata in core with length or finality status
 /// ///////
 
 type IRelayableChains = {

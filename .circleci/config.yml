@@ -182,6 +182,7 @@ workflows:
                 - develop-bonder
                 - goerli-bonder
                 - sepolia-bonder
+                - feat/chains-test-updates
               ignore: /.*/
       - build_stats_worker:
           filters:

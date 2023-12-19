@@ -18,7 +18,7 @@ export class CacheService {
     if (
       !this.#doesCacheExist(cacheKey) ||
       this.#isCacheExpired(cacheKey)
-    ){
+    ) {
       return
     }
     return this.#cache[cacheKey].value

@@ -1,11 +1,11 @@
 import fetch from 'node-fetch'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
+import { BigNumber, providers, utils } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import { getNetworkSlugByChainSlug } from 'src/chains/utils'
-import { BigNumber, providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
 type PolygonMessage = string
@@ -200,8 +200,8 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
     const apiRes: PolygonApiResError = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResError
     return (
-      apiRes?.error === true &&
-      apiRes?.message === 'No block found'
+      apiRes?.error &&
+      apiRes.message === 'No block found'
     )
   }
 

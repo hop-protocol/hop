@@ -80,7 +80,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
     // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
     const { messageDirection } = messageOpts
 
-    let statusInput: any = {}
+    const statusInput: any = {}
     if (messageDirection === MessageDirection.L2_TO_L1) {
       statusInput.l2Provider = this.l2Wallet.provider!
     }

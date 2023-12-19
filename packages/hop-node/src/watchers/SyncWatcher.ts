@@ -649,7 +649,6 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
       // isFinalized must be undefined if isCustomSync is not explicitly false
       // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
       // should never happen unless RPC providers return out of order events
@@ -659,7 +658,6 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('handling TransferSent event', JSON.stringify({
         sourceChainId,
         destinationChainId,
-        isBondable,
         transferId,
         amount: this.bridge.formatUnits(amount),
         bonderFee: this.bridge.formatUnits(bonderFee),
@@ -671,10 +669,6 @@ class SyncWatcher extends BaseWatcher {
         isFinalized
       }))
 
-      if (!isBondable) {
-        logger.warn('transfer is unbondable', amountOutMin, deadline)
-      }
-
       const dbData: Transfer = {
         transferId,
         destinationChainId,
@@ -684,7 +678,6 @@ class SyncWatcher extends BaseWatcher {
         transferNonce,
         bonderFee,
         amountOutMin,
-        isBondable,
         deadline,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
@@ -971,12 +964,12 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTransferIds(transferRootId)
   }
 
-  async populateTransferSentTimestamp (transferId: string) {
+  async populateTransferSentTimestampAndIsBondable (transferId: string) {
     const logger = this.logger.create({ id: transferId })
-    logger.debug('starting populateTransferSentTimestamp')
+    logger.debug('starting populateTransferSentTimestampAndIsBondable')
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {
-      logger.error('populateTransferSentTimestamp item not found')
+      logger.error('populateTransferSentTimestampAndIsBondable item not found')
       return
     }
 
@@ -985,17 +978,30 @@ class SyncWatcher extends BaseWatcher {
       transferSentTxHash,
       transferSentBlockNumber,
       transferSentTimestamp,
-      recipient
+      recipient,
+      amountOutMin,
+      deadline,
+      destinationChainId,
+      bonderFee
     } = dbTransfer
 
-    if (!sourceChainId || !transferSentTxHash || !transferSentBlockNumber) {
-      logger.warn(`populateTransferSentTimestamp marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
+    if (
+      !sourceChainId ||
+      !transferSentTxHash ||
+      !transferSentBlockNumber ||
+      !amountOutMin ||
+      !deadline ||
+      !destinationChainId ||
+      !bonderFee ||
+      !recipient
+    ) {
+      logger.warn(`populateTransferSentTimestampAndIsBondable marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 
     if (transferSentTimestamp) {
-      logger.debug(`populateTransferSentTimestamp already found. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.debug(`populateTransferSentTimestampAndIsBondable already found. dbItem: ${JSON.stringify(dbTransfer)}`)
       return
     }
 
@@ -1004,14 +1010,14 @@ class SyncWatcher extends BaseWatcher {
       sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
     } catch {}
     if (!sourceBridge) {
-      logger.warn(`populateTransferSentTimestamp sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferSentTimestampAndIsBondable sourceBridge not found. This could be due to the removal of a chain. marking item not found: sourceBridge. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 
     const tx: providers.TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
     if (!tx) {
-      logger.warn(`populateTransferSentTimestamp marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferSentTimestampAndIsBondable marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
@@ -1022,20 +1028,26 @@ class SyncWatcher extends BaseWatcher {
       timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     }
 
-    logger.debug(`populateTransferSentTimestamp: sender: ${from}, timestamp: ${timestamp}`)
-    await this.db.transfers.update(transferId, {
-      transferSentTimestamp: timestamp
-    })
 
-    const isBlocklisted = this.getIsBlocklisted([from, recipient!])
-    if (isBlocklisted) {
-      const msg = `transfer is unbondable because sender or recipient is in blocklist. transferId: ${transferId}, sender: ${from}, recipient: ${recipient}`
+    const isBondable = this.getIsBondable(
+      amountOutMin,
+      deadline,
+      destinationChainId,
+      BigNumber.from(bonderFee),
+      from,
+      recipient
+    )
+    if (!isBondable) {
+      const msg = 'transfer is not bondable'
       logger.warn(msg)
       this.notifier.warn(msg)
-      await this.db.transfers.update(transferId, {
-        isBondable: false
-      })
     }
+
+    logger.debug(`populateTransferSentTimestampAndIsBondable: sender: ${from}, timestamp: ${timestamp}, isBondable: ${isBondable}`)
+    await this.db.transfers.update(transferId, {
+      transferSentTimestamp: timestamp,
+      isBondable
+    })
   }
 
   async populateTransferRootCommittedAt (transferRootId: string) {
@@ -1591,7 +1603,9 @@ class SyncWatcher extends BaseWatcher {
     amountOutMin: BigNumber,
     deadline: BigNumber,
     destinationChainId: number,
-    bonderFee: BigNumber
+    bonderFee: BigNumber,
+    from: string,
+    recipient: string
   ): boolean => {
     const attemptSwapDuringBondWithdrawal = this.bridge.shouldAttemptSwapDuringBondWithdrawal(amountOutMin, deadline)
     if (attemptSwapDuringBondWithdrawal && isL1ChainId(destinationChainId)) {
@@ -1600,6 +1614,11 @@ class SyncWatcher extends BaseWatcher {
 
     const isTooLow = this.isBonderFeeTooLow(bonderFee)
     if (isTooLow) {
+      return false
+    }
+
+    const isBlocklisted = this.getIsBlocklisted([from, recipient])
+    if (isBlocklisted) {
       return false
     }
 

@@ -98,7 +98,6 @@ async function handleTransferIds (watcher: any, chain: string, transferIds: stri
       await watcher.syncWatcher.markItemAsFound('transfer', transferId)
     }
   }
-
 }
 
 async function handleTransferRoots (watcher: any, chain: string, token: string, transferRoots: string[], markAsFound?: boolean) {

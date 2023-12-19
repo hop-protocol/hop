@@ -653,7 +653,6 @@ class SyncWatcher extends BaseWatcher {
       // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
       // should never happen unless RPC providers return out of order events
       const isFinalized = !isCustomSync ? true : undefined
-      logger.debug('')
 
       logger.debug('handling TransferSent event', JSON.stringify({
         sourceChainId,
@@ -927,7 +926,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.populateTransferSentTimestamp(transferId)
+    await this.populateTransferSentTimestampAndIsBondable(transferId)
   }
 
   async populateTransferRootDbItem (transferRootId: string) {
@@ -1027,7 +1026,6 @@ class SyncWatcher extends BaseWatcher {
     if (!timestamp) {
       timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     }
-
 
     const isBondable = this.getIsBondable(
       amountOutMin,
@@ -1840,9 +1838,9 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async markItemAsFound(itemType: string, transferIdOrRootId: string): Promise<void> {
+  async markItemAsFound (itemType: string, transferIdOrRootId: string): Promise<void> {
     // To be used to mark an item as found when it is erroneously marked as not found
-    
+
     // TODO: no magic variable
     if (itemType === 'transfer') {
       return this.db.transfers.update(transferIdOrRootId, {

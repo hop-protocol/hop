@@ -131,16 +131,16 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
     return message
   }
 
-  protected async getMessageStatus (message: Message): Promise<Message> {
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
     // Gnosis status is validated by just the message, so we return that
     return message
   }
 
-  protected async isMessageInFlight (message: Message): Promise<boolean> {
-    return this.#isMessageInFlight(message)
+  protected async isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
+    return this.#isMessageInFlight(messageStatus)
   }
 
-  protected async isMessageRelayable (messageStatus: Message): Promise<boolean> {
+  protected async isMessageRelayable (messageStatus: MessageStatus): Promise<boolean> {
     const isInFlight = await this.#isMessageInFlight(messageStatus)
     const isRelayed = await this.#isMessageRelayed(messageStatus)
     return !isInFlight && !isRelayed
@@ -152,8 +152,9 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
 
   async #isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
     const msgHash = this.#getMessageHash(messageStatus)
-    const messageId = this.#l2Amb.numMessagesSigned(msgHash)
-    return this.#l2Amb.isAlreadyProcessed(messageId)
+    const messageId = await this.#l2Amb.numMessagesSigned(msgHash)
+    const isCheckpointed = await this.#l2Amb.isAlreadyProcessed(messageId)
+    return !isCheckpointed
   }
 
   async #isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {

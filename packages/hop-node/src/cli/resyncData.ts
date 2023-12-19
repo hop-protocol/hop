@@ -17,6 +17,7 @@ root
   .option('--token <symbol>', 'Token', parseString)
   .option('--transfer-ids <id, ...>', 'Comma-separated transfer ids', parseStringArray)
   .option('--transfer-roots <root, ...>', 'Comma-separated transfer roots', parseStringArray)
+  .option('--mark-as-found [boolean]', 'Mark a DB item as found', parseBool)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -29,7 +30,8 @@ async function main (source: any) {
     chain,
     token,
     transferIds,
-    transferRoots
+    transferRoots,
+    markAsFound
   } = source
 
   console.log('chain', chain, token, transferIds, transferRoots)
@@ -50,15 +52,15 @@ async function main (source: any) {
   // TODO: Modularize
 
   if (transferIds) {
-    await handleTransferIds(watcher, chain, transferIds)
+    await handleTransferIds(watcher, chain, transferIds, markAsFound)
   }
 
   if (transferRoots) {
-    await handleTransferRoots(watcher, chain, token, transferRoots)
+    await handleTransferRoots(watcher, chain, token, transferRoots, markAsFound)
   }
 }
 
-async function handleTransferIds (watcher: any, chain: string, transferIds: string[]) {
+async function handleTransferIds (watcher: any, chain: string, transferIds: string[], markAsFound?: boolean) {
   const blockNumbers: number[] = []
   for (const transferId of transferIds) {
     const transfer = await getTransferSent(chain, transferId)
@@ -77,7 +79,7 @@ async function handleTransferIds (watcher: any, chain: string, transferIds: stri
     const transferId = transferIds[i]
     const blockNumber = blockNumbers[i]
 
-    const l2BridgeContract = this.bridge.l2BridgeContract as L2BridgeContract
+    const l2BridgeContract = bridge.bridgeContract as L2BridgeContract
     const events = await l2BridgeContract.queryFilter(
       l2BridgeContract.filters.TransferSent(),
       blockNumber,
@@ -91,10 +93,15 @@ async function handleTransferIds (watcher: any, chain: string, transferIds: stri
         break
       }
     }
+
+    if (markAsFound) {
+      await watcher.syncWatcher.markItemAsFound('transfer', transferId)
+    }
   }
+
 }
 
-async function handleTransferRoots (watcher: any, chain: string, token: string, transferRoots: string[]) {
+async function handleTransferRoots (watcher: any, chain: string, token: string, transferRoots: string[], markAsFound?: boolean) {
   const blockNumbers: number[] = []
   for (const transferRoot of transferRoots) {
     const commit = await getTransferCommitted(chain, token, transferRoot)
@@ -113,21 +120,30 @@ async function handleTransferRoots (watcher: any, chain: string, token: string, 
     const transferRoot = transferRoots[i]
     const blockNumber = blockNumbers[i]
 
-    const l2BridgeContract = this.bridge.l2BridgeContract as L2BridgeContract
+    const l2BridgeContract = bridge.bridgeContract as L2BridgeContract
     const events = await l2BridgeContract.queryFilter(
       l2BridgeContract.filters.TransfersCommitted(),
       blockNumber,
       blockNumber
     )
 
+    let transferRootId
     for (const event of events) {
       if (event.args?.rootHash === transferRoot) {
         await watcher.syncWatcher.handleTransfersCommittedEvent(event)
         // Uses the ID, not the hash
-        const transferId = getTransferRootId(event.args.rootHash, event.args.totalAmount)
-        await watcher.syncWatcher.populateTransferRootDbItem(transferId)
+        transferRootId = getTransferRootId(event.args.rootHash, event.args.totalAmount)
+        await watcher.syncWatcher.populateTransferRootDbItem(transferRootId)
         break
       }
+    }
+
+    if (!transferRootId) {
+      throw new Error(`transfer root ${transferRoot} not found`)
+    }
+
+    if (markAsFound) {
+      await watcher.syncWatcher.markItemAsFound('transfer', transferRootId)
     }
   }
 }

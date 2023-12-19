@@ -1820,6 +1820,23 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`compareWsCache: websocket comparison to poller data success for transferId ${event.args.transferId}`)
     }
   }
+
+  async markItemAsFound(itemType: string, transferIdOrRootId: string): Promise<void> {
+    // To be used to mark an item as found when it is erroneously marked as not found
+    
+    // TODO: no magic variable
+    if (itemType === 'transfer') {
+      return this.db.transfers.update(transferIdOrRootId, {
+        isNotFound: true
+      })
+    } else if (itemType === 'transferRoot') {
+      return this.db.transferRoots.update(transferIdOrRootId, {
+        isNotFound: true
+      })
+    }
+
+    throw new Error(`markItemAsFound: invalid itemType ${itemType}`)
+  }
 }
 
 export default SyncWatcher

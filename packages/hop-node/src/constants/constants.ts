@@ -65,7 +65,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   zksync: 10000, // TODO
   linea: 10416,
   scrollzk: 10000, // TODO
-  polygonzk: 10000 // TODO
+  polygonzk: 6270
 }
 
 export const DefaultBatchBlocks = 10000
@@ -216,7 +216,7 @@ export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
     [Chain.Arbitrum]: 12 * 60 * 1000, // L1 safe
     [Chain.Nova]: 12 * 60 * 1000, // L1 safe
     [Chain.Linea]: 25 * 60 * 1000, // L1 finalized
-    [Chain.PolygonZk]: 7 * 60 * 1000 // 32 L1 Blocks
+    [Chain.PolygonZk]: 8 * 60 * 1000 // 32 L1 Blocks + buffer
   },
   L2_TO_L1: {
     [Chain.Gnosis]: 1 * OneHourMs,

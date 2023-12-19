@@ -3,20 +3,17 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
 import {
+  BondTransferRootChains,
   Chain,
   ChallengePeriodMs,
-  FiveMinutesMs,
   OneWeekMs,
-  OruExitTimeMs,
+  RelayWaitTimeMs,
   RelayableChains,
   RootSetSettleDelayMs,
   TenMinutesMs,
   TxError
 } from 'src/constants'
-import {
-  TxRetryDelayMs,
-  oruChains
-} from 'src/config'
+import { TxRetryDelayMs } from 'src/config'
 import { transferRootsMigrations } from './migrations'
 
 interface BaseTransferRoot {
@@ -37,6 +34,9 @@ interface BaseTransferRoot {
   confirmTxHash?: string
   destinationChainId?: number
   isNotFound?: boolean
+  isRelayable?: boolean
+  relayBackoffIndex?: number
+  relayTxError?: TxError
   multipleWithdrawalsSettledTxHash?: string
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
@@ -105,6 +105,12 @@ export type ExitableTransferRoot = {
   committedAt: number
 }
 
+export type TransferRootRelayProps = {
+  isRelayable?: boolean
+  relayBackoffIndex?: number
+  relayTxError?: TxError
+}
+
 export type RelayableTransferRoot = {
   transferRootId: string
   transferRootHash: string
@@ -112,7 +118,7 @@ export type RelayableTransferRoot = {
   destinationChainId: number
   confirmTxHash?: string
   bondTxHash?: string
-}
+} & TransferRootRelayProps
 
 export type ChallengeableTransferRoot = {
   transferRootId: string
@@ -350,6 +356,16 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
+      if (!item.sourceChainId) {
+        return false
+      }
+
+      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
+      if (!doesChainSupportRootBond) {
+        return false
+      }
+
       // Since bonding of transferRoots is not time sensitive, wait an arbitrary amount of time for
       // finality before attempting to bond. This prevents repetitive RPC calls, since that is the
       // only true way to know finality for ORUs. The arbitrary time should represent roughly how long
@@ -396,7 +412,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     return filtered as UnbondedTransferRoot[]
   }
 
-  async getExitableTransferRoots (
+  async getL2ToL1RelayableTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
@@ -409,30 +425,30 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
+      if (!item.committedAt) {
+        return false
+      }
+
+      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const isRelayable = RelayableChains.L2_TO_L1.includes(sourceChain)
+      if (!isRelayable) {
+        return false
+      }
+
+      let relayTimestampOk = true
+      if (isRelayable) {
+        const committedAtMs = item.committedAt * 1000
+        const relayTimeMs = RelayWaitTimeMs.L2_TO_L1?.[sourceChain]
+        if (!relayTimeMs) {
+          return false
+        }
+        relayTimestampOk = committedAtMs + relayTimeMs < Date.now()
+      }
+
       let timestampOk = true
       if (item.sentConfirmTxAt) {
         timestampOk =
           item.sentConfirmTxAt + TxRetryDelayMs < Date.now()
-      }
-
-      let oruTimestampOk = true
-      const sourceChain = chainIdToSlug(item.sourceChainId)
-      const isSourceOru = oruChains.has(sourceChain)
-      if (isSourceOru && item.committedAt) {
-        const committedAtMs = item.committedAt * 1000
-        const exitTimeMs = OruExitTimeMs?.[sourceChain]
-        if (!exitTimeMs) {
-          return false
-        }
-        oruTimestampOk = committedAtMs + exitTimeMs < Date.now()
-      }
-
-      // This will exit if the root for an ORU was never bonded. This is intentional. A case where this
-      // might occur is if someone fills a root with a giant transfer that is greater than the bonder's entire
-      // liquidity.
-      let shouldExitOru = true
-      if (isSourceOru && item?.challenged !== true && item?.bondedAt) {
-        shouldExitOru = false
       }
 
       return (
@@ -444,9 +460,8 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         item.destinationChainId &&
         item.committed &&
         item.committedAt &&
-        timestampOk &&
-        oruTimestampOk &&
-        shouldExitOru
+        relayTimestampOk &&
+        timestampOk
       )
     })
 
@@ -500,7 +515,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     return filtered as ExitableTransferRoot[]
   }
 
-  async getRelayableTransferRoots (
+  async getL1ToL2UnrelayedTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<RelayableTransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromWeek()
@@ -521,31 +536,48 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
+      // Check DB relayability
+      // It is fine if isRelayable is undefined. We just need to ensure it is not false.
+      if (item?.isRelayable === false) {
+        return false
+      }
+
+      const seenOnL1Timestamp = item?.bondedAt ?? item?.confirmedAt
+      if (!seenOnL1Timestamp) {
+        return false
+      }
+
       const destinationChain = chainIdToSlug(item.destinationChainId)
-      if (!RelayableChains.includes(destinationChain)) {
+      const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
+      if (!isRelayable) {
         return false
       }
 
-      if (!(item?.bondedAt ?? item?.confirmedAt)) {
-        return false
-      }
-
-      // TODO: This is temp. Rm.
-      const lineaRelayTime = 6 * FiveMinutesMs
-      if (destinationChain === Chain.Linea) {
-        const timestampMs = item?.bondedAt ?? item?.confirmedAt
-        if (timestampMs) {
-          if ((timestampMs * 1000) + lineaRelayTime > Date.now()) {
-            return false
-          }
+      let relayTimestampOk = true
+      if (isRelayable) {
+        const l1TxTimestampMs = seenOnL1Timestamp * 1000
+        const relayTimeMs = RelayWaitTimeMs.L1_TO_L2?.[destinationChain]
+        if (!relayTimeMs) {
+          return false
         }
+        relayTimestampOk = l1TxTimestampMs + relayTimeMs < Date.now()
       }
-
-      const isSeenOnL1 = item?.bonded ?? item?.confirmed
 
       let sentTxTimestampOk = true
       if (item.sentRelayTxAt) {
-        sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+        if (
+          item.relayTxError === TxError.UnfinalizedTransferBondError ||
+          item.relayTxError === TxError.MessageUnknownStatus ||
+          item.relayTxError === TxError.MessageRelayTooEarly
+        ) {
+          const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
+          if (delayMs > OneWeekMs) {
+            return false
+          }
+          sentTxTimestampOk = item.sentRelayTxAt + delayMs < Date.now()
+        } else {
+          sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+        }
       }
 
       return (
@@ -555,7 +587,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         item.transferRootId &&
         item.committed &&
         item.committedAt &&
-        isSeenOnL1 &&
+        relayTimestampOk &&
         sentTxTimestampOk
       )
     })
@@ -578,8 +610,8 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
       let isWithinChallengePeriod = true
       const sourceChain = chainIdToSlug(item?.sourceChainId)
-      const isSourceOru = oruChains.has(sourceChain)
-      if (isSourceOru && item?.bondedAt) {
+      const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
+      if (doesChainSupportRootBond && item?.bondedAt) {
         const bondedAtMs: number = item.bondedAt * 1000
         const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
         if (isChallengePeriodOver) {

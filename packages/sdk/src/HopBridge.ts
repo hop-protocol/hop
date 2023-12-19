@@ -500,10 +500,16 @@ class HopBridge extends Base {
       // a `from` address is required if using only provider (not signer)
       populatedTx.from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
     }
-    return this.estimateGas(sourceChain.provider, {
-      ...populatedTx,
-      gasLimit: 500000
-    })
+    const provider = await this.getSignerOrProvider(sourceChain)
+    try {
+      return await this.estimateGas(provider, populatedTx)
+    } catch (err: any) {
+      console.warn('hop sdk getEstimatedGasLimit error estimating gas limit. trying fixed gasLimit for estimateGas')
+      return await this.estimateGas(provider, {
+        ...populatedTx,
+        gasLimit: sourceChain.equals(Chain.Arbitrum) ? 1_000_000 : 500_000
+      })
+    }
   }
 
   public async getSendEstimatedGasCost (
@@ -895,7 +901,7 @@ class HopBridge extends Base {
     }
   }
 
-  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number) {
+  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number): any {
     const { sourceChain, destinationChain, requiredLiquidity, amountIn, amountOut, totalFee } = getSendDataResponse
 
     const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
@@ -1486,7 +1492,7 @@ class HopBridge extends Base {
   private async getBaseAvailableCreditIncludingVault (
     sourceChain: TChain,
     destinationChain: TChain
-  ) : Promise<BigNumber> {
+  ) : Promise<BigNumber | undefined> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     try {
@@ -2617,7 +2623,7 @@ class HopBridge extends Base {
     return bridge.populateTransaction.withdraw(...args)
   }
 
-  async populateWithdrawTransferTx (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+  async populateWithdrawTransferTx (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string): Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
     await wp.generateProof()
@@ -2651,14 +2657,14 @@ class HopBridge extends Base {
     )
   }
 
-  async withdrawTransfer (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+  async withdrawTransfer (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string): Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const populatedTx = await this.populateWithdrawTransferTx(sourceChain, destinationChain, transferIdOrTransactionHash)
     return this.sendTransaction(populatedTx, destinationChain)
   }
 
-  async getWithdrawProof (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+  async getWithdrawProof (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string): Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
     return wp.generateProof()

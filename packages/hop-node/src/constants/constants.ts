@@ -14,7 +14,7 @@ for (const chain in chains) {
 
 export { nativeChainTokens }
 
-const relayablChainsSet = new Set<string>([])
+const relayableChainsSet = new Set<string>([])
 const AvgBlockTimeSeconds: Record<string, number> = {}
 const OruExitTimeMs: Record<string, number> = {}
 const TimeToIncludeOnL1Sec: Record<string, number> = {}
@@ -29,7 +29,7 @@ for (const network in networks) {
       AvgBlockTimeSeconds[chain] = seconds
     }
     if (chainObj?.isRelayable) {
-      relayablChainsSet.add(chain)
+      relayableChainsSet.add(chain)
     }
     if (chainObj?.oruExitTimeSeconds != null) {
       OruExitTimeMs[chain] = chainObj.oruExitTimeSeconds * 1000
@@ -54,8 +54,6 @@ export {
   L1ToL2CheckpointTimeInL1Blocks
 }
 
-export const RelayableChains = Array.from(relayablChainsSet)
-
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
   polygon: 5933,
@@ -67,7 +65,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   zksync: 10000, // TODO
   linea: 10416,
   scrollzk: 10000, // TODO
-  polygonzk: 10000 // TODO
+  polygonzk: 6270
 }
 
 export const DefaultBatchBlocks = 10000
@@ -100,8 +98,11 @@ export enum TxError {
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
   RedundantRpcOutOfSync = 'REDUNDANT_RPC_OUT_OF_SYNC',
   RpcServerError = 'RPC_SERVER_ERROR',
-  BondTooEarly = 'BOND_TOO_EARLY',
-  UnfinalizedTransferBondError= 'UNFINALIZED_TRANSFER_BOND_ERROR',
+  UnfinalizedTransferBondError = 'UNFINALIZED_TRANSFER_BOND_ERROR',
+  MessageUnknownStatus = 'MESSAGE_UNKNOWN_STATUS',
+  MessageRelayTooEarly = 'MESSAGE_RELAY_TOO_EARLY',
+  MessageAlreadyRelayed = 'MESSAGE_ALREADY_RELAYED',
+  MessageInvalidState = 'MESSAGE_INVALID_STATE'
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
@@ -177,3 +178,56 @@ export enum SyncType {
   Collateralized = 'collateralized',
   Threshold = 'threshold'
 }
+
+/// ///////
+// TODO: Convert this to chainTimingMetadata in core with length or finality status
+/// ///////
+
+type IRelayableChains = {
+  L1_TO_L2: string[]
+  L2_TO_L1: string[]
+}
+
+export const RelayableChains: IRelayableChains = {
+  L1_TO_L2: [
+    Chain.Arbitrum,
+    Chain.Nova,
+    Chain.Linea,
+    Chain.PolygonZk
+  ],
+  L2_TO_L1: [
+    Chain.Gnosis,
+    Chain.Polygon,
+    Chain.PolygonZk
+  ]
+}
+
+type IRelayableWaitTimeMs = {
+  L1_TO_L2: {
+    [chain: string]: number
+  }
+  L2_TO_L1: {
+    [chain: string]: number
+  }
+}
+export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
+  L1_TO_L2: {
+    [Chain.Arbitrum]: 12 * 60 * 1000, // L1 safe
+    [Chain.Nova]: 12 * 60 * 1000, // L1 safe
+    [Chain.Linea]: 25 * 60 * 1000, // L1 finalized
+    [Chain.PolygonZk]: 8 * 60 * 1000 // 32 L1 Blocks + buffer
+  },
+  L2_TO_L1: {
+    [Chain.Gnosis]: 1 * OneHourMs,
+    [Chain.Polygon]: 1 * OneHourMs,
+    [Chain.PolygonZk]: 1 * OneHourMs
+  }
+}
+
+export const BondTransferRootChains: string[] = [
+  Chain.Optimism,
+  Chain.Arbitrum,
+  Chain.Nova,
+  Chain.Base,
+  Chain.Linea
+]

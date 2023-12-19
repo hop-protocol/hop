@@ -10,7 +10,7 @@ import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
 import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
-import { reactAppNetwork, blocklist } from 'src/config'
+import { reactAppNetwork, blocklist, rpcProviderOverrides } from 'src/config'
 import { allNetworks as networks } from 'src/config/networks'
 import { Theme, useTheme } from '@material-ui/core'
 
@@ -38,7 +38,10 @@ const AppContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const hop = new Hop({
       network: reactAppNetwork,
       signer: provider?.getSigner(),
-      blocklist
+      blocklist,
+      chainProviders: {
+        ...rpcProviderOverrides,
+      }
     })
     return hop
   }, [provider])

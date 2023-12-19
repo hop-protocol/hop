@@ -7,8 +7,9 @@ import getChainBridge from 'src/chains/getChainBridge'
 import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
-import { ChallengePeriodMs } from 'src/constants'
+import { Chain, ChallengePeriodMs } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
+import { IChainBridge } from 'src/chains/IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -61,7 +62,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
   }
 
   async checkExitableTransferRootsFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getExitableTransferRoots(await this.getFilterRoute())
+    const dbTransferRoots = await this.db.transferRoots.getL2ToL1RelayableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }
@@ -108,7 +109,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    const chainBridge = getChainBridge(this.chainSlug)
+    const chainBridge: IChainBridge = getChainBridge(this.chainSlug as Chain)
     if (!chainBridge) {
       logger.warn(`chainBridge for ${this.chainSlug} is not implemented yet`)
       return
@@ -116,16 +117,24 @@ class ConfirmRootsWatcher extends BaseWatcher {
 
     logger.debug(`handling commit tx hash ${commitTxHash} to ${destinationChainId}`)
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayL2ToL1Message`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayL2ToL1Message`)
       return
     }
 
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
-    const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
+
+    let tx
+    try {
+      tx = await chainBridge.relayL2ToL1Message(commitTxHash)
+    } catch (err) {
+      logger.error('checkExitableTransferRoots error:', err.message)
+      throw err
+    }
 
     if (!tx) {
+      logger.error('tx relayL2ToL2Message not found')
       throw new Error('tx relayL2ToL2Message tx found')
     }
 
@@ -156,7 +165,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
 
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
       return
     }
 

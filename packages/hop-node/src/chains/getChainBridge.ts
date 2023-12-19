@@ -1,41 +1,15 @@
-import '../moduleAlias'
-import ArbitrumBridge from './arbitrum/ArbitrumBridge'
-import GnosisBridge from './gnosis/GnosisBridge'
-import LineaBridge from './linea/LineaBridge'
-import OptimismBridge from './optimism/OptimismBridge'
-import PolygonBridge from './polygon/PolygonBridge'
-import PolygonZkBridge from './polygonzk/PolygonZkBridge'
-import ScrollBridge from './scroll/ScrollBridge'
-import ZkSyncBridge from './zksync/ZkSyncBridge'
-
 import { Chain } from 'src/constants'
-import { IChainBridge } from './IChainBridge'
+import { IChainBridge } from 'src/chains/IChainBridge'
+import { createChainBridgeInstance } from 'src/chains/Factories/ChainBridgeFactory'
 
-const chainWatchers: Record<string, IChainBridge> = {}
+const chainBridgeInstances: Record<string, IChainBridge> = {}
 
-const chainToBridgeMap: Record<string, new (slug: string) => IChainBridge> = {
-  [Chain.Optimism]: OptimismBridge,
-  [Chain.Base]: OptimismBridge,
-  [Chain.Arbitrum]: ArbitrumBridge,
-  [Chain.Nova]: ArbitrumBridge,
-  [Chain.Gnosis]: GnosisBridge,
-  [Chain.Polygon]: PolygonBridge,
-  [Chain.ZkSync]: ZkSyncBridge,
-  [Chain.Linea]: LineaBridge,
-  [Chain.ScrollZk]: ScrollBridge,
-  [Chain.PolygonZk]: PolygonZkBridge
-}
-
-export default function getChainBridge (chainSlug: string): IChainBridge {
-  if (!chainToBridgeMap[chainSlug]) {
-    throw new Error(`Chain ${chainSlug} is not supported`)
+export default function getChainBridge (chainSlug: Chain): IChainBridge {
+  if (chainBridgeInstances?.[chainSlug]) {
+    return chainBridgeInstances[chainSlug]
   }
 
-  if (chainWatchers?.[chainSlug]) {
-    return chainWatchers[chainSlug]
-  }
-
-  const chainWatcher: IChainBridge = new chainToBridgeMap[chainSlug](chainSlug)
-  chainWatchers[chainSlug] = chainWatcher
-  return chainWatcher
+  const chainBridge: IChainBridge = createChainBridgeInstance(chainSlug)
+  chainBridgeInstances[chainSlug] = chainBridge
+  return chainBridge
 }

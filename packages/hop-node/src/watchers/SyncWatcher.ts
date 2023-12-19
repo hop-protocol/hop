@@ -11,6 +11,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
+  BondTransferRootChains,
   Chain,
   ChainPollMultiplier,
   DoesRootProviderSupportWs,
@@ -49,7 +50,6 @@ import {
   getEnabledNetworks,
   config as globalConfig,
   minEthBonderFeeBn,
-  oruChains,
   wsEnabledChains
 } from 'src/config'
 import { Transfer } from 'src/db/TransfersDb'
@@ -111,7 +111,7 @@ class SyncWatcher extends BaseWatcher {
 
     const enabledNetworks = getEnabledNetworks()
     for (const enabledNetwork of enabledNetworks) {
-      if (RelayableChains.includes(enabledNetwork)) {
+      if (RelayableChains.L1_TO_L2.includes(enabledNetwork as Chain)) {
         this.isRelayableChainEnabled = true
         break
       }
@@ -528,7 +528,8 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getTransferSentPromises (): EventPromise {
-    // If a relayable chain is enabled, listen for TransferSentToL2 events on L1
+    // Only listen for TransferSent events on L2 if the chain is L1_To_L2 relayable
+    // If the chain is not relayable, the slow syncer will process it
     if (this.isL1 && this.isRelayableChainEnabled) {
       return [this.getTransferSentToL2EventPromise()]
     }
@@ -833,7 +834,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = oruChains.has(sourceChainSlug)
+      const shouldBondTransferRoot = BondTransferRootChains.includes(sourceChainSlug)
 
       logger.debug('handling TransfersCommitted event', JSON.stringify({
         transferRootId,
@@ -1502,22 +1503,25 @@ class SyncWatcher extends BaseWatcher {
      * on the order of seconds. Some low-used routes may take longer as the lookup traverses back through
      * the chain looking for transfers. Set a time that is reasonable for most cases, but will not block the bonder.
      *
+     * Since this is rarely called, a timeout on the order of minutes is acceptable in order to find low-route
+     * chains.
+     *
      * This also handles the case of the first root per route. When a new chain is added to an old bridge
      * the result is that the old bridge will look all the way back to when it is deployed before ignoring the root.
      * This blocks the bonder process for many hours and uses excessive RPC calls. This will block that from
-     * happening without manually adding the first chain per route for each new bridge
+     * happening without manually adding the first chain per route for each new bridge.
      */
     let lookupTransferIdsRes
-    const onchainLookupTimeoutSec = 60_000
+    const onchainLookupTimeoutMs = FiveMinutesMs
     try {
       lookupTransferIdsRes = await promiseTimeout(this.lookupTransferIds(
         sourceBridge,
         transferRootHash,
         destinationChainId,
         eventBlockNumber
-      ), onchainLookupTimeoutSec)
+      ), onchainLookupTimeoutMs)
     } catch (err) {
-      logger.error(`checkTransferIdsForRootFromChain onchain lookup timed out after ${onchainLookupTimeoutSec} seconds`)
+      this.logger.error(`checkTransferIdsForRootFromChain onchain lookup timed out after ${onchainLookupTimeoutMs} ms`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
@@ -1689,7 +1693,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }
 
-        if (RelayableChains.includes(this.chainSlug)) {
+        if (RelayableChains.L1_TO_L2.includes(this.chainSlug as Chain)) {
           let gasCost: BigNumber
           try {
             gasCost = await RelayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)

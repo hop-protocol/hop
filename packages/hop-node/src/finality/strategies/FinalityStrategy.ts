@@ -1,4 +1,6 @@
+import getChainBridge from 'src/chains/getChainBridge'
 import { Chain } from 'src/constants'
+import { FinalityBlockTag, IChainBridge } from 'src/chains/IChainBridge'
 import { FinalityState } from '@hop-protocol/core/config'
 import { IFinalityStrategy } from './IFinalityStrategy'
 import { providers } from 'ethers'
@@ -26,6 +28,20 @@ export abstract class FinalityStrategy implements IFinalityStrategy {
   getFinalizedBlockNumber = async (): Promise<number> => {
     const block = await this.provider.getBlock(FinalityState.Finalized)
     return Number(block.number)
+  }
+
+  protected async _getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+    const chainBridge: IChainBridge = getChainBridge(this.chainSlug)
+    if (!chainBridge) {
+      throw new Error(`getCustomBlockNumber not implemented for chain ${this.chainSlug}`)
+    }
+
+    try {
+      const customBlockNumber: number | undefined = await chainBridge.getCustomBlockNumber(blockTag)
+      if (customBlockNumber) {
+        return customBlockNumber
+      }
+    } catch {}
   }
 
   protected getProbabilisticBlockNumber = async (confirmations: number): Promise<number> => {

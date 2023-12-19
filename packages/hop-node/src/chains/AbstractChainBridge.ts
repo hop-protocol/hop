@@ -1,43 +1,47 @@
-import Logger from 'src/logger'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import wallets from 'src/wallets'
-import { Chain } from 'src/constants'
-import { IAbstractChainBridge } from './IAbstractChainBridge'
-import { Signer } from 'ethers'
+import {
+  ChainServices,
+  FinalityBlockTag,
+  IChainBridge
+} from 'src/chains/IChainBridge'
+import { IFinalityService } from 'src/chains/Services/AbstractFinalityService'
+import { IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { getEnabledNetworks } from 'src/config'
+import { providers } from 'ethers'
 
-abstract class AbstractChainBridge implements IAbstractChainBridge {
-  logger: Logger
+type ChainBridgeParams = {
   chainSlug: string
-  chainId: number
-  l1Wallet: Signer
-  l2Wallet: Signer
+  chainServices: ChainServices
+}
 
-  constructor (chainSlug: string) {
+export abstract class AbstractChainBridge implements IChainBridge {
+  readonly #messageService: IMessageService
+  readonly #finalityService: IFinalityService
+
+  constructor (params: ChainBridgeParams) {
+    const { chainSlug, chainServices } = params
+
+    if (!chainSlug) {
+      throw new Error('chainSlug not set')
+    }
+
+    this.#messageService = chainServices.messageService
+    this.#finalityService = chainServices.finalityService
+
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(chainSlug)) {
       throw new Error(`Chain ${chainSlug} is not enabled`)
     }
-
-    // Set up config
-    this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)
-    const prefix = `${this.chainSlug}`
-    const tag = this.constructor.name
-    this.logger = new Logger({
-      tag,
-      prefix,
-      color: 'blue'
-    })
-
-    // Set up signers
-    this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(chainSlug)
   }
 
-  getLogger (): Logger {
-    return this.logger
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+    return this.#messageService.relayL1ToL2Message(l1TxHash, messageIndex)
+  }
+
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+    return this.#messageService.relayL2ToL1Message(l2TxHash, messageIndex)
+  }
+
+  async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+    return this.#finalityService.getCustomBlockNumber(blockTag)
   }
 }
-
-export default AbstractChainBridge

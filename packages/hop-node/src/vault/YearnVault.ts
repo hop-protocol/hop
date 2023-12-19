@@ -9,7 +9,7 @@ import { Vault } from './Vault'
 import { Yearn } from '@yfi/sdk'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
-// make sure these addresses are always checksumed required by yearn-sdk
+// make sure these addresses are always checksummed required by yearn-sdk
 const EthAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 const addresses: Record<string, any> = {
   USDC: {

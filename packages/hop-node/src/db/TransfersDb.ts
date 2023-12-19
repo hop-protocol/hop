@@ -4,10 +4,10 @@ import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs
 import { BigNumber } from 'ethers'
 import {
   Chain,
-  FiveMinutesMs,
   OneDayMs,
   OneHourMs,
   OneWeekMs,
+  RelayWaitTimeMs,
   RelayableChains,
   TxError
 } from 'src/constants'
@@ -359,7 +359,7 @@ class TransfersDb extends BaseDb<Transfer> {
     return filtered as UnbondedSentTransfer[]
   }
 
-  async getUnrelayedSentTransfers (
+  async getL1ToL2UnrelayedTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnrelayedSentTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromDay()
@@ -389,29 +389,40 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const destinationChainSlug = chainIdToSlug(item.destinationChainId)
-      if (!RelayableChains.includes(destinationChainSlug)) {
-        return false
-      }
-
       if (!item.transferSentTimestamp) {
         return false
       }
 
-      // TODO: This is temp. Rm.
-      const lineaRelayTime = 6 * FiveMinutesMs
-      if (destinationChainSlug === Chain.Linea) {
-        if ((item.transferSentTimestamp * 1000) + lineaRelayTime > Date.now()) {
+      // Check DB relayability
+      // It is fine if isRelayable is undefined. We just need to ensure it is not false.
+      if (item?.isRelayable === false) {
+        return false
+      }
+
+      const destinationChain = chainIdToSlug(item.destinationChainId)
+      const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
+      if (!isRelayable) {
+        return false
+      }
+
+      let relayTimestampOk = true
+      if (isRelayable) {
+        const l1TxTimestampMs = item.transferSentTimestamp * 1000
+        const relayTimeMs = RelayWaitTimeMs.L1_TO_L2?.[destinationChain]
+        if (!relayTimeMs) {
           return false
         }
+        relayTimestampOk = l1TxTimestampMs + relayTimeMs < Date.now()
       }
 
       let timestampOk = true
       if (item.relayAttemptedAt) {
         if (
           item.relayTxError === TxError.RelayerFeeTooLow ||
-          item.withdrawalBondTxError === TxError.RpcServerError ||
-          item.withdrawalBondTxError === TxError.UnfinalizedTransferBondError
+          item.relayTxError === TxError.RpcServerError ||
+          item.relayTxError === TxError.UnfinalizedTransferBondError ||
+          item.relayTxError === TxError.MessageUnknownStatus ||
+          item.relayTxError === TxError.MessageRelayTooEarly
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
           if (delayMs > OneWeekMs) {
@@ -432,6 +443,7 @@ class TransfersDb extends BaseDb<Transfer> {
         !item.isRelayed &&
         !item.transferFromL1Complete &&
         item.transferSentLogIndex &&
+        relayTimestampOk &&
         timestampOk
       )
     })
@@ -480,7 +492,8 @@ class TransfersDb extends BaseDb<Transfer> {
 
     // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
     // up the root onchain.
-    const maxLookbackIndex = 14
+    // As a rough reference, a third-party Optimism provider looks back appx 1 day per index.
+    const maxLookbackIndex = 50
     const transferIds: string[] = []
 
     const now = Date.now()

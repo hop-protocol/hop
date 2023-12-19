@@ -3,7 +3,11 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import S3Upload from 'src/aws/s3Upload'
 import { BigNumber } from 'ethers'
-import { Chain, TenMinutesMs } from 'src/constants'
+import {
+  BondTransferRootChains,
+  Chain,
+  TenMinutesMs
+} from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -11,7 +15,7 @@ import {
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
-  modifiedLiquidityRoutes, oruChains
+  modifiedLiquidityRoutes
 } from 'src/config'
 
 type Config = {
@@ -244,9 +248,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
       const destinationChain = this.chainIdToSlug(destinationChainId)
-      const isSourceChainOru = oruChains.has(sourceChain)
+      const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
       const shouldSkip = (
-        !isSourceChainOru ||
+        !doesChainSupportRootBond ||
         sourceChain === Chain.Ethereum ||
         sourceChain === destinationChain ||
         !this.hasSiblingWatcher(destinationChainId)
@@ -286,7 +290,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   async getOruToL1PendingAmount () {
     let pendingAmounts = BigNumber.from(0)
     const enabledNetworks = getEnabledNetworks()
-    for (const chain of oruChains) {
+    for (const chain of BondTransferRootChains) {
       if (!enabledNetworks.includes(chain)) {
         continue
       }

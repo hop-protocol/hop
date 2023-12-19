@@ -125,7 +125,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
       sentConfirmTxAt: Date.now()
     })
 
-
     let tx
     try {
       tx = await chainBridge.relayL2ToL1Message(commitTxHash)

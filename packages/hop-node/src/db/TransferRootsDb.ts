@@ -542,7 +542,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const seenOnL1Timestamp = item?.bondedAt && item?.confirmedAt
+      const seenOnL1Timestamp = item?.bondedAt ?? item?.confirmedAt
       if (!seenOnL1Timestamp) {
         return false
       }

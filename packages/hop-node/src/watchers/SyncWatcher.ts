@@ -1827,11 +1827,11 @@ class SyncWatcher extends BaseWatcher {
     // TODO: no magic variable
     if (itemType === 'transfer') {
       return this.db.transfers.update(transferIdOrRootId, {
-        isNotFound: true
+        isNotFound: false
       })
     } else if (itemType === 'transferRoot') {
       return this.db.transferRoots.update(transferIdOrRootId, {
-        isNotFound: true
+        isNotFound: false
       })
     }
 

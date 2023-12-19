@@ -39,8 +39,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
   }
 
   protected async sendRelayTransaction (message: Message, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
-    const { messageDirection } = messageOpts
-    if (messageDirection === MessageDirection.L1_TO_L2) {
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
       return (message as IL1ToL2MessageWriter).redeem()
     } else {
       const overrides: any = {
@@ -60,7 +59,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
         throw new Error(`txReceipt not found for tx hash ${txHash}`)
       }
       const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
-      messages = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet.provider!) as Message[]
+      messages = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet) as Message[]
     } else {
       const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
       if (!txReceipt) {
@@ -77,30 +76,39 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
     return messages[messageIndex]
   }
 
-  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+  protected async getMessageStatus (message: Message, messageOpts: MessageOpts): Promise<MessageStatus> {
     // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
-    const res = await (message as IL1ToL2MessageWriter).waitForStatus()
-    return res.status
+    const { messageDirection } = messageOpts
+
+    let statusInput: any = {}
+    if (messageDirection === MessageDirection.L2_TO_L1) {
+      statusInput.l2Provider = this.l2Wallet.provider!
+    }
+    const res = await message.status(statusInput)
+    return res
   }
 
-  protected isMessageInFlight (messageStatus: MessageStatus): boolean {
-    return (
-      messageStatus === L1ToL2MessageStatus.NOT_YET_CREATED ||
-      messageStatus === L2ToL1MessageStatus.UNCONFIRMED
-    )
+  protected isMessageInFlight (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      return messageStatus === L1ToL2MessageStatus.NOT_YET_CREATED
+    } else {
+      return messageStatus === L2ToL1MessageStatus.UNCONFIRMED
+    }
   }
 
-  protected isMessageRelayable (messageStatus: MessageStatus): boolean {
-    return (
-      messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2 ||
-      messageStatus === L2ToL1MessageStatus.CONFIRMED
-    )
+  protected isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      return messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2
+    } else {
+      return messageStatus === L2ToL1MessageStatus.CONFIRMED
+    }
   }
 
-  protected isMessageRelayed (messageStatus: MessageStatus): boolean {
-    return (
-      messageStatus === L1ToL2MessageStatus.REDEEMED ||
-      messageStatus === L2ToL1MessageStatus.EXECUTED
-    )
+  protected isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      return messageStatus === L1ToL2MessageStatus.REDEEMED
+    } else {
+      return messageStatus === L2ToL1MessageStatus.EXECUTED
+    }
   }
 }

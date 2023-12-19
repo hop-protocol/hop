@@ -117,7 +117,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
 
     logger.debug(`handling commit tx hash ${commitTxHash} to ${destinationChainId}`)
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayL2ToL1Message`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode} skipping relayL2ToL1Message`)
       return
     }
 
@@ -128,6 +128,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     const tx = await chainBridge.relayL2ToL1Message(commitTxHash)
 
     if (!tx) {
+      logger.error('tx relayL2ToL2Message not found')
       throw new Error('tx relayL2ToL2Message tx found')
     }
 
@@ -158,7 +159,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
 
     if (this.dryMode || globalConfig.emergencyDryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
       return
     }
 

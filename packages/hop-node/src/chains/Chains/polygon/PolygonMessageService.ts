@@ -5,14 +5,33 @@ import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import { getNetworkSlugByChainSlug } from 'src/chains/utils'
-import { providers, utils } from 'ethers'
+import { BigNumber, providers, utils } from 'ethers'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string
 
+type PolygonApiResError = {
+  error: boolean
+  message: string
+}
+
+type PolygonApiResSuccess = {
+  headerBlockNumber: string
+  blockNumber: string
+  start: string
+  end: string
+  proposer: string
+  root: string
+  createdAt: string
+  message: string
+}
+
+type PolygonApiRes = PolygonApiResError | PolygonApiResSuccess
+
 type MessageOpts = {
   rootTunnelAddress: string
+  txBlockNumber: number
 }
 
 const polygonChainSlugs: Record<string, string> = {
@@ -69,9 +88,11 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
     const rootTunnelAddress: string = await this.#getRootTunnelAddressFromTxHash(l2TxHash)
+    const tx = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
 
     const messageOpts: MessageOpts = {
-      rootTunnelAddress
+      rootTunnelAddress,
+      txBlockNumber: tx.blockNumber
     }
 
     // Message is a txHash for Polygon
@@ -177,23 +198,40 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   }
 
   protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiRes = await this.#fetchBlockIncluded(messageStatus)
-    return apiRes.message === 'No block found'
+    const apiRes: PolygonApiResError = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResError
+    return (
+      apiRes?.error === true &&
+      apiRes?.message === 'No block found'
+    )
   }
 
-  protected async isMessageRelayable (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiRes = await this.#fetchBlockIncluded(messageStatus)
-    return apiRes.message === 'success'
+  protected async isMessageRelayable (messageStatus: PolygonMessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    const { txBlockNumber } = messageOpts
+    const apiRes: PolygonApiResSuccess = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResSuccess
+
+    return (
+      apiRes.message === 'success' &&
+      BigNumber.from(apiRes.start).lte(txBlockNumber) &&
+      BigNumber.from(apiRes.end).gte(txBlockNumber)
+    )
   }
 
-  protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {
+  protected async isMessageRelayed (messageStatus: PolygonMessageStatus, messageOpts: MessageOpts): Promise<boolean> {
     // This is not accurate, but we don't have a way to check if a message has been relayed
     // This will suffice for how the bonder uses this call, but will not work more broadly
-    const apiRes = await this.#fetchBlockIncluded(messageStatus)
-    return apiRes.message === 'success'
+    const { txBlockNumber } = messageOpts
+    const apiRes: PolygonApiResSuccess = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResSuccess
+
+    return (
+      apiRes.message === 'success' &&
+      (
+        BigNumber.from(apiRes.start).gt(txBlockNumber) ||
+        BigNumber.from(apiRes.end).lt(txBlockNumber)
+      )
+    )
   }
 
-  async #fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<any> {
+  async #fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<PolygonApiRes> {
     const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(messageStatus)
     const url = `${this.apiUrl}/${l2Block.blockNumber}`
     const res = await fetch(url)

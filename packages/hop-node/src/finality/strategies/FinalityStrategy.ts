@@ -37,9 +37,9 @@ export abstract class FinalityStrategy implements IFinalityStrategy {
     }
 
     try {
-      const customSafeBlockNumber: number | undefined = await chainBridge.getCustomBlockNumber(blockTag)
-      if (customSafeBlockNumber) {
-        return customSafeBlockNumber
+      const customBlockNumber: number | undefined = await chainBridge.getCustomBlockNumber(blockTag)
+      if (customBlockNumber) {
+        return customBlockNumber 
       }
     } catch {}
   }

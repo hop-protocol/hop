@@ -88,7 +88,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
 
     // Use a cache since the granularity of finality updates on l1 is on the order of minutes
     const customBlockNumberCacheKey = `${this.chainSlug}-${blockTag}`
-    const cacheValue = this.cache.getCacheValue(customBlockNumberCacheKey)
+    const cacheValue = this.cache.get(customBlockNumberCacheKey)
     if (cacheValue) {
       this.logger.debug('getCustomBlockNumber: using cached value')
       return cacheValue
@@ -100,7 +100,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
       return
     }
 
-    this.cache.updateCache(customBlockNumberCacheKey, customBlockNumber)
+    this.cache.set(customBlockNumberCacheKey, customBlockNumber)
     return customBlockNumber
   }
 

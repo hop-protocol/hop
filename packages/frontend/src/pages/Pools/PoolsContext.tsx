@@ -14,13 +14,12 @@ import Price from 'src/models/Price'
 import logger from 'src/logger'
 import { Signer, BigNumber, constants } from 'ethers'
 import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-import { Token } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, shiftBNDecimals, toTokenDisplay, toPercentDisplay, getTokenDecimals } from 'src/utils'
 import { stableCoins } from 'src/utils/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
-import { hopStakingRewardsContracts, stakingRewardsContracts, reactAppNetwork } from 'src/config'
+import { hopStakingRewardsContracts, stakingRewardsContracts, stakingRewardTokens, reactAppNetwork } from 'src/config'
 import { l2Networks } from 'src/config/networks'
 import { useApp } from 'src/contexts/AppContext'
 import { usePoolStats } from './usePoolStats'
@@ -28,6 +27,9 @@ import { useQuery } from 'react-query'
 import { useQueryParams, useAsyncMemo, useBalance, useSelectedNetwork, useAssets } from 'src/hooks'
 import { useStaking } from './useStaking'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { Multicall, Token } from '@hop-protocol/sdk'
+import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 
 type PoolsContextProps = {
   addLiquidityAndStake: () => void
@@ -69,8 +71,6 @@ type PoolsContextProps = {
   overallUserPoolTokenPercentageFormatted: string
   poolName: string
   poolReserves: BigNumber[]
-  poolSharePercentage?: string
-  poolSharePercentageFormatted: string
   priceImpact?: number
   priceImpactFormatted: string
   priceImpactLabel: string
@@ -93,15 +93,12 @@ type PoolsContextProps = {
   token0BalanceFormatted: string
   token0Deposited?: BigNumber
   token0DepositedFormatted: string
-  token0Price?: string
   token1Amount: string
   token1Balance: number
   token1BalanceBn: BigNumber
   token1BalanceFormatted: string
   token1Deposited?: BigNumber
   token1DepositedFormatted: string
-  token1Price?: string
-  token1Rate?: string
   tokenDecimals: number
   tokenImageUrl: string
   tokenSumDeposited?: BigNumber
@@ -137,11 +134,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [token1Amount, setToken1Amount] = useState<string>('')
   const [totalSupply, setTotalSupply] = useState<string>('')
   const [totalSupplyBn, setTotalSupplyBn] = useState<any>(BigNumber.from(0))
-  const [token1Rate, setToken1Rate] = useState<string>('')
   const [poolReserves, setPoolReserves] = useState<BigNumber[]>([])
-  const [poolSharePercentage, setPoolSharePercentage] = useState<string>('0')
-  const [token0Price, setToken0Price] = useState<string>('-')
-  const [token1Price, setToken1Price] = useState<string>('-')
   const [userPoolBalance, setUserPoolBalance] = useState<BigNumber>()
   const [userPoolTokenPercentage, setUserPoolTokenPercentage] = useState<string>('')
   const [token0Deposited, setToken0Deposited] = useState<BigNumber | undefined>()
@@ -313,33 +306,13 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       try {
         const bridge = sdk.bridge(canonicalToken.symbol)
         const amm = bridge.getAmm(selectedNetwork.slug)
-        const vPrice = await amm.getVirtualPrice()
+        const [vPrice, _swapFee] = await Promise.all([
+          amm.getVirtualPrice(),
+          amm.getSwapFee()
+        ])
         if (isSubscribed) {
           setVirutalPrice(Number(formatUnits(vPrice.toString(), 18)))
-        }
-      } catch (err) {
-        logger.error(err)
-      }
-    }
-
-    update().catch(err => logger.error(err))
-    return () => {
-      isSubscribed = false
-    }
-  }, [unsupportedAsset, sdk, canonicalToken, selectedNetwork])
-
-  useEffect(() => {
-    let isSubscribed = true
-    const update = async () => {
-      setFee(undefined)
-      if (!canonicalToken || !selectedNetwork || unsupportedAsset?.chain) {
-        return
-      }
-      try {
-        const bridge = sdk.bridge(canonicalToken.symbol)
-        const amm = bridge.getAmm(selectedNetwork.slug)
-        if (isSubscribed) {
-          setFee(await amm.getSwapFee())
+          setFee(_swapFee)
         }
       } catch (err) {
         logger.error(err)
@@ -387,14 +360,134 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setToken1Deposited(undefined)
     setTokenSumDeposited(undefined)
     setUserPoolBalance(undefined)
-    setLoading(true)
+    setLoading(!!accountAddress)
   }, [accountAddress, selectedNetwork, selectedBridge, tokenDecimals])
 
-  useEffect(() => {
-    setTimeout(() => {
+  useQuery(
+    [
+      `usePool:updateUserPoolsPositions:${accountAddress}:${selectedNetwork?.slug}:${canonicalToken?.symbol}`,
+      unsupportedAsset,
+      canonicalToken?.symbol,
+      accountAddress,
+      stakingContract?.address,
+      hopStakingContract?.address,
+      selectedNetwork?.provider,
+      selectedNetwork?.slug
+    ],
+    async () => {
+      try {
+        if (
+          !(
+            canonicalToken &&
+            selectedNetwork?.provider &&
+            !unsupportedAsset?.chain &&
+            accountAddress
+          )
+        ) {
+          setToken0Deposited(undefined)
+          setToken1Deposited(undefined)
+          setTokenSumDeposited(undefined)
+          setTotalSupply('')
+          setTotalSupplyBn(BigNumber.from(0))
+          setUserPoolTokenPercentage('')
+          setStakedBalance(BigNumber.from(0))
+          setOverallToken0Deposited(BigNumber.from(0))
+          setOverallToken1Deposited(BigNumber.from(0))
+          return
+        }
+        const bridge = sdk.bridge(canonicalToken.symbol)
+        const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
+
+        const lpTokenAddress = lpToken.address
+        const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+        const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+        const multicall = new Multicall({ network: reactAppNetwork, accountAddress })
+
+        const balancesOpts: any = []
+        balancesOpts.push({
+          abi: Erc20Abi,
+          method: 'balanceOf',
+          address: lpTokenAddress,
+          tokenSymbol,
+          tokenDecimals: 18
+        })
+        if (stakingContractAddress) {
+          const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
+          balancesOpts.push({
+            abi: StakingRewardsAbi,
+            method: 'balanceOf',
+            address: stakingContractAddress,
+            tokenSymbol: stakingContractRewardToken
+          })
+        }
+        if (hopStakingContractAddress) {
+          balancesOpts.push({
+            abi: StakingRewardsAbi,
+            method: 'balanceOf',
+            address: hopStakingContractAddress,
+            tokenSymbol: 'HOP'
+          })
+        }
+
+        const balances = await multicall.getBalancesForChain(chainSlug, balancesOpts)
+
+        const _balance = BigNumber.from(balances[0].balance)
+        let _stakingContractBalance = BigNumber.from(0)
+        let _hopStakingContractBalance = BigNumber.from(0)
+        if (stakingContractAddress && hopStakingContractAddress) {
+          _stakingContractBalance = BigNumber.from(balances[1].balance)
+          _hopStakingContractBalance = BigNumber.from(balances[2].balance)
+        } else if (stakingContractAddress) {
+          _stakingContractBalance = BigNumber.from(balances[1].balance)
+        } else if (hopStakingContractAddress) {
+          _hopStakingContractBalance = BigNumber.from(balances[1].balance)
+        }
+
+        if (_balance.gt(0) || _stakingContractBalance.gt(0) || _hopStakingContractBalance.gt(0)) {
+          const [_totalSupplyBn, _reserves] = await Promise.all([
+            (await lpToken.getErc20()).totalSupply(),
+            bridge.getSaddleSwapReserves(selectedNetwork.slug)
+          ])
+
+          const _stakedBalance = _stakingContractBalance.add(_hopStakingContractBalance)
+
+          const [_reserve0, _reserve1] = _reserves
+          const _formattedTotalSupply = formatUnits(_totalSupplyBn.toString(), lpDecimals)
+
+          const _oneToken = parseUnits('1', lpDecimals)
+          const _poolPercentage = _balance.mul(_oneToken).div(_totalSupplyBn).mul(100)
+          const _formattedPoolPercentage = Number(formatUnits(_poolPercentage, lpDecimals)).toFixed(2)
+
+          const _token0Deposited = _balance.mul(_reserve0).div(_totalSupplyBn)
+          const _token1Deposited = _balance.mul(_reserve1).div(_totalSupplyBn)
+          const _tokenSumDeposited = _token0Deposited.add(_token1Deposited)
+
+          const _totalLpTokens = _balance.add(_stakedBalance)
+          const _overallToken0Deposited = _totalLpTokens.mul(BigNumber.from(_reserve0)).div(_totalSupplyBn)
+          const _overallToken1Deposited = _totalLpTokens.mul(BigNumber.from(_reserve1)).div(_totalSupplyBn)
+          setUserPoolBalance(_balance)
+          setTotalSupply(_formattedTotalSupply)
+          setTotalSupplyBn(_totalSupplyBn)
+          setUserPoolTokenPercentage(
+            _formattedPoolPercentage === '0.00' ? '<0.01' : _formattedPoolPercentage
+          )
+          setToken0Deposited(_token0Deposited)
+          setToken1Deposited(_token1Deposited)
+          setTokenSumDeposited(_tokenSumDeposited)
+          setOverallToken0Deposited(_overallToken0Deposited)
+          setOverallToken1Deposited(_overallToken1Deposited)
+          setStakedBalance(_stakedBalance)
+        }
+      } catch (err) {
+        logger.error(err)
+      }
       setLoading(false)
-    }, 8 * 1000)
-  }, [])
+    },
+    {
+      enabled: !!accountAddress && !!selectedNetwork?.slug && !!canonicalToken?.symbol,
+      refetchInterval: 5 * 1000
+    }
+  )
 
   async function addLiquidityAndStake() {
     try {
@@ -847,204 +940,6 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
   }
 
-  useQuery(
-    [
-      `usePool:updateUserPoolsPositions:${accountAddress}:${selectedNetwork?.slug}:${canonicalToken?.symbol}`,
-      unsupportedAsset,
-      canonicalToken?.symbol,
-      accountAddress,
-      stakingContract?.address,
-      hopStakingContract?.address,
-      selectedNetwork?.provider,
-      selectedNetwork?.slug
-    ],
-    async () => {
-      try {
-        if (
-          !(
-            canonicalToken &&
-            selectedNetwork?.provider &&
-            !unsupportedAsset?.chain &&
-            accountAddress
-          )
-        ) {
-          setToken1Rate('')
-          setToken0Deposited(undefined)
-          setToken1Deposited(undefined)
-          setTokenSumDeposited(undefined)
-          setTotalSupply('')
-          setTotalSupplyBn(BigNumber.from(0))
-          setUserPoolTokenPercentage('')
-          setStakedBalance(BigNumber.from(0))
-          setOverallToken0Deposited(BigNumber.from(0))
-          setOverallToken1Deposited(BigNumber.from(0))
-          return
-        }
-        const bridge = sdk.bridge(canonicalToken.symbol)
-        const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
-
-        const [_totalSupplyBn, _balance, _reserves, _stakingContractBalance, _hopStakingContractBalance] = await Promise.all([
-          (await lpToken.getErc20()).totalSupply(),
-          lpToken.balanceOf(accountAddress),
-          bridge.getSaddleSwapReserves(selectedNetwork.slug),
-          stakingContract ? stakingContract.balanceOf(accountAddress) : Promise.resolve(BigNumber.from(0)),
-          hopStakingContract ? hopStakingContract.balanceOf(accountAddress) : Promise.resolve(BigNumber.from(0))
-        ])
-
-        const _stakedBalance = _stakingContractBalance.add(_hopStakingContractBalance)
-
-        const [_reserve0, _reserve1] = _reserves
-        const _formattedTotalSupply = formatUnits(_totalSupplyBn.toString(), lpDecimals)
-
-        const _oneToken = parseUnits('1', lpDecimals)
-        const _poolPercentage = _balance.mul(_oneToken).div(_totalSupplyBn).mul(100)
-        const _formattedPoolPercentage = Number(formatUnits(_poolPercentage, lpDecimals)).toFixed(2)
-
-        const _token0Deposited = _balance.mul(_reserve0).div(_totalSupplyBn)
-        const _token1Deposited = _balance.mul(_reserve1).div(_totalSupplyBn)
-        const _tokenSumDeposited = _token0Deposited.add(_token1Deposited)
-
-        let _token1Rate = ''
-        if (_reserve0?.eq(0) && _reserve1?.eq(0)) {
-          _token1Rate = '0'
-        } else {
-          const amount0 = formatUnits(_reserve1.mul(oneToken).div(_reserve0), tokenDecimals)
-          _token1Rate = Number(amount0).toFixed(2)
-        }
-
-        const _totalLpTokens = _balance.add(_stakedBalance)
-        const _overallToken0Deposited = _totalLpTokens.mul(BigNumber.from(_reserve0)).div(_totalSupplyBn)
-        const _overallToken1Deposited = _totalLpTokens.mul(BigNumber.from(_reserve1)).div(_totalSupplyBn)
-        setUserPoolBalance(_balance)
-        setTotalSupply(_formattedTotalSupply)
-        setTotalSupplyBn(_totalSupplyBn)
-        setUserPoolTokenPercentage(
-          _formattedPoolPercentage === '0.00' ? '<0.01' : _formattedPoolPercentage
-        )
-        setToken0Deposited(_token0Deposited)
-        setToken1Deposited(_token1Deposited)
-        setTokenSumDeposited(_tokenSumDeposited)
-        setToken1Rate(_token1Rate)
-        setOverallToken0Deposited(_overallToken0Deposited)
-        setOverallToken1Deposited(_overallToken1Deposited)
-        setStakedBalance(_stakedBalance)
-      } catch (err) {
-        logger.error(err)
-      }
-      setLoading(false)
-    },
-    {
-      enabled: !!accountAddress && !!selectedNetwork?.slug && !!canonicalToken?.symbol,
-      refetchInterval: 5 * 1000
-    }
-  )
-
-  useQuery(
-    [
-      `usePool:updatePrices:${canonicalToken?.symbol}`,
-      unsupportedAsset,
-      token0Amount,
-      totalSupply,
-      token1Amount,
-      token1Rate,
-      poolReserves,
-      canonicalToken?.symbol
-    ],
-    async () => {
-      try {
-        if (!(totalSupply && canonicalToken && poolReserves.length > 0 && !unsupportedAsset?.chain)) {
-          return
-        }
-        if (Number(token1Rate)) {
-          const price = new Price(token1Rate, '1')
-          setToken0Price(price.toFixed(2))
-          setToken1Price(price.inverted().toFixed(2))
-        }
-
-        if (token0Amount || token1Amount) {
-          let amount0 = 0
-          let amount1 = 0
-          let token0AmountBn = BigNumber.from(0)
-          let token1AmountBn = BigNumber.from(0)
-
-          // const reserve0 = Number(formatUnits(poolReserves[0]?.toString(), canonicalToken?.decimals))
-          // const reserve1 = Number(formatUnits(poolReserves[1]?.toString(), canonicalToken.decimals))
-
-          if (token0Amount) {
-            token0AmountBn = parseUnits(token0Amount?.toString(), canonicalToken?.decimals)
-            amount0 = Number(token0Amount)
-          }
-          if (token1Amount) {
-            token1AmountBn = parseUnits(token1Amount?.toString(), canonicalToken?.decimals)
-            amount1 = Number(token1Amount)
-          }
-          const liquidity = amount0 + amount1
-          const bridge = sdk.bridge(canonicalToken.symbol)
-          const amm = bridge.getAmm(selectedNetwork.slug)
-          const lpTokensForDepositBn = await amm.calculateAddLiquidityMinimum(token0AmountBn, token1AmountBn)
-          const lpTokensForDeposit = Number(formatUnits(lpTokensForDepositBn.toString(), TOTAL_AMOUNTS_DECIMALS))
-          const sharePercentage = Math.max(
-            Math.min(Number(((liquidity / (Number(totalSupply) + lpTokensForDeposit)) * 100).toFixed(2)), 100),
-            0
-          )
-          setPoolSharePercentage((sharePercentage || '0').toString())
-        } else {
-          setPoolSharePercentage('0')
-        }
-      } catch (err) {
-        logger.error(err)
-      }
-    },
-    {
-      enabled: !!canonicalToken?.symbol,
-      refetchInterval: 5 * 1000
-    }
-  )
-
-  const { data: hasStaked } = useQuery(
-    [
-      `usePool:hasStaked:${accountAddress}:${chainSlug}:${tokenSymbol}`,
-      accountAddress,
-      chainSlug,
-      tokenSymbol
-    ],
-    async () => {
-      if (!(accountAddress && chainSlug && tokenSymbol)) {
-        return false
-      }
-
-      {
-        const address = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
-        if (address) {
-          const _provider = sdk.getChainProvider(chainSlug)
-          const contract = StakingRewards__factory.connect(address, _provider)
-          const stakedBalance = await contract?.balanceOf(accountAddress)
-          if (stakedBalance.gt(0)) {
-            return true
-          }
-        }
-      }
-
-      {
-        const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
-        if (address) {
-          const _provider = sdk.getChainProvider(chainSlug)
-          const contract = StakingRewards__factory.connect(address, _provider)
-          const stakedBalance = await contract?.balanceOf(accountAddress)
-          if (stakedBalance.gt(0)) {
-            return true
-          }
-        }
-      }
-
-      return false
-    },
-    {
-      enabled: !!chainSlug,
-      refetchInterval: 60 * 1000
-    }
-  )
-
   const token0Balance =
     canonicalToken && canonicalBalance
       ? Number(formatUnits(canonicalBalance, tokenDecimals))
@@ -1078,7 +973,6 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const totalAprFormatted = _poolStats ? toPercentDisplay(_poolStats?.totalApr) : '-'
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${commafy((priceImpact * 100), 2)}%` : '-'
-  const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : '-'
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
   const poolName = `${tokenSymbol} ${selectedNetwork?.name} Pool`
@@ -1146,6 +1040,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const token0BalanceBn = canonicalBalance ?? BigNumber.from(0)
   const token1BalanceBn = hopBalance ?? BigNumber.from(0)
+  const hasStaked = stakedBalance.gt(0)
 
   return (
     <PoolsContext.Provider
@@ -1169,7 +1064,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         feeFormatted,
         hasBalance,
         hasStakeContract,
-        hasStaked: !!hasStaked,
+        hasStaked,
         hopBalance,
         hopToken,
         hopTokenSymbol,
@@ -1189,8 +1084,6 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         overallUserPoolTokenPercentageFormatted,
         poolName,
         poolReserves,
-        poolSharePercentage,
-        poolSharePercentageFormatted,
         priceImpact,
         priceImpactFormatted,
         priceImpactLabel,
@@ -1213,15 +1106,12 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         token0BalanceFormatted,
         token0Deposited,
         token0DepositedFormatted,
-        token0Price,
         token1Amount,
         token1Balance,
         token1BalanceBn,
         token1BalanceFormatted,
         token1Deposited,
         token1DepositedFormatted,
-        token1Price,
-        token1Rate,
         tokenDecimals,
         tokenImageUrl,
         tokenSumDeposited,

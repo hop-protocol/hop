@@ -8,7 +8,6 @@ import {
   Network,
   OnChainMessageStatus
 } from '@consensys/linea-sdk'
-import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 
 // TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
@@ -33,12 +32,7 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
 
   constructor (chainSlug: string) {
     super(chainSlug)
-
-    const networkSlug = getNetworkSlugByChainSlug(chainSlug)
-    if (!networkSlug) {
-      throw new Error(`Network slug not found for chain slug ${chainSlug}`)
-    }
-    const lineaNetwork: Network = `linea-${networkSlug}` as Network
+    const lineaNetwork: Network = `linea-${this.networkSlug}` as Network
 
     // TODO: as of Oct 2023, there is no way to use the SDK in read-write with an ethers signer rather than private keys
     const sdkOptions: Partial<LineaSDKOptions> = {

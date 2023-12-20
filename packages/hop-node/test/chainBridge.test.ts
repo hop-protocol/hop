@@ -2,7 +2,7 @@ import '../src/moduleAlias'
 import getChainBridge from 'src/chains/getChainBridge'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { Chain } from 'src/constants'
-import { FinalityBlockTag } from 'src/chains/IChainBridge'
+import { FinalityBlockTag, IChainBridge } from 'src/chains/IChainBridge'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 import {
   parseConfigFile,
@@ -26,7 +26,7 @@ async function main () {
   const config = await parseConfigFile(configFilePath)
   await setGlobalConfigFromConfigFile(config)
 
-  const chainWatcher = await getConfirmRootsWatcher({ chain, token, dryMode })
+  const chainWatcher: IChainBridge = await getConfirmRootsWatcher({ chain, token, dryMode })
   if (!chainWatcher) {
     throw new Error('watcher not found')
   }

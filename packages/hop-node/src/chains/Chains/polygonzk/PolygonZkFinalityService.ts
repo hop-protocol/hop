@@ -1,8 +1,9 @@
+import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
+import wait from 'src/utils/wait'
+import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
 import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { FinalityService, IFinalityService } from 'src/chains/Services/FinalityService'
-import { IInclusionService } from 'src/chains/Services/InclusionService'
 import { providers } from 'ethers'
 
 const finalityNameMap: Record<string, string> = {
@@ -34,16 +35,21 @@ type RpcResponse = {
   result: any
 }
 
-export class PolygonZkFinalityService extends FinalityService implements IFinalityService {
-  private readonly inclusionService: IInclusionService
-  doesSupportZkEvmRpc: boolean
+export class PolygonZkFinalityService extends AbstractFinalityService implements IFinalityService {
+  #ready: boolean = false
+  #doesSupportZkEvmRpc: boolean
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
     this.#init()
+      .then(() => {
+        this.#ready = true
+        this.logger.debug('zkEVM client initialized')
+      })
       .catch((err: any) => {
-        this.logger.error('polygonZkEvm Finality initialize error:', err)
+        this.logger.error('zkEVM client initialize error:', err)
+        process.exit(1)
       })
   }
 
@@ -51,15 +57,26 @@ export class PolygonZkFinalityService extends FinalityService implements IFinali
     // Verify that the RPC endpoint supports the zkEVM_* RPC methods
     try {
       await this.#fetchRpcCall(`zkevm_${finalityNameMap[FinalityBlockTag.Safe]}BatchNumber`)
-      this.doesSupportZkEvmRpc = true
+      this.#doesSupportZkEvmRpc = true
     } catch (err) {
       this.logger.warn('RPC endpoint does not support zkEVM_* methods')
-      this.doesSupportZkEvmRpc = false
+      this.#doesSupportZkEvmRpc = false
+      throw err
     }
   }
 
+  async #tilReady (): Promise<boolean> {
+    if (this.#ready) {
+      return true
+    }
+    await wait(100)
+    return await this.#tilReady()
+  }
+
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
-    if (!this.doesSupportZkEvmRpc) {
+    await this.#tilReady()
+
+    if (!this.#doesSupportZkEvmRpc) {
       this.logger.error('getCustomBlockNumber: RPC endpoint does not support zkEVM_* methods')
       return
     }
@@ -71,20 +88,19 @@ export class PolygonZkFinalityService extends FinalityService implements IFinali
 
     // Use a cache since the granularity of finality updates on l1 is on the order of minutes
     const customBlockNumberCacheKey = `${this.chainSlug}-${blockTag}`
-    const cacheValue = this.getCacheValue(customBlockNumberCacheKey)
+    const cacheValue = this.cache.get(customBlockNumberCacheKey)
     if (cacheValue) {
       this.logger.debug('getCustomBlockNumber: using cached value')
       return cacheValue
     }
 
-    // maybe try and then set cache?
     const customBlockNumber = await this.#getCustomBlockNumber(blockTag)
     if (!customBlockNumber) {
       this.logger.error('getCustomBlockNumber: no customBlockNumber found')
       return
     }
 
-    this.updateCache(customBlockNumberCacheKey, customBlockNumber)
+    this.cache.set(customBlockNumberCacheKey, customBlockNumber)
     return customBlockNumber
   }
 
@@ -115,7 +131,7 @@ export class PolygonZkFinalityService extends FinalityService implements IFinali
 
     // Get latest block number from batch. The latest block number is the last block in the batch.
     const latestBlockHashInBatch = batch.blocks[batch.blocks.length - 1]
-    const latestBlockInBatch: providers.Block = await this.l2Wallet.provider!.getBlock(latestBlockHashInBatch)
+    const latestBlockInBatch: providers.Block = await this.l2Provider.getBlock(latestBlockHashInBatch)
     if (!latestBlockInBatch?.number) {
       this.logger.error('getCustomBlockNumber: no latestBlockInBatch found')
       return

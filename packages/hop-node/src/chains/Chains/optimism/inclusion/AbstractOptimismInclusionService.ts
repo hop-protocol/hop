@@ -6,7 +6,8 @@ import { Contract, providers } from 'ethers'
 import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-import { getCanonicalAddressesForChain } from 'src/config'
+import { OptimismCanonicalAddresses, OptimismAddresses, OptimismSuperchainChains } from 'src/chains/Chains/optimism/OptimismAddresses'
+import { NetworkSlug } from '@hop-protocol/core/networks'
 
 interface Channel {
   transactionHashes: string[]
@@ -29,17 +30,16 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    // System addresses and precompiles
-    this.l1BlockSetterAddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0001'
-    this.l1BlockAddress = '0x4200000000000000000000000000000000000015'
-
-    // Addresses from config
-    const canonicalAddresses: OptimismSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    this.batcherAddress = canonicalAddresses?.batcherAddress ?? ''
-    this.batchInboxAddress = canonicalAddresses?.batchInboxAddress ?? ''
-    if (!this.batcherAddress || !this.batchInboxAddress) {
+    const canonicalAddresses: OptimismCanonicalAddresses | undefined = OptimismAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as OptimismSuperchainChains]
+    if (!canonicalAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
+    this.batcherAddress = canonicalAddresses?.batcherAddress
+    this.batchInboxAddress = canonicalAddresses?.batchInboxAddress
+
+    // Precompiles
+    this.l1BlockSetterAddress = OptimismAddresses.precompiles.l1BlockSetterAddress
+    this.l1BlockAddress = OptimismAddresses.precompiles.l1BlockAddress
 
     const l1BlockAbi: string[] = [
       'function number() view returns (uint64)',

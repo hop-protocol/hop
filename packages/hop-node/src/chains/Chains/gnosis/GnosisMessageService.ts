@@ -4,12 +4,13 @@ import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Contract, providers } from 'ethers'
-import { GnosisCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
-import { getCanonicalAddressesForChain } from 'src/config'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 import { toHex } from 'web3-utils'
+import { GnosisAddresses, GnosisCanonicalAddresses } from 'src/chains/Chains/gnosis/GnosisAddresses'
+import { NetworkSlug } from '@hop-protocol/core/networks'
+import { Chain } from 'src/constants'
 
 type Message = string
 type MessageStatus = string
@@ -25,13 +26,13 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
     super(chainSlug)
 
     // Get chain contracts
-    const canonicalAddresses: GnosisCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
-    const l1AmbAddress = canonicalAddresses?.l1AmbAddress
-    const l2AmbAddress = canonicalAddresses?.l2AmbAddress
-    if (!l1AmbAddress || !l2AmbAddress) {
+    const gnosisAddresses: GnosisCanonicalAddresses | undefined = GnosisAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[Chain.Gnosis]
+    if (!gnosisAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
 
+    const l1AmbAddress = gnosisAddresses.l1AmbAddress
+    const l2AmbAddress = gnosisAddresses.l2AmbAddress
     this.#l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, this.l1Wallet) as L1_xDaiAMB
     this.#l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
   }

@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
-import { ArbitrumSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
 import { BigNumber, Contract, providers } from 'ethers'
-import { getCanonicalAddressesForChain } from 'src/config'
+import { ArbitrumCanonicalAddresses, ArbitrumAddresses, ArbitrumSuperchainChains } from 'src/chains/Chains/arbitrum/ArbitrumAddresses'
+import { NetworkSlug } from '@hop-protocol/core/networks'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
@@ -16,15 +16,22 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    // Addresses from config
-    const canonicalAddresses: ArbitrumSuperchainCanonicalAddresses = getCanonicalAddressesForChain(this.chainSlug)
+    const canonicalAddresses: ArbitrumCanonicalAddresses | undefined = ArbitrumAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as ArbitrumSuperchainChains]
+    if (!canonicalAddresses) {
+      throw new Error(`canonical addresses not found for ${this.chainSlug}`)
+    }
+
     const sequencerInboxAddress = canonicalAddresses?.sequencerInboxAddress
     if (!sequencerInboxAddress) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }
 
     // Precompiles
-    const nodeInterfaceAddress = '0x00000000000000000000000000000000000000C8'
+    const nodeInterfaceAddress = ArbitrumAddresses.precompiles.nodeInterfaceAddress
+    if (!nodeInterfaceAddress) {
+      throw new Error(`precompile addresses not found for ${this.chainSlug}`)
+    }
+
     const nodeInterfaceAbi: string[] = [
       'function findBatchContainingBlock(uint64 blockNum) external view returns (uint64)',
       'function getL1Confirmations(bytes32 blockHash) external view returns (uint64)'

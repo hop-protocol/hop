@@ -12,10 +12,10 @@ export type ArbitrumCanonicalAddresses = {
 }
 
 type ArbitrumSuperchainAddresses = {
-  precompiles: ArbitrumPrecompiles,
+  precompiles: ArbitrumPrecompiles
   canonicalAddresses: {
-      [key in NetworkSlug]?: {
-        [key in ArbitrumSuperchainChains]?: ArbitrumCanonicalAddresses
+    [key in NetworkSlug]?: {
+      [key in ArbitrumSuperchainChains]?: ArbitrumCanonicalAddresses
     }
   }
 }
@@ -37,12 +37,12 @@ export const ArbitrumAddresses: ArbitrumSuperchainAddresses = {
     [NetworkSlug.Goerli]: {
       [Chain.Arbitrum]: {
         sequencerInboxAddress: '0x0484A87B144745A2E5b7c359552119B6EA2917A9'
-      },
+      }
     },
     [NetworkSlug.Sepolia]: {
       [Chain.Arbitrum]: {
         sequencerInboxAddress: '0x6c97864CE4bEf387dE0b3310A44230f7E3F1be0D'
-      },
+      }
     }
   }
 }

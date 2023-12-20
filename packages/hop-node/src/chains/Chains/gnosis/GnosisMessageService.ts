@@ -2,15 +2,14 @@ import assert from 'assert'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
-import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
+import { CanonicalMessengerRootConfirmationGasLimit, Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
+import { GnosisAddresses, GnosisCanonicalAddresses } from 'src/chains/Chains/gnosis/GnosisAddresses'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
+import { NetworkSlug } from '@hop-protocol/core/networks'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 import { toHex } from 'web3-utils'
-import { GnosisAddresses, GnosisCanonicalAddresses } from 'src/chains/Chains/gnosis/GnosisAddresses'
-import { NetworkSlug } from '@hop-protocol/core/networks'
-import { Chain } from 'src/constants'
 
 type Message = string
 type MessageStatus = string

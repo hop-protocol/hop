@@ -1,7 +1,6 @@
 import { Chain } from 'src/constants'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 
-
 export type GnosisCanonicalAddresses = {
   l1AmbAddress: string
   l2AmbAddress: string
@@ -9,8 +8,8 @@ export type GnosisCanonicalAddresses = {
 
 type GnosisAddressesType = {
   canonicalAddresses: {
-      [key in NetworkSlug]?: {
-        [Chain.Gnosis]: GnosisCanonicalAddresses
+    [key in NetworkSlug]?: {
+      [Chain.Gnosis]: GnosisCanonicalAddresses
     }
   }
 }

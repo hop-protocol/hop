@@ -3,11 +3,10 @@ import zlib from 'zlib'
 import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
 import { Contract, providers } from 'ethers'
-import { OptimismSuperchainCanonicalAddresses } from '@hop-protocol/core/addresses'
+import { NetworkSlug } from '@hop-protocol/core/networks'
+import { OptimismAddresses, OptimismCanonicalAddresses, OptimismSuperchainChains } from 'src/chains/Chains/optimism/OptimismAddresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-import { OptimismCanonicalAddresses, OptimismAddresses, OptimismSuperchainChains } from 'src/chains/Chains/optimism/OptimismAddresses'
-import { NetworkSlug } from '@hop-protocol/core/networks'
 
 interface Channel {
   transactionHashes: string[]

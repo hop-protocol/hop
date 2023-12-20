@@ -14,10 +14,10 @@ export type OptimismCanonicalAddresses = {
 }
 
 type OptimismSuperchainAddresses = {
-  precompiles: OptimismPrecompiles,
+  precompiles: OptimismPrecompiles
   canonicalAddresses: {
-      [key in NetworkSlug]?: {
-        [key in OptimismSuperchainChains]?: OptimismCanonicalAddresses
+    [key in NetworkSlug]?: {
+      [key in OptimismSuperchainChains]?: OptimismCanonicalAddresses
     }
   }
 }
@@ -32,21 +32,21 @@ export const OptimismAddresses: OptimismSuperchainAddresses = {
     [NetworkSlug.Mainnet]: {
       [Chain.Optimism]: {
         batcherAddress: '0x6887246668a3b87F54DeB3b94Ba47a6f63F32985',
-        batchInboxAddress: '0xFF00000000000000000000000000000000000010',
+        batchInboxAddress: '0xFF00000000000000000000000000000000000010'
       },
       [Chain.Base]: {
         batcherAddress: '0x5050F69a9786F081509234F1a7F4684b5E5b76C9',
-        batchInboxAddress: '0xFf00000000000000000000000000000000008453',
+        batchInboxAddress: '0xFf00000000000000000000000000000000008453'
       }
     },
     [NetworkSlug.Goerli]: {
       [Chain.Optimism]: {
         batcherAddress: '0x7431310e026B69BFC676C0013E12A1A11411EEc9',
-        batchInboxAddress: '0xff00000000000000000000000000000000000420',
+        batchInboxAddress: '0xff00000000000000000000000000000000000420'
       },
       [Chain.Base]: {
         batcherAddress: '0x73b4168Cc87F35Cc239200A20Eb841CdeD23493B',
-        batchInboxAddress: '0x8453100000000000000000000000000000000000',
+        batchInboxAddress: '0x8453100000000000000000000000000000000000'
       }
     }
   }

@@ -3,7 +3,7 @@ import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
-import { Addresses, Bonders, Bridges, CanonicalAddresses, addresses as coreAddresses } from '@hop-protocol/core/addresses'
+import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, ChainSlug, config as coreConfig } from '@hop-protocol/core/config'
 import { BonderConfig } from 'src/config/types'
 import {
@@ -67,6 +67,7 @@ export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 export const wsEnabledChains = process.env.WS_ENABLED_CHAINS?.split(',') ?? []
 export const BondThreshold = normalizeEnvVarNumber(process.env.BOND_THRESHOLD) ?? DefaultBondThreshold
+// TODO: Normalize bool. This will be true if ENFORCE_RELAYER_FEE is set to anything
 export const EnforceRelayerFee = !!process.env.ENFORCE_RELAYER_FEE ?? false
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
@@ -157,7 +158,6 @@ export type Config = {
   bonderPrivateKey: string
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
-  canonicalAddresses: CanonicalAddresses & {[network: string]: any}
   bonderConfig: BonderConfig
   db: DbConfig
   sync: SyncConfigs
@@ -174,7 +174,7 @@ export type Config = {
 const networkConfigs: {[key: string]: any} = {}
 
 for (const network in coreNetworks) {
-  const { bridges: addresses, bonders, canonicalAddresses } = coreAddresses[network as Network]
+  const { bridges: addresses, bonders } = coreAddresses[network as Network]
   const coreNetwork = coreNetworks[network as Network]
   const bonderConfig: BonderConfig = {}
   const networks: any = {}
@@ -193,19 +193,18 @@ for (const network in coreNetworks) {
   }
 
   const metadata = coreMetadata[network as Network]
-  const networkInfo = { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata }
+  const networkInfo = { addresses, bonders, bonderConfig, networks, metadata }
   networkConfigs[network] = networkInfo
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'canonicalAddresses' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, canonicalAddresses, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs?.[network]
   const isMainnet = network === Network.Mainnet
 
   return {
     network,
     addresses,
     bonders,
-    canonicalAddresses,
     bonderConfig,
     networks,
     metadata,
@@ -214,7 +213,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, bonders, canonicalAddresses, bonderConfig, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, bonderConfig, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -226,7 +225,6 @@ export const config: Config = {
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
   bonders,
-  canonicalAddresses,
   bonderConfig,
   fees: {},
   routes: {},
@@ -461,10 +459,6 @@ export enum Watchers {
 
 export function enableEmergencyMode () {
   config.emergencyDryMode = true
-}
-
-export function getCanonicalAddressesForChain (chainSlug: string): any {
-  return config.canonicalAddresses?.[chainSlug]
 }
 
 export const getBonderTotalStake = (token: string): number | undefined => {

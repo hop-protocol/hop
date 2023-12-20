@@ -24,7 +24,7 @@ const useBalance = (token?: ContractType, address?: Addressish, chainId?: ChainI
     },
     {
       enabled: !!chainId && !!token?.address && !!address?.toString(),
-      refetchInterval: 10e3,
+      refetchInterval: 10 * 1000,
     }
   )
 

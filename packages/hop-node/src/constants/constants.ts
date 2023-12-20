@@ -192,13 +192,11 @@ export const RelayableChains: IRelayableChains = {
   L1_TO_L2: [
     Chain.Arbitrum,
     Chain.Nova,
-    Chain.Linea,
-    Chain.PolygonZk
+    Chain.Linea
   ],
   L2_TO_L1: [
     Chain.Gnosis,
-    Chain.Polygon,
-    Chain.PolygonZk
+    Chain.Polygon
   ]
 }
 

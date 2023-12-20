@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Theme, makeStyles } from '@material-ui/core'
 import Box from '@material-ui/core/Box'
@@ -11,6 +11,7 @@ import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
 import { isMainnet, showBannerMessage, reactAppNetwork } from 'src/config'
 import { Settings } from './Settings'
 import { WalletWarning } from './WalletWarning'
+import { useQuery } from 'react-query'
 import {
   toTokenDisplay,
   networkIdNativeTokenSymbol,
@@ -20,7 +21,6 @@ import {
 } from 'src/utils'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
-import { useInterval } from 'usehooks-ts'
 import { ConnectWalletButton } from './ConnectWalletButton'
 import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
@@ -112,32 +112,35 @@ export const Header: FC = () => {
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
 
-  const updateDisplayBalance = async () => {
-    try {
-      if (!(address && provider && connectedNetworkId)) {
+  useQuery(
+    [
+      `header:displayBalance:${address}:${connectedNetworkId}`,
+      address,
+      connectedNetworkId
+    ],
+    async () => {
+      try {
+        if (!(address && provider && connectedNetworkId)) {
+          setDisplayBalance('')
+          return
+        }
+        const balance = await provider.getBalance(address.address)
+        const formattedBalance = toTokenDisplay(balance, 18)
+        const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
+        const _displayBalance = `${fixedDecimals(formattedBalance, 3)} ${tokenSymbol}`
+        const network = findNetworkBySlug(networkIdToSlug(connectedNetworkId))
+        setDisplayBalance(_displayBalance)
+        setConnectedNetwork(network)
+      } catch (err) {
+        logger.error(err)
         setDisplayBalance('')
-        return
       }
-      const balance = await provider.getBalance(address.address)
-      const formattedBalance = toTokenDisplay(balance, 18)
-      const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
-      const _displayBalance = `${fixedDecimals(formattedBalance, 3)} ${tokenSymbol}`
-      const network = findNetworkBySlug(networkIdToSlug(connectedNetworkId))
-      setDisplayBalance(_displayBalance)
-      setConnectedNetwork(network)
-    } catch (err) {
-      logger.error(err)
-      setDisplayBalance('')
+    },
+    {
+      enabled: !!address && !!connectedNetworkId && !!provider,
+      refetchInterval: 60 * 1000
     }
-  }
-
-  useEffect(() => {
-    if (address && provider && connectedNetworkId) {
-      updateDisplayBalance()
-    }
-  }, [address, provider, connectedNetworkId])
-
-  useInterval(updateDisplayBalance, 5000)
+  )
 
   const showBalance = !!displayBalance && !!connectedNetwork
   const ThemeModeIcon: any = isDarkMode ? SunIcon : MoonIcon

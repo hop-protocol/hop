@@ -235,7 +235,7 @@ export default class L1Bridge extends Bridge {
 
     let nearestItemToTransferSent
     const destinationChain = chainIdToSlug(destinationChainId)
-    if (RelayableChains.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
+    if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
       nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
@@ -286,7 +286,7 @@ export default class L1Bridge extends Bridge {
 
     let nearestItemToTransferSent
     const destinationChain = chainIdToSlug(destinationChainId)
-    if (RelayableChains.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
+    if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
       nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)

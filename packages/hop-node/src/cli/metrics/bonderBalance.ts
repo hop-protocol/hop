@@ -79,7 +79,7 @@ async function main (source: any) {
           if (tokenData.tokenPrice[token] !== 1) {
             totalBalancesLessStables[hopAccountAddress] = totalBalancesLessStables[hopAccountAddress] + balanceUsd
           }
-          console.log(`Balance of ${token} on ${chain} for ${hopAccountAddress} is $${balanceUsd.toString()} (${fmtBalance}) (including stables)`)
+          console.log(`Balance of ${token} on ${chain} for ${hopAccountAddress} is ${balanceUsd.toString()} (${fmtBalance}) (including stables)`)
         }
       }
     }
@@ -110,12 +110,12 @@ async function main (source: any) {
           totalBalancesLessStables[hopAccountAddress] = totalBalancesLessStables[hopAccountAddress] + balanceUsd
         }
 
-        console.log(`Balance of ${token} on ${chain} for ${hopAccountAddress} is $${balanceUsd.toString()} (${fmtBalance})`)
+        console.log(`Balance of ${token} on ${chain} for ${hopAccountAddress} is ${balanceUsd.toString()} (${fmtBalance})`)
       }
     }
 
-    console.log(`\nTotal balance of ${hopAccountAddress} is $${totalBalances[hopAccountAddress]} (with stables)`)
-    console.log(`Total balance of ${hopAccountAddress} is $${totalBalancesLessStables[hopAccountAddress]} (excluding stables))`)
+    console.log(`\nTotal balance of ${hopAccountAddress} is ${totalBalances[hopAccountAddress]} (with stables)`)
+    console.log(`Total balance of ${hopAccountAddress} is ${totalBalancesLessStables[hopAccountAddress]} (excluding stables))`)
     console.log('---')
   }
 
@@ -124,12 +124,12 @@ async function main (source: any) {
   console.log(`Year: ${year}\n`)
   console.log('Including Stables\n')
   for (const hopAccountAddress of hopAccountAddresses) {
-    console.log(`${hopAccountAddress}, $${totalBalances[hopAccountAddress]}`)
+    console.log(`${hopAccountAddress}, ${totalBalances[hopAccountAddress]}`)
   }
 
   console.log('\nExcludingStables\n')
   for (const hopAccountAddress of hopAccountAddresses) {
-    console.log(`${hopAccountAddress}, $${totalBalancesLessStables[hopAccountAddress]}`)
+    console.log(`${hopAccountAddress}, ${totalBalancesLessStables[hopAccountAddress]}`)
   }
 }
 

@@ -5,6 +5,7 @@ import { ChainSlug } from '@hop-protocol/core/config'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
+import { providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -115,12 +116,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
     logger.debug('sending settle tx')
     try {
-      const tx = await destBridge.settleBondedWithdrawals(
+      const tx: providers.TransactionResponse = await destBridge.settleBondedWithdrawals(
         bonder,
         transferIds,
         totalAmount
       )
-      const msg = `settleBondedWithdrawals on destinationChainId: ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
+      const msg = `settleBondedWithdrawals on destinationChainId: txHash: ${tx.hash}, ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
       logger.info(msg)
       this.notifier.info(msg)
 

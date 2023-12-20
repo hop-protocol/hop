@@ -1,10 +1,15 @@
-import { ArbitrumInclusionService } from 'src/chains/Chains/arbitrum/ArbitrumInclusionService'
+import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
+import { ArbitrumFinalityService } from 'src/chains/Chains/arbitrum/ArbitrumFinalityService'
 import { ArbitrumMessageService } from 'src/chains/Chains/arbitrum/ArbitrumMessageService'
-import { Chain } from 'src/constants'
-import { ChainBridgeParams } from 'src/chains/AbstractChainBridge'
 
-export const ArbitrumBridgeParams: ChainBridgeParams = {
-  chainSlug: Chain.Arbitrum,
-  Message: ArbitrumMessageService,
-  Inclusion: ArbitrumInclusionService
+export class ArbitrumBridge extends AbstractChainBridge {
+  constructor (chainSlug: string) {
+    super({
+      chainSlug,
+      chainServices: {
+        messageService: new ArbitrumMessageService(chainSlug),
+        finalityService: new ArbitrumFinalityService(chainSlug)
+      }
+    })
+  }
 }

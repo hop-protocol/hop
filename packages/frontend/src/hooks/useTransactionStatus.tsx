@@ -115,8 +115,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     }
   }, [transactions, transaction])
 
-  useInterval(updateTxStatus, completed ? null : 10e3)
-  useInterval(updateDestTxStatus, !completed || destCompleted ? null : 10e3)
+  useInterval(updateTxStatus, completed ? null : 10 * 1000)
+  useInterval(updateDestTxStatus, !completed || destCompleted ? null : 10 * 1000)
 
   return {
     completed,

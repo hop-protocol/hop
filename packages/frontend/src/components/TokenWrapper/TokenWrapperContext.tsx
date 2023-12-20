@@ -105,7 +105,7 @@ const TokenWrapperContextProvider: FC<{ children: ReactNode }> = ({ children }) 
     },
     {
       enabled: !!address?.address && !!canonicalToken && !!wrappedToken,
-      refetchInterval: 5e3,
+      refetchInterval: 5 * 1000,
     }
   )
 

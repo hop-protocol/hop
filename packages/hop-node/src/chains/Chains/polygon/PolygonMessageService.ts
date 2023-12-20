@@ -1,18 +1,37 @@
 import fetch from 'node-fetch'
+import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
+import { BigNumber, providers, utils } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
-import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
-import { NetworkSlug, networks } from '@hop-protocol/core/networks'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
-import { providers, utils } from 'ethers'
+import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string
 
-type RelayOpts = {
+type PolygonApiResError = {
+  error: boolean
+  message: string
+}
+
+type PolygonApiResSuccess = {
+  headerBlockNumber: string
+  blockNumber: string
+  start: string
+  end: string
+  proposer: string
+  root: string
+  createdAt: string
+  message: string
+}
+
+type PolygonApiRes = PolygonApiResError | PolygonApiResSuccess
+
+type MessageOpts = {
   rootTunnelAddress: string
+  txBlockNumber: number
 }
 
 const polygonChainSlugs: Record<string, string> = {
@@ -30,28 +49,19 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'mumbai'
 }
 
-export class PolygonMessageService extends MessageService<PolygonMessage, PolygonMessageStatus, RelayOpts> implements IMessageService {
+export class PolygonMessageService extends AbstractMessageService<PolygonMessage, PolygonMessageStatus, MessageOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   maticClient: any
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
-    let l1Network: string | undefined
-    for (const network in networks) {
-      const chainId = networks[network as NetworkSlug]?.polygon?.networkId
-      if (chainId === this.chainId) {
-        l1Network = network
-        break
-      }
+    const networkSlug = getNetworkSlugByChainSlug(chainSlug)
+    if (!networkSlug) {
+      throw new Error(`Network slug not found for chain slug ${chainSlug}`)
     }
-
-    if (!l1Network) {
-      throw new Error('polygon network name not found')
-    }
-
-    const polygonNetwork = polygonChainSlugs[l1Network]
+    const polygonNetwork: string = polygonChainSlugs[networkSlug]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
@@ -59,27 +69,34 @@ export class PolygonMessageService extends MessageService<PolygonMessage, Polygo
 
     this.maticClient = new FxPortalClient()
 
-    this.#_initClient(l1Network)
+    this.#_initClient(networkSlug)
       .then(() => {
         this.ready = true
         console.log('Matic client initialized')
       })
       .catch((err: any) => {
         this.logger.error('Matic client initialize error:', err)
+        process.exit(1)
       })
+  }
+
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
     // As of Jun 2023, the maticjs-fxportal client errors out with an underflow error
     // To resolve the issue, this logic just rips out the payload generation and sends the tx manually
-    const rootTunnelAddress: string = await this._getRootTunnelAddressFromTxHash(l2TxHash)
+    const rootTunnelAddress: string = await this.#getRootTunnelAddressFromTxHash(l2TxHash)
+    const tx = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
 
-    // Message is a txHash for Polygon
-    const relayOpts = {
-      rootTunnelAddress
+    const messageOpts: MessageOpts = {
+      rootTunnelAddress,
+      txBlockNumber: tx.blockNumber
     }
 
-    return this.validateMessageAndSendTransaction(l2TxHash, relayOpts)
+    // Message is a txHash for Polygon
+    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
   }
 
   async #_initClient (l1Network: string): Promise<void> {
@@ -105,7 +122,7 @@ export class PolygonMessageService extends MessageService<PolygonMessage, Polygo
     this.ready = true
   }
 
-  async _getRootTunnelAddressFromTxHash (l2TxHash: string): Promise<string> {
+  async #getRootTunnelAddressFromTxHash (l2TxHash: string): Promise<string> {
     // Get the bridge address from the logs
     // TransfersCommitted(uint256,bytes32,uint256,uint256)
     const logEvent = '0xf52ad20d3b4f50d1c40901dfb95a9ce5270b2fc32694e5c668354721cd87aa74'
@@ -152,8 +169,8 @@ export class PolygonMessageService extends MessageService<PolygonMessage, Polygo
     return defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
   }
 
-  protected async sendRelayTransaction (message: PolygonMessage, relayOpts: RelayOpts): Promise<providers.TransactionResponse> {
-    const { rootTunnelAddress } = relayOpts
+  protected async sendRelayTransaction (message: PolygonMessage, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+    const { rootTunnelAddress } = messageOpts
 
     // Generate payload
     const logEventSig = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
@@ -181,21 +198,40 @@ export class PolygonMessageService extends MessageService<PolygonMessage, Polygo
   }
 
   protected async isMessageInFlight (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiRes = await this._fetchBlockIncluded(messageStatus)
-    return apiRes.message === 'No block found'
+    const apiRes: PolygonApiResError = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResError
+    return (
+      apiRes?.error &&
+      apiRes.message === 'No block found'
+    )
   }
 
-  protected async isMessageRelayable (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    const apiRes = await this._fetchBlockIncluded(messageStatus)
-    return apiRes.message === 'success'
+  protected async isMessageRelayable (messageStatus: PolygonMessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    const { txBlockNumber } = messageOpts
+    const apiRes: PolygonApiResSuccess = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResSuccess
+
+    return (
+      apiRes.message === 'success' &&
+      BigNumber.from(apiRes.start).lte(txBlockNumber) &&
+      BigNumber.from(apiRes.end).gte(txBlockNumber)
+    )
   }
 
-  protected async isMessageRelayed (messageStatus: PolygonMessageStatus): Promise<boolean> {
-    // TODO: Figure out how to differentiate between checkpointed and relayed
-    return false
+  protected async isMessageRelayed (messageStatus: PolygonMessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    // This is not accurate, but we don't have a way to check if a message has been relayed
+    // This will suffice for how the bonder uses this call, but will not work more broadly
+    const { txBlockNumber } = messageOpts
+    const apiRes: PolygonApiResSuccess = (await this.#fetchBlockIncluded(messageStatus)) as PolygonApiResSuccess
+
+    return (
+      apiRes.message === 'success' &&
+      (
+        BigNumber.from(apiRes.start).gt(txBlockNumber) ||
+        BigNumber.from(apiRes.end).lt(txBlockNumber)
+      )
+    )
   }
 
-  private async _fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<any> {
+  async #fetchBlockIncluded (messageStatus: PolygonMessageStatus): Promise<PolygonApiRes> {
     const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(messageStatus)
     const url = `${this.apiUrl}/${l2Block.blockNumber}`
     const res = await fetch(url)

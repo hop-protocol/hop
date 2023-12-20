@@ -59,7 +59,7 @@ export function ClipboardCopyButton(props: Props) {
     setText('copied!')
     setTimeout(() => {
       setText('')
-    }, 3 * 1e3)
+    }, 3 * 1000)
   }
 
   return (

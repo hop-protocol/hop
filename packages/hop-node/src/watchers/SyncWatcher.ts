@@ -9,6 +9,7 @@ import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
+import wallets from 'src/wallets'
 import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
@@ -23,8 +24,19 @@ import {
   TenMinutesMs
 } from 'src/constants'
 import { DateTime } from 'luxon'
+import {
+  EnforceRelayerFee,
+  SyncCyclesPerFullSync,
+  SyncIntervalMultiplier,
+  SyncIntervalSec,
+  getEnabledNetworks,
+  config as globalConfig,
+  minEthBonderFeeBn,
+  wsEnabledChains
+} from 'src/config'
 import { GasCost } from 'src/db/GasCostDb'
 import { GasCostEstimationRes } from './classes/Bridge'
+import { Hop } from '@hop-protocol/sdk'
 import {
   L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
@@ -42,16 +54,6 @@ import {
   TransferSentEvent,
   TransfersCommittedEvent
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { RelayerFee } from '@hop-protocol/sdk'
-import {
-  SyncCyclesPerFullSync,
-  SyncIntervalMultiplier,
-  SyncIntervalSec,
-  getEnabledNetworks,
-  config as globalConfig,
-  minEthBonderFeeBn,
-  wsEnabledChains
-} from 'src/config'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
@@ -80,6 +82,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   isRelayableChainEnabled: boolean = false
+  hopSdk: Hop
   ready: boolean = false
   // Experimental: Websocket support
   wsProvider: providers.WebSocketProvider
@@ -117,6 +120,8 @@ class SyncWatcher extends BaseWatcher {
       }
     }
 
+    const signer = wallets.get(this.chainSlug)
+    this.hopSdk = new Hop(globalConfig.network, signer)
     this.init()
       .catch(err => {
         this.logger.error('init error:', err)
@@ -586,7 +591,12 @@ class SyncWatcher extends BaseWatcher {
       const blockNumber: number = event.blockNumber
       const l1Bridge = this.bridge as L1Bridge
       const sourceChainId = await l1Bridge.getChainId()
-      const isRelayable = this.getIsRelayable(relayerFee)
+      let isRelayable = true
+      try {
+        isRelayable = await this.getIsRelayable(relayerFee, relayer, destinationChainId)
+      } catch (err) {
+        logger.debug(`getIsRelayable error: ${err.message}`)
+      }
 
       logger.debug('handling TransferSentToL2 event', JSON.stringify({
         sourceChainId,
@@ -1623,12 +1633,33 @@ class SyncWatcher extends BaseWatcher {
     return true
   }
 
-  getIsRelayable = (
-    relayerFee: BigNumber
-  ): boolean => {
-    // TODO: Introduce after integration updates
+  async getIsRelayable (relayerFee: BigNumber, relayer: string, destinationChainId: number): Promise<boolean> {
+    if (!EnforceRelayerFee) {
+      return true
+    }
+
+    return (
+      (await this.#getIsRelayableFee(relayerFee, destinationChainId)) &&
+      (await this.#getIsRelayableAddress(relayer))
+    )
+  }
+
+  async #getIsRelayableFee (relayerFee: BigNumber, destinationChainId: number): Promise<boolean> {
+    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    let minFee: BigNumber = BigNumber.from(0)
+    try {
+      minFee = await this.hopSdk.getRelayerFee(destinationChainSlug, this.tokenSymbol)
+    } catch {}
+
+    if (relayerFee.lt(minFee)) {
+      return false
+    }
     return true
-    // return relayerFee.gt(0)
+  }
+
+  async #getIsRelayableAddress (relayer: string): Promise<boolean> {
+    const expectedRelayer = await this.bridge.getBonderAddress()
+    return relayer === expectedRelayer
   }
 
   getIsBlocklisted (addresses: string[]) {
@@ -1713,7 +1744,7 @@ class SyncWatcher extends BaseWatcher {
         if (RelayableChains.L1_TO_L2.includes(this.chainSlug as Chain)) {
           let gasCost: BigNumber
           try {
-            gasCost = await RelayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
+            gasCost = await this.hopSdk.getRelayerFee(this.chainSlug, this.tokenSymbol)
           } catch (err) {
             logger.error(`pollGasCost error getting relayerFee: ${err.message}`)
             gasCost = BigNumber.from('0')

@@ -3,6 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getChainBridge from 'src/chains/getChainBridge'
+import { EnforceRelayerFee, RelayTransactionBatchSize, config as globalConfig } from 'src/config'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { IChainBridge } from 'src/chains/IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -14,7 +15,6 @@ import {
   MessageUnknownError
 } from 'src/chains/Services/AbstractMessageService'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
-import { RelayTransactionBatchSize, config as globalConfig } from 'src/config'
 import { RelayableTransferRoot, TransferRootRelayProps } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
@@ -140,12 +140,10 @@ class RelayWatcher extends BaseWatcher {
 
     const bonderAddress = await destBridge.getBonderAddress()
     const isCorrectRelayer = bonderAddress.toLowerCase() === relayer.toLowerCase()
-    if (!isCorrectRelayer) {
-      // Re-introduce when enforcing
-      logger.debug('relayer address is not correct')
-      // logger.warn('relayer is not correct. marking item not relayable.')
-      // await this.db.transfers.update(transferId, { isRelayable: false })
-      // return
+    if (!isCorrectRelayer && EnforceRelayerFee) {
+      logger.warn('relayer is not correct. marking item not relayable.')
+      await this.db.transfers.update(transferId, { isRelayable: false })
+      return
     }
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
@@ -174,13 +172,10 @@ class RelayWatcher extends BaseWatcher {
     try {
       logger.debug('checkTransferSentToL2 getIsRelayerFeeOk')
       const isRelayerFeeOk = await this.getIsFeeOk(transferId, GasCostTransactionType.Relay)
-      if (!isRelayerFeeOk) {
-        // Re-introduce when enforcing
-        logger.debug('relayer fee is too low')
-        // const msg = 'Relayer fee is too low. Cannot relay.'
-        // logger.warn(msg)
-        // this.notifier.warn(msg)
-        // throw new RelayerFeeTooLowError(msg)
+      if (!isRelayerFeeOk && EnforceRelayerFee) {
+        const msg = 'Relayer fee is too low. Cannot relay.'
+        logger.warn(msg)
+        throw new RelayerFeeTooLowError(msg)
       }
 
       const messageIndex: number = 0

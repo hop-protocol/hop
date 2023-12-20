@@ -102,11 +102,7 @@ async function main (source: any) {
         throw new Error('commitTxHash is required')
       }
 
-      if (!chainBridge.hasOwnImplementation('relayL2ToL1Message')) {
-        throw new Error(`chainBridge.relayL2ToL1Message not found for $${chain}`)
-      }
-
-      await chainBridge.relayL2ToL1Message!(commitTxHash)
+      await chainBridge.relayL2ToL1Message(commitTxHash)
     }
   }
   console.log('done')

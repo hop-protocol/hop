@@ -983,10 +983,7 @@ export class HealthCheckWatcher {
     // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
 
     const missingTransfers: any[] = []
-    for (const chain of RelayableChains) {
-      // TODO: Polygonzk is not yet deployed
-      if (chain === Chain.PolygonZk) continue
-
+    for (const chain of RelayableChains.L1_TO_L2) {
       // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
       const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())

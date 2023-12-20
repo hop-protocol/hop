@@ -1,10 +1,10 @@
 import wait from 'src/utils/wait'
+import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { IMessageService, MessageService } from 'src/chains/Services/MessageService'
-import { NetworkSlug, networks } from '@hop-protocol/core/networks'
-import { Signer, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
+import { getNetworkSlugByChainSlug } from 'src/chains/utils'
+import { providers } from 'ethers'
 
 interface ZkEvmBridges {
   sourceBridge: ZkEvmBridge
@@ -26,32 +26,26 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'blueberry'
 }
 
-// TODO: Implement
-type MessageType = string
+type MessageOpts = {
+  messageDirection: MessageDirection
+}
+
+type Message = string
 type MessageStatus = string
 
-export class PolygonZkMessageService extends MessageService<MessageType, MessageStatus> implements IMessageService {
+export class PolygonZkMessageService extends AbstractMessageService<Message, MessageStatus, MessageOpts> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   zkEvmClient: ZkEvmClient
 
-  constructor () {
-    super()
+  constructor (chainSlug: string) {
+    super(chainSlug)
 
-    let l1Network: string | undefined
-    for (const network in networks) {
-      const chainId = networks[network as NetworkSlug]?.polygonzk?.networkId
-      if (chainId === this.chainId) {
-        l1Network = network
-        break
-      }
+    const networkSlug = getNetworkSlugByChainSlug(chainSlug)
+    if (!networkSlug) {
+      throw new Error(`Network slug not found for chain slug ${chainSlug}`)
     }
-
-    if (!l1Network) {
-      throw new Error('polygon network name not found')
-    }
-
-    const polygonNetwork = polygonChainSlugs[l1Network]
+    const polygonNetwork: string = polygonChainSlugs[networkSlug]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
@@ -59,13 +53,14 @@ export class PolygonZkMessageService extends MessageService<MessageType, Message
 
     this.zkEvmClient = new ZkEvmClient()
 
-    this.#init(l1Network)
+    this.#init(networkSlug)
       .then(() => {
         this.ready = true
         this.logger.debug('zkEVM client initialized')
       })
       .catch((err: any) => {
         this.logger.error('zkEvmClient initialize error:', err)
+        process.exit(1)
       })
   }
 
@@ -91,42 +86,42 @@ export class PolygonZkMessageService extends MessageService<MessageType, Message
     })
   }
 
-  private async _tilReady (): Promise<boolean> {
+  async #tilReady (): Promise<boolean> {
     if (this.ready) {
       return true
     }
     await wait(100)
-    return await this._tilReady()
+    return await this.#tilReady()
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
+    await this.#tilReady()
+    const messageOpts: MessageOpts = {
+      messageDirection: MessageDirection.L1_TO_L2
+    }
 
-    const isSourceTxOnL1 = true
-    const signer = this.l2Wallet
-    return await this._relayXDomainMessage(l1TxHash, isSourceTxOnL1, signer)
+    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
   }
 
   async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this._tilReady()
-
-    const isSourceTxOnL1 = false
-    const signer = this.l1Wallet
-    return this._relayXDomainMessage(l2TxHash, isSourceTxOnL1, signer)
-  }
-
-  private async _relayXDomainMessage (txHash: string, isSourceTxOnL1: boolean, wallet: Signer): Promise<providers.TransactionResponse> {
-    const isRelayable = await this._isCheckpointed(txHash, isSourceTxOnL1)
-    if (!isRelayable) {
-      throw new Error('expected deposit to be claimable')
+    await this.#tilReady()
+    const messageOpts: MessageOpts = {
+      messageDirection: MessageDirection.L2_TO_L1
     }
 
+    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
+  }
+
+  protected async sendRelayTransaction (message: Message, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
+    const { messageDirection } = messageOpts
+
     // The bridge to claim on will be on the opposite chain that the source tx is on
-    const { sourceBridge, destBridge } = this.#getSourceAndDestBridge(isSourceTxOnL1)
+    const { sourceBridge, destBridge } = this.#getSourceAndDestBridge(messageDirection)
 
     // Get the payload to claim the tx
+    const isL1ToL2: boolean = messageDirection === MessageDirection.L1_TO_L2
     const networkId: number = await sourceBridge.networkID()
-    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(txHash, isSourceTxOnL1, networkId)
+    const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(message, isL1ToL2, networkId)
 
     // Execute the claim tx
     const claimMessageTx = await destBridge.claimMessage(
@@ -146,18 +141,54 @@ export class PolygonZkMessageService extends MessageService<MessageType, Message
     )
 
     const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
+
+    const wallet = messageDirection === MessageDirection.L1_TO_L2 ? this.l2Wallet : this.l1Wallet
     return await wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
-  private async _isCheckpointed (txHash: string, isSourceTxOnL1: boolean): Promise<boolean> {
-    if (isSourceTxOnL1) {
-      return this.zkEvmClient.isDepositClaimable(txHash)
-    }
-    return this.zkEvmClient.isWithdrawExitable(txHash)
+  protected async getMessage (txHash: string): Promise<Message> {
+    // PolygonZk message is just the tx hash
+    return txHash
   }
 
-  #getSourceAndDestBridge (isSourceTxOnL1: boolean): ZkEvmBridges {
-    if (isSourceTxOnL1) {
+  protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+    // PolygonZk status is retrieved from the hash
+    return message
+  }
+
+  protected async isMessageInFlight (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    // A message is in flight if the client does not know about it
+    try {
+      if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+        await this.zkEvmClient.isDepositClaimable(messageStatus)
+      } else {
+        await this.zkEvmClient.isWithdrawExitable(messageStatus)
+      }
+    } catch (err) {
+      return true
+    }
+    return false
+  }
+
+  protected async isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      return this.zkEvmClient.isDepositClaimable(messageStatus)
+    } else {
+      return this.zkEvmClient.isWithdrawExitable(messageStatus)
+    }
+  }
+
+  protected async isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+    // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
+    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
+    } else {
+      return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
+    }
+  }
+
+  #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
       return {
         sourceBridge: this.zkEvmClient.rootChainBridge,
         destBridge: this.zkEvmClient.childChainBridge
@@ -168,29 +199,5 @@ export class PolygonZkMessageService extends MessageService<MessageType, Message
         destBridge: this.zkEvmClient.rootChainBridge
       }
     }
-  }
-
-  protected async sendRelayTransaction (message: MessageType): Promise<providers.TransactionResponse> {
-    throw new Error('implement')
-  }
-
-  protected async getMessage (txHash: string): Promise<MessageType> {
-    throw new Error('implement')
-  }
-
-  protected async getMessageStatus (message: MessageType): Promise<MessageStatus> {
-    throw new Error('implement')
-  }
-
-  protected async isMessageInFlight (messageStatus: MessageStatus): Promise<boolean> {
-    throw new Error('implement')
-  }
-
-  protected async isMessageRelayable (messageStatus: MessageStatus): Promise<boolean> {
-    throw new Error('implement')
-  }
-
-  protected async isMessageRelayed (messageStatus: MessageStatus): Promise<boolean> {
-    throw new Error('implement')
   }
 }

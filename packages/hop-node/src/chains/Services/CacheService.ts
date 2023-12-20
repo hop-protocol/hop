@@ -1,31 +1,41 @@
 type Cache = {
-  lastCacheTimestampMs: number
-  cacheValue: number
+  lastTimestampMs: number
+  value: number
 }
 
-export abstract class CacheService {
+export class CacheService {
   #cache: Record<string, Cache> = {}
+  #expirationTimeMs: number = 60 * 1000
 
-  protected isCacheExpired (cacheKey: string): boolean {
+  set (cacheKey: string, value: number): void {
+    this.#cache[cacheKey] = {
+      lastTimestampMs: Date.now(),
+      value
+    }
+  }
+
+  get (cacheKey: string): number | undefined {
+    if (
+      !this.#doesCacheExist(cacheKey) ||
+      this.#isCacheExpired(cacheKey)
+    ) {
+      return
+    }
+    return this.#cache[cacheKey].value
+  }
+
+  #doesCacheExist (cacheKey: string): boolean {
+    return !!this.#cache?.[cacheKey]?.value
+  }
+
+  #isCacheExpired (cacheKey: string): boolean {
     // If it has not been set, it is considered expired
-    if (this.#cache?.[cacheKey]?.lastCacheTimestampMs === 0) {
+    if (!this.#cache?.[cacheKey]?.lastTimestampMs) {
       return true
     }
 
     const now = Date.now()
-    const cacheExpirationTimeMs = 60 * 1000
-    const lastCacheTimestampMs = this.#cache[cacheKey].lastCacheTimestampMs
-    return now - lastCacheTimestampMs > cacheExpirationTimeMs
-  }
-
-  protected updateCache (cacheKey: string, cacheValue: number): void {
-    this.#cache[cacheKey] = {
-      lastCacheTimestampMs: Date.now(),
-      cacheValue
-    }
-  }
-
-  protected getCacheValue (cacheKey: string): number | undefined {
-    return this.#cache[cacheKey]?.cacheValue
+    const lastTimestampMs = this.#cache[cacheKey].lastTimestampMs
+    return now - lastTimestampMs > this.#expirationTimeMs
   }
 }

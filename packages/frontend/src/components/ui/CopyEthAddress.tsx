@@ -27,7 +27,7 @@ export function CopyEthAddress(props: Props & EthAddressProps) {
     setText('copied!')
     setTimeout(() => {
       setText('')
-    }, 1e3)
+    }, 1 * 1000)
   }
 
   return (

@@ -4,7 +4,7 @@ import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionS
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
-import { OptimismAddresses, OptimismCanonicalAddresses, OptimismSuperchainChains } from 'src/chains/Chains/optimism/OptimismAddresses'
+import { OptimismAddresses, OptimismCanonicalAddresses, OptimismSuperchainSlugs } from 'src/chains/Chains/optimism/OptimismAddresses'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 
@@ -29,7 +29,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const canonicalAddresses: OptimismCanonicalAddresses | undefined = OptimismAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as OptimismSuperchainChains]
+    const canonicalAddresses: OptimismCanonicalAddresses | undefined = OptimismAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as OptimismSuperchainSlugs]
     if (!canonicalAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }

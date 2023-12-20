@@ -1,7 +1,7 @@
 import { Chain } from 'src/constants'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 
-export type ArbitrumSuperchainChains = Chain.Arbitrum | Chain.Nova
+export type ArbitrumSuperchainSlugs = Chain.Arbitrum | Chain.Nova
 
 type ArbitrumPrecompiles = {
   nodeInterfaceAddress: string
@@ -15,7 +15,7 @@ type ArbitrumSuperchainAddresses = {
   precompiles: ArbitrumPrecompiles
   canonicalAddresses: {
     [key in NetworkSlug]?: {
-      [key in ArbitrumSuperchainChains]?: ArbitrumCanonicalAddresses
+      [key in ArbitrumSuperchainSlugs]?: ArbitrumCanonicalAddresses
     }
   }
 }

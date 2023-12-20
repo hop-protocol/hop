@@ -1,7 +1,7 @@
 import { Chain } from 'src/constants'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 
-export type OptimismSuperchainChains = Chain.Optimism | Chain.Base
+export type OptimismSuperchainSlugs = Chain.Optimism | Chain.Base
 
 type OptimismPrecompiles = {
   l1BlockSetterAddress: string
@@ -17,7 +17,7 @@ type OptimismSuperchainAddresses = {
   precompiles: OptimismPrecompiles
   canonicalAddresses: {
     [key in NetworkSlug]?: {
-      [key in OptimismSuperchainChains]?: OptimismCanonicalAddresses
+      [key in OptimismSuperchainSlugs]?: OptimismCanonicalAddresses
     }
   }
 }

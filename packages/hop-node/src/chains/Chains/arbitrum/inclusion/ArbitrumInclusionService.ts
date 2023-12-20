@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
-import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainChains } from 'src/chains/Chains/arbitrum/ArbitrumAddresses'
+import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from 'src/chains/Chains/arbitrum/ArbitrumAddresses'
 import { BigNumber, Contract, providers } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 
@@ -16,7 +16,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const canonicalAddresses: ArbitrumCanonicalAddresses | undefined = ArbitrumAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as ArbitrumSuperchainChains]
+    const canonicalAddresses: ArbitrumCanonicalAddresses | undefined = ArbitrumAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as ArbitrumSuperchainSlugs]
     if (!canonicalAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }

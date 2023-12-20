@@ -991,9 +991,11 @@ class SyncWatcher extends BaseWatcher {
       amountOutMin,
       deadline,
       destinationChainId,
-      bonderFee
+      bonderFee,
+      relayerFee
     } = dbTransfer
 
+    const fee = bonderFee ?? relayerFee
     if (
       !sourceChainId ||
       !transferSentTxHash ||
@@ -1001,7 +1003,7 @@ class SyncWatcher extends BaseWatcher {
       !amountOutMin ||
       !deadline ||
       !destinationChainId ||
-      !bonderFee ||
+      !fee ||
       !recipient
     ) {
       logger.warn(`populateTransferSentTimestampAndIsBondable marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
@@ -1041,7 +1043,7 @@ class SyncWatcher extends BaseWatcher {
       amountOutMin,
       deadline,
       destinationChainId,
-      BigNumber.from(bonderFee),
+      BigNumber.from(fee),
       from,
       recipient
     )

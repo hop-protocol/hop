@@ -148,7 +148,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
     // number of keccak operations allowed in a single transaction.
     const {
-      maxTransferIds,
+      maxNumTransferIds,
       settlementAggregatorAddress,
       settlementAggregatorAbi
     } = this.#getExecutionSettlementConfig()
@@ -162,7 +162,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const destChainSlug = chainIdToSlug(destChainId.toString())
     if (
       destChainSlug !== Chain.PolygonZk ||
-      transferIds.length <= maxTransferIds
+      transferIds.length <= maxNumTransferIds
     ) {
       const tx: providers.TransactionResponse = await destBridge.settleBondedWithdrawals(
         bonder,
@@ -174,8 +174,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
     // Otherwise, split into chunks and settle each chunk
     const transferIdsChunks = []
-    for (let i = 0; i < transferIds.length; i += maxTransferIds) {
-      transferIdsChunks.push(transferIds.slice(i, i + maxTransferIds))
+    for (let i = 0; i < transferIds.length; i += maxNumTransferIds) {
+      transferIdsChunks.push(transferIds.slice(i, i + maxNumTransferIds))
     }
 
     const wallet = wallets.get(destChainSlug)
@@ -225,7 +225,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     return this.checkTransferRootId(dbTransferRoot.transferRootId, bonder)
   }
 
-  #getExecutionSettlementConfig (): any {
+  #getExecutionSettlementConfig (): {maxNumTransferIds: number, settlementAggregatorAddress: string, settlementAggregatorAbi: string[]} {
     // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
 
     // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
@@ -241,7 +241,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       settlementAggregatorAddress = '0x16284c7323c35F4960540583998C98B1CfC581a7'
     }
     return {
-      maxTransferIds: 500,
+      maxNumTransferIds: 500,
       settlementAggregatorAddress,
       settlementAggregatorAbi
     }

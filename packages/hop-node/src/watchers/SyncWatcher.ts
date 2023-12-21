@@ -101,6 +101,10 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`gasCostPollEnabled: ${this.gasCostPollEnabled}`)
     }
 
+    if (EnforceRelayerFee) {
+      this.logger.debug('enforcing relayer fee')
+    }
+
     // There is a multiplier for each chain and a multiplier for each network (passed in by config)
     const chainMultiplier = ChainPollMultiplier?.[this.chainSlug] ?? 1
     const networkMultiplier = SyncIntervalMultiplier

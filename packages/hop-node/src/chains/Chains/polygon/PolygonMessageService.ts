@@ -5,7 +5,6 @@ import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
-import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 import { setProofApi, use } from '@maticnetwork/maticjs'
 
 type PolygonMessage = string
@@ -57,11 +56,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const networkSlug = getNetworkSlugByChainSlug(chainSlug)
-    if (!networkSlug) {
-      throw new Error(`Network slug not found for chain slug ${chainSlug}`)
-    }
-    const polygonNetwork: string = polygonChainSlugs[networkSlug]
+    const polygonNetwork: string = polygonChainSlugs[this.networkSlug]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
@@ -69,7 +64,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
 
     this.maticClient = new FxPortalClient()
 
-    this.#_initClient(networkSlug)
+    this.#_initClient(this.networkSlug)
       .then(() => {
         this.ready = true
         console.log('Matic client initialized')

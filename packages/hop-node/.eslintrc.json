@@ -1,11 +1,11 @@
 {
   "env": {
     "browser": true,
-    "es2021": true,
-    "jest/globals": true
+    "es2021": true
   },
   "extends": [
-    "standard-with-typescript"
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended-type-checked"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -14,35 +14,57 @@
     "project": "./tsconfig.json"
   },
   "plugins": [
-    "jest",
     "@typescript-eslint",
     "unused-imports",
     "sort-imports-es6-autofix"
   ],
   "rules": {
-    "no-unused-vars": 0,
+    // Explicit offs
+    "no-constant-condition": 0,
+    "@typescript-eslint/no-unsafe-enum-comparison": 0,
+    "@typescript-eslint/require-await": 0,
+    "@typescript-eslint/restrict-template-expressions": 0,
+
+    // Explicit warns
     "unused-imports/no-unused-imports": 1,
-    "new-cap": 0,
-    "prefer-const": 1,
-    "array-callback-return": 0,
-    "no-async-promise-executor": 0,
-    "node/no-callback-literal": 0,
     "sort-imports-es6-autofix/sort-imports-es6": [1, {
       "ignoreCase": false,
       "ignoreMemberSort": false,
       "memberSyntaxSortOrder": ["none", "single", "multiple", "all"]
     }],
+
+    // Explicit errors
+    "no-new": 2,
+    "dot-notation": 2,
+    "block-scoped-var": 2,
+    "array-callback-return": 2,
+    "new-cap": [2, { "properties": false }], // Used by ethers event filters
+    "prefer-const": [2, { "destructuring": "all" }],
+    "no-empty": [2, { "allowEmptyCatch": true }],
+    "no-return-await": 0, // Note: you must disable the base rule as it can report incorrect errors
+    "@typescript-eslint/return-await": 2,
+
+    // Allow `any`
+    "@typescript-eslint/no-explicit-any": 0,
+    "@typescript-eslint/no-unsafe-assignment": 0,
+    "@typescript-eslint/no-unsafe-argument": 0,
+    "@typescript-eslint/no-unsafe-call": 0,
+    "@typescript-eslint/no-unsafe-member-access": 0,
+    "@typescript-eslint/no-unsafe-return": 0,
+
+    // TODO: Clean up and then set to 1 or 2 (and possibly some options) after cleanup
     "@typescript-eslint/no-unused-vars": 0,
-    "@typescript-eslint/no-non-null-assertion": 0,
-    "@typescript-eslint/strict-boolean-expressions": 0,
-    "@typescript-eslint/restrict-template-expressions": 0,
-    "@typescript-eslint/explicit-function-return-type": 0,
     "@typescript-eslint/no-floating-promises": 0,
-    "@typescript-eslint/no-misused-promises": 0,
-    "@typescript-eslint/no-dynamic-delete": 0,
-    "@typescript-eslint/return-await": 0,
-    "@typescript-eslint/consistent-type-definitions": 0,
-    "@typescript-eslint/method-signature-style": 0
+    "no-else-return": 0, // Could be a 1 but --fix does not correctly indent
+    // https://github.com/eslint/eslint/issues/3400
+    "no-lonely-if": 0 // Could be a 1 but erroneously fixes nested items. Nesting is user error but still not worth the hassle
   },
-  "ignorePatterns": ["src/**.json", "src/arbBot/example/*.json", "*.md", "src/watchers/*.json"]
+  "ignorePatterns": [
+    "node_modules",
+    "build",
+    "dist",
+    "*.json",
+    "*.md"
+  ],
+  "root": true
 }

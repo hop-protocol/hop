@@ -252,7 +252,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (!isBonderFeeOk) {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
         logger.warn(msg)
-        this.notifier.warn(msg)
+        await this.notifier.warn(msg)
         throw new BonderFeeTooLowError(msg)
       }
 
@@ -275,7 +275,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const sentChain = attemptSwapDuringBondWithdrawal ? `destination chain ${destinationChainId}` : 'L1'
       const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendBondWithdrawalTx err:', err.message)
       const transfer = await this.db.transfers.getByTransferId(transferId)
@@ -390,7 +390,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
       logger.debug('checkTransferId l2Bridge.bondWithdrawalAndAttemptSwap')
-      return await l2Bridge.bondWithdrawalAndAttemptSwap(
+      return l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
         transferNonce,
@@ -398,21 +398,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amountOutMin,
         deadline
       )
-    } else {
-      // Redundantly verify that both amountOutMin and deadline are 0
-      if (!(amountOutMin.eq(0) && deadline.eq(0))) {
-        throw new Error('sendBondWithdrawalTx: amountOutMin and deadline must be 0 when calling bondWithdrawal')
-      }
-      logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
-      const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      logger.debug('checkTransferId bridge.bondWithdrawal')
-      return bridge.bondWithdrawal(
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee
-      )
     }
+
+    // Redundantly verify that both amountOutMin and deadline are 0
+    if (!(amountOutMin.eq(0) && deadline.eq(0))) {
+      throw new Error('sendBondWithdrawalTx: amountOutMin and deadline must be 0 when calling bondWithdrawal')
+    }
+    logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
+    const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    logger.debug('checkTransferId bridge.bondWithdrawal')
+    return bridge.bondWithdrawal(
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee
+    )
   }
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
@@ -426,9 +426,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return this.filterTransfersBySyncTypeBonder(dbTransfers)
     } else if (syncType === SyncType.Threshold) {
       return this.filterTransfersBySyncTypeThreshold(dbTransfers)
-    } else {
-      throw new Error(`Invalid syncType: ${syncType}`)
     }
+    throw new Error(`Invalid syncType: ${syncType}`)
   }
 
   private filterTransfersBySyncTypeBonder (dbTransfers: UnbondedSentTransfer[]): UnbondedSentTransfer[] {

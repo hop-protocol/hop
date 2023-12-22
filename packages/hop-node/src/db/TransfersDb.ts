@@ -247,16 +247,16 @@ class TransfersDb extends BaseDb<Transfer> {
     if (!item) {
       return null
     }
-    return this.normalizeTransferValue(item)
+    return this.#normalizeTransferValue(item)
   }
 
   async getTransfers (dateFilter?: DateFilter): Promise<Transfer[]> {
-    return await this.getItems(dateFilter)
+    return this.getItems(dateFilter)
   }
 
   async getTransfersFromDay (): Promise<Transfer[]> {
     const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
-    return await this.getTransfers({
+    return this.getTransfers({
       fromUnix
     })
   }
@@ -265,7 +265,7 @@ class TransfersDb extends BaseDb<Transfer> {
     const targetTimestampMs = targetTimestampSec * 1000
     const fromUnix = Math.floor((targetTimestampMs - OneHourMs) / 1000)
     const toUnix = Math.floor((targetTimestampMs + OneHourMs) / 1000)
-    return await this.getTransfers({
+    return this.getTransfers({
       fromUnix,
       toUnix
     })
@@ -282,7 +282,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    const items = batchedItems.map(this.normalizeTransferValue).sort(this.sortItems)
+    const items = batchedItems.map(this.#normalizeTransferValue).sort(this.sortItems)
     if (items == null || !items.length) {
       return []
     }
@@ -461,7 +461,7 @@ class TransfersDb extends BaseDb<Transfer> {
       return []
     }
 
-    return incompleteTransferIdItems.map(this.normalizeTransferValue).filter((item: Transfer) => {
+    return incompleteTransferIdItems.map(this.#normalizeTransferValue).filter((item: Transfer) => {
       if (!item) {
         return false
       }
@@ -533,7 +533,7 @@ class TransfersDb extends BaseDb<Transfer> {
     }
   }
 
-  protected normalizeTransferValue (item: Transfer): Transfer {
+  #normalizeTransferValue = (item: Transfer): Transfer => {
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }

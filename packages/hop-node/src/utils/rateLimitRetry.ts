@@ -74,7 +74,7 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
           logger.error(`max retries reached (${rateLimitMaxRetries}). Error: ${err}`)
           // this must be a regular console log to print original function name
           console.error('max retries reached', fn, id, ...args)
-          notifier.error(`max retries (${rateLimitMaxRetries}) reached (logId: ${id}). Error: ${errMsg}`)
+          await notifier.error(`max retries (${rateLimitMaxRetries}) reached (logId: ${id}). Error: ${errMsg}`)
           throw err
         }
 

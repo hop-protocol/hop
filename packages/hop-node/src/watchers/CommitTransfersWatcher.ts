@@ -186,7 +186,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       const sourceChainId = await l2Bridge.getChainId()
       const msg = `L2 (${sourceChainId}) commitTransfers (destination chain ${destinationChainId}) tx: ${tx.hash}`
       this.logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err) {
       this.logger.error('commitTransfers error:', err.message)
       throw err

@@ -156,9 +156,9 @@ async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { /
     return bridge.l1CanonicalToken()
   } else if (bridge instanceof L2Bridge) {
     return bridge.hToken()
-  } else {
-    throw new Error('invalid bridge type')
   }
+
+  throw new Error('invalid bridge type')
 }
 
 async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> { // eslint-disable-line @typescript-eslint/no-invalid-void-type

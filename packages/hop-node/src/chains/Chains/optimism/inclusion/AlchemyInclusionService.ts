@@ -68,7 +68,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
   }
 
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.#isReadyAndInitialized()) return
+    if (!(await this.#isReadyAndInitialized())) return
 
     const l2TxBlockNumber: number = (await this.l2Provider.getTransactionReceipt(l2TxHash)).blockNumber
     const l1OriginBlockNum = Number(await this.l1BlockContract.number({ blockTag: l2TxBlockNumber }))
@@ -83,7 +83,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
   }
 
   async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.#isReadyAndInitialized()) return
+    if (!(await this.#isReadyAndInitialized())) return
 
     const l1TxBlockNumber: number = (await this.l1Provider.getTransactionReceipt(l1TxHash)).blockNumber
     const l1Block: providers.Block = await this.l1Provider.getBlock(l1TxBlockNumber)
@@ -102,7 +102,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
   }
 
   async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.#isReadyAndInitialized()) return
+    if (!(await this.#isReadyAndInitialized())) return
 
     const startBlockNumber = l1BlockNumber - this.#maxNumL1BlocksWithoutInclusion
     const inclusionTxHashes: string[] = await this.#getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
@@ -110,7 +110,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
   }
 
   async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
-    if (!this.#isReadyAndInitialized()) return
+    if (!(await this.#isReadyAndInitialized())) return
 
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
     const latestL2TxHash: string = transactionHashes?.[transactionHashes.length - 1]

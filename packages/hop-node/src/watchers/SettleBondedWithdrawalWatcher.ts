@@ -123,7 +123,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       )
       const msg = `settleBondedWithdrawals on destinationChainId: txHash: ${tx.hash}, ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
 
       tx.wait()
         .then(() => {
@@ -161,7 +161,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    return await this.mutex.runExclusive(async () => {
+    return this.mutex.runExclusive(async () => {
       const availableCredit = this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
       const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const availableCreditMinusVault = availableCredit.sub(vaultBalance)
@@ -169,13 +169,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       if (shouldDeposit) {
         try {
           const msg = `attempting unstakeAndDepositToVault. amount: ${this.bridge.formatUnits(depositAmount)}`
-          this.notifier.info(msg)
+          await this.notifier.info(msg)
           this.logger.info(msg)
           const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
           await destinationWatcher.unstakeAndDepositToVault(depositAmount)
         } catch (err) {
           const errMsg = `unstakeAndDepositToVault error: ${err.message}`
-          this.notifier.error(errMsg)
+          await this.notifier.error(errMsg)
           this.logger.error(errMsg)
           throw err
         }

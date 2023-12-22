@@ -92,8 +92,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     this.pollCount++
     this.logger.debug('syncing bonder credit index:', this.pollCount)
     await this.syncUnbondedTransferRootAmounts()
-      .then(async () => await this.syncPendingAmounts())
-      .then(async () => await this.syncAvailableCredit())
+      .then(async () => this.syncPendingAmounts())
+      .then(async () => this.syncAvailableCredit())
   }
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)

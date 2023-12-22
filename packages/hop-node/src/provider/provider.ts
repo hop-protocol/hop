@@ -3,6 +3,7 @@ import fs from 'fs'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
+import { ConnectionInfo } from "@ethersproject/web"
 import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
 import { monitorProviderCalls } from 'src/config'
@@ -23,7 +24,7 @@ if (monitorProviderCalls) {
 export class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
   metrics: Metrics
 
-  constructor (rpcUrlOrOptions: string | any) {
+  constructor (rpcUrlOrOptions: string | ConnectionInfo) {
     super(rpcUrlOrOptions)
     this.metrics = new Metrics()
   }

@@ -51,22 +51,22 @@ describe('Vault', () => {
     const tx = await vault.withdraw(amount)
     expect(tx.hash).toBeTruthy()
   }, 60 * 1000)
-  it('formatUnits', async () => {
+  it('formatUnits', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
     const vault = Vault.from(strategy, chain, token, signer)!
     const amount = vault.parseUnits('1')
-    const result = await vault.formatUnits(amount)
+    const result = vault.formatUnits(amount)
     expect(result).toBe(1)
   }, 60 * 1000)
-  it('parseUnits', async () => {
+  it('parseUnits', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
     const vault = Vault.from(strategy, chain, token, signer)!
     const amount = vault.parseUnits('1')
-    const result = await vault.parseUnits(1)
+    const result = vault.parseUnits(1)
     expect(result.toString()).toBe(amount.toString())
   }, 60 * 1000)
   it('getDepositOutcome', async () => {

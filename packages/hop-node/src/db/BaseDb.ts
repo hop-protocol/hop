@@ -126,6 +126,17 @@ abstract class BaseDb<T> extends EventEmitter {
 
     if (migrations) {
       this.#init(migrations)
+        .then(() => {
+          this.isMigrating = false
+          this.ready = true
+          this.logger.info('migrations complete. db ready.')
+        })
+        .catch(err => {
+          this.logger.error('db migration error', err)
+          this.logger.error(err)
+          process.exit(1)
+        })
+
     } else {
       this.ready = true
       this.logger.info('db ready')
@@ -145,14 +156,9 @@ abstract class BaseDb<T> extends EventEmitter {
         await this.#upsertMetadata({
           _migrationIndex: updatedMigrationIndex
         })
-        this.isMigrating = false
-        this.ready = true
-        this.logger.info('migrations complete. db ready.')
       })
       .catch(err => {
-        this.logger.error('db migration error', err)
-        this.logger.error(err)
-        process.exit(1)
+        throw err
       })
   }
 
@@ -370,7 +376,7 @@ abstract class BaseDb<T> extends EventEmitter {
     return x
   }
 
-  #normalizeValue (value: T): T {
+  #normalizeValue = (value: T): T => {
     return normalizeDbValue(value)
   }
 

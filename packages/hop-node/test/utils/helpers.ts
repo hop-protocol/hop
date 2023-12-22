@@ -74,7 +74,7 @@ export class User {
 
   async getHopBalance (network: string = Chain.Ethereum, token: string = '') {
     const contract = this.getHopBridgeTokenContract(network, token)
-    return await this.getBalance(network, contract)
+    return this.getBalance(network, contract)
   }
 
   getTokenContract (network: string, token: string) {
@@ -188,7 +188,7 @@ export class User {
       messengerAddress = await wrapper.l1MessengerAddress()
       abi = l1xDaiMessengerAbi
     } else if (network === Chain.Polygon) {
-      messengerAddress = await wrapper.address
+      messengerAddress = wrapper.address
       abi = l1PolygonMessengerAbi
     } else {
       throw new Error(`${network} not supported`)
@@ -245,17 +245,17 @@ export class User {
 
   async getAddress () {
     const wallet = this.getWallet()
-    return await wallet.getAddress()
+    return wallet.getAddress()
   }
 
   async getTransactionReceipt (network: string, txHash: string) {
     const provider = this.getProvider(network)!
-    return await provider.getTransactionReceipt(txHash)
+    return provider.getTransactionReceipt(txHash)
   }
 
   async waitForTransactionReceipt (network: string, txHash: string) {
     const provider = this.getProvider(network)!
-    return await provider.waitForTransaction(txHash)
+    return provider.waitForTransaction(txHash)
   }
 
   async send (
@@ -265,13 +265,13 @@ export class User {
     amount: string | number
   ) {
     if (sourceNetwork === Chain.Ethereum) {
-      return await this.sendL1ToL2(sourceNetwork, destNetwork, token, amount)
+      return this.sendL1ToL2(sourceNetwork, destNetwork, token, amount)
     }
     if (destNetwork === Chain.Ethereum) {
-      return await this.sendL2ToL1(sourceNetwork, destNetwork, token, amount)
+      return this.sendL2ToL1(sourceNetwork, destNetwork, token, amount)
     }
 
-    return await this.sendL2ToL2(sourceNetwork, destNetwork, token, amount)
+    return this.sendL2ToL2(sourceNetwork, destNetwork, token, amount)
   }
 
   isNativeToken (network: string, token: string) {
@@ -503,12 +503,12 @@ export class User {
     amount: string | number
   ) {
     const tx = await this.send(sourceNetwork, destNetwork, token, amount)
-    return await this.waitForTransactionReceipt(sourceNetwork, tx.hash)
+    return this.waitForTransactionReceipt(sourceNetwork, tx.hash)
   }
 
   async sendEth (amount: number | string, recipient: string, network?: string) {
     const wallet = this.getWallet(network)
-    return await wallet.sendTransaction({
+    return wallet.sendTransaction({
       ...(await this.txOverrides(network!)),
       to: recipient,
       value: parseUnits(amount.toString(), 18)
@@ -532,7 +532,7 @@ export class User {
   }
 
   async checkApproval (network: string, token: string, spender: string) {
-    return await checkApproval(this, network, token, spender)
+    return checkApproval(this, network, token, spender)
   }
 
   async stake (network: string, token: string, amount: number) {
@@ -614,9 +614,8 @@ export class User {
         l1PolygonPosRootChainManagerAbi,
         wallet
       )
-    } else {
-      throw new Error('not implemented')
     }
+    throw new Error('not implemented')
   }
 
   async convertToCanonicalToken (
@@ -668,9 +667,8 @@ export class User {
         payload,
         await this.txOverrides(destNetwork)
       )
-    } else {
-      throw new Error('not implemented')
     }
+    throw new Error('not implemented')
   }
 
   async polygonCanonicalL1ToL2 (
@@ -738,7 +736,7 @@ export class User {
       encodeAbi: true
     })
 
-    return await l1Wallet.sendTransaction({
+    return l1Wallet.sendTransaction({
       to: tx.to,
       value: tx.value,
       data: tx.data,
@@ -861,7 +859,7 @@ export class User {
       chainId,
       totalAmount
     )
-    return await this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
+    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   async challengeTransferRoot (transferRootHash: string, totalAmount: number) {
@@ -879,7 +877,7 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.challengeTransferRoot(transferRootHash, totalAmount)
-    return await this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
+    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   async resolveChallenge (transferRootHash: string, totalAmount: number) {
@@ -897,7 +895,7 @@ export class User {
     totalAmount: number
   ) {
     const tx = await this.resolveChallenge(transferRootHash, totalAmount)
-    return await this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
+    return this.waitForTransactionReceipt(Chain.Ethereum, tx.hash)
   }
 
   async getChallengePeriod () {
@@ -953,7 +951,7 @@ export class User {
       const bridge = this.getHopBridgeContract(network, token)
       return bridge.addBonder(newBonderAddress, await this.txOverrides(network))
     } else if (network === Chain.Gnosis) {
-      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const l2Bridge = this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
       return messenger.requireToPassMessage(
         l2Bridge.address,
@@ -962,7 +960,7 @@ export class User {
         await this.txOverrides(network)
       )
     } else if (network === Chain.Optimism) {
-      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const l2Bridge = this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
       return messenger.sendMessage(
         l2Bridge.address,
@@ -977,7 +975,7 @@ export class User {
         await this.txOverrides(network)
       )
     } else if (network === Chain.Arbitrum) {
-      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const l2Bridge = this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
       return messenger.createRetryableTicket(
         l2Bridge.address,
@@ -1191,7 +1189,7 @@ export async function waitForEvent (
   eventName: string,
   predicate?: (data: any) => boolean
 ) {
-  return await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     watchers.forEach(watcher => {
       watcher
         .on(eventName, (data: any) => {
@@ -1357,11 +1355,11 @@ export async function getBalances (
   sourceNetwork: string,
   destNetwork: string
 ): Promise<[number[], number[]]> {
-  return await Promise.all([
+  return Promise.all([
     Promise.all(
-      users.map(async (user: User) => await user.getBalance(sourceNetwork, token))
+      users.map(async (user: User) => user.getBalance(sourceNetwork, token))
     ),
-    Promise.all(users.map(async (user: User) => await user.getBalance(destNetwork, token)))
+    Promise.all(users.map(async (user: User) => user.getBalance(destNetwork, token)))
   ])
 }
 

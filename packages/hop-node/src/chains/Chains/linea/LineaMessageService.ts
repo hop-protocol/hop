@@ -77,7 +77,7 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     // When the fee recipient is the zero address, the fee is sent to the msg.sender
     const feeRecipient = constants.AddressZero
     const wallet = opts.messageDirection === MessageDirection.L1_TO_L2 ? this.l2Wallet : this.l1Wallet
-    return await destBridge.contract.connect(wallet).claimMessage(
+    return destBridge.contract.connect(wallet).claimMessage(
       message.messageSender,
       message.destination,
       message.fee,
@@ -123,11 +123,11 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
         sourceBridge: this.#l1Contract,
         destBridge: this.#l2Contract
       }
-    } else {
-      return {
-        sourceBridge: this.#l2Contract,
-        destBridge: this.#l1Contract
-      }
+    }
+
+    return {
+      sourceBridge: this.#l2Contract,
+      destBridge: this.#l1Contract
     }
   }
 }

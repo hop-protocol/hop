@@ -56,7 +56,7 @@ export default class Token extends ContractBase {
     }
     const allowance = await this.getAllowance(spender)
     if (allowance.lt(amount)) {
-      return await this.tokenContract.approve(
+      return this.tokenContract.approve(
         spender,
         amount,
         await this.txOverrides()
@@ -73,14 +73,14 @@ export default class Token extends ContractBase {
         to: recipient,
         value: amount
       }
-      return await this.tokenContract.signer.sendTransaction(tx)
-    } else {
-      return await this.tokenContract.transfer(
-        recipient,
-        amount,
-        await this.txOverrides()
-      )
+      return this.tokenContract.signer.sendTransaction(tx)
     }
+
+    return this.tokenContract.transfer(
+      recipient,
+      amount,
+      await this.txOverrides()
+    )
   }
 
   async formatUnits (value: BigNumber) {

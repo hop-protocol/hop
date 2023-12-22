@@ -198,7 +198,12 @@ for (const network in coreNetworks) {
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs?.[network]
+  const networkConfig = isTestMode ? networkConfigs.test : networkConfigs?.[network]
+  if (!networkConfig) {
+    throw new Error(`Network config not found for network: ${network}`)
+  }
+
+  const { addresses, bonders, bonderConfig, networks, metadata } = networkConfig
   const isMainnet = network === Network.Mainnet
 
   return {

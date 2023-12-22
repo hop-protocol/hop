@@ -53,11 +53,17 @@ class GasBoostSigner extends Signer {
     this.setOptions(options)
     this.init()
       .catch((err: Error) => this.logger.error('init error:', err))
-      .finally(async () => {
-        const nonce = await this.getDbNonce()
-        this.logger.debug('ready')
-        this.logger.debug(`current nonce: ${nonce}`)
-        this.ready = true
+      .finally(() => {
+        this.getDbNonce()
+          .then((nonce: any) => {
+            this.logger.debug('ready')
+            this.logger.debug(`current nonce: ${nonce}`)
+            this.ready = true
+          })
+          .catch((err: Error) => {
+            this.logger.error('ready error:', err)
+            process.exit(1)
+          })
       })
   }
 
@@ -99,12 +105,12 @@ class GasBoostSigner extends Signer {
   }
 
   protected async tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
+    while (true) {
+      if (this.ready) {
+        return true
+      }
+      await wait(100)
     }
-
-    await wait(100)
-    return await this.tilReady()
   }
 
   private async setLatestNonce () {
@@ -121,7 +127,7 @@ class GasBoostSigner extends Signer {
       logger.debug(`in-memory count: ${this._count}`)
       logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
       this._count++
-      return await this._sendTransaction(tx, id)
+      return this._sendTransaction(tx, id)
     })
 
     // TODO: waits should be handled outside of this class

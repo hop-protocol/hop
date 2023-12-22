@@ -7,7 +7,7 @@ export default async function makeRequest (
   query: string,
   params: any = {}
 ) {
-  return await rateLimitRetry(_makeRequest)(chain, query, params)
+  return rateLimitRetry(_makeRequest)(chain, query, params)
 }
 
 async function _makeRequest (

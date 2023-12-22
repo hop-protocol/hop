@@ -85,7 +85,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     // correct l1BatchNumber is the correct event.
     for (const event of sequencerBatchDeliveredEvents) {
       if (event.args.batchSequenceNumber.eq(l1BatchNumber)) {
-        return await this.l1Provider.getTransactionReceipt(event.transactionHash)
+        return this.l1Provider.getTransactionReceipt(event.transactionHash)
       }
     }
 
@@ -118,7 +118,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   }
 
   async #fetchSequencerBatchDeliveredEvents (startBlockNumber: number, endBlockNumber: number): Promise<any[]> {
-    return await this.#sequencerInboxContract.queryFilter(
+    return this.#sequencerInboxContract.queryFilter(
       this.#sequencerInboxContract.filters.SequencerBatchDelivered(),
       startBlockNumber,
       endBlockNumber

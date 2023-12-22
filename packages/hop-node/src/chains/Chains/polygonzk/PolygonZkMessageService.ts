@@ -82,11 +82,12 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   }
 
   async #tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
+    while (true) {
+      if (this.ready) {
+        return true
+      }
+      await wait(100)
     }
-    await wait(100)
-    return await this.#tilReady()
   }
 
   async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
@@ -138,7 +139,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
 
     const wallet = messageDirection === MessageDirection.L1_TO_L2 ? this.l2Wallet : this.l1Wallet
-    return await wallet.provider!.getTransaction(claimMessageTxHash)
+    return wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
   protected async getMessage (txHash: string): Promise<Message> {
@@ -168,18 +169,18 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   protected async isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
     if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
       return this.zkEvmClient.isDepositClaimable(messageStatus)
-    } else {
-      return this.zkEvmClient.isWithdrawExitable(messageStatus)
     }
+
+    return this.zkEvmClient.isWithdrawExitable(messageStatus)
   }
 
   protected async isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
     // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
     if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
       return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
-    } else {
-      return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
     }
+
+    return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
   }
 
   #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
@@ -188,11 +189,11 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
         sourceBridge: this.zkEvmClient.rootChainBridge,
         destBridge: this.zkEvmClient.childChainBridge
       }
-    } else {
+    } 
       return {
         sourceBridge: this.zkEvmClient.childChainBridge,
         destBridge: this.zkEvmClient.rootChainBridge
       }
-    }
+    
   }
 }

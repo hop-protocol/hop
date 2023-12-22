@@ -1,7 +1,7 @@
-import BNMax from 'src/utils/BNMax'
-import BNMin from 'src/utils/BNMin'
 import Logger from 'src/logger'
 import Store from './Store'
+import bnMax from 'src/utils/bnMax'
+import bnMin from 'src/utils/bnMin'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
@@ -335,10 +335,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   static async fromId (id: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const item = await store.getItem(id)
-    return await GasBoostTransaction.unmarshal(item, signer, store, options)
+    return GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
-  static async unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,
@@ -395,15 +395,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getLatestNonce (): Promise<number> {
-    return await this.signer.getTransactionCount('pending')
+    return this.signer.getTransactionCount('pending')
   }
 
   async getGasFeeData () {
-    return await this.signer.provider!.getFeeData() // eslint-disable-line
+    return this.signer.provider!.getFeeData()
   }
 
   async getMarketGasPrice (): Promise<BigNumber> {
-    return await this.signer.getGasPrice()
+    return this.signer.getGasPrice()
   }
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
@@ -487,7 +487,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.compareMarketGasPrice) {
       return bumpedGasPrice
     }
-    return BNMax(marketGasPrice, bumpedGasPrice)
+    return bnMax(marketGasPrice, bumpedGasPrice)
   }
 
   async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
@@ -498,7 +498,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.compareMarketGasPrice) {
       return bumpedMaxPriorityFeePerGas
     }
-    return BNMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
+    return bnMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
@@ -516,7 +516,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
         maxFeePerGas = currentBaseFeePerGas.mul(2)
       }
-      maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
+      maxFeePerGas = bnMin(maxFeePerGas, maxGasPrice)
 
       return {
         gasPrice: undefined,
@@ -536,14 +536,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (gasFeeData.gasPrice != null) {
       const maxGasPrice = this.getMaxGasPrice()
       return {
-        gasPrice: BNMin(gasFeeData.gasPrice, maxGasPrice)
+        gasPrice: bnMin(gasFeeData.gasPrice, maxGasPrice)
       }
     }
 
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
     return {
-      maxFeePerGas: BNMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
-      maxPriorityFeePerGas: BNMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
+      maxFeePerGas: bnMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
+      maxPriorityFeePerGas: bnMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
     }
   }
 
@@ -602,13 +602,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.logger.debug(`wait() called, txHash: ${this.txHash}`)
     this.logger.debug(`wait() called, inFlightItems: ${JSON.stringify(this.inflightItems)}`)
     if (this.txHash) {
-      return await this.getReceipt(this.txHash)
+      const receipt = await this.getReceipt(this.txHash)
+      return receipt
     }
     for (const { hash } of this.inflightItems) {
       this.getReceipt(hash!)
         .then(async (receipt: providers.TransactionReceipt) => this.handleConfirmation(hash!, receipt))
     }
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this
         .on(State.Confirmed, (tx: providers.TransactionReceipt) => {
           this.logger.debug(`wait() confirmed, tx: ${this.hash} with status ${tx.status}`)
@@ -666,7 +667,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async getReceipt (txHash: string) {
-    return await this.signer.provider!.waitForTransaction(txHash) // eslint-disable-line
+    return this.signer.provider!.waitForTransaction(txHash)
   }
 
   private async startPoller () {

@@ -321,7 +321,7 @@ export async function swap (config: SwapInput) {
     await tx.wait()
   }
 
-  return await wallet.sendTransaction({
+  return wallet.sendTransaction({
     to: swapRouter,
     data: calldata,
     value

@@ -41,12 +41,12 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
   protected async sendRelayTransaction (message: Message, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
     if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
       return (message as IL1ToL2MessageWriter).redeem()
-    } else {
-      const overrides: any = {
-        gasLimit: CanonicalMessengerRootConfirmationGasLimit
-      }
-      return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
     }
+
+    const overrides: any = {
+      gasLimit: CanonicalMessengerRootConfirmationGasLimit
+    }
+    return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
   }
 
   protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<Message> {
@@ -91,24 +91,21 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
   protected isMessageInFlight (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
     if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
       return messageStatus === L1ToL2MessageStatus.NOT_YET_CREATED
-    } else {
-      return messageStatus === L2ToL1MessageStatus.UNCONFIRMED
     }
+    return messageStatus === L2ToL1MessageStatus.UNCONFIRMED
   }
 
   protected isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
     if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
       return messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2
-    } else {
-      return messageStatus === L2ToL1MessageStatus.CONFIRMED
     }
+    return messageStatus === L2ToL1MessageStatus.CONFIRMED
   }
 
   protected isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
     if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
       return messageStatus === L1ToL2MessageStatus.REDEEMED
-    } else {
-      return messageStatus === L2ToL1MessageStatus.EXECUTED
     }
+    return messageStatus === L2ToL1MessageStatus.EXECUTED
   }
 }

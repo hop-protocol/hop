@@ -1,11 +1,11 @@
 import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
-import BNMin from 'src/utils/BNMin'
 import Bridge from './Bridge'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import bnMin from 'src/utils/bnMin'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
@@ -138,7 +138,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
         }
       } catch (err) {
         this.logger.error(`poll check error: ${err.message}\ntrace: ${err.stack}`)
-        this.notifier.error(`poll check error: ${err.message}`)
+        await this.notifier.error(`poll check error: ${err.message}`)
       }
       await this.postPollHandler()
     }
@@ -168,7 +168,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       await this.pollCheck()
     } catch (err) {
       this.logger.error(`base watcher error: ${err.message}\ntrace: ${err.stack}`)
-      this.notifier.error(`base watcher error: ${err.message}`)
+      await this.notifier.error(`base watcher error: ${err.message}`)
       this.quit()
     }
   }
@@ -332,7 +332,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     // this is needed because the amount withdrawn from vault may not be exact
-    amount = BNMin(amount, balance)
+    amount = bnMin(amount, balance)
 
     this.logger.debug(`staking on bridge. amount: ${this.bridge.formatUnits(amount)}`)
     tx = await this.bridge.stake(amount)
@@ -341,7 +341,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   // force quit so docker can restart
-  public async quit () {
+  public quit () {
     console.trace()
     this.logger.info('exiting')
     process.exit(1)
@@ -377,8 +377,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (nearestItemToTransferSent && nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
-      gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
-      minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+      gasCostInToken = bnMin(gasCostInToken, currentGasCostInToken)
+      minBonderFeeAbsolute = bnMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
       this.logger.debug('using nearestItemToTransferSent')
     } else if (nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
@@ -438,7 +438,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
       const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, token: ${this.bridge.tokenSymbol}, sourceChain: ${this.bridge.chainSlug}, destinationChain: ${destinationChain}, transferId: ${transferId}`
       logger.warn(msg)
-      this.notifier.warn(msg)
     }
   }
 

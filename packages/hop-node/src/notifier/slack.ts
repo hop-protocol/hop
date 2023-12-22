@@ -42,35 +42,35 @@ class SlackClient implements Notifier {
 
   async error (message: string, options: Partial<MessageOptions> = {}) {
     const icon = '❌'
-    return await this.sendMessage(`${icon} ${message}`, {
+    return this.sendMessage(`${icon} ${message}`, {
       channel: options.channel ?? slackErrorChannel
     })
   }
 
   async info (message: string, options: Partial<MessageOptions> = {}) {
     const icon = 'ℹ️'
-    return await this.sendMessage(`${icon} ${message}`, {
+    return this.sendMessage(`${icon} ${message}`, {
       channel: options.channel ?? slackInfoChannel
     })
   }
 
   async log (message: string, options: Partial<MessageOptions> = {}) {
     const icon = 'ℹ️'
-    return await this.sendMessage(`${icon} ${message}`, {
+    return this.sendMessage(`${icon} ${message}`, {
       channel: options.channel ?? slackLogChannel
     })
   }
 
   async success (message: string, options: Partial<MessageOptions> = {}) {
     const icon = '✅'
-    return await this.sendMessage(`${icon} ${message}`, {
+    return this.sendMessage(`${icon} ${message}`, {
       channel: options.channel ?? slackSuccessChannel
     })
   }
 
   async warn (message: string, options: Partial<MessageOptions> = {}) {
     const icon = '⚠️'
-    return await this.sendMessage(`${icon} ${message}`, {
+    return this.sendMessage(`${icon} ${message}`, {
       channel: options.channel ?? slackWarnChannel
     })
   }

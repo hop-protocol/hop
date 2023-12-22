@@ -97,9 +97,9 @@ async function getRootProviderNameFromRpcCall (url: string): Promise<RootProvide
 function getUrlFromProviderOrUrl (providerOrUrl: providers.Provider | string): string {
   if (providerOrUrl instanceof providers.Provider) {
     return getRpcUrlFromProvider(providerOrUrl)
-  } else {
-    return providerOrUrl
   }
+
+  return providerOrUrl
 }
 
 export default getRpcRootProviderName

@@ -49,18 +49,18 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
     const { messageDirection } = messageOpts
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return this.#csm.proveMessage(message)
-    } else {
-      // Need an arbitrary value that will always succeed
-      // Signer is needed to execute tx with SDK
-      const gasLimit = 1000000
-      const txOpts: any = {
-        signer: this.l2Wallet,
-        overrides: {
-          gasLimit
-        }
-      }
-      return this.#csm.resendMessage(message, txOpts)
     }
+
+    // Need an arbitrary value that will always succeed
+    // Signer is needed to execute tx with SDK
+    const gasLimit = 1000000
+    const txOpts: any = {
+      signer: this.l2Wallet,
+      overrides: {
+        gasLimit
+      }
+    }
+    return this.#csm.resendMessage(message, txOpts)
   }
 
   protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<CrossChainMessage> {

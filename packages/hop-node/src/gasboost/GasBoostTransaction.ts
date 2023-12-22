@@ -890,7 +890,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     console.timeEnd(_timeId2)
 
-    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas
+    const gasPrice = gasFeeData.gasPrice ?? gasFeeData.maxFeePerGas
     const gasCost = gasLimit.mul(gasPrice!)
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
     const formattedGasCost = formatUnits(gasCost, 18)

@@ -59,7 +59,8 @@
     "@typescript-eslint/no-floating-promises": 0,
     "no-else-return": 0, // Could be a 1 but --fix does not correctly indent
     // https://github.com/eslint/eslint/issues/3400
-    "no-lonely-if": 0 // Could be a 1 but erroneously fixes nested items. Nesting is user error but still not worth the hassle
+    "no-lonely-if": 0, // Could be a 1 but erroneously fixes nested items. Nesting is user error but still not worth the hassle
+    "@typescript-eslint/no-unnecessary-condition": 2 // Nice to have but need to clean up first
   },
   "ignorePatterns": [
     "node_modules",

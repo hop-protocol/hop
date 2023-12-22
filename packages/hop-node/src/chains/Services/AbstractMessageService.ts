@@ -18,6 +18,15 @@ export interface IMessageService {
   relayL2ToL1Message(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
 }
 
+/**
+ * @todo Future features:
+ * - messageDirection and messageIndex should in a single object, along with child class specific options, such
+ *   as messageBlockNumber or API response. They should all be optional. The former two items resolve the case
+ *   where a getMessage call by a child class needs the messageIndex but not the direction. The latter allows
+ *   for cacheing of data that is used in multiple methods, such as the block number of a message so that it
+ *   does not need to be derived via an RPC call for each status check method.
+ */
+
 export abstract class AbstractMessageService<Message, MessageStatus> extends AbstractService implements IMessageService {
   protected readonly l1Wallet: Signer
   protected readonly l2Wallet: Signer
@@ -38,6 +47,12 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
     this.l2Wallet = wallets.get(this.chainSlug)
   }
 
+  /**
+   *  Public Interface Methods
+   *  @dev Do not override these methods in subclasses unless you know what you are doing
+   *  @dev If a subclass does not implement relays for a certain direction, override this method and throw
+   */
+
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const messageDirection: MessageDirection = MessageDirection.L1_TO_L2
     return await this.#relayMessage(l1TxHash, messageDirection, messageIndex)
@@ -47,6 +62,10 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
     const messageDirection: MessageDirection = MessageDirection.L2_TO_L1
     return await this.#relayMessage(l2TxHash, messageDirection, messageIndex)
   }
+
+  /**
+   * Internal Methods
+   */
 
   async #relayMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<providers.TransactionResponse> {
     const message: Message = await this.getMessage(txHash, messageDirection, messageIndex)

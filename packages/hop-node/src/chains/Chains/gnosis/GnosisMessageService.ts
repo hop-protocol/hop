@@ -36,8 +36,8 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
     this.#l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
   }
 
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    return this.validateMessageAndSendTransaction(l2TxHash)
+  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+    throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
   async #getValidSigEvent (l2TxHash: string) {
@@ -95,7 +95,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
     return `0x${msgLength}${v}${r}${s}`
   }
 
-  protected async sendRelayTransaction (message: MessageStatus): Promise<providers.TransactionResponse> {
+  protected async sendRelayTx (message: MessageStatus): Promise<providers.TransactionResponse> {
     const messageHash: string = this.#getMessageHash(message)
     const requiredSigs = (await this.#l2Amb.requiredSignatures()).toNumber()
     const sigs: any[] = []

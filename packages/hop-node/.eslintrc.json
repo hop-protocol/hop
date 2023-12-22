@@ -46,7 +46,7 @@
     "no-return-await": 0,
     "@typescript-eslint/return-await": 2,
 
-    // Allow `any`
+    // These allow `any`. Possibly remove at some point.
     "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/no-unsafe-assignment": 0,
     "@typescript-eslint/no-unsafe-argument": 0,

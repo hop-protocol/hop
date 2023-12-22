@@ -18,16 +18,18 @@ export interface IMessageService {
   relayL2ToL1Message(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
 }
 
-export abstract class AbstractMessageService<Message, MessageStatus, MessageOpts = null> extends AbstractService {
+export abstract class AbstractMessageService<Message, MessageStatus> extends AbstractService implements IMessageService {
   protected readonly l1Wallet: Signer
   protected readonly l2Wallet: Signer
 
-  protected abstract getMessage (txHash: string, opts: MessageOpts | null): Promise<Message>
-  protected abstract getMessageStatus (message: Message, opts: MessageOpts | null): Promise<MessageStatus>
-  protected abstract sendRelayTransaction (message: Message, messageOpts: MessageOpts | null): Promise<providers.TransactionResponse>
-  protected abstract isMessageInFlight (messageStatus: MessageStatus, messageOpts: MessageOpts | null): Promise<boolean> | boolean
-  protected abstract isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts | null): Promise<boolean> | boolean
-  protected abstract isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts | null): Promise<boolean> | boolean
+  protected abstract sendRelayTx (message: Message, messageDirection?: MessageDirection): Promise<providers.TransactionResponse>
+  
+  protected abstract getMessage (txHash: string, messageDirection?: MessageDirection, messageIndex?: number): Promise<Message>
+  protected abstract getMessageStatus (message: Message, messageDirection: MessageDirection): Promise<MessageStatus>
+
+  protected abstract isMessageInFlight (messageStatus: MessageStatus, messageDirection?: MessageDirection): Promise<boolean> | boolean
+  protected abstract isMessageRelayable (messageStatus: MessageStatus, messageDirection?: MessageDirection): Promise<boolean> | boolean
+  protected abstract isMessageRelayed (messageStatus: MessageStatus, messageDirection?: MessageDirection): Promise<boolean> | boolean
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -36,40 +38,42 @@ export abstract class AbstractMessageService<Message, MessageStatus, MessageOpts
     this.l2Wallet = wallets.get(this.chainSlug)
   }
 
-  /**
-   * To be overridden by subclasses that support manual L1 to L2 message relaying
-   */
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
-    throw new Error('L1 to L2 message relay not supported. Messages may be relayed with a system tx.')
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+    const messageDirection: MessageDirection = MessageDirection.L1_TO_L2
+    return await this.#relayMessage(l1TxHash, messageDirection, messageIndex)
   }
 
-  // Call a private method so the validation is guaranteed to run in order
-  protected async validateMessageAndSendTransaction (txHash: string, messageOpts: MessageOpts | null = null): Promise<providers.TransactionResponse> {
-    return this.#validateMessageAndSendTransaction(txHash, messageOpts)
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+    const messageDirection: MessageDirection = MessageDirection.L2_TO_L1
+    return await this.#relayMessage(l2TxHash, messageDirection, messageIndex)
   }
 
-  async #validateMessageAndSendTransaction (txHash: string, messageOpts: MessageOpts | null): Promise<providers.TransactionResponse> {
-    const message: Message = await this.getMessage(txHash, messageOpts)
-    const messageStatus: MessageStatus = await this.getMessageStatus(message, messageOpts)
-    await this.#validateMessageStatus(messageStatus, messageOpts)
-    return this.sendRelayTransaction(message, messageOpts)
+  async #relayMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<providers.TransactionResponse> {
+    const message: Message = await this.getMessage(txHash, messageDirection, messageIndex)
+    await this.#validateMessage(message, messageDirection)
+    return await this.sendRelayTx(message, messageDirection)
   }
 
-  async #validateMessageStatus (messageStatus: MessageStatus, messageOpts: MessageOpts | null): Promise<void> {
+  async #validateMessage (message: Message, messageDirection: MessageDirection): Promise<void> {
+    const messageStatus: MessageStatus = await this.getMessageStatus(message, messageDirection)
+    await this.#validateMessageStatus(messageStatus, messageDirection)
+  }
+
+  async #validateMessageStatus (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<void> {
     if (!messageStatus) {
       throw new MessageUnknownError('validateMessageStatus: Unknown message status')
     }
 
-    if (await this.isMessageInFlight(messageStatus, messageOpts)) {
+    if (await this.isMessageInFlight(messageStatus, messageDirection)) {
       throw new MessageInFlightError('validateMessageStatus: Message has not yet been checkpointed')
     }
 
-    if (await this.isMessageRelayed(messageStatus, messageOpts)) {
+    if (await this.isMessageRelayed(messageStatus, messageDirection)) {
       throw new MessageRelayedError('validateMessageStatus: Message has already been relayed')
     }
 
     // If the message is here but is not relayable, it is in an invalid state
-    if (!(await this.isMessageRelayable(messageStatus, messageOpts))) {
+    if (!(await this.isMessageRelayable(messageStatus, messageDirection))) {
       throw new MessageInvalidError('validateMessageStatus: Invalid message state')
     }
   }

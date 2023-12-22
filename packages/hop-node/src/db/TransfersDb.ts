@@ -230,7 +230,7 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async update (transferId: string, transfer: UpdateTransfer): Promise<void> {
-    const item = await this.get(transferId) ?? {} as Transfer // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const item = await this.get(transferId) ?? {} as Transfer
     const updatedValue: Transfer = this.getUpdatedValue(item, transfer as Transfer)
     updatedValue.transferId = transferId
 

@@ -41,7 +41,9 @@
     "new-cap": [2, { "properties": false }], // Used by ethers event filters
     "prefer-const": [2, { "destructuring": "all" }],
     "no-empty": [2, { "allowEmptyCatch": true }],
-    "no-return-await": 0, // Note: you must disable the base rule as it can report incorrect errors
+    "@typescript-eslint/prefer-nullish-coalescing": 2,
+    // Note: for @typescript-eslint/return-await", you must disable the base rule as it can report incorrect errors
+    "no-return-await": 0,
     "@typescript-eslint/return-await": 2,
 
     // Allow `any`

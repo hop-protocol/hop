@@ -267,7 +267,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
-      return prevItem.hash! // eslint-disable-line
+      return prevItem.hash!
     }
     throw new Error('transaction hash not available yet')
   }
@@ -408,7 +408,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
     const { maxFeePerGas } = await this.getGasFeeData()
-    return maxFeePerGas! // eslint-disable-line
+    return maxFeePerGas!
   }
 
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
@@ -469,7 +469,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
 
     const { maxPriorityFeePerGas } = await this.getGasFeeData()
-    return maxPriorityFeePerGas! // eslint-disable-line
+    return maxPriorityFeePerGas!
   }
 
   getMaxGasPrice () {
@@ -543,7 +543,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
     return {
       maxFeePerGas: bnMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
-      maxPriorityFeePerGas: bnMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
+      maxPriorityFeePerGas: bnMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap)
     }
   }
 
@@ -647,7 +647,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.confirmations = 1
     this.txHash = txHash
     this.clearInflightTxs()
-    const tx = await this.signer.provider!.getTransaction(txHash) // eslint-disable-line
+    const tx = await this.signer.provider!.getTransaction(txHash)
     this.gasPrice = tx.gasPrice!
     this.maxFeePerGas = tx.maxFeePerGas!
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
@@ -890,8 +890,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     console.timeEnd(_timeId2)
 
-    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-    const gasCost = gasLimit.mul(gasPrice!) // eslint-disable-line
+    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas
+    const gasCost = gasLimit.mul(gasPrice!)
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
     const formattedGasCost = formatUnits(gasCost, 18)
     const formattedEthBalance = formatUnits(ethBalance, 18)

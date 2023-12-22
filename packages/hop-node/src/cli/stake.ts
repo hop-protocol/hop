@@ -60,7 +60,7 @@ async function sendTokensToL2 (
   const recipient = await bridge.getBonderAddress()
   const spender = bridge.getAddress()
 
-  const token: Token | void = await getToken(bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
+  const token: Token | void = await getToken(bridge)
 
   let tx
   if (token) {
@@ -88,7 +88,7 @@ async function stake (
 ) {
   logger.debug('Staking')
 
-  const token: Token | void = await getToken(bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
+  const token: Token | void = await getToken(bridge)
   const stakeTokenBalance: BigNumber = await getTokenBalance(bridge, token)
   const formattedAmount = bridge.formatUnits(parsedAmount)
   if (stakeTokenBalance.lt(parsedAmount)) {
@@ -143,7 +143,7 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber)
   }
 }
 
-async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
+async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
   if (isEthSend) {
     const isL1Bridge = bridge.chainSlug === Chain.Ethereum
@@ -161,7 +161,7 @@ async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { /
   throw new Error('invalid bridge type')
 }
 
-async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
+async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> {
   if (!token) {
     return bridge.getEthBalance()
   }

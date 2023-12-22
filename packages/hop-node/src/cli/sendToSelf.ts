@@ -29,7 +29,7 @@ async function main (source: any) {
   }
 
   const provider = getRpcProvider(fromChain)
-  const wallet = new Wallet(globalConfig.bonderPrivateKey, provider!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  const wallet = new Wallet(globalConfig.bonderPrivateKey, provider!)
   const recipient = await wallet.getAddress()
 
   const txOverrides: any = {

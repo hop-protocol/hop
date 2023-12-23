@@ -85,6 +85,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
       await wait(100)
     }
   }
+
   protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     await this.#tilReady()
 

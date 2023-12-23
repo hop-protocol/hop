@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import wait from 'src/utils/wait'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { BigNumber, providers, utils } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
@@ -6,7 +7,6 @@ import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import { setProofApi, use } from '@maticnetwork/maticjs'
-import wait from 'src/utils/wait'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string

@@ -20,16 +20,9 @@ type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
 export class ArbitrumMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
   protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      return this.#sendL1ToL2RelayTx(message)
+      return (message as IL1ToL2MessageWriter).redeem()
     }
-    return this.#sendL2ToL1RelayTx(message)
-  }
 
-  async #sendL1ToL2RelayTx (message: Message): Promise<providers.TransactionResponse> {
-    return (message as IL1ToL2MessageWriter).redeem()
-  }
-
-  async #sendL2ToL1RelayTx (message: Message): Promise<providers.TransactionResponse> {
     const overrides: any = {
       gasLimit: CanonicalMessengerRootConfirmationGasLimit
     }

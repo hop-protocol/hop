@@ -32,7 +32,7 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
   protected readonly l2Wallet: Signer
 
   protected abstract sendRelayTx (message: Message, messageDirection?: MessageDirection): Promise<providers.TransactionResponse>
-  
+
   protected abstract getMessage (txHash: string, messageDirection?: MessageDirection, messageIndex?: number): Promise<Message>
   protected abstract getMessageStatus (message: Message, messageDirection: MessageDirection): Promise<MessageStatus>
 

@@ -1,5 +1,4 @@
 import React, { FC } from 'react'
-import { BigNumber } from 'ethers'
 import { Button } from 'src/components/Button'
 import SendIcon from '@material-ui/icons/Send'
 import Box from '@material-ui/core/Box'
@@ -8,7 +7,6 @@ import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import { Alert } from 'src/components/Alert'
 import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
-import { sanitizeNumericalString } from 'src/utils'
 import { AmmDetails } from 'src/components/AmmDetails'
 import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
 import { InfoTooltip } from 'src/components/InfoTooltip'
@@ -44,6 +42,7 @@ const Send: FC = () => {
     estimatedReceivedUsdDisplay,
     feeRefundDisplay,
     feeRefundTokenSymbol,
+    fromAmountInputChangeHandler,
     fromBalance,
     fromNetwork,
     fromToken,
@@ -67,20 +66,18 @@ const Send: FC = () => {
     isSpecificRouteDeprecated,
     manualError,
     manualWarning,
+    maxButtonFixedAmountToSubtract,
     needsApproval,
     networks,
     placeholderToken,
     priceImpact,
     rate,
-    relayFeeEth,
     relayFeeEthDisplay,
     relayFeeUsdDisplay,
     selectedBridge,
     send,
     setError,
-    setFromTokenAmount,
     setInfo,
-    setToTokenAmount,
     setTx,
     setWarning,
     showFeeRefund,
@@ -93,7 +90,7 @@ const Send: FC = () => {
     totalFeeUsdDisplay,
     transferTimeDisplay,
     tx,
-    warning
+    warning,
   } = useSend()
 
   return (
@@ -109,16 +106,7 @@ const Send: FC = () => {
         value={fromTokenAmount}
         token={fromToken ?? placeholderToken}
         label={'From'}
-        onChange={value => {
-          if (!value) {
-            setFromTokenAmount('')
-            setToTokenAmount('')
-            return
-          }
-
-          const amountIn = sanitizeNumericalString(value)
-          setFromTokenAmount(amountIn)
-        }}
+        onChange={fromAmountInputChangeHandler}
         selectedNetwork={fromNetwork}
         networkOptions={networks}
         onNetworkChange={handleFromNetworkChange}
@@ -128,7 +116,7 @@ const Send: FC = () => {
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
         setWarning={setWarning}
-        maxButtonFixedAmountToSubtract={fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)}
+        maxButtonFixedAmountToSubtract={maxButtonFixedAmountToSubtract}
       />
 
       <Box display="flex" justifyContent="center" alignItems="center">
@@ -183,7 +171,13 @@ const Send: FC = () => {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} relayFeeUsd={relayFeeUsdDisplay} />
+              <FeeDetails
+                bonderFee={bonderFeeDisplay}
+                bonderFeeUsd={bonderFeeUsdDisplay}
+                destinationTxFee={destinationTxFeeDisplay}
+                destinationTxFeeUsd={destinationTxFeeUsdDisplay}
+                relayFee={relayFeeEthDisplay}
+                relayFeeUsd={relayFeeUsdDisplay} />
             }
             value={<>
               <InfoTooltip title={totalFeeUsdDisplay}>

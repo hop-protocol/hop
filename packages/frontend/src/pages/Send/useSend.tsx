@@ -6,7 +6,7 @@ import { Transaction } from 'src/models/Transaction'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, toTokenDisplay, toUsdDisplay, networkSlugToId } from 'src/utils'
+import { commafy, findMatchingBridge, toTokenDisplay, toUsdDisplay, networkSlugToId, sanitizeNumericalString } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import { isGoerli, showRewards } from 'src/config'
 import { InfoTooltip } from 'src/components/InfoTooltip'
@@ -52,6 +52,7 @@ export type SendResponseProps = {
   estimatedReceivedUsdDisplay: string
   feeRefundDisplay: string
   feeRefundTokenSymbol: string
+  fromAmountInputChangeHandler: (value: string) => void
   fromBalance: BigNumber
   fromNetwork: Network | undefined
   fromToken: Token
@@ -75,20 +76,18 @@ export type SendResponseProps = {
   isSpecificRouteDeprecated: boolean
   manualError: string
   manualWarning: string
+  maxButtonFixedAmountToSubtract: BigNumber
   needsApproval: boolean
   networks: Network[]
   placeholderToken: Token | undefined
   priceImpact: number
   rate: number
-  relayFeeEth: BigNumber
   relayFeeEthDisplay: string
   relayFeeUsdDisplay: string
   selectedBridge: HopBridge
   send: () => void
   setError: (error: string) => void
-  setFromTokenAmount: (amount: string) => void
   setInfo: (info: string) => void
-  setToTokenAmount: (amount: string) => void
   setTx: (tx: Transaction | undefined) => void
   setWarning: (warning: string | ReactNode) => void
   showFeeRefund: boolean
@@ -152,55 +151,66 @@ export function useSend(): SendResponseProps {
     }
   }, [fromNetwork, toNetwork])
 
-  // Set fromNetwork and toNetwork using query params
+  // Set fromNetwork and toNetwork if query params exist
   useEffect(() => {
-    const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
-    setFromNetwork(_fromNetwork)
+    const selectedFromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
+    setFromNetwork(selectedFromNetwork)
 
-    const _toNetwork = networks.find(network => network.slug === queryParams.destNetwork)
-
-    if (_fromNetwork?.name === _toNetwork?.name) {
-      // Leave destination network empty
-      return
+    const selectedToNetwork = networks.find(network => network.slug === queryParams.destNetwork)
+    if (selectedFromNetwork?.name !== selectedToNetwork?.name) {
+      setToNetwork(selectedToNetwork)
     }
-
-    setToNetwork(_toNetwork)
   }, [queryParams, networks])
 
-  // use the values saved to localStorage for default network selection (if they exist)
+  // use the values saved to localStorage for default network selection, if they exist
   useEffect(() => {
-    const fromNetworkString = localStorage.getItem('fromNetwork')
-    const savedFromNetwork = fromNetworkString ? JSON.parse(fromNetworkString) : ''
+    try {
+      const fromNetworkString = localStorage.getItem('fromNetwork')
+      const savedFromNetwork = fromNetworkString ? JSON.parse(fromNetworkString) : ''
 
-    const toNetworkString = localStorage.getItem('toNetwork')
-    const savedToNetwork = toNetworkString ? JSON.parse(toNetworkString) : ''
+      const toNetworkString = localStorage.getItem('toNetwork')
+      const savedToNetwork = toNetworkString ? JSON.parse(toNetworkString) : ''
 
-    if (savedFromNetwork) {
-      setFromNetworkAndUpdateQueryParams(savedFromNetwork)
-    } else if (!queryParams.sourceNetwork) {
-      setFromNetworkAndUpdateQueryParams(networks.find(network => network.chainId === networkSlugToId(ChainSlug.Ethereum)))
-    }
+      if (savedFromNetwork) {
+        setFromNetworkAndUpdateQueryParams(savedFromNetwork)
+      } else if (!queryParams.sourceNetwork) {
+        setFromNetworkAndUpdateQueryParams(networks.find(network => network.chainId === networkSlugToId(ChainSlug.Ethereum)))
+      }
 
-    if (savedToNetwork) {
-      setToNetworkAndUpdateQueryParams(savedToNetwork)
+      if (savedToNetwork) {
+        setToNetworkAndUpdateQueryParams(savedToNetwork)
+      }
+    } catch (err: any) {
+      logger.error(err)
     }
   }, [])
 
   // update localStorage on network change for persistent field values
   useEffect(() => {
-    if (fromNetwork) {
-      localStorage.setItem('fromNetwork', JSON.stringify(fromNetwork))
-    }
+    try {
+      if (fromNetwork) {
+        localStorage.setItem('fromNetwork', JSON.stringify(fromNetwork))
+      } else {
+        localStorage.removeItem('fromNetwork')
+      }
 
-    if (toNetwork) {
-      localStorage.setItem('toNetwork', JSON.stringify(toNetwork))
+      if (toNetwork) {
+        localStorage.setItem('toNetwork', JSON.stringify(toNetwork))
+      } else {
+        localStorage.removeItem('toNetwork')
+      }
+    } catch (err: any) {
+      logger.error(err)
     }
   }, [fromNetwork, toNetwork])
 
   // update fromNetwork to be the connectedNetwork on load and change
   useEffect(() => {
     if (connectedNetworkId) {
-      setFromNetworkAndUpdateQueryParams(networks.find(network => network.chainId === connectedNetworkId))
+      const selectedNetwork = networks.find(network => network.chainId === connectedNetworkId)
+      if (selectedNetwork) {
+        setFromNetworkAndUpdateQueryParams(selectedNetwork)
+      }
     }
 
     // ensure fromNetwork is not the same as toNetwork
@@ -209,6 +219,7 @@ export function useSend(): SendResponseProps {
     }
   }, [connectedNetworkId])
 
+  // set amount input field to query param value on load, if it exists
   useEffect(() => {
     if (queryParams.amount && !Number.isNaN(Number(queryParams.amount))) {
       setFromTokenAmount(queryParams.amount as string)
@@ -229,7 +240,7 @@ export function useSend(): SendResponseProps {
   const { balance: fromBalance, loading: isLoadingFromBalance } = useBalance(fromToken, accountAddress)
   const { balance: toBalance, loading: isLoadingToBalance } = useBalance(toToken, accountAddress)
 
-  // Set fromToken -> BN
+  // Set fromToken (string) to BigNumber
   const fromTokenAmountBN = useMemo<BigNumber>(() => {
     if (fromTokenAmount && fromToken) {
       return amountToBN(fromTokenAmount, fromToken.decimals)
@@ -246,22 +257,22 @@ export function useSend(): SendResponseProps {
 
   // Use send data for tx
   const {
-    amountOut,
-    rate,
-    priceImpact,
-    amountOutMin,
-    intermediaryAmountOutMin,
     adjustedBonderFee,
     adjustedDestinationTxFee,
-    totalFee,
-    requiredLiquidity,
-    relayFeeEth,
-    loading: isLoadingSendData,
-    estimatedReceived,
+    amountOut,
+    amountOutMin,
     error: sendDataError,
+    estimatedReceived,
+    intermediaryAmountOutMin,
+    loading: isLoadingSendData,
+    priceImpact,
+    rate,
+    relayFeeEth,
+    requiredLiquidity,
+    totalFee,
   } = useSendData(fromToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
-  // Set toAmount
+  // Set toAmount field value based on calculated amountOut amount
   useEffect(() => {
     if (!toToken) {
       setToTokenAmount('')
@@ -275,20 +286,35 @@ export function useSend(): SendResponseProps {
     setToTokenAmount(amount)
   }, [toToken, amountOut])
 
+  // check if destination bridge is paused
+  useEffect(() => {
+    async function update () {
+      if (fromNetwork?.isL1 && toNetwork && fromToken) {
+        const bridge = sdk.bridge(fromToken.symbol)
+        const isPaused = await bridge.isDestinationChainPaused(toNetwork?.slug)
+        setIsDestinationChainPaused(isPaused)
+      } else {
+        setIsDestinationChainPaused(false)
+      }
+    }
+
+    update().catch(logger.error)
+  }, [sdk, fromToken, fromNetwork, toNetwork])
+
   // Convert fees to displayed values
   const {
-    destinationTxFeeDisplay,
-    destinationTxFeeUsdDisplay,
     bonderFeeDisplay,
     bonderFeeUsdDisplay,
-    totalBonderFee,
-    totalFeeDisplay, // bonderFee + messageRelayFee
-    totalFeeUsdDisplay, // bonderFee + messageRelayFee
+    destinationTxFeeDisplay,
+    destinationTxFeeUsdDisplay,
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
-    tokenUsdPrice,
     relayFeeEthDisplay,
     relayFeeUsdDisplay,
+    tokenUsdPrice,
+    totalBonderFee,
+    totalFeeDisplay, // this is: totalFee = bonderFee + messageRelayFee
+    totalFeeUsdDisplay, // this is: totalFee = bonderFee + messageRelayFee
   } = useFeeConversions({
     destinationTxFee: adjustedDestinationTxFee,
     bonderFee: adjustedBonderFee,
@@ -296,6 +322,28 @@ export function useSend(): SendResponseProps {
     destToken: toToken,
     relayFee: relayFeeEth
   })
+
+  // set amounOutMin display values
+  useEffect(() => {
+    if (!amountOutMin || !toToken) {
+      setAmountOutMinDisplay('')
+      setAmountOutMinUsdDisplay('')
+      return
+    }
+    let amountOutMinAdjusted = amountOutMin
+    if (adjustedDestinationTxFee?.gt(0)) {
+      amountOutMinAdjusted = amountOutMin.sub(adjustedDestinationTxFee)
+    }
+
+    if (amountOutMinAdjusted.lt(0)) {
+      amountOutMinAdjusted = BigNumber.from(0)
+    }
+
+    const amountOutMinDisplay = toTokenDisplay(amountOutMinAdjusted, toToken.decimals, toToken.symbol)
+    const amountOutMinUsdDisplay = toUsdDisplay(amountOutMinAdjusted, toToken.decimals, tokenUsdPrice)
+    setAmountOutMinDisplay(amountOutMinDisplay)
+    setAmountOutMinUsdDisplay(amountOutMinUsdDisplay)
+  }, [amountOutMin, tokenUsdPrice])
 
   const { estimateSend } = useEstimateTxCost(fromNetwork)
 
@@ -315,37 +363,15 @@ export function useSend(): SendResponseProps {
     fromBalance
   )
 
-  useEffect(() => {
-    const update = async () => {
-      if (fromNetwork?.isL1 && toNetwork && fromToken) {
-        const bridge = sdk.bridge(fromToken.symbol)
-        const isPaused = await bridge.isDestinationChainPaused(toNetwork?.slug)
-        setIsDestinationChainPaused(isPaused)
-      } else {
-        setIsDestinationChainPaused(false)
-      }
-    }
+  const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
 
-    update().catch(console.error)
-  }, [sdk, fromToken, fromNetwork, toNetwork])
+  const isCheckingLiquidity = useMemo(() => {
+    return !fromNetwork?.isLayer1 && availableLiquidity === undefined
+  }, [fromNetwork, availableLiquidity])
 
   // ==============================================================================================
   // Error and warning messages
   // ==============================================================================================
-  useEffect(() => {
-    setError(formatError(sendDataError))
-  }, [sendDataError])
-
-  // Set error message if asset is unsupported
-  useEffect(() => {
-    if (unsupportedAsset) {
-      const { chain, tokenSymbol } = unsupportedAsset
-      setError(`${tokenSymbol} is currently not supported on ${chain}`)
-    } else if (error) {
-      setError('')
-    }
-  }, [unsupportedAsset])
-
   // Check if there is sufficient available liquidity
   useEffect(() => {
     const checkAvailableLiquidity = async () => {
@@ -395,12 +421,6 @@ export function useSend(): SendResponseProps {
     checkAvailableLiquidity()
   }, [fromNetwork, fromToken, toNetwork, availableLiquidity, requiredLiquidity])
 
-  const checkingLiquidity = useMemo(() => {
-    return !fromNetwork?.isLayer1 && availableLiquidity === undefined
-  }, [fromNetwork, availableLiquidity])
-
-  const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
-
   useEffect(() => {
     const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
     if (estimatedReceived?.lte(0) && adjustedDestinationTxFee?.gt(0)) {
@@ -424,6 +444,7 @@ export function useSend(): SendResponseProps {
     setSlippageToleranceTooLowWarning(isLow)
   }, [sdk, slippageTolerance, toTokenAmount, fromTokenAmount])
 
+  // set warning message
   useEffect(() => {
     try {
       let message: string | ReactNode = ''
@@ -458,47 +479,39 @@ export function useSend(): SendResponseProps {
 
       setWarning(message)
     } catch (err: any) {
-      console.error(err)
+      logger.error(err)
       setWarning('')
     }
   }, [
-    fromToken,
-    noLiquidityWarning,
-    minimumSendWarning,
-    sufficientBalanceWarning,
     estimatedReceived,
-    priceImpact,
+    fromBalance,
+    fromToken,
     fromTokenAmount,
     fromTokenAmountBN,
+    minimumSendWarning,
+    noLiquidityWarning,
+    priceImpact,
+    relayFeeEth,
+    slippageTolerance,
+    slippageToleranceTooLowWarning,
+    sufficientBalanceWarning,
+    toNetwork,
     toTokenAmount,
     totalFee,
-    toNetwork,
-    relayFeeEth,
-    fromBalance,
-    slippageToleranceTooLowWarning,
-    slippageTolerance
   ])
 
+  // set error message
   useEffect(() => {
-    if (!amountOutMin || !toToken) {
-      setAmountOutMinDisplay('')
-      setAmountOutMinUsdDisplay('')
-      return
-    }
-    let amountOutMinAdjusted = amountOutMin
-    if (adjustedDestinationTxFee?.gt(0)) {
-      amountOutMinAdjusted = amountOutMin.sub(adjustedDestinationTxFee)
+    let errMsg : string = ''
+    if (sendDataError) {
+      errMsg = formatError(sendDataError)
+    } else if (unsupportedAsset) {
+      const { chain, tokenSymbol } = unsupportedAsset
+      errMsg = `${tokenSymbol} is currently not supported on ${chain}`
     }
 
-    if (amountOutMinAdjusted.lt(0)) {
-      amountOutMinAdjusted = BigNumber.from(0)
-    }
-
-    const amountOutMinDisplay = toTokenDisplay(amountOutMinAdjusted, toToken.decimals, toToken.symbol)
-    const amountOutMinUsdDisplay = toUsdDisplay(amountOutMinAdjusted, toToken.decimals, tokenUsdPrice)
-    setAmountOutMinDisplay(amountOutMinDisplay)
-    setAmountOutMinUsdDisplay(amountOutMinUsdDisplay)
-  }, [amountOutMin, tokenUsdPrice])
+    setError(errMsg)
+  }, [sendDataError, unsupportedAsset])
 
   // ==============================================================================================
   // Approve fromNetwork / fromToken
@@ -576,51 +589,49 @@ export function useSend(): SendResponseProps {
   // ==============================================================================================
 
   useEffect(() => {
-    async function update() {
+    async function update () {
       try {
-        if (!feeRefundEnabled) {
+        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism)) {
+          setFeeRefund('')
+          setFeeRefundUsd('')
           return
         }
-        if (fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
-          const payload :Record<string, string> = {
-            gasCost: estimatedGasCost?.toString(),
-            amount: fromTokenAmountBN?.toString(),
-            token: fromToken?.symbol,
-            bonderFee: totalBonderFee.toString(),
-            fromChain: fromNetwork?.slug
-          }
 
-          const query = new URLSearchParams(payload).toString()
-          const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
-          // const apiBaseUrl = 'http://localhost:8000'
-          const url = `${apiBaseUrl}/v1/refund-amount?${query}`
-          const res = await fetch(url)
-          const json = await res.json()
-          if (json.error) {
-            throw new Error(json.error)
-          }
-          console.log(json.data.refund)
-          const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
-          setFeeRefundTokenSymbol(refundTokenSymbol)
-          if (refundAmountInUsd > 0) {
-            setFeeRefund(refundAmountInRefundToken.toFixed(4))
-            setFeeRefundUsd(refundAmountInUsd.toFixed(2))
-          } else {
-            setFeeRefund('')
-            setFeeRefundUsd('')
-          }
+        const payload :Record<string, string> = {
+          gasCost: estimatedGasCost?.toString(),
+          amount: fromTokenAmountBN?.toString(),
+          token: fromToken?.symbol,
+          bonderFee: totalBonderFee.toString(),
+          fromChain: fromNetwork?.slug
+        }
+
+        const query = new URLSearchParams(payload).toString()
+        const apiBaseUrl = isGoerli ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+        // const apiBaseUrl = 'http://localhost:8000'
+        const url = `${apiBaseUrl}/v1/refund-amount?${query}`
+        const res = await fetch(url)
+        const json = await res.json()
+        if (json.error) {
+          throw new Error(json.error)
+        }
+        logger.log(json.data.refund)
+        const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
+        setFeeRefundTokenSymbol(refundTokenSymbol)
+        if (refundAmountInUsd > 0) {
+          setFeeRefund(refundAmountInRefundToken.toFixed(4))
+          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
         } else {
           setFeeRefund('')
           setFeeRefundUsd('')
         }
       } catch (err) {
-        console.error('fee refund fetch error:', err)
+        logger.error('fee refund fetch error:', err)
         setFeeRefund('')
         setFeeRefundUsd('')
       }
     }
 
-    update().catch(console.error)
+    update().catch(logger.error)
   }, [feeRefundEnabled, fromNetwork, toNetwork, fromToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
 
   // ==============================================================================================
@@ -631,22 +642,22 @@ export function useSend(): SendResponseProps {
     amountOutMin,
     customRecipient,
     deadline,
-    totalFee,
+    estimatedReceived: estimatedReceivedDisplay,
     fromNetwork,
+    fromToken,
     fromTokenAmount,
     intermediaryAmountOutMin,
     sdk,
     setError,
-    fromToken,
     toNetwork,
+    totalFee,
     txConfirm,
     txHistory,
-    estimatedReceived: estimatedReceivedDisplay
   })
 
   useEffect(() => {
     if (tx) {
-      // clear from token input field
+      // clear from token input field after sending tx
       setFromTokenAmount('')
     }
   }, [tx])
@@ -700,7 +711,7 @@ export function useSend(): SendResponseProps {
     setToNetworkAndUpdateQueryParams(fromNetwork)
   }
 
-  // Change the fromNetwork
+  // the fromNetwork input handler
   const handleFromNetworkChange = (network: Network | undefined) => {
     if (network?.slug === toNetwork?.slug) {
       handleSwitchDirection()
@@ -709,7 +720,7 @@ export function useSend(): SendResponseProps {
     }
   }
 
-  // Change the toNetwork
+  // the toNetwork input handler
   const handleToNetworkChange = (network: Network | undefined) => {
     if (network?.slug === fromNetwork?.slug) {
       handleSwitchDirection()
@@ -718,12 +729,24 @@ export function useSend(): SendResponseProps {
     }
   }
 
-  // Specify custom recipient
+  const fromAmountInputChangeHandler = (value: string) => {
+    if (!value) {
+      setFromTokenAmount('')
+      setToTokenAmount('')
+      return
+    }
+
+    const amountIn = sanitizeNumericalString(value)
+    setFromTokenAmount(amountIn)
+  }
+
+  // custom recipient handler
   const handleCustomRecipientInput = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.trim()
     setCustomRecipient(value)
   }
 
+  // custom recipient warning message
   useEffect(() => {
     if (customRecipient) {
       if (gnosisEnabled && accountAddress?.eq(customRecipient)) {
@@ -748,6 +771,7 @@ export function useSend(): SendResponseProps {
     }
   }, [gnosisEnabled, isSmartContractWallet, fromNetwork?.slug, toNetwork?.slug, customRecipient, accountAddress])
 
+  // reset manual warning on network change
   useEffect(() => {
     setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
@@ -763,19 +787,13 @@ export function useSend(): SendResponseProps {
 
   const isTokenDeprecated = useCheckTokenDeprecated(fromToken?.symbol)
   const isSpecificRouteDeprecated = !!(isTokenDeprecated && !toNetwork?.isL1)
-
-  const checkApproveButtonActive = () => !!(!needsTokenForFee && !unsupportedAsset && needsApproval && !isSpecificRouteDeprecated)
-  const [isApproveButtonActive, setIsApproveButtonActive] = useState(checkApproveButtonActive())
-
-  useEffect(() => {
-    setIsApproveButtonActive(checkApproveButtonActive())
-  }, [needsTokenForFee, unsupportedAsset, needsApproval, isSpecificRouteDeprecated])
+  const isApproveButtonActive = !!(!needsTokenForFee && !unsupportedAsset && needsApproval && !isSpecificRouteDeprecated)
 
   const isSendButtonActive = useMemo(() => {
     return !!(
       !needsApproval &&
       !isApproveButtonActive &&
-      !checkingLiquidity &&
+      !isCheckingLiquidity &&
       !isLoadingToBalance &&
       !isLoadingSendData &&
       fromTokenAmount &&
@@ -791,7 +809,6 @@ export function useSend(): SendResponseProps {
       !isSpecificRouteDeprecated
     )
   }, [
-    checkingLiquidity,
     disabledTx,
     estimatedReceived,
     fromNetwork?.slug,
@@ -799,6 +816,7 @@ export function useSend(): SendResponseProps {
     fromTokenAmount,
     gnosisEnabled,
     isApproveButtonActive,
+    isCheckingLiquidity,
     isCorrectSignerNetwork,
     isLiquidityAvailable,
     isLoadingSendData,
@@ -815,6 +833,7 @@ export function useSend(): SendResponseProps {
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
+  const maxButtonFixedAmountToSubtract = fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)
 
   return {
     accountAddress,
@@ -833,6 +852,7 @@ export function useSend(): SendResponseProps {
     estimatedReceivedUsdDisplay,
     feeRefundDisplay,
     feeRefundTokenSymbol,
+    fromAmountInputChangeHandler,
     fromBalance,
     fromNetwork,
     fromToken,
@@ -856,20 +876,18 @@ export function useSend(): SendResponseProps {
     isSpecificRouteDeprecated,
     manualError,
     manualWarning,
+    maxButtonFixedAmountToSubtract,
     needsApproval,
     networks,
     placeholderToken,
     priceImpact,
     rate,
-    relayFeeEth,
     relayFeeEthDisplay,
     relayFeeUsdDisplay,
     selectedBridge,
     send,
     setError,
-    setFromTokenAmount,
     setInfo,
-    setToTokenAmount,
     setTx,
     setWarning,
     showFeeRefund,

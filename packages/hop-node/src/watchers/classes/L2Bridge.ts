@@ -193,7 +193,7 @@ export default class L2Bridge extends Bridge {
       return this.chainId
     }
     if (!this.bridgeContract) {
-      return super.getChainId()
+      return this.getChainId()
     }
     const chainId = Number(
       (await this.bridgeContract.getChainId()).toString()

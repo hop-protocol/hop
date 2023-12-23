@@ -1,6 +1,6 @@
 import Logger from 'src/logger'
 import express, { Express } from 'express'
-import { Registry, collectDefaultMetrics } from 'prom-client'
+import { Metric, Registry, collectDefaultMetrics } from 'prom-client'
 import { metrics } from './metrics'
 
 export class MetricsServer {
@@ -43,7 +43,7 @@ export class MetricsServer {
 
   private static _registerCustomMetrics (registry: Registry): void {
     for (const metric of Object.values(metrics)) {
-      registry.registerMetric(metric)
+      registry.registerMetric(metric as Metric<"url" | "method" | "params" | "instance_hostname">)
     }
   }
 }

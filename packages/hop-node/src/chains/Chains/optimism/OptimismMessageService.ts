@@ -9,12 +9,7 @@ import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { providers } from 'ethers'
 
-type MessageOpts = {
-  messageDirection: MessageDirection
-  messageIndex: number
-}
-
-export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus, MessageOpts> implements IMessageService {
+export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus> implements IMessageService {
   readonly #csm: CrossChainMessenger
 
   constructor (chainSlug: string) {
@@ -29,43 +24,24 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
     })
   }
 
-  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L1_TO_L2,
-      messageIndex: messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
-  }
-
-  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L2_TO_L1,
-      messageIndex: messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
-  }
-
-  protected async sendRelayTransaction (message: CrossChainMessage, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
-    const { messageDirection } = messageOpts
+  protected async sendRelayTx (message: CrossChainMessage, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return this.#csm.proveMessage(message)
-    } else {
-      // Need an arbitrary value that will always succeed
-      // Signer is needed to execute tx with SDK
-      const gasLimit = 1000000
-      const txOpts: any = {
-        signer: this.l2Wallet,
-        overrides: {
-          gasLimit
-        }
-      }
-      return this.#csm.resendMessage(message, txOpts)
     }
+
+    // Need an arbitrary value that will always succeed
+    // Signer is needed to execute tx with SDK
+    const gasLimit = 1000000
+    const txOpts: any = {
+      signer: this.l2Wallet,
+      overrides: {
+        gasLimit
+      }
+    }
+    return this.#csm.resendMessage(message, txOpts)
   }
 
-  protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<CrossChainMessage> {
-    const { messageIndex } = messageOpts
-
+  protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex: number): Promise<CrossChainMessage> {
     const messages: CrossChainMessage[] = await this.#csm.getMessagesByTransaction(txHash)
     if (!messages) {
       throw new Error('could not find messages for tx hash')

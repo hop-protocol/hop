@@ -1,4 +1,5 @@
 import React, { FC } from 'react'
+import { BigNumber } from 'ethers'
 import { Button } from 'src/components/Button'
 import SendIcon from '@material-ui/icons/Send'
 import Box from '@material-ui/core/Box'
@@ -35,7 +36,6 @@ const Send: FC = () => {
     bridges,
     customRecipient,
     deadline,
-    destToken,
     destinationTxFeeDisplay,
     destinationTxFeeUsdDisplay,
     disabledTx,
@@ -46,6 +46,7 @@ const Send: FC = () => {
     feeRefundTokenSymbol,
     fromBalance,
     fromNetwork,
+    fromToken,
     fromTokenAmount,
     gnosisSafeWarning,
     handleApprove,
@@ -84,9 +85,9 @@ const Send: FC = () => {
     setWarning,
     showFeeRefund,
     slippageTolerance,
-    sourceToken,
     toBalance,
     toNetwork,
+    toToken,
     toTokenAmount,
     totalFeeDisplay,
     totalFeeUsdDisplay,
@@ -106,7 +107,7 @@ const Send: FC = () => {
 
       <SendAmountSelectorCard
         value={fromTokenAmount}
-        token={sourceToken ?? placeholderToken}
+        token={fromToken ?? placeholderToken}
         label={'From'}
         onChange={value => {
           if (!value) {
@@ -127,7 +128,7 @@ const Send: FC = () => {
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
         setWarning={setWarning}
-        maxButtonFixedAmountToSubtract={sourceToken?.symbol === 'ETH' ? relayFeeEth : 0}
+        maxButtonFixedAmountToSubtract={fromToken?.symbol === 'ETH' ? relayFeeEth : BigNumber.from(0)}
       />
 
       <Box display="flex" justifyContent="center" alignItems="center">
@@ -138,7 +139,7 @@ const Send: FC = () => {
 
       <SendAmountSelectorCard
         value={toTokenAmount}
-        token={destToken ?? placeholderToken}
+        token={toToken ?? placeholderToken}
         label={'To (estimated)'}
         selectedNetwork={toNetwork}
         networkOptions={networks}
@@ -226,7 +227,7 @@ const Send: FC = () => {
 
       {isSpecificRouteDeprecated && (
         <Box mb={4}>
-          <Alert severity="error" text={(sourceToken?.symbol ? ("The " + sourceToken?.symbol) : "This") + " bridge is deprecated. Only transfers from L2 to L1 are supported."} />
+          <Alert severity="error" text={`${fromToken?.symbol ? `The ${fromToken?.symbol}` : 'This'} bridge is deprecated. Only transfers from L2 to L1 are supported.`} />
         </Box>
       )}
 

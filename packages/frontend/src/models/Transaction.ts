@@ -37,7 +37,7 @@ interface ContructorArgs {
   safeTx?: GatewayTransactionDetails
 }
 
-class Transaction extends EventEmitter {
+export class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
   destNetworkName: string | null = null

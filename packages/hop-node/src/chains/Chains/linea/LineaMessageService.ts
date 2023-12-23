@@ -21,12 +21,7 @@ interface LineaBridges {
   destBridge: LineaMessageServiceContract
 }
 
-type MessageOpts = {
-  messageDirection: MessageDirection
-  messageIndex: number
-}
-
-export class LineaMessageService extends AbstractMessageService<LineaMessage, OnChainMessageStatus, MessageOpts> implements IMessageService {
+export class LineaMessageService extends AbstractMessageService<LineaMessage, OnChainMessageStatus> implements IMessageService {
   readonly #l1Contract: LineaMessageServiceContract
   readonly #l2Contract: LineaMessageServiceContract
 
@@ -52,31 +47,15 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     this.#l2Contract = lineaSdk.getL2Contract()
   }
 
-  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L1_TO_L2,
-      messageIndex: messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
-  }
-
-  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L2_TO_L1,
-      messageIndex: messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
-  }
-
-  protected async sendRelayTransaction (message: LineaMessage, opts: MessageOpts): Promise<providers.TransactionResponse> {
-    const { destBridge } = this.#getSourceAndDestBridge(opts.messageDirection)
+  protected async sendRelayTx (message: LineaMessage, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
+    const { destBridge } = this.#getSourceAndDestBridge(messageDirection)
     // Gas estimation does not work sometimes, so manual limit is needed
     // https://lineascan.build/tx/0x8e3c6d7bd3b7d39154c9463535a576db1a1e4d1e99d3a6526feb5bde26a926c0#internal
     const gasLimit = 500000
     const txOverrides = { gasLimit }
     // When the fee recipient is the zero address, the fee is sent to the msg.sender
     const feeRecipient = constants.AddressZero
-    const wallet = opts.messageDirection === MessageDirection.L1_TO_L2 ? this.l2Wallet : this.l1Wallet
+    const wallet = messageDirection === MessageDirection.L1_TO_L2 ? this.l2Wallet : this.l1Wallet
     return destBridge.contract.connect(wallet).claimMessage(
       message.messageSender,
       message.destination,
@@ -89,9 +68,8 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     )
   }
 
-  protected async getMessage (txHash: string, opts: MessageOpts): Promise<LineaMessage> {
-    const { messageIndex } = opts
-    const { sourceBridge } = this.#getSourceAndDestBridge(opts.messageDirection)
+  protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex: number): Promise<LineaMessage> {
+    const { sourceBridge } = this.#getSourceAndDestBridge(messageDirection)
     const messages: LineaMessage[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
     if (!messages?.length) {
       throw new Error('could not find messages for tx hash')
@@ -99,8 +77,8 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     return messages[messageIndex]
   }
 
-  protected async getMessageStatus (message: LineaMessage, opts: MessageOpts): Promise<OnChainMessageStatus> {
-    const { destBridge } = this.#getSourceAndDestBridge(opts.messageDirection)
+  protected async getMessageStatus (message: LineaMessage, messageDirection: MessageDirection): Promise<OnChainMessageStatus> {
+    const { destBridge } = this.#getSourceAndDestBridge(messageDirection)
     return destBridge.getMessageStatus(message.messageHash)
   }
 

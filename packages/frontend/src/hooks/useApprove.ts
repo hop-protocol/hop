@@ -11,7 +11,7 @@ const useApprove = (token: any) => {
   const { txConfirm } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
-  const checkApproval = async (amount: BigNumber, token: Token, spender: string) => {
+  const checkApproval = async (amount: BigNumber, token: Token, spender: string): Promise<boolean> => {
     try {
       const signer = provider?.getSigner()
       if (!signer) {

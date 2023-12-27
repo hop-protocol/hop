@@ -1538,7 +1538,9 @@ class SyncWatcher extends BaseWatcher {
      * happening without manually adding the first chain per route for each new bridge.
      */
     let lookupTransferIdsRes
-    const onchainLookupTimeoutMs = FiveMinutesMs
+    // TMP: rm
+    // const onchainLookupTimeoutMs = FiveMinutesMs
+    const onchainLookupTimeoutMs = FiveMinutesMs * 6
     try {
       lookupTransferIdsRes = await promiseTimeout(this.lookupTransferIds(
         sourceBridge,

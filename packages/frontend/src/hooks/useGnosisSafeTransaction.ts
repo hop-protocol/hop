@@ -8,7 +8,7 @@ import { useSelectedNetwork } from '.'
 import useIsSmartContractWallet from './useIsSmartContractWallet'
 import Network from 'src/models/Network'
 
-interface GnosisSafeWarning {
+export interface GnosisSafeWarning {
   severity: 'warning' | 'error' | 'info'
   text: string
 }

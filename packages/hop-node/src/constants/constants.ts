@@ -210,8 +210,8 @@ type IRelayableWaitTimeMs = {
 }
 export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
   L1_TO_L2: {
-    [Chain.Arbitrum]: 12 * 60 * 1000, // L1 safe
-    [Chain.Nova]: 12 * 60 * 1000, // L1 safe
+    [Chain.Arbitrum]: 15 * 60 * 1000, // L1 safe
+    [Chain.Nova]: 15 * 60 * 1000, // L1 safe
     [Chain.Linea]: 25 * 60 * 1000, // L1 finalized
     [Chain.PolygonZk]: 8 * 60 * 1000 // 32 L1 Blocks + buffer
   },

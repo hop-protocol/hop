@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from 'src/chains/Chains/arbitrum/ArbitrumAddresses'
@@ -106,7 +105,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
         id: 1
       })
     })
-    const receipt = await res.json()
+    const receipt: any = await res.json()
     if (!receipt.result) {
       throw new Error(`eth_getTransactionReceipt failed: ${JSON.stringify(receipt)}`)
     }

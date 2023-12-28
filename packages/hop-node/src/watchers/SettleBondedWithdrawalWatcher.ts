@@ -16,7 +16,7 @@ type Config = {
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
+  override siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
 
   constructor (config: Config) {
     super({
@@ -28,7 +28,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await this.checkUnsettledTransferRootsFromDb()
   }
 

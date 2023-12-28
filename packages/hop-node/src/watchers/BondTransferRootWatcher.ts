@@ -34,7 +34,7 @@ export type SendBondTransferRootTxParams = {
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
+  override siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
 
   constructor (config: Config) {
     super({
@@ -46,7 +46,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await this.checkTransfersCommittedFromDb()
   }
 

@@ -119,7 +119,7 @@ class GasBoostSigner extends Signer {
   }
 
   // this is a required ethers Signer method
-  async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
+  override async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     await this.tilReady()
     const txResponse: providers.TransactionResponse = await this.mutex.runExclusive(async () => {
       const id = uuidv4()

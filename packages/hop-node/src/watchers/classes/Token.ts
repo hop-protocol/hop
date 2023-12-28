@@ -14,7 +14,7 @@ export default class Token extends ContractBase {
     this.isEth = (this.tokenContract.address === constants.AddressZero)
   }
 
-  getBalance = async (): Promise<BigNumber> => {
+  override getBalance = async (): Promise<BigNumber> => {
     const address = await this.tokenContract.signer.getAddress()
     if (!address) {
       throw new Error('expected signer address')

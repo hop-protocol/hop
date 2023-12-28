@@ -176,7 +176,7 @@ class SyncWatcher extends BaseWatcher {
     return false
   }
 
-  async start () {
+  override async start () {
     await this.#tilReady()
 
     try {
@@ -314,7 +314,7 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  isAllSiblingWatchersInitialSyncCompleted (): boolean {
+  override isAllSiblingWatchersInitialSyncCompleted (): boolean {
     return Object.values(this.siblingWatchers).every(
       (siblingWatcher: SyncWatcher) => {
         return siblingWatcher.isInitialSyncCompleted()

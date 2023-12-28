@@ -188,7 +188,7 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  getChainId = async (): Promise<number> => {
+  override getChainId = async (): Promise<number> => {
     if (this.chainId) {
       return this.chainId
     }

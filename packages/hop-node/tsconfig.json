@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "noImplicitOverride": true,
     "declaration": true,
     "declarationMap": true,
     "composite": true,

@@ -65,6 +65,13 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
     return messages[messageIndex]
   }
 
+  // TODO: This returns undefined if I use, for example, an Linea tx hash...handle
+  // trace: TypeError: Cannot read properties of undefined (reading 'status')
+  // at ArbitrumMessageService.getMessageStatus (/usr/src/app/dist/src/chains/Chains/arbitrum/ArbitrumMessageService.js:64:35)
+  // at ArbitrumMessageService._AbstractMessageService_validateMessageAndSendTransaction (/usr/src/app/dist/src/chains/Services/AbstractMessageService.js:54:38)
+  // at processTicksAndRejections (node:internal/process/task_queues:96:5)
+  // at async main (/usr/src/app/dist/src/cli/relayL1ToL2Message.js:39:9)
+  // at async Command.<anonymous> (/usr/src/app/dist/src/cli/shared/shared.js:34:13)
   protected async getMessageStatus (message: Message, messageDirection: MessageDirection): Promise<MessageStatus> {
     // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
     const statusInput: any = {}

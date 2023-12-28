@@ -15,7 +15,7 @@ type Config = {
 }
 
 class ChallengeWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: ChallengeWatcher }
+  override siblingWatchers: { [chainId: string]: ChallengeWatcher }
 
   constructor (config: Config) {
     super({
@@ -29,7 +29,7 @@ class ChallengeWatcher extends BaseWatcher {
     this.notifier = new Notifier(`watcher: ChallengeWatcher, host: ${hostname}`)
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     if (!this.isL1) {
       return
     }

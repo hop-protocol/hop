@@ -23,7 +23,7 @@ type Config = {
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
+  override siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
   minThresholdAmounts: {[chain: string]: BigNumber} = {}
   commitTxSentAt: { [chainId: number]: number } = {}
 
@@ -54,7 +54,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.logger.debug(`commit transfers watcher poll interval: ${this.pollIntervalMs} ms`)
   }
 
-  async start () {
+  override async start () {
     const chains = getEnabledNetworks()
     for (const destinationChain of chains) {
       if (this.isL1 || this.chainSlug === destinationChain) {
@@ -68,7 +68,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     await super.start()
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     if (this.isL1) {
       return
     }

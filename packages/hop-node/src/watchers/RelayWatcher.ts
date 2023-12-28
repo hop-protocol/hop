@@ -31,7 +31,7 @@ type Config = {
 }
 
 class RelayWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: RelayWatcher }
+  override siblingWatchers: { [chainId: string]: RelayWatcher }
   private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {
@@ -48,7 +48,7 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await Promise.all([
       this.checkTransferSentToL2FromDb(),
       this.checkRelayableTransferRootsFromDb()

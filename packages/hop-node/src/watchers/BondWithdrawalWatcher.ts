@@ -64,7 +64,7 @@ export type SendBondWithdrawalTxParams = {
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  override siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
   // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
   private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
 
@@ -81,7 +81,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.log('bonder fees:', JSON.stringify(fees))
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     if (this.isL1) {
       return
     }

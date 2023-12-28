@@ -74,7 +74,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
     }
   }
 
-  async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+  override async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     await this.#tilReady()
 
     if (!this.#doesSupportZkEvmRpc) {

@@ -43,9 +43,9 @@ export type AwsSignerConfig = {
 export abstract class AwsSigner extends Signer {
   config: AwsSignerConfig
   address: string
-  abstract getAddress (): Promise<string>
-  abstract signMessage (msg: Buffer | string): Promise<string>
-  abstract signTransaction (transaction: providers.TransactionRequest): Promise<string>
+  abstract override getAddress (): Promise<string>
+  abstract override signMessage (msg: Buffer | string): Promise<string>
+  abstract override signTransaction (transaction: providers.TransactionRequest): Promise<string>
 
   constructor (config: AwsSignerConfig, provider?: providers.Provider) {
     super()

@@ -49,7 +49,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     this.pollIntervalMs = 10 * 60 * 1000
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     try {
       await Promise.all([
         this.checkExitableTransferRootsFromDb(),

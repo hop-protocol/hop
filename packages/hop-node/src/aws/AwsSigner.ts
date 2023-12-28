@@ -11,9 +11,10 @@ import {
   serializeTransaction,
   splitSignature
 } from 'ethers/lib/utils'
+// @ts-expect-error asn1.js does not have a types file as of 20231227
 import * as asn1 from 'asn1.js'
 
-const EcdsaPubKey = asn1.define('EcdsaPubKey', function () {
+const EcdsaPubKey = asn1.define('EcdsaPubKey', function (this: any) {
   this.seq().obj(
     this.key('algo').seq().obj(
       this.key('a').objid(),
@@ -23,7 +24,7 @@ const EcdsaPubKey = asn1.define('EcdsaPubKey', function () {
   )
 })
 
-const EcdsaSigAsnParse = asn1.define('EcdsaSig', function () {
+const EcdsaSigAsnParse = asn1.define('EcdsaSig', function (this: any) {
   this.seq().obj(
     this.key('r').int(),
     this.key('s').int()

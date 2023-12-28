@@ -1,3 +1,4 @@
+// @ts-expect-error ethereum-block-by-date does not have a types file as of 20231227
 import BlockDater from 'ethereum-block-by-date'
 import fetch from 'node-fetch'
 import getRpcProvider from 'src/utils/getRpcProvider'

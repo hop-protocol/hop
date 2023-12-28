@@ -1,7 +1,8 @@
 {
   "env": {
-    "browser": true,
-    "es2021": true
+    "node": true,
+    "jest": true,
+    "es2024": true
   },
   "extends": [
     "eslint:recommended",
@@ -9,11 +10,12 @@
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 12,
+    "ecmaVersion": 2023,
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
   "plugins": [
+    "jest",
     "@typescript-eslint",
     "unused-imports",
     "sort-imports-es6-autofix"

@@ -594,7 +594,7 @@ export default class Bridge extends ContractBase {
   }
 
   public async eventsBatch (
-    cb: (start?: number, end?: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
+    cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     options: Partial<EventsBatchOptions> = {}
   ) {
     this.validateEventsBatchInput(options)
@@ -670,7 +670,7 @@ export default class Bridge extends ContractBase {
   }
 
   private readonly traverseBlockRange = async (
-    cb: (start?: number, end?: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
+    cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     blockValues: BlockValues
   ): Promise<number> => {
     let { start, end, batchBlocks, earliestBlockInBatch } = blockValues

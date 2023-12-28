@@ -4,6 +4,7 @@ import checkDiskSpace from 'check-disk-space'
 import os from 'os'
 import pidusage from 'pidusage'
 import wait from 'src/utils/wait'
+import { writeHeapSnapshot } from 'v8'
 
 type Config = {
   heapdump: boolean
@@ -65,7 +66,7 @@ class OsWatcher {
 
   static async getDiskUsage (): Promise<any> {
     return new Promise((resolve) => {
-      checkDiskSpace('/').then((diskSpace) => {
+      checkDiskSpace('/').then((diskSpace: any) => {
         const totalSize = diskSpace?.size
         const freeSize = diskSpace?.free
         const freeSizeGb = freeSize / 1024 / 1024 / 1024
@@ -144,13 +145,12 @@ class OsWatcher {
   }
 
   async logHeapdump () {
-    const heapdump = await import('heapdump')
     this.heapIndex++
     const location = `/root/heapdump_${Date.now()}.heapsnapshot`
     this.logger.debug('generating heapdump snapshot')
     // note: if you see the error "Segmentation fault (core dumped)" on node v14,
     // try using node v12
-    heapdump.writeSnapshot(location)
+    writeHeapSnapshot(location)
     this.logger.info(`wrote heapdump snapshot to: ${location}`)
   }
 }

@@ -12,7 +12,7 @@ function generateKeystore (
   }
 
   if (!passphrase) {
-    passphrase = ''
+    throw new Error('passphrase is required')
   }
 
   if (typeof privateKey === 'string') {
@@ -42,8 +42,8 @@ function generateKeystore (
 
   return new Promise(resolve => {
     keythereum.dump(
-      passphrase,
-      new Uint8Array(privateKeyBuffer),
+      Buffer.from(passphrase),
+      Buffer.from(privateKeyBuffer),
       salt,
       iv,
       options,
@@ -65,9 +65,8 @@ async function recoverKeystore (
   }
 
   try {
-    const privateKey = await keythereum
-      .recover(passphrase, keystore)
-      .toString('hex')
+    // @ts-expect-error keythereum does not have an exported recover as of 20231227, even though they do
+    const privateKey = await keythereum.recover(passphrase, keystore).toString('hex')
     return privateKey
   } catch (err) {
     if (err.message === 'message authentication code mismatch') {

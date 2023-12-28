@@ -1,5 +1,6 @@
 import DatabaseMigrator from './DatabaseMigrator'
 import Logger from 'src/logger'
+// @ts-expect-error level-party does not have a types file as of 20231227
 import level from 'level-party'
 import mkdirp from 'mkdirp'
 import os from 'os'

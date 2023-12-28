@@ -1,3 +1,4 @@
+// @ts-expect-error clear-console does not have a types file as of 20231227
 import clearConsole from 'console-clear'
 import entropyToMnemonic from 'src/keystore/entropyToMnemonic'
 import fs from 'fs'

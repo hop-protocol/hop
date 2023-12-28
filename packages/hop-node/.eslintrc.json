@@ -2,7 +2,7 @@
   "env": {
     "node": true,
     "jest": true,
-    "es2024": true
+    "es2021": true
   },
   "extends": [
     "eslint:recommended",
@@ -10,7 +10,7 @@
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 2023,
+    "ecmaVersion":2021,
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
@@ -48,7 +48,7 @@
     "no-return-await": 0,
     "@typescript-eslint/return-await": 2,
 
-    // These allow `any`. Possibly remove at some point.
+    // Custom - These allow `any`. Remove over time as codebase is cleaned up
     "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/no-unsafe-assignment": 0,
     "@typescript-eslint/no-unsafe-argument": 0,
@@ -56,9 +56,9 @@
     "@typescript-eslint/no-unsafe-member-access": 0,
     "@typescript-eslint/no-unsafe-return": 0,
 
-    // TODO: Clean up and then set to 1 or 2 (and possibly some options) after cleanup
+    // Custom - Set to 1 or 2 over time as codebase is cleaned up. Possibly add options
     "@typescript-eslint/no-unused-vars": 0,
-    "@typescript-eslint/no-floating-promises": 0,
+    "@typescript-eslint/no-floating-promises": 2,
     "no-else-return": 0, // Could be a 1 but --fix does not correctly indent
     // https://github.com/eslint/eslint/issues/3400
     "no-lonely-if": 0, // Could be a 1 but erroneously fixes nested items. Nesting is user error but still not worth the hassle

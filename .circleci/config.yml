@@ -68,7 +68,6 @@ jobs:
             bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
-              --no-cache \
               --build-arg=GIT_REV=$CIRCLE_SHA1 \
               -t app .
       - deploy:

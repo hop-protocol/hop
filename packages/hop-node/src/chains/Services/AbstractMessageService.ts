@@ -47,10 +47,6 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
     this.l2Wallet = wallets.get(this.chainSlug)
   }
 
-  setup() {
-    console.log("hi")
-  }
-
   /**
    *  Public Interface Methods
    *  @dev Do not override these methods in subclasses unless you know what you are doing

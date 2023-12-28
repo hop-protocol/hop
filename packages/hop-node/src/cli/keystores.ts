@@ -73,7 +73,7 @@ ${mnemonic}
 Press [Enter] when you have written down your mnemonic.`
           }
         }
-      })
+      } as any)
     }
 
     clearConsole()
@@ -87,7 +87,7 @@ Press [Enter] when you have written down your mnemonic.`
                 'Please type mnemonic (separated by spaces) to confirm you have written it down\n\n:'
             }
           }
-        })
+        } as any)
 
         clearConsole()
         mnemonicConfirm = (mnemonicConfirm as string).trim()
@@ -103,7 +103,7 @@ The seed phrase you entered was incorrect.
 Press [Enter] to try again.`
               }
             }
-          })
+          } as any)
           clearConsole()
         }
       }
@@ -136,7 +136,7 @@ Press [Enter] to exit.
 `
         }
       }
-    })
+    } as any)
     clearConsole()
   } else if (action === Actions.Decrypt) {
     if (!passphrase) {

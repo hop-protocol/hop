@@ -16,6 +16,6 @@ export async function promptPassphrase (
         hidden: true
       }
     }
-  })
+  } as any)
   return passphrase
 }

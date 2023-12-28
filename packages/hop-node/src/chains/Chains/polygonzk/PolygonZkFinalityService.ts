@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import wait from 'src/utils/wait'
 import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'

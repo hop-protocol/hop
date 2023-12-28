@@ -3,7 +3,6 @@ import Store from './Store'
 import bnMax from 'src/utils/bnMax'
 import bnMin from 'src/utils/bnMin'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
@@ -426,7 +425,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         id: 1
       })
     })
-    const gasData = await res.json()
+    const gasData: any = await res.json()
     return BigNumber.from(gasData.result)
   }
 
@@ -443,7 +442,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           }
         })
 
-        const gasData = await res.json()
+        const gasData: any = await res.json()
         const maxPriorityFeePerGas = gasData.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas
         return this.parseGwei(maxPriorityFeePerGas)
       } catch (err) {

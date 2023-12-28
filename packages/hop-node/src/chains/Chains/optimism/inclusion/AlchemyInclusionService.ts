@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import wait from 'src/utils/wait'
@@ -181,7 +180,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
       body: JSON.stringify(query)
     })
 
-    const jsonRes = await res.json()
+    const jsonRes: any = await res.json()
     if (!jsonRes?.result) {
       throw new Error(`alchemy_getAssetTransfers failed: ${JSON.stringify(jsonRes)}`)
     }

@@ -10,6 +10,8 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/gene
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { config as globalConfig } from 'src/config'
 
+export class BatchExecuteError extends Error {}
+
 type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -128,10 +130,16 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       )
 
       const txHashes = txs.map(tx => tx.hash)
-      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
+      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}), transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
       logger.info(msg)
     } catch (err) {
       logger.error('settleBondedWithdrawals error:', err.message)
+
+      if (err instanceof BatchExecuteError) {
+        await this.db.transferRoots.update(transferRootId, {
+          isNotFound: true
+        })
+      }
       throw err
     }
   }
@@ -173,7 +181,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     // Otherwise, split into chunks and settle each chunk
-    const transferIdsChunks = []
+    const transferIdsChunks: string[][] = []
     for (let i = 0; i < transferIds.length; i += maxNumTransferIds) {
       transferIdsChunks.push(transferIds.slice(i, i + maxNumTransferIds))
     }
@@ -193,7 +201,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const siblings: string[][] = []
       let numLeaves
       for (const transferId of transferIdsChunk) {
-        const withdrawalData = getWithdrawalProofData(transferId, dbTransferRoot)
+        let withdrawalData
+        try {
+          withdrawalData = getWithdrawalProofData(transferId, dbTransferRoot)
+        } catch (err) {
+          throw new BatchExecuteError(`getWithdrawalProofData error: ${err.message}`)
+        }
         transferIdTreeIndices.push(withdrawalData.transferIndex)
         siblings.push(withdrawalData.proof)
 

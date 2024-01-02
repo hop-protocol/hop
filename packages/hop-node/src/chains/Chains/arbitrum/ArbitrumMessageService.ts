@@ -16,59 +16,34 @@ import { providers } from 'ethers'
 
 type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
-type MessageOpts = {
-  messageDirection: MessageDirection
-  messageIndex: number
-}
 
-export class ArbitrumMessageService extends AbstractMessageService<Message, MessageStatus, MessageOpts> implements IMessageService {
-  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L1_TO_L2,
-      messageIndex: messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
-  }
-
-  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L2_TO_L1,
-      messageIndex: messageIndex ?? 0
-    }
-    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
-  }
-
-  protected async sendRelayTransaction (message: Message, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
-    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
-      return (message as IL1ToL2MessageWriter).redeem()
-    } else {
-      const overrides: any = {
-        gasLimit: CanonicalMessengerRootConfirmationGasLimit
-      }
-      return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
-    }
-  }
-
-  protected async getMessage (txHash: string, messageOpts: MessageOpts): Promise<Message> {
-    const { messageDirection, messageIndex } = messageOpts
-
-    let messages: Message[]
+export class ArbitrumMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
+  protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
-      if (!txReceipt) {
-        throw new Error(`txReceipt not found for tx hash ${txHash}`)
-      }
-      const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
-      messages = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet) as Message[]
-    } else {
-      const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
-      if (!txReceipt) {
-        throw new Error(`txReceipt not found for tx hash ${txHash}`)
-      }
-      const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
-      messages = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!) as Message[]
+      return (message as IL1ToL2MessageWriter).redeem()
     }
 
+    const overrides: any = {
+      gasLimit: CanonicalMessengerRootConfirmationGasLimit
+    }
+    return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)
+  }
+
+  protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<Message> {
+    messageIndex ??= 0
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return this.#getL1ToL2Message(txHash, messageIndex)
+    }
+    return this.#getL2ToL1Message(txHash, messageIndex)
+  }
+
+  async #getL1ToL2Message (txHash: string, messageIndex: number): Promise<Message> {
+    const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
+    if (!txReceipt) {
+      throw new Error(`txReceipt not found for tx hash ${txHash}`)
+    }
+    const arbitrumTxReceipt: L1TransactionReceipt = new L1TransactionReceipt(txReceipt)
+    const messages: Message[] = await arbitrumTxReceipt.getL1ToL2Messages(this.l2Wallet) as Message[]
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
@@ -76,39 +51,47 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
     return messages[messageIndex]
   }
 
-  protected async getMessageStatus (message: Message, messageOpts: MessageOpts): Promise<MessageStatus> {
-    // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
-    const { messageDirection } = messageOpts
+  async #getL2ToL1Message (txHash: string, messageIndex: number): Promise<Message> {
+    const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
+    if (!txReceipt) {
+      throw new Error(`txReceipt not found for tx hash ${txHash}`)
+    }
+    const arbitrumTxReceipt: L2TransactionReceipt = new L2TransactionReceipt(txReceipt)
+    const messages: Message[] = await arbitrumTxReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!) as Message[]
+    if (!messages) {
+      throw new Error('could not find messages for tx hash')
+    }
 
+    return messages[messageIndex]
+  }
+
+  protected async getMessageStatus (message: Message, messageDirection: MessageDirection): Promise<MessageStatus> {
+    // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
     const statusInput: any = {}
     if (messageDirection === MessageDirection.L2_TO_L1) {
       statusInput.l2Provider = this.l2Wallet.provider!
     }
-    const res = await message.status(statusInput)
-    return res
+    return message.status(statusInput)
   }
 
-  protected isMessageInFlight (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
-    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+  protected isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
       return messageStatus === L1ToL2MessageStatus.NOT_YET_CREATED
-    } else {
-      return messageStatus === L2ToL1MessageStatus.UNCONFIRMED
     }
+    return messageStatus === L2ToL1MessageStatus.UNCONFIRMED
   }
 
-  protected isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
-    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+  protected isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
       return messageStatus === L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2
-    } else {
-      return messageStatus === L2ToL1MessageStatus.CONFIRMED
     }
+    return messageStatus === L2ToL1MessageStatus.CONFIRMED
   }
 
-  protected isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): boolean {
-    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+  protected isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
       return messageStatus === L1ToL2MessageStatus.REDEEMED
-    } else {
-      return messageStatus === L2ToL1MessageStatus.EXECUTED
     }
+    return messageStatus === L2ToL1MessageStatus.EXECUTED
   }
 }

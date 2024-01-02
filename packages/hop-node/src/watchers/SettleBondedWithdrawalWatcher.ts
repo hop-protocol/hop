@@ -1,11 +1,16 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
-import { ChainSlug } from '@hop-protocol/core/config'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
+import wallets from 'src/wallets'
+import { BigNumber, Contract, providers } from 'ethers'
+import { Chain } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { getWithdrawalProofData } from 'src/cli/shared'
 import { config as globalConfig } from 'src/config'
-import { providers } from 'ethers'
+
+export class BatchExecuteError extends Error {}
 
 type Config = {
   chainSlug: string
@@ -116,23 +121,111 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
     logger.debug('sending settle tx')
     try {
+      const txs: providers.TransactionResponse[] = await this.#executeSettlement(
+        destBridge,
+        transferRootHash,
+        bonder!,
+        transferIds,
+        totalAmount!
+      )
+
+      const txHashes = txs.map(tx => tx.hash)
+      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}), transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
+      logger.info(msg)
+    } catch (err) {
+      logger.error('settleBondedWithdrawals error:', err.message)
+
+      if (err instanceof BatchExecuteError) {
+        await this.db.transferRoots.update(transferRootId, {
+          isNotFound: true
+        })
+      }
+      throw err
+    }
+  }
+
+  async #executeSettlement (
+    destBridge: L2BridgeContract,
+    rootHash: string,
+    bonder: string,
+    transferIds: string[],
+    totalAmount: BigNumber
+  ): Promise<providers.TransactionResponse[]> {
+    // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
+
+    // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
+    // number of keccak operations allowed in a single transaction.
+    const {
+      maxNumTransferIds,
+      settlementAggregatorAddress,
+      settlementAggregatorAbi
+    } = this.#getExecutionSettlementConfig()
+
+    const destChainId: BigNumber = await destBridge.getChainId()
+    if (!destChainId) {
+      throw new Error('destChainId not found')
+    }
+
+    // If there is no resource constraint, settle all
+    const destChainSlug = chainIdToSlug(destChainId.toString())
+    if (
+      destChainSlug !== Chain.PolygonZk ||
+      transferIds.length <= maxNumTransferIds
+    ) {
       const tx: providers.TransactionResponse = await destBridge.settleBondedWithdrawals(
         bonder,
         transferIds,
         totalAmount
       )
-      const msg = `settleBondedWithdrawals on destinationChainId: txHash: ${tx.hash}, ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
-      logger.info(msg)
-      this.notifier.info(msg)
-
-      tx.wait()
-        .then(() => {
-          this.depositToVaultIfNeeded(destinationChainId!)
-        })
-    } catch (err) {
-      logger.error('settleBondedWithdrawals error:', err.message)
-      throw err
+      return [tx]
     }
+
+    // Otherwise, split into chunks and settle each chunk
+    const transferIdsChunks: string[][] = []
+    for (let i = 0; i < transferIds.length; i += maxNumTransferIds) {
+      transferIdsChunks.push(transferIds.slice(i, i + maxNumTransferIds))
+    }
+
+    const wallet = wallets.get(destChainSlug)
+    const settlementAggregatorContract = new Contract(
+      settlementAggregatorAddress,
+      settlementAggregatorAbi,
+      wallet
+    )
+
+    const txs: providers.TransactionResponse[] = []
+    for (const transferIdsChunk of transferIdsChunks) {
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(rootHash)
+
+      const transferIdTreeIndices: number[] = []
+      const siblings: string[][] = []
+      let numLeaves
+      for (const transferId of transferIdsChunk) {
+        let withdrawalData
+        try {
+          withdrawalData = getWithdrawalProofData(transferId, dbTransferRoot)
+        } catch (err) {
+          throw new BatchExecuteError(`getWithdrawalProofData error: ${err.message}`)
+        }
+        transferIdTreeIndices.push(withdrawalData.transferIndex)
+        siblings.push(withdrawalData.proof)
+
+        // This value is the same for all withdrawals in the chunk
+        numLeaves = numLeaves ?? withdrawalData.numLeaves
+      }
+
+      const tx: providers.TransactionResponse = await settlementAggregatorContract.settleBondedWithdrawal(
+        bonder,
+        transferIdsChunk,
+        rootHash,
+        totalAmount,
+        transferIdTreeIndices,
+        siblings,
+        numLeaves
+      )
+      txs.push(tx)
+    }
+    return txs
   }
 
   async checkTransferRootHash (transferRootHash: string, bonder: string) {
@@ -145,42 +238,26 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     return this.checkTransferRootId(dbTransferRoot.transferRootId, bonder)
   }
 
-  async depositToVaultIfNeeded (destinationChainId: number) {
-    const vaultConfig = globalConfig.vault?.[this.tokenSymbol]?.[this.chainSlug as ChainSlug]
-    if (!vaultConfig) {
-      return
-    }
+  #getExecutionSettlementConfig (): {maxNumTransferIds: number, settlementAggregatorAddress: string, settlementAggregatorAbi: string[]} {
+    // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
 
-    if (!vaultConfig?.autoDeposit) {
-      return
-    }
+    // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
+    // number of keccak operations allowed in a single transaction.
 
-    const depositThresholdAmount = this.bridge.parseUnits(vaultConfig.depositThresholdAmount)
-    const depositAmount = this.bridge.parseUnits(vaultConfig.depositAmount)
-    if (depositAmount.eq(0) || depositThresholdAmount.eq(0)) {
-      return
+    const settlementAggregatorAbi = [
+      'function settleBondedWithdrawal(address bonder, bytes32[] calldata transferId, bytes32  rootHash, uint256 transferRootTotalAmount, uint256[] calldata transferIdTreeIndex, bytes32[][] calldata siblings, uint256 totalLeaves)'
+    ]
+    let settlementAggregatorAddress: string
+    if (globalConfig.isMainnet) {
+      settlementAggregatorAddress = 'TODO'
+    } else {
+      settlementAggregatorAddress = '0x16284c7323c35F4960540583998C98B1CfC581a7'
     }
-
-    return await this.mutex.runExclusive(async () => {
-      const availableCredit = this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
-      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const availableCreditMinusVault = availableCredit.sub(vaultBalance)
-      const shouldDeposit = (availableCreditMinusVault.sub(depositAmount)).gt(depositThresholdAmount)
-      if (shouldDeposit) {
-        try {
-          const msg = `attempting unstakeAndDepositToVault. amount: ${this.bridge.formatUnits(depositAmount)}`
-          this.notifier.info(msg)
-          this.logger.info(msg)
-          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
-          await destinationWatcher.unstakeAndDepositToVault(depositAmount)
-        } catch (err) {
-          const errMsg = `unstakeAndDepositToVault error: ${err.message}`
-          this.notifier.error(errMsg)
-          this.logger.error(errMsg)
-          throw err
-        }
-      }
-    })
+    return {
+      maxNumTransferIds: 500,
+      settlementAggregatorAddress,
+      settlementAggregatorAbi
+    }
   }
 }
 

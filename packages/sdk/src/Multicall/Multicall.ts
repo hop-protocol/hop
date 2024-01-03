@@ -1,6 +1,6 @@
 import ERC20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import Multicall3Abi from '@hop-protocol/core/abi/static/Multicall3.json'
-import { Contract, constants, providers } from 'ethers'
+import { Contract, constants, ethers, providers } from 'ethers'
 import { PriceFeedFromS3 } from '../priceFeed'
 import { defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
 import { getTokenDecimals } from '../utils/getTokenDecimals'
@@ -8,7 +8,7 @@ import { config as sdkConfig } from '../config'
 
 export type Config = {
   network: string
-  accountAddress: string
+  accountAddress?: string
 }
 
 export type Balance = {
@@ -46,9 +46,6 @@ export class Multicall {
     }
     if (!config.network) {
       throw new Error('config.network is required')
-    }
-    if (!config.accountAddress) {
-      throw new Error('config.accountAddress is required')
     }
     this.network = config.network
     this.accountAddress = config.accountAddress
@@ -110,7 +107,43 @@ export class Multicall {
     return balances.flat()
   }
 
+  async multicall (chainSlug: string, options: any[]): Promise<any[]> {
+    const multicallAddress = this.getMulticallAddressForChain(chainSlug)
+    const provider = this.getProvider(chainSlug)
+    const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+    const calls = options.map(({ address, abi, method, args }: any) => {
+      const contractInterface = new ethers.utils.Interface(abi)
+      const calldata = contractInterface.encodeFunctionData(method, args)
+      return {
+        target: address,
+        callData: calldata
+      }
+    })
+
+    const result = await multicallContract.callStatic.aggregate3(calls)
+    const parsed = result.map((data: any, index: number) => {
+      const returnData = data.returnData
+      const { abi, method } = options[index]
+      const contractInterface = new ethers.utils.Interface(abi)
+      for (const key in contractInterface.functions) {
+        const _method = key.split('(')[0]
+        if (_method === method) {
+          const returnTypes = contractInterface.functions[key].outputs.map((output: any) => output.type)
+          const returnValues = defaultAbiCoder.decode(returnTypes, returnData)
+          return returnValues
+        }
+      }
+
+      return null
+    })
+
+    return parsed
+  }
+
   async getBalancesForChain (chainSlug: string, opts?: GetMulticallBalanceOptions[]): Promise<Balance[]> {
+    if (!this.accountAddress) {
+      throw new Error('config.accountAddress is required')
+    }
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)

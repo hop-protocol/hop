@@ -417,15 +417,10 @@ class HopBridge extends Base {
         throw new Error('Cannot send from layer 1 to layer 1')
       }
       // L1 -> L2
-      const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
-      let relayerFee = options?.relayerFee
-      if (!relayerFee) {
-        relayerFee = await this.getTotalFee(
-          tokenAmount,
-          sourceChain,
-          destinationChain
-        )
-      }
+      const [bonderAddress, relayerFee] = await Promise.all([
+        this.getBonderAddress(sourceChain, destinationChain),
+        options?.relayerFee ? Promise.resolve(options.relayerFee) : this.getTotalFee(tokenAmount, sourceChain, destinationChain)
+      ])
       return this.populateSendL1ToL2Tx({
         destinationChain: destinationChain,
         sourceChain,
@@ -677,7 +672,6 @@ class HopBridge extends Base {
       }
 
       const l1Bridge = await this.getL1Bridge(sourceChain.provider)
-
       const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
       if (isPaused) {
         throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
@@ -753,9 +747,10 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const [hTokenAmount, lpFees, feeBps] = await Promise.all([
+    const lpFees = this.getLpFees(amountIn, sourceChain, destinationChain)
+
+    const [hTokenAmount, feeBps] = await Promise.all([
       this.calcToHTokenAmount(amountIn, sourceChain, isHTokenSend),
-      this.getLpFees(amountIn, sourceChain, destinationChain),
       this.getFeeBps(this.tokenSymbol, destinationChain)
     ])
 
@@ -763,8 +758,6 @@ class HopBridge extends Base {
       hTokenAmount,
       destinationChain
     )
-
-    const amountOutWithoutFeePromise = calcFromHTokenPromise
 
     const amountInNoSlippage = BigNumber.from(1000)
     const amountOutNoSlippagePromise = this.getAmountOut(
@@ -786,13 +779,11 @@ class HopBridge extends Base {
     )
 
     const [
-      amountOutWithoutFee,
       amountOutNoSlippage,
       bonderFeeRelative,
       destinationTxFeeData,
-      amountOut
+      amountOutWithoutFee
     ] = await Promise.all([
-      amountOutWithoutFeePromise,
       amountOutNoSlippagePromise,
       bonderFeeRelativePromise,
       destinationTxFeeDataPromise,
@@ -859,7 +850,7 @@ class HopBridge extends Base {
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
     const relayFeeEth = await this.getRelayFeeEth(sourceChain, destinationChain)
-    let estimatedReceived = amountOut
+    let estimatedReceived = amountOutWithoutFee
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)
     }
@@ -879,7 +870,7 @@ class HopBridge extends Base {
       sourceChain,
       destinationChain,
       isHTokenSend,
-      amountOut,
+      amountOut: amountOutWithoutFee,
       rate,
       priceImpact,
       requiredLiquidity: hTokenAmount,
@@ -1016,11 +1007,11 @@ class HopBridge extends Base {
     return totalFee
   }
 
-  public async getLpFees (
+  public getLpFees (
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain
-  ): Promise<BigNumber> {
+  ): BigNumber {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
@@ -1067,9 +1058,10 @@ class HopBridge extends Base {
     }
 
     const timeStart = Date.now()
+    const isRelayerFee = sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
-    const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
+    const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, bondTransferGasLimit, l1FeeInWei, relayerFee] = await Promise.all([
       this.getPriceByTokenSymbol(
         chainNativeToken.symbol
       ),
@@ -1081,7 +1073,8 @@ class HopBridge extends Base {
         sourceChain,
         destinationChain
       ),
-      (destinationChain.equals(Chain.Optimism) || destinationChain.equals(Chain.Base)) ? this.getOptimismL1Fee(sourceChain, destinationChain) : Promise.resolve(BigNumber.from(0))
+      (destinationChain.equals(Chain.Optimism) || destinationChain.equals(Chain.Base)) ? this.getOptimismL1Fee(sourceChain, destinationChain) : Promise.resolve(BigNumber.from(0)),
+      isRelayerFee ? this.getRelayerFee(destinationChain, this.tokenSymbol) : Promise.resolve(undefined)
     ])
 
     const rate = chainNativeTokenPrice / tokenPrice
@@ -1094,12 +1087,8 @@ class HopBridge extends Base {
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
     const oneEth = parseEther('1')
-    let destinationTxFee: BigNumber
-
-    const isRelayerFee = sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]
-    if (isRelayerFee) {
-      destinationTxFee = await this.getRelayerFee(destinationChain, this.tokenSymbol)
-    } else {
+    let destinationTxFee = relayerFee
+    if (!destinationTxFee) {
       const rateBN = parseUnits(
         rate.toFixed(canonicalToken.decimals),
         canonicalToken.decimals
@@ -1185,8 +1174,10 @@ class HopBridge extends Base {
         }
         return false
       } else {
-        const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
-        const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
+        const [bonderAddress, populatedTx] = await Promise.all([
+          this.getBonderAddress(sourceChain, destinationChain),
+          this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
+        ])
         populatedTx.from = bonderAddress
         await this.estimateGas(destinationChain.provider, populatedTx)
         return false
@@ -1534,15 +1525,9 @@ class HopBridge extends Base {
    * @param chain - chain model.
    * @returns Ethers contract instance.
    */
-  public async getBridgeContract (chain: TChain): Promise<any> {
+  public async getBridgeContract (chain: TChain): Promise<ethers.Contract> {
     chain = this.toChainModel(chain)
-    let bridge: ethers.Contract
-    if (chain.isL1) {
-      bridge = await this.getL1Bridge()
-    } else {
-      bridge = await this.getL2Bridge(chain)
-    }
-    return bridge
+    return chain.isL1 ? this.getL1Bridge() : this.getL2Bridge(chain)
   }
 
   /**
@@ -1622,12 +1607,11 @@ class HopBridge extends Base {
 
     const amm = this.getAmm(sourceChain)
     const saddleSwap = await amm.getSaddleSwap()
-    const canonicalTokenIndex = Number(
-      (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
-    )
-    const hopTokenIndex = Number(
-      (await saddleSwap.getTokenIndex(l2HopBridgeTokenAddress)).toString()
-    )
+    const [canonicalTokenIndex, hopTokenIndex] = await Promise.all([
+      saddleSwap.getTokenIndex(l2CanonicalTokenAddress).then((index: BigNumber) => Number(index.toString())),
+      saddleSwap.getTokenIndex(l2HopBridgeTokenAddress).then((index: BigNumber) => Number(index.toString()))
+    ])
+
     if (toHop) {
       tokenIndexFrom = canonicalTokenIndex
       tokenIndexTo = hopTokenIndex
@@ -2038,12 +2022,10 @@ class HopBridge extends Base {
   private async getTokenIndexes (path: string[], chain: TChain) : Promise<number[]> {
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
-    const tokenIndexFrom = Number(
-      (await saddleSwap.getTokenIndex(path[0])).toString()
-    )
-    const tokenIndexTo = Number(
-      (await saddleSwap.getTokenIndex(path[1])).toString()
-    )
+    const [tokenIndexFrom, tokenIndexTo] = await Promise.all([
+      saddleSwap.getTokenIndex(path[0]).then((index: BigNumber) => Number(index.toString())),
+      saddleSwap.getTokenIndex(path[1]).then((index: BigNumber) => Number(index.toString()))
+    ])
 
     return [tokenIndexFrom, tokenIndexTo]
   }
@@ -2100,17 +2082,18 @@ class HopBridge extends Base {
       amountOutMin = BigNumber.from(0)
     }
 
-    const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
-    if (isPaused) {
-      throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
-    }
-
     const value = isNativeToken ? amount : undefined
     relayerFee = BigNumber.from(relayerFee || 0)
 
     if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
       throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
     }
+
+    const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+    if (isPaused) {
+      throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+    }
+
     const txOptions = [
       destinationChainId,
       recipient,
@@ -2396,13 +2379,14 @@ class HopBridge extends Base {
     }
 
     const timeStart = Date.now()
-    const hTokenAmount = await this.calcToHTokenAmount(
-      amountIn.toString(),
-      sourceChain,
-      isHTokenSend
-    )
-
-    const feeBps = await this.getFeeBps(this.tokenSymbol, destinationChain)
+    const [hTokenAmount, feeBps] = await Promise.all([
+      this.calcToHTokenAmount(
+        amountIn,
+        sourceChain,
+        isHTokenSend
+      ),
+      this.getFeeBps(this.tokenSymbol, destinationChain)
+    ])
 
     this.debugTimeLog('getBonderFeeRelative', timeStart)
 

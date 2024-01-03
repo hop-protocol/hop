@@ -16,13 +16,9 @@ const Withdraw = lazy(() => import(/* webpackChunkName: "Withdraw" */ 'src/pages
 const Faucet = lazy(() => import(/* webpackChunkName: "Faucet" */ 'src/pages/Faucet'))
 const Health = lazy(() => import(/* webpackChunkName: "Health" */ 'src/pages/Health'))
 const Rewards = lazy(() => import(/* webpackChunkName: "Rewards" */ 'src/pages/Rewards'))
-const Components = lazy(() => import(/* webpackChunkName: "Components" */ 'src/pages/Components'))
 
 const SocialVerified = lazy(
   () => import(/* webpackChunkName: "SocialVerified" */ './pages/Airdrop/SocialVerified')
-)
-const TransactionPage = lazy(
-  () => import(/* webpackChunkName: "TransactionPage" */ 'src/pages/Transaction')
 )
 const SocialVerify = lazy(
   () => import(/* webpackChunkName: "SocialVerify" */ 'src/pages/Airdrop/SocialVerify')
@@ -73,9 +69,6 @@ const AppRoutes: FC = () => {
                   <Route path="/social-verified" element={<SocialVerified />} />
                   <Route path="/authereum-verified" element={<AuthereumVerified />} />
                   <Route path="/airdrop/authereum" element={<AuthereumVerify />} />
-                  <Route path="/tx" element={<TransactionPage />} />
-                  <Route path="/tx/:hash" element={<TransactionPage />} />
-                  <Route path="/components" element={<Components />} />
                   <Route path="/stake" element={<Navigate to="/pool/stake" />} />
                 </Routes>
               </Suspense>

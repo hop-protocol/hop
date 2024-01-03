@@ -747,62 +747,35 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const lpFees = this.getLpFees(amountIn, sourceChain, destinationChain)
-
-    const [hTokenAmount, feeBps] = await Promise.all([
-      this.calcToHTokenAmount(amountIn, sourceChain, isHTokenSend),
-      this.getFeeBps(this.tokenSymbol, destinationChain)
-    ])
-
-    const calcFromHTokenPromise = this.calcFromHTokenAmount(
-      hTokenAmount,
-      destinationChain
-    )
-
     const amountInNoSlippage = BigNumber.from(1000)
-    const amountOutNoSlippagePromise = this.getAmountOut(
-      amountInNoSlippage,
-      sourceChain,
-      destinationChain
-    )
-
-    const bonderFeeRelativePromise = this.getBonderFeeRelative(
-      amountIn,
-      sourceChain,
-      destinationChain,
-      isHTokenSend
-    )
-
-    const destinationTxFeeDataPromise = this.getDestinationTransactionFeeData(
-      sourceChain,
-      destinationChain
-    )
+    const lpFees = this.getLpFees(amountIn, sourceChain, destinationChain)
+    const hTokenAmount = await this.calcToHTokenAmount(amountIn, sourceChain, isHTokenSend)
 
     const [
       amountOutNoSlippage,
       bonderFeeRelative,
       destinationTxFeeData,
-      amountOutWithoutFee
+      amountOutWithoutFee,
+      feeBps
     ] = await Promise.all([
-      amountOutNoSlippagePromise,
-      bonderFeeRelativePromise,
-      destinationTxFeeDataPromise,
-      calcFromHTokenPromise
+      this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain),
+      this.getBonderFeeRelative(amountIn, sourceChain, destinationChain, isHTokenSend),
+      this.getDestinationTransactionFeeData(sourceChain, destinationChain),
+      this.calcFromHTokenAmount(hTokenAmount, destinationChain),
+      this.getFeeBps(this.tokenSymbol, destinationChain)
     ])
 
     const { destinationTxFee } = destinationTxFeeData
 
-    let adjustedBonderFee
-    let adjustedDestinationTxFee
-    let totalFee
-    if (sourceChain.isL1 && !this.relayerFeeEnabled[destinationChain.slug]) {
-      adjustedBonderFee = BigNumber.from(0)
-      adjustedDestinationTxFee = BigNumber.from(0)
-      totalFee = BigNumber.from(0)
-    } else if (sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]) {
-      adjustedBonderFee = BigNumber.from(0)
-      adjustedDestinationTxFee = destinationTxFee
-      totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+    let adjustedBonderFee = BigNumber.from(0)
+    let adjustedDestinationTxFee = BigNumber.from(0)
+    let totalFee = BigNumber.from(0)
+    if (sourceChain.isL1) {
+      if (this.relayerFeeEnabled[destinationChain.slug]) {
+        adjustedBonderFee = BigNumber.from(0)
+        adjustedDestinationTxFee = destinationTxFee
+        totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+      }
     } else {
       if (isHTokenSend) {
         // fees do not need to be adjusted for AMM slippage when sending hTokens
@@ -824,9 +797,7 @@ class HopBridge extends Base {
 
       // enforce bonderFeeAbsolute after adjustment
       const bonderFeeAbsolute = await this.getBonderFeeAbsolute(sourceChain)
-      adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
-        ? adjustedBonderFee
-        : bonderFeeAbsolute
+      adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute) ? adjustedBonderFee : bonderFeeAbsolute
       totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
     }
 
@@ -849,7 +820,7 @@ class HopBridge extends Base {
 
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
-    const relayFeeEth = await this.getRelayFeeEth(sourceChain, destinationChain)
+    const relayFeeEth = BigNumber.from(0)
     let estimatedReceived = amountOutWithoutFee
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)
@@ -2784,10 +2755,6 @@ class HopBridge extends Base {
       balanceUsd = 0
     }
     return balanceUsd
-  }
-
-  private async getRelayFeeEth (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
-    return BigNumber.from(0)
   }
 
   async getPriceByTokenSymbol (tokenSymbol: string) {

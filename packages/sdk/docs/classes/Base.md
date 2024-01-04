@@ -11,8 +11,6 @@ Class with base methods.
 
   ↳ [`HopBridge`](HopBridge.md)
 
-  ↳ [`CanonicalBridge`](CanonicalBridge.md)
-
   ↳ [`AMM`](AMM.md)
 
   ↳ [`Token`](Token.md)
@@ -30,17 +28,23 @@ Class with base methods.
 - [baseExplorerUrl](Base.md#baseexplorerurl)
 - [blocklist](Base.md#blocklist)
 - [bonders](Base.md#bonders)
+- [bridgeDeprecated](Base.md#bridgedeprecated)
 - [chainProviders](Base.md#chainproviders)
 - [chains](Base.md#chains)
 - [configFileFetchEnabled](Base.md#configfilefetchenabled)
 - [customAvailableLiquidityJsonUrl](Base.md#customavailableliquidityjsonurl)
 - [customCoreConfigJsonUrl](Base.md#customcoreconfigjsonurl)
+- [debugTimeLogsCache](Base.md#debugtimelogscache)
+- [debugTimeLogsCacheEnabled](Base.md#debugtimelogscacheenabled)
+- [debugTimeLogsEnabled](Base.md#debugtimelogsenabled)
 - [destinationFeeGasPriceMultiplier](Base.md#destinationfeegaspricemultiplier)
 - [fees](Base.md#fees)
 - [gasPriceMultiplier](Base.md#gaspricemultiplier)
 - [getContract](Base.md#getcontract)
+- [getGasPrice](Base.md#getgasprice)
 - [network](Base.md#network)
 - [relayerFeeEnabled](Base.md#relayerfeeenabled)
+- [relayerFeeWei](Base.md#relayerfeewei)
 - [signer](Base.md#signer)
 
 ### Accessors
@@ -56,6 +60,8 @@ Class with base methods.
 - [\_getBonderAddress](Base.md#_getbonderaddress)
 - [\_getMessengerWrapperAddress](Base.md#_getmessengerwrapperaddress)
 - [checkBlocklist](Base.md#checkblocklist)
+- [debugTimeLog](Base.md#debugtimelog)
+- [estimateGas](Base.md#estimategas)
 - [estimateOptimismL1FeeFromData](Base.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](Base.md#fetchbonderavailableliquiditydata)
 - [fetchBonderAvailableLiquidityDataWithIpfsFallback](Base.md#fetchbonderavailableliquiditydatawithipfsfallback)
@@ -73,6 +79,7 @@ Class with base methods.
 - [getChainProviderUrls](Base.md#getchainproviderurls)
 - [getChainProviders](Base.md#getchainproviders)
 - [getConfigAddresses](Base.md#getconfigaddresses)
+- [getDebugTimeLogs](Base.md#getdebugtimelogs)
 - [getDestinationFeeGasPriceMultiplier](Base.md#getdestinationfeegaspricemultiplier)
 - [getExplorerUrl](Base.md#getexplorerurl)
 - [getExplorerUrlForAccount](Base.md#getexplorerurlforaccount)
@@ -80,9 +87,9 @@ Class with base methods.
 - [getExplorerUrlForTransferId](Base.md#getexplorerurlfortransferid)
 - [getFeeBps](Base.md#getfeebps)
 - [getIpfsBaseConfigUrl](Base.md#getipfsbaseconfigurl)
+- [getIsBridgeDeprecated](Base.md#getisbridgedeprecated)
 - [getL1AmbBridgeAddress](Base.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](Base.md#getl1bridgeaddress)
-- [getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridgeAddress](Base.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](Base.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](Base.md#getl1poserc20predicateaddress)
@@ -104,8 +111,9 @@ Class with base methods.
 - [getSupportedAssetsForChain](Base.md#getsupportedassetsforchain)
 - [getSupportedChains](Base.md#getsupportedchains)
 - [getSupportedTokens](Base.md#getsupportedtokens)
+- [getTokenBalancesForAccount](Base.md#gettokenbalancesforaccount)
 - [getTransferStatus](Base.md#gettransferstatus)
-- [getWaitConfirmations](Base.md#getwaitconfirmations)
+- [getTransferTimes](Base.md#gettransfertimes)
 - [isValidChain](Base.md#isvalidchain)
 - [isValidNetwork](Base.md#isvalidnetwork)
 - [resolveDnslink](Base.md#resolvednslink)
@@ -174,6 +182,12 @@ ___
 
 ___
 
+### <a id="bridgedeprecated" name="bridgedeprecated"></a> bridgeDeprecated
+
+• **bridgeDeprecated**: `Record`<`string`, `boolean`\>
+
+___
+
 ### <a id="chainproviders" name="chainproviders"></a> chainProviders
 
 • **chainProviders**: `ChainProviders` = `{}`
@@ -201,6 +215,24 @@ ___
 ### <a id="customcoreconfigjsonurl" name="customcoreconfigjsonurl"></a> customCoreConfigJsonUrl
 
 • **customCoreConfigJsonUrl**: `string` = `''`
+
+___
+
+### <a id="debugtimelogscache" name="debugtimelogscache"></a> debugTimeLogsCache
+
+• **debugTimeLogsCache**: `any`[] = `[]`
+
+___
+
+### <a id="debugtimelogscacheenabled" name="debugtimelogscacheenabled"></a> debugTimeLogsCacheEnabled
+
+• **debugTimeLogsCacheEnabled**: `boolean` = `false`
+
+___
+
+### <a id="debugtimelogsenabled" name="debugtimelogsenabled"></a> debugTimeLogsEnabled
+
+• **debugTimeLogsEnabled**: `boolean` = `false`
 
 ___
 
@@ -248,6 +280,26 @@ ___
 
 ___
 
+### <a id="getgasprice" name="getgasprice"></a> getGasPrice
+
+• **getGasPrice**: (...`args`: [signerOrProvider: TProvider]) => `Promise`<`BigNumber`\>
+
+#### Type declaration
+
+▸ (`...args`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `...args` | [signerOrProvider: TProvider] |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+___
+
 ### <a id="network" name="network"></a> network
 
 • **network**: `string`
@@ -259,6 +311,12 @@ ___
 ### <a id="relayerfeeenabled" name="relayerfeeenabled"></a> relayerFeeEnabled
 
 • **relayerFeeEnabled**: `Record`<`string`, `boolean`\>
+
+___
+
+### <a id="relayerfeewei" name="relayerfeewei"></a> relayerFeeWei
+
+• **relayerFeeWei**: `Record`<`string`, `string`\>
 
 ___
 
@@ -362,6 +420,40 @@ ___
 #### Returns
 
 `Promise`<`void`\>
+
+___
+
+### <a id="debugtimelog" name="debugtimelog"></a> debugTimeLog
+
+▸ **debugTimeLog**(`label`, `timeStart`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `label` | `string` |
+| `timeStart` | `number` |
+
+#### Returns
+
+`void`
+
+___
+
+### <a id="estimategas" name="estimategas"></a> estimateGas
+
+▸ **estimateGas**(`signerOrProvider`, `tx`): `Promise`<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signerOrProvider` | [`TProvider`](../modules.md#tprovider) |
+| `tx` | `any` |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
 
 ___
 
@@ -605,6 +697,16 @@ ___
 
 ___
 
+### <a id="getdebugtimelogs" name="getdebugtimelogs"></a> getDebugTimeLogs
+
+▸ **getDebugTimeLogs**(): `any`[]
+
+#### Returns
+
+`any`[]
+
+___
+
 ### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
 
 ▸ **getDestinationFeeGasPriceMultiplier**(): `number`
@@ -706,6 +808,22 @@ ___
 
 ___
 
+### <a id="getisbridgedeprecated" name="getisbridgedeprecated"></a> getIsBridgeDeprecated
+
+▸ **getIsBridgeDeprecated**(`token`): `Promise`<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+
+#### Returns
+
+`Promise`<`boolean`\>
+
+___
+
 ### <a id="getl1ambbridgeaddress" name="getl1ambbridgeaddress"></a> getL1AmbBridgeAddress
 
 ▸ **getL1AmbBridgeAddress**(`token`, `chain`): `string`
@@ -733,24 +851,6 @@ ___
 | :------ | :------ |
 | `token` | [`TToken`](../modules.md#ttoken) |
 | `chain` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`string`
-
-___
-
-### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
-
-▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `token` | [`TToken`](../modules.md#ttoken) |
-| `sourceChain` | [`TChain`](../modules.md#tchain) |
-| `destinationChain` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 
@@ -1101,6 +1201,22 @@ ___
 
 ___
 
+### <a id="gettokenbalancesforaccount" name="gettokenbalancesforaccount"></a> getTokenBalancesForAccount
+
+▸ **getTokenBalancesForAccount**(`accountAddress`): `Promise`<`Balance`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `accountAddress` | `string` |
+
+#### Returns
+
+`Promise`<`Balance`[]\>
+
+___
+
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
 ▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`<`any`\>
@@ -1109,7 +1225,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `transferIdOrTxHash` | `String` |
+| `transferIdOrTxHash` | `string` |
 
 #### Returns
 
@@ -1117,19 +1233,20 @@ ___
 
 ___
 
-### <a id="getwaitconfirmations" name="getwaitconfirmations"></a> getWaitConfirmations
+### <a id="gettransfertimes" name="gettransfertimes"></a> getTransferTimes
 
-▸ **getWaitConfirmations**(`chain`): `number`
+▸ **getTransferTimes**(`sourceChainSlug`, `destinationChainSlug`): `Promise`<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chain` | [`TChain`](../modules.md#tchain) |
+| `sourceChainSlug` | `string` |
+| `destinationChainSlug` | `string` |
 
 #### Returns
 
-`number`
+`Promise`<`any`\>
 
 ___
 
@@ -1395,8 +1512,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `sourceChain` | [`Chain`](Chain.md) |
-| `destinationChain?` | [`Chain`](Chain.md) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 

@@ -18,7 +18,7 @@ export type NetworkProps = {
   explorerUrl: string
 }
 
-class Network {
+export class Network {
   readonly name: string
   readonly slug: string
   readonly imageUrl: string

@@ -13,7 +13,6 @@
 
 ### Enumerations
 
-- [CanonicalToken](enums/CanonicalToken.md)
 - [ChainId](enums/ChainId.md)
 - [ChainSlug](enums/ChainSlug.md)
 - [HToken](enums/HToken.md)
@@ -25,11 +24,11 @@
 
 - [AMM](classes/AMM.md)
 - [Base](classes/Base.md)
-- [CanonicalBridge](classes/CanonicalBridge.md)
 - [Chain](classes/Chain.md)
 - [FallbackProvider](classes/FallbackProvider.md)
 - [Hop](classes/Hop.md)
 - [HopBridge](classes/HopBridge.md)
+- [Multicall](classes/Multicall.md)
 - [PriceFeed](classes/PriceFeed.md)
 - [RelayerFee](classes/RelayerFee.md)
 - [RetryProvider](classes/RetryProvider.md)
@@ -40,6 +39,7 @@
 
 ### Type Aliases
 
+- [GetMulticallBalanceOptions](modules.md#getmulticallbalanceoptions)
 - [TAmount](modules.md#tamount)
 - [TChain](modules.md#tchain)
 - [TProvider](modules.md#tprovider)
@@ -55,6 +55,22 @@
 Re-exports [WithdrawalProof](classes/utils.WithdrawalProof.md)
 
 ## Type Aliases
+
+### <a id="getmulticallbalanceoptions" name="getmulticallbalanceoptions"></a> GetMulticallBalanceOptions
+
+Ƭ **GetMulticallBalanceOptions**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `abi?` | `any` |
+| `address?` | `string` |
+| `method?` | `string` |
+| `tokenDecimals?` | `number` |
+| `tokenSymbol?` | `string` |
+
+___
 
 ### <a id="tamount" name="tamount"></a> TAmount
 
@@ -106,4 +122,4 @@ ___
 
 ### <a id="tokensymbol" name="tokensymbol"></a> TokenSymbol
 
-Ƭ **TokenSymbol**: [`CanonicalToken`](enums/CanonicalToken.md) \| [`WrappedToken`](enums/WrappedToken.md) \| [`HToken`](enums/HToken.md) \| `string`
+Ƭ **TokenSymbol**: `CanonicalToken` \| [`WrappedToken`](enums/WrappedToken.md) \| [`HToken`](enums/HToken.md) \| `string`

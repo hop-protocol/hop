@@ -8,6 +8,7 @@
 - [Base](ChainId.md#base)
 - [Ethereum](ChainId.md#ethereum)
 - [Gnosis](ChainId.md#gnosis)
+- [Linea](ChainId.md#linea)
 - [Nova](ChainId.md#nova)
 - [Optimism](ChainId.md#optimism)
 - [Polygon](ChainId.md#polygon)
@@ -36,6 +37,12 @@ ___
 ### <a id="gnosis" name="gnosis"></a> Gnosis
 
 • **Gnosis** = ``100``
+
+___
+
+### <a id="linea" name="linea"></a> Linea
+
+• **Linea** = ``59144``
 
 ___
 

@@ -3,7 +3,6 @@ import { AbstractMessageService, IMessageService, MessageDirection } from 'src/c
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
-import { getNetworkSlugByChainSlug } from 'src/chains/utils'
 import { providers } from 'ethers'
 
 interface ZkEvmBridges {
@@ -26,14 +25,10 @@ const polygonSdkVersion: Record<string, string> = {
   goerli: 'blueberry'
 }
 
-type MessageOpts = {
-  messageDirection: MessageDirection
-}
-
 type Message = string
 type MessageStatus = string
 
-export class PolygonZkMessageService extends AbstractMessageService<Message, MessageStatus, MessageOpts> implements IMessageService {
+export class PolygonZkMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
   ready: boolean = false
   apiUrl: string
   zkEvmClient: ZkEvmClient
@@ -41,11 +36,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const networkSlug = getNetworkSlugByChainSlug(chainSlug)
-    if (!networkSlug) {
-      throw new Error(`Network slug not found for chain slug ${chainSlug}`)
-    }
-    const polygonNetwork: string = polygonChainSlugs[networkSlug]
+    const polygonNetwork: string = polygonChainSlugs[this.networkSlug]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     use(Web3ClientPlugin)
@@ -53,7 +44,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
 
     this.zkEvmClient = new ZkEvmClient()
 
-    this.#init(networkSlug)
+    this.#init(this.networkSlug)
       .then(() => {
         this.ready = true
         this.logger.debug('zkEVM client initialized')
@@ -87,33 +78,16 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   }
 
   async #tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
+    while (true) {
+      if (this.ready) {
+        return true
+      }
+      await wait(100)
     }
-    await wait(100)
-    return await this.#tilReady()
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
     await this.#tilReady()
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L1_TO_L2
-    }
-
-    return this.validateMessageAndSendTransaction(l1TxHash, messageOpts)
-  }
-
-  async relayL2ToL1Message (l2TxHash: string): Promise<providers.TransactionResponse> {
-    await this.#tilReady()
-    const messageOpts: MessageOpts = {
-      messageDirection: MessageDirection.L2_TO_L1
-    }
-
-    return this.validateMessageAndSendTransaction(l2TxHash, messageOpts)
-  }
-
-  protected async sendRelayTransaction (message: Message, messageOpts: MessageOpts): Promise<providers.TransactionResponse> {
-    const { messageDirection } = messageOpts
 
     // The bridge to claim on will be on the opposite chain that the source tx is on
     const { sourceBridge, destBridge } = this.#getSourceAndDestBridge(messageDirection)
@@ -156,10 +130,10 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     return message
   }
 
-  protected async isMessageInFlight (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+  protected async isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
     // A message is in flight if the client does not know about it
     try {
-      if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+      if (messageDirection === MessageDirection.L1_TO_L2) {
         await this.zkEvmClient.isDepositClaimable(messageStatus)
       } else {
         await this.zkEvmClient.isWithdrawExitable(messageStatus)
@@ -170,17 +144,17 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     return false
   }
 
-  protected async isMessageRelayable (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
-    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+  protected async isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
       return this.zkEvmClient.isDepositClaimable(messageStatus)
     } else {
       return this.zkEvmClient.isWithdrawExitable(messageStatus)
     }
   }
 
-  protected async isMessageRelayed (messageStatus: MessageStatus, messageOpts: MessageOpts): Promise<boolean> {
+  protected async isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
     // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
-    if (messageOpts.messageDirection === MessageDirection.L1_TO_L2) {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
       return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
     } else {
       return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean

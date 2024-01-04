@@ -6,10 +6,6 @@
 
 - [WithdrawalProof](../classes/utils.WithdrawalProof.md)
 
-### Variables
-
-- [ChainsWithSubgraphs](utils.md#chainswithsubgraphs)
-
 ### Functions
 
 - [chainIdToSlug](utils.md#chainidtoslug)
@@ -19,6 +15,7 @@
 - [getChainSlugFromName](utils.md#getchainslugfromname)
 - [getProviderFromUrl](utils.md#getproviderfromurl)
 - [getProviderWithFallbacks](utils.md#getproviderwithfallbacks)
+- [getSubgraphUrl](utils.md#getsubgraphurl)
 - [getTokenDecimals](utils.md#gettokendecimals)
 - [getUrlFromProvider](utils.md#geturlfromprovider)
 - [promiseTimeout](utils.md#promisetimeout)
@@ -26,12 +23,6 @@
 - [serializeQueryParams](utils.md#serializequeryparams)
 - [shiftBNDecimals](utils.md#shiftbndecimals)
 - [wait](utils.md#wait)
-
-## Variables
-
-### <a id="chainswithsubgraphs" name="chainswithsubgraphs"></a> ChainsWithSubgraphs
-
-• `Const` **ChainsWithSubgraphs**: `Record`<`string`, `string`[]\>
 
 ## Functions
 
@@ -148,6 +139,23 @@ ___
 #### Returns
 
 `any`
+
+___
+
+### <a id="getsubgraphurl" name="getsubgraphurl"></a> getSubgraphUrl
+
+▸ **getSubgraphUrl**(`network`, `chain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `network` | `string` |
+| `chain` | `string` |
+
+#### Returns
+
+`string`
 
 ___
 

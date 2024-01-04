@@ -12,6 +12,7 @@
 - [apiKeys](PriceFeed.md#apikeys)
 - [cacheTimeMs](PriceFeed.md#cachetimems)
 - [services](PriceFeed.md#services)
+- [timeoutMs](PriceFeed.md#timeoutms)
 
 ### Methods
 
@@ -60,6 +61,12 @@ ___
 ### <a id="services" name="services"></a> services
 
 • **services**: `Service`[] = `[]`
+
+___
+
+### <a id="timeoutms" name="timeoutms"></a> timeoutMs
+
+• **timeoutMs**: `number`
 
 ## Methods
 

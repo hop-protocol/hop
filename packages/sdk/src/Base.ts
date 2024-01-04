@@ -1,3 +1,4 @@
+import Token from './models/Token'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { ArbERC20 } from '@hop-protocol/core/contracts/static/ArbERC20'
@@ -749,7 +750,7 @@ export class Base {
     await this.fetchConfigFromS3()
     destinationChain = this.toChainModel(destinationChain)
     const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
-    if (!isFeeEnabled) {
+    if (!isFeeEnabled || tokenSymbol !== Token.ETH) {
       return BigNumber.from(0)
     }
 

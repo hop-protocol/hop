@@ -101,6 +101,10 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`gasCostPollEnabled: ${this.gasCostPollEnabled}`)
     }
 
+    if (EnforceRelayerFee) {
+      this.logger.debug('enforcing relayer fee')
+    }
+
     // There is a multiplier for each chain and a multiplier for each network (passed in by config)
     const chainMultiplier = ChainPollMultiplier?.[this.chainSlug] ?? 1
     const networkMultiplier = SyncIntervalMultiplier
@@ -1534,7 +1538,7 @@ class SyncWatcher extends BaseWatcher {
      * happening without manually adding the first chain per route for each new bridge.
      */
     let lookupTransferIdsRes
-    const onchainLookupTimeoutMs = FiveMinutesMs
+    const onchainLookupTimeoutMs = 3 * FiveMinutesMs
     try {
       lookupTransferIdsRes = await promiseTimeout(this.lookupTransferIds(
         sourceBridge,
@@ -1599,14 +1603,30 @@ class SyncWatcher extends BaseWatcher {
       transferId,
       rootHash: transferRootHash
     } = event.args
-    const logger = this.logger.create({ id: transferId })
-    logger.debug('handling WithdrawalBondSettled event', JSON.stringify({
+
+    // In theory, the bonder should not care about this given that they assume that they are able
+    // to fully settle multiple at once. This handler should not store any data. However, due to
+    // prover limitations, this event is now treated similarly to the MultipleWithdrawalsSettledEvent.
+
+    // **_The bonder assumes that all individual settlements are atomically executed._**
+
+    const transferRootId = await this.db.transferRoots.getTransferRootIdByTransferRootHash(transferRootHash)
+    if (!transferRootId) {
+      throw new Error(`expected db item for transfer root hash "${transferRootHash}"`)
+    }
+
+    const logger = this.logger.create({ root: transferRootId })
+    logger.debug('handling WithdrawalBondSettledEvent event', JSON.stringify({
       transactionHash,
+      transferId,
       transferRootHash,
-      bonder,
-      transferId
+      bonder
     }))
-    // Nothing is stored here. The current bonder assumptions make the bonder unconcerned with this.
+
+    await this.db.transferRoots.update(transferRootId, {
+      transferRootHash,
+      settled: true
+    })
   }
 
   getIsBondable = (

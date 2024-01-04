@@ -42,6 +42,10 @@ class RelayWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
+
+    if (EnforceRelayerFee) {
+      this.logger.debug('enforcing relayer fee')
+    }
   }
 
   async pollHandler () {

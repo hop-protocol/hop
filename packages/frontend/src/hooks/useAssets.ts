@@ -51,8 +51,8 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     return null
   }, [selectedBridge, network, toNetwork])
 
-  // Set source token
-  const sourceToken = useMemo(() => {
+  // Set from token
+  const fromToken = useMemo(() => {
     try {
       if (!network || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(network?.slug)
@@ -61,8 +61,8 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     }
   }, [unsupportedAsset, selectedBridge, network])
 
-  // Set destination token
-  const destToken = useMemo(() => {
+  // Set to token
+  const toToken = useMemo(() => {
     try {
       if (!toNetwork || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(toNetwork?.slug)
@@ -79,8 +79,8 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
 
   return {
     unsupportedAsset,
-    sourceToken,
-    destToken,
+    fromToken,
+    toToken,
     placeholderToken,
     assetWithoutAmm
   }

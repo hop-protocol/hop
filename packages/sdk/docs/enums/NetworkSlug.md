@@ -6,6 +6,7 @@
 
 - [Goerli](NetworkSlug.md#goerli)
 - [Mainnet](NetworkSlug.md#mainnet)
+- [Sepolia](NetworkSlug.md#sepolia)
 
 ## Enumeration Members
 
@@ -18,3 +19,9 @@ ___
 ### <a id="mainnet" name="mainnet"></a> Mainnet
 
 • **Mainnet** = ``"mainnet"``
+
+___
+
+### <a id="sepolia" name="sepolia"></a> Sepolia
+
+• **Sepolia** = ``"sepolia"``

@@ -94,8 +94,8 @@ export const config : Config = {
     polygon: false,
     gnosis: false,
     optimism: false,
-    arbitrum: false,
-    nova: false,
+    arbitrum: true,
+    nova: true,
     base: false,
     zksync: false,
     linea: true,
@@ -103,7 +103,9 @@ export const config : Config = {
     polygonzk: false
   },
   relayerFeeWei: {
-    linea: '1000000000000000'
+    linea: '1000000000000000',
+    nova: '100000000000000',
+    arbitrum: '100000000000000'
   },
   bridgeDeprecated: {
     SNX: true,

@@ -626,9 +626,7 @@ class AMM extends Base {
   }
 
   public async calculateAmountsForLpToken (lpTokenAmount: TAmount): Promise<BigNumber[]> {
-    const account = this.signer
-      ? await this.getSignerAddress()
-      : constants.AddressZero
+    const account = this.signer ? await this.getSignerAddress() : constants.AddressZero
     const saddleSwap = await this.getSaddleSwap()
     return saddleSwap.calculateRemoveLiquidity(
       account,

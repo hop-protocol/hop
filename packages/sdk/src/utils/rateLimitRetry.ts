@@ -44,7 +44,9 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         const isEstimateGasFailedError = estimateGasFailedErrorRegex.test(errMsg)
         const isAlreadyKnownError = alreadyKnownErrorRegex.test(errMsg)
         const isFeeTooLowError = feeTooLowErrorRegex.test(errMsg)
-        const isCallLookupRevertError = isCallLookupRevertErrorRegex.test(errMsg)
+
+        // a server_error will also return a call_exception error, so we want to exclude server errors from actual contract call revert errors.
+        const isCallLookupRevertError = isCallLookupRevertErrorRegex.test(errMsg) && !/failed response/.test(errMsg)
 
         // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
         // so we want to exclude server connection errors from actual contract call revert errors.

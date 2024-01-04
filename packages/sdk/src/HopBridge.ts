@@ -749,24 +749,32 @@ class HopBridge extends Base {
 
     const amountInNoSlippage = BigNumber.from(1000)
     const lpFees = this.getLpFees(amountIn, sourceChain, destinationChain)
-    const hTokenAmount = await this.calcToHTokenAmount(amountIn, sourceChain, isHTokenSend)
 
     const [
+      hTokenAmount,
       amountOutNoSlippage,
       bonderFeeRelative,
       destinationTxFeeData,
-      amountOutWithoutFee,
-      feeBps
+      feeBps,
+      availableLiquidity
     ] = await Promise.all([
+      this.calcToHTokenAmount(amountIn, sourceChain, isHTokenSend),
       this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain),
       this.getBonderFeeRelative(amountIn, sourceChain, destinationChain, isHTokenSend),
       this.getDestinationTransactionFeeData(sourceChain, destinationChain),
-      this.calcFromHTokenAmount(hTokenAmount, destinationChain),
-      this.getFeeBps(this.tokenSymbol, destinationChain)
+      this.getFeeBps(this.tokenSymbol, destinationChain),
+      !sourceChain?.isL1 ? this.getFrontendAvailableLiquidity(sourceChain, destinationChain) : Promise.resolve(null)
     ])
 
-    const { destinationTxFee } = destinationTxFeeData
+    const {
+      destinationTxFee,
+      rate: tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice
+    } = destinationTxFeeData
 
+    let amountOutWithoutFee : BigNumber
     let adjustedBonderFee = BigNumber.from(0)
     let adjustedDestinationTxFee = BigNumber.from(0)
     let totalFee = BigNumber.from(0)
@@ -776,14 +784,21 @@ class HopBridge extends Base {
         adjustedDestinationTxFee = destinationTxFee
         totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
       }
+      amountOutWithoutFee = await this.calcFromHTokenAmount(hTokenAmount, destinationChain)
     } else {
+      let bonderFeeAbsolute : BigNumber
       if (isHTokenSend) {
         // fees do not need to be adjusted for AMM slippage when sending hTokens
         adjustedBonderFee = bonderFeeRelative
         adjustedDestinationTxFee = destinationTxFee
+        ;([amountOutWithoutFee, bonderFeeAbsolute] = await Promise.all([
+          this.calcFromHTokenAmount(hTokenAmount, destinationChain),
+          this.getBonderFeeAbsolute(sourceChain)
+        ]))
       } else {
         // adjusted fee is the fee in the canonical token after adjusting for the hToken price
-        ;([adjustedBonderFee, adjustedDestinationTxFee] = await Promise.all([
+        ;([amountOutWithoutFee, adjustedBonderFee, adjustedDestinationTxFee, bonderFeeAbsolute] = await Promise.all([
+          this.calcFromHTokenAmount(hTokenAmount, destinationChain),
           this.calcFromHTokenAmount(
             bonderFeeRelative,
             destinationChain
@@ -791,12 +806,12 @@ class HopBridge extends Base {
           this.calcFromHTokenAmount(
             destinationTxFee,
             destinationChain
-          )
+          ),
+          this.getBonderFeeAbsolute(sourceChain)
         ]))
       }
 
       // enforce bonderFeeAbsolute after adjustment
-      const bonderFeeAbsolute = await this.getBonderFeeAbsolute(sourceChain)
       adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute) ? adjustedBonderFee : bonderFeeAbsolute
       totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
     }
@@ -831,8 +846,7 @@ class HopBridge extends Base {
     }
 
     let isLiquidityAvailable = true
-    if (!sourceChain?.isL1) {
-      const availableLiquidity = await this.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+    if (availableLiquidity) {
       isLiquidityAvailable = availableLiquidity.gte(hTokenAmount)
     }
 
@@ -854,10 +868,10 @@ class HopBridge extends Base {
       estimatedReceived,
       feeBps,
       lpFeeBps: LpFeeBps,
-      tokenPriceRate: destinationTxFeeData.rate,
-      chainNativeTokenPrice: destinationTxFeeData.chainNativeTokenPrice,
-      tokenPrice: destinationTxFeeData.tokenPrice,
-      destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice,
       relayFeeEth,
       isLiquidityAvailable
     }

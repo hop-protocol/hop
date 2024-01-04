@@ -8,6 +8,7 @@ import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/f
 import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/generated/L2_AmmWrapper__factory'
 import { L2_Bridge } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts/factories/generated/L2_Bridge__factory'
+import { Multicall } from './Multicall'
 
 import { ApiKeys, PriceFeedFromS3 } from './priceFeed'
 import {
@@ -797,16 +798,8 @@ class HopBridge extends Base {
         ]))
       } else {
         // adjusted fee is the fee in the canonical token after adjusting for the hToken price
-        ;([amountOutWithoutFee, adjustedBonderFee, adjustedDestinationTxFee, bonderFeeAbsolute] = await Promise.all([
-          this.calcFromHTokenAmount(hTokenAmount, destinationChain),
-          this.calcFromHTokenAmount(
-            bonderFeeRelative,
-            destinationChain
-          ),
-          this.calcFromHTokenAmount(
-            destinationTxFee,
-            destinationChain
-          ),
+        ;([[amountOutWithoutFee, adjustedBonderFee, adjustedDestinationTxFee], bonderFeeAbsolute] = await Promise.all([
+          this.calcFromHTokenAmountMulticall(destinationChain, [hTokenAmount, bonderFeeRelative, destinationTxFee]),
           this.getBonderFeeAbsolute(sourceChain)
         ]))
       }
@@ -932,21 +925,9 @@ class HopBridge extends Base {
     let amountOut : BigNumber
     let amountOutNoSlippage : BigNumber
     if (isToHToken) {
-      ;([amountOut, amountOutNoSlippage] = await Promise.all([
-        this.calcToHTokenAmount(amountIn, chain),
-        this.calcToHTokenAmount(
-          amountInNoSlippage,
-          chain
-        )
-      ]))
+      ;([amountOut, amountOutNoSlippage] = await this.calcToHTokenAmountMulticall(chain, [amountIn, amountInNoSlippage]))
     } else {
-      ;([amountOut, amountOutNoSlippage] = await Promise.all([
-        this.calcFromHTokenAmount(amountIn, chain),
-        this.calcFromHTokenAmount(
-          amountInNoSlippage,
-          chain
-        )
-      ]))
+      ;([amountOut, amountOutNoSlippage] = await this.calcFromHTokenAmountMulticall(chain, [amountIn, amountInNoSlippage]))
     }
 
     const rate = this.getRate(amountIn, amountOut, sourceToken, destToken)
@@ -2347,6 +2328,56 @@ class HopBridge extends Base {
     this.debugTimeLog('calcFromHTokenAmount', timeStart)
 
     return amountOut
+  }
+
+  private async calcSwapAmountMulticall (
+    chain: TChain,
+    tokenIndexes: number[],
+    amountIns: BigNumberish[]
+  ): Promise<BigNumber[]> {
+    chain = this.toChainModel(chain)
+    if (!this.doesUseAmm) {
+      return amountIns.map((amount: BigNumberish) => BigNumber.from(amount))
+    }
+    if (chain.isL1) {
+      return amountIns.map((amount: BigNumberish) => BigNumber.from(amount))
+    }
+
+    const multicall = new Multicall({ network: this.network })
+    const amm = this.getAmm(chain)
+    const saddleSwap = await amm.getSaddleSwap()
+    const options = amountIns.map((amountIn: any, index: number) => {
+      return {
+        skip: BigNumber.from(amountIn).eq(0),
+        address: saddleSwap.address,
+        abi: saddleSwap.interface.fragments,
+        method: 'calculateSwap',
+        args: [tokenIndexes[0], tokenIndexes[1], amountIn],
+        index
+      }
+    })
+    const result = await multicall.multicall(chain.slug, options.filter((option: any) => !option.skip))
+    const items = result.map((values: any) => BigNumber.from(values[0]))
+    const skipped = options.filter((option: any) => option.skip)
+    skipped.sort((a, b) => a.index - b.index)
+    for (const skip of skipped) {
+      items.splice(skip.index, 0, BigNumber.from(0))
+    }
+    return items
+  }
+
+  async calcToHTokenAmountMulticall (
+    chain: TChain,
+    amountIns: BigNumberish[]
+  ): Promise<BigNumber[]> {
+    return this.calcSwapAmountMulticall(chain, [TokenIndex.CanonicalToken, TokenIndex.HopBridgeToken], amountIns)
+  }
+
+  async calcFromHTokenAmountMulticall (
+    chain: TChain,
+    amountIns: BigNumberish[]
+  ): Promise<BigNumber[]> {
+    return this.calcSwapAmountMulticall(chain, [TokenIndex.HopBridgeToken, TokenIndex.CanonicalToken], amountIns)
   }
 
   private async getBonderFeeRelative (

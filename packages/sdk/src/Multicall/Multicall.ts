@@ -35,6 +35,13 @@ export type GetMulticallBalanceOptions = {
   tokenDecimals?: number
 }
 
+export type MulticallOptions = {
+  address: string
+  abi: Array<any>
+  method: string
+  args: Array<any>
+}
+
 export class Multicall {
   network: string
   accountAddress: string
@@ -55,7 +62,7 @@ export class Multicall {
   getMulticallAddressForChain (chainSlug: string): string {
     const address = sdkConfig[this.network].chains?.[chainSlug]?.multicall
     if (!address) {
-      throw new Error(`multicallAddress not found for chain ${chainSlug}`)
+      return null
     }
     return address
   }
@@ -107,10 +114,9 @@ export class Multicall {
     return balances.flat()
   }
 
-  async multicall (chainSlug: string, options: any[]): Promise<any[]> {
-    const multicallAddress = this.getMulticallAddressForChain(chainSlug)
+  async multicall (chainSlug: string, options: MulticallOptions[]): Promise<Array<any>> {
     const provider = this.getProvider(chainSlug)
-    const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+    const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const calls = options.map(({ address, abi, method, args }: any) => {
       const contractInterface = new ethers.utils.Interface(abi)
       const calldata = contractInterface.encodeFunctionData(method, args)
@@ -120,9 +126,22 @@ export class Multicall {
       }
     })
 
-    const result = await multicallContract.callStatic.aggregate3(calls)
-    const parsed = result.map((data: any, index: number) => {
-      const returnData = data.returnData
+    let results : any
+    if (multicallAddress) {
+      const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+      results = await multicallContract.callStatic.aggregate3(calls)
+    } else {
+      results = await Promise.all(calls.map(async ({ target, callData }: any) => {
+        const result = await provider.call({ to: target, data: callData })
+        return result
+      }))
+    }
+
+    const parsed = results.map((data: any, index: number) => {
+      let returnData = data
+      if (multicallAddress) {
+        returnData = data.returnData
+      }
       const { abi, method } = options[index]
       const contractInterface = new ethers.utils.Interface(abi)
       for (const key in contractInterface.functions) {
@@ -147,7 +166,6 @@ export class Multicall {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
-    const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
 
     const calls = tokenAddresses.map(({ address, abi, method }: TokenAddress & {abi: any, method: string}) => {
       const tokenContract = new Contract(address, abi ?? ERC20Abi, provider)
@@ -158,10 +176,22 @@ export class Multicall {
       }
     })
 
-    const result = await multicallContract.callStatic.aggregate3(calls)
+    let results: any
+    if (multicallAddress) {
+      const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+      results = await multicallContract.callStatic.aggregate3(calls)
+    } else {
+      results = await Promise.all(calls.map(async ({ target, callData }: any) => {
+        const result = await provider.call({ to: target, data: callData })
+        return result
+      }))
+    }
 
-    const balancePromises = result.map(async (data: any, index: number) => {
-      const returnData = data.returnData
+    const balancePromises = results.map(async (data: any, index: number) => {
+      let returnData = data
+      if (multicallAddress) {
+        returnData = data.returnData
+      }
       const { tokenSymbol, address, tokenDecimals } = tokenAddresses[index]
       try {
         const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]

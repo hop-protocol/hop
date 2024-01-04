@@ -20,6 +20,7 @@ export {
   NetworkSlug,
   ChainId,
   TokenSymbol,
+  CanonicalToken,
   WrappedToken,
   HToken
 } from './constants/constants'

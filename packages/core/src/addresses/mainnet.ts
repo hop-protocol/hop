@@ -132,7 +132,8 @@ export const addresses: Addresses = {
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       optimism: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -141,7 +142,8 @@ export const addresses: Addresses = {
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       arbitrum: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -150,7 +152,8 @@ export const addresses: Addresses = {
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       gnosis: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -159,7 +162,8 @@ export const addresses: Addresses = {
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       polygon: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -168,7 +172,8 @@ export const addresses: Addresses = {
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       nova: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -177,7 +182,8 @@ export const addresses: Addresses = {
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       base: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -186,7 +192,8 @@ export const addresses: Addresses = {
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       linea: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -195,7 +202,18 @@ export const addresses: Addresses = {
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygonzk: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+      },
+      polygonzk: {
+        ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        base: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        linea: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       }
     },
     HOP: {

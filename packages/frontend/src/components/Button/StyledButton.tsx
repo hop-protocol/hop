@@ -1,7 +1,7 @@
 import React from 'react'
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components/macro'
-import { Button } from './Button'
+import { Button } from 'src/components/Button/Button'
 
 interface StyleProps {
   highlighted?: boolean

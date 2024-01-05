@@ -3,8 +3,8 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import Box from '@material-ui/core/Box'
 import Send from 'src/pages/Send'
 import { Claim } from 'src/pages/Claim'
-import { AirdropPreview } from './pages/Airdrop/AirdropPreview'
-import { Loading } from './components/Loading'
+import { AirdropPreview } from 'src/pages/Airdrop/AirdropPreview'
+import { Loading } from 'src/components/Loading'
 
 const PoolsOverview = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools/PoolsOverview'))
 const PoolDetails = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools'))

@@ -4,10 +4,10 @@ import IconButton from '@material-ui/core/IconButton'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'
-import { PoolRow } from './PoolRow'
-import { StakingRewardsClaim } from '../PoolDetails/StakingRewardsClaim'
+import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'
+import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
 import { makeStyles } from '@material-ui/core/styles'
-import { usePools } from './usePools'
+import { usePools } from 'src/pages/Pools/PoolsOverview/usePools'
 
 export const useStyles = makeStyles(theme => ({
   box: {

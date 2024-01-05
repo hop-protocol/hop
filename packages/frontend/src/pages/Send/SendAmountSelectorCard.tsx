@@ -12,7 +12,6 @@ import { toTokenDisplay } from 'src/utils'
 import logger from 'src/logger'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 import { NetworkSelector } from 'src/components/NetworkSelector'
-import { Flex } from 'src/components/ui'
 
 type Props = {
   value?: string
@@ -108,7 +107,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
 
   return (
     <Card className={styles.root}>
-      <Flex fullWidth justifyBetween alignCenter mb={'1.8rem'}>
+      <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
@@ -130,7 +129,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
             </Typography>
           </div>
         ) : null}
-      </Flex>
+      </Box>
 
       <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" className={styles.mobileFlexColumn}>
         <Box width="45%" overflow="hidden" className={styles.mobileFlexColumn}>

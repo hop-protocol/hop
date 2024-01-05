@@ -2,7 +2,8 @@ import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
-import { Div, Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import ethLogo from 'src/assets/logos/eth.svg'
 
@@ -68,7 +69,7 @@ const BalanceStats: FC = () => {
   const error = balances?.map((item: any) => item.error).filter(Boolean).join('\n')
 
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Box>
       <SortableTable
         stats={balances}
         columns={columns}
@@ -76,7 +77,7 @@ const BalanceStats: FC = () => {
         loading={fetchingBalances}
         error={error}
       />
-    </Div>
+    </Box>
   )
 }
 

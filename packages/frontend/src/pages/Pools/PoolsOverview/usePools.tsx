@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { BigNumber, BigNumberish } from 'ethers'
-import { StakingRewards__factory } from '@hop-protocol/core/contracts'
 import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 import { Multicall } from '@hop-protocol/sdk'

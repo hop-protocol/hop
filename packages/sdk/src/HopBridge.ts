@@ -25,7 +25,6 @@ import {
   HToken,
   LowLiquidityTokenBufferAmountsUsd,
   LowLiquidityTokens,
-  LpFeeBps,
   NetworkSlug,
   PendingAmountBufferUsd,
   SettlementGasLimitPerTx,
@@ -874,6 +873,8 @@ class HopBridge extends Base {
       isLiquidityAvailable = availableLiquidity.gte(hTokenAmount)
     }
 
+    const lpFeeBps = this.getLpFeeBps(destinationChain)
+
     return {
       amountIn,
       sourceChain,
@@ -891,7 +892,7 @@ class HopBridge extends Base {
       totalFee,
       estimatedReceived,
       feeBps,
-      lpFeeBps: LpFeeBps,
+      lpFeeBps,
       tokenPriceRate: destinationTxFeeData.rate,
       chainNativeTokenPrice: destinationTxFeeData.chainNativeTokenPrice,
       tokenPrice: destinationTxFeeData.tokenPrice,
@@ -987,7 +988,7 @@ class HopBridge extends Base {
     const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
 
     // Divide by 10000 at the end so that the amount isn't floored at 0
-    const lpFee = BigNumber.from(LpFeeBps)
+    const lpFee = this.getLpFeeBps(chain)
     const lpFeeBN = parseUnits(lpFee.toString(), destToken.decimals)
     const lpFeeAmount = amountIn
       .mul(lpFeeBN)
@@ -1026,10 +1027,12 @@ class HopBridge extends Base {
 
     let lpFeeBpsBn = BigNumber.from(0)
     if (!sourceChain.isL1) {
-      lpFeeBpsBn = lpFeeBpsBn.add(LpFeeBps)
+      const lpFee = this.getLpFeeBps(sourceChain)
+      lpFeeBpsBn = lpFeeBpsBn.add(lpFee)
     }
     if (!destinationChain.isL1) {
-      lpFeeBpsBn = lpFeeBpsBn.add(LpFeeBps)
+      const lpFee = this.getLpFeeBps(destinationChain)
+      lpFeeBpsBn = lpFeeBpsBn.add(lpFee)
     }
 
     amountIn = BigNumber.from(amountIn)
@@ -2818,6 +2821,20 @@ class HopBridge extends Base {
       relayer !== constants.AddressZero ||
       relayerFee.eq(0)
     )
+  }
+
+  // TODO: This is a temporary solution. Should retrieve from onchain and cache value.
+  private getLpFeeBps (chain: Chain): BigNumber {
+    const defaultFeeBps = 4
+    const customFeeBps: Record<string, number> = {
+      [Chain.PolygonZk.slug]: 1,
+      [Chain.Nova.slug]: 1
+    }
+
+    if (customFeeBps[chain.slug]) {
+      return BigNumber.from(customFeeBps[chain.slug])
+    }
+    return BigNumber.from(defaultFeeBps)
   }
 }
 

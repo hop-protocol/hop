@@ -7,7 +7,7 @@ import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
-import { find } from 'lodash'
+import find from 'lodash/find'
 import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {

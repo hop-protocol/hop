@@ -5,14 +5,9 @@
     "node": ">=14",
     "yarn": "^1.22.11"
   },
-  "devDependencies": {
-    "lerna": "^3.20.2"
-  },
+  "devDependencies": {},
   "scripts": {
-    "bootstrap": "npx lerna bootstrap",
-    "nuke": "npx lerna clean"
+    "bootstrap": "npm install"
   },
-  "dependencies": {
-
-  }
+  "dependencies": {}
 }

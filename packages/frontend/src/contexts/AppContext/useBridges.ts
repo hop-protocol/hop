@@ -1,8 +1,8 @@
-import { useMemo, useState, useEffect } from 'react'
+import useQueryParams from 'src/hooks/useQueryParams'
 import { Hop, HopBridge, TToken } from '@hop-protocol/sdk'
 import { addresses } from 'src/config'
-import useQueryParams from 'src/hooks/useQueryParams'
 import { findMatchingBridge } from 'src/utils'
+import { useEffect, useMemo, useState } from 'react'
 
 const useBridges = (sdk: Hop) => {
   const { queryParams, updateQueryParams, location } = useQueryParams()

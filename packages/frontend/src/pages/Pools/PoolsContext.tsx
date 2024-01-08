@@ -1,33 +1,33 @@
+import Address from 'src/models/Address'
+import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import Network from 'src/models/Network'
 import React, {
+  ChangeEvent,
   FC,
   ReactNode,
   createContext,
   useContext,
   useEffect,
-  useState,
   useMemo,
-  ChangeEvent,
+  useState,
 } from 'react'
-import Address from 'src/models/Address'
-import Network from 'src/models/Network'
+import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 import logger from 'src/logger'
-import { Signer, BigNumber, constants } from 'ethers'
+import { BigNumber, Signer, constants } from 'ethers'
+import { Multicall, Token } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
-import { commafy, shiftBNDecimals, toTokenDisplay, toPercentDisplay, getTokenDecimals } from 'src/utils'
-import { stableCoins } from 'src/utils/constants'
+import { commafy, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
-import { hopStakingRewardsContracts, stakingRewardsContracts, stakingRewardTokens, reactAppNetwork } from 'src/config'
+import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { l2Networks } from 'src/config/networks'
+import { stableCoins } from 'src/utils/constants'
 import { useApp } from 'src/contexts/AppContext'
+import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
 import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
-import { useQueryParams, useAsyncMemo, useBalance, useSelectedNetwork, useAssets } from 'src/hooks'
 import { useStaking } from 'src/pages/Pools/useStaking'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { Multicall, Token } from '@hop-protocol/sdk'
-import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 
 type PoolsContextProps = {
   addLiquidityAndStake: () => void

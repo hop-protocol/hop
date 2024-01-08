@@ -1,5 +1,5 @@
-import Network from 'src/models/Network'
 import Address from 'src/models/Address'
+import Network from 'src/models/Network'
 import { TokenSymbol } from '@hop-protocol/sdk'
 
 type TokenProps = {

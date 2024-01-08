@@ -1,9 +1,9 @@
-import React from 'react'
-import { Button } from 'src/components/Button'
 import Box from '@material-ui/core/Box'
-import { makeStyles } from '@material-ui/core/styles'
+import React from 'react'
 import Typography from '@material-ui/core/Typography'
+import { Button } from 'src/components/Button'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme) => ({
   root: {

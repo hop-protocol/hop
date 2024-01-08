@@ -1,6 +1,6 @@
-import { utils, BigNumber } from 'ethers'
-import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
+import { BigNumber, utils } from 'ethers'
+import { MerkleTree } from 'merkletreejs'
 import { merkleBaseUrl } from 'src/pages/Claim/config'
 
 function hashLeaf([address, entry]) {

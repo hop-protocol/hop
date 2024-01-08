@@ -1,5 +1,5 @@
-import { BigNumber } from 'ethers'
 import { BNMin } from './BNMin'
+import { BigNumber } from 'ethers'
 
 describe('BNMin', () => {
   it('should return whether a big number is larger than another', () => {

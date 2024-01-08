@@ -1,8 +1,8 @@
-import { useQuery } from 'react-query'
-import { ChainId, Token } from '@hop-protocol/sdk'
 import { Addressish } from 'src/models/Address'
-import { StakingRewards } from '@hop-protocol/core/contracts'
+import { ChainId, Token } from '@hop-protocol/sdk'
 import { Contract } from 'ethers'
+import { StakingRewards } from '@hop-protocol/core/contracts'
+import { useQuery } from 'react-query'
 
 type ContractType = Token | StakingRewards | Token | Contract
 

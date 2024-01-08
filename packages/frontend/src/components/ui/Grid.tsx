@@ -1,6 +1,6 @@
-import { FC } from 'react'
-import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components'
+import { ComposedStyleProps, composedStyleFns } from 'src/utils'
+import { FC } from 'react'
 
 interface CustomProps {
   gap?: number

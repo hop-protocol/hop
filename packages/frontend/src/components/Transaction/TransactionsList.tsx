@@ -1,11 +1,11 @@
-import React from 'react'
 import Button from '@material-ui/core/Button'
-import Typography from '@material-ui/core/Typography'
+import React from 'react'
 import Transaction from 'src/models/Transaction'
+import TransactionRow from 'src/components/Transaction/TransactionRow'
+import Typography from '@material-ui/core/Typography'
 import { Flex } from 'src/components/ui'
 import { useApp } from 'src/contexts/AppContext'
 import { useTxStatusStyles } from 'src/components/Transaction/useTxStatusStyles'
-import TransactionRow from 'src/components/Transaction/TransactionRow'
 
 function TransactionsList(props: any) {
   const styles = useTxStatusStyles()

@@ -1,5 +1,5 @@
-import { BigNumber, utils as ethersUtils } from 'ethers'
 import Token from 'src/models/Token'
+import { BigNumber, utils as ethersUtils } from 'ethers'
 
 class TokenAmount {
   readonly amountRaw: BigNumber

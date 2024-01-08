@@ -1,9 +1,9 @@
-import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Icon from '@material-ui/core/Icon'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import React, { FC } from 'react'
 import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles(theme => ({
   root: {

@@ -1,8 +1,8 @@
 import React from 'react'
-import { Button } from 'src/components/Button'
-import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
-import { commafy, NetworkTokenEntity } from 'src/utils'
+import { Button } from 'src/components/Button'
+import { NetworkTokenEntity, commafy } from 'src/utils'
+import { makeStyles } from '@material-ui/core/styles'
 import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({

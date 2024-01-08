@@ -90,7 +90,6 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "eslint-config-hop-protocol": "0.0.1-beta.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@types/lodash": "^4.14.176",
     "@types/luxon": "^2.0.5",
@@ -107,7 +106,10 @@
     "csp-html-webpack-plugin": "5.1.0",
     "customize-cra": "1.0.0",
     "eslint": "^7.15.0",
+    "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
     "react-app-rewired": "^2.2.1",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "eslint-config-hop-protocol": "0.0.1-beta.0"
   }
 }

@@ -1,4 +1,4 @@
-import { Bridges, Bonders } from '@hop-protocol/core/addresses'
+import { Bonders, Bridges } from '@hop-protocol/core/addresses'
 export interface IProposalDetail {
   target: string
   functionSig: string

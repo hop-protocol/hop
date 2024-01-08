@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
-import { Div, Flex } from 'src/components/ui'
 import RightArrow from '@material-ui/icons/ArrowRightAlt'
+import { Div, Flex } from 'src/components/ui'
 import { TransactionStatus, useTxStatusStyles } from 'src/components/Transaction'
 import { findNetworkBySlug } from 'src/utils/networks'
 

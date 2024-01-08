@@ -1,5 +1,5 @@
 import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
-import { metadata, addresses } from 'src/config'
+import { addresses, metadata } from 'src/config'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 
 export function getTokenImage(tokenSymbol: string = 'ETH') {

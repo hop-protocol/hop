@@ -1,7 +1,7 @@
 import React from 'react'
-import { Typography, TypographyProps } from '@material-ui/core'
 import styled from 'styled-components/macro'
-import { composedStyleFns, ComposedStyleProps } from 'src/utils'
+import { ComposedStyleProps, composedStyleFns } from 'src/utils'
+import { Typography, TypographyProps } from '@material-ui/core'
 
 interface BaseProps {
   children?: any

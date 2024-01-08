@@ -1,9 +1,9 @@
-import React from 'react'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { Icon } from 'src/components/ui'
 import Box from '@material-ui/core/Box'
-import { RightAlignedValue, SortableTable } from 'src/components/Table'
+import React from 'react'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import { Icon } from 'src/components/ui'
+import { RightAlignedValue, SortableTable } from 'src/components/Table'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
 export const populateBonderStats = (item: any) => {
   return {

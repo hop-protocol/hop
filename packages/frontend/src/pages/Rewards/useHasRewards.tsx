@@ -1,4 +1,3 @@
-import React from 'react'
 import { configs } from 'src/pages/Rewards/config'
 import { useRewards } from 'src/pages/Rewards/useRewards'
 

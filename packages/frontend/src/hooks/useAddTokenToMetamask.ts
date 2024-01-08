@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react'
-import { Token, ChainSlug, CanonicalToken } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { networkIdToSlug, wait } from 'src/utils'
-import { claimTokenAddress } from 'src/pages/Claim/config'
+import { CanonicalToken, ChainSlug, Token } from '@hop-protocol/sdk'
 import { ChainName } from '@hop-protocol/sdk/dist/src/constants'
+import { claimTokenAddress } from 'src/pages/Claim/config'
+import { networkIdToSlug, wait } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
+import { useCallback, useState } from 'react'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 interface AddTokenToMetamask {
   addToken: (networkId: number) => void

@@ -1,6 +1,6 @@
-import { ChainSlug, Slug, CanonicalToken } from '@hop-protocol/sdk'
-import { capitalize } from 'src/utils/capitalize'
 import logger from 'src/logger'
+import { CanonicalToken, ChainSlug, Slug } from '@hop-protocol/sdk'
+import { capitalize } from 'src/utils/capitalize'
 import { discordUrl } from 'src/utils'
 
 const emptyRoute = {

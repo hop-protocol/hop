@@ -1,5 +1,5 @@
-import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components/macro'
+import { ComposedStyleProps, composedStyleFns } from 'src/utils'
 import { Div, DivProps } from 'src/components/ui/Div'
 
 interface TextProps {

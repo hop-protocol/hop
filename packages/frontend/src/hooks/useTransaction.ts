@@ -1,31 +1,31 @@
-import { useState, useEffect, useReducer } from 'react'
-import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
+import { BigNumber, providers, utils } from 'ethers'
 import {
+  L1Transfer,
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
-  L1Transfer,
-  getLastLog,
   formatLogArgs,
+  getLastLog,
   networkIdToSlug,
 } from 'src/utils'
 import {
-  createDispatchAction,
-  TxActionType,
-  TxState,
-  txReducer,
   MethodNames,
-  TxType,
+  TxActionType,
   TxDetails,
+  TxState,
+  TxType,
+  createDispatchAction,
   getTxDetails,
+  txReducer,
 } from 'src/utils/transactions'
-import { BigNumber, providers, utils } from 'ethers'
+import { TToken, TokenSymbol } from '@hop-protocol/sdk'
+import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getAllProviders } from 'src/utils/getProvider'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
-import { useApp } from 'src/contexts/AppContext'
-import { TransactionResponse } from '@ethersproject/abstract-provider'
-import { getTokenByAddress } from 'src/utils/tokens'
-import { TToken, TokenSymbol } from '@hop-protocol/sdk'
 import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
+import { getTokenByAddress } from 'src/utils/tokens'
+import { useApp } from 'src/contexts/AppContext'
+import { useEffect, useReducer, useState } from 'react'
 
 // TODO: use typechain
 export const methodToSigHashes = {

@@ -1,15 +1,15 @@
-import React from 'react'
 import 'src/App.css'
 import AppRoutes from 'src/AppRoutes'
-import { Header } from 'src/components/Header'
-import { Footer } from 'src/components/Footer'
-import { AccountDetails } from 'src/components/AccountDetails'
+import React from 'react'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
 import bgImage from 'src/assets/circles-bg.svg'
 import bgImageDark from 'src/assets/circles-bg-dark.svg'
-import { useThemeMode } from 'src/theme/ThemeProvider'
 import styled from 'styled-components'
+import { AccountDetails } from 'src/components/AccountDetails'
 import { Flex } from 'src/components/ui'
+import { Footer } from 'src/components/Footer'
+import { Header } from 'src/components/Header'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const AppWrapper = styled(Flex)<any>`
   align-items: stretch;

@@ -1,15 +1,15 @@
-import React, { FC, ReactNode, createContext, useContext, useState, useEffect, useMemo } from 'react'
-import { BigNumber } from 'ethers'
-import { formatEther, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
+import React, { FC, ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react'
 import Token from 'src/models/Token'
-import { retryPromise } from 'src/utils/retryPromise'
-import { findNetworkBySlug } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import * as config from 'src/config'
-import { HToken, CanonicalToken } from '@hop-protocol/sdk'
+import { BigNumber } from 'ethers'
+import { CanonicalToken, HToken } from '@hop-protocol/sdk'
+import { findNetworkBySlug } from 'src/utils'
+import { formatEther, formatUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
+import { retryPromise } from 'src/utils/retryPromise'
+import { useApp } from 'src/contexts/AppContext'
+import * as config from 'src/config'
 
 interface Column {
   Header: string

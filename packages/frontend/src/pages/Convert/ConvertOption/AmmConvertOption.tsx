@@ -1,11 +1,11 @@
-import React, { ReactNode } from 'react'
-import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
-import { Signer, BigNumber, BigNumberish } from 'ethers'
-import Network from 'src/models/Network'
-import { commafy, toTokenDisplay } from 'src/utils'
 import ConvertOption, { SendData } from 'src/pages/Convert/ConvertOption/ConvertOption'
-import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import Network from 'src/models/Network'
+import React, { ReactNode } from 'react'
 import { AmmDetails } from 'src/components/AmmDetails'
+import { BigNumber, BigNumberish, Signer } from 'ethers'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
+import { commafy, toTokenDisplay } from 'src/utils'
 
 class AmmConvertOption extends ConvertOption {
   readonly name: string

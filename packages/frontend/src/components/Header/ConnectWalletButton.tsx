@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyledButton } from 'src/components/Button/StyledButton'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 import { wait } from 'src/utils'
 
 function setWalletButtonStyles() {

@@ -9,16 +9,14 @@
     "release": "npm run publish:latest",
     "version:bump": "npm version prerelease --preid=beta",
     "bump": "npm run version:bump && npm run lerna:sync",
-    "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
-    "prepare": "npm run build"
+    "bump-release": "npm run version:bump && npm run lerna:sync && npm run release"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "lerna-sync-version": "0.0.6",
-    "@typescript-eslint/eslint-plugin": "^4.18.0",
-    "@typescript-eslint/parser": "^4.18.0",
-    "eslint": "^7.15.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.0",
+    "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^27.6.1",
@@ -27,6 +25,15 @@
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "typescript": "5.1.6"
+    "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "lerna-sync-version": "0.0.6",
+    "typescript": "^5.3.3"
+  },
+  "standard": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint/eslint-plugin"
+    ]
   }
 }

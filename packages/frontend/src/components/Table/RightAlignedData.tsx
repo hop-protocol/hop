@@ -1,6 +1,6 @@
 import React from 'react'
-import { commafy } from 'src/utils'
 import { Flex } from 'src/components/ui'
+import { commafy } from 'src/utils'
 
 export function CellWrapper({ cell, end, style, children }: any) {
   return (

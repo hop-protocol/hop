@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import styled from 'styled-components/macro'
 import { Circle } from 'react-feather'
-import { composedStyleFns, ComposedStyleProps, SquareDimensions, squareDimensions } from 'src/utils'
+import { ComposedStyleProps, SquareDimensions, composedStyleFns, squareDimensions } from 'src/utils'
 import { color, layout, space } from 'styled-system'
 
 interface StyledIconProps {

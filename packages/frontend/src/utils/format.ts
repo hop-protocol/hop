@@ -1,5 +1,5 @@
-import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
+import { BigNumber, FixedNumber, utils } from 'ethers'
 import { commafy, prettifyErrorMessage, toTokenDisplay } from '.'
 
 type PossibleError = {

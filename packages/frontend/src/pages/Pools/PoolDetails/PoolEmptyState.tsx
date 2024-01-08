@@ -1,7 +1,7 @@
-import React from 'react'
 import Box from '@material-ui/core/Box'
 import LaunchIcon from '@material-ui/icons/Launch'
 import MuiLink from '@material-ui/core/Link'
+import React from 'react'
 import Typography from '@material-ui/core/Typography'
 import { DinoGame } from 'src/pages/Pools/PoolDetails/DinoGame'
 

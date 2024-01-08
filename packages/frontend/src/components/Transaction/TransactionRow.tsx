@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react'
 import Link from '@material-ui/core/Link'
+import React, { useEffect } from 'react'
 import RightArrow from '@material-ui/icons/ArrowRightAlt'
 import Transaction from 'src/models/Transaction'
-import { Flex } from 'src/components/ui'
-import useTransactionStatus from 'src/hooks/useTransactionStatus'
 import TransactionStatus from 'src/components/Transaction/TransactionStatus'
+import useTransactionStatus from 'src/hooks/useTransactionStatus'
+import { Flex } from 'src/components/ui'
 import { isOlderThanOneHour, networkSlugToName } from 'src/utils'
 
 function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rmTx: any }) {

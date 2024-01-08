@@ -1,8 +1,8 @@
-import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
+import React, { FC } from 'react'
 import { Flex } from 'src/components/ui'
+import { makeStyles } from '@material-ui/core/styles'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 interface StyleProps {

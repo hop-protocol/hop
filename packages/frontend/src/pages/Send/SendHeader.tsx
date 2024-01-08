@@ -1,9 +1,9 @@
-import React from 'react'
 import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
 import MenuItem from '@material-ui/core/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
+import Typography from '@material-ui/core/Typography'
 
 function SendHeader(props: any) {
   const { styles, bridges, selectedBridge, handleBridgeChange } = props

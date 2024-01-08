@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react'
-import { BigNumber, constants } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import logger from 'src/logger'
-import Transaction from 'src/models/Transaction'
-import { Hop, Token, ChainSlug } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
+import Transaction from 'src/models/Transaction'
+import logger from 'src/logger'
+import { BigNumber, constants } from 'ethers'
+import { ChainSlug, Hop, Token } from '@hop-protocol/sdk'
+import { formatUnits } from 'ethers/lib/utils'
 import { getDefaultSendGasLimit } from 'src/utils/getDefaultSendGasLimit'
+import { useApp } from 'src/contexts/AppContext'
+import { useCallback, useState } from 'react'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',

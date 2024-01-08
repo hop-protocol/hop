@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
 import Token from 'src/models/Token'
-import { addresses, metadata } from 'src/config'
 import { TokenSymbol } from '@hop-protocol/sdk'
+import { addresses, metadata } from 'src/config'
+import { useMemo } from 'react'
 
 const useTokens = () => {
   const tokens = useMemo<Token[]>(() => {

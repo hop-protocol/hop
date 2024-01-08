@@ -1,6 +1,6 @@
 import { config as coreConfig } from '@hop-protocol/core/config'
-import { reactAppNetwork } from 'src/config'
 import { getNativeTokenSymbol } from './getNativeTokenSymbol'
+import { reactAppNetwork } from 'src/config'
 
 export function getDefaultSendGasLimit(chainSlug: string, tokenSymbol: string) {
   const nativeTokenSymbol = getNativeTokenSymbol(chainSlug)

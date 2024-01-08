@@ -1,8 +1,8 @@
-import { mainnetAddresses, mainnetNetworks } from 'src/config/mainnet'
-import { goerliAddresses, goerliNetworks } from 'src/config/goerli'
-import { sepoliaAddresses, sepoliaNetworks } from 'src/config/sepolia'
 import { Slug } from '@hop-protocol/sdk'
 import { gitRevision } from 'src/config/config'
+import { goerliAddresses, goerliNetworks } from 'src/config/goerli'
+import { mainnetAddresses, mainnetNetworks } from 'src/config/mainnet'
+import { sepoliaAddresses, sepoliaNetworks } from 'src/config/sepolia'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
 let addresses: any

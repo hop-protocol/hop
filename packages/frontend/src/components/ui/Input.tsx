@@ -1,7 +1,7 @@
 import React from 'react'
-import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import Typography from '@material-ui/core/Typography'
 import styled from 'styled-components/macro'
+import { ComposedStyleProps, composedStyleFns } from 'src/utils'
 import { Div } from 'src/components/ui/Div'
 
 interface InputBaseProps {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
 import { EventEmitter } from 'events'
+import { useEffect, useState } from 'react'
 
 export interface Events {
   keypress: EventEmitter

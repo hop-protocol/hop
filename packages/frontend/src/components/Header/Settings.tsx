@@ -1,16 +1,16 @@
-import React, { FC, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
+import React, { FC, useState } from 'react'
 import SettingsIcon from 'src/assets/settings-icon.svg'
-import { useApp } from 'src/contexts/AppContext'
-import { SmallTextField } from 'src/components/SmallTextField'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
+import { Flex, Icon } from 'src/components/ui'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { SmallTextField } from 'src/components/SmallTextField'
+import { makeStyles } from '@material-ui/core/styles'
 import { sanitizeNumericalString } from 'src/utils'
-import { Icon, Flex } from 'src/components/ui'
+import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
+import ReCAPTCHA from 'react-google-recaptcha'
+import React, { useState } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
-import { ExternalLink } from 'src/components/Link'
-import { StyledButton } from 'src/components/Button/StyledButton'
-import { Input } from 'src/components/ui'
-import ReCAPTCHA from 'react-google-recaptcha'
 import { Button } from 'src/components/Button'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
+import { ExternalLink } from 'src/components/Link'
+import { Input } from 'src/components/ui'
+import { StyledButton } from 'src/components/Button/StyledButton'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 

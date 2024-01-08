@@ -1,11 +1,11 @@
-import React, { forwardRef, useEffect, useCallback } from 'react'
-import clsx from 'clsx'
-import { Transition } from 'react-transition-group'
 import Card, { CardProps } from '@material-ui/core/Card'
-import { makeStyles, Theme } from '@material-ui/core/styles'
 import ClickAwayListener from '@material-ui/core/ClickAwayListener'
-import { useApp } from 'src/contexts/AppContext'
+import React, { forwardRef, useCallback, useEffect } from 'react'
+import clsx from 'clsx'
+import { Theme, makeStyles } from '@material-ui/core/styles'
+import { Transition } from 'react-transition-group'
 import { isDarkMode } from 'src/theme/theme'
+import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {

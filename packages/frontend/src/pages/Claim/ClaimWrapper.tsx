@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { useTheme } from '@material-ui/core'
-import { Button } from 'src/components/Button'
-import { Div } from 'src/components/ui'
-import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
+import CircularProgress from '@material-ui/core/CircularProgress'
+import React from 'react'
 import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
+import { Div } from 'src/components/ui'
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@material-ui/core'
 
 export function ClaimWrapper(props: any) {
   const {

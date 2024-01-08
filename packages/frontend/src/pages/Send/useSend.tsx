@@ -1,39 +1,39 @@
-import React, { useState, useMemo, useEffect, ChangeEvent, ReactNode } from 'react'
-import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import { Network } from 'src/models/Network'
-import { Transaction } from 'src/models/Transaction'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { useApp } from 'src/contexts/AppContext'
+import React, { ChangeEvent, ReactNode, useEffect, useMemo, useState } from 'react'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, toTokenDisplay, toUsdDisplay, networkSlugToId, sanitizeNumericalString } from 'src/utils'
+import useAvailableLiquidity from './useAvailableLiquidity'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import useSendData from 'src/pages/Send/useSendData'
-import { isGoerli, showRewards } from 'src/config'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { Token, HopBridge, ChainSlug } from '@hop-protocol/sdk'
-import { amountToBN, formatError } from 'src/utils/format'
-import { getTransferTimeString } from 'src/utils/getTransferTimeString'
-import { useSendTransaction } from './useSendTransaction'
+import { Address } from 'src/models/Address'
+import { BigNumber } from 'ethers'
+import { ChainSlug, HopBridge, Token } from '@hop-protocol/sdk'
 import { DisabledRoute } from 'src/config/disabled'
 import {
+  GnosisSafeWarning,
+  useApprove,
   useAssets,
   useAsyncMemo,
-  useFeeConversions,
-  useApprove,
-  useQueryParams,
-  useNeedsTokenForFee,
   useBalance,
-  useEstimateTxCost,
-  useTxResult,
-  useSufficientBalance,
   useDisableTxs,
+  useEstimateTxCost,
+  useFeeConversions,
   useGnosisSafeTransaction,
-  GnosisSafeWarning
+  useNeedsTokenForFee,
+  useQueryParams,
+  useSufficientBalance,
+  useTxResult
 } from 'src/hooks'
-import useAvailableLiquidity from './useAvailableLiquidity'
-import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
-import { Address } from 'src/models/Address'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { Network } from 'src/models/Network'
+import { Transaction } from 'src/models/Transaction'
+import { amountToBN, formatError } from 'src/utils/format'
+import { commafy, findMatchingBridge, networkSlugToId, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
+import { formatUnits } from 'ethers/lib/utils'
+import { getTransferTimeString } from 'src/utils/getTransferTimeString'
+import { isGoerli, showRewards } from 'src/config'
+import { useApp } from 'src/contexts/AppContext'
+import { useSendTransaction } from './useSendTransaction'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export type SendResponseProps = {
   accountAddress: Address | undefined

@@ -1,6 +1,6 @@
 import React from 'react'
-import { StyledButton } from 'src/components/Button/StyledButton'
 import { Div, Flex, SvgImg } from 'src/components/ui'
+import { StyledButton } from 'src/components/Button/StyledButton'
 import { StyledLink } from 'src/components/ui/StyledLink'
 
 interface ButtonLinkProps {

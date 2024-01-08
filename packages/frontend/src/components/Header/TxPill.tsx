@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { StyledButton } from 'src/components/Button/StyledButton'
+import React, { useEffect, useState } from 'react'
 import { Circle, Div, Icon } from 'src/components/ui'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { makeStyles } from '@material-ui/core/styles'
+import { useApp } from 'src/contexts/AppContext'
 import { useEns } from 'src/hooks'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles(theme => ({
   root: {

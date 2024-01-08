@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react'
-import { Button } from 'src/components/Button'
 import Box from '@material-ui/core/Box'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import { formatError } from 'src/utils'
-import Stepper from '@material-ui/core/Stepper';
-import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
-import { Alert } from 'src/components/Alert'
-import StepIcon from '@material-ui/core/StepIcon';
 import Check from '@material-ui/icons/Check'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import CropSquare from '@material-ui/icons/CropSquare'
 import CloseIcon from '@material-ui/icons/Close'
+import CropSquare from '@material-ui/icons/CropSquare'
+import React, { useEffect, useState } from 'react'
+import Step from '@material-ui/core/Step';
+import StepIcon from '@material-ui/core/StepIcon';
+import StepLabel from '@material-ui/core/StepLabel';
+import Stepper from '@material-ui/core/Stepper';
+import Typography from '@material-ui/core/Typography'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
+import { formatError } from 'src/utils'
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles(() => ({
   root: {

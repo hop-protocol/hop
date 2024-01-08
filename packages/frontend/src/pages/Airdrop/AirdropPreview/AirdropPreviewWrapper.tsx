@@ -1,5 +1,5 @@
-import React from 'react'
 import Box from '@material-ui/core/Box'
+import React from 'react'
 import { Flex } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 

@@ -1,6 +1,4 @@
 import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import CanonicalBridge from './CanonicalBridge'
-import CanonicalWatcher from './watchers/CanonicalWatcher'
 import EventEmitter from 'eventemitter3'
 import HopBridge from './HopBridge'
 import Watcher from './watchers/Watcher'
@@ -109,35 +107,6 @@ class Hop extends Base {
   }
 
   /**
-   * @desc Returns a canonical bridge sdk instance.
-   * @param token - Token model or symbol of token of canonical bridge to use.
-   * @param chain - Chain model.
-   * @returns A CanonicalBridge instance.
-   * @example
-   *```js
-   *import { Hop } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop()
-   *const bridge = hop.canonicalBridge('USDC')
-   *```
-   */
-  public canonicalBridge (token: TToken, chain?: TChain): CanonicalBridge {
-    return new CanonicalBridge({
-      network: this.network,
-      signer: this.signer,
-      token,
-      chain,
-      chainProviders: this.chainProviders,
-      baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled,
-      blocklist: this.blocklist,
-      debugTimeLogsEnabled: this.debugTimeLogsEnabled,
-      debugTimeLogsCacheEnabled: this.debugTimeLogsCacheEnabled,
-      debugTimeLogsCache: this.debugTimeLogsCache
-    })
-  }
-
-  /**
    * @desc Returns hop instance with signer connected. Used for adding or changing signer.
    * @param signer - Ethers `Signer` for signing transactions.
    * @returns A new Hop SDK instance with connected Ethers Signer.
@@ -209,9 +178,7 @@ class Hop extends Base {
     options: WatchOptions = {}
   ): EventEmitter | Error | any {
     // TODO: detect type of transfer
-    return isCanonicalTransfer
-      ? this.watchCanonical(txHash, token, sourceChain, destinationChain)
-      : this.watchBridge(txHash, token, sourceChain, destinationChain, options)
+    return this.watchBridge(txHash, token, sourceChain, destinationChain, options)
   }
 
   public watchBridge (
@@ -233,22 +200,6 @@ class Hop extends Base {
       destinationChain: destinationChain,
       chainProviders: this.chainProviders,
       options
-    }).watch()
-  }
-
-  public watchCanonical (
-    txHash: string,
-    token: TToken,
-    sourceChain: TChain,
-    destinationChain: TChain
-  ) {
-    return new CanonicalWatcher({
-      network: this.network,
-      signer: this.signer,
-      sourceTxHash: txHash,
-      token: token,
-      sourceChain: sourceChain,
-      destinationChain: destinationChain
     }).watch()
   }
 

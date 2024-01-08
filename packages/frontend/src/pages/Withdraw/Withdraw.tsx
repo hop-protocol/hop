@@ -156,12 +156,12 @@ export const Withdraw: FC = () => {
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.header}>
+    <Box className={styles.root}>
+      <Box className={styles.header}>
         <Typography variant="h4">Withdraw</Typography>
-      </div>
+      </Box>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <div>
+        <Box>
           <Card className={styles.card}>
             <Typography variant="h6">
               Transfer ID
@@ -184,16 +184,16 @@ export const Withdraw: FC = () => {
               leftAlign
             />
           </Card>
-        </div>
-        <div>
+        </Box>
+        <Box>
           <Button onClick={handleSubmit} loading={loading} large highlighted>
             Withdraw
           </Button>
-        </div>
+        </Box>
       </form>
-      <div className={styles.notice}>
+      <Box className={styles.notice}>
         <Alert severity="error">{error}</Alert>
-      </div>
-    </div>
+      </Box>
+    </Box>
   )
 }

@@ -4,7 +4,7 @@ import Typography from '@material-ui/core/Typography'
 import { BigNumber } from 'ethers'
 import { Link } from 'react-router-dom'
 import { sanitizeNumericalString } from 'src/utils'
-import { useStyles } from '../PoolDetails/useStyles'
+import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {
   balanceFormatted: string

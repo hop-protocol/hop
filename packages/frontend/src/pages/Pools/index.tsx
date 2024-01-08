@@ -1,6 +1,6 @@
 import React from 'react'
-import PoolDetails from './PoolDetails'
-import PoolsProvider from './PoolsContext'
+import PoolDetails from 'src/pages/Pools/PoolDetails'
+import PoolsProvider from 'src/pages/Pools/PoolsContext'
 
 const fc = () => (
   <PoolsProvider>

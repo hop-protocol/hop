@@ -1,1 +1,1 @@
-export { default, Logger } from './logger'
+export { default, Logger } from 'src/logger/logger'

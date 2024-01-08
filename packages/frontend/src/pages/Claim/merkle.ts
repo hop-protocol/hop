@@ -1,7 +1,7 @@
 import { utils, BigNumber } from 'ethers'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
-import { merkleBaseUrl } from './config'
+import { merkleBaseUrl } from 'src/pages/Claim/config'
 
 function hashLeaf([address, entry]) {
   return utils.solidityKeccak256(['address', 'uint256'], [address, entry.balance])

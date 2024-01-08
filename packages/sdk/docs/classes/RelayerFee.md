@@ -20,16 +20,18 @@
 
 ### <a id="getrelaycost" name="getrelaycost"></a> getRelayCost
 
-▸ **getRelayCost**(`network`, `chainSlug`, `token`): `Promise`<`BigNumber`\>
+▸ `Static` **getRelayCost**(`network`, `chain`, `token`): `Promise`<`BigNumber`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `network` | `string` |
-| `chainSlug` | `string` |
+| `chain` | `string` |
 | `token` | `string` |
 
 #### Returns
 
 `Promise`<`BigNumber`\>
+
+The cost of in Wei

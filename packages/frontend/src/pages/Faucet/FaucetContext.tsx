@@ -11,7 +11,6 @@ import logger from 'src/logger'
 import { L1_NETWORK } from 'src/utils/constants'
 import { formatError } from 'src/utils/format'
 import { l1Network } from 'src/config/networks'
-import { addresses } from 'src/config'
 import { getTokenDecimals } from 'src/utils/tokens'
 import { toTokenDisplay } from 'src/utils'
 

@@ -7,14 +7,14 @@ import { InfoTooltip } from 'src/components/InfoTooltip'
 import Typography from '@material-ui/core/Typography'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
-import { BalanceText } from '../components/BalanceText'
-import { InputField } from '../components/InputField'
+import { BalanceText } from 'src/pages/Pools/components/BalanceText'
+import { InputField } from 'src/pages/Pools/components/InputField'
 import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { sanitizeNumericalString } from 'src/utils'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
-import { useStaking } from '../useStaking'
-import { useStyles } from './useStyles'
+import { useStaking } from 'src/pages/Pools/useStaking'
+import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {
   chainSlug: string

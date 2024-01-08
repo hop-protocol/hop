@@ -5,7 +5,7 @@ import Typography from '@material-ui/core/Typography'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
 import { commafy, NetworkTokenEntity } from 'src/utils'
-import { useSendingTransaction } from './useSendingTransaction'
+import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {

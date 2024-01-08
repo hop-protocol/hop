@@ -1,1 +1,1 @@
-export { SmallTextField } from './SmallTextField'
+export { SmallTextField } from 'src/components/SmallTextField/SmallTextField'

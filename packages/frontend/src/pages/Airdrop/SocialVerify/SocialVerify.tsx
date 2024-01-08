@@ -3,7 +3,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { StyledButton } from 'src/components/Button/StyledButton'
 import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons"
-import { ClaimDateMessage } from '../ClaimDateMessage'
+import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
 
 export function SocialVerify() {
   return (

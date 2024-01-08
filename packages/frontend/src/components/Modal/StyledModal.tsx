@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useCallback } from 'react'
-import classnames from 'classnames'
+import clsx from 'clsx'
 import { Transition } from 'react-transition-group'
 import Card, { CardProps } from '@material-ui/core/Card'
 import { makeStyles, Theme } from '@material-ui/core/styles'
@@ -122,7 +122,7 @@ export const StyledModal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>
           unmountOnExit={false}
         >
           {(transitionState: string) => (
-            <div className={classnames(styles.root, transitionState)}>
+            <div className={clsx(styles.root, transitionState)}>
               <Transition
                 in={true}
                 timeout={{
@@ -133,7 +133,7 @@ export const StyledModal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>
                 appear={true}
                 unmountOnExit={false}
               >
-                <div className={classnames(styles.container, transitionState)}>
+                <div className={clsx(styles.container, transitionState)}>
                   <ClickAwayListener
                     onClickAway={handleClose}
                     mouseEvent="onMouseDown"

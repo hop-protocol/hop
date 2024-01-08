@@ -1,6 +1,6 @@
 import React from 'react'
-import TokenWrapper, { Props } from './TokenWrapper'
-import TokenWrapperContext from './TokenWrapperContext'
+import TokenWrapper, { Props } from 'src/components/TokenWrapper/TokenWrapper'
+import TokenWrapperContext from 'src/components/TokenWrapper/TokenWrapperContext'
 
 const fc = (props: Props) => (
   <TokenWrapperContext>

@@ -3,7 +3,7 @@ import Box from '@material-ui/core/Box'
 import ErrorIcon from '@material-ui/icons/ErrorOutline'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import Typography from '@material-ui/core/Typography'
-import { useStyles } from './useStyles'
+import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {
   aprFormatted: string

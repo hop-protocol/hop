@@ -3,7 +3,7 @@ import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, toTokenDisplay } from 'src/utils'
-import ConvertOption, { SendData } from './ConvertOption'
+import ConvertOption, { SendData } from 'src/pages/Convert/ConvertOption/ConvertOption'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { AmmDetails } from 'src/components/AmmDetails'
 

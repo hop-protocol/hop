@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import copy from 'copy-to-clipboard'
 import { withStyles, makeStyles, Theme } from '@material-ui/core/styles'
 import MuiTooltip from '@material-ui/core/Tooltip'
-import { ClipboardIcon } from './ClipboardIcon'
+import { ClipboardIcon } from 'src/components/Button/ClipboardCopyButton/ClipboardIcon'
 import { ButtonProps } from '@material-ui/core/Button'
 
 const useStyles = makeStyles((theme: Theme) => ({

@@ -17,14 +17,14 @@ import {
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { stakingRewardTokens, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
-import { useStyles } from './useStyles'
-import { TopPoolStats } from './TopPoolStats'
-import { BottomPoolStats } from './BottomPoolStats'
-import { PoolEmptyState } from './PoolEmptyState'
-import { AccountPosition } from './AccountPosition'
-import { WithdrawForm } from './WithdrawForm'
-import { DepositForm } from './DepositForm'
-import { StakeForm } from './StakeForm'
+import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
+import { TopPoolStats } from 'src/pages/Pools/PoolDetails/TopPoolStats'
+import { BottomPoolStats } from 'src/pages/Pools/PoolDetails/BottomPoolStats'
+import { PoolEmptyState } from 'src/pages/Pools/PoolDetails/PoolEmptyState'
+import { AccountPosition } from 'src/pages/Pools/PoolDetails/AccountPosition'
+import { WithdrawForm } from 'src/pages/Pools/PoolDetails/WithdrawForm'
+import { DepositForm } from 'src/pages/Pools/PoolDetails/DepositForm'
+import { StakeForm } from 'src/pages/Pools/PoolDetails/StakeForm'
 
 export function PoolDetails () {
   const styles = useStyles()

@@ -3,7 +3,7 @@ import Box from '@material-ui/core/Box'
 import LaunchIcon from '@material-ui/icons/Launch'
 import MuiLink from '@material-ui/core/Link'
 import Typography from '@material-ui/core/Typography'
-import { DinoGame } from './DinoGame'
+import { DinoGame } from 'src/pages/Pools/PoolDetails/DinoGame'
 
 export function PoolEmptyState() {
   return (

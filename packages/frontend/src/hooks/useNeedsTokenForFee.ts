@@ -25,6 +25,12 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
         return
       }
 
+      if (!provider.getBalance) {
+        console.error('Provider does not support getBalance', provider)
+        setNeedsToken(false)
+        return
+      }
+
       const balance = await provider.getBalance(address.address)
 
       const gasPrice = await provider.getGasPrice()

@@ -1,10 +1,10 @@
-import React, { FC, ReactFragment } from 'react'
+import React, { FC } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import classnames from 'classnames'
-import { Flex } from '../ui'
+import clsx from 'clsx'
+import { Flex } from 'src/components/ui/Flex'
 
 export type DetailRowProps = {
   title: string
@@ -86,7 +86,7 @@ export const DetailRow: FC<DetailRowProps> = props => {
       <Typography
         variant={variant}
         color="textSecondary"
-        className={classnames(styles.detailLabel, styles.label)}
+        className={clsx(styles.detailLabel, styles.label)}
       >
         <Flex $wrap>
           {title}&nbsp;

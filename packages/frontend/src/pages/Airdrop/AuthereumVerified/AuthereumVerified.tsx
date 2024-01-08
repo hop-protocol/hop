@@ -9,7 +9,7 @@ import { StyledButton } from 'src/components/Button/StyledButton'
 import ReCAPTCHA from 'react-google-recaptcha'
 import CheckIcon from '@material-ui/icons/Check'
 import { updateQueryParams } from 'src/utils/updateQueryParams'
-import { ClaimDateMessage } from '../ClaimDateMessage'
+import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 

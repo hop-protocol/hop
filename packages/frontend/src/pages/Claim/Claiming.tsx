@@ -7,7 +7,7 @@ import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
 import { correctClaimChain } from './claims'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import { DelegateIcon } from './DelegateIcon'
+import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
 import CircularProgress from '@material-ui/core/CircularProgress'
 
 export function Claiming(props: any) {

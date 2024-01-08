@@ -1,5 +1,5 @@
 import React from 'react'
-import { Div } from '../ui'
+import { Div } from 'src/components/ui'
 import { Link as MuiLink, LinkProps } from '@material-ui/core'
 
 interface Props {

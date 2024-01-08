@@ -1,3 +1,3 @@
-import ConvertOption from './ConvertOption'
+import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 
 export default ConvertOption

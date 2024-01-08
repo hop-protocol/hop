@@ -1,7 +1,8 @@
 import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
-import { Div, Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
 import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
 
 export const populateDebitWindowStats = (item: any, bonderStats: any, i: number) => {
@@ -107,7 +108,7 @@ const DebitWindowStats: FC = () => {
   const error = debitWindowStats?.map((item: any) => item.error).filter(Boolean).join('\n')
 
   return (
-    <Div fontSize={[0, 1, 2]} overflowX="scroll">
+    <Box overflow-x="scroll">
       <SortableTable
         stats={debitWindowStats}
         columns={columns}
@@ -116,7 +117,7 @@ const DebitWindowStats: FC = () => {
         loading={fetchingDebitWindowStats}
         error={error}
       />
-    </Div>
+    </Box>
   )
 }
 

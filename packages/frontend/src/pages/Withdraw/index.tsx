@@ -1,3 +1,3 @@
-import { Withdraw } from './Withdraw'
+import { Withdraw } from 'src/pages/Withdraw/Withdraw'
 
 export default Withdraw

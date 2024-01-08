@@ -6,8 +6,8 @@ import { Alert } from 'src/components/Alert'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
 import { useTokenWrapper } from './TokenWrapperContext'
 import Network from 'src/models/Network'
-import Expandable from './Expandable'
-import { Div, Flex } from '../ui'
+import Expandable from 'src/components/TokenWrapper/Expandable'
+import { Div, Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   button: {

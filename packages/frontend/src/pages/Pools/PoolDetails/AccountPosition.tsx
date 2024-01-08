@@ -2,7 +2,7 @@ import React from 'react'
 import Box from '@material-ui/core/Box'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import Typography from '@material-ui/core/Typography'
-import { StakingRewardsClaim } from './StakingRewardsClaim'
+import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
 
 type Props = {
   chainSlug: string

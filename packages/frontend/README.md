@@ -55,8 +55,10 @@ npm run build
 Run github action build locally with [act](https://github.com/nektos/act):
 
 ```sh
-act --workflows ../../.github/workflows/debug.yml
+(cd ../../ && act --workflows .github/workflows/debug.yml)
 ```
+
+Make sure to set `if: true` in `debug.yml` first.
 
 ## Deployments
 

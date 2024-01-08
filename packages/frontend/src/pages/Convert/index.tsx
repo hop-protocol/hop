@@ -1,6 +1,6 @@
 import React from 'react'
-import Convert from './Convert'
-import ConvertProvider from './ConvertContext'
+import Convert from 'src/pages/Convert/Convert'
+import ConvertProvider from 'src/pages/Convert/ConvertContext'
 
 const fc = () => (
   <ConvertProvider>

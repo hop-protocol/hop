@@ -1,1 +1,1 @@
-export { LargeTextField } from './LargeTextField'
+export { LargeTextField } from 'src/components/LargeTextField/LargeTextField'

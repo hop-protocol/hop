@@ -7,7 +7,7 @@ import { StyledButton } from 'src/components/Button/StyledButton'
 import { Input } from 'src/components/ui'
 import ReCAPTCHA from 'react-google-recaptcha'
 import { Button } from 'src/components/Button'
-import { ClaimDateMessage } from '../ClaimDateMessage'
+import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 

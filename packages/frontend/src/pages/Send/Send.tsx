@@ -13,7 +13,6 @@ import { InfoTooltip } from 'src/components/InfoTooltip'
 import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
-import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/Button/ButtonsWrapper'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
@@ -94,7 +93,7 @@ const Send: FC = () => {
   } = useSend()
 
   return (
-    <Flex column alignCenter>
+    <Box display="flex" flexDirection="column" alignItems="center">
       <SendHeader
         styles={styles}
         bridges={bridges}
@@ -237,7 +236,7 @@ const Send: FC = () => {
       { accountAddress
       ? <ButtonsWrapper>
           {!isSendButtonActive && (
-            <Div mb={[3]} fullWidth={isApproveButtonActive}>
+            <Box mb={[3]} width={isApproveButtonActive ? '100%' : 'auto'}>
               <Button
                 className={styles.button}
                 large
@@ -249,9 +248,9 @@ const Send: FC = () => {
               >
                 Approve
               </Button>
-            </Div>
+            </Box>
           )}
-          <Div mb={[3]} fullWidth={isSendButtonActive}>
+          <Box mb={[3]} width={isSendButtonActive ? '100%' : 'auto'}>
             <Button
               className={styles.button}
               startIcon={isSendButtonActive && <SendIcon />}
@@ -263,20 +262,20 @@ const Send: FC = () => {
             >
               Send
             </Button>
-          </Div>
+          </Box>
         </ButtonsWrapper>
       : <ButtonsWrapper>
-          <Div mb={[3]} fullWidth>
+          <Box mb={[3]} width="100%">
             <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
-          </Div>
+          </Box>
         </ButtonsWrapper>
       }
 
-      <Flex mt={1}>
+      <Box mt={1}>
         <Alert severity="info" onClose={() => setInfo('')} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
-      </Flex>
-    </Flex>
+      </Box>
+    </Box>
   )
 }
 

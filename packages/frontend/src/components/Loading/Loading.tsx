@@ -3,7 +3,7 @@ import { useTheme } from '@material-ui/core'
 import { squareDimensions } from 'src/utils'
 import styled, { keyframes, css } from 'styled-components/macro'
 import { background, color } from 'styled-system'
-import { Flex } from '../ui'
+import { Flex } from 'src/components/ui'
 
 export function logStyleProps(props: any) {
   console.log('style props:', props)

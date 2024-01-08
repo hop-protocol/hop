@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import { Flex } from '../ui'
+import { Flex } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 interface StyleProps {

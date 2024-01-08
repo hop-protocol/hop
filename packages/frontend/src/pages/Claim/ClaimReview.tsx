@@ -7,7 +7,7 @@ import { BigNumber } from 'ethers'
 import Box from '@material-ui/core/Box'
 import { StyledButton } from 'src/components/Button/StyledButton'
 import Typography from '@material-ui/core/Typography'
-import { DelegateIcon } from './DelegateIcon'
+import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
 
 export function ClaimReview (props: any) {
   const { claimableTokens, delegate, isDarkMode, handleClaimTokens, prevStep } = props

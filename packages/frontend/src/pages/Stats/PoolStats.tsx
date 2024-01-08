@@ -1,6 +1,7 @@
 import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { Div, Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { commafy } from 'src/utils'
 
@@ -64,7 +65,7 @@ const PoolStats: FC = () => {
               return (
                 <CellWrapper cell={cell}>
                   <Icon mr={1} src={cell.row.original.tokenSymbol} />
-                  <Div justifySelf="right">{cell.value}</Div>
+                  <Box justifySelf="right">{cell.value}</Box>
                 </CellWrapper>
               )
             },
@@ -78,7 +79,7 @@ const PoolStats: FC = () => {
   const error = poolStats?.map((item: any) => item.error).filter(Boolean).join('\n')
 
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Box>
       <SortableTable
         stats={poolStats}
         columns={columns}
@@ -87,7 +88,7 @@ const PoolStats: FC = () => {
         loading={fetching}
         error={error}
       />
-    </Div>
+    </Box>
   )
 }
 

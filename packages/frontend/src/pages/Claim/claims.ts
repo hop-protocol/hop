@@ -1,9 +1,9 @@
 import { BigNumber, providers, Signer } from 'ethers'
 import { Delegate, TokenClaim } from 'src/pages/Claim/useClaim'
 import { getClaimTokenContract } from 'src/utils/contracts'
-import { getEntryProofIndex, ShardedMerkleTree } from './merkle'
+import { getEntryProofIndex, ShardedMerkleTree } from 'src/pages/Claim/merkle'
 import Address from 'src/models/Address'
-import { claimTokenAddress, claimChainId } from './config'
+import { claimTokenAddress, claimChainId } from 'src/pages/Claim/config'
 
 const claimChains = {
   1: {

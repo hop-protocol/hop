@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import MuiTooltip from '@material-ui/core/Tooltip'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { Div, EthAddress, EthAddressProps } from '.'
+import { Div, EthAddress, EthAddressProps } from 'src/components/ui'
 
 const tooltipStyles = {
   tooltip: {

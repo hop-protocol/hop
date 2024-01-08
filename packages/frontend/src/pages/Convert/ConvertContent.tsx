@@ -11,10 +11,8 @@ import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
-import { ChainSlug } from '@hop-protocol/sdk'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
-import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/Button/ButtonsWrapper'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
@@ -286,26 +284,26 @@ const ConvertContent: FC = () => {
             )}
           </Box>
 
-          {!error && <div className={styles.details}>{details}</div>}
+          {!error && <Box className={styles.details}>{details}</Box>}
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error">{manualWarning}</Alert>
           {allowCustomRecipient && (
-            <div className={styles.smartContractWalletWarning}>
+            <Box className={styles.smartContractWalletWarning}>
               <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
-            </div>
+            </Box>
           )}
           {destinationChainPaused && (
-            <div className={styles.pausedWarning}>
+            <Box className={styles.pausedWarning}>
               <Alert severity="warning">Deposits to destination chain {destNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
-            </div>
+            </Box>
           )}
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           { address
           ? <ButtonsWrapper>
               {!sendButtonActive && (
-                <Div mb={[3]} fullWidth={approvalButtonActive}>
+                <Box mb={[3]} width={approvalButtonActive ? '100%' : 'auto'}>
                   <Button
                     className={styles.button}
                     large
@@ -317,10 +315,10 @@ const ConvertContent: FC = () => {
                   >
                     Approve
                   </Button>
-                </Div>
+                </Box>
               )}
 
-              <Div mb={[3]} fullWidth={sendButtonActive}>
+              <Box mb={[3]} width={sendButtonActive ? '100%' : 'auto'}>
                 <Button
                   className={styles.button}
                   onClick={handleSend}
@@ -331,12 +329,12 @@ const ConvertContent: FC = () => {
                 >
                   Convert
                 </Button>
-              </Div>
+              </Box>
             </ButtonsWrapper>
           : <ButtonsWrapper>
-              <Div mb={[3]} fullWidth>
+              <Box mb={[3]} width="100%">
                 <ConnectWalletButton fullWidth large />
-              </Div>
+              </Box>
             </ButtonsWrapper>
           }
         </>

@@ -1,6 +1,6 @@
 import React from 'react'
-import { configs } from './config'
-import { useRewards } from './useRewards'
+import { configs } from 'src/pages/Rewards/config'
+import { useRewards } from 'src/pages/Rewards/useRewards'
 
 export const useHasRewards = () => {
   let _hasRewards = false

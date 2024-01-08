@@ -1,5 +1,5 @@
 import React from 'react'
-import { Flex } from '../ui'
+import { Flex } from 'src/components/ui'
 
 export function ButtonsWrapper(props) {
   const { children } = props

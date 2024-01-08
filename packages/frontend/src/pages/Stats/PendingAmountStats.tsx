@@ -1,7 +1,8 @@
 import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy, formatTokenString } from 'src/utils'
-import { Div, Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 
 export const populatePendingAmountStats = (item: any) => {
@@ -74,7 +75,7 @@ const PendingAmountStats: FC = () => {
   const error = pendingAmounts?.map((item: any) => item.error).filter(Boolean).join('\n')
 
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Box>
       <SortableTable
         stats={pendingAmounts}
         columns={columns}
@@ -82,7 +83,7 @@ const PendingAmountStats: FC = () => {
         loading={fetchingPendingAmounts}
         error={error}
       />
-    </Div>
+    </Box>
   )
 }
 

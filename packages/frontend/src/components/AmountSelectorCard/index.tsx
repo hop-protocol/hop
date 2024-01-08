@@ -1,1 +1,1 @@
-export { AmountSelectorCard } from './AmountSelectorCard'
+export { AmountSelectorCard } from 'src/components/AmountSelectorCard/AmountSelectorCard'

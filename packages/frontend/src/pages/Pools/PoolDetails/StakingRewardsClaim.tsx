@@ -3,8 +3,8 @@ import Box from '@material-ui/core/Box'
 import { Button } from 'src/components/Button'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import { useStaking } from '../useStaking'
-import { useStakingAll } from '../useStakingAll'
+import { useStaking } from 'src/pages/Pools/useStaking'
+import { useStakingAll } from 'src/pages/Pools/useStakingAll'
 
 export const useStyles = makeStyles(theme => ({
   claimRewards: {

@@ -7,9 +7,9 @@ import { AccountDetails } from 'src/components/AccountDetails'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
 import bgImage from 'src/assets/circles-bg.svg'
 import bgImageDark from 'src/assets/circles-bg-dark.svg'
-import { useThemeMode } from './theme/ThemeProvider'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 import styled from 'styled-components'
-import { Flex } from './components/ui'
+import { Flex } from 'src/components/ui'
 
 const AppWrapper = styled(Flex)<any>`
   align-items: stretch;

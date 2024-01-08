@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BigNumber, Signer } from 'ethers'
-import { getAddress, parseEther, parseUnits } from 'ethers/lib/utils'
+import { getAddress } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'

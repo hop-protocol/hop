@@ -7,13 +7,13 @@ import {
   bgGradients,
   overridesLight,
   overridesDark,
-} from './overrides'
-import { typographyOptions } from './typography'
+} from 'src/theme/overrides'
+import { typographyOptions } from 'src/theme/typography'
 
 // https://stackoverflow.com/a/64135466/1439168
 import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles'
-import { palette as paletteLight } from './light'
-import { palette as paletteDark } from './dark'
+import { palette as paletteLight } from 'src/theme/light'
+import { palette as paletteDark } from 'src/theme/dark'
 
 declare module '@material-ui/core/styles/overrides' {
   export interface ComponentNameToClassKey {

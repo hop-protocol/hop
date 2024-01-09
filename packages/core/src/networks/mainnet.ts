@@ -156,6 +156,23 @@ export const networks: Networks = {
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     averageBlockTimeSeconds: 12,
     oruExitTimeSeconds: 12 * 60 * 60 // 12 hours
+  },
+  polygonzk: {
+    name: chains.polygonzk.name,
+    image: chains.polygonzk.image,
+    networkId: 1101,
+    publicRpcUrl: 'https://zkevm-rpc.com',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://zkevm.polygonscan.com/'],
+    nativeBridgeUrl: 'https://portal.polygon.technology/',
+    subgraphUrl: 'https://polygonzk.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-polygonzk',
+    etherscanApiUrl: 'https://api-zkevm.polygonscan.com/api',
+    isRollup: true,
+    isRelayable: true,
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    // PolygonZk: typically around 30 minutes but up to a week in rare cases.
+    //           https://zkevm.polygon.technology/docs/protocol/transaction-execution
+    oruExitTimeSeconds: 60 * 60 // 1 hour
   }
   /*
   zksync: {

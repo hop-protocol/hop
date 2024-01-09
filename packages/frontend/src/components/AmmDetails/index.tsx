@@ -1,1 +1,1 @@
-export { AmmDetails } from './AmmDetails'
+export { AmmDetails } from 'src/components/AmmDetails/AmmDetails'

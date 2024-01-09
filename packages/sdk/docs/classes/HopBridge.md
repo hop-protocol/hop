@@ -22,11 +22,15 @@ Class representing Hop bridge.
 - [baseExplorerUrl](HopBridge.md#baseexplorerurl)
 - [blocklist](HopBridge.md#blocklist)
 - [bonders](HopBridge.md#bonders)
+- [bridgeDeprecated](HopBridge.md#bridgedeprecated)
 - [chainProviders](HopBridge.md#chainproviders)
 - [chains](HopBridge.md#chains)
 - [configFileFetchEnabled](HopBridge.md#configfilefetchenabled)
 - [customAvailableLiquidityJsonUrl](HopBridge.md#customavailableliquidityjsonurl)
 - [customCoreConfigJsonUrl](HopBridge.md#customcoreconfigjsonurl)
+- [debugTimeLogsCache](HopBridge.md#debugtimelogscache)
+- [debugTimeLogsCacheEnabled](HopBridge.md#debugtimelogscacheenabled)
+- [debugTimeLogsEnabled](HopBridge.md#debugtimelogsenabled)
 - [defaultDeadlineMinutes](HopBridge.md#defaultdeadlineminutes)
 - [destinationChain](HopBridge.md#destinationchain)
 - [destinationFeeGasPriceMultiplier](HopBridge.md#destinationfeegaspricemultiplier)
@@ -34,10 +38,12 @@ Class representing Hop bridge.
 - [fees](HopBridge.md#fees)
 - [gasPriceMultiplier](HopBridge.md#gaspricemultiplier)
 - [getContract](HopBridge.md#getcontract)
+- [getGasPrice](HopBridge.md#getgasprice)
 - [network](HopBridge.md#network)
 - [priceFeed](HopBridge.md#pricefeed)
 - [priceFeedApiKeys](HopBridge.md#pricefeedapikeys)
 - [relayerFeeEnabled](HopBridge.md#relayerfeeenabled)
+- [relayerFeeWei](HopBridge.md#relayerfeewei)
 - [signer](HopBridge.md#signer)
 - [sourceChain](HopBridge.md#sourcechain)
 
@@ -61,7 +67,9 @@ Class representing Hop bridge.
 - [challengePeriod](HopBridge.md#challengeperiod)
 - [checkBlocklist](HopBridge.md#checkblocklist)
 - [connect](HopBridge.md#connect)
+- [debugTimeLog](HopBridge.md#debugtimelog)
 - [estimateBondWithdrawalGasLimit](HopBridge.md#estimatebondwithdrawalgaslimit)
+- [estimateGas](HopBridge.md#estimategas)
 - [estimateOptimismL1FeeFromData](HopBridge.md#estimateoptimisml1feefromdata)
 - [estimateSendGasLimit](HopBridge.md#estimatesendgaslimit)
 - [estimateSendHTokensGasLimit](HopBridge.md#estimatesendhtokensgaslimit)
@@ -100,6 +108,7 @@ Class representing Hop bridge.
 - [getConfigAddresses](HopBridge.md#getconfigaddresses)
 - [getCredit](HopBridge.md#getcredit)
 - [getDebit](HopBridge.md#getdebit)
+- [getDebugTimeLogs](HopBridge.md#getdebugtimelogs)
 - [getDestinationFeeGasPriceMultiplier](HopBridge.md#getdestinationfeegaspricemultiplier)
 - [getDestinationTransactionFee](HopBridge.md#getdestinationtransactionfee)
 - [getDestinationTransactionFeeData](HopBridge.md#getdestinationtransactionfeedata)
@@ -111,11 +120,10 @@ Class representing Hop bridge.
 - [getFeeBps](HopBridge.md#getfeebps)
 - [getFrontendAvailableLiquidity](HopBridge.md#getfrontendavailableliquidity)
 - [getIpfsBaseConfigUrl](HopBridge.md#getipfsbaseconfigurl)
+- [getIsBridgeDeprecated](HopBridge.md#getisbridgedeprecated)
 - [getL1AmbBridgeAddress](HopBridge.md#getl1ambbridgeaddress)
 - [getL1Bridge](HopBridge.md#getl1bridge)
 - [getL1BridgeAddress](HopBridge.md#getl1bridgeaddress)
-- [getL1BridgeWrapperAddress](HopBridge.md#getl1bridgewrapperaddress)
-- [getL1BridgeWrapperOrL1Bridge](HopBridge.md#getl1bridgewrapperorl1bridge)
 - [getL1CanonicalBridgeAddress](HopBridge.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](HopBridge.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](HopBridge.md#getl1poserc20predicateaddress)
@@ -133,7 +141,9 @@ Class representing Hop bridge.
 - [getL2SaddleSwapAddress](HopBridge.md#getl2saddleswapaddress)
 - [getLpFees](HopBridge.md#getlpfees)
 - [getMessengerWrapperAddress](HopBridge.md#getmessengerwrapperaddress)
+- [getNonAmmAssets](HopBridge.md#getnonammassets)
 - [getOptimismL1Fee](HopBridge.md#getoptimisml1fee)
+- [getPriceByTokenSymbol](HopBridge.md#getpricebytokensymbol)
 - [getProviderRpcUrl](HopBridge.md#getproviderrpcurl)
 - [getRelayerFee](HopBridge.md#getrelayerfee)
 - [getRequiredLiquidity](HopBridge.md#getrequiredliquidity)
@@ -154,17 +164,18 @@ Class representing Hop bridge.
 - [getSupportedTokens](HopBridge.md#getsupportedtokens)
 - [getTimeSlot](HopBridge.md#gettimeslot)
 - [getTokenBalance](HopBridge.md#gettokenbalance)
+- [getTokenBalancesForAccount](HopBridge.md#gettokenbalancesforaccount)
 - [getTokenDecimals](HopBridge.md#gettokendecimals)
 - [getTokenImage](HopBridge.md#gettokenimage)
 - [getTokenSymbol](HopBridge.md#gettokensymbol)
 - [getTotalDebit](HopBridge.md#gettotaldebit)
 - [getTotalFee](HopBridge.md#gettotalfee)
 - [getTransferStatus](HopBridge.md#gettransferstatus)
+- [getTransferTimes](HopBridge.md#gettransfertimes)
 - [getTvl](HopBridge.md#gettvl)
 - [getTvlUsd](HopBridge.md#gettvlusd)
 - [getUnbondedTransferRootAmount](HopBridge.md#getunbondedtransferrootamount)
 - [getVaultBalance](HopBridge.md#getvaultbalance)
-- [getWaitConfirmations](HopBridge.md#getwaitconfirmations)
 - [getWithdrawProof](HopBridge.md#getwithdrawproof)
 - [isDestinationChainPaused](HopBridge.md#isdestinationchainpaused)
 - [isNativeToken](HopBridge.md#isnativetoken)
@@ -237,7 +248,7 @@ import { HopBridge, Chain, Token } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
 
 const signer = new Wallet(privateKey)
-const bridge = new HopBridge('goerli', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
+const bridge = new HopBridge('mainnet', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
 ```
 
 #### Overrides
@@ -296,6 +307,16 @@ ___
 
 ___
 
+### <a id="bridgedeprecated" name="bridgedeprecated"></a> bridgeDeprecated
+
+• **bridgeDeprecated**: `Record`<`string`, `boolean`\>
+
+#### Inherited from
+
+[Base](Base.md).[bridgeDeprecated](Base.md#bridgedeprecated)
+
+___
+
 ### <a id="chainproviders" name="chainproviders"></a> chainProviders
 
 • **chainProviders**: `ChainProviders` = `{}`
@@ -343,6 +364,36 @@ ___
 #### Inherited from
 
 [Base](Base.md).[customCoreConfigJsonUrl](Base.md#customcoreconfigjsonurl)
+
+___
+
+### <a id="debugtimelogscache" name="debugtimelogscache"></a> debugTimeLogsCache
+
+• **debugTimeLogsCache**: `any`[] = `[]`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsCache](Base.md#debugtimelogscache)
+
+___
+
+### <a id="debugtimelogscacheenabled" name="debugtimelogscacheenabled"></a> debugTimeLogsCacheEnabled
+
+• **debugTimeLogsCacheEnabled**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsCacheEnabled](Base.md#debugtimelogscacheenabled)
+
+___
+
+### <a id="debugtimelogsenabled" name="debugtimelogsenabled"></a> debugTimeLogsEnabled
+
+• **debugTimeLogsEnabled**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsEnabled](Base.md#debugtimelogsenabled)
 
 ___
 
@@ -428,6 +479,30 @@ ___
 
 ___
 
+### <a id="getgasprice" name="getgasprice"></a> getGasPrice
+
+• **getGasPrice**: (...`args`: [signerOrProvider: TProvider]) => `Promise`<`BigNumber`\>
+
+#### Type declaration
+
+▸ (`...args`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `...args` | [signerOrProvider: TProvider] |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+#### Inherited from
+
+[Base](Base.md).[getGasPrice](Base.md#getgasprice)
+
+___
+
 ### <a id="network" name="network"></a> network
 
 • **network**: `string`
@@ -459,6 +534,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[relayerFeeEnabled](Base.md#relayerfeeenabled)
+
+___
+
+### <a id="relayerfeewei" name="relayerfeewei"></a> relayerFeeWei
+
+• **relayerFeeWei**: `Record`<`string`, `string`\>
+
+#### Inherited from
+
+[Base](Base.md).[relayerFeeWei](Base.md#relayerfeewei)
 
 ___
 
@@ -745,6 +830,27 @@ const bridge = hop.bridge(Token.USDC).connect(signer)
 
 ___
 
+### <a id="debugtimelog" name="debugtimelog"></a> debugTimeLog
+
+▸ **debugTimeLog**(`label`, `timeStart`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `label` | `string` |
+| `timeStart` | `number` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLog](Base.md#debugtimelog)
+
+___
+
 ### <a id="estimatebondwithdrawalgaslimit" name="estimatebondwithdrawalgaslimit"></a> estimateBondWithdrawalGasLimit
 
 ▸ **estimateBondWithdrawalGasLimit**(`sourceChain`, `destinationChain`): `Promise`<`any`\>
@@ -759,6 +865,27 @@ ___
 #### Returns
 
 `Promise`<`any`\>
+
+___
+
+### <a id="estimategas" name="estimategas"></a> estimateGas
+
+▸ **estimateGas**(`signerOrProvider`, `tx`): `Promise`<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signerOrProvider` | [`TProvider`](../modules.md#tprovider) |
+| `tx` | `any` |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+#### Inherited from
+
+[Base](Base.md).[estimateGas](Base.md#estimategas)
 
 ___
 
@@ -1235,7 +1362,7 @@ ___
 
 ### <a id="getbridgecontract" name="getbridgecontract"></a> getBridgeContract
 
-▸ **getBridgeContract**(`chain`): `Promise`<`any`\>
+▸ **getBridgeContract**(`chain`): `Promise`<`Contract`\>
 
 #### Parameters
 
@@ -1245,7 +1372,7 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`<`Contract`\>
 
 Ethers contract instance.
 
@@ -1471,6 +1598,20 @@ Returns total debit that bonder holds on Hop bridge at specified chain.
 
 ___
 
+### <a id="getdebugtimelogs" name="getdebugtimelogs"></a> getDebugTimeLogs
+
+▸ **getDebugTimeLogs**(): `any`[]
+
+#### Returns
+
+`any`[]
+
+#### Inherited from
+
+[Base](Base.md).[getDebugTimeLogs](Base.md#getdebugtimelogs)
+
+___
+
 ### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
 
 ▸ **getDestinationFeeGasPriceMultiplier**(): `number`
@@ -1674,6 +1815,26 @@ ___
 
 ___
 
+### <a id="getisbridgedeprecated" name="getisbridgedeprecated"></a> getIsBridgeDeprecated
+
+▸ **getIsBridgeDeprecated**(`token`): `Promise`<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+
+#### Returns
+
+`Promise`<`boolean`\>
+
+#### Inherited from
+
+[Base](Base.md).[getIsBridgeDeprecated](Base.md#getisbridgedeprecated)
+
+___
+
 ### <a id="getl1ambbridgeaddress" name="getl1ambbridgeaddress"></a> getL1AmbBridgeAddress
 
 ▸ **getL1AmbBridgeAddress**(`token`, `chain`): `string`
@@ -1735,45 +1896,6 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getL1BridgeAddress](Base.md#getl1bridgeaddress)
-
-___
-
-### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
-
-▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `token` | [`TToken`](../modules.md#ttoken) |
-| `sourceChain` | [`TChain`](../modules.md#tchain) |
-| `destinationChain` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`string`
-
-#### Inherited from
-
-[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
-
-___
-
-### <a id="getl1bridgewrapperorl1bridge" name="getl1bridgewrapperorl1bridge"></a> getL1BridgeWrapperOrL1Bridge
-
-▸ **getL1BridgeWrapperOrL1Bridge**(`sourceChain`, `destinationChain?`): `Promise`<`any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `sourceChain` | [`TChain`](../modules.md#tchain) |
-| `destinationChain?` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`Promise`<`any`\>
 
 ___
 
@@ -2080,7 +2202,7 @@ ___
 
 ### <a id="getlpfees" name="getlpfees"></a> getLpFees
 
-▸ **getLpFees**(`amountIn`, `sourceChain`, `destinationChain`): `Promise`<`BigNumber`\>
+▸ **getLpFees**(`amountIn`, `sourceChain`, `destinationChain`): `BigNumber`
 
 #### Parameters
 
@@ -2092,7 +2214,7 @@ ___
 
 #### Returns
 
-`Promise`<`BigNumber`\>
+`BigNumber`
 
 ___
 
@@ -2112,6 +2234,16 @@ ___
 
 ___
 
+### <a id="getnonammassets" name="getnonammassets"></a> getNonAmmAssets
+
+▸ **getNonAmmAssets**(): `Set`<`string`\>
+
+#### Returns
+
+`Set`<`string`\>
+
+___
+
 ### <a id="getoptimisml1fee" name="getoptimisml1fee"></a> getOptimismL1Fee
 
 ▸ **getOptimismL1Fee**(`sourceChain`, `destinationChain`): `Promise`<`BigNumber`\>
@@ -2126,6 +2258,22 @@ ___
 #### Returns
 
 `Promise`<`BigNumber`\>
+
+___
+
+### <a id="getpricebytokensymbol" name="getpricebytokensymbol"></a> getPriceByTokenSymbol
+
+▸ **getPriceByTokenSymbol**(`tokenSymbol`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
+
+#### Returns
+
+`Promise`<`any`\>
 
 ___
 
@@ -2319,7 +2467,7 @@ ___
 
 ### <a id="getsenddataamountoutmins" name="getsenddataamountoutmins"></a> getSendDataAmountOutMins
 
-▸ **getSendDataAmountOutMins**(`getSendDataResponse`, `slippageTolerance`): `Object`
+▸ **getSendDataAmountOutMins**(`getSendDataResponse`, `slippageTolerance`): `any`
 
 #### Parameters
 
@@ -2330,15 +2478,7 @@ ___
 
 #### Returns
 
-`Object`
-
-| Name | Type |
-| :------ | :------ |
-| `amount` | `any` |
-| `amountOutMin` | `BigNumber` |
-| `deadline` | `number` |
-| `destinationAmountOutMin` | `BigNumber` |
-| `destinationDeadline` | `number` |
+`any`
 
 ___
 
@@ -2530,6 +2670,26 @@ ___
 
 ___
 
+### <a id="gettokenbalancesforaccount" name="gettokenbalancesforaccount"></a> getTokenBalancesForAccount
+
+▸ **getTokenBalancesForAccount**(`accountAddress`): `Promise`<`Balance`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `accountAddress` | `string` |
+
+#### Returns
+
+`Promise`<`Balance`[]\>
+
+#### Inherited from
+
+[Base](Base.md).[getTokenBalancesForAccount](Base.md#gettokenbalancesforaccount)
+
+___
+
 ### <a id="gettokendecimals" name="gettokendecimals"></a> getTokenDecimals
 
 ▸ **getTokenDecimals**(): `number`
@@ -2609,7 +2769,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `transferIdOrTxHash` | `String` |
+| `transferIdOrTxHash` | `string` |
 
 #### Returns
 
@@ -2618,6 +2778,27 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getTransferStatus](Base.md#gettransferstatus)
+
+___
+
+### <a id="gettransfertimes" name="gettransfertimes"></a> getTransferTimes
+
+▸ **getTransferTimes**(`sourceChainSlug`, `destinationChainSlug`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChainSlug` | `string` |
+| `destinationChainSlug` | `string` |
+
+#### Returns
+
+`Promise`<`any`\>
+
+#### Inherited from
+
+[Base](Base.md).[getTransferTimes](Base.md#gettransfertimes)
 
 ___
 
@@ -2687,29 +2868,9 @@ ___
 
 ___
 
-### <a id="getwaitconfirmations" name="getwaitconfirmations"></a> getWaitConfirmations
-
-▸ **getWaitConfirmations**(`chain`): `number`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chain` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`number`
-
-#### Inherited from
-
-[Base](Base.md).[getWaitConfirmations](Base.md#getwaitconfirmations)
-
-___
-
 ### <a id="getwithdrawproof" name="getwithdrawproof"></a> getWithdrawProof
 
-▸ **getWithdrawProof**(`sourceChain`, `destinationChain`, `transferIdOrTransactionHash`): `Promise`<`string`[]\>
+▸ **getWithdrawProof**(`sourceChain`, `destinationChain`, `transferIdOrTransactionHash`): `Promise`<`any`\>
 
 #### Parameters
 
@@ -2721,7 +2882,7 @@ ___
 
 #### Returns
 
-`Promise`<`string`[]\>
+`Promise`<`any`\>
 
 ___
 
@@ -2963,7 +3124,7 @@ ___
 
 ### <a id="populatewithdrawtx" name="populatewithdrawtx"></a> populateWithdrawTx
 
-▸ **populateWithdrawTx**(`chain`, `recipient`, `amount`, `transferNonce`, `bonderFee`, `amountOutMin`, `deadline`, `transferRootHash`, `rootTotalAmount`, `transferIdTreeIndex`, `siblings`, `totalLeaves`): `Promise`<`any`\>
+▸ **populateWithdrawTx**(`chain`, `recipient`, `amount`, `transferNonce`, `bonderFee`, `amountOutMin`, `deadline`, `transferRootHash`, `rootTotalAmount`, `transferIdTreeIndex`, `siblings`, `totalLeaves`): `Promise`<`PopulatedTransaction`\>
 
 #### Parameters
 
@@ -2984,7 +3145,7 @@ ___
 
 #### Returns
 
-`Promise`<`any`\>
+`Promise`<`PopulatedTransaction`\>
 
 ___
 
@@ -3515,8 +3676,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `sourceChain` | [`Chain`](Chain.md) |
-| `destinationChain?` | [`Chain`](Chain.md) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 

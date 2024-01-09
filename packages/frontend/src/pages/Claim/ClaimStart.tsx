@@ -6,7 +6,7 @@ import { Button } from 'src/components/Button/Button'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { toTokenDisplay } from 'src/utils'
 import { BigNumber } from 'ethers'
-import { TokenClaim } from './useClaim'
+import { TokenClaim } from 'src/pages/Claim/useClaim'
 
 interface ClaimTokensProps {
   claim?: TokenClaim

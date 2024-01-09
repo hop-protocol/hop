@@ -1,6 +1,6 @@
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components/macro'
-import { Div, DivProps } from './Div'
+import { Div, DivProps } from 'src/components/ui/Div'
 
 interface TextProps {
   primary?: boolean

@@ -4,7 +4,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { Token, Chain } from '@hop-protocol/sdk'
 import Transaction from 'src/models/Transaction'
 import { toTokenDisplay } from 'src/utils'
-import { useTransactionReplacement } from './useTransactionReplacement'
+import { useTransactionReplacement } from 'src/hooks/useTransactionReplacement'
 
 const useApprove = (token: any) => {
   const { provider } = useWeb3Context()

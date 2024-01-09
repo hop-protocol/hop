@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components/macro'
-import { Div } from '.'
+import { Div } from 'src/components/ui/Div'
 
 export const OverflowText = styled(Div)`
   overflow: hidden;

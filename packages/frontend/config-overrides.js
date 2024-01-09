@@ -188,6 +188,19 @@ function addCspHtmlWebpackPlugin(config) {
   return config
 }
 
+function customWebpackConfig(config) {
+  const rules = config.module.rules.find(r => r.oneOf).oneOf;
+  const babelRule = rules.find(r => r.loader && r.loader.includes('babel-loader'));
+
+  if (babelRule) {
+    babelRule.exclude = /node_modules/;
+  }
+
+  // Continue with other custom modifications if necessary
+
+  return config;
+}
+
 module.exports = {
   // The function to use to create a webpack dev server configuration when running the development
   // server with 'npm run start' or 'yarn start'.
@@ -212,5 +225,5 @@ module.exports = {
     }
   },
 
-  webpack: override(addCspHtmlWebpackPlugin)
+  webpack: override(customWebpackConfig, addCspHtmlWebpackPlugin)
 }

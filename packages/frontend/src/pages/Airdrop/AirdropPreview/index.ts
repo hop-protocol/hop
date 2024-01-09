@@ -1,1 +1,1 @@
-export * from './AirdropPreview'
+export * from 'src/pages/Airdrop/AirdropPreview/AirdropPreview'

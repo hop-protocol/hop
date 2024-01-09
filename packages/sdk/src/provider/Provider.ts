@@ -10,7 +10,7 @@ import { rateLimitRetry } from '../utils/rateLimitRetry'
 
 export class RetryProvider extends providers.StaticJsonRpcProvider implements providers.Provider {
   async perform (method: string, params: any): Promise<any> {
-    return await super.perform(method, params)
+    return super.perform(method, params)
   }
 
   // Network

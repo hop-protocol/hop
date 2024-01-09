@@ -245,7 +245,8 @@ class HopBridge extends Base {
   ): Token {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    let { name, symbol, decimals, image } = metadata.tokens[token.canonicalSymbol]
+    const { name, decimals, image } = metadata.tokens[token.canonicalSymbol]
+    let symbol = metadata.tokens[token.canonicalSymbol].symbol
 
     if (chain.equals(Chain.Gnosis) && token.symbol === CanonicalToken.DAI) {
       symbol = CanonicalToken.XDAI
@@ -501,7 +502,7 @@ class HopBridge extends Base {
       return await this.estimateGas(provider, populatedTx)
     } catch (err: any) {
       console.warn('hop sdk getEstimatedGasLimit error estimating gas limit. trying fixed gasLimit for estimateGas')
-      return await this.estimateGas(provider, {
+      return this.estimateGas(provider, {
         ...populatedTx,
         gasLimit: sourceChain.equals(Chain.Arbitrum) ? 1_000_000 : 500_000
       })
@@ -1350,7 +1351,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
-    let [availableLiquidity, unbondedTransferRootAmount, tokenPrice] = await Promise.all([
+    const promiseResult = await Promise.all([
       this.getBaseAvailableCreditIncludingVault(
         sourceChain,
         destinationChain
@@ -1361,6 +1362,10 @@ class HopBridge extends Base {
       ),
       this.getPriceByTokenSymbol(token.canonicalSymbol)
     ])
+
+    let availableLiquidity = promiseResult[0]
+    const unbondedTransferRootAmount = promiseResult[1]
+    const tokenPrice = promiseResult[2]
 
     // fetch on-chain if the data is not available from worker json file
     if (availableLiquidity == null) {
@@ -1998,14 +2003,16 @@ class HopBridge extends Base {
 
   private async populateSendL1ToL2Tx (input: SendL1ToL2Input) : Promise<any> {
     let {
-      destinationChain,
-      sourceChain,
-      relayer,
       relayerFee,
-      amount,
       amountOutMin,
       deadline,
       recipient,
+    } = input
+    const {
+      destinationChain,
+      sourceChain,
+      relayer,
+      amount,
       checkAllowance
     } = input
     if (!sourceChain.isL1) {
@@ -2083,13 +2090,15 @@ class HopBridge extends Base {
 
   private async populateSendL2ToL1Tx (input: SendL2ToL1Input): Promise<any> {
     let {
+      recipient,
+      amountOutMin,
+      deadline,
+    } = input
+    const {
       destinationChain,
       sourceChain,
       amount,
       bonderFee,
-      recipient,
-      amountOutMin,
-      deadline,
       checkAllowance
     } = input
     const destinationChainId = destinationChain.chainId
@@ -2178,15 +2187,17 @@ class HopBridge extends Base {
 
   private async populateSendL2ToL2Tx (input: SendL2ToL2Input): Promise<any> {
     let {
-      destinationChain,
-      sourceChain,
-      amount,
       destinationAmountOutMin,
-      bonderFee,
       deadline,
       destinationDeadline,
       amountOutMin,
       recipient,
+    } = input
+    const {
+      destinationChain,
+      sourceChain,
+      amount,
+      bonderFee,
       checkAllowance
     } = input
     const destinationChainId = destinationChain.chainId
@@ -2532,11 +2543,11 @@ class HopBridge extends Base {
   }
 
   async getBonderAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
-    return await this._getBonderAddress(this.tokenSymbol, sourceChain, destinationChain)
+    return this._getBonderAddress(this.tokenSymbol, sourceChain, destinationChain)
   }
 
   async getMessengerWrapperAddress (destinationChain: TChain): Promise<string> {
-    return await this._getMessengerWrapperAddress(this.tokenSymbol, destinationChain)
+    return this._getMessengerWrapperAddress(this.tokenSymbol, destinationChain)
   }
 
   shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumberish): boolean {

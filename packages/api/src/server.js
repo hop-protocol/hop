@@ -165,7 +165,7 @@ app.get('/v1/available-routes', responseCache, ipRateLimitMiddleware, async (req
 })
 
 app.get('/v1/build-tx', async (req, res) => {
-  const { token, amount, fromChain, toChain, recipient } = req.query
+  const { network = 'mainnet', token, amount, fromChain, toChain, recipient } = req.query
 
   try {
     const hop = new Hop(network)
@@ -183,7 +183,7 @@ app.get('/v1/build-tx', async (req, res) => {
 })
 
 app.get('/v1/approval/check-allowance', async (req, res) => {
-  const { token, amount, fromChain, account } = req.query
+  const { network = 'mainnet', token, amount, fromChain, account } = req.query
 
   try {
     const hop = new Hop(network)
@@ -199,7 +199,7 @@ app.get('/v1/approval/check-allowance', async (req, res) => {
 })
 
 app.get('/v1/approval/build-tx', async (req, res) => {
-  const { token, amount, fromChain } = req.query
+  const { network = 'mainnet', token, amount, fromChain } = req.query
 
   try {
     const hop = new Hop(network)

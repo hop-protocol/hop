@@ -56,7 +56,6 @@
     "web3": "1.7.5"
   },
   "devDependencies": {
-    "eslint-config-hop-protocol": "0.0.1-beta.0",
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
     "@babel/node": "^7.7.0",
@@ -70,10 +69,12 @@
     "@types/luxon": "^1.27.1",
     "@types/node": "^17.0.21",
     "@types/node-fetch": "2.5.10",
-    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
     "eslint": "^7.30.0",
+    "eslint-config-hop-protocol": "0.0.1-beta.0",
     "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^3.0.0",

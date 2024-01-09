@@ -16,10 +16,11 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.18.0",
     "@typescript-eslint/parser": "^6.18.0",
-    "eslint": "^7.32.0",
+    "eslint": "^8.56.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^27.6.1",
+    "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.0",
@@ -27,14 +28,8 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^3.0.0",
-    "eslint-plugin-json": "^3.1.0",
     "lerna-sync-version": "0.0.6",
-    "typescript": "^5.3.3"
-  },
-  "standard": {
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint/eslint-plugin"
-    ]
+    "typescript": "^5.3.3",
+    "eslint-config-hop-protocol": "0.0.1-beta.0"
   }
 }

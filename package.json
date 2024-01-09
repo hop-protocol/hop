@@ -10,7 +10,9 @@
     "bootstrap": "npm install"
   },
   "workspaces": [
-    "packages/*"
+    "./packages/core",
+    "./packages/sdk",
+    "./packages/eslint-config-hop-protocol"
   ],
   "dependencies": {}
 }

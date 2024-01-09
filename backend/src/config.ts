@@ -18,6 +18,7 @@ export const postgresConfig = {
   maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }
 export const regenesisEnabled = process.env.REGENESIS_ENABLED === 'true'
+export const CoingeckoApiKey = process.env.COINGECKO_API_KEY || ''
 
 const tokenSet = new Set([])
 const chainSet = new Set([])

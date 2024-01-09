@@ -1,8 +1,9 @@
 import Logger from 'src/logger'
-import MerkleTree from 'src/utils/MerkleTree'
 import fs from 'fs'
 import path from 'path'
+import { BigNumber } from 'ethers'
 import { Command } from 'commander'
+import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData'
 import {
   config as globalConfig,
   parseConfigFile,
@@ -10,8 +11,6 @@ import {
   validateConfigFileStructure,
   validateConfigValues
 } from 'src/config'
-import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData'
-import { BigNumber } from 'ethers'
 
 export const logger = new Logger('config')
 export const program = new Command()

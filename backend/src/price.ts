@@ -23,6 +23,7 @@ export async function getPriceHistory (tokenSymbol: string, days: number) {
     })
     .then((json: any) => {
       console.log('fetched', coinId)
+      console.log('debug', JSON.stringify(json))
       return json.prices.map((data: any[]) => {
         data[0] = Math.floor(data[0] / 1000)
         return data

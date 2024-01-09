@@ -106,6 +106,7 @@
     "csp-html-webpack-plugin": "5.1.0",
     "customize-cra": "1.0.0",
     "eslint": "^7.15.0",
+    "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "react-app-rewired": "^2.2.1",

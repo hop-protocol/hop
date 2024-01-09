@@ -73,7 +73,8 @@
     "ts-jest": "^26.5.4",
     "typechain": "^8.1.0",
     "typescript": "^4.4.4",
-    "uglify-es": "^3.3.9"
+    "uglify-es": "^3.3.9",
+    "eslint-config-hop-protocol": "0.0.1-beta.0"
   },
   "standard": {
     "parser": "@typescript-eslint/parser",

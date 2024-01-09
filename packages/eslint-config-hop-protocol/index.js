@@ -7,7 +7,8 @@ module.exports = {
   "extends": [
     "plugin:react/recommended",
     "standard",
-    "plugin:react-hooks/recommended"
+    "plugin:react-hooks/recommended",
+    "plugin:json/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -48,6 +49,7 @@ module.exports = {
     "space-before-function-paren": 0,
     "spaced-comment": 0,
     "unused-imports/no-unused-imports": 1,
+    "avoidEscape": 0,
     "sort-imports-es6-autofix/sort-imports-es6": [1, {
       "ignoreCase": false,
       "ignoreMemberSort": false,
@@ -69,7 +71,7 @@ module.exports = {
   },
   "settings": {
     "react": {
-      "version": "detect"
+      "version": "999.999.999"
     }
   }
 }

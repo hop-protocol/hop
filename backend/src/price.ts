@@ -12,7 +12,7 @@ export async function getPriceHistory (tokenSymbol: string, days: number) {
     throw new Error(`coingecko coin id not found for token "${tokenSymbol}"`)
   }
 
-  const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily&x_cg_pro_api_key=${CoingeckoApiKey}`
+  const url = `https://pro-api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily&x_cg_pro_api_key=${CoingeckoApiKey}`
   console.log(url)
   return Promise.race([fetch(url)
     .then(async (res: any) => {

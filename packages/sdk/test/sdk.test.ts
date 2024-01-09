@@ -329,77 +329,6 @@ describe.skip('tx watcher', () => {
   )
 })
 
-describe.skip('canonical bridge transfers', () => {
-  const hop = new Hop('goerli')
-  const signer = new Wallet(privateKey)
-  it(
-    'deposit token from L1 -> Gnosis L2 canonical bridge',
-    async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.Gnosis)
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await bridge.connect(signer).deposit(tokenAmount)
-      console.log('tx:', tx.hash)
-      expect(tx.hash).toBeTruthy()
-    },
-    120 * 1000
-  )
-  it(
-    'withdraw token from Gnosis L2 canonical bridge -> L1',
-    async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.Gnosis)
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await bridge.connect(signer).withdraw(tokenAmount)
-      console.log('tx:', tx.hash)
-      expect(tx.hash).toBeTruthy()
-    },
-    120 * 1000
-  )
-  it(
-    'deposit token from L1 -> Optimism L2 canonical bridge',
-    async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.Optimism)
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await bridge.connect(signer).deposit(tokenAmount)
-      console.log('tx:', tx.hash)
-      expect(tx.hash).toBeTruthy()
-    },
-    120 * 1000
-  )
-  it(
-    'withdraw token from Optimism L2 canonical bridge -> L1',
-    async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.Optimism)
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await bridge.connect(signer).withdraw(tokenAmount)
-      console.log('tx:', tx.hash)
-      expect(tx.hash).toBeTruthy()
-    },
-    120 * 1000
-  )
-  it(
-    'deposit token from L1 -> Arbitrum L2 canonical bridge',
-    async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.Arbitrum)
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await bridge.connect(signer).deposit(tokenAmount)
-      console.log('tx:', tx.hash)
-      expect(tx.hash).toBeTruthy()
-    },
-    120 * 1000
-  )
-  it(
-    'withdraw token from Arbitrum L2 canonical bridge -> L1',
-    async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.Arbitrum)
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await bridge.connect(signer).withdraw(tokenAmount)
-      console.log('tx:', tx.hash)
-      expect(tx.hash).toBeTruthy()
-    },
-    120 * 1000
-  )
-})
-
 describe.skip('liqudity provider', () => {
   const hop = new Hop('goerli')
   const signer = new Wallet(privateKey)
@@ -599,7 +528,7 @@ describe.skip('getSendData', () => {
     expect(destinationChainGasPrice.gt(0)).toBeTruthy()
   }, 10 * 1000)
 
-  it('getSendData', async () => {
+  it.skip('getSendData', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('ETH')
     const amountIn = parseUnits('0.5', 18)
@@ -1333,5 +1262,31 @@ describe.skip('Multicall token balances', () => {
     const balances = await sdk.getTokenBalancesForAccount(accountAddress)
     console.log(balances)
     expect(balances.length > 0).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe.skip('calcToHTokenAmountMulticall', () => {
+  it('Should get amount outs', async () => {
+    const sdk = new Hop('mainnet')
+    const bridge = sdk.bridge('ETH')
+    const amountOuts = await bridge.calcToHTokenAmountMulticall('optimism', [parseUnits('1', 18), parseUnits('0', 18), parseUnits('2', 18)])
+    console.log('amountOuts', amountOuts)
+    expect(amountOuts.length).toBe(3)
+    expect(amountOuts[0].toString()).toBeTruthy()
+    expect(amountOuts[1].toString()).toBeTruthy()
+    expect(amountOuts[2].toString()).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe.skip('calcFromHTokenAmountMulticall', () => {
+  it('Should get amount outs', async () => {
+    const sdk = new Hop('mainnet')
+    const bridge = sdk.bridge('ETH')
+    const amountOuts = await bridge.calcFromHTokenAmountMulticall('optimism', [parseUnits('1', 18), parseUnits('0', 18), parseUnits('2', 18)])
+    console.log('amountOuts', amountOuts)
+    expect(amountOuts.length).toBe(3)
+    expect(amountOuts[0].toString()).toBeTruthy()
+    expect(amountOuts[1].toString()).toBeTruthy()
+    expect(amountOuts[2].toString()).toBeTruthy()
   }, 60 * 1000)
 })

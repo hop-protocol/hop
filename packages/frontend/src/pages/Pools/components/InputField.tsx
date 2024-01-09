@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import { TokenIcon } from './TokenIcon'
+import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 import { makeStyles } from '@material-ui/core/styles'
 
 export const useStyles = makeStyles(theme => ({

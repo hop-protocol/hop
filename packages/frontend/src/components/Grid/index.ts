@@ -1,1 +1,1 @@
-export * from './Grid'
+export * from 'src/components/Grid/Grid'

@@ -7,7 +7,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { Modal } from 'src/components/Modal'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
-import { AccountTransferHistory } from './AccountTransferHistory'
+import { AccountTransferHistory } from 'src/components/AccountDetails/AccountTransferHistory'
 import { Div } from 'src/components/ui'
 
 const useStyles = makeStyles((theme: Theme) => ({

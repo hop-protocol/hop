@@ -1,1 +1,1 @@
-export { Banner } from './Banner'
+export { Banner } from 'src/components/Banner/Banner'

@@ -16,7 +16,7 @@
 - [polygon](Slug.md#polygon)
 - [polygonzk](Slug.md#polygonzk)
 - [scrollzk](Slug.md#scrollzk)
-- [staging](Slug.md#staging)
+- [sepolia](Slug.md#sepolia)
 - [zksync](Slug.md#zksync)
 
 ## Enumeration Members
@@ -93,9 +93,9 @@ ___
 
 ___
 
-### <a id="staging" name="staging"></a> staging
+### <a id="sepolia" name="sepolia"></a> sepolia
 
-• **staging** = ``"staging"``
+• **sepolia** = ``"sepolia"``
 
 ___
 

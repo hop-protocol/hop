@@ -5,7 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
-    "@hop-protocol/sdk": "0.0.1-beta.591",
+    "@hop-protocol/sdk": "0.0.1-beta.592",
     "@mui/lab": "^5.0.0-alpha.84",
     "@mui/material": "^5.7.0",
     "@testing-library/jest-dom": "^5.16.4",

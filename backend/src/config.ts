@@ -61,7 +61,8 @@ export const transferTimes = {
     gnosis: 20,
     nova: 10,
     base: 2,
-    linea: 20
+    linea: 20,
+    polygonzk: 20
   },
   optimism: {
     ethereum: 25,
@@ -70,7 +71,8 @@ export const transferTimes = {
     gnosis: 25,
     nova: 25,
     base: 25,
-    linea: 25
+    linea: 25,
+    polygonzk: 25
   },
   arbitrum: {
     ethereum: 12,
@@ -79,7 +81,8 @@ export const transferTimes = {
     gnosis: 12,
     nova: 12,
     base: 12,
-    linea: 12
+    linea: 12,
+    polygonzk: 12
   },
   polygon: {
     ethereum: 10,
@@ -88,7 +91,8 @@ export const transferTimes = {
     gnosis: 10,
     nova: 10,
     base: 10,
-    linea: 10
+    linea: 10,
+    polygonzk: 10
   },
   gnosis: {
     ethereum: 4,
@@ -97,7 +101,8 @@ export const transferTimes = {
     polygon: 4,
     nova: 4,
     base: 4,
-    linea: 4
+    linea: 4,
+    polygonzk: 4
   },
   nova: {
     ethereum: 12,
@@ -106,7 +111,8 @@ export const transferTimes = {
     polygon: 12,
     gnosis: 12,
     base: 12,
-    linea: 12
+    linea: 12,
+    polygonzk: 12
   },
   base: {
     ethereum: 25,
@@ -115,7 +121,8 @@ export const transferTimes = {
     polygon: 25,
     gnosis: 25,
     nova: 25,
-    linea: 25
+    linea: 25,
+    polygonzk: 25
   },
   linea: {
     ethereum: 25,
@@ -124,7 +131,18 @@ export const transferTimes = {
     polygon: 25,
     gnosis: 25,
     nova: 25,
-    base: 25
+    base: 25,
+    polygonzk: 25
+  },
+  polygonzk: {
+    ethereum: 5,
+    optimism: 5,
+    arbitrum: 5,
+    polygon: 5,
+    gnosis: 5,
+    nova: 5,
+    base: 5,
+    linea: 5
   },
   scroll: {
     ethereum: 1,
@@ -133,7 +151,9 @@ export const transferTimes = {
     polygon: 1,
     gnosis: 1,
     nova: 1,
-    base: 1
+    base: 1,
+    linea: 1,
+    polygonzk: 1
   }
 }
 

@@ -88,7 +88,8 @@ export const etherscanApiKeys: Record<string, string> = {
   [Chain.Gnosis]: process.env.XDAI_API_KEY ?? '',
   [Chain.Nova]: process.env.NOVA_API_KEY ?? '',
   [Chain.Base]: process.env.BASE_API_KEY ?? '',
-  [Chain.Linea]: process.env.LINEA_API_KEY ?? ''
+  [Chain.Linea]: process.env.LINEA_API_KEY ?? '',
+  [Chain.PolygonZk]: process.env.POLYGONZK_API_KEY ?? ''
 }
 export const etherscanApiUrls: Record<string, string> = {
   [Chain.Ethereum]: 'https://api.etherscan.io',
@@ -98,7 +99,8 @@ export const etherscanApiUrls: Record<string, string> = {
   [Chain.Gnosis]: 'https://api.gnosisscan.io',
   [Chain.Nova]: 'https://api-nova.arbiscan.io',
   [Chain.Base]: 'https://api.basescan.org',
-  [Chain.Linea]: 'https://api.lineascan.build'
+  [Chain.Linea]: 'https://api.lineascan.build',
+  [Chain.PolygonZk]: 'https://api-zkevm.polygonscan.com'
 }
 
 type SyncConfig = {

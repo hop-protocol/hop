@@ -79,6 +79,9 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
 
   protected async getMessageStatus (message: LineaMessage, messageDirection: MessageDirection): Promise<OnChainMessageStatus> {
     const { destBridge } = this.#getSourceAndDestBridge(messageDirection)
+    if (!message.messageHash) {
+      throw new Error('message hash is missing. this might occur if there are multiple l1 to l2 messages in the tx')
+    }
     return destBridge.getMessageStatus(message.messageHash)
   }
 

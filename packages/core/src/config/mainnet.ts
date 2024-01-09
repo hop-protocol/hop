@@ -41,6 +41,7 @@ export const config : Config = {
       nova: 5,
       zksync: 5,
       linea: 5,
+      polygonzk: 5,
       scrollzk: 5,
       base: 5
     },

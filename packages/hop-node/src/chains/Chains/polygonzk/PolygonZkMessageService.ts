@@ -10,18 +10,14 @@ interface ZkEvmBridges {
   destBridge: ZkEvmBridge
 }
 
-const polygonChainSlugs: Record<string, string> = {
-  mainnet: 'matic',
-  goerli: 'mumbai'
-}
-
 const polygonSdkNetwork: Record<string, string> = {
   mainnet: 'mainnet',
   goerli: 'testnet'
 }
 
+// Reference: https://github.com/maticnetwork/static/blob/0964fe422a5e8e9082edd0298dbe53f5a8799bea/network/networks.json
 const polygonSdkVersion: Record<string, string> = {
-  mainnet: 'v1',
+  mainnet: 'cherry',
   goerli: 'blueberry'
 }
 
@@ -30,20 +26,15 @@ type MessageStatus = string
 
 export class PolygonZkMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
   ready: boolean = false
-  apiUrl: string
   zkEvmClient: ZkEvmClient
 
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const polygonNetwork: string = polygonChainSlugs[this.networkSlug]
-    this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
-
     use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.zkEvmClient = new ZkEvmClient()
-
     this.#init(this.networkSlug)
       .then(() => {
         this.ready = true
@@ -121,6 +112,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   }
 
   protected async getMessage (txHash: string): Promise<Message> {
+    await this.#tilReady()
     // PolygonZk message is just the tx hash
     return txHash
   }

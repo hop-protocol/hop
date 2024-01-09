@@ -21,7 +21,7 @@ import { chainSlugToId } from 'src/utils/chainSlugToId'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
-import { getWithdrawalProofData } from 'src/cli/shared'
+import { getWithdrawalProofDataForCli } from 'src/cli/shared'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { use } from '@maticnetwork/maticjs'
@@ -569,7 +569,7 @@ export class ArbBot {
       numLeaves,
       proof,
       transferIndex
-    } = getWithdrawalProofData(transferId, transferRoot)
+    } = getWithdrawalProofDataForCli(transferId, transferRoot)
 
     if (this.dryMode) {
       this.logger.log('skipping withdraw tx, dryMode: true')
@@ -584,7 +584,7 @@ export class ArbBot {
       amountOutMin,
       deadline,
       transferRootHash,
-      rootTotalAmount,
+      BigNumber.from(rootTotalAmount),
       transferIndex,
       proof,
       numLeaves

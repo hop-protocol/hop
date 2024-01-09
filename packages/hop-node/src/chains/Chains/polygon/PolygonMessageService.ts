@@ -174,6 +174,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   }
 
   protected async getMessage (txHash: string): Promise<PolygonMessage> {
+    await this.#tilReady()
     // Polygon message is defined by the txHash, so we return that
     return txHash
   }

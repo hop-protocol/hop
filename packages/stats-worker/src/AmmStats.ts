@@ -171,8 +171,10 @@ export class AmmStats {
             )
 
             const oneToken = parseUnits('1', tokenDecimals)
-            const lpFee = BigNumber.from(4)
-            const lpFeeBN = parseUnits(lpFee.toString(), tokenDecimals)
+            // TODO: This is a temporary solution. Should retrieve from onchain and cache value.
+            const isLowLpFeeChain = ['polygonzk', 'nova'].includes(chain)
+            const lpFee: string = isLowLpFeeChain ? '1' : '4'
+            const lpFeeBN = parseUnits(lpFee, tokenDecimals)
             const fees = volume
               .mul(lpFeeBN)
               .div(oneToken)

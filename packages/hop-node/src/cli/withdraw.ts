@@ -2,7 +2,7 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import { WatcherNotFoundError } from './shared/utils'
-import { actionHandler, getWithdrawalProofData, parseString, root } from './shared'
+import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
@@ -78,7 +78,7 @@ async function main (source: any) {
     numLeaves,
     proof,
     transferIndex
-  } = getWithdrawalProofData(transferId, transferRoot)
+  } = getWithdrawalProofDataForCli(transferId, transferRoot)
 
   const destinationChain = chainIdToSlug(destinationChainId)
   const watcher = await getBondWithdrawalWatcher({ chain: destinationChain, token, dryMode: false })

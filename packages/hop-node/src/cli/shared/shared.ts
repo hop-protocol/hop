@@ -1,8 +1,9 @@
 import Logger from 'src/logger'
-import MerkleTree from 'src/utils/MerkleTree'
 import fs from 'fs'
 import path from 'path'
+import { BigNumber } from 'ethers'
 import { Command } from 'commander'
+import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData'
 import {
   config as globalConfig,
   parseConfigFile,
@@ -86,26 +87,15 @@ export function parseInputFileList (value: string) {
   return null
 }
 
-export function getWithdrawalProofData (
+export function getWithdrawalProofDataForCli (
   transferId: string,
   dbTransferRoot: any
-) {
-  const rootTotalAmount = dbTransferRoot.totalAmount.toString()
-  const transferIds = dbTransferRoot.transferIds?.map((x: any) => x.transferId)
+): WithdrawalProofData {
+  const rootTotalAmount: BigNumber = dbTransferRoot.totalAmount
+  const transferIds: string[] = dbTransferRoot.transferIds?.map((x: any) => x.transferId)
   if (!transferIds?.length) {
     throw new Error('expected transfer ids for transfer root hash')
   }
-  const tree = new MerkleTree(transferIds)
-  const leaves = tree.getHexLeaves()
-  const numLeaves = leaves.length
-  const transferIndex = leaves.indexOf(transferId)
-  const proof = tree.getHexProof(leaves[transferIndex])
 
-  return {
-    rootTotalAmount,
-    numLeaves,
-    proof,
-    transferIndex,
-    leaves
-  }
+  return getWithdrawalProofData(transferId, rootTotalAmount, transferIds)
 }

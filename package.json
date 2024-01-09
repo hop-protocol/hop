@@ -9,5 +9,8 @@
   "scripts": {
     "bootstrap": "npm install"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {}
 }

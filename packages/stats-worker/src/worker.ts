@@ -1,11 +1,11 @@
-import YieldStats from './YieldStats'
-import VolumeStats from './VolumeStats'
-import TvlStats from './TvlStats'
-import { AmmStats } from './AmmStats'
-import { PriceStats } from './PriceStats'
 import BonderStats from './BonderStats'
 import S3Upload from './S3Upload'
+import TvlStats from './TvlStats'
+import VolumeStats from './VolumeStats'
+import YieldStats from './YieldStats'
 import wait from 'wait'
+import { AmmStats } from './AmmStats'
+import { PriceStats } from './PriceStats'
 
 type Options = {
   yields?: boolean
@@ -51,7 +51,7 @@ class Worker {
   bonder: boolean = false
 
   constructor (options: Options = {}) {
-    let {
+    const {
       yields,
       prices,
       tvl,

@@ -1,5 +1,5 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { getDefaultRpcUrl } from './utils/getDefaultRpcProvider'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 require('dotenv').config()
 
 export const pinataApiKey = process.env.PINATA_API_KEY

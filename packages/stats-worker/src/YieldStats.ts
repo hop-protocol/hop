@@ -1,17 +1,16 @@
 import { BigNumber, FixedNumber, constants } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { rpcUrls } from './config'
-import { Hop } from '@hop-protocol/sdk'
 import {
-  mainnet as mainnetAddresses,
   Bridges,
-  RewardsContracts
+  RewardsContracts,
+  mainnet as mainnetAddresses
 } from '@hop-protocol/core/addresses'
 import {
   ERC20__factory,
   StakingRewards__factory
 } from '@hop-protocol/core/contracts'
-import { coingeckoApiKey } from './config'
+import { Hop } from '@hop-protocol/sdk'
+import { coingeckoApiKey, rpcUrls } from './config'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
@@ -134,9 +133,9 @@ class YieldStats {
   async getAllYields () {
     const timestamp = (Date.now() / 1000) | 0
     let yieldData: YieldData = this.initializeYieldData(this.bridges)
-    for (let token in this.bridges) {
+    for (const token in this.bridges) {
       const promises: Promise<any>[] = []
-      for (let chain in this.bridges[token]) {
+      for (const chain in this.bridges[token]) {
         const shouldSkip = this.shouldSkipYields(this.bridges, chain, token)
         if (shouldSkip) {
           continue
@@ -212,8 +211,8 @@ class YieldStats {
 
   initializeYieldData (bridges: any): YieldData {
     const yieldData: any = {}
-    for (let token in bridges) {
-      for (let chain in bridges[token]) {
+    for (const token in bridges) {
+      for (const chain in bridges[token]) {
         const shouldSkip = this.shouldSkipYields(bridges, chain, token)
         if (shouldSkip) {
           continue
@@ -233,10 +232,8 @@ class YieldStats {
         const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
         if (stakingContracts?.length > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
-          if (!yieldData.stakingRewards[token])
-            yieldData.stakingRewards[token] = {}
-          if (!yieldData.stakingRewards[token][chain])
-            yieldData.stakingRewards[token][chain] = {}
+          if (!yieldData.stakingRewards[token]) { yieldData.stakingRewards[token] = {} }
+          if (!yieldData.stakingRewards[token][chain]) { yieldData.stakingRewards[token][chain] = {} }
           for (const stakingContract of stakingContracts) {
             yieldData.stakingRewards[token][chain][stakingContract] = {
               apr: 0,

@@ -1,5 +1,5 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
-import { awsAccessKeyId, awsSecretAccessKey, awsRegion } from './config'
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from './config'
 
 let credentials
 if (awsAccessKeyId) {

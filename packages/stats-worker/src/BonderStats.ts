@@ -1,31 +1,31 @@
-import path from 'path'
 import fs from 'fs'
 import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
-import { BigNumber, providers, Contract, constants } from 'ethers'
+import path from 'path'
+import { BigNumber, Contract, constants, providers } from 'ethers'
+import { DateTime } from 'luxon'
+import { PriceFeed } from './PriceFeed'
 import {
+  archiveRpcUrls,
+  enabledChains,
+  enabledTokens,
+  etherscanApiKeys,
+  rpcUrls
+} from './config'
+import { chunk } from 'lodash'
+import { createObjectCsvWriter } from 'csv-writer'
+import { db } from './Db'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import {
+  formatEther,
   formatUnits,
   parseEther,
-  formatEther,
   parseUnits
 } from 'ethers/lib/utils'
-import { DateTime } from 'luxon'
-import { db } from './Db'
-import {
-  enabledTokens,
-  enabledChains,
-  etherscanApiKeys,
-  rpcUrls,
-  archiveRpcUrls
-} from './config'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { createObjectCsvWriter } from 'csv-writer'
-import { chunk } from 'lodash'
-import { parse } from 'comment-json'
-import { PriceFeed } from './PriceFeed'
 import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl'
-import { getTokenDecimals } from './utils/getTokenDecimals'
 import { getSubgraphUrl } from './utils/getSubgraphUrl'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { parse } from 'comment-json'
 
 const jsonData = parse(
   fs
@@ -342,8 +342,8 @@ class BonderStats {
       bonderAddress = bonderAddress.toLowerCase()
 
       console.log('day:', day)
-      let now = this.endDate ?? DateTime.utc()
-      let date = now.minus({ days: day + this.offsetDays }).startOf('day')
+      const now = this.endDate ?? DateTime.utc()
+      const date = now.minus({ days: day + this.offsetDays }).startOf('day')
       console.log('date:', date.toISO())
       const timestamp = Math.floor(date.toSeconds())
       const isoDate = date.toISO()
@@ -749,7 +749,7 @@ class BonderStats {
               new Promise(async (resolve, reject) => {
                 try {
                   // console.log('fetching', token, chain)
-                  let provider = this.allProviders[chain]
+                  const provider = this.allProviders[chain]
                   const archiveProvider =
                     this.allArchiveProviders[chain] || provider
                   const bonder = bonderMap[sourceChain][
@@ -863,7 +863,7 @@ class BonderStats {
 
                   if (chain === 'ethereum') {
                     const messengerWrapperAddress = (mainnetAddresses as any)
-                      .bridges[token]['arbitrum'].l1MessengerWrapper
+                      .bridges[token].arbitrum.l1MessengerWrapper
                     balancePromises.push(
                       provider.getBalance(messengerWrapperAddress, blockTag)
                     )
@@ -897,8 +897,8 @@ class BonderStats {
                     ? Number(formatEther(native.toString()))
                     : 0
 
-                  dbData.ethPriceUsd = Number(priceMap['ETH'])
-                  dbData.maticPriceUsd = Number(priceMap['MATIC'])
+                  dbData.ethPriceUsd = Number(priceMap.ETH)
+                  dbData.maticPriceUsd = Number(priceMap.MATIC)
                   if (chain !== 'ethereum') {
                     dbData[`${chain}HTokenAmount`] = hBalance
                       ? Number(
@@ -919,9 +919,7 @@ class BonderStats {
                     )
                   }
                   if (chain === 'ethereum') {
-                    dbData[
-                      `arbitrumMessengerWrapperAmount`
-                    ] = messengerWrapperBalance
+                    dbData.arbitrumMessengerWrapperAmount = messengerWrapperBalance
                       ? Number(formatEther(messengerWrapperBalance.toString()))
                       : 0
                     console.log(
@@ -1291,12 +1289,12 @@ class BonderStats {
       target = target.getTime()
     }
 
-    var nearest = Infinity
-    var winner = -1
+    let nearest = Infinity
+    let winner = -1
 
     dates.forEach(function (date, index) {
       if (date instanceof Date) date = date.getTime()
-      var distance = Math.abs(date - target)
+      const distance = Math.abs(date - target)
       if (distance < nearest) {
         nearest = distance
         winner = index

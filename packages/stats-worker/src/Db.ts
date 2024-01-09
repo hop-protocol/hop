@@ -1,7 +1,7 @@
-const sqlite3 = require('sqlite3').verbose()
-import { v4 as uuid } from 'uuid'
-import { dbPath } from './config'
 import wait from 'wait'
+import { dbPath } from './config'
+import { v4 as uuid } from 'uuid'
+const sqlite3 = require('sqlite3').verbose()
 
 console.log('db path:', dbPath)
 

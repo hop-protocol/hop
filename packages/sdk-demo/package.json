@@ -67,10 +67,14 @@
     "eslint": "^8.17.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-n": "^15.2.1",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.30.0",
     "eslint-plugin-react-hooks": "^4.5.0",
-    "react-app-rewired": "^2.2.1"
+    "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "react-app-rewired": "^2.2.1",
+    "eslint-config-hop-protocol": "0.0.1-beta.0"
   }
 }

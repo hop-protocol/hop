@@ -1,5 +1,5 @@
-require('dotenv').config()
 import Worker from './worker'
+require('dotenv').config()
 
 const argv = require('minimist')(process.argv.slice(2))
 console.debug('flags:', argv)

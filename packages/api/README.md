@@ -1,6 +1,6 @@
 ## Hop v1 API
 
-> A simple hop REST API for getting bonder fee estimates and transfer status.
+> A simple hop REST API for getting bonder fee estimates and transfer status. This is a wrapper around the hop JS sdk.
 
 ## Usage
 

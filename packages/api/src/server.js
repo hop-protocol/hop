@@ -164,6 +164,56 @@ app.get('/v1/available-routes', responseCache, ipRateLimitMiddleware, async (req
   }
 })
 
+app.get('/v1/build-tx', async (req, res) => {
+  const { token, amount, fromChain, toChain, recipient } = req.query
+
+  try {
+    const hop = new Hop(network)
+    const bridge = hop.bridge(token)
+    const amountBn = bridge.parseUnits(amount)
+    const tx = await bridge.populateSendTx(amountBn, fromChain, toChain, {
+      recipient
+    })
+    res.json({
+      tx
+    })
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/approval/check-allowance', async (req, res) => {
+  const { token, amount, fromChain, account } = req.query
+
+  try {
+    const hop = new Hop(network)
+    const bridge = hop.bridge(token)
+    const amountBn = bridge.parseUnits(amount)
+    const needsApproval = await bridge.needsApproval(amountBn, fromChain, account)
+    res.json({
+      needsApproval
+    })
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
+app.get('/v1/approval/build-tx', async (req, res) => {
+  const { token, amount, fromChain } = req.query
+
+  try {
+    const hop = new Hop(network)
+    const bridge = hop.bridge(token)
+    const amountBn = bridge.parseUnits(amount)
+    const tx = await bridge.populateSendApprovalTx(amountBn, fromChain)
+    res.json({
+      tx
+    })
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
 app.get('/health', async (req, res) => {
   res.json({ status: 'OK' })
 })

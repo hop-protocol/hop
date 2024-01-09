@@ -175,6 +175,12 @@ const hopStakingRewardsContracts = {
     base: {
       ETH: '0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7',
       USDC: '0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6'
+    },
+    linea: {
+      ETH: '0xfF21e82a4Bc305BCE591530A68628192b5b6B6FD'
+    },
+    polygonzk: {
+      ETH: '0xD063875762e760Ee787b11F6Af624058b4841A5a'
     }
   },
   goerli: {

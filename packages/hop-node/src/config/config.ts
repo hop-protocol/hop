@@ -182,7 +182,6 @@ for (const network in coreNetworks) {
   const networks: any = {}
 
   for (const chain in coreNetwork) {
-    console.log('chainnnnnnnn', chain, network)
     const chainObj = coreNetwork[chain as Chain]
     if (!networks[chain]) {
       networks[chain] = {}

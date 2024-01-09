@@ -165,6 +165,7 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://zkevm.polygonscan.com/'],
     nativeBridgeUrl: 'https://portal.polygon.technology/',
+    subgraphUrl: 'https://polygonzk.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-polygonzk',
     etherscanApiUrl: 'https://api-zkevm.polygonscan.com/api',
     isRollup: true,
     isRelayable: true,

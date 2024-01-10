@@ -5,6 +5,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
+    "strictNullChecks": true,
     "experimentalDecorators": true,
     "target": "ES2017",
     "noImplicitAny": true,

@@ -76,11 +76,21 @@ class Worker {
       pollIntervalSeconds,
       pricesPollIntervalSeconds
     } = options
-    this.yields = yields
-    this.prices = prices
-    this.tvl = tvl
-    this.amm = amm
-    this.volume = volume
+    if (yields) {
+      this.yields = yields
+    }
+    if (prices) {
+      this.prices = prices
+    }
+    if (tvl) {
+      this.tvl = tvl
+    }
+    if (amm) {
+      this.amm = amm
+    }
+    if (volume) {
+      this.volume = volume
+    }
     if (pollIntervalSeconds) {
       this.pollIntervalMs = pollIntervalSeconds * 1000
     }

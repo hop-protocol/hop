@@ -26,14 +26,14 @@ export class PriceFeed {
     })
   }
 
-  async getPriceByTokenSymbol (tokenSymbol: string) {
+  async getPriceByTokenSymbol (tokenSymbol: string): Promise<number> {
     const price = await this.instance.getPriceByTokenSymbol(tokenSymbol)
     return price
   }
 
   async getPriceHistory (tokenSymbol: string, days: number) {
     const cacheKey = `${tokenSymbol}:${days}`
-    if (cache[cacheKey] && cacheTimestamps[cacheKey]) {
+    if (cache[cacheKey] != null && cacheTimestamps[cacheKey] != null) {
       const isRecent = cacheTimestamps[cacheKey] > Date.now() - this.cacheTimeMs
       if (isRecent) {
         return cache[cacheKey]

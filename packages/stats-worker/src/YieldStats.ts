@@ -111,8 +111,8 @@ type Response = {
 
 class YieldStats {
   sdk = new Hop('mainnet')
-  bridges: Bridges
-  stakingRewardsContracts: RewardsContracts
+  bridges: Partial<Bridges>
+  stakingRewardsContracts: Partial<RewardsContracts>
 
   constructor () {
     this.sdk.setChainProviderUrls(rpcUrls)
@@ -121,8 +121,8 @@ class YieldStats {
       coingecko: coingeckoApiKey
     })
 
-    this.bridges = mainnetAddresses.bridges
-    this.stakingRewardsContracts = mainnetAddresses.rewardsContracts
+    this.bridges = mainnetAddresses.bridges!
+    this.stakingRewardsContracts = mainnetAddresses.rewardsContracts!
 
     console.log(
       'provider urls:',
@@ -230,11 +230,11 @@ class YieldStats {
         }
 
         const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
-        if (stakingContracts?.length > 0) {
+        if (stakingContracts?.length! > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
           if (!yieldData.stakingRewards[token]) { yieldData.stakingRewards[token] = {} }
           if (!yieldData.stakingRewards[token][chain]) { yieldData.stakingRewards[token][chain] = {} }
-          for (const stakingContract of stakingContracts) {
+          for (const stakingContract of stakingContracts!) {
             yieldData.stakingRewards[token][chain][stakingContract] = {
               apr: 0,
               apy: 0,
@@ -511,8 +511,8 @@ class YieldStats {
 
       const { apr, apy } = this.calculateStakingYield(
         canonToken.decimals,
-        tokenUsdPrice,
-        rewardTokenUsdPrice,
+        tokenUsdPrice!,
+        rewardTokenUsdPrice!,
         stakedTotal,
         totalRewardsPerDay
       )

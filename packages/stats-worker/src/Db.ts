@@ -370,7 +370,7 @@ class Db {
     }
 
     await wait(100)
-    return await this.tilReady()
+    return this.tilReady()
   }
 
   async upsertLatestMigration () {

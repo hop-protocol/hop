@@ -118,6 +118,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   }
 
   protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+    await this.#tilReady()
     // PolygonZk status is retrieved from the hash
     return message
   }

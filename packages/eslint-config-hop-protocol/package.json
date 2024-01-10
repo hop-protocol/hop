@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lerna:sync": "lerna-sync-version",
+    "version:sync": "package-sync-version",
     "release": "npm run publish:latest",
     "version:bump": "npm version prerelease --preid=beta",
-    "bump": "npm run version:bump && npm run lerna:sync",
-    "bump-release": "npm run version:bump && npm run lerna:sync && npm run release"
+    "bump": "npm run version:bump && npm run version:sync",
+    "bump-release": "npm run version:bump && npm run version:sync && npm run release"
   },
   "author": "",
   "license": "MIT",
@@ -28,8 +28,8 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^3.0.0",
-    "lerna-sync-version": "0.0.6",
+    "package-sync-version": "^0.0.2",
     "typescript": "^5.3.3",
-    "eslint-config-hop-protocol": "0.0.1-beta.0"
+    "eslint-config-hop-protocol": "0.0.1-beta.1"
   }
 }

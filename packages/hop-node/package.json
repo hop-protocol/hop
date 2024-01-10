@@ -20,7 +20,7 @@
     "clean": "rimraf dist",
     "clean:arbitrum": "rimraf l2_nodes/arbitrum/data",
     "clean:db": "rimraf db_data",
-    "lerna:sync": "lerna-sync-version",
+    "version:sync": "package-sync-version",
     "version:bump": "npm version prerelease --preid=beta",
     "publish:latest": "npm publish --tag latest --access public",
     "publish:beta": "npm publish --tag beta --access public",
@@ -29,8 +29,8 @@
     "dist-tag:beta": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" beta",
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" next",
     "release": "npm run clean && npm run publish:latest",
-    "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run lerna:sync",
-    "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
+    "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run version:sync",
+    "bump-release": "npm run version:bump && npm run version:sync && npm run release",
     "prepare": "npm run lint && npm run build"
   },
   "bin": {
@@ -127,7 +127,7 @@
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^1.1.2",
     "jest": "^26.6.3",
-    "lerna-sync-version": "0.0.6",
+    "package-sync-version": "^0.0.2",
     "ts-jest": "^26.5.2",
     "typescript": "4.5.3"
   },

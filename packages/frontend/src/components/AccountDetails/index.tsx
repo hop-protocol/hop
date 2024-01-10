@@ -1,1 +1,1 @@
-export { AccountDetails } from './AccountDetails'
+export { AccountDetails } from 'src/components/AccountDetails/AccountDetails'

@@ -25,18 +25,24 @@ Class reprensenting Hop
 - [baseExplorerUrl](Hop.md#baseexplorerurl)
 - [blocklist](Hop.md#blocklist)
 - [bonders](Hop.md#bonders)
+- [bridgeDeprecated](Hop.md#bridgedeprecated)
 - [chainProviders](Hop.md#chainproviders)
 - [chains](Hop.md#chains)
 - [configFileFetchEnabled](Hop.md#configfilefetchenabled)
 - [customAvailableLiquidityJsonUrl](Hop.md#customavailableliquidityjsonurl)
 - [customCoreConfigJsonUrl](Hop.md#customcoreconfigjsonurl)
+- [debugTimeLogsCache](Hop.md#debugtimelogscache)
+- [debugTimeLogsCacheEnabled](Hop.md#debugtimelogscacheenabled)
+- [debugTimeLogsEnabled](Hop.md#debugtimelogsenabled)
 - [destinationFeeGasPriceMultiplier](Hop.md#destinationfeegaspricemultiplier)
 - [fees](Hop.md#fees)
 - [gasPriceMultiplier](Hop.md#gaspricemultiplier)
 - [getContract](Hop.md#getcontract)
+- [getGasPrice](Hop.md#getgasprice)
 - [network](Hop.md#network)
 - [priceFeedApiKeys](Hop.md#pricefeedapikeys)
 - [relayerFeeEnabled](Hop.md#relayerfeeenabled)
+- [relayerFeeWei](Hop.md#relayerfeewei)
 - [signer](Hop.md#signer)
 - [Chain](Hop.md#chain-1)
 - [Event](Hop.md#event-1)
@@ -56,9 +62,10 @@ Class reprensenting Hop
 - [\_getBonderAddress](Hop.md#_getbonderaddress)
 - [\_getMessengerWrapperAddress](Hop.md#_getmessengerwrapperaddress)
 - [bridge](Hop.md#bridge)
-- [canonicalBridge](Hop.md#canonicalbridge)
 - [checkBlocklist](Hop.md#checkblocklist)
 - [connect](Hop.md#connect)
+- [debugTimeLog](Hop.md#debugtimelog)
+- [estimateGas](Hop.md#estimategas)
 - [estimateOptimismL1FeeFromData](Hop.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](Hop.md#fetchbonderavailableliquiditydata)
 - [fetchBonderAvailableLiquidityDataWithIpfsFallback](Hop.md#fetchbonderavailableliquiditydatawithipfsfallback)
@@ -76,6 +83,7 @@ Class reprensenting Hop
 - [getChainProviderUrls](Hop.md#getchainproviderurls)
 - [getChainProviders](Hop.md#getchainproviders)
 - [getConfigAddresses](Hop.md#getconfigaddresses)
+- [getDebugTimeLogs](Hop.md#getdebugtimelogs)
 - [getDestinationFeeGasPriceMultiplier](Hop.md#getdestinationfeegaspricemultiplier)
 - [getExplorerUrl](Hop.md#getexplorerurl)
 - [getExplorerUrlForAccount](Hop.md#getexplorerurlforaccount)
@@ -83,9 +91,9 @@ Class reprensenting Hop
 - [getExplorerUrlForTransferId](Hop.md#getexplorerurlfortransferid)
 - [getFeeBps](Hop.md#getfeebps)
 - [getIpfsBaseConfigUrl](Hop.md#getipfsbaseconfigurl)
+- [getIsBridgeDeprecated](Hop.md#getisbridgedeprecated)
 - [getL1AmbBridgeAddress](Hop.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](Hop.md#getl1bridgeaddress)
-- [getL1BridgeWrapperAddress](Hop.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridgeAddress](Hop.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](Hop.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](Hop.md#getl1poserc20predicateaddress)
@@ -107,8 +115,9 @@ Class reprensenting Hop
 - [getSupportedAssetsForChain](Hop.md#getsupportedassetsforchain)
 - [getSupportedChains](Hop.md#getsupportedchains)
 - [getSupportedTokens](Hop.md#getsupportedtokens)
+- [getTokenBalancesForAccount](Hop.md#gettokenbalancesforaccount)
 - [getTransferStatus](Hop.md#gettransferstatus)
-- [getWaitConfirmations](Hop.md#getwaitconfirmations)
+- [getTransferTimes](Hop.md#gettransfertimes)
 - [isValidChain](Hop.md#isvalidchain)
 - [isValidNetwork](Hop.md#isvalidnetwork)
 - [resolveDnslink](Hop.md#resolvednslink)
@@ -128,7 +137,6 @@ Class reprensenting Hop
 - [txOverrides](Hop.md#txoverrides)
 - [watch](Hop.md#watch)
 - [watchBridge](Hop.md#watchbridge)
-- [watchCanonical](Hop.md#watchcanonical)
 
 ## Constructors
 
@@ -247,6 +255,16 @@ ___
 
 ___
 
+### <a id="bridgedeprecated" name="bridgedeprecated"></a> bridgeDeprecated
+
+• **bridgeDeprecated**: `Record`<`string`, `boolean`\>
+
+#### Inherited from
+
+[Base](Base.md).[bridgeDeprecated](Base.md#bridgedeprecated)
+
+___
+
 ### <a id="chainproviders" name="chainproviders"></a> chainProviders
 
 • **chainProviders**: `ChainProviders` = `{}`
@@ -294,6 +312,36 @@ ___
 #### Inherited from
 
 [Base](Base.md).[customCoreConfigJsonUrl](Base.md#customcoreconfigjsonurl)
+
+___
+
+### <a id="debugtimelogscache" name="debugtimelogscache"></a> debugTimeLogsCache
+
+• **debugTimeLogsCache**: `any`[] = `[]`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsCache](Base.md#debugtimelogscache)
+
+___
+
+### <a id="debugtimelogscacheenabled" name="debugtimelogscacheenabled"></a> debugTimeLogsCacheEnabled
+
+• **debugTimeLogsCacheEnabled**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsCacheEnabled](Base.md#debugtimelogscacheenabled)
+
+___
+
+### <a id="debugtimelogsenabled" name="debugtimelogsenabled"></a> debugTimeLogsEnabled
+
+• **debugTimeLogsEnabled**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsEnabled](Base.md#debugtimelogsenabled)
 
 ___
 
@@ -357,6 +405,30 @@ ___
 
 ___
 
+### <a id="getgasprice" name="getgasprice"></a> getGasPrice
+
+• **getGasPrice**: (...`args`: [signerOrProvider: TProvider]) => `Promise`<`BigNumber`\>
+
+#### Type declaration
+
+▸ (`...args`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `...args` | [signerOrProvider: TProvider] |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+#### Inherited from
+
+[Base](Base.md).[getGasPrice](Base.md#getgasprice)
+
+___
+
 ### <a id="network" name="network"></a> network
 
 • **network**: `string`
@@ -382,6 +454,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[relayerFeeEnabled](Base.md#relayerfeeenabled)
+
+___
+
+### <a id="relayerfeewei" name="relayerfeewei"></a> relayerFeeWei
+
+• **relayerFeeWei**: `Record`<`string`, `string`\>
+
+#### Inherited from
+
+[Base](Base.md).[relayerFeeWei](Base.md#relayerfeewei)
 
 ___
 
@@ -590,38 +672,6 @@ const bridge = hop.bridge('USDC')
 
 ___
 
-### <a id="canonicalbridge" name="canonicalbridge"></a> canonicalBridge
-
-▸ **canonicalBridge**(`token`, `chain?`): [`CanonicalBridge`](CanonicalBridge.md)
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `token` | [`TToken`](../modules.md#ttoken) | Token model or symbol of token of canonical bridge to use. |
-| `chain?` | [`TChain`](../modules.md#tchain) | Chain model. |
-
-#### Returns
-
-[`CanonicalBridge`](CanonicalBridge.md)
-
-A CanonicalBridge instance.
-
-**`Desc`**
-
-Returns a canonical bridge sdk instance.
-
-**`Example`**
-
-```js
-import { Hop } from '@hop-protocol/sdk'
-
-const hop = new Hop()
-const bridge = hop.canonicalBridge('USDC')
-```
-
-___
-
 ### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
 
 ▸ **checkBlocklist**(): `Promise`<`void`\>
@@ -667,6 +717,48 @@ let hop = new Hop()
 // ...
 hop = hop.connect(signer)
 ```
+
+___
+
+### <a id="debugtimelog" name="debugtimelog"></a> debugTimeLog
+
+▸ **debugTimeLog**(`label`, `timeStart`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `label` | `string` |
+| `timeStart` | `number` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLog](Base.md#debugtimelog)
+
+___
+
+### <a id="estimategas" name="estimategas"></a> estimateGas
+
+▸ **estimateGas**(`signerOrProvider`, `tx`): `Promise`<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signerOrProvider` | [`TProvider`](../modules.md#tprovider) |
+| `tx` | `any` |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+#### Inherited from
+
+[Base](Base.md).[estimateGas](Base.md#estimategas)
 
 ___
 
@@ -978,6 +1070,20 @@ ___
 
 ___
 
+### <a id="getdebugtimelogs" name="getdebugtimelogs"></a> getDebugTimeLogs
+
+▸ **getDebugTimeLogs**(): `any`[]
+
+#### Returns
+
+`any`[]
+
+#### Inherited from
+
+[Base](Base.md).[getDebugTimeLogs](Base.md#getdebugtimelogs)
+
+___
+
 ### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
 
 ▸ **getDestinationFeeGasPriceMultiplier**(): `number`
@@ -1107,6 +1213,26 @@ ___
 
 ___
 
+### <a id="getisbridgedeprecated" name="getisbridgedeprecated"></a> getIsBridgeDeprecated
+
+▸ **getIsBridgeDeprecated**(`token`): `Promise`<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+
+#### Returns
+
+`Promise`<`boolean`\>
+
+#### Inherited from
+
+[Base](Base.md).[getIsBridgeDeprecated](Base.md#getisbridgedeprecated)
+
+___
+
 ### <a id="getl1ambbridgeaddress" name="getl1ambbridgeaddress"></a> getL1AmbBridgeAddress
 
 ▸ **getL1AmbBridgeAddress**(`token`, `chain`): `string`
@@ -1146,28 +1272,6 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getL1BridgeAddress](Base.md#getl1bridgeaddress)
-
-___
-
-### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
-
-▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `token` | [`TToken`](../modules.md#ttoken) |
-| `sourceChain` | [`TChain`](../modules.md#tchain) |
-| `destinationChain` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`string`
-
-#### Inherited from
-
-[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
 
 ___
 
@@ -1598,6 +1702,26 @@ ___
 
 ___
 
+### <a id="gettokenbalancesforaccount" name="gettokenbalancesforaccount"></a> getTokenBalancesForAccount
+
+▸ **getTokenBalancesForAccount**(`accountAddress`): `Promise`<`Balance`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `accountAddress` | `string` |
+
+#### Returns
+
+`Promise`<`Balance`[]\>
+
+#### Inherited from
+
+[Base](Base.md).[getTokenBalancesForAccount](Base.md#gettokenbalancesforaccount)
+
+___
+
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
 ▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`<`any`\>
@@ -1606,7 +1730,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `transferIdOrTxHash` | `String` |
+| `transferIdOrTxHash` | `string` |
 
 #### Returns
 
@@ -1618,23 +1742,24 @@ ___
 
 ___
 
-### <a id="getwaitconfirmations" name="getwaitconfirmations"></a> getWaitConfirmations
+### <a id="gettransfertimes" name="gettransfertimes"></a> getTransferTimes
 
-▸ **getWaitConfirmations**(`chain`): `number`
+▸ **getTransferTimes**(`sourceChainSlug`, `destinationChainSlug`): `Promise`<`any`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `chain` | [`TChain`](../modules.md#tchain) |
+| `sourceChainSlug` | `string` |
+| `destinationChainSlug` | `string` |
 
 #### Returns
 
-`number`
+`Promise`<`any`\>
 
 #### Inherited from
 
-[Base](Base.md).[getWaitConfirmations](Base.md#getwaitconfirmations)
+[Base](Base.md).[getTransferTimes](Base.md#gettransfertimes)
 
 ___
 
@@ -1976,8 +2101,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `sourceChain` | [`Chain`](Chain.md) |
-| `destinationChain?` | [`Chain`](Chain.md) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 
@@ -2044,22 +2169,3 @@ ___
 #### Returns
 
 `EventEmitter`<`string` \| `symbol`, `any`\>
-
-___
-
-### <a id="watchcanonical" name="watchcanonical"></a> watchCanonical
-
-▸ **watchCanonical**(`txHash`, `token`, `sourceChain`, `destinationChain`): `Error` \| `EventEmitter`<`string` \| `symbol`, `any`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `txHash` | `string` |
-| `token` | [`TToken`](../modules.md#ttoken) |
-| `sourceChain` | [`TChain`](../modules.md#tchain) |
-| `destinationChain` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`Error` \| `EventEmitter`<`string` \| `symbol`, `any`\>

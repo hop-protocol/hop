@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react'
 import { MenuItem } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
-import { Flex, Text } from '../ui'
 import { findNetworkBySlug } from 'src/utils'
 import Network from 'src/models/Network'
-import RaisedSelect from '../selects/RaisedSelect'
-import SelectOption from '../selects/SelectOption'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
+import SelectOption from 'src/components/selects/SelectOption'
 
 interface Props {
   selectedNetwork?: Network

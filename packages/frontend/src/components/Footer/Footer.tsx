@@ -16,10 +16,10 @@ import {
   twitterUrl,
   forumUrl,
 } from 'src/utils/constants'
-import { Flex, SvgImg } from '../ui'
-import { StyledLink } from '../ui/StyledLink'
+import { Flex, SvgImg } from 'src/components/ui'
+import { StyledLink } from 'src/components/ui/StyledLink'
 import { useThemeMode } from 'src/theme/ThemeProvider'
-import { useBlockNumber } from './useBlockNumber'
+import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
 import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme: any) => ({

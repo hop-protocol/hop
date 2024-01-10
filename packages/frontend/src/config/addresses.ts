@@ -1,8 +1,8 @@
-import { mainnetAddresses, mainnetNetworks } from './mainnet'
-import { goerliAddresses, goerliNetworks } from './goerli'
-import { sepoliaAddresses, sepoliaNetworks } from './sepolia'
+import { mainnetAddresses, mainnetNetworks } from 'src/config/mainnet'
+import { goerliAddresses, goerliNetworks } from 'src/config/goerli'
+import { sepoliaAddresses, sepoliaNetworks } from 'src/config/sepolia'
 import { Slug } from '@hop-protocol/sdk'
-import { gitRevision } from './config'
+import { gitRevision } from 'src/config/config'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
 let addresses: any
@@ -175,6 +175,12 @@ const hopStakingRewardsContracts = {
     base: {
       ETH: '0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7',
       USDC: '0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6'
+    },
+    linea: {
+      ETH: '0xfF21e82a4Bc305BCE591530A68628192b5b6B6FD'
+    },
+    polygonzk: {
+      ETH: '0xD063875762e760Ee787b11F6Af624058b4841A5a'
     }
   },
   goerli: {

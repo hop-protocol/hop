@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { CircularProgress } from '@material-ui/core'
 import Check from '@material-ui/icons/Check'
 import Link from '@material-ui/core/Link'
-import { Div, Flex } from '../ui'
-import { Text } from '../ui/Text'
+import { Div, Flex } from 'src/components/ui'
+import { Text } from 'src/components/ui/Text'
 import { isLayer1, networkSlugToName } from 'src/utils'
 
 function TransactionStatus(props) {

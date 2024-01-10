@@ -2,7 +2,6 @@ import React from 'react'
 import styled from 'styled-components'
 import { useTable, useSortBy } from 'react-table'
 import makeData from './makeData'
-import { Div } from '../ui'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Alert from '@material-ui/lab/Alert'
 import Typography from '@material-ui/core/Typography'
@@ -77,7 +76,7 @@ function Table({ columns, data, loading }) {
   )
 
   return (
-    <Div style={{ width: '100%' }}>
+    <Box width="100%">
       <table {...getTableProps()}>
         <thead>
           {headerGroups.map((headerGroup: any, i) => (
@@ -136,7 +135,7 @@ function Table({ columns, data, loading }) {
           })}
         </tbody>
       </table>
-    </Div>
+    </Box>
   )
 }
 

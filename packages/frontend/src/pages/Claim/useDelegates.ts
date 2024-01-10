@@ -7,7 +7,7 @@ import { commafy } from 'src/utils/commafy'
 import Address from 'src/models/Address'
 import shuffle from 'lodash/shuffle'
 import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
-import { delegatesJsonUrl, claimChainId } from './config'
+import { delegatesJsonUrl, claimChainId } from 'src/pages/Claim/config'
 import { networkIdToSlug } from 'src/utils/networks'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
 

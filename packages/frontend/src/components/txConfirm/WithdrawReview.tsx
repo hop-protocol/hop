@@ -5,7 +5,7 @@ import Typography from '@material-ui/core/Typography'
 import { NetworkTokenEntity } from 'src/utils'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
 import { ExternalLink } from 'src/components/Link'
-import { useSendingTransaction } from './useSendingTransaction'
+import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {

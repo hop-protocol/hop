@@ -22,6 +22,7 @@ Class representing AMM contract
 - [baseExplorerUrl](AMM.md#baseexplorerurl)
 - [blocklist](AMM.md#blocklist)
 - [bonders](AMM.md#bonders)
+- [bridgeDeprecated](AMM.md#bridgedeprecated)
 - [calculateSwap](AMM.md#calculateswap)
 - [chain](AMM.md#chain)
 - [chainProviders](AMM.md#chainproviders)
@@ -29,12 +30,17 @@ Class representing AMM contract
 - [configFileFetchEnabled](AMM.md#configfilefetchenabled)
 - [customAvailableLiquidityJsonUrl](AMM.md#customavailableliquidityjsonurl)
 - [customCoreConfigJsonUrl](AMM.md#customcoreconfigjsonurl)
+- [debugTimeLogsCache](AMM.md#debugtimelogscache)
+- [debugTimeLogsCacheEnabled](AMM.md#debugtimelogscacheenabled)
+- [debugTimeLogsEnabled](AMM.md#debugtimelogsenabled)
 - [destinationFeeGasPriceMultiplier](AMM.md#destinationfeegaspricemultiplier)
 - [fees](AMM.md#fees)
 - [gasPriceMultiplier](AMM.md#gaspricemultiplier)
 - [getContract](AMM.md#getcontract)
+- [getGasPrice](AMM.md#getgasprice)
 - [network](AMM.md#network)
 - [relayerFeeEnabled](AMM.md#relayerfeeenabled)
+- [relayerFeeWei](AMM.md#relayerfeewei)
 - [signer](AMM.md#signer)
 - [tokenSymbol](AMM.md#tokensymbol)
 
@@ -63,6 +69,8 @@ Class representing AMM contract
 - [calculateTotalAmountForLpToken](AMM.md#calculatetotalamountforlptoken)
 - [checkBlocklist](AMM.md#checkblocklist)
 - [connect](AMM.md#connect)
+- [debugTimeLog](AMM.md#debugtimelog)
+- [estimateGas](AMM.md#estimategas)
 - [estimateOptimismL1FeeFromData](AMM.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](AMM.md#fetchbonderavailableliquiditydata)
 - [fetchBonderAvailableLiquidityDataWithIpfsFallback](AMM.md#fetchbonderavailableliquiditydatawithipfsfallback)
@@ -84,6 +92,7 @@ Class representing AMM contract
 - [getChainProviders](AMM.md#getchainproviders)
 - [getConfigAddresses](AMM.md#getconfigaddresses)
 - [getDailyVolume](AMM.md#getdailyvolume)
+- [getDebugTimeLogs](AMM.md#getdebugtimelogs)
 - [getDestinationFeeGasPriceMultiplier](AMM.md#getdestinationfeegaspricemultiplier)
 - [getExplorerUrl](AMM.md#getexplorerurl)
 - [getExplorerUrlForAccount](AMM.md#getexplorerurlforaccount)
@@ -92,9 +101,9 @@ Class representing AMM contract
 - [getFeeBps](AMM.md#getfeebps)
 - [getHopTokenAddress](AMM.md#gethoptokenaddress)
 - [getIpfsBaseConfigUrl](AMM.md#getipfsbaseconfigurl)
+- [getIsBridgeDeprecated](AMM.md#getisbridgedeprecated)
 - [getL1AmbBridgeAddress](AMM.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](AMM.md#getl1bridgeaddress)
-- [getL1BridgeWrapperAddress](AMM.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridgeAddress](AMM.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](AMM.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](AMM.md#getl1poserc20predicateaddress)
@@ -122,9 +131,10 @@ Class representing AMM contract
 - [getSupportedChains](AMM.md#getsupportedchains)
 - [getSupportedTokens](AMM.md#getsupportedtokens)
 - [getSwapFee](AMM.md#getswapfee)
+- [getTokenBalancesForAccount](AMM.md#gettokenbalancesforaccount)
 - [getTransferStatus](AMM.md#gettransferstatus)
+- [getTransferTimes](AMM.md#gettransfertimes)
 - [getVirtualPrice](AMM.md#getvirtualprice)
-- [getWaitConfirmations](AMM.md#getwaitconfirmations)
 - [getYieldData](AMM.md#getyielddata)
 - [getYieldStatsForDay](AMM.md#getyieldstatsforday)
 - [isHighPriceImpact](AMM.md#ishighpriceimpact)
@@ -239,6 +249,16 @@ ___
 
 ___
 
+### <a id="bridgedeprecated" name="bridgedeprecated"></a> bridgeDeprecated
+
+• **bridgeDeprecated**: `Record`<`string`, `boolean`\>
+
+#### Inherited from
+
+[Base](Base.md).[bridgeDeprecated](Base.md#bridgedeprecated)
+
+___
+
 ### <a id="calculateswap" name="calculateswap"></a> calculateSwap
 
 • **calculateSwap**: (...`args`: [fromIndex: TokenIndex, toIndex: TokenIndex, amount: BigNumberish]) => `Promise`<`any`\>
@@ -317,6 +337,36 @@ ___
 
 ___
 
+### <a id="debugtimelogscache" name="debugtimelogscache"></a> debugTimeLogsCache
+
+• **debugTimeLogsCache**: `any`[] = `[]`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsCache](Base.md#debugtimelogscache)
+
+___
+
+### <a id="debugtimelogscacheenabled" name="debugtimelogscacheenabled"></a> debugTimeLogsCacheEnabled
+
+• **debugTimeLogsCacheEnabled**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsCacheEnabled](Base.md#debugtimelogscacheenabled)
+
+___
+
+### <a id="debugtimelogsenabled" name="debugtimelogsenabled"></a> debugTimeLogsEnabled
+
+• **debugTimeLogsEnabled**: `boolean` = `false`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLogsEnabled](Base.md#debugtimelogsenabled)
+
+___
+
 ### <a id="destinationfeegaspricemultiplier" name="destinationfeegaspricemultiplier"></a> destinationFeeGasPriceMultiplier
 
 • **destinationFeeGasPriceMultiplier**: `number` = `1`
@@ -377,6 +427,30 @@ ___
 
 ___
 
+### <a id="getgasprice" name="getgasprice"></a> getGasPrice
+
+• **getGasPrice**: (...`args`: [signerOrProvider: TProvider]) => `Promise`<`BigNumber`\>
+
+#### Type declaration
+
+▸ (`...args`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `...args` | [signerOrProvider: TProvider] |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+#### Inherited from
+
+[Base](Base.md).[getGasPrice](Base.md#getgasprice)
+
+___
+
 ### <a id="network" name="network"></a> network
 
 • **network**: `string`
@@ -396,6 +470,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[relayerFeeEnabled](Base.md#relayerfeeenabled)
+
+___
+
+### <a id="relayerfeewei" name="relayerfeewei"></a> relayerFeeWei
+
+• **relayerFeeWei**: `Record`<`string`, `string`\>
+
+#### Inherited from
+
+[Base](Base.md).[relayerFeeWei](Base.md#relayerfeewei)
 
 ___
 
@@ -779,6 +863,48 @@ amm = amm.connect(signer)
 
 ___
 
+### <a id="debugtimelog" name="debugtimelog"></a> debugTimeLog
+
+▸ **debugTimeLog**(`label`, `timeStart`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `label` | `string` |
+| `timeStart` | `number` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[debugTimeLog](Base.md#debugtimelog)
+
+___
+
+### <a id="estimategas" name="estimategas"></a> estimateGas
+
+▸ **estimateGas**(`signerOrProvider`, `tx`): `Promise`<`BigNumber`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signerOrProvider` | [`TProvider`](../modules.md#tprovider) |
+| `tx` | `any` |
+
+#### Returns
+
+`Promise`<`BigNumber`\>
+
+#### Inherited from
+
+[Base](Base.md).[estimateGas](Base.md#estimategas)
+
+___
+
 ### <a id="estimateoptimisml1feefromdata" name="estimateoptimisml1feefromdata"></a> estimateOptimismL1FeeFromData
 
 ▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`, `destChain?`): `Promise`<`any`\>
@@ -1145,6 +1271,20 @@ ___
 
 ___
 
+### <a id="getdebugtimelogs" name="getdebugtimelogs"></a> getDebugTimeLogs
+
+▸ **getDebugTimeLogs**(): `any`[]
+
+#### Returns
+
+`any`[]
+
+#### Inherited from
+
+[Base](Base.md).[getDebugTimeLogs](Base.md#getdebugtimelogs)
+
+___
+
 ### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
 
 ▸ **getDestinationFeeGasPriceMultiplier**(): `number`
@@ -1290,6 +1430,26 @@ ___
 
 ___
 
+### <a id="getisbridgedeprecated" name="getisbridgedeprecated"></a> getIsBridgeDeprecated
+
+▸ **getIsBridgeDeprecated**(`token`): `Promise`<`boolean`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+
+#### Returns
+
+`Promise`<`boolean`\>
+
+#### Inherited from
+
+[Base](Base.md).[getIsBridgeDeprecated](Base.md#getisbridgedeprecated)
+
+___
+
 ### <a id="getl1ambbridgeaddress" name="getl1ambbridgeaddress"></a> getL1AmbBridgeAddress
 
 ▸ **getL1AmbBridgeAddress**(`token`, `chain`): `string`
@@ -1329,28 +1489,6 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getL1BridgeAddress](Base.md#getl1bridgeaddress)
-
-___
-
-### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
-
-▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `token` | [`TToken`](../modules.md#ttoken) |
-| `sourceChain` | [`TChain`](../modules.md#tchain) |
-| `destinationChain` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`string`
-
-#### Inherited from
-
-[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
 
 ___
 
@@ -1861,6 +1999,26 @@ ___
 
 ___
 
+### <a id="gettokenbalancesforaccount" name="gettokenbalancesforaccount"></a> getTokenBalancesForAccount
+
+▸ **getTokenBalancesForAccount**(`accountAddress`): `Promise`<`Balance`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `accountAddress` | `string` |
+
+#### Returns
+
+`Promise`<`Balance`[]\>
+
+#### Inherited from
+
+[Base](Base.md).[getTokenBalancesForAccount](Base.md#gettokenbalancesforaccount)
+
+___
+
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
 ▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`<`any`\>
@@ -1869,7 +2027,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `transferIdOrTxHash` | `String` |
+| `transferIdOrTxHash` | `string` |
 
 #### Returns
 
@@ -1881,6 +2039,27 @@ ___
 
 ___
 
+### <a id="gettransfertimes" name="gettransfertimes"></a> getTransferTimes
+
+▸ **getTransferTimes**(`sourceChainSlug`, `destinationChainSlug`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChainSlug` | `string` |
+| `destinationChainSlug` | `string` |
+
+#### Returns
+
+`Promise`<`any`\>
+
+#### Inherited from
+
+[Base](Base.md).[getTransferTimes](Base.md#gettransfertimes)
+
+___
+
 ### <a id="getvirtualprice" name="getvirtualprice"></a> getVirtualPrice
 
 ▸ **getVirtualPrice**(): `Promise`<`BigNumber`\>
@@ -1888,26 +2067,6 @@ ___
 #### Returns
 
 `Promise`<`BigNumber`\>
-
-___
-
-### <a id="getwaitconfirmations" name="getwaitconfirmations"></a> getWaitConfirmations
-
-▸ **getWaitConfirmations**(`chain`): `number`
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chain` | [`TChain`](../modules.md#tchain) |
-
-#### Returns
-
-`number`
-
-#### Inherited from
-
-[Base](Base.md).[getWaitConfirmations](Base.md#getwaitconfirmations)
 
 ___
 
@@ -2393,8 +2552,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `sourceChain` | [`Chain`](Chain.md) |
-| `destinationChain?` | [`Chain`](Chain.md) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 

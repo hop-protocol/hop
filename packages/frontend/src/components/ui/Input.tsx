@@ -2,7 +2,7 @@ import React from 'react'
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import Typography from '@material-ui/core/Typography'
 import styled from 'styled-components/macro'
-import { Div } from '.'
+import { Div } from 'src/components/ui/Div'
 
 interface InputBaseProps {
   children?: any

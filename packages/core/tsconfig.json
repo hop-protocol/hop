@@ -6,6 +6,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
+    "strictNullChecks": true,
     "declaration": true,
     "declarationDir": ".",
     "declarationMap": true,
@@ -28,5 +29,5 @@
     "downlevelIteration": true
   },
   "include": ["src/*", "src/abi/*", "src/addresses/*", "src/contracts/*", "src/contracts/factories/*", "src/contracts/generated/*", "src/contracts/static/*", "src/metadata/*", "src/networks/*", "src/config", "src/s3upload/*"],
-  "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "test/**/*"]
 }

@@ -1,7 +1,7 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from './config'
 
-let credentials
+let credentials : any
 if (awsAccessKeyId) {
   credentials = {
     accessKeyId: awsAccessKeyId,

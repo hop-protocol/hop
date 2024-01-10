@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.316.0",
+    "@aws-sdk/types": "^3.485.0",
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
     "@babel/node": "^7.7.0",

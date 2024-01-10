@@ -534,11 +534,8 @@ export class Base {
   ): Promise<Signer | providers.Provider> {
     // console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
-    if (!chain.provider) {
-      throw new Error('expected provider')
-    }
     if (!signer) {
-      return chain.provider
+      return chain.provider!
     }
     if (Signer.isSigner(signer)) {
       if (signer.provider) {
@@ -548,20 +545,20 @@ export class Base {
         if (connectedChainId !== chain.chainId) {
           if (!signer.provider) {
             // console.log('connect provider')
-            return (signer as Signer).connect(chain.provider)
+            return (signer as Signer).connect(chain.provider!)
           }
           // console.log('return chain.provider')
-          return chain.provider
+          return chain.provider!
         }
         return signer
       } else {
-        return chain.provider
+        return chain.provider!
       }
     } else {
       // console.log('isSigner')
       const { chainId } = await signer.getNetwork()
       if (chainId !== chain.chainId) {
-        return chain.provider
+        return chain.provider!
       }
       return signer
     }

@@ -11,12 +11,7 @@ export function useTokenPrice(tokenSymbol: string) {
     ],
     async () => {
       const bridge = sdk.bridge('ETH')
-      if (stableCoins.has(tokenSymbol)) {
-        return 1
-      }
-
-      const price = await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
-      return price!
+      return stableCoins.has(tokenSymbol) ? 1 : bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
     },
     {
       enabled: !!tokenSymbol,

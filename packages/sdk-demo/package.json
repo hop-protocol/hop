@@ -69,6 +69,6 @@
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "react-app-rewired": "^2.2.1",
-    "eslint-config-hop-protocol": "0.0.1-beta.0"
+    "eslint-config-hop-protocol": "0.0.1-beta.2"
   }
 }

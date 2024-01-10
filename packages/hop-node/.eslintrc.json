@@ -1,11 +1,5 @@
 {
   "extends": [
     "eslint-config-hop-protocol"
-  ],
-  "parserOptions": {
-    "ecmaVersion": 12,
-    "sourceType": "module",
-    "project": "./tsconfig.json"
-  },
-  "ignorePatterns": ["src/**.json", "src/arbBot/example/*.json", "*.md", "src/watchers/*.json"]
+  ]
 }

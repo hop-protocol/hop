@@ -8,8 +8,6 @@ module.exports = {
   "extends": [
     "eslint:recommended",
     "plugin:json/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:react/recommended",
     "standard"
   ],
   "parser": "@typescript-eslint/parser",
@@ -21,7 +19,7 @@ module.exports = {
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["@typescript-eslint", "node", "react", "unused-imports", "sort-imports-es6-autofix"],
+  "plugins": ["@typescript-eslint", "node", "unused-imports", "sort-imports-es6-autofix"],
   "rules": {
     // Explicit offs
     "@typescript-eslint/consistent-type-definitions": 0,
@@ -93,21 +91,6 @@ module.exports = {
     "@typescript-eslint/no-unsafe-member-access": 0,
     "@typescript-eslint/no-unsafe-return": 0,
 
-    // React specific rules
-    "react-hooks/exhaustive-deps": 0,
-    "react-hooks/rules-of-hooks": 0,
-    "react/display-name": 0,
-    "react/jsx-key": 0,
-    "react/jsx-one-expression-per-line": 0,
-    "react/no-unescaped-entities": 0,
-    "react/prop-types": 0,
-    "react/jsx-filename-extension": [
-      2,
-      {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"]
-      }
-    ],
-
     // Custom - Set to 1 or 2 over time as codebase is cleaned up. Possibly add options
     "@typescript-eslint/no-unused-vars": 0,
     "@typescript-eslint/no-floating-promises": 0,
@@ -123,10 +106,5 @@ module.exports = {
     "*.json",
     "*.md"
   ],
-  "settings": {
-    "react": {
-      "version": "999.999.999"
-    }
-  },
   "root": true
 }

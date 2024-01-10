@@ -7,10 +7,11 @@ ENV GIT_REV=${GIT_REV}
 RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app
 
 WORKDIR /usr/src/app
+RUN npm install -g npm@10.2.5
 USER node
 COPY --chown=node:node *.json ./
 COPY --chown=node:node . .
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 FROM node:20.5.1-alpine

@@ -32,7 +32,6 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygonzk: 6270
 }
 
-export const LpFeeBps = 4
 export const PendingAmountBufferUsd = 50000
 
 export enum Errors {

@@ -79,7 +79,7 @@ export function useAddTokenToMetamask(
     }
     // const addr = sdk.getL2CanonicalTokenAddress('HOP', networkName)
     if (typeof (window as any)?.ethereum !== 'undefined') {
-      ;(window as any).ethereum
+      (window as any).ethereum
         .request({
           method: 'wallet_watchAsset',
           params: {

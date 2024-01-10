@@ -101,7 +101,7 @@ class IncompleteSettlementsWatcher {
     }
 
     await wait(100)
-    return await this.tilReady()
+    return this.tilReady()
   }
 
   private async sync () {

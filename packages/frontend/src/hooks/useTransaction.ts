@@ -136,10 +136,10 @@ const useTransaction = (txHash?: string) => {
 
           switch (methodName) {
             case MethodNames.sendToL2: {
-              return handleSendToL2(txDetails)
+              return await handleSendToL2(txDetails)
             }
             case MethodNames.swapAndSend: {
-              return handleSwapAndSend(txDetails)
+              return await handleSwapAndSend(txDetails)
             }
 
             default: {

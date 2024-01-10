@@ -117,7 +117,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     const claimMessageTxHash: string = await claimMessageTx.getTransactionHash()
 
     const wallet = messageDirection === MessageDirection.L1_TO_L2 ? this.l2Wallet : this.l1Wallet
-    return await wallet.provider!.getTransaction(claimMessageTxHash)
+    return wallet.provider!.getTransaction(claimMessageTxHash)
   }
 
   protected async getMessage (txHash: string): Promise<Message> {

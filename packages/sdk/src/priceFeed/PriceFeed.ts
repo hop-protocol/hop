@@ -5,11 +5,11 @@ import { Coinpaprika } from './Coinpaprika'
 import { promiseTimeout } from '../utils/promiseTimeout'
 
 const cache: {
-  [tokenSymbol: string]: Promise<any>
+  [tokenSymbol: string]: Promise<any> | null
 } = {}
 
 const cacheTimestamps: {
-  [tokenSymbol: string]: number
+  [tokenSymbol: string]: number | null
 } = {}
 
 export type ApiKeys = {
@@ -17,7 +17,7 @@ export type ApiKeys = {
 }
 
 interface Service {
-  getPriceByTokenSymbol(symbol: string): Promise<number>
+  getPriceByTokenSymbol(symbol: string): Promise<number|null>
 }
 
 export class PriceFeed {
@@ -53,12 +53,12 @@ export class PriceFeed {
     this.services.unshift(service)
   }
 
-  async getPriceByTokenSymbol (tokenSymbol: string) {
+  async getPriceByTokenSymbol (tokenSymbol: string): Promise<number> {
     if (this.aliases[tokenSymbol]) {
       tokenSymbol = this.aliases[tokenSymbol]
     }
-    if (cache[tokenSymbol] && cacheTimestamps[tokenSymbol]) {
-      const isRecent = cacheTimestamps[tokenSymbol] > Date.now() - this.cacheTimeMs
+    if (cache[tokenSymbol] != null && cacheTimestamps[tokenSymbol] != null) {
+      const isRecent = cacheTimestamps[tokenSymbol]! > Date.now() - this.cacheTimeMs
       if (isRecent) {
         return cache[tokenSymbol]
       }
@@ -66,10 +66,14 @@ export class PriceFeed {
     const promise = promiseTimeout(this._getPriceByTokenSymbol(tokenSymbol), this.timeoutMs)
     cache[tokenSymbol] = promise
     cacheTimestamps[tokenSymbol] = Date.now()
-    return promise
+    const price = await promise
+    if (price == null) {
+      throw new Error(`null price for token "${tokenSymbol}"`)
+    }
+    return price
   }
 
-  async _getPriceByTokenSymbol (tokenSymbol: string) {
+  async _getPriceByTokenSymbol (tokenSymbol: string): Promise<number|null> {
     const errors: Error[] = []
     for (const service of this.services) {
       try {
@@ -92,6 +96,7 @@ export class PriceFeed {
         }
       }
     }
+    return null
   }
 
   formatPrice (tokenSymbol: string, price: number) {

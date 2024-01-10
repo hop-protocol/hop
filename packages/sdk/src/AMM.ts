@@ -61,7 +61,7 @@ class AMM extends Base {
     if (!tokenSymbol) {
       throw new Error('token is required')
     }
-    chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain!)
     if (chain) {
       this.chain = chain
     }
@@ -462,6 +462,9 @@ class AMM extends Base {
     }
 
     const provider = this.chain.provider
+    if (!provider) {
+      throw new Error('expected provider')
+    }
     const block = await provider.getBlock('latest')
     const endTimestamp = block.timestamp
 

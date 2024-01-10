@@ -89,7 +89,7 @@ export class RetryProvider extends providers.StaticJsonRpcProvider implements pr
   })
 
   getAvatar = rateLimitRetry(async (nameOrAddress: string): Promise<string> => {
-    return super.getAvatar(nameOrAddress)
+    return (await super.getAvatar(nameOrAddress))!
   })
 }
 

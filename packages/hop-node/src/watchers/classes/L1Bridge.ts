@@ -34,14 +34,14 @@ export default class L1Bridge extends Bridge {
   }
 
   getTransferBond = async (transferRootId: string) => {
-    return await this.l1BridgeContract.transferBonds(transferRootId)
+    return this.l1BridgeContract.transferBonds(transferRootId)
   }
 
   getTransferRootBondedEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferRootBonded(),
       startBlockNumber,
       endBlockNumber
@@ -52,7 +52,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferBondChallenged(),
       startBlockNumber,
       endBlockNumber
@@ -63,7 +63,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferSentToL2(),
       startBlockNumber,
       endBlockNumber
@@ -74,21 +74,21 @@ export default class L1Bridge extends Bridge {
     cb: EventCb<TransferRootBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
   }
 
   async mapTransferBondChallengedEvents<R> (
     cb: EventCb<TransferBondChallengedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
   }
 
   async mapTransferSentToL2Events<R> (
     cb: EventCb<TransferSentToL2Event, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
+    return this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
   }
 
   async getTransferRootBondedEvent (
@@ -122,7 +122,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<TransferRootConfirmedEvent[]> => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferRootConfirmed(),
       startBlockNumber,
       endBlockNumber
@@ -133,7 +133,7 @@ export default class L1Bridge extends Bridge {
     cb: EventCb<TransferRootConfirmedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
   }
 
   async isTransferRootIdConfirmed (destChainId: number, transferRootId: string): Promise<boolean> {
@@ -261,7 +261,7 @@ export default class L1Bridge extends Bridge {
       throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
     }
 
-    return await this.l1BridgeContract.sendToL2(
+    return this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -317,7 +317,7 @@ export default class L1Bridge extends Bridge {
     if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
       throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
     }
-    return await this.l1BridgeContract.sendToL2(
+    return this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -337,7 +337,7 @@ export default class L1Bridge extends Bridge {
   }
 
   getBondForTransferAmount = async (amount: BigNumber): Promise<BigNumber> => {
-    return await this.l1BridgeContract.getBondForTransferAmount(amount)
+    return this.l1BridgeContract.getBondForTransferAmount(amount)
   }
 
   async decodeBondTransferRootCalldata (data: string): Promise<any> {

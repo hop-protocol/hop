@@ -18,7 +18,7 @@ import { promiseQueue } from '../src/utils/promiseQueue'
 
 describe.skip('sdk setup', () => {
   const hop = new Hop('goerli')
-  const signer = new Wallet(privateKey)
+  const signer = new Wallet(privateKey!)
   it('should return version', () => {
     expect(hop.version).toBe(pkg.version)
   })
@@ -26,7 +26,7 @@ describe.skip('sdk setup', () => {
 
 describe.skip('hop bridge token transfers', () => {
   const hop = new Hop('goerli')
-  const signer = new Wallet(privateKey)
+  const signer = new Wallet(privateKey!)
   it(
     'send token from L1 -> L2',
     async () => {
@@ -76,7 +76,7 @@ describe.skip('hop bridge token transfers', () => {
 
 describe.skip('tx watcher', () => {
   const hop = new Hop('mainnet')
-  const signer = new Wallet(privateKey)
+  const signer = new Wallet(privateKey!)
   it.skip(
     'receive events on token transfer from L1 -> L2 (no swap)',
     async () => {
@@ -331,7 +331,7 @@ describe.skip('tx watcher', () => {
 
 describe.skip('liqudity provider', () => {
   const hop = new Hop('goerli')
-  const signer = new Wallet(privateKey)
+  const signer = new Wallet(privateKey!)
   it('should add liqudity on Gnosis', async () => {
     const bridge = hop.bridge(Token.USDC)
     const tokenAmount = parseUnits('0.1', 18)
@@ -358,7 +358,7 @@ describe.skip('custom addresses', () => {
   it('should set custom addresses', () => {
     const address = '0x1111111111111111111111111111111111111111'
     const newAddresses = Object.assign({}, addresses)
-    newAddresses.mainnet.bridges.USDC.gnosis.l2CanonicalToken = address
+    newAddresses.mainnet.bridges.USDC!.gnosis!.l2CanonicalToken! = address
 
     const sdk = new Hop('mainnet')
     sdk.setConfigAddresses(newAddresses.mainnet)
@@ -376,14 +376,14 @@ describe.skip('approve addresses', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Ethereum
     )
-    const expectedAddress = addresses.mainnet.bridges.USDC.ethereum.l1Bridge
+    const expectedAddress = addresses.mainnet.bridges.USDC!.ethereum!.l1Bridge
     expect(approvalAddress).toBe(expectedAddress)
   })
   it('get send approval address (L2 -> L2)', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Polygon
     )
-    const expectedAddress = addresses.mainnet.bridges.USDC.polygon.l2AmmWrapper
+    const expectedAddress = addresses.mainnet.bridges.USDC!.polygon!.l2AmmWrapper
     expect(approvalAddress).toBe(expectedAddress)
   })
 })
@@ -491,7 +491,7 @@ describe.skip('getSendData', () => {
     'getAmountOut - L2 -> L2',
     async () => {
       const hop = new Hop('mainnet')
-      const signer = new Wallet(privateKey)
+      const signer = new Wallet(privateKey!)
       const tokenAmount = parseUnits('1', 18)
       const amountOut = await hop
         .connect(signer)
@@ -933,7 +933,7 @@ describe.skip('hop bridge', () => {
     const hop = new Hop('goerli')
     const bridge = hop.bridge('HOP')
     const approvalAddress = bridge.getSendApprovalAddress('polygon')
-    const expectedAddress = addresses.goerli.bridges.HOP.polygon?.l2Bridge
+    const expectedAddress = addresses.goerli.bridges.HOP?.polygon?.l2Bridge
     expect(approvalAddress).toBe(expectedAddress)
   })
 })
@@ -954,7 +954,7 @@ describe.skip('fallback provider', () => {
     const bridge = hop.bridge('USDC')
     const provider = bridge.toChainModel('optimism').provider
     expect(provider instanceof FallbackProvider).toBe(true)
-    const network = await provider.getNetwork()
+    const network = await provider!.getNetwork()
     console.log('network:', network)
     expect(network.name).toBe('optimism')
   }, 10 * 60 * 1000)
@@ -963,7 +963,7 @@ describe.skip('fallback provider', () => {
 describe.skip('AMM calculateSwap', () => {
   it('should call calculateSwap', async () => {
     const provider = new providers.StaticJsonRpcProvider('https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213')
-    const signer = new Wallet(privateKey, provider)
+    const signer = new Wallet(privateKey!, provider)
     const hop = new Hop('mainnet', signer)
     const token = 'USDC'
     const chain = 'optimism'

@@ -5,6 +5,7 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
     "emitDecoratorMetadata": true,
     "declaration": true,
     "declarationDir": "dist",

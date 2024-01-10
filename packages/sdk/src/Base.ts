@@ -161,7 +161,7 @@ export class Base {
    */
   constructor (
     networkOrOptionsObject: NetworkSlug | string | BaseConstructorOptions,
-    signer: TProvider,
+    signer?: TProvider,
     chainProviders?: ChainProviders
   ) {
     let network: any
@@ -386,6 +386,9 @@ export class Base {
    * @returns Chain model with connected provider.
    */
   public toChainModel (chain: TChain): Chain {
+    if (!chain) {
+      throw new Error('expected chain')
+    }
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
@@ -405,7 +408,7 @@ export class Base {
         )}`
       )
     }
-    chain.provider = this.getChainProvider(chain)
+    chain.provider = this.getChainProvider(chain)!
     chain.chainId = this.getChainId(chain)
     return chain
   }
@@ -531,6 +534,9 @@ export class Base {
   ): Promise<Signer | providers.Provider> {
     // console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
+    if (!chain.provider) {
+      throw new Error('expected provider')
+    }
     if (!signer) {
       return chain.provider
     }
@@ -649,7 +655,7 @@ export class Base {
 
     const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
     if (minGasPrice) {
-      const currentGasPrice = await this.getGasPrice(sourceChain.provider)
+      const currentGasPrice = await this.getGasPrice(sourceChain.provider!)
       const minGasPriceBn = BigNumber.from(minGasPrice)
       if (currentGasPrice.lte(minGasPriceBn)) {
         txOptions.gasPrice = minGasPriceBn
@@ -759,7 +765,7 @@ export class Base {
       return BigNumber.from(customRelayerFee)
     }
     try {
-      return RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
+      return await RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
     } catch (err) {
       return BigNumber.from(0)
     }
@@ -941,9 +947,9 @@ export class Base {
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
-    const gasPrice = await this.getGasPrice(chain.provider)
+    const gasPrice = await this.getGasPrice(chain.provider!)
     const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
+      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider!)
     const serializedTx = serializeTransaction({
       value: parseEther('0'),
       gasPrice,
@@ -1054,6 +1060,9 @@ export class Base {
   }
 
   getGasPrice = rateLimitRetry(async (signerOrProvider: TProvider): Promise<BigNumber> => {
+    if (!signerOrProvider) {
+      throw new Error('expected signer or provider')
+    }
     const timeStart = Date.now()
     const gasPrice = await signerOrProvider.getGasPrice()
     this.debugTimeLog('getGasPrice', timeStart)

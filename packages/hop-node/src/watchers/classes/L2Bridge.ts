@@ -75,7 +75,7 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<TransferFromL1CompletedEvent[]> => {
-    return await this.bridgeContract.queryFilter(
+    return this.bridgeContract.queryFilter(
       this.l2BridgeContract.filters.TransferFromL1Completed(),
       startBlockNumber,
       endBlockNumber
@@ -86,7 +86,7 @@ export default class L2Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<TransfersCommittedEvent[]> => {
-    return await this.bridgeContract.queryFilter(
+    return this.bridgeContract.queryFilter(
       this.l2BridgeContract.filters.TransfersCommitted(),
       startBlockNumber,
       endBlockNumber
@@ -97,14 +97,14 @@ export default class L2Bridge extends Bridge {
     cb: EventCb<TransfersCommittedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransfersCommittedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransfersCommittedEvents, cb, options)
   }
 
   getTransferSentEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<TransferSentEvent[]> => {
-    return await this.l2BridgeContract.queryFilter(
+    return this.l2BridgeContract.queryFilter(
       this.l2BridgeContract.filters.TransferSent(),
       startBlockNumber,
       endBlockNumber
@@ -115,7 +115,7 @@ export default class L2Bridge extends Bridge {
     cb: EventCb<TransferSentEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferSentEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferSentEvents, cb, options)
   }
 
   async getTransferSentEvent (transferId: string): Promise<TransferSentEvent | null> {
@@ -164,7 +164,7 @@ export default class L2Bridge extends Bridge {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
     }
 
-    return await this.l2BridgeContract.send(
+    return this.l2BridgeContract.send(
       destinationChainId,
       recipient,
       amount,
@@ -180,7 +180,7 @@ export default class L2Bridge extends Bridge {
     amount: BigNumber,
     recipient: string
   ): Promise<providers.TransactionResponse> => {
-    return await this.ammWrapper.swapAndSend(
+    return this.ammWrapper.swapAndSend(
       destinationChainId,
       amount,
       this.tokenSymbol,
@@ -204,7 +204,7 @@ export default class L2Bridge extends Bridge {
   }
 
   getPendingTransferByIndex = async (chainId: number, index: number) => {
-    return await this.l2BridgeContract.pendingTransferIdsForChainId(
+    return this.l2BridgeContract.pendingTransferIdsForChainId(
       chainId,
       index
     )
@@ -338,7 +338,7 @@ export default class L2Bridge extends Bridge {
   }
 
   isSupportedChainId = async (chainId: number): Promise<boolean> => {
-    return await this.l2BridgeContract.activeChainIds(
+    return this.l2BridgeContract.activeChainIds(
       chainId
     )
   }

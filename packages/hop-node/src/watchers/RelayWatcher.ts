@@ -395,7 +395,7 @@ class RelayWatcher extends BaseWatcher {
       `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex ?? 0} l1TxHash: ${transferSentTxHash}`
     )
     logger.debug('checkTransferSentToL2 l2Bridge.distribute')
-    return await this.sendRelayTx(destinationChainId, transferSentTxHash, messageIndex)
+    return this.sendRelayTx(destinationChainId, transferSentTxHash, messageIndex)
   }
 
   async sendTransferRootRelayTx (destinationChainId: number, transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
@@ -403,7 +403,7 @@ class RelayWatcher extends BaseWatcher {
     logger.debug(
       `relay root destinationChainId with txHash ${txHash}`
     )
-    return await this.sendRelayTx(destinationChainId, txHash)
+    return this.sendRelayTx(destinationChainId, txHash)
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {

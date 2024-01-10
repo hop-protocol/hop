@@ -77,10 +77,10 @@ class Token extends Base {
     }
 
     this.address = ethers.utils.getAddress(address)
-    this.decimals = decimals
-    this._symbol = symbol
-    this.name = name
-    this.image = image
+    this.decimals = decimals!
+    this._symbol = symbol!
+    this.name = name!
+    this.image = image!
     this.chain = this.toChainModel(chain)
   }
 
@@ -284,7 +284,7 @@ class Token extends Base {
     if (!address) {
       throw new Error('address is required')
     }
-    return this.chain.provider.getBalance(address)
+    return this.chain.provider!.getBalance(address)
   }
 
   async getWethContract (): Promise<any> {

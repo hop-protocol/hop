@@ -44,7 +44,7 @@ export type MulticallOptions = {
 
 export class Multicall {
   network: string
-  accountAddress: string
+  accountAddress?: string
   priceFeed: PriceFeedFromS3
 
   constructor (config: Config) {
@@ -59,7 +59,7 @@ export class Multicall {
     this.priceFeed = new PriceFeedFromS3()
   }
 
-  getMulticallAddressForChain (chainSlug: string): string {
+  getMulticallAddressForChain (chainSlug: string): string | null {
     const address = sdkConfig[this.network].chains?.[chainSlug]?.multicall
     if (!address) {
       return null
@@ -147,8 +147,8 @@ export class Multicall {
       for (const key in contractInterface.functions) {
         const _method = key.split('(')[0]
         if (_method === method) {
-          const returnTypes = contractInterface.functions[key].outputs.map((output: any) => output.type)
-          const returnValues = defaultAbiCoder.decode(returnTypes, returnData)
+          const returnTypes = contractInterface?.functions[key]?.outputs?.map((output: any) => output.type)
+          const returnValues = defaultAbiCoder.decode(returnTypes!, returnData)
           return returnValues
         }
       }
@@ -195,9 +195,9 @@ export class Multicall {
       const { tokenSymbol, address, tokenDecimals } = tokenAddresses[index]
       try {
         const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]
-        const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol)
+        const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol!)
         const balanceFormatted = Number(formatUnits(balance, _tokenDecimals))
-        const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol) // don't fetch usd price if using custom abi
+        const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol!) // don't fetch usd price if using custom abi
         const balanceUsd = tokenPrice ? balanceFormatted * tokenPrice : null
         return {
           tokenSymbol,

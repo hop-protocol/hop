@@ -133,7 +133,7 @@ export function useGnosisSafeTransaction(
 
         if (!safeTransaction) {
           await wait(3000)
-          return getSafeTx(tx)
+          return await getSafeTx(tx)
         }
 
         if (safeTransaction.txHash) {

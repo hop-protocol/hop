@@ -36,7 +36,7 @@ export class LineaUtils {
     )
 
     for (const log of logs) {
-      if (log.args._from.toLowerCase() === fromAddress.toLowerCase()) {
+      if (log.args?._from.toLowerCase() === fromAddress.toLowerCase()) {
         return log
       }
     }
@@ -99,15 +99,15 @@ export class LineaUtils {
     const messageDispatchedEvent = await this.getL1MessageDispatchedEvent(l1TxHash, fromAddress)
     const messageHash = this.computeMessageHash({
       from: fromAddress,
-      to: messageDispatchedEvent.args._to,
-      fee: messageDispatchedEvent.args._fee,
-      value: messageDispatchedEvent.args._value,
-      deadline: messageDispatchedEvent.args._deadline,
-      calldata: messageDispatchedEvent.args._calldata
+      to: messageDispatchedEvent?.args?._to,
+      fee: messageDispatchedEvent?.args?._fee,
+      value: messageDispatchedEvent?.args?._value,
+      deadline: messageDispatchedEvent?.args?._deadline,
+      calldata: messageDispatchedEvent?.args?._calldata
     })
 
     for (const log of logs) {
-      if (log.args.messageHash === messageHash) {
+      if (log.args?.messageHash === messageHash) {
         return log
       }
     }

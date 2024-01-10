@@ -251,12 +251,12 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async getTransfers (dateFilter?: DateFilter): Promise<Transfer[]> {
-    return await this.getItems(dateFilter)
+    return this.getItems(dateFilter)
   }
 
   async getTransfersFromDay (): Promise<Transfer[]> {
     const fromUnix = Math.floor((Date.now() - OneDayMs) / 1000)
-    return await this.getTransfers({
+    return this.getTransfers({
       fromUnix
     })
   }
@@ -265,7 +265,7 @@ class TransfersDb extends BaseDb<Transfer> {
     const targetTimestampMs = targetTimestampSec * 1000
     const fromUnix = Math.floor((targetTimestampMs - OneHourMs) / 1000)
     const toUnix = Math.floor((targetTimestampMs + OneHourMs) / 1000)
-    return await this.getTransfers({
+    return this.getTransfers({
       fromUnix,
       toUnix
     })

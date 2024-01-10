@@ -217,11 +217,11 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
       try {
         switch (methodName) {
           case MethodNames.convertTokens: {
-            return estimateConvertTokens(options)
+            return await estimateConvertTokens(options)
           }
 
           case MethodNames.wrapToken: {
-            return estimateWrap(options)
+            return await estimateWrap(options)
           }
 
           default:

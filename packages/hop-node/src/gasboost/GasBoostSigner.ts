@@ -104,7 +104,7 @@ class GasBoostSigner extends Signer {
     }
 
     await wait(100)
-    return await this.tilReady()
+    return this.tilReady()
   }
 
   private async setLatestNonce () {
@@ -121,7 +121,7 @@ class GasBoostSigner extends Signer {
       logger.debug(`in-memory count: ${this._count}`)
       logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
       this._count++
-      return await this._sendTransaction(tx, id)
+      return this._sendTransaction(tx, id)
     })
 
     // TODO: waits should be handled outside of this class

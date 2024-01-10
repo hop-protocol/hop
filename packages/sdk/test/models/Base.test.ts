@@ -14,7 +14,7 @@ function cleanupMock (mock: any) {
 
 describe('Base', () => {
   it('should return the Gnosis chain provider and warn the sdk consumer when attempting to connect to xdai chain', () => {
-    const signer = new Wallet(privateKey)
+    const signer = new Wallet(privateKey!)
     const base = new Base('mainnet', signer)
     const p: any = base.getChainProvider('xdai')
 

@@ -70,7 +70,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
       return true
     }
     await wait(100)
-    return await this.#tilReady()
+    return this.#tilReady()
   }
 
   async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {

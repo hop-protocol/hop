@@ -7,7 +7,7 @@ const ITERATIONS = 5
 class Test {
   mutex: Mutex = new Mutex()
   async getValue () {
-    return await this.mutex.runExclusive(async () => {
+    return this.mutex.runExclusive(async () => {
       await wait(DELAY_SECONDS * 1000)
       return (Date.now() / 1000) | 0
     })
@@ -21,7 +21,7 @@ test(
     const values = await Promise.all(
       Array(ITERATIONS)
         .fill('0')
-        .map(async () => await t.getValue())
+        .map(async () => t.getValue())
     )
 
     for (let i = 0; i < values.length - 1; i++) {

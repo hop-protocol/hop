@@ -4,7 +4,7 @@ export class S3 {
   private readonly url: string = 'https://assets.hop.exchange/token-prices.json'
   stalenessLimitMs: number = 10 * 60 * 1000
 
-  public getPriceByTokenSymbol = async (symbol: string): Promise<number> => {
+  public getPriceByTokenSymbol = async (symbol: string): Promise<number | null> => {
     const data = await fetchJsonOrThrow(this.url)
     for (const key in data.prices) {
       if (key.toUpperCase() === symbol.toUpperCase()) {

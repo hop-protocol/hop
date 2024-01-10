@@ -40,7 +40,7 @@ class S3Upload {
   }
 
   async upload (data: any) {
-    return await mutex.runExclusive(async () => {
+    return mutex.runExclusive(async () => {
       try {
         data = JSON.parse(JSON.stringify(data)) // deep clone
         const uploadData = {

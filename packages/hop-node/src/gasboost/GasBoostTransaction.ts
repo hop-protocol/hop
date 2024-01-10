@@ -335,7 +335,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   static async fromId (id: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const item = await store.getItem(id)
-    return await GasBoostTransaction.unmarshal(item, signer, store, options)
+    return GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
   static async unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
@@ -395,7 +395,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getLatestNonce (): Promise<number> {
-    return await this.signer.getTransactionCount('pending')
+    return this.signer.getTransactionCount('pending')
   }
 
   async getGasFeeData () {
@@ -403,7 +403,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketGasPrice (): Promise<BigNumber> {
-    return await this.signer.getGasPrice()
+    return this.signer.getGasPrice()
   }
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
@@ -602,13 +602,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.logger.debug(`wait() called, txHash: ${this.txHash}`)
     this.logger.debug(`wait() called, inFlightItems: ${JSON.stringify(this.inflightItems)}`)
     if (this.txHash) {
-      return await this.getReceipt(this.txHash)
+      return this.getReceipt(this.txHash)
     }
     for (const { hash } of this.inflightItems) {
       this.getReceipt(hash!)
         .then(async (receipt: providers.TransactionReceipt) => this.handleConfirmation(hash!, receipt))
     }
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this
         .on(State.Confirmed, (tx: providers.TransactionReceipt) => {
           this.logger.debug(`wait() confirmed, tx: ${this.hash} with status ${tx.status}`)

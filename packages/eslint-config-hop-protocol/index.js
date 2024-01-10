@@ -6,10 +6,11 @@ module.exports = {
     "jest": true
   },
   "extends": [
-    "plugin:react/recommended",
-    "standard",
+    "eslint:recommended",
+    "plugin:json/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:json/recommended"
+    "plugin:react/recommended",
+    "standard"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -17,10 +18,10 @@ module.exports = {
       "jsx": true
     },
     "ecmaVersion": 2021,
-    "sourceType": "module"
+    "sourceType": "module",
+    "project": "./tsconfig.json"
   },
-  "plugins": ["react", "@typescript-eslint", "unused-imports", "sort-imports-es6-autofix"],
-  "ignorePatterns": [],
+  "plugins": ["node", "react", "@typescript-eslint", "unused-imports", "sort-imports-es6-autofix"],
   "rules": {
     // Explicit offs
     "@typescript-eslint/consistent-type-definitions": 0,
@@ -77,6 +78,9 @@ module.exports = {
     "no-empty": [2, { "allowEmptyCatch": true }],
     "no-new": 2,
     "prefer-const": [2, { "destructuring": "all" }],
+    "node/no-exports-assign": 2,
+    "node/no-new-require": 2,
+    "node/no-path-concat": 2,
     // Note: for @typescript-eslint/return-await", you must disable the base rule as it can report incorrect errors
     "no-return-await": 0,
     "@typescript-eslint/return-await": 2,

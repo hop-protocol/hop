@@ -390,7 +390,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
       logger.debug('checkTransferId l2Bridge.bondWithdrawalAndAttemptSwap')
-      return await l2Bridge.bondWithdrawalAndAttemptSwap(
+      return l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
         transferNonce,

@@ -19,7 +19,7 @@ const useBalance = (token?: ContractType, address?: Addressish, chainId?: ChainI
     [queryKey, chainId, token?.address, address?.toString()],
     async () => {
       if (token && address) {
-        return await fetchBalance(token, address.toString())
+        return fetchBalance(token, address.toString())
       }
     },
     {

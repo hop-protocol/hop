@@ -7,7 +7,7 @@ import { wait } from 'src/utils'
 function setWalletButtonStyles() {
   const walletButtons = document.querySelectorAll('.bn-onboard-custom.bn-onboard-icon-button')
   walletButtons.forEach(el => {
-    ;(el as any).style.backgroundColor = '#FFFFFF'
+    (el as any).style.backgroundColor = '#FFFFFF'
     ;(el as any).style.color = '#0F0524'
   })
 }

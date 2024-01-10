@@ -198,7 +198,7 @@ for (const network in coreNetworks) {
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs?.[network]
+  const { addresses, bonders, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs![network]!
   const isMainnet = network === Network.Mainnet
 
   return {

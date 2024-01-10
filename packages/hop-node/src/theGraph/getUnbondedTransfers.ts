@@ -377,6 +377,7 @@ async function getTransfersData (startTime: number, endTime: number) {
         x.bondedTimestamp = Number(bond.timestamp)
       }
     }
+    return null
   }))
 
   console.log('getTransfersData: mapping events to l1CompletedsMap')
@@ -384,7 +385,7 @@ async function getTransfersData (startTime: number, endTime: number) {
   await Promise.all(data.map((x: any) => {
     const sourceChain = chainIdToSlug(x.sourceChain)
     if (sourceChain !== Chain.Ethereum) {
-      return
+      return null
     }
     const events = l1CompletedsMap[chainIdToSlug(x.destinationChain)]
     if (events) {
@@ -399,10 +400,11 @@ async function getTransfersData (startTime: number, endTime: number) {
           x.bonder = event.from
           x.bondTransactionHash = event.transactionHash
           x.bondedTimestamp = Number(event.timestamp)
-          return
+          return null
         }
       }
     }
+    return null
   }))
 
   const unbondableTransfers = [

@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 
-function BNMax (a: BigNumber, b: BigNumber) {
+function bigNumberMax (a: BigNumber, b: BigNumber) {
   if (!a) {
     return b
   }
@@ -10,4 +10,4 @@ function BNMax (a: BigNumber, b: BigNumber) {
   return a?.gt(b) ? a : b
 }
 
-export default BNMax
+export default bigNumberMax

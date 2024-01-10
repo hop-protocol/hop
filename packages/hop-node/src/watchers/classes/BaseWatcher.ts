@@ -1,11 +1,11 @@
 import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
-import BNMin from 'src/utils/BNMin'
 import Bridge from './Bridge'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import bigNumberMin from 'src/utils/bigNumberMin'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
@@ -332,7 +332,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     // this is needed because the amount withdrawn from vault may not be exact
-    amount = BNMin(amount, balance)
+    amount = bigNumberMin(amount, balance)
 
     this.logger.debug(`staking on bridge. amount: ${this.bridge.formatUnits(amount)}`)
     tx = await this.bridge.stake(amount)
@@ -377,8 +377,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (nearestItemToTransferSent && nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
-      gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
-      minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+      gasCostInToken = bigNumberMin(gasCostInToken, currentGasCostInToken)
+      minBonderFeeAbsolute = bigNumberMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
       this.logger.debug('using nearestItemToTransferSent')
     } else if (nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)

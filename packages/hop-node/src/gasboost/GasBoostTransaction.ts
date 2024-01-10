@@ -1,7 +1,7 @@
-import BNMax from 'src/utils/BNMax'
-import BNMin from 'src/utils/BNMin'
 import Logger from 'src/logger'
 import Store from './Store'
+import bigNumberMax from 'src/utils/bigNumberMax'
+import bigNumberMin from 'src/utils/bigNumberMin'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
@@ -487,7 +487,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.compareMarketGasPrice) {
       return bumpedGasPrice
     }
-    return BNMax(marketGasPrice, bumpedGasPrice)
+    return bigNumberMax(marketGasPrice, bumpedGasPrice)
   }
 
   async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
@@ -498,7 +498,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.compareMarketGasPrice) {
       return bumpedMaxPriorityFeePerGas
     }
-    return BNMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
+    return bigNumberMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
@@ -516,7 +516,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
         maxFeePerGas = currentBaseFeePerGas.mul(2)
       }
-      maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
+      maxFeePerGas = bigNumberMin(maxFeePerGas, maxGasPrice)
 
       return {
         gasPrice: undefined,
@@ -536,14 +536,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (gasFeeData.gasPrice != null) {
       const maxGasPrice = this.getMaxGasPrice()
       return {
-        gasPrice: BNMin(gasFeeData.gasPrice, maxGasPrice)
+        gasPrice: bigNumberMin(gasFeeData.gasPrice, maxGasPrice)
       }
     }
 
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
     return {
-      maxFeePerGas: BNMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
-      maxPriorityFeePerGas: BNMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
+      maxFeePerGas: bigNumberMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
+      maxPriorityFeePerGas: bigNumberMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
     }
   }
 

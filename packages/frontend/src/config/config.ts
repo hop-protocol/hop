@@ -18,7 +18,7 @@ export const transferTimes = {
     polygon: 20,
     gnosis: 20,
     nova: 10,
-    polygonzkevm: 20,
+    polygonzk: 20,
     base: 2,
     linea: 20
   },
@@ -28,7 +28,7 @@ export const transferTimes = {
     polygon: 25,
     gnosis: 25,
     nova: 25,
-    polygonzkevm: 25,
+    polygonzk: 25,
     base: 25,
     linea: 25
   },
@@ -38,7 +38,7 @@ export const transferTimes = {
     polygon: 12,
     gnosis: 12,
     nova: 12,
-    polygonzkevm: 12,
+    polygonzk: 12,
     base: 12,
     linea: 12
   },
@@ -48,7 +48,7 @@ export const transferTimes = {
     arbitrum: 10,
     gnosis: 10,
     nova: 10,
-    polygonzkevm: 10,
+    polygonzk: 10,
     base: 10,
     linea: 10
   },
@@ -58,7 +58,7 @@ export const transferTimes = {
     arbitrum: 4,
     polygon: 4,
     nova: 4,
-    polygonzkevm: 4,
+    polygonzk: 4,
     base: 4,
     linea: 4
   },
@@ -68,7 +68,7 @@ export const transferTimes = {
     arbitrum: 12,
     polygon: 12,
     gnosis: 12,
-    polygonzkevm: 12,
+    polygonzk: 12,
     base: 12,
     linea: 12
   },
@@ -79,7 +79,7 @@ export const transferTimes = {
     polygon: 25,
     gnosis: 25,
     nova: 25,
-    polygonzkevm: 25,
+    polygonzk: 25,
     linea: 25
   },
   linea: {
@@ -89,7 +89,7 @@ export const transferTimes = {
     polygon: 20,
     gnosis: 20,
     nova: 20,
-    polygonzkevm: 20,
+    polygonzk: 20,
     base: 20
   }
 }

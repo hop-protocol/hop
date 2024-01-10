@@ -39,7 +39,8 @@ class IncompleteSettlementsWatcher {
     Chain.Polygon,
     Chain.Nova,
     Chain.Base,
-    Chain.PolygonZk
+    Chain.PolygonZk,
+    Chain.Linea
   ]
 
   tokens: string[] = getEnabledTokens()

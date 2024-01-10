@@ -4,10 +4,10 @@ import MerkleTree from 'src/utils/MerkleTree'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, Token } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { getWithdrawalProofData } from 'src/cli/shared'
+import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData'
 import { config as globalConfig } from 'src/config'
 
 export class BatchExecuteError extends Error {}
@@ -201,9 +201,18 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const siblings: string[][] = []
       let numLeaves
       for (const transferId of transferIdsChunk) {
-        let withdrawalData
+        let withdrawalData: WithdrawalProofData
+
+        if (!dbTransferRoot?.totalAmount || !dbTransferRoot?.transferIds?.length) {
+          throw new BatchExecuteError('db transfer root not found')
+        }
+
         try {
-          withdrawalData = getWithdrawalProofData(transferId, dbTransferRoot)
+          withdrawalData = getWithdrawalProofData(
+            transferId,
+            dbTransferRoot?.totalAmount,
+            dbTransferRoot?.transferIds
+          )
         } catch (err) {
           throw new BatchExecuteError(`getWithdrawalProofData error: ${err.message}`)
         }
@@ -238,7 +247,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     return this.checkTransferRootId(dbTransferRoot.transferRootId, bonder)
   }
 
-  #getExecutionSettlementConfig (): {maxNumTransferIds: number, settlementAggregatorAddress: string, settlementAggregatorAbi: string[]} {
+  #getExecutionSettlementConfig (): {
+    maxNumTransferIds: number
+    settlementAggregatorAddress: string
+    settlementAggregatorAbi: string[]
+  } {
     // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
 
     // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
@@ -247,15 +260,28 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const settlementAggregatorAbi = [
       'function settleBondedWithdrawal(address bonder, bytes32[] calldata transferId, bytes32  rootHash, uint256 transferRootTotalAmount, uint256[] calldata transferIdTreeIndex, bytes32[][] calldata siblings, uint256 totalLeaves)'
     ]
-    let settlementAggregatorAddress: string
+
+    let settlementAggregatorAddresses: Record<string, string>
     if (globalConfig.isMainnet) {
-      settlementAggregatorAddress = 'TODO'
+      settlementAggregatorAddresses = {
+        [Token.ETH]: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
+        [Token.HOP]: '0x74fa978EaFFa312bC92e76dF40FcC1bFE7637Aeb'
+      }
     } else {
-      settlementAggregatorAddress = '0x16284c7323c35F4960540583998C98B1CfC581a7'
+      settlementAggregatorAddresses = {
+        [Token.ETH]: '0xE670368c529C6B47662838bF039dd41945b57eF3'
+      }
     }
+
+    // This value is limited by prover constraints and RPC timeout constraints. Alchemy
+    // endpoint has a 20s timeout. When processing more than 10 transferIds, the endpoint
+    // may timeout. It can work up to 20 transferIds, but will retry somewhere between
+    // 1 to 10 times before working, if at all.
+    const maxNumTransferIds = 10
+
     return {
-      maxNumTransferIds: 500,
-      settlementAggregatorAddress,
+      maxNumTransferIds,
+      settlementAggregatorAddress: settlementAggregatorAddresses[this.tokenSymbol],
       settlementAggregatorAbi
     }
   }

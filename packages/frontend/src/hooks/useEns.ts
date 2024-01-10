@@ -39,7 +39,7 @@ export function useEns(addressOrEnsName?: string) {
   }, [addressOrEnsName])
 
   useEffect(() => {
-    const ensNameOrAddress = ensName || addressOrEnsName
+    const ensNameOrAddress = ensName ?? addressOrEnsName
 
     if (ensNameOrAddress) {
       getEnsAvatar(ensNameOrAddress)

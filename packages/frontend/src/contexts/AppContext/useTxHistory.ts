@@ -91,7 +91,7 @@ const useTxHistory = (sdk: Hop): TxHistory => {
   function updateTransaction(tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) {
     setTransactions(prevTransactions => {
       if (!prevTransactions) return []
-      
+
       // deep clone to avoid mutating state directly
       const customizer = (value) => {
         if (isFunction(value)) {
@@ -100,14 +100,14 @@ const useTxHistory = (sdk: Hop): TxHistory => {
       }
 
       const clonedTxs = cloneDeepWith(prevTransactions, customizer)
-      const targetTx = find(clonedTxs, ['hash', matchingHash || tx.hash])
+      const targetTx = find(clonedTxs, ['hash', matchingHash ?? tx.hash])
 
       if (targetTx) {
         for (const key in updateOpts) {
           targetTx[key] = updateOpts[key]
         }
       }
-      
+
       return sortByRecentTimestamp(clonedTxs).slice(0, MAX_TRANSACTION_COUNT)
     })
   }

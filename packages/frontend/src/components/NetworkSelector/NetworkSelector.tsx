@@ -34,7 +34,7 @@ export function NetworkSelector({ network, setNetwork, availableNetworks, onChan
   }
 
   return (
-    <FlatSelect value={network?.slug || 'default'} onChange={selectNetwork}>
+    <FlatSelect value={network?.slug ?? 'default'} onChange={selectNetwork}>
       <MenuItem value="default">
         <Flex alignCenter height="3.8rem" pl="1.2rem">
           <Text className={styles.selectNetworkText}>

@@ -52,7 +52,7 @@ export function AuthereumVerify() {
   }
 
   const onCaptchaChange = (value: string | null) => {
-    setCaptchaResponseToken(value || '')
+    setCaptchaResponseToken(value ?? '')
   }
 
   const submitDisabled = !(inputValue && captchaResponseToken)

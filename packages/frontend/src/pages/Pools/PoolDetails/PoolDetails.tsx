@@ -8,10 +8,6 @@ import Typography from '@material-ui/core/Typography'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { AccountPosition } from 'src/pages/Pools/PoolDetails/AccountPosition'
 import { Alert } from 'src/components/Alert'
-import {
-  BNMin,
-  getTokenImage
-} from 'src/utils'
 import { BigNumber } from 'ethers'
 import { BottomPoolStats } from 'src/pages/Pools/PoolDetails/BottomPoolStats'
 import { DepositForm } from 'src/pages/Pools/PoolDetails/DepositForm'
@@ -20,6 +16,8 @@ import { PoolEmptyState } from 'src/pages/Pools/PoolDetails/PoolEmptyState'
 import { StakeForm } from 'src/pages/Pools/PoolDetails/StakeForm'
 import { TopPoolStats } from 'src/pages/Pools/PoolDetails/TopPoolStats'
 import { WithdrawForm } from 'src/pages/Pools/PoolDetails/WithdrawForm'
+import { bigNumberMin } from 'src/utils/bigNumberMin'
+import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { useParams } from 'react-router'
@@ -87,7 +85,7 @@ export function PoolDetails () {
   const navigate = useNavigate()
   const { search } = useLocation()
   const { tab } = useParams<{ tab: string }>()
-  const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
+  const [selectedTab, setSelectedTab] = useState(tab ?? 'deposit')
   const [selectedStaking, setSelectedStaking] = useState<string>('0')
   const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)
 
@@ -106,9 +104,9 @@ export function PoolDetails () {
     setSelectedStaking(newValue)
   }
 
-  const totalAmount = BigNumber.from(token0Deposited || 0).add(BigNumber.from(token1Deposited || 0))
-  const token0Max = BNMin(poolReserves[0], totalAmount)
-  const token1Max = BNMin(poolReserves[1], totalAmount)
+  const totalAmount = BigNumber.from(token0Deposited ?? 0).add(BigNumber.from(token1Deposited ?? 0))
+  const token0Max = bigNumberMin(poolReserves[0], totalAmount)
+  const token1Max = bigNumberMin(poolReserves[1], totalAmount)
 
   const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
   const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]

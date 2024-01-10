@@ -159,7 +159,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
   const lpDecimals = 18
-  const accountAddress = (queryParams?.address as string) || address?.address
+  const accountAddress = (queryParams?.address as string) ?? address?.address
   const chainSlug = selectedNetwork?.slug ?? ''
   const tokenSymbol = selectedBridge?.getTokenSymbol() ?? ''
   const tokenDecimals = getTokenDecimals(tokenSymbol)
@@ -171,7 +171,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const isNativeToken =
     useMemo(() => {
       try {
-        if (!selectedNetwork || unsupportedAsset?.chain) return false
+        if (!selectedNetwork ?? unsupportedAsset?.chain) return false
         const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
         return token?.isNativeToken
       } catch (err) {
@@ -923,7 +923,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const poolStats = getPoolStats(chainSlug, tokenSymbol)
   const tvlFormatted = poolStats ? poolStats?.tvlUsdFormatted ?? '' : '-'
-  const totalUserBalance = BigNumber.from(userPoolBalance || 0).add(stakedBalance || 0)
+  const totalUserBalance = BigNumber.from(userPoolBalance ?? 0).add(stakedBalance || 0)
   const hasBalance = totalUserBalance.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
@@ -954,7 +954,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const tokenSumDepositedFormatted = tokenSumDeposited
     ? commafy(Number(formatUnits(tokenSumDeposited, tokenDecimals)), 5)
     : ''
-  const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited || 0, tokenDecimals)) + Number(formatUnits(token1Deposited || 0, tokenDecimals))) : 0
+  const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited ?? 0, tokenDecimals)) + Number(formatUnits(token1Deposited ?? 0, tokenDecimals))) : 0
   const userPoolBalanceUsd = tokenUsdPrice ? userPoolBalanceSum * tokenUsdPrice : 0
   const userPoolBalanceUsdFormatted = userPoolBalanceUsd ? `$${commafy(userPoolBalanceUsd, 2)}` : commafy(userPoolBalanceSum, 4)
   const token0BalanceFormatted = commafy(token0Balance, 4)
@@ -1001,7 +1001,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 4)}` : commafy(overallUserPoolBalanceSum, 4)
-  const hasStakeContract = !!(stakingContract || hopStakingContract)
+  const hasStakeContract = !!(stakingContract ?? hopStakingContract)
 
   const token0BalanceBn = canonicalBalance ?? BigNumber.from(0)
   const token1BalanceBn = hopBalance ?? BigNumber.from(0)

@@ -96,7 +96,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
       }
     }
 
-    let totalAmount = balance.sub(nativeTokenMaxGasCost).sub(maxButtonFixedAmountToSubtract || 0)
+    let totalAmount = balance.sub(nativeTokenMaxGasCost).sub(maxButtonFixedAmountToSubtract ?? 0)
     if (totalAmount.lt(0)) {
       totalAmount = BigNumber.from(0)
     }

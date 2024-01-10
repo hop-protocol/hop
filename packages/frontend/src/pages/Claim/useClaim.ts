@@ -121,11 +121,11 @@ export function useClaim() {
             console.error('getVotes error:', err)
           }
           return setDelegate({
-            ensName: ensName || '',
+            ensName: ensName ?? '',
             address: new Address(getAddress(inputValue.toLowerCase())),
             votes: votes,
             votesFormatted: formatUnits(votes.toString(), 18),
-            avatar: ensAvatar || '',
+            avatar: ensAvatar ?? '',
             infoUrl: '',
             info: '',
           })
@@ -143,7 +143,7 @@ export function useClaim() {
             address: new Address(ensAddress),
             votes: votes,
             votesFormatted: formatUnits(votes.toString(), 18),
-            avatar: ensAvatar || '',
+            avatar: ensAvatar ?? '',
             infoUrl: '',
             info: ''
           })

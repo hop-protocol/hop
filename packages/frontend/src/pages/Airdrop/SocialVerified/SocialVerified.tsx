@@ -103,7 +103,7 @@ export function SocialVerified() {
   }
 
   const onCaptchaChange = (value: string | null) => {
-    setCaptchaResponseToken(value || '')
+    setCaptchaResponseToken(value ?? '')
   }
 
   const isEligible = userData?.eligible && userData?.userId && userData?.username

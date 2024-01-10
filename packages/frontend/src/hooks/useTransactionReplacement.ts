@@ -31,7 +31,7 @@ function useTransactionReplacement(walletName?: WalletName | string) {
             if (safeTx.detailedExecutionInfo?.type === 'MULTISIG') {
               const txModel = new Transaction({
                 ...txModelArgs,
-                to: safeTx.detailedExecutionInfo.executor?.value || safeTx.txData?.to.value,
+                to: safeTx.detailedExecutionInfo.executor?.value ?? safeTx.txData?.to.value,
                 from: safe.safeAddress,
                 nonce: safeTx.detailedExecutionInfo.nonce,
                 receipt,

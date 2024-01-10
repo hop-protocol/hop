@@ -84,7 +84,7 @@ export function AuthereumVerified() {
   }
 
   const onCaptchaChange = (value: string | null) => {
-    setCaptchaResponseToken(value || '')
+    setCaptchaResponseToken(value ?? '')
   }
 
   const isEligible = userData?.userId

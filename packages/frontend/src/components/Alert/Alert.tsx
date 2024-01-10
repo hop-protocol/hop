@@ -20,11 +20,11 @@ type AlertProps = {
 export const Alert: FC<AlertProps & MuiAlertProps> = props => {
   const { text, className, children } = props
   const styles = useStyles()
-  const show = text || children
+  const show = text ?? children
 
   return show ? (
     <MuiAlert {...props} className={clsx(styles.root, className)}>
-      {children || prettifyErrorMessage(text || '')}
+      {children ?? prettifyErrorMessage(text ?? '')}
     </MuiAlert>
   ) : null
 }

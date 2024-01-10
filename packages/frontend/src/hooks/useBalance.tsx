@@ -7,7 +7,7 @@ import { useQuery } from 'react-query'
 type ContractType = Token | StakingRewards | Token | Contract
 
 async function fetchBalance(token: ContractType, address: string) {
-  return await token.balanceOf(address)
+  return token.balanceOf(address)
 }
 
 const useBalance = (token?: ContractType, address?: Addressish, chainId?: ChainId) => {

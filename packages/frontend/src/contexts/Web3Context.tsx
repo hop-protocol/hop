@@ -127,6 +127,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }
 
   const onboard = useMemo(() => {
+    // eslint-disable-next-line new-cap
     const instance = Onboard({
       theme: customTheme,
       appMetadata: {

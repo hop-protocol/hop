@@ -88,7 +88,7 @@ export class Transaction extends EventEmitter {
     }
 
     this.provider = getProviderByNetworkName(networkName)
-    this.timestampMs = timestampMs || Date.now()
+    this.timestampMs = timestampMs ?? Date.now()
     this.pending = pending
     this.transferId = transferId
     this.replaced = replaced
@@ -96,7 +96,7 @@ export class Transaction extends EventEmitter {
     this.nonce = nonce
     this.from = from
     this.to = to
-    this.token = token || null
+    this.token = token ?? null
     this.safeTx = safeTx
 
     this.getTransaction().then((txResponse: providers.TransactionResponse) => {

@@ -118,7 +118,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     () => find(
       convertOptions,
       option => pathname.includes(option.path) || option.path.includes(viaParamValue)
-    ) || convertOptions[0],
+    ) ?? convertOptions[0],
     [pathname, viaParamValue]
   )
 

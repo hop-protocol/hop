@@ -67,7 +67,7 @@ export const TxPill = () => {
               <Icon src={ensAvatar} height="100%" />
             </Circle>
           )}
-          <Div>{ensName || address?.truncate()}</Div>
+          <Div>{ensName ?? address?.truncate()}</Div>
         </StyledButton>
       )}
     </div>

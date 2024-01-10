@@ -22,7 +22,7 @@ export function AirdropPreview() {
   const theme = useTheme()
   const navigate = useNavigate()
   const { address } = useWeb3Context()
-  const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')
+  const [airdropAddress, setAirdropAddress] = useState<string>(address?.address ?? '')
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
   const userDistribution = useDistribution(airdropAddress)
   const isEligible = userDistribution?.total >= 0.0001

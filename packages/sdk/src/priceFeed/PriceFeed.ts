@@ -17,7 +17,7 @@ export type ApiKeys = {
 }
 
 interface Service {
-  getPriceByTokenSymbol(symbol: string): Promise<number|null>
+  getPriceByTokenSymbol(symbol: string): Promise<number>
 }
 
 export class PriceFeed {
@@ -73,7 +73,7 @@ export class PriceFeed {
     return price
   }
 
-  async _getPriceByTokenSymbol (tokenSymbol: string): Promise<number|null> {
+  async _getPriceByTokenSymbol (tokenSymbol: string): Promise<number> {
     const errors: Error[] = []
     for (const service of this.services) {
       try {
@@ -96,7 +96,7 @@ export class PriceFeed {
         }
       }
     }
-    return null
+    throw new Error('unreachable')
   }
 
   formatPrice (tokenSymbol: string, price: number) {

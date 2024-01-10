@@ -55,7 +55,7 @@ export class CoinGecko {
   public getPriceByTokenSymbol = async (
     tokenSymbol: string,
     base: string = 'usd'
-  ): Promise<number|null> => {
+  ): Promise<number> => {
     let symbol = tokenSymbol
     if (symbol === 'ETH') {
       symbol = 'WETH'
@@ -72,10 +72,17 @@ export class CoinGecko {
     const coinId = getCoinId(tokenSymbol)
     if (coinId) {
       const price = await this._getPriceByTokenSymbol(tokenSymbol)
+      if (price == null) {
+        throw new Error('price not found')
+      }
       return price
     } else {
       const prices = await this.getPricesByTokenSymbol([symbol], base)
-      return prices[0]
+      const price = prices[0]
+      if (price == null) {
+        throw new Error('price not found')
+      }
+      return price
     }
   }
 
@@ -124,7 +131,8 @@ export class CoinGecko {
       addresses.push(address)
     }
 
-    return this.getPricesByTokenAddresses(addresses, base)
+    const prices = await this.getPricesByTokenAddresses(addresses, base)
+    return prices
   }
 
   public getPricesByTokenAddresses = async (

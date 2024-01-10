@@ -13,7 +13,7 @@ export class PriceFeedFromS3 {
     this.priceFeed.setApiKeys(apiKeysMap)
   }
 
-  async getPriceByTokenSymbol (tokenSymbol: string): Promise<number|null> {
+  async getPriceByTokenSymbol (tokenSymbol: string): Promise<number> {
     return this.priceFeed.getPriceByTokenSymbol(tokenSymbol)
   }
 }

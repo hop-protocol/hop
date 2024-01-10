@@ -167,7 +167,7 @@ export class Base {
     let network: any
     if (networkOrOptionsObject instanceof Object) {
       const options = networkOrOptionsObject as BaseConstructorOptions
-      if (signer || chainProviders) {
+      if (signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
       network = options.network

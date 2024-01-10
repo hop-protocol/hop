@@ -23,7 +23,7 @@ export function EthAddress(props: EthAddressProps) {
   const { width = '100%', value = '', full, length = 4, children, textAlign = 'left' } = props
 
   const displayedAddress = React.useMemo(() => {
-    if (full || !value) return value
+    if (full ?? !value) return value
     return `${value.slice(0, 2 + length)}...${value.slice(0 - length)}`
   }, [value, full, length])
 

@@ -21,7 +21,7 @@ module.exports = {
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["node", "react", "@typescript-eslint", "unused-imports", "sort-imports-es6-autofix"],
+  "plugins": ["@typescript-eslint", "node", "react", "unused-imports", "sort-imports-es6-autofix"],
   "rules": {
     // Explicit offs
     "@typescript-eslint/consistent-type-definitions": 0,

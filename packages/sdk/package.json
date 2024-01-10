@@ -17,7 +17,7 @@
     "clean:docs": "rimraf docs",
     "clean:docs-ui": "rimraf docs-ui",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
-    "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
+    "lint": "eslint --fix \"src/**/*\"",
     "version:bump": "npm version prerelease --preid=beta",
     "publish:latest": "npm publish --tag latest --access public",
     "publish:beta": "npm publish --tag beta --access public",

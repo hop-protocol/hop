@@ -57,7 +57,7 @@ class Token extends Base {
 
     if (networkOrOptionsObject instanceof Object) {
       const options = networkOrOptionsObject as TokenConstructorOptions
-      if (chain || address || decimals || symbol || name || image || signer || chainProviders) {
+      if (chain ?? address ?? decimals ?? symbol ?? name ?? image ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
       decimals = options.decimals

@@ -162,7 +162,7 @@ class HopBridge extends Base {
 
     if (networkOrOptionsObject instanceof Object) {
       const options = networkOrOptionsObject as HopBridgeConstructorOptions
-      if (signer || token || chainProviders) {
+      if (signer ?? token ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
       token = options.token
@@ -640,9 +640,9 @@ class HopBridge extends Base {
     }
 
     if (
-      options?.deadline ||
-      options?.amountOutMin ||
-      options?.destinationDeadline ||
+      options?.deadline ??
+      options?.amountOutMin ??
+      options?.destinationDeadline ??
       options?.destinationAmountOutMin
     ) {
       throw new Error('Invalid sendHToken option')
@@ -2050,9 +2050,9 @@ class HopBridge extends Base {
     }
 
     const destinationChainId = destinationChain.chainId
-    deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
-    amountOutMin = BigNumber.from((amountOutMin || 0).toString())
-    recipient = recipient || await this.getSignerAddress()
+    deadline = deadline ?? this.defaultDeadlineSeconds
+    amountOutMin = BigNumber.from((amountOutMin ?? 0).toString())
+    recipient = recipient ?? await this.getSignerAddress()
     if (!recipient) {
       throw new Error('recipient is required')
     }
@@ -2079,7 +2079,7 @@ class HopBridge extends Base {
     }
 
     const value = isNativeToken ? amount : undefined
-    relayerFee = BigNumber.from(relayerFee || 0)
+    relayerFee = BigNumber.from(relayerFee ?? 0)
 
     if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
       throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
@@ -2125,7 +2125,7 @@ class HopBridge extends Base {
       checkAllowance
     } = input
     const destinationChainId = destinationChain.chainId
-    deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
+    deadline = deadline ?? this.defaultDeadlineSeconds
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
 
     // Destination values will always be 0 going to L1
@@ -2136,7 +2136,7 @@ class HopBridge extends Base {
       throw new Error('All transfers populated here must be sent to L1')
     }
 
-    recipient = recipient || await this.getSignerAddress()
+    recipient = recipient ?? await this.getSignerAddress()
     if (!recipient) {
       throw new Error('recipient is required')
     }
@@ -2224,17 +2224,17 @@ class HopBridge extends Base {
       checkAllowance
     } = input
     const destinationChainId = destinationChain.chainId
-    deadline = deadline || this.defaultDeadlineSeconds
-    destinationDeadline = destinationDeadline || this.defaultDeadlineSeconds
-    amountOutMin = BigNumber.from((amountOutMin || 0).toString())
+    deadline = deadline ?? this.defaultDeadlineSeconds
+    destinationDeadline = destinationDeadline ?? this.defaultDeadlineSeconds
+    amountOutMin = BigNumber.from((amountOutMin ?? 0).toString())
     destinationAmountOutMin = BigNumber.from(
-      (destinationAmountOutMin || 0).toString()
+      (destinationAmountOutMin ?? 0).toString()
     )
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error('Amount must be greater than bonder fee')
     }
 
-    recipient = recipient || await this.getSignerAddress()
+    recipient = recipient ?? await this.getSignerAddress()
     if (!recipient) {
       throw new Error('recipient is required')
     }
@@ -2540,7 +2540,7 @@ class HopBridge extends Base {
   }
 
   isNativeToken (chain?: TChain) : boolean {
-    const token = this.getCanonicalToken(chain || this.sourceChain)
+    const token = this.getCanonicalToken(chain ?? this.sourceChain)
     return token.isNativeToken
   }
 

@@ -46,7 +46,7 @@ async function estimateGasCost(fromNetwork: Network, toNetwork: Network | null, 
     let gasPrice = await getEstimateGasPrice(fromNetwork, sdk)
 
     try {
-      // use any txoverrides values if they are higher
+      // use any txOverrides values if they are higher
       const txOverrides = await sdk.txOverrides(fromNetwork.slug, toNetwork?.slug)
       if (txOverrides?.gasPrice?.gt(gasPrice)) {
         gasPrice = txOverrides.gasPrice

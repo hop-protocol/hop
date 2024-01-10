@@ -670,9 +670,15 @@ export class Base {
       sourceChain.equals(Chain.Ethereum) &&
       destinationChain && (
         (destinationChain as Chain)?.equals(Chain.Optimism) ||
-        (destinationChain as Chain)?.equals!(Chain.Base) ||
-        (destinationChain as Chain)?.equals!(Chain.Arbitrum) ||
-        (destinationChain as Chain)?.equals!(Chain.Nova)
+        (destinationChain as Chain)?.equals(Chain.Base)
+      )) {
+      txOptions.gasLimit = BigNumber.from(200_000)
+    }
+    if (
+      sourceChain.equals(Chain.Ethereum) &&
+      destinationChain && (
+        (destinationChain as Chain)?.equals(Chain.Arbitrum) ||
+        (destinationChain as Chain)?.equals(Chain.Nova)
       )) {
       txOptions.gasLimit = BigNumber.from(500_000)
     }

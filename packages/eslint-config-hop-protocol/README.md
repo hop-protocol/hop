@@ -20,6 +20,13 @@ Add config to extends in your ESLint config:
 }
 ```
 
+## FAQ
+
+- Q: Why is this package named `eslint-config-hop-protocol` instead of `@hop-protocol/eslint-config`?
+
+    - A: ESLint requires the package name to be prefixed with `eslint-config-` in order to be auto-discovered by the eslint package.
+
+
 ## License
 
 [MIT](LICENSE)

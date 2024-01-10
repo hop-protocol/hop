@@ -1,4 +1,4 @@
-FROM node:16 AS build
+FROM node:20.5.1 AS build
 
 ARG GIT_REV
 ENV GIT_REV=${GIT_REV}
@@ -13,7 +13,7 @@ COPY --chown=node:node . .
 RUN npm install
 RUN npm run build
 
-FROM node:16-alpine
+FROM node:20.5.1-alpine
 WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY --from=build /usr/src/app/dist /usr/src/app/dist

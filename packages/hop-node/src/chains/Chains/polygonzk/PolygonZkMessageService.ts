@@ -129,21 +129,15 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
 
   protected async isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
     // A message is in flight if the client does not know about it
-    console.log('debugmsg - 000', messageStatus, messageDirection)
     try {
-      console.log('debugmsg - 111', messageStatus, messageDirection)
       if (messageDirection === MessageDirection.L1_TO_L2) {
-        console.log('debugmsg - 222', messageStatus, messageDirection)
         await this.zkEvmClient.isDepositClaimable(messageStatus)
-        console.log('debugmsg - 333', messageStatus, messageDirection)
       } else {
         await this.zkEvmClient.isWithdrawExitable(messageStatus)
       }
     } catch (err) {
-      console.log('debugmsg - 444', messageStatus, messageDirection)
       return true
     }
-    console.log('debugmsg - 555', messageStatus, messageDirection)
     return false
   }
 

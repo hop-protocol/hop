@@ -51,6 +51,10 @@ export default class ContractBase extends EventEmitter {
   }
 
   getChainId = async (): Promise<number> => {
+    return this.getChainIdFn()
+  }
+
+  getChainIdFn = async (): Promise<number> => {
     if (this.chainId) {
       return this.chainId
     }

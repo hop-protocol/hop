@@ -1,6 +1,6 @@
 {
   "name": "hop-sdk-demo",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.9.0",
@@ -41,12 +41,6 @@
     "lint": "eslint --fix \"**/*.{ts,tsx}\"",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

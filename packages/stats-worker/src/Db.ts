@@ -115,7 +115,11 @@ class Db {
           linea_block_number INTEGER,
           linea_canonical_amount NUMERIC,
           linea_hToken_amount NUMERIC,
-          linea_native_amount NUMERIC
+          linea_native_amount NUMERIC,
+          polygonzk_block_number INTEGER,
+          polygonzk_canonical_amount NUMERIC,
+          polygonzk_hToken_amount NUMERIC,
+          polygonzk_native_amount NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -131,6 +135,7 @@ class Db {
           nova_fees_amount NUMERIC NOT NULL,
           base_fees_amount NUMERIC NOT NULL,
           linea_fees_amount NUMERIC NOT NULL,
+          polygonzk_fees_amount NUMERIC NOT NULL,
           ethereum_fees_amount NUMERIC NOT NULL,
           total_fees_amount NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
@@ -149,6 +154,7 @@ class Db {
           nova_tx_fees NUMERIC NOT NULL,
           base_tx_fees NUMERIC NOT NULL,
           linea_tx_fees NUMERIC NOT NULL,
+          polygonzk_tx_fees NUMERIC NOT NULL,
           ethereum_tx_fees NUMERIC NOT NULL,
           total_tx_fees NUMERIC NOT NULL,
           eth_price_usd NUMERIC NOT NULL,
@@ -288,6 +294,21 @@ class Db {
         )
         this.db.run(
           'ALTER TABLE bonder_balances ADD COLUMN linea_native_amount NUMERIC;'
+        )
+      }
+
+      this.migrations[22] = () => {
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN polygonzk_block_number INTEGER;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN polygonzk_canonical_amount NUMERIC;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN polygonzk_hToken_amount NUMERIC;'
+        )
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN polygonzk_native_amount NUMERIC;'
         )
       }
 
@@ -575,11 +596,15 @@ class Db {
     lineaBlockNumber: number,
     lineaCanonicalAmount: number = 0,
     lineaHTokenAmount: number = 0,
-    lineaNativeAmount: number = 0
+    lineaNativeAmount: number = 0,
+    polygonzkBlockNumber: number,
+    polygonzkCanonicalAmount: number = 0,
+    polygonzkHTokenAmount: number = 0,
+    polygonzkNativeAmount: number = 0
   ) {
     await this.tilReady()
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -639,7 +664,11 @@ class Db {
       lineaBlockNumber,
       lineaCanonicalAmount,
       lineaHTokenAmount,
-      lineaNativeAmount
+      lineaNativeAmount,
+      polygonzkBlockNumber,
+      polygonzkCanonicalAmount,
+      polygonzkHTokenAmount,
+      polygonzkNativeAmount
     )
     stmt.finalize()
   }
@@ -653,13 +682,14 @@ class Db {
     novaFees: number = 0,
     baseFees: number = 0,
     lineaFees: number = 0,
+    polygonzkFees: number = 0,
     ethereumFees: number = 0,
     totalFees: number = 0,
     timestamp: number = 0
   ) {
     await this.tilReady()
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -671,6 +701,7 @@ class Db {
       novaFees,
       baseFees,
       lineaFees,
+      polygonzkFees,
       ethereumFees,
       totalFees,
       timestamp
@@ -688,6 +719,7 @@ class Db {
     novaTxFees: number = 0,
     baseTxFees: number = 0,
     lineaTxFees: number = 0,
+    polygonzkTxFees: number = 0,
     ethereumTxFees: number = 0,
     totalFees: number = 0,
     ethPriceUsd: number = 0,
@@ -697,7 +729,7 @@ class Db {
   ) {
     await this.tilReady()
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_tx_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_tx_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -709,6 +741,7 @@ class Db {
       novaTxFees,
       baseTxFees,
       lineaTxFees,
+      polygonzkTxFees,
       ethereumTxFees,
       totalFees,
       ethPriceUsd,

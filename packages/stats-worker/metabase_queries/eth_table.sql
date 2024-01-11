@@ -19,6 +19,8 @@ select
   base_hToken_amount,
   linea_canonical_amount,
   linea_hToken_amount,
+  polygonzk_canonical_amount,
+  polygonzk_hToken_amount,
   ethereum_canonical_amount,
   polygon_native_amount,
   matic_price_usd,
@@ -31,6 +33,7 @@ select
   nova_native_amount,
   base_native_amount,
   linea_native_amount,
+  polygonzk_native_amount,
   eth_price_usd,
   total_eth_amount,
   restaked_amount,
@@ -53,6 +56,7 @@ from (
           IFNULL(nova_canonical_amount, 0) + IFNULL(nova_hToken_amount, 0) +
           IFNULL(base_canonical_amount, 0) + IFNULL(base_hToken_amount, 0) +
           IFNULL(linea_canonical_amount, 0) + IFNULL(linea_hToken_amount, 0) +
+          IFNULL(polygonzk_canonical_amount, 0) + IFNULL(polygonzk_hToken_amount, 0) +
           ethereum_canonical_amount + (staked_amount - unstaked_amount)) - initial_canonical_amount
     ) as total_balances,
     (
@@ -73,7 +77,8 @@ from (
             arbitrum_native_amount + arbitrum_alias_amount + IFNULL(arbitrum_messenger_wrapper_amount, 0) +
             IFNULL(nova_native_amount, 0) +
             IFNULL(base_native_amount, 0) +
-            IFNULL(linea_native_amount, 0)
+            IFNULL(linea_native_amount, 0) +
+            IFNULL(polygonzk_native_amount, 0)
           )
         )
     ) as native_token_debt,
@@ -83,7 +88,8 @@ from (
       arbitrum_native_amount + arbitrum_alias_amount + IFNULL(arbitrum_messenger_wrapper_amount, 0) +
       IFNULL(nova_native_amount, 0) +
       IFNULL(base_native_amount, 0) +
-      IFNULL(linea_native_amount, 0)
+      IFNULL(linea_native_amount, 0) +
+      IFNULL(polygonzk_native_amount, 0)
     ) as total_eth_amount,
     initial_canonical_amount,
     initial_eth_amount,
@@ -103,6 +109,8 @@ from (
     IFNULL(base_hToken_amount, 0) as base_hToken_amount,
     IFNULL(linea_canonical_amount, 0) as linea_canonical_amount,
     IFNULL(linea_hToken_amount, 0) as linea_hToken_amount,
+    IFNULL(polygonzk_canonical_amount, 0) as polygonzk_canonical_amount,
+    IFNULL(polygonzk_hToken_amount, 0) as polygonzk_hToken_amount,
     ethereum_canonical_amount,
     polygon_native_amount,
     matic_price_usd,
@@ -115,6 +123,7 @@ from (
     IFNULL(nova_native_amount, 0) as nova_native_amount,
     IFNULL(base_native_amount, 0) as base_native_amount,
     IFNULL(linea_native_amount, 0) as linea_native_amount,
+    IFNULL(polygonzk_native_amount, 0) as polygonzk_native_amount,
     eth_price_usd,
     restaked_amount,
     staked_amount,

@@ -10,7 +10,7 @@ for (const network in chainNetworks) {
   const chains: Chains = {}
 
   for (const chain in (chainNetworks as any)[network]) {
-    const chainConfig = (chainNetworks as any)[network][chain] as any
+    const chainConfig = (chainNetworks as any)[network][chain] 
     if (!chains[chain]) {
       chains[chain] = {}
     }

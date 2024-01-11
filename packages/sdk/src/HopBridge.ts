@@ -161,7 +161,7 @@ class HopBridge extends Base {
     super(networkOrOptionsObject, signer, chainProviders)
 
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject as HopBridgeConstructorOptions
+      const options = networkOrOptionsObject 
       if (signer ?? token ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -1412,7 +1412,7 @@ class HopBridge extends Base {
 
       const isLowLiquidityToken = LowLiquidityTokens.includes(token.canonicalSymbol)
       const buffer: string = isLowLiquidityToken ? LowLiquidityTokenBufferAmountsUsd[this.tokenSymbol] : PendingAmountBufferUsd?.toString()
-      const tokenPriceBn = parseUnits(tokenPrice!.toString(), token.decimals)
+      const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
       const bufferAmountBn = parseUnits(buffer, token.decimals)
       const precision = parseUnits('1', token.decimals)
       const bufferAmountTokensBn = bufferAmountBn.div(tokenPriceBn).mul(precision)
@@ -1770,7 +1770,7 @@ class HopBridge extends Base {
       chain,
       address: saddleLpTokenAddress,
       decimals: 18,
-      symbol: `${this.tokenSymbol} LP` as TokenSymbol,
+      symbol: `${this.tokenSymbol} LP`,
       name: `${this.tokenSymbol} LP`,
       image: '',
       signer,

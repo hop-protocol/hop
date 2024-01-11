@@ -17,7 +17,7 @@ import {
   getTxDetails,
   txReducer,
 } from 'src/utils/transactions'
-import { TToken, TokenSymbol } from '@hop-protocol/sdk'
+import { TToken } from '@hop-protocol/sdk'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getAllProviders } from 'src/utils/getProvider'
@@ -102,7 +102,7 @@ const useTransaction = (txHash?: string) => {
           // TODO: add util to get token symbol by address
           const txDetails = getTxDetails(response, receipt)
           const { methodName, params, eventValues, txType } = txDetails
-          const tokenSymbol = getTokenByAddress(networkName, response.to!)
+          const tokenSymbol = getTokenByAddress(networkName, response.to)
 
           setLoading(false)
 
@@ -110,8 +110,8 @@ const useTransaction = (txHash?: string) => {
           const gasCost = utils.formatEther(gasUsed.mul(response.gasPrice!))
 
           let completed = false
-          const waitConfirmations = getNetworkWaitConfirmations(networkName as string)
-          const isFinalized = await getIsTxFinalized(receipt?.blockNumber, networkName as string) 
+          const waitConfirmations = getNetworkWaitConfirmations(networkName)
+          const isFinalized = await getIsTxFinalized(receipt?.blockNumber, networkName) 
           if (isFinalized) {
             completed = true
           }
@@ -188,7 +188,7 @@ const useTransaction = (txHash?: string) => {
       const { token, transactionHash, timestamp } = tfl1
 
       dispatchAction(TxActionType.setTx, {
-        tokenSymbol: token as TokenSymbol,
+        tokenSymbol: token,
         token: sdk.toTokenModel(token as TToken),
         destTx: {
           networkName: destNetworkName,

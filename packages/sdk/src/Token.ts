@@ -56,7 +56,7 @@ class Token extends Base {
     super(networkOrOptionsObject, signer, chainProviders)
 
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject as TokenConstructorOptions
+      const options = networkOrOptionsObject 
       if (chain ?? address ?? decimals ?? symbol ?? name ?? image ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }

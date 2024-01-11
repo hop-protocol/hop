@@ -4,7 +4,6 @@ import checkDiskSpace from 'check-disk-space'
 import os from 'os'
 import pidusage from 'pidusage'
 import wait from 'src/utils/wait'
-import { writeHeapSnapshot } from 'v8'
 
 type Config = {
   heapdump: boolean

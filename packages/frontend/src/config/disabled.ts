@@ -53,7 +53,7 @@ export function parseDisabledRoutes(
   if (!disabledRoutes[0] || disabledRoutes[0] === 'false') return []
 
   if (disabledRoutes[0] !== '') {
-    return (disabledRoutes as string[]).map((disabledRoute: string, i: number) => {
+    return (disabledRoutes).map((disabledRoute: string, i: number) => {
       const [source, destination, tokenSymbol] = disabledRoute.split(':')
 
       if (

@@ -795,7 +795,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
                 return bridge
                   .connect(signer as Signer)
-                  .removeLiquidity(liquidityTokenAmount, selectedNetwork!.slug, {
+                  .removeLiquidity(liquidityTokenAmount, selectedNetwork.slug, {
                     amount0Min,
                     amount1Min,
                     deadline: deadline(),
@@ -839,7 +839,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
                 return bridge
                   .connect(signer as Signer)
-                  .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
+                  .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork.slug, {
                     amountMin: amountMin,
                     deadline: deadline(),
                   })

@@ -94,7 +94,7 @@ class AmmConvertOption extends ConvertOption {
     deadline: number,
     bonderFee?: BigNumberish
   ) {
-    const bridge = await sdk.bridge(l1TokenSymbol).connect(signer as Signer)
+    const bridge = await sdk.bridge(l1TokenSymbol).connect(signer)
 
     return bridge.execSaddleSwap(
       sourceNetwork.slug,

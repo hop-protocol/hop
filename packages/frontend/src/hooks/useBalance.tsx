@@ -4,7 +4,7 @@ import { Contract } from 'ethers'
 import { StakingRewards } from '@hop-protocol/core/contracts'
 import { useQuery } from 'react-query'
 
-type ContractType = Token | StakingRewards | Token | Contract
+type ContractType = Token | StakingRewards   | Contract
 
 async function fetchBalance(token: ContractType, address: string) {
   return token.balanceOf(address)

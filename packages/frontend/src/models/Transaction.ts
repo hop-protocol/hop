@@ -208,7 +208,7 @@ export class Transaction extends EventEmitter {
         const l1Bridge = await bridge.getL1Bridge(this.provider)
         // Get the rest of the event data
         const decodedData = l1Bridge.interface.decodeEventLog(
-          tsDetails?.eventName!,
+          tsDetails?.eventName,
           tsDetails?.log.data
         )
 

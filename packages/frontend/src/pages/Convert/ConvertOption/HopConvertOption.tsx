@@ -45,7 +45,7 @@ class HopConvertOption extends ConvertOption {
     bonderFee?: BigNumberish,
     customRecipient?: string
   ) {
-    const bridge = sdk.bridge(l1TokenSymbol).connect(signer as Signer)
+    const bridge = sdk.bridge(l1TokenSymbol).connect(signer)
     if (bonderFee) {
       bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
     }

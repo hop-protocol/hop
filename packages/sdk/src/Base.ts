@@ -166,7 +166,7 @@ export class Base {
   ) {
     let network: any
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject as BaseConstructorOptions
+      const options = networkOrOptionsObject 
       if (signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -206,7 +206,7 @@ export class Base {
         this.debugTimeLogsCache = options.debugTimeLogsCache
       }
     } else {
-      network = networkOrOptionsObject as string
+      network = networkOrOptionsObject 
     }
 
     if (!network) {
@@ -497,7 +497,7 @@ export class Base {
     const obj : Record<string, string> = {}
     for (const chainSlug of this.configChains) {
       const provider = this.getChainProvider(chainSlug)
-      obj[chainSlug] = (provider as any)?.connection?.url
+      obj[chainSlug] = (provider)?.connection?.url
     }
 
     return obj
@@ -545,7 +545,7 @@ export class Base {
         if (connectedChainId !== chain.chainId) {
           if (!signer.provider) {
             // console.log('connect provider')
-            return (signer as Signer).connect(chain.provider!)
+            return (signer).connect(chain.provider!)
           }
           // console.log('return chain.provider')
           return chain.provider!
@@ -673,9 +673,9 @@ export class Base {
       sourceChain.equals(Chain.Ethereum) &&
       destinationChain && (
         (destinationChain as Chain)?.equals(Chain.Optimism) ||
-        (destinationChain as Chain)?.equals!(Chain.Base) ||
-        (destinationChain as Chain)?.equals!(Chain.Arbitrum) ||
-        (destinationChain as Chain)?.equals!(Chain.Nova)
+        (destinationChain as Chain)?.equals(Chain.Base) ||
+        (destinationChain as Chain)?.equals(Chain.Arbitrum) ||
+        (destinationChain as Chain)?.equals(Chain.Nova)
       )) {
       txOptions.gasLimit = BigNumber.from(500_000)
     }

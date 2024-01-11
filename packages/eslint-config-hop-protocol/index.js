@@ -8,6 +8,7 @@ module.exports = {
   "extends": [
     "eslint:recommended",
     "plugin:json/recommended",
+    // "plugin:@typescript-eslint/recommended-type-checked", // this is causing issues with some packages (core, stats-worker). Need to debug and re-enable
     "standard"
   ],
   "parser": "@typescript-eslint/parser",
@@ -22,7 +23,6 @@ module.exports = {
   "plugins": [
     "@typescript-eslint",
     "node",
-    "import",
     "unused-imports",
     "sort-imports-es6-autofix"
   ],
@@ -42,8 +42,6 @@ module.exports = {
     "avoidEscape": 0,
     "camelcase": 0,
     "comma-dangle": 0,
-    "import/no-named-default": 0,
-    "import/no-unresolved": 0,
     "indent": 0,
     "multiline-ternary": 0,
     "no-async-promise-executor": 0,

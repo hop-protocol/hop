@@ -555,7 +555,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         for (const bonder in config.addresses.bonders?.[token.symbol]) {
           for (const sourceChain in config.addresses.bonders?.[token.symbol]) {
             for (const destinationChain in config.addresses.bonders?.[token.symbol][
-              sourceChain as string
+              sourceChain 
             ]) {
               const bonder = config.addresses.bonders?.[token.symbol][sourceChain][destinationChain]
               if (bonder) {

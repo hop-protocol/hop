@@ -100,7 +100,7 @@ function Table({ columns, data, loading }) {
                     {
                       style: {
                         ...column.style,
-                        backgroundColor: (column as any).isSorted ? '#eed0ff' : 'transparent',
+                        backgroundColor: (column).isSorted ? '#eed0ff' : 'transparent',
                       },
                     },
                   ])}

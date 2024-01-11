@@ -175,7 +175,7 @@ export function useSendTransaction (props: any) {
         // Replace watcher
         const replacementWatcher = sdk.watch(
           txModelReplacement.hash,
-          fromToken!.symbol,
+          fromToken.symbol,
           fromNetwork.slug,
           toNetwork.slug
         )

@@ -50,7 +50,7 @@ class AMM extends Base {
   ) {
     super(networkOrOptionsObject, signer, chainProviders)
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject as AmmConstructorOptions
+      const options = networkOrOptionsObject 
       if (tokenSymbol ?? chain ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }

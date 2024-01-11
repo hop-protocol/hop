@@ -137,7 +137,7 @@ export function SocialVerified() {
           Congrats! You're eligible for the airdrop
         </Typography>
         <Typography variant="body1">
-          Verified {socialNames[userData?.social!]} account @{userData?.username!} <CheckIcon style={{ color: 'green' }} />
+          Verified {socialNames[userData?.social]} account @{userData?.username} <CheckIcon style={{ color: 'green' }} />
         </Typography>
 
         <Box mt={3}>

@@ -5,7 +5,7 @@ import { isMainnet, reactAppNetwork } from 'src/config'
 
 type Metadata = {
   tokens: {
-    [key in TokenSymbol | string]: {
+    [key in TokenSymbol  ]: {
       symbol: string
       name: string
       decimals: number

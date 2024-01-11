@@ -104,7 +104,7 @@ export function useDelegates() {
             .then((votes: BigNumber) => {
               votesCache[delegateAddress] = votes
               delegate.votes = votesCache[delegateAddress]
-              const votesFormatted = delegate!.votes!.gt(0) ? `${commafy(Number(formatUnits(delegate!.votes!.toString(), 18)), 4)} votes` : '0 votes'
+              const votesFormatted = delegate.votes!.gt(0) ? `${commafy(Number(formatUnits(delegate.votes!.toString(), 18)), 4)} votes` : '0 votes'
               delegate.votesFormatted = votesFormatted
               setDelegates([...cached])
             })

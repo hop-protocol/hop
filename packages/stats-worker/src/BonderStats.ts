@@ -192,6 +192,7 @@ class BonderStats {
         dbData.novaFeesAmount,
         dbData.baseFeesAmount,
         dbData.lineaFeesAmount,
+        dbData.polygonzkFeesAmount,
         dbData.ethereumFeesAmount,
         dbData.totalFeesAmount,
         startDate
@@ -279,6 +280,7 @@ class BonderStats {
         Number(dbData.novaTxFees || 0) +
         Number(dbData.baseTxFees || 0) +
         Number(dbData.lineaTxFees || 0) +
+        Number(dbData.polygonzkTxFees || 0) +
         Number(dbData.ethereumTxFees || 0)) *
         ethPrice
     console.log(dbData.totalFees)
@@ -293,6 +295,7 @@ class BonderStats {
         dbData.novaTxFees,
         dbData.baseTxFees,
         dbData.lineaTxFees,
+        dbData.polygonzkTxFees,
         dbData.ethereumTxFees,
         dbData.totalFees,
         dbData.ethPrice,
@@ -665,7 +668,11 @@ class BonderStats {
           dbData.lineaBlockNumber,
           dbData.lineaCanonicalAmount,
           dbData.lineaHTokenAmount,
-          dbData.lineaNativeAmount
+          dbData.lineaNativeAmount,
+          dbData.polygonzkBlockNumber,
+          dbData.polygonzkCanonicalAmount,
+          dbData.polygonzkHTokenAmount,
+          dbData.polygonzkNativeAmount
         )
         console.log(
           day,
@@ -1216,6 +1223,8 @@ class BonderStats {
       (dbData.baseHTokenAmount || 0) +
       (dbData.lineaCanonicalAmount || 0) +
       (dbData.lineaHTokenAmount || 0) +
+      (dbData.polygonzkCanonicalAmount || 0) +
+      (dbData.polygonzkHTokenAmount || 0) +
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount) -
       dbData.initialCanonicalAmount -
@@ -1248,6 +1257,7 @@ class BonderStats {
         (dbData.novaNativeAmount || 0) +
         (dbData.baseNativeAmount || 0) +
         (dbData.lineaNativeAmount || 0)) *
+        (dbData.polygonzkNativeAmount || 0)) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1262,7 +1272,8 @@ class BonderStats {
           dbData.arbitrumMessengerWrapperAmount +
           (dbData.novaNativeAmount || 0) +
           (dbData.baseNativeAmount || 0) +
-          (dbData.lineaNativeAmount || 0))
+          (dbData.lineaNativeAmount || 0) +
+          (dbData.polygonzkNativeAmount || 0))
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt

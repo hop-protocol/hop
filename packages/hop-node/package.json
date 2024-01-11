@@ -15,7 +15,7 @@
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
     "postinstall": "mkdir -p dist/src && npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
     "build": "npm run build-info && tsc -p tsconfig.build.json",
-    "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
+    "lint": "eslint --fix \"src/**/*\"",
     "clean": "rimraf dist",
     "clean:db": "rimraf db_data",
     "prepare": "npm run build"

@@ -1,5 +1,6 @@
 {
   "extends": [
+    "plugin:@typescript-eslint/recommended-type-checked",
     "eslint-config-hop-protocol"
   ]
 }

@@ -2,3 +2,4 @@ src/**.json
 src/arbBot/example/*.json
 *.md
 src/watchers/*.json
+test/**

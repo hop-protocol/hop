@@ -117,7 +117,7 @@ export default class ContractBase extends EventEmitter {
     if (!tx) {
       throw new Error(`transaction not found. transactionHash: ${txHash}`)
     }
-    return tx.blockNumber! // eslint-disable-line
+    return tx.blockNumber!
   }
 
   getBlockTimestamp = async (

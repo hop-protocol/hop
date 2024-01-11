@@ -1,5 +1,4 @@
 import Logger, { setLogLevel } from 'src/logger'
-import fetch from 'node-fetch'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'

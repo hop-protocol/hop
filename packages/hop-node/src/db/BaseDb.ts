@@ -1,5 +1,6 @@
 import DatabaseMigrator from './DatabaseMigrator'
 import Logger from 'src/logger'
+// @ts-expect-error level-party does not have a types file as of 20231227
 import level from 'level-party'
 import mkdirp from 'mkdirp'
 import os from 'os'
@@ -126,6 +127,17 @@ abstract class BaseDb<T> extends EventEmitter {
 
     if (migrations) {
       this.#init(migrations)
+        .then(() => {
+          this.isMigrating = false
+          this.ready = true
+          this.logger.info('migrations complete. db ready.')
+        })
+        .catch(err => {
+          this.logger.error('db migration error', err)
+          this.logger.error(err)
+          process.exit(1)
+        })
+
     } else {
       this.ready = true
       this.logger.info('db ready')
@@ -145,14 +157,9 @@ abstract class BaseDb<T> extends EventEmitter {
         await this.#upsertMetadata({
           _migrationIndex: updatedMigrationIndex
         })
-        this.isMigrating = false
-        this.ready = true
-        this.logger.info('migrations complete. db ready.')
       })
       .catch(err => {
-        this.logger.error('db migration error', err)
-        this.logger.error(err)
-        process.exit(1)
+        throw err
       })
   }
 
@@ -203,7 +210,7 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   protected async upsert (key: string, value: T): Promise<void> {
-    const dbValue = await this.get(key) ?? {} as T // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const dbValue = await this.get(key) ?? {} as T
     if (isEqual(dbValue, value)) {
       const logMsg = 'New value is the same as existing value. Skipping write.'
       this.#logDbOperation(DbOperations.Upsert, { key, value, logMsg })
@@ -311,7 +318,7 @@ abstract class BaseDb<T> extends EventEmitter {
    */
 
   async #upsertMetadata (value: Partial<DbMetadata>): Promise<void> {
-    const dbValue = await this.get(this.metadataKey) ?? {} as DbMetadata // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const dbValue = await this.get(this.metadataKey) ?? {} as DbMetadata
     const updatedValue = Object.assign({}, dbValue, value)
     return this.db.put(this.metadataKey, updatedValue)
   }
@@ -370,7 +377,7 @@ abstract class BaseDb<T> extends EventEmitter {
     return x
   }
 
-  #normalizeValue (value: T): T {
+  #normalizeValue = (value: T): T => {
     return normalizeDbValue(value)
   }
 

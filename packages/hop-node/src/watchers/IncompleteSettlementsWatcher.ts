@@ -97,12 +97,12 @@ class IncompleteSettlementsWatcher {
   }
 
   private async tilReady (): Promise<any> {
-    if (this.ready) {
-      return true
+    while (true) {
+      if (this.ready) {
+        return true
+      }
+      await wait(100)
     }
-
-    await wait(100)
-    return this.tilReady()
   }
 
   private async sync () {
@@ -301,7 +301,7 @@ class IncompleteSettlementsWatcher {
 
   async start () {
     const result = await this.getDiffResults()
-    this.logResult(result)
+    await this.logResult(result)
   }
 
   async getDiffResults (): Promise<any> {

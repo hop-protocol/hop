@@ -53,11 +53,17 @@ class GasBoostSigner extends Signer {
     this.setOptions(options)
     this.init()
       .catch((err: Error) => this.logger.error('init error:', err))
-      .finally(async () => {
-        const nonce = await this.getDbNonce()
-        this.logger.debug('ready')
-        this.logger.debug(`current nonce: ${nonce}`)
-        this.ready = true
+      .finally(() => {
+        this.getDbNonce()
+          .then((nonce: any) => {
+            this.logger.debug('ready')
+            this.logger.debug(`current nonce: ${nonce}`)
+            this.ready = true
+          })
+          .catch((err: Error) => {
+            this.logger.error('ready error:', err)
+            process.exit(1)
+          })
       })
   }
 
@@ -99,12 +105,12 @@ class GasBoostSigner extends Signer {
   }
 
   protected async tilReady (): Promise<boolean> {
-    if (this.ready) {
-      return true
+    while (true) {
+      if (this.ready) {
+        return true
+      }
+      await wait(100)
     }
-
-    await wait(100)
-    return this.tilReady()
   }
 
   private async setLatestNonce () {
@@ -113,7 +119,7 @@ class GasBoostSigner extends Signer {
   }
 
   // this is a required ethers Signer method
-  async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
+  override async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     await this.tilReady()
     const txResponse: providers.TransactionResponse = await this.mutex.runExclusive(async () => {
       const id = uuidv4()

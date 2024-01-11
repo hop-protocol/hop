@@ -34,7 +34,7 @@ export type SendBondTransferRootTxParams = {
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
+  override siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
 
   constructor (config: Config) {
     super({
@@ -46,7 +46,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await this.checkTransfersCommittedFromDb()
   }
 
@@ -162,7 +162,7 @@ class BondTransferRootWatcher extends BaseWatcher {
           availableCredit
         )}, need ${this.bridge.formatUnits(bondAmount)}`
       logger.error(msg)
-      this.notifier.error(msg)
+      await this.notifier.error(msg)
       return
     }
 
@@ -191,7 +191,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
       const transferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)

@@ -139,18 +139,18 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   protected async isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return this.zkEvmClient.isDepositClaimable(messageStatus)
-    } else {
-      return this.zkEvmClient.isWithdrawExitable(messageStatus)
     }
+
+    return this.zkEvmClient.isWithdrawExitable(messageStatus)
   }
 
   protected async isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
     // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
-    } else {
-      return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
     }
+
+    return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
   }
 
   #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
@@ -159,11 +159,11 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
         sourceBridge: this.zkEvmClient.rootChainBridge,
         destBridge: this.zkEvmClient.childChainBridge
       }
-    } else {
+    } 
       return {
         sourceBridge: this.zkEvmClient.childChainBridge,
         destBridge: this.zkEvmClient.rootChainBridge
       }
-    }
+    
   }
 }

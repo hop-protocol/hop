@@ -1,0 +1,23 @@
+CONFLICT (content): Merge conflict in packages/frontend/src/utils/bigNumberMax.ts
+CONFLICT (content): Merge conflict in packages/frontend/src/utils/bigNumberMin.ts
+CONFLICT (content): Merge conflict in packages/hop-node/.eslintrc.json
+CONFLICT (content): Merge conflict in packages/hop-node/.gitignore
+CONFLICT (modify/delete): packages/hop-node/.node-version deleted in feat/lint-updates and modified in HEAD.  Version HEAD of packages/hop-node/.node-version left in tree.
+CONFLICT (content): Merge conflict in packages/hop-node/.nvmrc
+CONFLICT (content): Merge conflict in packages/hop-node/Dockerfile
+CONFLICT (content): Merge conflict in packages/hop-node/package-lock.json
+CONFLICT (content): Merge conflict in packages/hop-node/package.json
+CONFLICT (content): Merge conflict in packages/hop-node/src/chains/Chains/polygonzk/PolygonZkFinalityService.ts
+CONFLICT (content): Merge conflict in packages/hop-node/src/config/config.ts
+CONFLICT (content): Merge conflict in packages/hop-node/src/gasboost/GasBoostSigner.ts
+CONFLICT (content): Merge conflict in packages/hop-node/src/gasboost/GasBoostTransaction.ts
+CONFLICT (content): Merge conflict in packages/hop-node/src/theGraph/getUnbondedTransfers.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/utils/promiseQueue.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/utils/promiseTimeout.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/watchers/IncompleteSettlementsWatcher.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/watchers/OsWatcher.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/watchers/SettleBondedWithdrawalWatcher.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/watchers/classes/BaseWatcher.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/watchers/classes/L2Bridge.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/watchers/classes/Token.ts
+  CONFLICT (content): Merge conflict in packages/hop-node/src/watchers/watchers.ts

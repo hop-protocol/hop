@@ -42,7 +42,7 @@ class Provider extends providers.StaticJsonRpcProvider implements EthersProvider
     this.signer = signer
   }
 
-  getSigner (accountOrIndex?: string | number) {
+  override getSigner (accountOrIndex?: string | number) {
     return this.signer
   }
 }

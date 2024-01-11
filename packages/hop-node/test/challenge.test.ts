@@ -141,7 +141,7 @@ describe.skip('challenge valid transfer root but committed too early', () => {
           }
         }
 
-        await stop()
+        stop()
       },
       900 * 1000
     )
@@ -255,7 +255,7 @@ describe.skip('challenge invalid transfer root', () => {
           }
         }
 
-        await stop()
+        stop()
       },
       900 * 1000
     )

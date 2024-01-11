@@ -1,6 +1,5 @@
 import '../moduleAlias'
 import Logger from 'src/logger'
-import packageJson from '../../package.json'
 import { program } from './shared'
 
 import './arbBot'
@@ -54,7 +53,9 @@ import './withdrawalProof'
 import './metrics/bonderBalance'
 import './metrics/bonderTxCost'
 
-program.version(packageJson.version)
+// TODO: Since package.json version isn't updated, it shouldn't be used here
+const version = '0.0.1'
+program.version(version)
 program.parse(process.argv)
 
 const logger = new Logger('process')

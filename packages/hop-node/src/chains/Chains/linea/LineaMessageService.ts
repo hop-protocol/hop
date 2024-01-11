@@ -104,11 +104,11 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
         sourceBridge: this.#l1Contract,
         destBridge: this.#l2Contract
       }
-    } else {
-      return {
-        sourceBridge: this.#l2Contract,
-        destBridge: this.#l1Contract
-      }
+    }
+
+    return {
+      sourceBridge: this.#l2Contract,
+      destBridge: this.#l1Contract
     }
   }
 }

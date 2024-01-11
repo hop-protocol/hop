@@ -1,5 +1,5 @@
+// @ts-expect-error ethereum-block-by-date does not have a types file as of 20231227
 import BlockDater from 'ethereum-block-by-date'
-import fetch from 'node-fetch'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { DateTime } from 'luxon'
 import { etherscanApiKeys, etherscanApiUrls } from 'src/config'
@@ -22,7 +22,7 @@ async function getBlockNumberFromDateUsingEtherscan (chain: string, timestamp: n
   const baseUrl = etherscanApiUrls[chain]
   const url = baseUrl + `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`
   const res = await fetch(url)
-  const resJson = await res.json()
+  const resJson: any = await res.json()
 
   if (resJson.status !== '1') {
     throw new Error(`could not retrieve block number for timestamp ${timestamp}: ${JSON.stringify(resJson)}`)

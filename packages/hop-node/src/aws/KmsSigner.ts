@@ -13,8 +13,8 @@ import { providers } from 'ethers'
 type KmsSignerConfig = AwsSignerConfig
 
 export class KmsSigner extends AwsSigner {
-  config: KmsSignerConfig
-  address: string
+  override config: KmsSignerConfig
+  override address: string
   client: KMSClient
 
   constructor (config: KmsSignerConfig, provider?: providers.Provider) {

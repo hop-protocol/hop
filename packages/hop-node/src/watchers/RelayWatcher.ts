@@ -31,7 +31,7 @@ type Config = {
 }
 
 class RelayWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: RelayWatcher }
+  override siblingWatchers: { [chainId: string]: RelayWatcher }
   private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {
@@ -48,7 +48,7 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await Promise.all([
       this.checkTransferSentToL2FromDb(),
       this.checkRelayableTransferRootsFromDb()
@@ -202,7 +202,7 @@ class RelayWatcher extends BaseWatcher {
 
       const msg = `sent relay on ${destinationChainId} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendTransferRelayErr err:', err)
 
@@ -343,7 +343,7 @@ class RelayWatcher extends BaseWatcher {
       )
       const msg = `transferRootSet dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err) {
       logger.error('transferRootSet error:', err.message)
 

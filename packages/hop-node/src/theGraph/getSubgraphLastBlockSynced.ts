@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { Chain } from 'src/constants'
 
 export async function getSubgraphLastBlockSynced (chain: string) {
@@ -33,7 +32,7 @@ export async function getSubgraphLastBlockSynced (chain: string) {
     body: JSON.stringify(query)
   })
 
-  const json = await res.json()
+  const json: any = await res.json()
   const block = Number(json.data.indexingStatusForCurrentVersion.chains[0].latestBlock.number)
   return block
 }

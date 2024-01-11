@@ -358,7 +358,7 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  private async isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): Promise<boolean> {
+  private isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): boolean {
     return (
       relayer !== constants.AddressZero ||
       relayerFee.eq(0)

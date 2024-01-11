@@ -26,7 +26,7 @@ async function promiseQueueConcurrent (items: any[], cb: any, options: Options) 
   const { concurrency, timeoutMs: timeout } = options
   const queue = new PQueue({ concurrency, timeout })
   for (let i = 0; i < items.length; i++) {
-    queue.add(async () => cb(items[i], i))
+    await queue.add(async () => cb(items[i], i))
   }
   await queue.onEmpty()
   await queue.onIdle()

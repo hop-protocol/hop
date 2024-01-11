@@ -366,7 +366,7 @@ async function getTransfersData (startTime: number, endTime: number) {
   console.log(`getTransfersData: data count: ${data.length}`)
   console.log('getTransfersData: mapping transfers to bonds')
 
-  await Promise.all(data.map((x: any) => {
+  data.forEach((x: any) => {
     const bonds = bondsMap[chainIdToSlug(x.destinationChain)]
     if (bonds) {
       const bond = bonds[x.transferId]
@@ -377,15 +377,14 @@ async function getTransfersData (startTime: number, endTime: number) {
         x.bondedTimestamp = Number(bond.timestamp)
       }
     }
-    return null
-  }))
+  })
 
   console.log('getTransfersData: mapping events to l1CompletedsMap')
 
-  await Promise.all(data.map((x: any) => {
+  data.forEach((x: any) => {
     const sourceChain = chainIdToSlug(x.sourceChain)
     if (sourceChain !== Chain.Ethereum) {
-      return null
+      return false
     }
     const events = l1CompletedsMap[chainIdToSlug(x.destinationChain)]
     if (events) {
@@ -400,12 +399,10 @@ async function getTransfersData (startTime: number, endTime: number) {
           x.bonder = event.from
           x.bondTransactionHash = event.transactionHash
           x.bondedTimestamp = Number(event.timestamp)
-          return null
         }
       }
     }
-    return null
-  }))
+  })
 
   const unbondableTransfers = [
     '0xf78b17ccced6891638989a308cc6c1f089330cd407d8c165ed1fbedb6bda0930',

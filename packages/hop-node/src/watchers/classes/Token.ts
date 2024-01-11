@@ -14,7 +14,7 @@ export default class Token extends ContractBase {
     this.isEth = (this.tokenContract.address === constants.AddressZero)
   }
 
-  getBalance = async (): Promise<BigNumber> => {
+  override getBalance = async (): Promise<BigNumber> => {
     const address = await this.tokenContract.signer.getAddress()
     if (!address) {
       throw new Error('expected signer address')
@@ -74,13 +74,13 @@ export default class Token extends ContractBase {
         value: amount
       }
       return this.tokenContract.signer.sendTransaction(tx)
-    } else {
-      return this.tokenContract.transfer(
-        recipient,
-        amount,
-        await this.txOverrides()
-      )
     }
+
+    return this.tokenContract.transfer(
+      recipient,
+      amount,
+      await this.txOverrides()
+    )
   }
 
   async formatUnits (value: BigNumber) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import Logger from 'src/logger'
 import arbitrumGlobalInboxAbi from '@hop-protocol/core/abi/static/ArbitrumGlobalInbox.json'
 import chainSlugToId from 'src/utils/chainSlugToId'
@@ -188,7 +187,7 @@ export class User {
       messengerAddress = await wrapper.l1MessengerAddress()
       abi = l1xDaiMessengerAbi
     } else if (network === Chain.Polygon) {
-      messengerAddress = await wrapper.address
+      messengerAddress = wrapper.address
       abi = l1PolygonMessengerAbi
     } else {
       throw new Error(`${network} not supported`)
@@ -614,9 +613,8 @@ export class User {
         l1PolygonPosRootChainManagerAbi,
         wallet
       )
-    } else {
-      throw new Error('not implemented')
     }
+    throw new Error('not implemented')
   }
 
   async convertToCanonicalToken (
@@ -668,9 +666,8 @@ export class User {
         payload,
         await this.txOverrides(destNetwork)
       )
-    } else {
-      throw new Error('not implemented')
     }
+    throw new Error('not implemented')
   }
 
   async polygonCanonicalL1ToL2 (
@@ -953,7 +950,7 @@ export class User {
       const bridge = this.getHopBridgeContract(network, token)
       return bridge.addBonder(newBonderAddress, await this.txOverrides(network))
     } else if (network === Chain.Gnosis) {
-      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const l2Bridge = this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
       return messenger.requireToPassMessage(
         l2Bridge.address,
@@ -962,7 +959,7 @@ export class User {
         await this.txOverrides(network)
       )
     } else if (network === Chain.Optimism) {
-      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const l2Bridge = this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
       return messenger.sendMessage(
         l2Bridge.address,
@@ -977,7 +974,7 @@ export class User {
         await this.txOverrides(network)
       )
     } else if (network === Chain.Arbitrum) {
-      const l2Bridge = await this.getHopBridgeContract(network, token)
+      const l2Bridge = this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
       return messenger.createRetryableTicket(
         l2Bridge.address,

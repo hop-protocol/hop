@@ -1,5 +1,4 @@
 import Logger from 'src/logger'
-import fetch from 'node-fetch'
 import { BigNumber } from 'ethers'
 import { Mutex } from 'async-mutex'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'

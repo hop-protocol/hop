@@ -1,26 +1,42 @@
 {
+  "_comment": "Base config inspired by the node16 base at https://github.com/tsconfig/bases/blob/main/bases/node16.json. Not imported for simplicity.",
   "compilerOptions": {
-    "module": "commonjs",
+    // Base config
+    "lib": ["es2021"],
+    "module": "node16",
+    "target": "es2021",
+    "strict": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node16",
+
+    // Custom
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "ES2017",
-    "noImplicitAny": true,
-    "noUnusedLocals": false,
-    "strictNullChecks": true,
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "sourceMap": false,
-    "noEmit": true,
-    "baseUrl": "src",
+    "noImplicitOverride": true,
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
     "paths": {
-      "*": ["node_modules/*", "src/types/*"],
-      "src/*": ["*"]
+      "src/*": ["./src/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./@types"],
-    "lib": ["ESNext"]
+
+    // Custom - remove over time as codebase is cleaned up
+    "useUnknownInCatchVariables": false, // overwrites strcit `true`
+    "strictPropertyInitialization": false, // overwrites strict `true`
+    "skipLibCheck": true, // resolves 25+ matic and aave type errors out of our control
   },
-  "include": ["src/**/*", "test/*"]
+  "include": [
+    "src",
+    "test",
+    "src/**/*.json", // Include JSON files specifically
+    "src/.build-info.json", // Spefically include hidden build file
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

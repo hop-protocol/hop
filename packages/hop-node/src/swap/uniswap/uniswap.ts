@@ -246,7 +246,7 @@ export async function swap (config: SwapInput) {
   }
 
   if (ethNativeChains.includes(chain) && toToken === 'ETH') {
-    routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
+    routeToken1 = Ether.onChain(chainSlugToId(chain)!)
   }
 
   if (chain === Chain.Polygon && toToken === 'MATIC') {
@@ -255,7 +255,7 @@ export async function swap (config: SwapInput) {
     } else if (pool.token1.symbol === 'WMATIC') {
       routeToken1 = pool.token1
     } else {
-      routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
+      routeToken1 = Ether.onChain(chainSlugToId(chain)!)
     }
   }
 
@@ -283,7 +283,7 @@ export async function swap (config: SwapInput) {
 
   const slippageTolerance = new Percent((slippage ?? 1) * 100, 10000)
   recipient = recipient ?? sender
-  deadline = (Date.now() / 1000 + (deadline || 300)) | 0 // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+  deadline = (Date.now() / 1000 + (deadline ?? 300)) | 0
 
   logger.debug(`slippage tolerance: ${slippageTolerance.toFixed(2)}`)
 

@@ -176,7 +176,7 @@ class SyncWatcher extends BaseWatcher {
     return false
   }
 
-  async start () {
+  override async start () {
     await this.#tilReady()
 
     try {
@@ -194,7 +194,7 @@ class SyncWatcher extends BaseWatcher {
       ])
     } catch (err) {
       this.logger.error(`sync watcher error: ${err.message}\ntrace: ${err.stack}`)
-      this.notifier.error(`sync watcher error: ${err.message}`)
+      await this.notifier.error(`sync watcher error: ${err.message}`)
       this.quit()
     }
   }
@@ -210,7 +210,7 @@ class SyncWatcher extends BaseWatcher {
         this.logger.debug(`done syncing incomplete items. index: ${this.syncIndex}`)
         await this.postSyncHandler()
       } catch (err) {
-        this.notifier.error(`pollSync error: ${err.message}`)
+        await this.notifier.error(`pollSync error: ${err.message}`)
         this.logger.error('pollSync error:', err)
       }
     }
@@ -314,7 +314,7 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  isAllSiblingWatchersInitialSyncCompleted (): boolean {
+  override isAllSiblingWatchersInitialSyncCompleted (): boolean {
     return Object.values(this.siblingWatchers).every(
       (siblingWatcher: SyncWatcher) => {
         return siblingWatcher.isInitialSyncCompleted()
@@ -638,7 +638,7 @@ class SyncWatcher extends BaseWatcher {
       })
     } catch (err) {
       logger.error(`handleTransferSentToL2Event error: ${err.message}`)
-      this.notifier.error(`handleTransferSentToL2Event error: ${err.message}`)
+      await this.notifier.error(`handleTransferSentToL2Event error: ${err.message}`)
     }
   }
 
@@ -721,7 +721,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('handleTransferSentEvent: stored transfer item')
     } catch (err) {
       logger.error(`handleTransferSentEvent error: ${err.message}`)
-      this.notifier.error(`handleTransferSentEvent error: ${err.message}`)
+      await this.notifier.error(`handleTransferSentEvent error: ${err.message}`)
     }
   }
 
@@ -788,7 +788,7 @@ class SyncWatcher extends BaseWatcher {
       })
     } catch (err) {
       logger.error(`handleTransferRootConfirmedEvent error: ${err.message}`)
-      this.notifier.error(
+      await this.notifier.error(
         `handleTransferRootConfirmedEvent error: ${err.message}`
       )
     }
@@ -819,7 +819,7 @@ class SyncWatcher extends BaseWatcher {
       })
     } catch (err) {
       logger.error(`handleTransferRootBondedEvent error: ${err.message}`)
-      this.notifier.error(`handleTransferRootBondedEvent error: ${err.message}`)
+      await this.notifier.error(`handleTransferRootBondedEvent error: ${err.message}`)
     }
   }
 
@@ -866,7 +866,7 @@ class SyncWatcher extends BaseWatcher {
       })
     } catch (err) {
       logger.error(`handleTransfersCommittedEvent error: ${err.message}`)
-      this.notifier.error(`handleTransfersCommittedEvent error: ${err.message}`)
+      await this.notifier.error(`handleTransfersCommittedEvent error: ${err.message}`)
     }
   }
 
@@ -1054,7 +1054,7 @@ class SyncWatcher extends BaseWatcher {
     if (!isBondable) {
       const msg = 'transfer is not bondable'
       logger.warn(msg)
-      this.notifier.warn(msg)
+      await this.notifier.warn(msg)
     }
 
     logger.debug(`populateTransferSentTimestampAndIsBondable: sender: ${from}, timestamp: ${timestamp}, isBondable: ${isBondable}`)
@@ -1846,9 +1846,9 @@ class SyncWatcher extends BaseWatcher {
 
   // Experimental: Websocket support methods
 
-  initWebsocket (contract: Contract, filter: EventFilter, cb: Function): void {
-    contract.on(filter, async (...event: any) => cb(event[event.length - 1]))
-    contract.on('error', async (...event: any) => this.handleWsError(event))
+  initWebsocket (contract: Contract, filter: EventFilter, cb: (event: TransferSentEvent) => void): void {
+    contract.on(filter, (...event: any) => cb(event[event.length - 1]))
+    contract.on('error', (...event: any) => this.handleWsError(event))
   }
 
   initEventWebsockets (): void {
@@ -1859,7 +1859,7 @@ class SyncWatcher extends BaseWatcher {
     this.initWebsocket(
       bridgeContract,
       filter,
-      async (event: TransferSentEvent) => this.handleWsSuccess(event)
+      (event: TransferSentEvent) => this.handleWsSuccess(event)
     )
   }
 

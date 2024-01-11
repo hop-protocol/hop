@@ -66,6 +66,10 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
         }
       }
     })
+
+    console.log('heath - 000')
+    const claimable = await this.zkEvmClient.isDepositClaimable('0x6c3b4e3fcf55d519ec43e3c21dd8a453609a5ad0b0787bc4fdeca01ff6411c70')
+    console.log('heath - 111', claimable)
   }
 
   async #tilReady (): Promise<boolean> {
@@ -118,6 +122,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   }
 
   protected async getMessageStatus (message: Message): Promise<MessageStatus> {
+    await this.#tilReady()
     // PolygonZk status is retrieved from the hash
     return message
   }

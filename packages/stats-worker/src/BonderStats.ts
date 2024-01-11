@@ -1257,7 +1257,7 @@ class BonderStats {
         (dbData.novaNativeAmount || 0) +
         (dbData.baseNativeAmount || 0) +
         (dbData.lineaNativeAmount || 0)) *
-        (dbData.polygonzkNativeAmount || 0)) *
+        (dbData.polygonzkNativeAmount || 0) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {

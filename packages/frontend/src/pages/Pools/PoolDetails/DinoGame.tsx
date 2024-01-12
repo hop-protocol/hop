@@ -179,7 +179,7 @@ function createMarkup() {
 export function DinoGame() {
   const [play, setPlay] = useState(false)
 
-  function handleClick (event: ChangeEvent<{}>) {
+  function handleClick (event: ChangeEvent<object>) {
     event.preventDefault()
 
     try {

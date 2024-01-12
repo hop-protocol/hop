@@ -1,11 +1,14 @@
+import minimist from 'minimist'
 import wait from 'wait'
 import { dbPath } from './config'
 import { v4 as uuid } from 'uuid'
-const sqlite3 = require('sqlite3').verbose()
+import { verbose } from 'sqlite3'
+
+const sqlite3 = verbose()
 
 console.log('db path:', dbPath)
 
-const argv = require('minimist')(process.argv.slice(2))
+const argv = minimist(process.argv.slice(2))
 
 let migrationRan = false
 

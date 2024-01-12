@@ -61,7 +61,7 @@ type SendL2ToL1Input = {
   destinationChain: Chain
   sourceChain: Chain
   amount: TAmount
-  amountOutMin: TAmount
+  amountOutMin?: TAmount
   destinationAmountOutMin?: TAmount
   deadline?: BigNumberish
   destinationDeadline?: BigNumberish
@@ -74,7 +74,7 @@ type SendL2ToL2Input = {
   destinationChain: Chain
   sourceChain: Chain
   amount: TAmount
-  amountOutMin: TAmount
+  amountOutMin?: TAmount
   destinationAmountOutMin?: TAmount
   bonderFee?: TAmount
   deadline?: BigNumberish
@@ -161,7 +161,7 @@ class HopBridge extends Base {
     super(networkOrOptionsObject, signer, chainProviders)
 
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject 
+      const options = networkOrOptionsObject
       if (signer ?? token ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -459,7 +459,7 @@ class HopBridge extends Base {
         amount: tokenAmount,
         bonderFee,
         recipient: options?.recipient,
-        amountOutMin: options?.amountOutMin!,
+        amountOutMin: options?.amountOutMin,
         deadline: options?.deadline,
         destinationAmountOutMin: options?.destinationAmountOutMin,
         destinationDeadline: options?.destinationDeadline,
@@ -474,7 +474,7 @@ class HopBridge extends Base {
       amount: tokenAmount,
       bonderFee,
       recipient: options?.recipient,
-      amountOutMin: options?.amountOutMin!,
+      amountOutMin: options?.amountOutMin,
       deadline: options?.deadline,
       destinationAmountOutMin: options?.destinationAmountOutMin,
       destinationDeadline: options?.destinationDeadline,
@@ -2126,7 +2126,7 @@ class HopBridge extends Base {
     } = input
     const destinationChainId = destinationChain.chainId
     deadline = deadline ?? this.defaultDeadlineSeconds
-    amountOutMin = BigNumber.from((amountOutMin || 0).toString())
+    amountOutMin = BigNumber.from((amountOutMin ?? 0).toString())
 
     // Destination values will always be 0 going to L1
     const destinationDeadline = BigNumber.from(0)
@@ -2661,7 +2661,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
     await wp.generateProof()
-    await wp.checkWithdrawable()
+    wp.checkWithdrawable()
     const {
       recipient,
       amount,

@@ -253,7 +253,8 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const state = onboard.state.select('wallets')
     let lastUpdate = ''
-    const { unsubscribe } = state.subscribe((update) => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { unsubscribe } = state.subscribe((update: any) => {
       let shouldUpdate = true
       const _walletName = update?.[0]?.label
       if (_walletName === 'WalletConnect') {

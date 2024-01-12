@@ -94,12 +94,12 @@ export function PoolDetails () {
     setSelectedTab(value)
   }
 
-  function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
+  function handleTabChange(event: ChangeEvent<object>, newValue: string) {
     event.preventDefault()
     goToTab(newValue)
   }
 
-  function handleStakingChange(event: ChangeEvent<{}>, newValue: string): void {
+  function handleStakingChange(event: ChangeEvent<object>, newValue: string): void {
     event.preventDefault()
     setSelectedStaking(newValue)
   }
@@ -230,10 +230,10 @@ export function PoolDetails () {
                       setToken0Amount={setToken0Amount}
                       setToken1Amount={setToken1Amount}
                       token0Amount={token0Amount}
-                      token0ImageUrl={canonicalToken?.imageUrl!}
+                      token0ImageUrl={canonicalToken!.imageUrl}
                       token0Symbol={canonicalTokenSymbol}
                       token1Amount={token1Amount}
-                      token1ImageUrl={hopToken?.imageUrl!}
+                      token1ImageUrl={hopToken!.imageUrl}
                       token1Symbol={hopTokenSymbol}
                       tokenDecimals={tokenDecimals}
                       walletConnected={walletConnected}
@@ -249,7 +249,7 @@ export function PoolDetails () {
                       setToken1Amount={setToken1Amount}
                       token0Amount={token0Amount}
                       token0AmountBn={token0Deposited}
-                      token0ImageUrl={canonicalToken?.imageUrl!}
+                      token0ImageUrl={canonicalToken!.imageUrl}
                       token0MaxBn={token0Max}
                       token0Symbol={canonicalTokenSymbol}
                       token1Amount={token1Amount}
@@ -257,7 +257,7 @@ export function PoolDetails () {
                       token1ImageUrl={hopToken?.imageUrl}
                       token1MaxBn={token1Max}
                       token1Symbol={hopTokenSymbol}
-                      tokenDecimals={canonicalToken?.decimals!}
+                      tokenDecimals={canonicalToken!.decimals}
                       totalAmount={totalAmount}
                       walletConnected={walletConnected}
                   />}

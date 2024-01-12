@@ -97,7 +97,7 @@ export const Withdraw: FC = () => {
                 }
               },
               sendTx: async () => {
-                await wp.checkWithdrawable()
+                wp.checkWithdrawable()
                 const networkId = Number(wp.transfer.destinationChainId)
                 const isNetworkConnected = await checkConnectedNetworkId(networkId)
                 if (!isNetworkConnected) {
@@ -125,15 +125,15 @@ export const Withdraw: FC = () => {
                   bonderFee,
                   amountOutMin,
                   deadline,
-                  transferRootHash,
-                  rootTotalAmount,
-                  transferIdTreeIndex,
-                  siblings,
-                  totalLeaves
+                  transferRootHash!,
+                  rootTotalAmount!,
+                  transferIdTreeIndex!,
+                  siblings!,
+                  totalLeaves!
                 )
                 return tx
               },
-              onError: err => {
+              onError: (err: any) => {
                 reject(err)
               },
             },

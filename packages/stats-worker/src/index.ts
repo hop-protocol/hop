@@ -1,7 +1,10 @@
 import Worker from './worker'
-require('dotenv').config()
+import minimist from 'minimist'
+import { config } from 'dotenv'
 
-const argv = require('minimist')(process.argv.slice(2))
+config()
+
+const argv = minimist(process.argv.slice(2))
 console.debug('flags:', argv)
 
 function main () {

@@ -25,7 +25,7 @@ export function TopPoolStats (props: Props) {
     volume24hFormatted,
   } = props
 
-  function handleStakeClick (event: ChangeEvent<{}>) {
+  function handleStakeClick (event: ChangeEvent<object>) {
     event.preventDefault()
     goToTab('stake')
   }

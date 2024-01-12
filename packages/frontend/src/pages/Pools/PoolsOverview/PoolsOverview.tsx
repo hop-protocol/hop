@@ -95,21 +95,21 @@ export function PoolsOverview () {
   const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterToken(symbol)
     }
   }
 
   function handleChainToggleFilterFn (slug: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterChain(slug)
     }
   }
 
   function handleColumnSortFn(column: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleColumnSort(column)
     }

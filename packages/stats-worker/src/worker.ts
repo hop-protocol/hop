@@ -98,7 +98,7 @@ class Worker {
       this.pricesPollIntervalMs = pricesPollIntervalSeconds * 1000
     }
 
-    if (bonder || bonderProfit || bonderFees || bonderTxFees) {
+    if (bonder ?? bonderProfit ?? bonderFees ?? bonderTxFees) {
       this.bonder = true
     }
     this.yieldStats = new YieldStats()

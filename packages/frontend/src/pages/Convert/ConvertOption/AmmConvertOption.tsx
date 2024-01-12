@@ -54,7 +54,7 @@ class AmmConvertOption extends ConvertOption {
       }
     }
 
-    const bridge = await sdk.bridge(l1TokenSymbol)
+    const bridge = sdk.bridge(l1TokenSymbol)
 
     const amm = bridge.getAmm(sourceNetwork.slug)
     let amountOut: BigNumber | undefined
@@ -94,7 +94,7 @@ class AmmConvertOption extends ConvertOption {
     deadline: number,
     bonderFee?: BigNumberish
   ) {
-    const bridge = await sdk.bridge(l1TokenSymbol).connect(signer)
+    const bridge = sdk.bridge(l1TokenSymbol).connect(signer)
 
     return bridge.execSaddleSwap(
       sourceNetwork.slug,
@@ -164,7 +164,7 @@ class AmmConvertOption extends ConvertOption {
     }
 
     amountIn = BigNumber.from(amountIn)
-    const bridge = await sdk.bridge(l1TokenSymbol)
+    const bridge = sdk.bridge(l1TokenSymbol)
 
     const { rate, priceImpact, amountOutMin, lpFeeAmount } = await bridge.getAmmData(
       sourceNetwork.slug,

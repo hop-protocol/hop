@@ -18,7 +18,7 @@ import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {
   chainSlug: string
-  handleStakingChange: (event: React.ChangeEvent<{}>, newValue: string) => void
+  handleStakingChange: (event: React.ChangeEvent<object>, newValue: string) => void
   isTokenDeprecated: boolean
   selectedStaking: string
   stakingContractAddress: string
@@ -67,12 +67,12 @@ export function StakeForm(props: Props) {
     withdraw,
   } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
 
-  function handleStakeClick (event: ChangeEvent<{}>) {
+  function handleStakeClick (event: ChangeEvent<object>) {
     event.preventDefault()
     approveAndStake()
   }
 
-  function handleWithdrawClick (event: ChangeEvent<{}>) {
+  function handleWithdrawClick (event: ChangeEvent<object>) {
     event.preventDefault()
     withdraw()
   }

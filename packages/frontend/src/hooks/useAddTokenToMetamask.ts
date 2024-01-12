@@ -64,7 +64,7 @@ export function useAddTokenToMetamask(
       }
 
       await wait(1500)
-      await addToken(destinationChain.chainId)
+      addToken(destinationChain.chainId)
     } else {
       setSuccess(false)
     }

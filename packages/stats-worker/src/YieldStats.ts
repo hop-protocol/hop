@@ -230,7 +230,7 @@ class YieldStats {
         }
 
         const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
-        if (stakingContracts?.length! > 0) {
+        if (stakingContracts!.length > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
           if (!yieldData.stakingRewards[token]) { yieldData.stakingRewards[token] = {} }
           if (!yieldData.stakingRewards[token][chain]) { yieldData.stakingRewards[token][chain] = {} }
@@ -511,8 +511,8 @@ class YieldStats {
 
       const { apr, apy } = this.calculateStakingYield(
         canonToken.decimals,
-        tokenUsdPrice!,
-        rewardTokenUsdPrice!,
+        tokenUsdPrice,
+        rewardTokenUsdPrice,
         stakedTotal,
         totalRewardsPerDay
       )

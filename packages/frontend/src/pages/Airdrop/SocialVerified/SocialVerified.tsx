@@ -113,7 +113,7 @@ export function SocialVerified() {
       <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
         <Box my={3} maxWidth={[350, 400, 525]}>
           <Typography variant="h6">
-            Sorry, the {socialNames[userData?.social!]} account @{userData?.username!} is not eligible for the Hop airdrop
+            Sorry, the {socialNames[userData!.social]} account @{userData!.username} is not eligible for the Hop airdrop
           </Typography>
         </Box>
         <Box my={3} display="flex" flexDirection="column" justifyContent="center">

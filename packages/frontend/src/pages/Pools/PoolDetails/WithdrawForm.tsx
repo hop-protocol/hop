@@ -166,13 +166,13 @@ export function WithdrawForm(props: any) {
     setAmountBN(_value)
   }
 
-  function handleSubmitClick (event: ChangeEvent<{}>) {
+  function handleSubmitClick (event: ChangeEvent<object>) {
     event.preventDefault()
     const amounts = { proportional, tokenIndex, amountPercent, amount: amountBN, priceImpactFormatted, proportionalAmount0, proportionalAmount1 }
     removeLiquidity(amounts)
   }
 
-  function handleUnstakeClick (event: ChangeEvent<{}>) {
+  function handleUnstakeClick (event: ChangeEvent<object>) {
     event.preventDefault()
     goToTab('stake')
   }

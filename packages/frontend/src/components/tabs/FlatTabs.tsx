@@ -15,7 +15,7 @@ interface Props {
 
 const FlatTabs = (props: Props) => {
   const { value, onChange, tabs } = props
-  const handleChange = (event: React.ChangeEvent<{}>, newValue: string) => {
+  const handleChange = (event: React.ChangeEvent<object>, newValue: string) => {
     if (onChange) {
       onChange(newValue)
     }

@@ -151,7 +151,7 @@ const RemoveLiquidity = (props: Props) => {
     let isSubscribed = true
     const update = async () => {
       try {
-        const _priceImpact = await calculatePriceImpact({
+        const _priceImpact = calculatePriceImpact({
           proportional,
           amountPercent,
           tokenIndex,

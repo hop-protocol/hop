@@ -26,7 +26,7 @@ export const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedSt
     <StyledIcon
       src={src}
       width={width || 24}
-      alt={alt === undefined ? `${src.slice(4)} icon` : alt}
+      alt={alt ?? `${src.slice(4)} icon`}
       color={color}
       onError={() => {
         setError(true)

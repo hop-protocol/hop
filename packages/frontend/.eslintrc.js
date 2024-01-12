@@ -1,6 +1,9 @@
-{
+module.exports = {
+  "env": {
+    "browser": true,
+  },
   "extends": [
-    "eslint-config-hop-protocol",
+    "../../.eslintrc.js",
     "plugin:react-hooks/recommended",
     "plugin:react/recommended"
   ],

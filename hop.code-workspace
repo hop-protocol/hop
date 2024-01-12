@@ -1,28 +1,28 @@
 {
-    "folders": [
-        {
-            "path": "."
-        },
-        {
-            "name": "packages/core",
-            "path": "packages/core"
-        },
-        {
-            "name": "packages/frontend",
-            "path": "packages/frontend"
-        },
-        {
-            "name": "packages/hop-node",
-            "path": "packages/hop-node"
-        },
-        {
-            "name": "packages/sdk",
-            "path": "packages/sdk"
-        },
-        {
-            "name": "packages/stats-worker",
-            "path": "packages/stats-worker"
-        }
-    ],
-    "settings": {}
+  "folders": [
+  {
+    "path": "."
+  },
+  {
+    "name": "packages/core",
+    "path": "packages/core"
+  },
+  {
+    "name": "packages/frontend",
+    "path": "packages/frontend"
+  },
+  {
+    "name": "packages/hop-node",
+    "path": "packages/hop-node"
+  },
+  {
+    "name": "packages/sdk",
+    "path": "packages/sdk"
+  },
+  {
+    "name": "packages/stats-worker",
+    "path": "packages/stats-worker"
+  }
+  ],
+  "settings": {}
 }

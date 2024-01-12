@@ -33,11 +33,8 @@ const jsonData = parse(
     .toString()
 ) as any
 
-const {
-  arbitrumAliases,
-  oldArbitrumAliases
-} = require('./data/arbitrum_alises.json')
-const { wethAddresses } = require('./data/weth_addresses.json')
+import { arbitrumAliases, oldArbitrumAliases } from './data/arbitrum_alises.json'
+import { wethAddresses } from './data/weth_addresses.json'
 
 const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
@@ -843,7 +840,7 @@ class BonderStats {
                   )
 
                   if (chain === 'arbitrum') {
-                    let aliasAddress = arbitrumAliases[token]
+                    let aliasAddress = (arbitrumAliases as Record<string, string>)[token]
                     if (
                       token === 'DAI' &&
                       bonder === '0x305933e09871d4043b5036e09af794facb3f6170' &&

@@ -81,7 +81,7 @@ export function DepositForm(props: Props) {
     setToken1Amount(token1Value)
   }
 
-  function handleClick (event: ChangeEvent<{}>) {
+  function handleClick (event: ChangeEvent<object>) {
     event.preventDefault()
     addLiquidity()
   }

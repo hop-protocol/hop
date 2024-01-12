@@ -1,7 +1,7 @@
 import Box from '@material-ui/core/Box'
 import ChatIcon from '@material-ui/icons/Chat'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import React from 'react'
+import React, { ChangeEvent } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { Button } from 'src/components/Button'
 import { Delegate } from 'src/pages/Claim/useClaim'
@@ -73,7 +73,7 @@ export function ChooseDelegate(props: any) {
           </Box>
         )}
         {delegates.map((del: Delegate, i) => {
-          const isSelected = del?.address && delegate?.address?.toString() ! === del?.address?.toString()
+          const isSelected = (del?.address && delegate?.address) && delegate?.address.toString() !== del?.address.toString()
           return (
             <Flex
               key={i}
@@ -155,7 +155,7 @@ export function ChooseDelegate(props: any) {
                 width="100%"
                 value={inputValue}
                 placeholder="Enter ENS or address"
-                onChange={e => setInputValue(e.target.value)}
+                onChange={(event: ChangeEvent<{value: string}>) => setInputValue(event.target.value)}
                 bg="background.default"
                 boxShadow={theme.boxShadow.inner}
                 color="text.secondary"

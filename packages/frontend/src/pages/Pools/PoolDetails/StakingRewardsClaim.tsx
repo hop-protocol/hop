@@ -76,7 +76,7 @@ export function StakingRewardsClaim(props: Props) {
     } = useStaking(chainSlug, tokenSymbol, stakingContractAddress))
   }
 
-  function handleClaimClick(event: ChangeEvent<{}>) {
+  function handleClaimClick(event: ChangeEvent<object>) {
     event.preventDefault()
     claim()
   }

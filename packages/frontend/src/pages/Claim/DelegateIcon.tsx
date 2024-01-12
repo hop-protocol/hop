@@ -47,7 +47,7 @@ export function DelegateIcon (props: any) {
         }} />
       )}
       {((error || loading || !avatar) && delegate.address) && (
-        <Jazzicon diameter={45} seed={jsNumberForAddress(delegate.address?.address!)} />
+        <Jazzicon diameter={45} seed={jsNumberForAddress(delegate.address?.address)} />
       )}
     </Circle>
   )

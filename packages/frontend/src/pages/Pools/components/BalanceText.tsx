@@ -17,7 +17,7 @@ export function BalanceText(props: Props) {
   const styles = useStyles()
   const { label, balanceFormatted, balanceBn, onClick } = props
 
-  function handleClick (event: ChangeEvent<{}>) {
+  function handleClick (event: ChangeEvent<object>) {
     event.preventDefault()
     if (onClick) {
       const value = balanceBn ?? sanitizeNumericalString(balanceFormatted)

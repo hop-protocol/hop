@@ -23,7 +23,7 @@ export const HeaderRoutes: FC = () => {
   const styles = useStyles()
   const theme = useTheme()
 
-  const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
+  const handleChange = (event: ChangeEvent<object>, newValue: string) => {
     event.preventDefault()
     navigate(`${newValue}${search}`)
   }

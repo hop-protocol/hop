@@ -58,11 +58,8 @@
     "dotenv": "10.0.0",
     "jest": "26.6.3",
     "package-sync-version": "0.0.2",
-    "rimraf": "3.0.2",
-    "standard": "12.0.1",
     "ts-jest": "26.5.4",
     "typechain": "8.1.0",
-    "typescript": "5.3.3",
     "uglify-es": "3.3.9"
   },
   "husky": {

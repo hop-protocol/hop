@@ -1,5 +1,8 @@
 {
   "_comment": "Base config inspired by the node16 base at https://github.com/tsconfig/bases/blob/main/bases/node16.json. Not imported for simplicity.",
+  "env": {
+    "es2021": true
+  },
   "compilerOptions": {
     // Base config
     "allowSyntheticDefaultImports": true,

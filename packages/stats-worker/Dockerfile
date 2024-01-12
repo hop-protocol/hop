@@ -1,4 +1,4 @@
-FROM node:16 AS build
+FROM node:20.10.0 AS build
 
 # Create the working directory and give node use permissions
 RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app
@@ -13,7 +13,7 @@ COPY --chown=node:node . .
 RUN npm install
 RUN npm run build
 
-FROM node:16
+FROM node:20.10.0-alpine
 WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY --from=build /usr/src/app/dist /usr/src/app/dist

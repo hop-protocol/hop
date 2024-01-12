@@ -14,7 +14,6 @@
     "rootDir": "src",
     "sourceMap": false,
     "target": "es2015",
-    "typeRoots": ["node", "./node_modules/@types", "./@types"],
     "types": ["node", "jest"],
     "paths": {
       "*": ["node_modules/*"]

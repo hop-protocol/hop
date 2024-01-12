@@ -4,6 +4,7 @@
     "allowSyntheticDefaultImports": true,
     "outDir": "dist",
     "baseUrl": "src",
+    "lib": ["es2021", "dom"],
     "paths": {
       "src/*": ["*"]
     }

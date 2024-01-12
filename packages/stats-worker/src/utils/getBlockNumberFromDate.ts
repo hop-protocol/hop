@@ -1,5 +1,4 @@
 import BlockDater from 'ethereum-block-by-date'
-import fetch from 'isomorphic-fetch'
 import { DateTime } from 'luxon'
 import { etherscanApiKeys } from '../config'
 import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl'

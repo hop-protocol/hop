@@ -52,14 +52,6 @@ jobs:
       environment: production
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  call-workflow3:
-    needs: call-workflow2
-    name: Publish NPM ESLint Config Package If Necessary
-    uses: ./.github/workflows/npm_publish_eslint_config.yml
-    with:
-      environment: production
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   bump_version:
     name: Bump Github Release Version
@@ -84,7 +76,7 @@ jobs:
     if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
     name: Build and Deploy
     runs-on: ubuntu-latest
-    needs: [set_environment, call-workflow2, call-workflow3]
+    needs: [set_environment, call-workflow2]
     outputs:
       hash: ${{ steps.upload.outputs.hash }}
     environment:

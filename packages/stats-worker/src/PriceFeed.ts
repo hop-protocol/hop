@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch'
 import { PriceFeed as PriceFeedSdk } from '@hop-protocol/sdk'
 import { coingeckoApiKey } from './config'
 import { tokens } from '@hop-protocol/core/metadata'

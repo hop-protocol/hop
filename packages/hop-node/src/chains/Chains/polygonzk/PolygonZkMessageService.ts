@@ -124,34 +124,31 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   }
 
   protected async isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
-    // A message is in flight if the client does not know about it
+    // A message is in flight if:
+    // 1. It is neither relayable nor relayed
+    // 2. The client does not know about it
+
+    let isRelayable: boolean
+    let isRelayed: boolean
     try {
-      if (messageDirection === MessageDirection.L1_TO_L2) {
-        await this.zkEvmClient.isDepositClaimable(messageStatus)
-      } else {
-        await this.zkEvmClient.isWithdrawExitable(messageStatus)
-      }
+      isRelayable = await this.#isMessageRelayable(messageStatus, messageDirection)
+      isRelayed = await this.#isMessageRelayed(messageStatus, messageDirection)
     } catch (err) {
       return true
     }
-    return false
+
+    if (isRelayable || isRelayed) {
+      return false
+    }
+    return true
   }
 
   protected async isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
-    if (messageDirection === MessageDirection.L1_TO_L2) {
-      return this.zkEvmClient.isDepositClaimable(messageStatus)
-    } else {
-      return this.zkEvmClient.isWithdrawExitable(messageStatus)
-    }
+    return this.#isMessageRelayable(messageStatus, messageDirection)
   }
 
   protected async isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
-    // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
-    if (messageDirection === MessageDirection.L1_TO_L2) {
-      return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
-    } else {
-      return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
-    }
+    return this.#isMessageRelayed(messageStatus, messageDirection)
   }
 
   #getSourceAndDestBridge (messageDirection: MessageDirection): ZkEvmBridges {
@@ -167,4 +164,22 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
       }
     }
   }
+
+  async #isMessageRelayable (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return this.zkEvmClient.isDepositClaimable(messageStatus)
+    } else {
+      return this.zkEvmClient.isWithdrawExitable(messageStatus)
+    }
+  }
+
+  async #isMessageRelayed (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
+    // The SDK return type is says string but it returns a bool so we have to convert it to unknown first
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      return ((await this.zkEvmClient.isDeposited(messageStatus)) as unknown) as boolean
+    } else {
+      return ((await this.zkEvmClient.isExited(messageStatus)) as unknown) as boolean
+    }
+  }
+
 }

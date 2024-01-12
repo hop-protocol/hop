@@ -742,10 +742,14 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end
     }
 
-    if (totalBlocksInBatch <= batchBlocks!) {
+    if (batchBlocks == null) {
+      throw new Error('expected batchBlocks to be defined')
+    }
+
+    if (totalBlocksInBatch <= batchBlocks) {
       start = end - totalBlocksInBatch
     } else {
-      start = end - batchBlocks!
+      start = end - batchBlocks
     }
 
     const earliestBlockInBatch = end - totalBlocksInBatch

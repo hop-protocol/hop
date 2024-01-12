@@ -72,8 +72,8 @@ export class YearnVault implements Vault {
     this.chain = chain
     this.token = token
     const chainId = chainSlugToId(chain) as ChainId
-    const url = getRpcUrl(chain)
-    const provider = new Provider(url!, signer)
+    const url = getRpcUrl(chain)!
+    const provider = new Provider(url, signer)
     this.signer = signer
     this.decimals = getTokenDecimals(token)
     if (!instanceCache[chain]) {

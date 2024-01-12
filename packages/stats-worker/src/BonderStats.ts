@@ -1313,7 +1313,7 @@ class BonderStats {
         variables: variables || {}
       })
     })
-    const jsonRes = await res.json()
+    const jsonRes: any = await res.json()
     if (!jsonRes.data) {
       throw new Error(jsonRes.errors[0].message)
     }
@@ -1381,7 +1381,7 @@ class BonderStats {
         const url = this.getEtherscanUrl(chain, address, startBlock, endBlock)
 
         const res = await fetch(url)
-        const json = await res.json()
+        const json: any = await res.json()
         if (json.message === 'NOTOK') {
           throw new Error(json.result)
         }
@@ -1472,7 +1472,7 @@ class BonderStats {
       arr = amount
     }
 
-    return arr.map((value: string) =>
+    return (arr as string[]).map((value: string) =>
       parseUnits(value, getTokenDecimals(token))
     )
   }

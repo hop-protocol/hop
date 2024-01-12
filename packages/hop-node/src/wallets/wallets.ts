@@ -16,7 +16,7 @@ import {
 import { getGasBoostDb } from 'src/db'
 
 export const constructSigner = memoize((network: string, privateKey: string): Signer => {
-  const provider = getRpcProvider(network)
+  const provider = getRpcProvider(network)!
   if (!provider) {
     throw new Error('expected provider')
   }

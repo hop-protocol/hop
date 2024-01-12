@@ -466,7 +466,8 @@ export class ArbBot {
         return
       }
 
-      return await l2Bridge.commitTransfers(destinationChainId)
+      const tx = await l2Bridge.commitTransfers(destinationChainId)
+      return tx
     } catch (err: any) {
       if (err.message.includes('Must commit at least 1 Transfer') || err.message.includes('NonceTooLow')) {
         return

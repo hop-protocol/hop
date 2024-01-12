@@ -10,6 +10,6 @@ export async function queryFetch (url: string, query: string, variables?: any) {
       variables: variables || {}
     })
   })
-  const jsonRes = await res.json()
+  const jsonRes: any = await res.json()
   return jsonRes.data
 }

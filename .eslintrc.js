@@ -67,6 +67,7 @@ module.exports = {
     "@typescript-eslint/no-unsafe-call": 0,
     "@typescript-eslint/no-unsafe-member-access": 0,
     "@typescript-eslint/no-unsafe-return": 0,
+    "@typescript-eslint/no-redundant-type-constituents": 0,
 
     // Custom - Set to 1 or 2 over time as codebase is cleaned up. Possibly add options
     "@typescript-eslint/no-unused-vars": 0,

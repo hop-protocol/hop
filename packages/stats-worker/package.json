@@ -17,7 +17,7 @@
     "start:bonder:migration": "ts-node src/index.ts --bonder --bonderDays=30 --migrations=[19]",
     "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
-    "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
+    "lint": "eslint --fix \"src/**/*\"",
     "clean": "rimraf dist",
     "test": "jest test"
   },
@@ -43,11 +43,13 @@
   },
   "devDependencies": {
     "@aws-sdk/types": "3.485.0",
+    "@types/dotenv": "^8.2.0",
+    "@types/ethereum-block-by-date": "^1.4.1",
     "@types/jest": "27.4.0",
     "@types/lodash": "4.14.178",
     "@types/luxon": "2.0.7",
     "@types/minimist": "^1.2.5",
-    "@types/node": "16.7.10",
+    "@types/node": "^16.7.10",
     "@types/sqlite3": "^3.1.11",
     "@types/uuid": "8.3.3",
     "jest": "27.5.1",

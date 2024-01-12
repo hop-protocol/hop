@@ -1,8 +1,6 @@
+import 'dotenv/config'
 import Worker from './worker'
 import minimist from 'minimist'
-import { config } from 'dotenv'
-
-config()
 
 const argv = minimist(process.argv.slice(2))
 console.debug('flags:', argv)

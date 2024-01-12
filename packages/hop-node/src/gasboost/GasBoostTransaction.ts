@@ -461,7 +461,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.chainSlug === Chain.Linea
     ) {
       try {
-        return await this.getOruMaxFeePerGas(this.chainSlug)
+        const maxFeePerGas = await this.getOruMaxFeePerGas(this.chainSlug)
+        return maxFeePerGas
       } catch (err) {
         this.logger.error('oru max fee per gas call failed:', err)
       }

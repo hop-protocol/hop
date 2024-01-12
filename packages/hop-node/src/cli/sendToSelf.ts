@@ -28,8 +28,8 @@ async function main (source: any) {
     throw new Error('nonce is required. E.g. 0')
   }
 
-  const provider = getRpcProvider(fromChain)
-  const wallet = new Wallet(globalConfig.bonderPrivateKey, provider!)
+  const provider = getRpcProvider(fromChain)!
+  const wallet = new Wallet(globalConfig.bonderPrivateKey, provider)
   const recipient = await wallet.getAddress()
 
   const txOverrides: any = {

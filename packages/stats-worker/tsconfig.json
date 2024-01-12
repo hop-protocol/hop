@@ -1,25 +1,12 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "emitDecoratorMetadata": true,
-    "strictNullChecks": true,
-    "experimentalDecorators": true,
-    "target": "ES2017",
-    "noImplicitAny": true,
-    "noUnusedLocals": false,
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "sourceMap": false,
     "outDir": "dist",
     "baseUrl": "src",
     "paths": {
-      "*": ["node_modules/*", "src/types/*"],
       "src/*": ["*"]
-    },
-    "typeRoots": ["./node_modules/@types", "./@types"]
+    }
   },
-  "include": ["src/**/*", "test/*"]
+  "include": ["src/**/*", "src/data/*.json"]
 }

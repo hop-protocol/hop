@@ -1,4 +1,3 @@
-// @ts-expect-error ethereum-block-by-date does not have a types file as of 20231227
 import BlockDater from 'ethereum-block-by-date'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { DateTime } from 'luxon'
@@ -32,7 +31,7 @@ async function getBlockNumberFromDateUsingEtherscan (chain: string, timestamp: n
 }
 
 async function getBlockNumberFromDateUsingLib (chain: string, timestamp: number): Promise<number> {
-  const provider = getRpcProvider(chain)
+  const provider = getRpcProvider(chain)!
   const blockDater = new BlockDater(provider)
   const date = DateTime.fromSeconds(timestamp).toJSDate()
 
@@ -40,6 +39,7 @@ async function getBlockNumberFromDateUsingLib (chain: string, timestamp: number)
   let info
   while (true) {
     try {
+      // eslint-disable-next-line @typescript-eslint/await-thenable
       info = await blockDater.getDate(date)
       if (!info) {
         throw new Error('could not retrieve block number')

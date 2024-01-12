@@ -60,8 +60,8 @@ export class PriceFeed {
     const url = `${baseUrl}/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily&x_cg_pro_api_key=${coingeckoApiKey}`
 
     return fetch(url)
-      .then(res => res.json())
-      .then(json => {
+      .then((res: any) => res.json())
+      .then((json: any) => {
         if (!json.prices) {
           console.log(json)
           throw new Error(`got api error: ${JSON.stringify(json)}`)

@@ -98,7 +98,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const {
       total: onChainTotalAmount,
       amountWithdrawn: onChainAmountWithdrawn
-    } = await destBridge.getTransferRoot(transferRootHash, totalAmount!)
+    } = await destBridge.getTransferRoot(transferRootHash, totalAmount)
     if (onChainTotalAmount.eq(0)) {
       logger.debug('onChainTotalAmount is 0. Skipping')
       return

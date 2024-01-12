@@ -2760,7 +2760,7 @@ class HopBridge extends Base {
   }
 
   // chains that the asset supports
-  get supportedChains (): string[] {
+  override get supportedChains (): string[] {
     const supported = new Set()
     const token = this.toTokenModel(this.tokenSymbol)
     for (const chain in this.chains) {

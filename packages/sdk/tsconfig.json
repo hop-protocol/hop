@@ -1,31 +1,29 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "lib": ["dom", "es2017", "esnext"],
-    "types": ["node", "jest"],
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strictNullChecks": true,
-    "emitDecoratorMetadata": true,
-    "declaration": true,
+    "baseUrl": "src",
     "declarationDir": "dist",
-    "declarationMap": true,
-    "skipLibCheck": true,
-    "target": "es2017",
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["dom", "es2017", "esnext"],
+    "module": "commonjs",
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "noUnusedLocals": false,
-    "moduleResolution": "node",
-    "sourceMap": false,
     "outDir": "dist",
-    "baseUrl": "src",
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
+    "sourceMap": false,
+    "target": "es2017",
+    "types": ["node", "jest"],
     "paths": {
       "@src/*": ["*"]
-    },
-    "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["node", "./node_modules/@types", "./@types"]
+    }
   },
-  "include": ["src", "@types"],
-  "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.test.ts"
+  ]
 }

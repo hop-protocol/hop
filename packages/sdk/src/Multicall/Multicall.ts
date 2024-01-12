@@ -167,8 +167,8 @@ export class Multicall {
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
 
-    const calls = tokenAddresses.map(({ address, abi, method }: TokenAddress & {abi: any, method: string}) => {
-      const tokenContract = new Contract(address, abi ?? ERC20Abi, provider)
+    const calls = tokenAddresses.map(({ address, abi, method }: GetMulticallBalanceOptions) => {
+      const tokenContract = new Contract(address!, abi ?? ERC20Abi, provider)
       const balanceMethod = method ?? 'balanceOf'
       return {
         target: address,

@@ -1,33 +1,43 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
     "lib": ["dom", "es2017", "esnext"],
-    "types": ["node", "jest"],
     "module": "commonjs",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "emitDecoratorMetadata": true,
-    "strictNullChecks": true,
-    "declaration": true,
-    "declarationDir": ".",
-    "declarationMap": true,
-    "skipLibCheck": true,
-    "target": "es2015",
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "noUnusedLocals": true,
-    "moduleResolution": "node",
-    "sourceMap": false,
     "outDir": ".",
-    "baseUrl": ".",
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
     "rootDir": "src",
+    "sourceMap": false,
+    "target": "es2015",
+    "typeRoots": ["node", "./node_modules/@types", "./@types"],
+    "types": ["node", "jest"],
     "paths": {
       "*": ["node_modules/*"]
-    },
-    "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["node", "./node_modules/@types", "./@types"],
-    "downlevelIteration": true
+    }
   },
-  "include": ["src/*", "src/abi/*", "src/addresses/*", "src/contracts/*", "src/contracts/factories/*", "src/contracts/generated/*", "src/contracts/static/*", "src/metadata/*", "src/networks/*", "src/config", "src/s3upload/*"],
-  "exclude": ["node_modules", "dist", "test/**/*"]
+  "include": [
+    "src/*",
+    "src/**/*.ts",
+    "src/**/*.json",
+    "src/abi/*",
+    "src/addresses/*",
+    "src/contracts/*",
+    "src/contracts/factories/*",
+    "src/contracts/generated/*",
+    "src/contracts/static/*",
+    "src/metadata/*",
+    "src/networks/*",
+    "src/config",
+    "src/s3upload/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test/**/*"
+  ]
 }

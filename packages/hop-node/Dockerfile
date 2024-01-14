@@ -5,11 +5,15 @@ FROM node:20.10.0 AS build
 ARG GIT_REV
 ENV GIT_REV=${GIT_REV}
 
-# Update NPM
-RUN npm install -g npm@10.2.5
+# Update package list and install jq
+RUN apt-get update && apt-get install -y jq
 
-## Install pnpm (required to build @eth-optimism/core-utils)
-RUN npm install -g pnpm
+# Update NPM
+RUN npm install -g npm@latest
+
+## Install pnpm (required to build @eth-optimism packages)
+RUN npm install -g pnpm@latest
+RUN npm install -g only-allow@latest
 
 # Create the working directory
 WORKDIR /usr/src
@@ -28,7 +32,7 @@ COPY --chown=node:node .npmrc ./
 COPY --chown=node:node packages packages
 
 # Install root dependencies
-RUN npm install --legacy-peer-deps --install-links
+RUN npm install --legacy-peer-deps
 
 # Build specific package
 RUN npm run build --workspace=@hop-protocol/hop-node

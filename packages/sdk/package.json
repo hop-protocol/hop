@@ -11,7 +11,7 @@
     "test": "jest",
     "dev": "npm run version && npx -p typescript tsc --watch",
     "build": "npm run version && npm run build:ts",
-    "build:ts": "npx -p typescript tsc",
+    "build:ts": "ls -l node_modules | grep @hop; ls -l ../../node_modules | grep @hop; npx -p typescript tsc",
     "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
     "clean": "rimraf dist && rimraf hop.js",
     "clean:docs": "rimraf docs",

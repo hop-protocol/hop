@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "src",
+    "composite": false,
     "declarationDir": "dist",
     "forceConsistentCasingInFileNames": true,
     "lib": ["dom", "es2017", "esnext"],

@@ -4,7 +4,7 @@ orbs:
   base: dmx-io/base@2.0.88
 
 commands:
-  notify_job_status_hop_api:
+  notify-job-status-hop-api:
     description: Send webhook to server about job status
     steps:
       - run:
@@ -20,7 +20,7 @@ commands:
             [ -n "$WEBHOOK_URL_STATS_WORKER" ] && curl "$WEBHOOK_URL_STATS_WORKER" -H "X-Secret: $WEBHOOK_SECRET" -d '{"payload":{"reponame":"'"$CIRCLE_PROJECT_REPONAME"'","branch":"'"$CIRCLE_BRANCH"'","build_parameters":{"CIRCLE_JOB":"'"$CIRCLE_JOB"'"},"outcome":"failed","build_url":"'"$CIRCLE_BUILD_URL"'"}}' -H "Content-Type: application/json" -X POST -i
             exit 0
 
-  notify_job_status_stats_worker:
+  notify-job-status-stats-worker:
     description: Send webhook to server about job status
     steps:
       - run:
@@ -39,7 +39,7 @@ commands:
             exit 0
 
 jobs:
-  build_hop_node:
+  build-hop-node:
     working_directory: /app
     docker:
       - image: docker:17.05.0-ce-git
@@ -64,10 +64,9 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            cd packages/hop-node
-            bash ./ci/package_check.sh
+            (cd ./packages/hop-node && bash ./ci/package_check.sh)
             docker build \
-              -f Dockerfile \
+              -f ./packages/hop-node/Dockerfile \
               --build-arg=GIT_REV=$CIRCLE_SHA1 \
               -t app .
       - deploy:
@@ -81,7 +80,7 @@ jobs:
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "production" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
 
-  build_stats_worker:
+  build-stats-worker:
     working_directory: /app
     docker:
       - image: docker:17.05.0-ce-git
@@ -123,9 +122,9 @@ jobs:
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "stats-worker" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
-      - notify_job_status_stats_worker
+      - notify-job-status-stats-worker
 
-  build_hop_api:
+  build-hop-api:
     working_directory: /app
     docker:
       - image: docker:17.05.0-ce-git
@@ -167,12 +166,12 @@ jobs:
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "hop-api" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
-      - notify_job_status_hop_api
+      - notify-job-status-hop-api
 
 workflows:
-  main:
+  my-workflow:
     jobs:
-      - build_hop_node:
+      - build-hop-node:
           filters:
             branches:
               only:
@@ -182,13 +181,13 @@ workflows:
                 - goerli-bonder
                 - sepolia-bonder
               ignore: /.*/
-      - build_stats_worker:
+      - build-stats-worker:
           filters:
             branches:
               only:
                 - stats-worker
               ignore: /.*/
-      - build_hop_api:
+      - build-hop-api:
           filters:
             branches:
               only:

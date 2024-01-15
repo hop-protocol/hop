@@ -39,6 +39,19 @@ Docker images are built and pushed to [Docker Hub](https://hub.docker.com/r/hopp
 | `develop-bonder`    | `hopprotocol/hop-node:develop` | Unstable | Unstable mainnet staging environment        |
 | `goerli-bonder`     | `hopprotocol/hop-node:goerli`  | Stable   | Goerli staging environment                  |
 
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../../ &&act --job build-hop-node --workflows .github/workflows/hop_node.yml --secret-file=.secrets --verbose)
+```
+
+`.secrets`
+
+```sh
+DOCKER_USER=<username>
+DOCKER_PASS=<password>
+```
+
 ## License
 
 [MIT](LICENSE)

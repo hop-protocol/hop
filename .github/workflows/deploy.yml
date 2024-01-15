@@ -87,7 +87,7 @@ jobs:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     defaults:
       run:
-        working-directory: ./packages/frontend
+        working-directory: .
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -104,7 +104,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install node dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
 
       - name: Build the frontend app
         env:
@@ -122,7 +122,7 @@ jobs:
           REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
           REACT_APP_SHOW_BANNER_MESSAGE: ${{ secrets.REACT_APP_SHOW_BANNER_MESSAGE }}
           REACT_APP_BLOCKLIST_ENABLED: ${{ secrets.REACT_APP_BLOCKLIST_ENABLED }}
-        run: npm run build
+        run: npm run build --workspace=@hop-protocol/frontend
 
       - name: Write commit file
         uses: "DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c"

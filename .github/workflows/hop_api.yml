@@ -1,0 +1,56 @@
+name: Build and Push Hop API Docker Image
+
+on:
+  push:
+    branches:
+      - hop-api
+      - feature/eslint-config-package
+
+jobs:
+  build-hop-api:
+    if: true
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE: hopprotocol/hop-api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        if: true
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Install dependencies
+        if: true
+        run: |
+          sudo apt update
+          sudo apt upgrade -y
+          sudo apt install -y bash curl jq python3-pip diffutils
+
+      - name: Build application Docker image
+        if: true
+        run: |
+          docker build \
+            -f ./packages/api/Dockerfile \
+            --build-arg=GIT_REV=${{ github.sha }} \
+            -t app .
+
+      - name: Push Hop API Docker image to Docker Hub
+        if: false
+        run: |
+          BRANCH=${GITHUB_REF##*/}
+          BRANCH=$(echo $BRANCH | sed 's/\//-/g')
+          docker tag app $DOCKER_IMAGE:${{ github.sha }}
+          docker tag app $DOCKER_IMAGE:$BRANCH
+          docker push $DOCKER_IMAGE:${{ github.sha }}
+          docker push $DOCKER_IMAGE:$BRANCH
+          if [ "$BRANCH" == "hop-api" ]; then
+            docker tag app $DOCKER_IMAGE:latest
+            docker push $DOCKER_IMAGE:latest
+          fi

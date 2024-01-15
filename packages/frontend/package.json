@@ -10,8 +10,8 @@
     "@ethersproject/abi": "^5.7.0",
     "@gnosis.pm/safe-apps-react-sdk": "^4.6.2",
     "@gnosis.pm/safe-apps-sdk": "^7.8.0",
-    "@hop-protocol/core": "0.0.1-beta.217",
-    "@hop-protocol/sdk": "0.0.1-beta.593",
+    "@hop-protocol/core": "0.0.1-beta.218",
+    "@hop-protocol/sdk": "0.0.1-beta.595",
     "@material-ui/core": "4.12.4",
     "@material-ui/icons": "4.11.3",
     "@material-ui/lab": "4.0.0-alpha.60",
@@ -91,5 +91,10 @@
     "react-app-rewired": "2.2.1",
     "eslint-plugin-react": "7.21.5",
     "eslint-plugin-react-hooks": "4.2.0"
+  },
+  "overrides": {
+    "@material-ui/icons": {
+      "@types/react": "17.0.0"
+    }
   }
 }

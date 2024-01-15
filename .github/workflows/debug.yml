@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+      - feature/eslint-config-package
 
 jobs:
   build:
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./packages/frontend
+        working-directory: .
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -23,12 +24,12 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install node dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
 
       - name: Build the frontend app
         env:
           PUBLIC_URL: .
           REACT_APP_NETWORK: goerli
           REACT_APP_IPFS_BUILD: true
-        run: npm run build
+        run: npm run build --workspace=@hop-protocol/frontend
 

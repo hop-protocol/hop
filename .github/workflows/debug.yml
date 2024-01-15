@@ -2,12 +2,12 @@ name: deploy
 on:
   push:
     branches:
-      - develop
+      #- develop
       - feature/eslint-config-package
 
 jobs:
   build:
-    if: false
+    if: true
     name: Build
     runs-on: ubuntu-latest
     defaults:
@@ -20,11 +20,15 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 20
           registry-url: https://registry.npmjs.org
 
       - name: Install node dependencies
-        run: npm install
+        run: |
+          npm install
+          ## Install pnpm (required to build @eth-optimism packages)
+          RUN npm install -g pnpm@latest
+          RUN npm install -g only-allow@latest
 
       - name: Build the frontend app
         env:

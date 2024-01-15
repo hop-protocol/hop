@@ -1,13 +1,14 @@
 {
-  "name": "root",
+  "name": "hop",
+  "version": "1.0.0",
+  "author": "Authereum labs, Inc.",
+  "license": "MIT",
   "private": true,
   "engines": {
     "node": ">=14",
     "yarn": "^1.22.11"
   },
-  "scripts": {
-    "bootstrap": "npm install"
-  },
+  "scripts": {},
   "workspaces": [
     "packages/api",
     "packages/core",
@@ -24,7 +25,6 @@
     "eslint-plugin-jest": "27.6.1",
     "eslint-plugin-json": "3.1.0",
     "eslint-plugin-n": "16.6.2",
-    "eslint-plugin-promise": "5.1.0",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-unused-imports": "3.0.0",
     "package-sync-version": "0.0.2",

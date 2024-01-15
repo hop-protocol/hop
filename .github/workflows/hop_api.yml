@@ -1,21 +1,17 @@
-name: Build and Push Hop Node Docker Image
+name: Build and Push Hop API Docker Image
 
 on:
   push:
     branches:
-      - production-bonder
-      - mainnet-bonder
-      - develop-bonder
-      - goerli-bonder
-      - sepolia-bonder
+      - hop-api
       - feature/eslint-config-package
 
 jobs:
-  build-hop-node:
+  build-hop-api:
     if: true
     runs-on: ubuntu-latest
     env:
-      DOCKER_IMAGE: hopprotocol/hop-node
+      DOCKER_IMAGE: hopprotocol/hop-api
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,22 +36,21 @@ jobs:
       - name: Build application Docker image
         if: true
         run: |
-          #(cd ./packages/hop-node && bash ./ci/package_check.sh)
           docker build \
-            -f ./packages/hop-node/Dockerfile \
+            -f ./packages/api/Dockerfile \
             --build-arg=GIT_REV=${{ github.sha }} \
             -t app .
 
-      - name: Push Hop Node Docker image to Docker Hub
-        if: true
+      - name: Push Hop API Docker image to Docker Hub
+        if: false
         run: |
           BRANCH=${GITHUB_REF##*/}
-          BRANCH=$(echo $BRANCH | sed 's/\//-/g' | sed 's/-bonder//g')
+          BRANCH=$(echo $BRANCH | sed 's/\//-/g')
           docker tag app $DOCKER_IMAGE:${{ github.sha }}
           docker tag app $DOCKER_IMAGE:$BRANCH
           docker push $DOCKER_IMAGE:${{ github.sha }}
           docker push $DOCKER_IMAGE:$BRANCH
-          if [ "$BRANCH" == "production" ]; then
+          if [ "$BRANCH" == "hop-api" ]; then
             docker tag app $DOCKER_IMAGE:latest
             docker push $DOCKER_IMAGE:latest
           fi

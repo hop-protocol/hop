@@ -25,15 +25,15 @@ jobs:
 
       - name: Install node dependencies
         run: |
-          npm install
           ## Install pnpm (required to build @eth-optimism packages)
-          RUN npm install -g pnpm@latest
-          RUN npm install -g only-allow@latest
+          npm install -g pnpm@latest
+          npm install -g only-allow@latest
+          npm install
 
       - name: Build the frontend app
         env:
           PUBLIC_URL: .
           REACT_APP_NETWORK: goerli
           REACT_APP_IPFS_BUILD: true
-        run: npm run build --workspace=@hop-protocol/frontend
+        run: NODE_OPTIONS=--openssl-legacy-provider npm run build --workspace=@hop-protocol/frontend
 

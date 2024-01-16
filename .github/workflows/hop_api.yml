@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - hop-api
+  workflow_dispatch:
 
 jobs:
-  build-hop-api:
+  _build-hop-api:
     runs-on: ubuntu-latest
     env:
       DOCKER_IMAGE: hopprotocol/hop-api
@@ -48,3 +49,13 @@ jobs:
             docker tag app $DOCKER_IMAGE:latest
             docker push $DOCKER_IMAGE:latest
           fi
+
+  build-hop-api:
+    needs: [_build-hop-api]
+    name: Send Status Notification Webhook Request
+    uses: ./.github/workflows/status_notify.yml
+    with:
+      environment: production
+    secrets:
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

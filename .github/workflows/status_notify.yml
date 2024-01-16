@@ -1,0 +1,39 @@
+name: Send Webhook Notification
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: environment to deploy to
+        required: true
+    secrets:
+      WEBHOOK_URL:
+        required: true
+      WEBHOOK_SECRET:
+        required: true
+
+jobs:
+  status-notify:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Notify on Success
+        if: success()
+        run: |
+          curl "${{ secrets.WEBHOOK_URL }}" \
+            -H "X-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
+            -d '{"payload": {"reponame": "${{ github.repository }}", "branch": "${{ github.ref_name }}", "build_parameters": {"GITHUB_JOB": "${{ github.job }}"}, "outcome": "success", "build_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}' \
+            -H "Content-Type: application/json" \
+            -X POST
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          curl "${{ secrets.WEBHOOK_URL }}" \
+            -H "X-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
+            -d '{"payload": {"reponame": "${{ github.repository }}", "branch": "${{ github.ref_name }}", "build_parameters": {"GITHUB_JOB": "${{ github.job }}"}, "outcome": "failed", "build_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}' \
+            -H "Content-Type: application/json" \
+            -X POST

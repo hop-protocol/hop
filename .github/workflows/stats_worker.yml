@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - stats-worker
-      - feature/eslint-config-package
+  workflow_dispatch:
 
 jobs:
-  build-stats-worker:
+  _build-stats-worker:
     runs-on: ubuntu-latest
     env:
       DOCKER_IMAGE: hopprotocol/stats-worker
@@ -49,3 +49,13 @@ jobs:
             docker tag app $DOCKER_IMAGE:latest
             docker push $DOCKER_IMAGE:latest
           fi
+
+  build-stats-worker:
+    needs: [_build-stats-worker]
+    name: Send Status Notification Webhook Request
+    uses: ./.github/workflows/status_notify.yml
+    with:
+      environment: production
+    secrets:
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

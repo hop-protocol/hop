@@ -32,7 +32,7 @@ COPY --chown=node:node .npmrc ./
 COPY --chown=node:node packages packages
 
 # Install root dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 # Build specific package
 RUN npm run build --workspace=@hop-protocol/hop-node

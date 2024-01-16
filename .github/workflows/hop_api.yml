@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - hop-api
-      - feature/eslint-config-package
 
 jobs:
   build-hop-api:
@@ -18,12 +17,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-
       - name: Install dependencies
         run: |
           sudo apt update
@@ -36,6 +29,12 @@ jobs:
             -f ./packages/api/Dockerfile \
             --build-arg=GIT_REV=${{ github.sha }} \
             -t app .
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
 
       - name: Push Hop API Docker image to Docker Hub
         run: |

@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y jq
 # Update NPM
 RUN npm install -g npm@latest
 
+## Install pnpm (required to build @eth-optimism packages)
+RUN npm install -g pnpm@latest
+RUN npm install -g only-allow@latest
+
 # Create the working directory
 WORKDIR /usr/src
 
@@ -28,10 +32,10 @@ COPY --chown=node:node .npmrc ./
 COPY --chown=node:node packages packages
 
 # Install root dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 # Build specific package
-RUN npm run build --workspace=@hop-protocol/hop-api
+RUN npm run build --workspace=@hop-protocol/api
 
 # Set the entry point
 ENTRYPOINT ["node"]

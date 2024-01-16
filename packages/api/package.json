@@ -1,5 +1,5 @@
 {
-  "name": "hop-api",
+  "name": "@hop-protocol/api",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",

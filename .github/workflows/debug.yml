@@ -1,13 +1,12 @@
-name: deploy
+name: Simple Github Action for Debugging Builds
 on:
   push:
     branches:
-      #- develop
-      - feature/eslint-config-package
+      - develop
 
 jobs:
   build:
-    if: true
+    if: false
     name: Build
     runs-on: ubuntu-latest
     defaults:
@@ -25,9 +24,8 @@ jobs:
 
       - name: Install node dependencies
         run: |
-          ## Install pnpm (required to build @eth-optimism packages)
-          npm install -g pnpm@latest
-          npm install -g only-allow@latest
+          npm install -g pnpm@latest # required to build @eth-optimism packages
+          npm install -g only-allow@latest # required to build @eth-optimism packages
           npm install
 
       - name: Build the frontend app

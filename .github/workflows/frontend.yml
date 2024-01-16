@@ -106,8 +106,7 @@ jobs:
 
       - name: Install node dependencies
         run: |
-          npm install -g pnpm@latest # required to build @eth-optimism packages
-          npm install -g only-allow@latest # required to build @eth-optimism packages
+          npm install -g only-allow@latest pnpm@latest # required to build @eth-optimism packages
           npm install
 
       - name: Build the frontend app

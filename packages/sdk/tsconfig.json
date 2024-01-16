@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "src",
-    "composite": false,
     "declarationDir": "dist",
     "forceConsistentCasingInFileNames": true,
     "lib": ["dom", "es2017", "esnext"],
@@ -22,8 +21,6 @@
     "src"
   ],
   "exclude": [
-    "node_modules",
-    "dist",
     "test",
     "**/*.test.ts"
   ]

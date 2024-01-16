@@ -1,8 +1,11 @@
 {
   "name": "@hop-protocol/hop-node",
-  "version": "0.0.1-beta.7",
+  "version": "0.0.0",
   "description": "The Hop Node for Hop Protocol",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "main": "dist/index.js",
+  "private": true,
   "engines": {
     "node": ">=20.10.0"
   },
@@ -11,11 +14,11 @@
     "bonder": "npm run build && node bin/hop-node bonder",
     "arb-bot": "npm run build && node bin/hop-node arb-bot",
     "start": "npm run build-info && node bin/hop-node",
-    "dev": "npm run build-info && npx -p typescript tsc -p tsconfig.build.json --watch",
+    "dev": "npm run build-info && tsc -p tsconfig.build.json --watch",
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
     "postinstall": "mkdir -p dist/src && npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
-    "build": "npm run build-info && npx -p typescript tsc -p tsconfig.build.json",
-    "lint": "npx eslint --fix \"src/**/*\"",
+    "build": "npm run build-info && tsc -p tsconfig.build.json",
+    "lint": "eslint --fix \"src/**/*\"",
     "clean": "rimraf dist",
     "clean:db": "rimraf db_data",
     "prepare": "npm run build"
@@ -23,8 +26,6 @@
   "bin": {
     "hop-node": "bin/hop-node"
   },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "@aave/contract-helpers": "1.4.0",
     "@aave/math-utils": "1.4.0",
@@ -98,7 +99,6 @@
     "@types/subleveldown": "4.1.0",
     "@types/uuid": "8.3.1",
     "jest": "29.7.0",
-    "package-sync-version": "0.0.2",
     "ts-jest": "29.1.1"
   },
   "_moduleAliases": {

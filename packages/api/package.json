@@ -1,16 +1,16 @@
 {
   "name": "hop-api",
   "version": "0.0.0",
-  "description": "",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "main": "index.js",
+  "private": "true",
   "scripts": {
     "start": "node src/index.js",
     "build": "mkdir -p dist && cp -r src/* dist/",
-    "lint": "npx eslint --fix src/*.js",
+    "lint": "eslint --fix src/*.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "@hop-protocol/core": "0.0.1-beta.217",
     "@hop-protocol/sdk": "0.0.1-beta.593",

@@ -1,14 +1,13 @@
 {
   "name": "hop",
   "version": "1.0.0",
-  "author": "Authereum labs, Inc.",
+  "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
   "engines": {
     "node": ">=14",
     "yarn": "^1.22.11"
   },
-  "scripts": {},
   "workspaces": [
     "packages/core",
     "packages/sdk",
@@ -27,7 +26,6 @@
     "eslint-plugin-n": "16.6.2",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-unused-imports": "3.0.0",
-    "package-sync-version": "0.0.2",
     "rimraf": "5.0.5",
     "typescript": "5.3.3"
   }

@@ -1,6 +1,11 @@
 module.exports = {
-  "env": {
-    "node": true,
-  },
-  extends: '../../.eslintrc.js',
+  "extends": "../../.eslintrc.js",
+  "ignorePatterns": [
+    // Root rules
+    "node_modules",
+    "build",
+    "dist",
+    // Custom rules
+    "src/contracts"
+  ],
 }

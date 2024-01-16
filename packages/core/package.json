@@ -2,60 +2,49 @@
   "name": "@hop-protocol/core",
   "version": "0.0.1-beta.217",
   "description": "Hop Protocol networks config",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "main": "index.js",
   "types": "index.d.ts",
-  "engines": {
-    "node": ">=14",
-    "yarn": "^1.22.11"
-  },
   "scripts": {
     "test": "jest test",
-    "dev": "npm run version && npx -p typescript tsc --watch",
+    "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:typechain && npm run build:ts",
-    "build:ts": "npx -p typescript tsc",
+    "build:ts": "tsc",
     "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
     "clean": "rimraf dist abi addresses contracts metadata networks version.js index.js",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "version:bump": "npm version prerelease --preid=beta",
-    "lint": "npx eslint --fix \"src/**/*\"",
+    "lint": "eslint --fix \"src/**/*\"",
     "publish:latest": "npm publish --tag latest --access public",
     "publish:beta": "npm publish --tag beta --access public",
     "publish:next": "npm publish --tag next --access public",
     "dist-tag:latest": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" latest",
     "dist-tag:beta": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" beta",
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" next",
-    "version:sync": "package-sync-version",
     "release": "npm run clean && npm test && npm run publish:latest",
-    "bump": "npm run clean && npm run build && npm test && npm run json:mainnet && npm run version:bump && npm run version:sync",
-    "bump-release": "npm run version:bump && npm run version:sync && npm run release && npm run json:mainnet",
+    "bump": "npm run clean && npm run build && npm test && npm run json:mainnet && npm run version:bump",
+    "bump-release": "npm run version:bump && npm run release && npm run json:mainnet",
     "prepare": "npm run lint && npm run build",
     "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
     "json:staging": "node -e \"console.log(JSON.stringify(require('./addresses').staging, null, 2))\" > build/addresses/staging.json",
     "upload": "npm run build && node s3upload/main"
   },
   "directories": {},
-  "author": "",
-  "license": "MIT",
   "dependencies": {
-    "ethers": "5.7.1"
+    "ethers": "5.7.2"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.316.0",
     "@aws-sdk/types": "3.485.0",
     "@typechain/ethers-v5": "10.1.0",
     "@types/jest": "29.5.11",
-    "@types/node": "12.11.7",
+    "@types/node": "20.11.3",
     "browserify": "16.5.0",
     "dotenv": "10.0.0",
     "jest": "29.7.0",
-    "package-sync-version": "0.0.2",
     "ts-jest": "29.1.1",
     "typechain": "8.1.0",
     "uglify-es": "3.3.9"
-  },
-  "husky": {
-    "hooks": {
-      "pre-push": "npm run lint"
-    }
   }
 }

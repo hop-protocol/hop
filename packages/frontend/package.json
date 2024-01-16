@@ -1,15 +1,13 @@
 {
   "name": "@hop-protocol/frontend",
   "version": "0.0.0",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "private": true,
-  "engines": {
-    "node": ">=14",
-    "yarn": "^1.22.11"
-  },
   "dependencies": {
-    "@ethersproject/abi": "^5.7.0",
-    "@gnosis.pm/safe-apps-react-sdk": "^4.6.2",
-    "@gnosis.pm/safe-apps-sdk": "^7.8.0",
+    "@ethersproject/abi": "5.7.0",
+    "@gnosis.pm/safe-apps-react-sdk": "4.6.2",
+    "@gnosis.pm/safe-apps-sdk": "7.8.0",
     "@hop-protocol/core": "0.0.1-beta.218",
     "@hop-protocol/sdk": "0.0.1-beta.595",
     "@material-ui/core": "4.12.4",
@@ -19,10 +17,10 @@
     "@web3-onboard/core": "2.20.3",
     "@web3-onboard/gnosis": "2.1.10",
     "@web3-onboard/injected-wallets": "2.10.1",
-    "@web3-onboard/walletconnect": "^2.4.7",
+    "@web3-onboard/walletconnect": "2.5.3",
     "clsx": "1.2.1",
     "copy-to-clipboard": "3.3.2",
-    "ethers": "^5.7.1",
+    "ethers": "5.7.2",
     "fast-memoize": "2.5.2",
     "keccak256": "1.0.3",
     "lodash": "4.17.21",
@@ -39,7 +37,7 @@
     "react-jazzicon": "1.0.4",
     "react-markdown": "8.0.3",
     "react-query": "3.39.1",
-    "react-router-dom": "^6.15.0",
+    "react-router-dom": "6.21.2",
     "react-scripts": "4.0.3",
     "react-social-login-buttons": "3.6.1",
     "react-table": "7.8.0",
@@ -58,7 +56,7 @@
     "start": "npm run tempfix && SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
     "dev": "BROWSER=none npm start",
     "clean": "rimraf build",
-    "lint": "npx eslint --fix \"**/*.{ts,tsx}\"",
+    "lint": "eslint --fix \"**/*.{ts,tsx}\"",
     "build": "npm run tempfix && SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
@@ -79,7 +77,7 @@
     "@types/node": "20.11.2",
     "@types/pluralize": "0.0.33",
     "@types/qs": "6.9.11",
-    "@types/react": "18.2.48",
+    "@types/react": "17.0.39",
     "@types/react-dom": "18.2.18",
     "@types/react-google-recaptcha": "2.1.8",
     "@types/react-router-dom": "5.3.3",
@@ -91,10 +89,5 @@
     "react-app-rewired": "2.2.1",
     "eslint-plugin-react": "7.21.5",
     "eslint-plugin-react-hooks": "4.2.0"
-  },
-  "overrides": {
-    "@material-ui/icons": {
-      "@types/react": "17.0.0"
-    }
   }
 }

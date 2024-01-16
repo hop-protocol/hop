@@ -2,22 +2,21 @@
   "name": "@hop-protocol/sdk",
   "version": "0.0.1-beta.593",
   "description": "The Hop Protocol JavaScript SDK",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "engines": {
-    "node": ">=14"
-  },
   "scripts": {
     "test": "jest",
-    "dev": "npm run version && npx -p typescript tsc --watch",
+    "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:ts",
-    "build:ts": "ls -l node_modules | grep @hop; ls -l ../../node_modules | grep @hop; npx -p typescript tsc",
+    "build:ts": "ls -l node_modules | grep @hop; ls -l ../../node_modules | grep @hop; tsc",
     "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
     "clean": "rimraf dist && rimraf hop.js",
     "clean:docs": "rimraf docs",
     "clean:docs-ui": "rimraf docs-ui",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
-    "lint": "npx eslint --fix \"src/**/*\"",
+    "lint": "eslint --fix",
     "version:bump": "npm version prerelease --preid=beta",
     "publish:latest": "npm publish --tag latest --access public",
     "publish:beta": "npm publish --tag beta --access public",
@@ -25,10 +24,9 @@
     "dist-tag:latest": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" latest",
     "dist-tag:beta": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" beta",
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" next",
-    "version:sync": "package-sync-version",
     "release": "npm run clean && npm test && npm run publish:latest",
-    "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run version:sync",
-    "bump-release": "npm run version:bump && npm run version:sync && npm run release",
+    "bump": "npm run clean && npm run build && npm test && npm run version:bump",
+    "bump-release": "npm run version:bump && npm run release",
     "prepare": "npm run lint && npm run build && npm run build:browser",
     "docs:markdown": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
     "docs:concat": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && npx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
@@ -37,16 +35,14 @@
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
   "directories": {},
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "@eth-optimism/contracts": "0.5.2",
     "@hop-protocol/core": "0.0.1-beta.218",
     "@maticnetwork/maticjs": "3.4.0-beta.0",
     "dotenv": "8.6.0",
-    "ethereum-block-by-date": "^1.4.6",
+    "ethereum-block-by-date": "1.4.9",
     "ethereumjs-util": "7.1.5",
-    "ethers": "5.7.1",
+    "ethers": "5.7.2",
     "eventemitter3": "4.0.7",
     "fast-memoize": "2.5.2",
     "isomorphic-fetch": "3.0.0",
@@ -66,21 +62,14 @@
     "@types/isomorphic-fetch": "0.0.35",
     "@types/jest": "29.5.11",
     "@types/luxon": "1.27.1",
-    "@types/node": "17.0.21",
-    "@types/node-fetch": "2.5.10",
+    "@types/node": "20.11.3",
     "babelify": "10.0.0",
     "browserify": "17.0.0",
     "jest": "29.7.0",
-    "package-sync-version": "0.0.2",
     "ts-jest": "29.1.1",
     "tsify": "4.0.1",
     "typedoc": "0.25.1",
     "typedoc-plugin-markdown": "3.13.4",
     "uglify-es": "3.3.9"
-  },
-  "husky": {
-    "hooks": {
-      "pre-push": "npm run lint"
-    }
   }
 }

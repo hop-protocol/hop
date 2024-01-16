@@ -1,5 +1,6 @@
 module.exports = {
   "env": {
+    "node": true,
     "browser": true,
   },
   "extends": [
@@ -7,6 +8,11 @@ module.exports = {
     "plugin:react-hooks/recommended",
     "plugin:react/recommended"
   ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "plugins": ["react"],
   "rules": {
     "react-hooks/exhaustive-deps": 0,

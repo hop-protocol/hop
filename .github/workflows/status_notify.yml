@@ -16,24 +16,16 @@ jobs:
   status-notify:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    defaults:
-      run:
-        working-directory: .
     steps:
-      - name: Notify on Success
-        if: success()
+      - name: Notify webhook
         run: |
-          curl "${{ secrets.WEBHOOK_URL }}" \
-            -H "X-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
-            -d '{"payload": {"reponame": "${{ github.repository }}", "branch": "${{ github.ref_name }}", "build_parameters": {"GITHUB_JOB": "${{ github.job }}"}, "outcome": "success", "build_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}' \
-            -H "Content-Type: application/json" \
-            -X POST
+          STATUS="failed"
+          if ${{ job.status == 'success' }}; then
+            STATUS="success"
+          fi
 
-      - name: Notify on Failure
-        if: failure()
-        run: |
           curl "${{ secrets.WEBHOOK_URL }}" \
             -H "X-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
-            -d '{"payload": {"reponame": "${{ github.repository }}", "branch": "${{ github.ref_name }}", "build_parameters": {"GITHUB_JOB": "${{ github.job }}"}, "outcome": "failed", "build_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}' \
+            -d '{"payload": {"reponame": "${{ github.repository }}", "branch": "${{ github.ref_name }}", "build_parameters": {"GITHUB_JOB": "${{ github.job }}"}, "outcome": "'$STATUS'", "build_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}' \
             -H "Content-Type: application/json" \
             -X POST

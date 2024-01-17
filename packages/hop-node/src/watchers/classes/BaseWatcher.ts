@@ -408,10 +408,13 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount, minBonderFeeAbsolute)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isBonderFeeOk = bonderFee!.gte(minBonderFeeTotal)
+      if (!bonderFee) {
+        throw new Error('expected relayerFee')
+      }
+    const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
     logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
-    this.logAdditionalBonderFeeData(bonderFee!, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
+    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
     return isBonderFeeOk
   }
 

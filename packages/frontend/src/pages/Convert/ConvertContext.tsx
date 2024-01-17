@@ -313,7 +313,8 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         destNetwork
       )
 
-      return await checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+      const isApprovalOk = await checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+      return isApprovalOk
     } catch (err: any) {
       logger.error(err)
     }

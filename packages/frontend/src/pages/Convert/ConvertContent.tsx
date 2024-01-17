@@ -209,7 +209,7 @@ const ConvertContent: FC = () => {
   const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
   const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
-  const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
+  const sendableWarning = !warning || (warning as string)?.startsWith('Warning:')
 
   const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated)
   const [sendButtonActive, setSendButtonActive] = useState(checkSendButtonActive())

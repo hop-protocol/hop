@@ -9,9 +9,6 @@ ENV GIT_REV=${GIT_REV}
 WORKDIR /usr/src
 RUN chown -R node:node /usr/src
 
-# Switch to 'root' user
-USER root
-
 # Install pnpm and only-allow as global dependencies
 RUN npm install -g pnpm@latest only-allow@latest
 

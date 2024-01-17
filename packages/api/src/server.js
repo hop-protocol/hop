@@ -1,7 +1,7 @@
 const express = require('express')
 const { Hop } = require('@hop-protocol/sdk')
 const cors = require('cors')
-const { port, trustProxy } = require('./config')
+const { port, trustProxy, gitRev } = require('./config')
 const { ipRateLimitMiddleware } = require('./rateLimit')
 const { responseCache } = require('./responseCache')
 
@@ -219,5 +219,6 @@ app.get('/health', async (req, res) => {
 })
 
 app.listen(port, () => {
+  console.log('git rev:', gitRev)
   console.log(`listening on port ${port}`)
 })

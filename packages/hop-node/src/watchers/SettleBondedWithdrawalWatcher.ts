@@ -70,7 +70,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       throw new Error('transferIds expected to be array')
     }
 
-    const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
+    if (!destinationChainId || !totalAmount) {
+      logger.error('destinationChainId or totalAmount not found')
+      return
+    }
+
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
     bonder = bonder ?? await destBridge.getBonderAddress()
     logger.debug(`transferRootId: ${transferRootId}`)
@@ -92,7 +97,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('computed transferRootHash:', transferRootHash)
     logger.debug('bonder:', bonder)
-    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!))
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferIds', JSON.stringify(transferIds))
 
     const {
@@ -126,11 +131,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferRootHash,
         bonder!,
         transferIds,
-        totalAmount!
+        totalAmount
       )
 
       const txHashes = txs.map(tx => tx.hash)
-      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}), transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
+      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}), transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount)}, transferIds: ${transferIds.length}`
       logger.info(msg)
     } catch (err) {
       logger.error('settleBondedWithdrawals error:', err.message)

@@ -1,12 +1,13 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "baseUrl": "src",
-    "lib": ["es2021", "dom"],
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
-      "src/*": ["*"]
+      "src/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src"
+  ]
 }

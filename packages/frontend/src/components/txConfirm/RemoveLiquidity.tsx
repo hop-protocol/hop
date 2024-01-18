@@ -65,8 +65,8 @@ const RemoveLiquidity = (props: Props) => {
   const [sending, setSending] = useState<boolean>(false)
   const selections: any[] = [
     { label: 'All tokens', value: -1 },
-    { label: token0.token.symbol, value: 0, icon: (token0.token as any).image },
-    { label: token1.token.symbol, value: 1, icon: (token1.token as any).image },
+    { label: token0.token.symbol, value: 0, icon: (token0.token).image },
+    { label: token1.token.symbol, value: 1, icon: (token1.token).image },
   ]
   const [selection, setSelection] = useState<any>(selections[0])
   const [proportional, setProportional] = useState<boolean>(true)
@@ -212,7 +212,7 @@ const RemoveLiquidity = (props: Props) => {
               balance={maxBalance}
               balanceLabel={'Available:'}
               value={amount}
-              token={selectedToken as any}
+              token={selectedToken }
               onChange={handleAmountChange}
               decimalPlaces={5}
             />

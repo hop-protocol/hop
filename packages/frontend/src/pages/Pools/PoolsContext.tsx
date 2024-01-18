@@ -216,7 +216,8 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }
       const bridge = sdk.bridge(canonicalToken.symbol)
       const token = bridge.getL1Token()
-      return stableCoins.has(token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+      const price = stableCoins.has(token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+      return price
     } catch (err) {
       console.error(err)
     }

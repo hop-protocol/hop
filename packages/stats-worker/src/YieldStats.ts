@@ -230,11 +230,11 @@ class YieldStats {
         }
 
         const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
-        if (stakingContracts!.length > 0) {
+        if (stakingContracts && stakingContracts.length > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
           if (!yieldData.stakingRewards[token]) { yieldData.stakingRewards[token] = {} }
           if (!yieldData.stakingRewards[token][chain]) { yieldData.stakingRewards[token][chain] = {} }
-          for (const stakingContract of stakingContracts!) {
+          for (const stakingContract of stakingContracts) {
             yieldData.stakingRewards[token][chain][stakingContract] = {
               apr: 0,
               apy: 0,

@@ -530,7 +530,8 @@ export function useSend(): SendResponseProps {
 
       const isHTokenTransfer = false
       const spender: string = bridge.getSendApprovalAddress(fromNetwork.slug, isHTokenTransfer, toNetwork.slug)
-      return await checkApproval(parsedAmount, fromToken, spender)
+      const isApprovalOk = await checkApproval(parsedAmount, fromToken, spender)
+      return isApprovalOk
     } catch (err: any) {
       logger.error(err)
       return false

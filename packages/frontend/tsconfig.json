@@ -1,31 +1,40 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /**
+     * Custom, but should be removed over time as package gets modernized
+     */
+
+    // Needed for our absolute import since paths is overwritten in base config
+    "baseUrl": ".",
+    // These were set to true with strict in base config
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+
+    /**
+     * Automatically set by react-app-rewired
+     * Do not delete or else these will be re-added automatically on build.
+     * TODO: Long term, move away from react-app-rewird
+     */
+
+    "allowJs": true,
+    "skipLibCheck": true,
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
     "noEmit": true,
-    "jsx": "react-jsx",
-    "baseUrl": ".",
-    "downlevelIteration": true
+    "jsx": "react-jsx"
   },
   "include": [
-    "src"
+    "src",
+    "src/**/*.json"
   ]
 }

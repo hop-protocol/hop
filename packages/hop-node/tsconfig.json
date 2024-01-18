@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
       "src/*": ["./src/*"]
     }
@@ -8,11 +10,7 @@
   "include": [
     "src",
     "test",
-    "src/**/*.json", // Include JSON files specifically
+    "src/**/*.json", // Required to include JSON files specifically
     "src/.build-info.json" // Spefically include hidden build file
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
   ]
 }

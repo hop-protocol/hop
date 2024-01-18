@@ -1,12 +1,11 @@
 {
-  "name": "root",
+  "name": "hop",
+  "version": "1.0.0",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=14",
-    "yarn": "^1.22.11"
-  },
-  "scripts": {
-    "bootstrap": "npm install"
+    "node": ">=18.19.0"
   },
   "workspaces": [
     "packages/core",
@@ -18,17 +17,33 @@
     "packages/hop-node"
   ],
   "devDependencies": {
+    "@types/jest": "29.5.11",
+    "@types/node": "20.11.3",
     "@typescript-eslint/eslint-plugin": "6.18.1",
     "@typescript-eslint/parser": "6.18.0",
     "eslint": "8.56.0",
-    "eslint-plugin-jest": "27.6.1",
-    "eslint-plugin-json": "3.1.0",
     "eslint-plugin-n": "16.6.2",
-    "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-unused-imports": "3.0.0",
-    "package-sync-version": "0.0.2",
     "rimraf": "5.0.5",
     "typescript": "5.3.3"
+  },
+  "//": [
+    "Temporary overrides, remove when packages are updated. npm workspaces requires overrides at the root: https://github.com/npm/rfcs/blob/main/accepted/0036-overrides.md#only-root-package-may-contain-overrides",
+    " * react-scripts: Our react-scripts version is old and needs newer TS and linting versions to work. Remove when we update react-scripts.",
+    " * csp-html-webpack-plugin: The latest version uses an old version of html-webpack-plugin that has incompatible types. Remove when we use a different package than csp-html-webpack-plugin.",
+    " * type-fest: Not sure exactly which package breaks without this."
+  ],
+  "overrides": {
+    "react-scripts": {
+      "typescript": "5.3.3",
+      "@typescript-eslint/eslint-plugin": "6.18.1",
+      "@typescript-eslint/parser": "6.18.0",
+      "minimatch": "5.1.2"
+    },
+    "csp-html-webpack-plugin": {
+      "html-webpack-plugin": "4.5.2"
+    },
+    "type-fest": "4.9.0"
   }
 }

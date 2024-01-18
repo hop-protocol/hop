@@ -10,12 +10,6 @@ Install dependencies:
 npm install
 ```
 
-Lerna link, to link hop core and sdk packages:
-
-```sh
-npx lerna link
-```
-
 Start app (uses `mainnet` network by default):
 
 ```sh

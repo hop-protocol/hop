@@ -409,9 +409,9 @@ export async function validateConfigValues (config?: Config) {
           throw new Error('autoWithdraw should be boolean')
         }
 
-        const validStrategies = new Set(['yearn', 'aave'])
+        const validStrategies = new Set(['yearn'])
         if (!validStrategies.has(chainTokenConfig.strategy)) {
-          throw new Error('strategy is invalid. Valid options are: yearn, aave')
+          throw new Error('strategy is invalid. Valid options are: yearn')
         }
       }
     }

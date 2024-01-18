@@ -377,7 +377,10 @@ export async function getWatcher (config: GetWatcherConfig): Promise<Watcher> {
 
   const WatcherClass = WatcherClasses[watcherName!]
   const watcher = findWatcher(watchers, WatcherClass, chain)
-  return watcher!
+  if (!watcher) {
+    throw new Error(`Watcher not found for chain ${chain} and token ${token}`)
+  }
+  return watcher
 }
 
 export async function getBondTransferRootWatcher (config: GetWatcherConfig): Promise<BondTransferRootWatcher> {

@@ -44,7 +44,7 @@ export async function getBlockNumberFromDateUsingLib (provider: any, timestamp: 
   let info
   while (true) {
     try {
-      info = await blockDater.getDate(date)
+      info = blockDater.getDate(date)
       if (!info) {
         throw new Error('could not retrieve block number')
       }

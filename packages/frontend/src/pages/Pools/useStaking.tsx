@@ -352,7 +352,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
       setIsApproving(true)
       setError('')
-      await approve(parsedAmount, lpToken!, stakingContractAddress)
+      await approve(parsedAmount, lpToken, stakingContractAddress)
     } catch (err) {
       console.error(err)
       setError(formatError(err))

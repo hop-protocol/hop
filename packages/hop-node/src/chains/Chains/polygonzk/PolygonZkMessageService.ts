@@ -2,7 +2,7 @@ import wait from 'src/utils/wait'
 import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
-import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs'
+import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs-zkevm'
 import { providers } from 'ethers'
 
 interface ZkEvmBridges {

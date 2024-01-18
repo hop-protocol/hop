@@ -868,7 +868,7 @@ export class ENSToken__factory extends ContractFactory {
     }
   }
 
-  deploy(
+  override deploy(
     freeSupply: BigNumberish,
     airdropSupply: BigNumberish,
     _claimPeriodEnds: BigNumberish,
@@ -881,7 +881,7 @@ export class ENSToken__factory extends ContractFactory {
       overrides || {}
     ) as Promise<ENSToken>;
   }
-  getDeployTransaction(
+  override getDeployTransaction(
     freeSupply: BigNumberish,
     airdropSupply: BigNumberish,
     _claimPeriodEnds: BigNumberish,
@@ -894,10 +894,10 @@ export class ENSToken__factory extends ContractFactory {
       overrides || {}
     );
   }
-  attach(address: string): ENSToken {
+  override attach(address: string): ENSToken {
     return super.attach(address) as ENSToken;
   }
-  connect(signer: Signer): ENSToken__factory {
+  override connect(signer: Signer): ENSToken__factory {
     return super.connect(signer) as ENSToken__factory;
   }
   static readonly bytecode = _bytecode;

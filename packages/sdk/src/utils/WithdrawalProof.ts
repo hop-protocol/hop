@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch'
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
 import { chainIdToSlug } from './chainIdToSlug'
 import { getSubgraphChains } from './getSubgraphChains'

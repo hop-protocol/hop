@@ -1,11 +1,9 @@
-import { AaveVault } from './AaveVault'
 import { BigNumber, Signer } from 'ethers'
 import { Chain } from 'src/constants'
 import { YearnVault } from './YearnVault'
 
 export enum Strategy {
   Yearn = 'yearn',
-  Aaave = 'aave'
 }
 
 export abstract class Vault {
@@ -24,8 +22,6 @@ export abstract class Vault {
     }
     if (strategy === Strategy.Yearn) {
       return new YearnVault(chain, token, signer)
-    } else if (strategy === Strategy.Aaave) {
-      return new AaveVault(chain, token, signer)
     }
     throw new Error(`strategy ${strategy} is invalid`)
   }

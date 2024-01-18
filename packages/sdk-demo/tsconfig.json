@@ -1,21 +1,27 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /**
+     * Automatically set by react-app-rewired
+     * Do not delete or else these will be re-added automatically on build.
+     * TODO: Long term, move away from react-app-rewird
+     */
+
+    "allowJs": true,
+    "jsx": "react-jsx",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
+    "noEmit": true
   },
   "include": [
     "src"

@@ -1,27 +1,13 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "src",
-    "declarationDir": "dist",
-    "forceConsistentCasingInFileNames": true,
-    "lib": ["dom", "es2017", "esnext"],
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "noImplicitAny": true,
-    "noUnusedLocals": false,
-    "outDir": "dist",
-    "sourceMap": false,
-    "target": "es2017",
-    "types": ["node", "jest"],
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
-      "@src/*": ["*"]
+      "src/*": ["./src/*"]
     }
   },
   "include": [
     "src"
-  ],
-  "exclude": [
-    "test",
-    "**/*.test.ts"
   ]
 }

@@ -35,16 +35,12 @@
     "ethers": "5.7.2"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "3.316.0",
+    "@aws-sdk/client-s3": "3.338.0",
     "@aws-sdk/types": "3.485.0",
     "@typechain/ethers-v5": "10.1.0",
-    "@types/jest": "29.5.11",
-    "@types/node": "20.11.3",
-    "browserify": "16.5.0",
     "dotenv": "10.0.0",
     "jest": "29.7.0",
     "ts-jest": "29.1.1",
-    "typechain": "8.1.0",
-    "uglify-es": "3.3.9"
+    "typechain": "8.1.0"
   }
 }

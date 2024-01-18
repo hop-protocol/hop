@@ -15,7 +15,7 @@ enum Actions {
 root
   .command('vault')
   .description('Yearn vault')
-  .option('--strategy <value>', 'Vault strategy: Options are: yearn, aave', parseString)
+  .option('--strategy <value>', 'Vault strategy: Options are: yearn', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--chain <slug>', 'Chain', parseString)
   .option('--amount <number>', 'From token amount (in human readable format)', parseNumber)

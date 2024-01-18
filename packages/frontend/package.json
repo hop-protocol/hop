@@ -41,7 +41,6 @@
     "react-scripts": "4.0.3",
     "react-social-login-buttons": "3.6.1",
     "react-table": "7.8.0",
-    "react-use": "17.4.0",
     "remark-gfm": "3.0.1",
     "styled-components": "5.3.5",
     "styled-system": "5.1.5",
@@ -53,11 +52,11 @@
     "react-error-overlay": "6.0.9"
   },
   "scripts": {
-    "start": "npm run tempfix && SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
+    "start": "npm run tempfix && NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
     "dev": "BROWSER=none npm start",
     "clean": "rimraf build",
     "lint": "eslint --fix \"**/*.{ts,tsx}\"",
-    "build": "npm run tempfix && SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
+    "build": "npm run tempfix && NODE_OPTIONS=--openssl-legacy-provider  SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "deploy": "npx --yes netlify-cli deploy --prod",
@@ -74,20 +73,18 @@
     "@testing-library/jest-dom": "5.17.0",
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.4.1",
-    "@types/node": "20.11.2",
     "@types/pluralize": "0.0.33",
     "@types/qs": "6.9.11",
-    "@types/react": "17.0.39",
-    "@types/react-dom": "18.2.18",
+    "@types/react": "17.0.75",
+    "@types/react-dom": "17.0.25",
     "@types/react-google-recaptcha": "2.1.8",
-    "@types/react-router-dom": "5.3.3",
     "@types/react-table": "7.7.19",
     "@types/styled-components": "5.1.34",
     "@types/styled-system": "5.1.22",
     "csp-html-webpack-plugin": "5.1.0",
     "customize-cra": "1.0.0",
     "react-app-rewired": "2.2.1",
-    "eslint-plugin-react": "7.21.5",
-    "eslint-plugin-react-hooks": "4.2.0"
+    "eslint-plugin-react": "7.33.2",
+    "eslint-plugin-react-hooks": "4.6.0"
   }
 }

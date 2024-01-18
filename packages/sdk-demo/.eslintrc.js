@@ -1,8 +1,4 @@
 module.exports = {
-  "env": {
-    "node": true,
-    "browser": true,
-  },
   "extends": [
     "../../.eslintrc.js",
     "plugin:react-hooks/recommended",

@@ -34,11 +34,9 @@ FROM node:20.10.0-alpine
 WORKDIR /usr/src
 
 # Copy built files from the build stage
-COPY --from=build /usr/src/packages/hop-node/bin /usr/src/bin
-COPY --from=build /usr/src/node_modules /usr/src/node_modules
-COPY --from=build /usr/src/packages/hop-node/dist /usr/src/dist
-COPY --from=build /usr/src/package*.json /usr/src/
+COPY --from=build /usr/src/packages/stats-worker /app/packages/stats-worker
+COPY --from=build /usr/src/node_modules /app/node_modules
 
 # Set the entry point
-ENTRYPOINT ["/usr/src/bin/stats"]
+ENTRYPOINT ["/app/packages/stats-worker/bin/stats"]
 CMD []

@@ -36,9 +36,10 @@ ENV GIT_REV=${GIT_REV}
 # Create the working directory
 WORKDIR /usr/src
 
-# Copy necessary files from build stage
-COPY --from=build /usr/src/packages/hop-node/bin /bin
+# Copy built files from the build stage
+COPY --from=build /usr/src/packages/hop-node /app/packages/hop-node
+COPY --from=build /usr/src/node_modules /app/node_modules
 
 # Set the entry point
-ENTRYPOINT ["/bin/hop-node"]
+ENTRYPOINT ["/app/packages/hop-node/bin/hop-node"]
 CMD []

@@ -97,6 +97,7 @@
     "@types/pluralize": "^0.0.33",
     "@types/qs": "^6.9.7",
     "@types/react": "^18.2.20",
+    "@types/react-copy-to-clipboard": "5.0.7",
     "@types/react-dom": "^18.2.7",
     "@types/react-google-recaptcha": "^2.1.8",
     "@types/react-router-dom": "^5.3.1",

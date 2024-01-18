@@ -10,7 +10,7 @@ import { SmallTextField } from 'src/components/SmallTextField'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { Alert } from 'src/components/Alert'
 import { sanitizeNumericalString } from 'src/utils'
-import { Icon, Flex } from 'src/components/ui'
+import { Icon } from 'src/components/ui/Icon'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {
@@ -100,12 +100,12 @@ export const Settings: FC = () => {
   const deadlineError = Number(deadlineMinutes) < 10
 
   return (
-    <Flex alignCenter>
-      <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
+    <Box display="flex" alignItems="center">
+      <Box alignItems="center" p={[1, 1]} mx={[2, 0]}>
         <IconButton onClick={handleClick}>
           <Icon src={SettingsIcon} width={20} />
         </IconButton>
-      </Flex>
+      </Box>
 
       <Popover
         open={open}
@@ -193,6 +193,6 @@ export const Settings: FC = () => {
           </Box>
         </div>
       </Popover>
-    </Flex>
+    </Box>
   )
 }

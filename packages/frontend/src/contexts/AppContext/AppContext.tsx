@@ -12,7 +12,7 @@ import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAc
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { reactAppNetwork, blocklist, rpcProviderOverrides } from 'src/config'
 import { allNetworks as networks } from 'src/config/networks'
-import { Theme, useTheme } from '@material-ui/core'
+import { Theme, useTheme } from '@material-ui/core/styles'
 
 type AppContextProps = {
   sdk: Hop

@@ -1,9 +1,9 @@
 import React from 'react'
-import { useTheme } from '@material-ui/core'
+import { useTheme } from '@material-ui/core/styles'
 import { squareDimensions } from 'src/utils'
 import styled, { keyframes, css } from 'styled-components/macro'
 import { background, color } from 'styled-system'
-import { Flex } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
 
 export function logStyleProps(props: any) {
   console.log('style props:', props)
@@ -73,11 +73,11 @@ export function Loading({ size = 24, load = true, imgSrc }: any) {
   const theme = useTheme()
 
   return (
-    <Flex justifyCenter alignCenter>
+    <Box display="flex" justifyContent="center" alignItems="center">
       <LoadingWrapper load={load}>
         <Center size={size - 6} theme={theme} imgSrc={imgSrc} load={load} />
       </LoadingWrapper>
-    </Flex>
+    </Box>
   )
 }
 

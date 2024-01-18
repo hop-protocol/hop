@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '@material-ui/core'
 import { Button } from 'src/components/Button'
-import { Div } from 'src/components/ui'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -26,12 +24,11 @@ export function ClaimWrapper(props: any) {
     setError,
     merkleRootSet
   } = props
-  const theme = useTheme()
   const navigate = useNavigate()
 
   return (
     <>
-      <Div
+      <Box
         px={[3, 5]}
         py={4}
         maxWidth={step === 1 ? '1100px' : '520px'}
@@ -70,7 +67,7 @@ export function ClaimWrapper(props: any) {
         )}
         </>
         )}
-      </Div>
+      </Box>
 
       {canClaim && step > 0 && step < 4 && (
         <Box display="flex" maxWidth={"400px"} mt={4} justifyContent="center" width="100%" px={[1, 5]}>

@@ -8,7 +8,6 @@ import { Modal } from 'src/components/Modal'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
 import { AccountTransferHistory } from 'src/components/AccountDetails/AccountTransferHistory'
-import { Div } from 'src/components/ui'
 
 const useStyles = makeStyles((theme: Theme) => ({
   box: {
@@ -114,9 +113,9 @@ export const AccountDetails = () => {
           <ManageWallet onChange={handleChangeClick} onDisconnect={handleDisconnectClick} />
         )}
       </Box>
-      <Div position="relative">
+      <Box position="relative">
         <AccountTransferHistory address={address?.address} />
-      </Div>
+      </Box>
     </Modal>
   )
 }

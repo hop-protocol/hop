@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Theme, makeStyles } from '@material-ui/core'
+import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -25,7 +25,7 @@ import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
 import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
-import { Flex, Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui/Icon'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { Banner } from 'src/components/Banner'
 
@@ -173,18 +173,19 @@ export const Header: FC = () => {
           justifyContent="flex-end"
           alignItems="center"
         >
-          <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
+          <Box display="flex" alignItems="center" p={[1, 1]} mx={[2, 0]}>
             <IconButton onClick={toggleMode}>
               <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
             </IconButton>
-          </Flex>
+          </Box>
 
           <Settings />
 
           {showBalance && (
-            <Flex
-              justifyCenter
-              alignCenter
+            <Box
+              display={['none', 'flex']}
+              justifyContent="center"
+              alignItems="center"
               borderRadius={'3rem'}
               mx={1}
               p={'1.2rem 2rem'}
@@ -195,18 +196,17 @@ export const Header: FC = () => {
               }
               color="text.secondary"
               fontSize={['.8rem', '1rem']}
-              display={['none', 'flex']}
             >
               <div className={styles.balance}>
                 <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
                 {displayBalance}
               </div>
-            </Flex>
+            </Box>
           )}
 
-          <Flex alignCenter justifyCenter mx={1} fontSize={['.8rem', '1rem']}>
+          <Box display="flex" alignItems="center" justifyContent="center" mx={1} fontSize={['.8rem', '1rem']}>
             {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
-          </Flex>
+          </Box>
         </Box>
       </Box>
       <WalletWarning />

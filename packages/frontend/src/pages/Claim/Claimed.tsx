@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui/Icon'
 import { useAddTokenToMetamask } from 'src/hooks'
 import mmIcon from 'src/assets/logos/metamask.svg'
 import { ReactComponent as twitterIcon } from 'src/assets/logos/twitter.svg'

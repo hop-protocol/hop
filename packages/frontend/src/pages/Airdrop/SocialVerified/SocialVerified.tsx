@@ -4,7 +4,7 @@ import { Alert } from 'src/components/Alert'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { useQueryParams } from 'src/hooks'
-import { Input } from 'src/components/ui'
+import TextField from '@material-ui/core/TextField'
 import { Button } from 'src/components/Button'
 import { StyledButton } from 'src/components/Button/StyledButton'
 import ReCAPTCHA from 'react-google-recaptcha'
@@ -164,16 +164,13 @@ export function SocialVerified() {
       </Box>
       <ClaimDateMessage />
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
-        <Input
-          width={[320, 420]}
-          maxWidth={['auto']}
+        <TextField
           value={inputValue}
           onChange={handleInputChange}
           placeholder="0x123..."
-          mb={2}
         />
 
-        <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+        <Box mt={2} my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
           <ReCAPTCHA
             sitekey={captchaSiteKey}
             onChange={onCaptchaChange}

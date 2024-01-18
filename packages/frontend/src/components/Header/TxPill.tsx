@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import Box from '@material-ui/core/Box'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StyledButton } from 'src/components/Button/StyledButton'
-import { Circle, Div, Icon } from 'src/components/ui'
+import { Circle } from 'src/components/ui/Circle'
+import { Icon } from 'src/components/ui/Icon'
 import { useEns } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
@@ -67,7 +69,7 @@ export const TxPill = () => {
               <Icon src={ensAvatar} height="100%" />
             </Circle>
           )}
-          <Div>{ensName || address?.truncate()}</Div>
+          <Box>{ensName || address?.truncate()}</Box>
         </StyledButton>
       )}
     </div>

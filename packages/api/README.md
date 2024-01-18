@@ -140,6 +140,12 @@ IP_RATE_LIMIT_WINDOW_MS=1000
 RESPONSE_CACHE_DURATION_MS=10000
 ```
 
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../../ && act --job build-hop-api --workflows .github/workflows/hop_api.yml --secret-file=.secrets --verbose)
+```
+
 ## License
 
 [MIT](LICENSE)

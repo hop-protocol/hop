@@ -1,10 +1,8 @@
 import minimist from 'minimist'
+import sqlite3 from 'sqlite3'
 import wait from 'wait'
 import { dbPath } from './config'
 import { v4 as uuid } from 'uuid'
-import { verbose } from 'sqlite3'
-
-const sqlite3 = verbose()
 
 console.log('db path:', dbPath)
 

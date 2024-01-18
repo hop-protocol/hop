@@ -1,25 +1,28 @@
 {
-  "name": "hop-api",
+  "name": "@hop-protocol/api",
   "version": "0.0.0",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "index.js",
   "private": "true",
+  "main": "dist/src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "build": "mkdir -p dist && cp -r src/* dist/",
-    "lint": "eslint --fix src/*.js",
+    "start": "node dist/src/index.js",
+    "build": "npx -p typescript tsc",
+    "lint": "npx eslint --fix \"src/**/*\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@hop-protocol/core": "0.0.1-beta.217",
-    "@hop-protocol/sdk": "0.0.1-beta.593",
+    "@hop-protocol/core": "0.0.1-beta.218",
+    "@hop-protocol/sdk": "0.0.1-beta.595",
     "cors": "2.8.5",
     "express": "4.18.1",
-    "express-rate-limit": "6.7.0",
+    "express-rate-limit": "7.1.5",
     "memory-cache": "0.2.0"
   },
   "devDependencies": {
-    "@types/express": "4.17.13"
+    "@types/cors": "2.8.17",
+    "@types/express": "4.17.13",
+    "@types/express-rate-limit": "6.0.0",
+    "@types/memory-cache": "0.2.5"
   }
 }

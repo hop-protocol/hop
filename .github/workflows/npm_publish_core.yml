@@ -11,23 +11,42 @@ on:
         required: true
 
 jobs:
-  build:
+  publish-core:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    defaults:
-      run:
-        working-directory: ./packages/core
     steps:
-      - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - uses: actions/setup-node@v3
         with:
           always-auth: true
-          node-version: '16.x'
-          registry-url: 'https://registry.npmjs.org'
-      - name: Check version and publish if necessary
-        id: check_version_publish
+          node-version: 20.10.0
+          registry-url: https://registry.npmjs.org
+
+      - name: Check if publish is necessary
+        id: check_version
+        working-directory: packages/core
         run: |
-          diff <(npx npm info . --json | jq '."dist-tags".latest') <(cat package.json | jq '.version') || (npm i --legacy-peer-deps && npm publish)
+          CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+          LOCAL_VERSION=$(jq -r '.version' package.json)
+          if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
+            echo "VERSION_MISMATCH=true" >> $GITHUB_ENV
+          fi
+
+      - name: Install global dependencies
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: npm install -g only-allow@latest pnpm@latest
+
+      - name: Install local dependencies
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: npm install
+
+      - name: Publish package
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: packages/core
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

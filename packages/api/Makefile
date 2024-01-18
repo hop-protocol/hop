@@ -1,7 +1,6 @@
 # Build docker target
 docker-build:
-	npm run build
-	docker build -f Dockerfile -t hopprotocol/hop-api .
+	(cd ../../ && docker build -f packages/api/Dockerfile -t hopprotocol/hop-api .)
 
 # Tag docker image with latest
 docker-image-tag-latest:

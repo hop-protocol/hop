@@ -54,5 +54,5 @@ jobs:
     with:
       environment: production
     secrets:
-      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_HOP_API }}
       WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

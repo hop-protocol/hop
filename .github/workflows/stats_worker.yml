@@ -48,11 +48,21 @@ jobs:
           fi
 
   build-stats-worker:
-    needs: [_build-stats-worker]
-    name: Send Status Notification Webhook Request
+    needs: [_stats-worker-notify-1]
+    name: Send S3 Stats Worker Status Notification Webhook Request
     uses: ./.github/workflows/status_notify.yml
     with:
       environment: production
     secrets:
-      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_STATS_WORKER_S3 }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+
+  _stats-worker-notify-1:
+    needs: [_build-stats-worker]
+    name: Send Stats Worker Status Notification Webhook Request
+    uses: ./.github/workflows/status_notify.yml
+    with:
+      environment: production
+    secrets:
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_STATS_WORKER }}
       WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

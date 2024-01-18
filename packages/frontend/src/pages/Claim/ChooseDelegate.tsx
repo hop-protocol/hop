@@ -1,14 +1,14 @@
+import { Button } from 'src/components/Button'
 import Box from '@material-ui/core/Box'
 import ChatIcon from '@material-ui/icons/Chat'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import React, { ChangeEvent } from 'react'
 import Typography from '@material-ui/core/Typography'
-import { Button } from 'src/components/Button'
 import { Delegate } from 'src/pages/Claim/useClaim'
+import TextField from '@material-ui/core/TextField'
 import { DelegateConfirmModal } from 'src/pages/Claim/DelegateConfirmModal'
 import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
 import { DelegateInfoModal } from 'src/pages/Claim/DelegateInfoModal'
-import { Flex, Input } from 'src/components/ui'
 import { Link } from 'src/components/Link'
 import { makeStyles } from '@material-ui/core/styles'
 import { useDelegates } from './useDelegates'
@@ -75,19 +75,19 @@ export function ChooseDelegate(props: any) {
         {delegates.map((del: Delegate, i) => {
           const isSelected = (del?.address && delegate?.address) && delegate?.address.toString() !== del?.address.toString()
           return (
-            <Flex
+            <Box
               key={i}
               my={2}
               mx={1}
-              bg={'background.contrast'}
               borderRadius={'10px'}
               boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
               width={[300, 300]}
               maxWidth={[275, 325]}
-              pointer
               style={isSelected ? {
                 background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
-              } : {}}
+              } : {
+                cursor: 'pointer'
+              }}
             >
               <Box display="flex" justifyContent="space-between" alignContent="center" className={styles.box} width="100%"
                 py={1}
@@ -132,7 +132,7 @@ export function ChooseDelegate(props: any) {
                   </Box>
                 </Box>
               </Box>
-            </Flex>
+            </Box>
           )
         })}
       </Box>
@@ -151,15 +151,11 @@ export function ChooseDelegate(props: any) {
               )}
             </Box>
             <Box display="flex" justifyContent="content" width="100%" maxWidth="480px">
-              <Input
-                width="100%"
+              <TextField
+                fullWidth
                 value={inputValue}
                 placeholder="Enter ENS or address"
                 onChange={(event: ChangeEvent<{value: string}>) => setInputValue(event.target.value)}
-                bg="background.default"
-                boxShadow={theme.boxShadow.inner}
-                color="text.secondary"
-                fontSize={[0, 1, 2]}
                 border={inputValue && `1px solid ${theme.palette.primary.main}`}
               />
             </Box>

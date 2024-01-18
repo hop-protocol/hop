@@ -18,7 +18,7 @@ export async function getUnbondedTransfers (days: number, offsetDays: number = 0
 }
 
 async function getTransfersData (startTime: number, endTime: number) {
-  const enabledChains = [Chain.Gnosis, Chain.Polygon, Chain.Optimism, Chain.Arbitrum, Chain.Ethereum, Chain.Nova, Chain.Base, Chain.Linea]
+  const enabledChains = [Chain.Gnosis, Chain.Polygon, Chain.Optimism, Chain.Arbitrum, Chain.Ethereum, Chain.Nova, Chain.Base, Chain.Linea, Chain.PolygonZk]
   console.log('getTransfersData: fetching transfers')
   let data: any[] = []
   const [
@@ -32,7 +32,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     lineaTransfers,
     scrollZkTransfers,
     baseTransfers,
-    polygonZkTransfers
+    polygonzkTransfers
   ] = await Promise.all([
     enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Gnosis) ? fetchTransfers(Chain.Gnosis, startTime, endTime) : Promise.resolve([]),
@@ -47,7 +47,17 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.PolygonZk) ? fetchTransfers(Chain.PolygonZk, startTime, endTime) : Promise.resolve([])
   ])
 
-  console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length, mainnetTransfers.length, baseTransfers.length, lineaTransfers.length)
+  console.log('getTransfersData: got transfers',
+    gnosisTransfers.length,
+    polygonTransfers.length,
+    optimismTransfers.length,
+    arbitrumTransfers.length,
+    novaTransfers.length,
+    mainnetTransfers.length,
+    baseTransfers.length,
+    lineaTransfers.length,
+    polygonzkTransfers.length
+  )
 
   for (const x of mainnetTransfers) {
     const transferId = getTransferSentToL2TransferId(
@@ -210,9 +220,9 @@ async function getTransfersData (startTime: number, endTime: number) {
       token: x.token
     })
   }
-  for (const x of polygonZkTransfers) {
+  for (const x of polygonzkTransfers) {
     data.push({
-      sourceChain: 1442, // TODO: update for mainnet
+      sourceChain: 1101,
       destinationChain: x.destinationChainId,
       amount: x.amount,
       amountOutMin: x.amountOutMin,
@@ -250,6 +260,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     novaBondedWithdrawals,
     baseBondedWithdrawals,
     lineaBondedWithdrawals,
+    polygonzkBondedWithdrawals,
     mainnetBondedWithdrawals
   ] = await Promise.all([
     enabledChains.includes(Chain.Gnosis) ? fetchBonds(Chain.Gnosis, transferIds) : Promise.resolve([]),
@@ -259,6 +270,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Nova) ? fetchBonds(Chain.Nova, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Base) ? fetchBonds(Chain.Base, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Linea) ? fetchBonds(Chain.Linea, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.PolygonZk) ? fetchBonds(Chain.PolygonZk, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Ethereum) ? fetchBonds(Chain.Ethereum, transferIds) : Promise.resolve([])
   ])
 
@@ -273,6 +285,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     novaWithdrews,
     baseWithdrews,
     lineaWithdrews,
+    polygonzkWithdrews,
     mainnetWithdrews
   ] = await Promise.all([
     enabledChains.includes(Chain.Gnosis) ? fetchWithdrews(Chain.Gnosis, transferIds) : Promise.resolve([]),
@@ -282,6 +295,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Nova) ? fetchWithdrews(Chain.Nova, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Base) ? fetchWithdrews(Chain.Base, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Linea) ? fetchWithdrews(Chain.Linea, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.PolygonZk) ? fetchWithdrews(Chain.PolygonZk, transferIds) : Promise.resolve([]),
     enabledChains.includes(Chain.Ethereum) ? fetchWithdrews(Chain.Ethereum, transferIds) : Promise.resolve([])
   ])
 
@@ -295,7 +309,8 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumFromL1Completeds,
     novaFromL1Completeds,
     baseFromL1Completeds,
-    lineaFromL1Completeds
+    lineaFromL1Completeds,
+    polygonzkFromL1Completeds
   ] = await Promise.all([
     enabledChains.includes(Chain.Gnosis) ? fetchTransferFromL1Completeds(Chain.Gnosis, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Polygon) ? fetchTransferFromL1Completeds(Chain.Polygon, startTime, endTime) : Promise.resolve([]),
@@ -303,7 +318,8 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Arbitrum) ? fetchTransferFromL1Completeds(Chain.Arbitrum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Nova) ? fetchTransferFromL1Completeds(Chain.Nova, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Base) ? fetchTransferFromL1Completeds(Chain.Base, startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes(Chain.Linea) ? fetchTransferFromL1Completeds(Chain.Linea, startTime, endTime) : Promise.resolve([])
+    enabledChains.includes(Chain.Linea) ? fetchTransferFromL1Completeds(Chain.Linea, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.PolygonZk) ? fetchTransferFromL1Completeds(Chain.PolygonZk, startTime, endTime) : Promise.resolve([])
   ])
 
   console.log('getTransfersData: got L1 completeds')
@@ -315,6 +331,7 @@ async function getTransfersData (startTime: number, endTime: number) {
   const novaBonds = [...novaBondedWithdrawals, ...novaWithdrews]
   const baseBonds = [...baseBondedWithdrawals, ...baseWithdrews]
   const lineaBonds = [...lineaBondedWithdrawals, ...lineaWithdrews]
+  const polygonzkBonds = [...polygonzkBondedWithdrawals, ...polygonzkWithdrews]
   const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
   const bondsMap: any = {
@@ -325,6 +342,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     nova: {},
     base: {},
     linea: {},
+    polygonzk: {},
     ethereum: {}
   }
 
@@ -349,6 +367,9 @@ async function getTransfersData (startTime: number, endTime: number) {
   for (const x of lineaBonds) {
     bondsMap.linea[x.transferId] = x
   }
+  for (const x of polygonzkBonds) {
+    bondsMap.polygonzk[x.transferId] = x
+  }
   for (const x of mainnetBonds) {
     bondsMap.ethereum[x.transferId] = x
   }
@@ -360,7 +381,8 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrum: arbitrumFromL1Completeds,
     nova: novaFromL1Completeds,
     base: baseFromL1Completeds,
-    linea: lineaFromL1Completeds
+    linea: lineaFromL1Completeds,
+    polygonzk: polygonzkFromL1Completeds
   }
 
   console.log(`getTransfersData: data count: ${data.length}`)

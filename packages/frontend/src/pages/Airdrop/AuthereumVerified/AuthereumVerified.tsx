@@ -1,12 +1,12 @@
 import Box from '@material-ui/core/Box'
-import CheckIcon from '@material-ui/icons/Check'
+import TextField from '@material-ui/core/TextField'
 import ReCAPTCHA from 'react-google-recaptcha'
+import CheckIcon from '@material-ui/icons/Check'
 import React, { useEffect, useState } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
 import { Button } from 'src/components/Button'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
-import { Input } from 'src/components/ui'
 import { StyledButton } from 'src/components/Button/StyledButton'
 import { updateQueryParams } from 'src/utils/updateQueryParams'
 import { useQueryParams } from 'src/hooks'
@@ -147,16 +147,13 @@ export function AuthereumVerified() {
       <ClaimDateMessage />
 
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
-        <Input
-          width={[320, 420]}
-          maxWidth={['auto']}
+        <TextField
           value={inputValue}
           onChange={handleInputChange}
           placeholder="0x123..."
-          mb={2}
         />
 
-        <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+        <Box mt={2} my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
           <ReCAPTCHA
             sitekey={captchaSiteKey}
             onChange={onCaptchaChange}

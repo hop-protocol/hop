@@ -166,7 +166,7 @@ export const networks: Networks = {
     explorerUrls: ['https://zkevm.polygonscan.com/'],
     nativeBridgeUrl: 'https://portal.polygon.technology/',
     subgraphUrl: 'https://polygonzk.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-polygonzk',
-    etherscanApiUrl: 'https://api-zkevm.polygonscan.com/api',
+    etherscanApiUrl: 'https://api-zkevm.polygonscan.com',
     isRollup: true,
     isRelayable: true,
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',

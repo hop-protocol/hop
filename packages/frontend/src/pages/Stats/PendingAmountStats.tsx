@@ -1,7 +1,7 @@
+import { Icon } from 'src/components/ui/Icon'
 import Box from '@material-ui/core/Box'
 import React, { FC } from 'react'
 import { CellWrapper, SortableTable } from 'src/components/Table'
-import { Icon } from 'src/components/ui'
 import { commafy, formatTokenString } from 'src/utils'
 import { useStats } from 'src/pages/Stats/StatsContext'
 

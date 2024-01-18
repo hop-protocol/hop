@@ -286,7 +286,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
     const logger = this.logger.create({ root: txParams.transferRootId })
     logger.debug('validating uniqueness')
-    const transferIds = txParams.transferIds.map((x: string) => x.toLowerCase())
+
+    // Empty transferIds should only occur during times where event data is missed.
+    const txParamTransferIds = txParams?.transferIds ?? []
+    if (!txParamTransferIds.length) {
+      logger.debug('no transferIds to validate')
+      return
+    }
+    const transferIds = txParamTransferIds.map((x: string) => x.toLowerCase())
 
     // Only use roots that are not the current root, from the source chain, and have associated transferIds
     const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromWeek())

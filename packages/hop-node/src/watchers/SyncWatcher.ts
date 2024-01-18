@@ -1660,23 +1660,29 @@ class SyncWatcher extends BaseWatcher {
       return true
     }
 
-    return (
-      (await this.#getIsRelayableFee(relayerFee, destinationChainId)) &&
-      (await this.#getIsRelayableAddress(relayer))
-    )
+    // If there is no fee, ignore the passed in address. This adds flexibility for people who
+    // want to transact but don't recognize that they need to set a fee, as it allows them
+    // to still transact successfully on a chain that does not require a fee.
+    const isRelayableFee: boolean = await this.#getIsRelayableFee(relayerFee, destinationChainId)
+    if (isRelayableFee && relayerFee.eq(0)) {
+      return true
+    }
+
+    const isRelayableAddress = await this.#getIsRelayableAddress(relayer)
+    return isRelayableFee && isRelayableAddress
   }
 
   async #getIsRelayableFee (relayerFee: BigNumber, destinationChainId: number): Promise<boolean> {
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    let minFee: BigNumber = BigNumber.from(0)
+    let expectedFee: BigNumber = BigNumber.from(0)
     try {
-      minFee = await this.hopSdk.getRelayerFee(destinationChainSlug, this.tokenSymbol)
+      expectedFee = await this.hopSdk.getRelayerFee(destinationChainSlug, this.tokenSymbol)
     } catch {}
 
-    if (relayerFee.lt(minFee)) {
-      return false
+    if (relayerFee.gte(expectedFee)) {
+      return true
     }
-    return true
+    return false
   }
 
   async #getIsRelayableAddress (relayer: string): Promise<boolean> {

@@ -4,7 +4,6 @@ import React from 'react'
 import Typography from '@material-ui/core/Typography'
 import { AccountTransferHistory } from 'src/components/AccountDetails/AccountTransferHistory'
 import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
-import { Div } from 'src/components/ui'
 import { Modal } from 'src/components/Modal'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import { useApp } from 'src/contexts/AppContext'
@@ -114,9 +113,9 @@ export const AccountDetails = () => {
           <ManageWallet onChange={handleChangeClick} onDisconnect={handleDisconnectClick} />
         )}
       </Box>
-      <Div position="relative">
+      <Box position="relative">
         <AccountTransferHistory address={address?.address} />
-      </Div>
+      </Box>
     </Modal>
   )
 }

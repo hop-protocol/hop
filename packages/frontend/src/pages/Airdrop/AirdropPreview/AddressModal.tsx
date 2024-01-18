@@ -2,7 +2,7 @@ import Box from '@material-ui/core/Box'
 import React, { useState } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { Button } from 'src/components/Button'
-import { Input } from 'src/components/ui'
+import TextField from '@material-ui/core/TextField'
 import { Modal } from 'src/components/Modal'
 
 interface Props {
@@ -35,7 +35,7 @@ export const AddressModal = (props: Props) => {
           </Typography>
         </Box>
         <Box my={2}>
-          <Input
+          <TextField
             placeholder="0x123..."
             value={inputValue}
             onChange={handleInputChange}

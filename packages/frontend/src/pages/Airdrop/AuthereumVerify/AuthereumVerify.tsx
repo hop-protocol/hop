@@ -3,10 +3,10 @@ import ReCAPTCHA from 'react-google-recaptcha'
 import React, { useState } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
+import TextField from '@material-ui/core/TextField'
 import { Button } from 'src/components/Button'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
 import { ExternalLink } from 'src/components/Link'
-import { Input } from 'src/components/ui'
 import { StyledButton } from 'src/components/Button/StyledButton'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
@@ -71,14 +71,11 @@ export function AuthereumVerify() {
       </Box>
       <ClaimDateMessage />
       <Box mb={3} display="flex" flexDirection="column" justifyContent="center">
-        <Input
-          width={[320, 420]}
-          maxWidth={['auto']}
+        <TextField
           value={inputValue}
           onChange={handleInputChange}
           label="Authereum Email"
           placeholder="alice@example.com"
-          fontSize={[0, 2]}
         />
         <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
           <ReCAPTCHA

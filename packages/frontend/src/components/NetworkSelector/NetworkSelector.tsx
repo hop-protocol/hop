@@ -1,10 +1,10 @@
-import FlatSelect from '../selects/FlatSelect'
-import Network from 'src/models/Network'
 import React, { useMemo } from 'react'
-import { Box, MenuItem, Typography } from '@material-ui/core'
-import { Flex, Text } from '../ui'
-import { findNetworkBySlug } from 'src/utils'
+import Box from '@material-ui/core/Box'
+import MenuItem from '@material-ui/core/MenuItem'
+import Typography from '@material-ui/core/Typography'
 import { useApp } from 'src/contexts/AppContext'
+import FlatSelect from '../selects/FlatSelect'
+import { findNetworkBySlug } from 'src/utils'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
 
 interface Props {
@@ -36,11 +36,11 @@ export function NetworkSelector({ network, setNetwork, availableNetworks, onChan
   return (
     <FlatSelect value={network?.slug ?? 'default'} onChange={selectNetwork}>
       <MenuItem value="default">
-        <Flex alignCenter height="3.8rem" pl="1.2rem">
-          <Text className={styles.selectNetworkText}>
+        <Box display="flex" alignItems="center" height="3.8rem" pl="1.2rem">
+          <Typography className={styles.selectNetworkText}>
             Select Network
-          </Text>
-        </Flex>
+          </Typography>
+        </Box>
       </MenuItem>
 
       {networks.map(network => (

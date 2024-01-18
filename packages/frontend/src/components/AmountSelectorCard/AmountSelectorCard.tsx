@@ -6,7 +6,6 @@ import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'
 import clsx from 'clsx'
 import { BigNumber } from 'ethers'
-import { Flex } from 'src/components/ui'
 import { LargeTextField } from 'src/components/LargeTextField'
 import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
@@ -166,7 +165,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
 
   return (
     <Card className={clsx(styles.root, className)}>
-      <Flex justifyBetween alignCenter mb="1.8rem" fullWidth>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb="1.8rem" width="100%">
         {!!label && (
           <Typography variant="subtitle2" color="textSecondary">
             {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton> : label}
@@ -208,10 +207,10 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
             </Typography>
           </div>
         ) : null}
-      </Flex>
+      </Box>
 
-      <Flex fullWidth justifyBetween alignCenter>
-        <Flex width="50%">
+      <Box display="flex" width="100%" justifyContent="space-between" alignItems="center">
+        <Box display="flex" width="50%">
           <Box className={styles.networkSelectionBox}>
             {titleIconUrl ? (
               <Box className={styles.networkIconContainer}>
@@ -222,9 +221,9 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               {title}
             </Typography>
           </Box>
-        </Flex>
+        </Box>
 
-        <Flex>
+        <Box display="flex">
           <LargeTextField
             value={value}
             onChange={handleInputChange}
@@ -233,8 +232,8 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
             disabled={disableInput}
             loadingValue={loadingValue}
           />
-        </Flex>
-      </Flex>
+        </Box>
+      </Box>
     </Card>
   )
 }

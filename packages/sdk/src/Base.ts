@@ -166,7 +166,7 @@ export class Base {
   ) {
     let network: any
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject 
+      const options = networkOrOptionsObject
       if (signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -206,7 +206,7 @@ export class Base {
         this.debugTimeLogsCache = options.debugTimeLogsCache
       }
     } else {
-      network = networkOrOptionsObject 
+      network = networkOrOptionsObject
     }
 
     if (!network) {
@@ -673,7 +673,13 @@ export class Base {
       sourceChain.equals(Chain.Ethereum) &&
       destinationChain && (
         (destinationChain as Chain)?.equals(Chain.Optimism) ||
-        (destinationChain as Chain)?.equals(Chain.Base) ||
+        (destinationChain as Chain)?.equals(Chain.Base)
+      )) {
+      txOptions.gasLimit = BigNumber.from(200_000)
+    }
+    if (
+      sourceChain.equals(Chain.Ethereum) &&
+      destinationChain && (
         (destinationChain as Chain)?.equals(Chain.Arbitrum) ||
         (destinationChain as Chain)?.equals(Chain.Nova)
       )) {

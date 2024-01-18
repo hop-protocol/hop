@@ -28,10 +28,12 @@
     "rimraf": "5.0.5",
     "typescript": "5.3.3"
   },
-  "_comment-overrides": "Temporary overrides, remove when packages are updated. npm workspaces requires overrides at the root: https://github.com/npm/rfcs/blob/main/accepted/0036-overrides.md#only-root-package-may-contain-overrides",
-  "_comment-react-scripts": "Our react-scripts version is old and needs newer TS and linting versions to work. Remove when we update react-scripts.",
-  "_comment-csp-html-webpack-plugin": "The latest version uses an old version of html-webpack-plugin that has incompatible types. Remove when we use a different package than csp-html-webpack-plugin.",
-  "_comment-type-fest": "Not sure exactly which package breaks without this.",
+  "//": [
+    "Temporary overrides, remove when packages are updated. npm workspaces requires overrides at the root: https://github.com/npm/rfcs/blob/main/accepted/0036-overrides.md#only-root-package-may-contain-overrides",
+    " * Our react-scripts version is old and needs newer TS and linting versions to work. Remove when we update react-scripts.",
+    " * The latest version uses an old version of html-webpack-plugin that has incompatible types. Remove when we use a different package than csp-html-webpack-plugin.",
+    " * Not sure exactly which package breaks without this."
+  ],
   "overrides": {
     "react-scripts": {
       "typescript": "5.3.3",

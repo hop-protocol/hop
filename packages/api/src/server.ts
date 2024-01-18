@@ -1,9 +1,9 @@
-const express = require('express')
-const { Hop } = require('@hop-protocol/sdk')
-const cors = require('cors')
-const { port, trustProxy, gitRev } = require('./config')
-const { ipRateLimitMiddleware } = require('./rateLimit')
-const { responseCache } = require('./responseCache')
+import cors from 'cors'
+import express from 'express'
+import { Hop } from '@hop-protocol/sdk'
+import { gitRev, port, trustProxy } from './config'
+import { ipRateLimitMiddleware } from './rateLimit'
+import { responseCache } from './responseCache'
 
 const app = express()
 
@@ -13,8 +13,12 @@ if (trustProxy) {
 app.use(cors())
 
 app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
-  const { amount, token, fromChain, toChain, rpcUrl } = req.query
-  let { network } = req.query
+  const rpcUrl = req.query.rpcUrl
+  const fromChain = req.query.fromChain as string
+  const toChain = req.query.toChain as string
+  const token = req.query.token as string
+  const amount = req.query.amount as string
+  let network = req.query.network as string
   const slippage = Number(req.query.slippage)
 
   try {
@@ -24,7 +28,7 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
 
     const validNetworks = ['mainnet', 'goerli']
     if (!validNetworks.includes(network)) {
-      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.toString(',')}`)
+      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.join(',')}`)
     }
 
     if (!amount) {
@@ -43,7 +47,7 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
       throw new Error('"slippage" query param value is required. Example: slippage=0.5')
     }
 
-    const customRpcProviderUrls = {}
+    const customRpcProviderUrls: Record<string, any> = {}
     const instance = new Hop(network)
     const validChains = instance.getSupportedChains()
     if (rpcUrl) {
@@ -52,9 +56,9 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
       }
       for (const chain in rpcUrl) {
         if (!validChains.includes(chain)) {
-          throw new Error(`"rpcUrl[${chain}]" is an invalid chain. Valid chains are: ${validChains.toString(',')}`)
+          throw new Error(`"rpcUrl[${chain}]" is an invalid chain. Valid chains are: ${validChains.join(',')}`)
         }
-        const url = rpcUrl[chain]
+        const url = (rpcUrl as any)[chain]
         try {
           customRpcProviderUrls[chain] = new URL(url).toString()
         } catch (err) {
@@ -88,10 +92,11 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
 })
 
 app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req, res) => {
-  const { transferId, transactionHash } = req.query
-  let { network } = req.query
+  const transferId = req.query.transferId as string
+  const transactionHash = req.query.transactionHash as string
+  let network = req.query.network as string
 
-  function filterResult (json) {
+  function filterResult (json: any) {
     return {
       transferId: json.transferId,
       transactionHash: json.transactionHash,
@@ -124,7 +129,7 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
 
     const validNetworks = ['mainnet', 'goerli']
     if (!validNetworks.includes(network)) {
-      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.toString(',')}`)
+      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.join(',')}`)
     }
 
     const tId = transferId || transactionHash
@@ -152,7 +157,7 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
 
 app.get('/v1/available-routes', responseCache, ipRateLimitMiddleware, async (req, res) => {
   try {
-    let { network } = req.query
+    let network = req.query.network as string
     if (!network) {
       network = 'mainnet'
     }
@@ -165,9 +170,17 @@ app.get('/v1/available-routes', responseCache, ipRateLimitMiddleware, async (req
 })
 
 app.get('/v1/build-tx', async (req, res) => {
-  const { network = 'mainnet', token, amount, fromChain, toChain, recipient } = req.query
+  let network = req.query.network as string
+  const token = req.query.token as string
+  const amount = req.query.amount as string
+  const fromChain = req.query.fromChain as string
+  const toChain = req.query.toChain as string
+  const recipient = req.query.recipient as string
 
   try {
+    if (!network) {
+      network = 'mainnet'
+    }
     const hop = new Hop(network)
     const bridge = hop.bridge(token)
     const amountBn = bridge.parseUnits(amount)
@@ -183,9 +196,16 @@ app.get('/v1/build-tx', async (req, res) => {
 })
 
 app.get('/v1/approval/check-allowance', async (req, res) => {
-  const { network = 'mainnet', token, amount, fromChain, account } = req.query
+  let network = req.query.network as string
+  const token = req.query.token as string
+  const amount = req.query.amount as string
+  const fromChain = req.query.fromChain as string
+  const account = req.query.account as string
 
   try {
+    if (!network) {
+      network = 'mainnet'
+    }
     const hop = new Hop(network)
     const bridge = hop.bridge(token)
     const amountBn = bridge.parseUnits(amount)
@@ -199,9 +219,15 @@ app.get('/v1/approval/check-allowance', async (req, res) => {
 })
 
 app.get('/v1/approval/build-tx', async (req, res) => {
-  const { network = 'mainnet', token, amount, fromChain } = req.query
+  let network = req.query.network as string
+  const token = req.query.token as string
+  const amount = req.query.amount as string
+  const fromChain = req.query.fromChain as string
 
   try {
+    if (!network) {
+      network = 'mainnet'
+    }
     const hop = new Hop(network)
     const bridge = hop.bridge(token)
     const amountBn = bridge.parseUnits(amount)
@@ -219,6 +245,8 @@ app.get('/health', async (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log('git rev:', gitRev)
+  if (gitRev) {
+    console.log('git rev:', gitRev)
+  }
   console.log(`listening on port ${port}`)
 })

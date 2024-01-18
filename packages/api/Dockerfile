@@ -36,8 +36,9 @@ ENV GIT_REV=${GIT_REV}
 WORKDIR /usr/src
 
 # Copy built files from the build stage
-COPY --from=build /usr/src/packages/api/dist /dist
+COPY --from=build /usr/src/packages/api /app/packages/api
+COPY --from=build /usr/src/node_modules /app/node_modules
 
 # Set the entry point
 ENTRYPOINT ["node"]
-CMD ["/dist/index.js"]
+CMD ["/app/packages/api/dist/src/index.js"]

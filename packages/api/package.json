@@ -2,11 +2,11 @@
   "name": "@hop-protocol/api",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "build": "mkdir -p dist && cp -r src/* dist/",
-    "lint": "npx eslint --fix src/*.js",
+    "start": "node dist/src/index.js",
+    "build": "npx -p typescript tsc",
+    "lint": "npx eslint --fix \"src/**/*\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -20,6 +20,8 @@
     "memory-cache": "0.2.0"
   },
   "devDependencies": {
-    "@types/express": "4.17.13"
+    "@types/cors": "2.8.17",
+    "@types/express": "4.17.13",
+    "@types/memory-cache": "0.2.5"
   }
 }

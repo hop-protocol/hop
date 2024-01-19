@@ -1,10 +1,10 @@
-import { Icon } from 'src/components/ui/Icon'
 import Box from '@material-ui/core/Box'
 import React from 'react'
 import Typography from '@material-ui/core/Typography'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { BigNumber } from 'ethers'
 import { Button } from 'src/components/Button/Button'
+import { Icon } from 'src/components/ui/Icon'
 import { TokenClaim } from 'src/pages/Claim/useClaim'
 import { toTokenDisplay } from 'src/utils'
 

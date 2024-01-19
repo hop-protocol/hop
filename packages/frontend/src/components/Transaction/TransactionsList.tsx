@@ -1,9 +1,9 @@
+import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import React from 'react'
+import Transaction from 'src/models/Transaction'
 import TransactionRow from 'src/components/Transaction/TransactionRow'
 import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
-import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useTxStatusStyles } from 'src/components/Transaction/useTxStatusStyles'
 

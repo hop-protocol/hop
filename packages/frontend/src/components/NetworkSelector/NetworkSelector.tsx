@@ -3,10 +3,10 @@ import FlatSelect from '../selects/FlatSelect'
 import MenuItem from '@material-ui/core/MenuItem'
 import React, { useMemo } from 'react'
 import Typography from '@material-ui/core/Typography'
+import { Network } from 'src/models/Network'
 import { findNetworkBySlug } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
-import { Network } from 'src/models/Network'
 
 interface Props {
   network?: Network

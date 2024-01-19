@@ -1,7 +1,6 @@
 import Box from '@material-ui/core/Box'
 import React, { useMemo } from 'react'
 import RightArrow from '@material-ui/icons/ArrowRightAlt'
-import Box from '@material-ui/core/Box'
 import { TransactionStatus, useTxStatusStyles } from 'src/components/Transaction'
 import { findNetworkBySlug } from 'src/utils/networks'
 

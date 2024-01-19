@@ -30,6 +30,7 @@
     "web-vitals": "2.1.4"
   },
   "scripts": {
+    "clean": "npx rimraf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "react-app-rewired start",
     "dev": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none npm run start",
     "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true react-app-rewired build",

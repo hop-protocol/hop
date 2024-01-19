@@ -10,6 +10,7 @@
     "node": ">=20.10.0"
   },
   "scripts": {
+    "clean": "npx rimraf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "jest test",
     "bonder": "npm run build && node bin/hop-node bonder",
     "arb-bot": "npm run build && node bin/hop-node arb-bot",
@@ -19,8 +20,6 @@
     "postinstall": "mkdir -p dist/src && npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
     "build": "npx -p typescript tsc -p tsconfig.json",
     "lint": "npx eslint --fix \"src/**/*\"",
-    "clean": "rimraf dist",
-    "clean:db": "rimraf db_data",
     "prepare": "npm run build"
   },
   "bin": {

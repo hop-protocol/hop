@@ -6,6 +6,7 @@
   "private": "true",
   "main": "dist/src/index.js",
   "scripts": {
+    "clean": "npx rimraf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "node dist/src/index.js",
     "build": "npx -p typescript tsc",
     "lint": "npx eslint --fix \"src/**/*\"",

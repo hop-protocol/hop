@@ -33,7 +33,7 @@
     "start": "react-app-rewired start",
     "dev": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none npm run start",
     "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true react-app-rewired build",
-    "lint": "eslint --fix \"**/*.{ts,tsx}\"",
+    "lint": "npx eslint --fix \"**/*.{ts,tsx}\"",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject"
   },

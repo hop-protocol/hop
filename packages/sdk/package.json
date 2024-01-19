@@ -8,9 +8,9 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "jest",
-    "dev": "npm run version && npx typescript tsc --watch",
+    "dev": "npm run version && npx -p typescript tsc --watch",
     "build": "npm run version && npm run build:ts",
-    "build:ts": "npx typescript tsc",
+    "build:ts": "npx -p typescript tsc",
     "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
     "clean": "rimraf dist && rimraf hop.js",
     "clean:docs": "rimraf docs",

@@ -7,7 +7,7 @@
   "main": "dist/src/index.js",
   "scripts": {
     "start": "node dist/src/index.js",
-    "build": "npx typescript tsc",
+    "build": "npx -p typescript tsc",
     "lint": "npx eslint --fix \"src/**/*\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

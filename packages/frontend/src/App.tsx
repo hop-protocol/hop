@@ -1,6 +1,6 @@
 import 'src/App.css'
-import AppRoutes from 'src/AppRoutes'
 import Box from '@material-ui/core/Box'
+import AppRoutes from 'src/AppRoutes'
 import React from 'react'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
 import bgImage from 'src/assets/circles-bg.svg'

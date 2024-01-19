@@ -1,5 +1,5 @@
-import Box, { BoxProps } from '@material-ui/core/Box'
 import styled from 'styled-components/macro'
+import Box, { BoxProps } from '@material-ui/core/Box'
 
 export const Circle = styled(Box)<BoxProps>`
   display: flex;

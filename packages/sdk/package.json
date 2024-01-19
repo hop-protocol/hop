@@ -39,6 +39,7 @@
     "@hop-protocol/core": "0.0.1-beta.218",
     "dotenv": "10.0.0",
     "ethereum-block-by-date": "1.4.9",
+    "@maticnetwork/maticjs": "3.4.0-beta.0",
     "ethereumjs-util": "7.1.5",
     "ethers": "5.7.2",
     "eventemitter3": "4.0.7",

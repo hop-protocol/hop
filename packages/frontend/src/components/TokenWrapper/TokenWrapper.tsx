@@ -1,4 +1,3 @@
-import Box from '@material-ui/core/Box'
 import Expandable from 'src/components/TokenWrapper/Expandable'
 import Network from 'src/models/Network'
 import React, { FC, useEffect } from 'react'
@@ -8,6 +7,7 @@ import { Button } from 'src/components/Button'
 import { constants } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import { useTokenWrapper } from './TokenWrapperContext'
+import Box from '@material-ui/core/Box'
 
 const useStyles = makeStyles(theme => ({
   button: {

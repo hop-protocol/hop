@@ -1,6 +1,6 @@
-import Box from '@material-ui/core/Box'
 import React from 'react'
 import styled from 'styled-components/macro'
+import Box from '@material-ui/core/Box'
 
 export const OverflowText = styled(Box)`
   overflow: hidden;

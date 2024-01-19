@@ -156,7 +156,6 @@ export function ChooseDelegate(props: any) {
                 value={inputValue}
                 placeholder="Enter ENS or address"
                 onChange={(event: ChangeEvent<{value: string}>) => setInputValue(event.target.value)}
-                border={inputValue && `1px solid ${theme.palette.primary.main}`}
               />
             </Box>
           </Box>

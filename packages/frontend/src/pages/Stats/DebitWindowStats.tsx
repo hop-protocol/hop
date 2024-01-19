@@ -1,6 +1,5 @@
 import Box from '@material-ui/core/Box'
 import React, { FC } from 'react'
-import React, { FC } from 'react'
 import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
 import { Icon } from 'src/components/ui/Icon'
 import { commafy } from 'src/utils'

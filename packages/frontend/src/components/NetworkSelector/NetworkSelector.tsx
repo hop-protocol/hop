@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography'
 import { findNetworkBySlug } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
+import { Network } from 'src/models/Network'
 
 interface Props {
   network?: Network

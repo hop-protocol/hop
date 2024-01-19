@@ -3,6 +3,7 @@ import React, { FC } from 'react'
 import Typography from '@material-ui/core/Typography'
 import clsx from 'clsx'
 import { InfoTooltip } from 'src/components/InfoTooltip'
+import { makeStyles, Theme } from '@material-ui/core/styles'
 
 export type DetailRowProps = {
   title: string

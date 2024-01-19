@@ -1,6 +1,6 @@
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton'
-import NavigateBeforeIcon from '@material-ui/icons/NavigatePrevious'
+import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore'
 import NavigateNextIcon from '@material-ui/icons/NavigateNext'
 import React, { useEffect, useState } from 'react'
 import Skeleton from '@material-ui/lab/Skeleton'

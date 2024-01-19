@@ -1,12 +1,12 @@
+import Box from '@material-ui/core/Box'
 import React from 'react'
-import { Flex } from 'src/components/ui'
 import { commafy } from 'src/utils'
 
 export function CellWrapper({ cell, end, style, children }: any) {
   return (
-    <Flex alignCenter justifyContent={end ? 'flex-end' : 'center'} {...cell.getCellProps()} style={style}>
+    <Box display="flex" alignItems="center" justifyContent={end ? 'flex-end' : 'center'} {...cell.getCellProps()} style={style}>
       {children}
-    </Flex>
+    </Box>
   )
 }
 

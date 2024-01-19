@@ -1,6 +1,6 @@
+import Box from '@material-ui/core/Box'
 import React, { useMemo } from 'react'
 import RightArrow from '@material-ui/icons/ArrowRightAlt'
-import { Div, Flex } from 'src/components/ui'
 import { TransactionStatus, useTxStatusStyles } from 'src/components/Transaction'
 import { findNetworkBySlug } from 'src/utils/networks'
 
@@ -9,25 +9,25 @@ function TxStatusTracker({ tx, completed, destCompleted, confirmations, networkC
   const network = useMemo(() => findNetworkBySlug(tx.networkName), [tx])
 
   return (
-    <Div mb={4}>
-      <Flex justifyAround alignCenter>
+    <Box mb={4}>
+      <Box display="flex" justifyContent="space-around" alignItems="center">
         {network && (
-          <Flex column alignCenter textAlign="center" width="5em">
+          <Box display="flex" flexDirection="column" alignItems="center" textAlign="center" width="5em">
             {/* <Icon src={network?.imageUrl} /> */}
-            {/* <Div>{network.name}</Div> */}
-            <Div mt={2}>Source</Div>
-          </Flex>
+            {/* <Box>{network.name}</Box> */}
+            <Box mt={2}>Source</Box>
+          </Box>
         )}
         {tx.destNetworkName !== tx.networkName && (
-          <Flex column alignCenter textAlign="center" width="5em">
+          <Box display="flex" flexDirection="column" alignItems="center" textAlign="center" width="5em">
             {/* <Icon src={destNetwork?.imageUrl} /> */}
-            {/* <Div>{destNetwork?.name}</Div> */}
-            <Div mt={2}>Destination</Div>
-          </Flex>
+            {/* <Box>{destNetwork?.name}</Box> */}
+            <Box mt={2}>Destination</Box>
+          </Box>
         )}
-      </Flex>
+      </Box>
 
-      <Flex justifyContent="space-evenly" alignCenter mt={3}>
+      <Box display="flex" justifyContent="space-evenly" alignItems="center" mt={3}>
         <TransactionStatus
           txConfirmed={completed}
           link={tx.explorerLink}
@@ -54,8 +54,8 @@ function TxStatusTracker({ tx, completed, destCompleted, confirmations, networkC
             />
           </>
         )}
-      </Flex>
-    </Div>
+      </Box>
+    </Box>
   )
 }
 

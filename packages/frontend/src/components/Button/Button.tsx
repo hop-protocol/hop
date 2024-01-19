@@ -1,7 +1,7 @@
+import Box from '@material-ui/core/Box'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
 import React, { FC } from 'react'
-import { Flex } from 'src/components/ui'
 import { makeStyles } from '@material-ui/core/styles'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
@@ -87,7 +87,7 @@ export const Button: FC<ButtonProps> = props => {
   const styles = useStyles({ highlighted, large, flat, text, isDarkMode, fullWidth })
 
   return (
-    <Flex justifyCenter alignCenter borderRadius={borderRadius || '3.0rem'} fullWidth>
+    <Box display="flex" justifyContent="center" alignItems="center" borderRadius={borderRadius || '3.0rem'} width="100%">
       <MuiButton
         {...buttonProps}
         disabled={disabled || loading}
@@ -101,6 +101,6 @@ export const Button: FC<ButtonProps> = props => {
           </div>
         ) : null}
       </MuiButton>
-    </Flex>
+    </Box>
   )
 }

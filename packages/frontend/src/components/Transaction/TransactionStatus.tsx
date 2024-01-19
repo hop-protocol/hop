@@ -1,12 +1,12 @@
+import Box from '@material-ui/core/Box'
 import Check from '@material-ui/icons/Check'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Link from '@material-ui/core/Link'
 import React, { useEffect, useState } from 'react'
-import { CircularProgress } from '@material-ui/core'
-import { Div, Flex } from 'src/components/ui'
-import { Text } from 'src/components/ui/Text'
+import Typography from '@material-ui/core/Typography'
 import { isLayer1, networkSlugToName } from 'src/utils'
 
-function TransactionStatus(props) {
+function TransactionStatus(props: any) {
   const {
     link,
     destNetworkName,
@@ -45,35 +45,35 @@ function TransactionStatus(props) {
 
   return (
     <>
-      <Flex justifyCenter height={60} width="5em">
+      <Box display="flex" justifyContent="center" height={60} width="5em" textAlign="center">
         {destTx && (!destNetworkName || destNetworkName === networkName) ? (
-          <Flex justifyCenter alignCenter height="100%" fontSize="20px" width="5em"></Flex>
+          <Box display="flex" justifyContent="center" alignItems="center" height="100%" fontSize="20px" width="5em"></Box>
         ) : (
-          <Flex column height="100%" justifyAround alignCenter fontSize="20px" width="5em">
-            <Div mb={1} fontSize={0}>
-              <Text className={styles.topLabel}>{destTx ? networkSlugToName(destNetworkName) : networkSlugToName(networkName)}</Text>
-            </Div>
+          <Box display="flex" flexDirection="column" height="100%" justifyContent="space-around" alignItems="center" fontSize="20px" width="5em">
+            <Box mb={1} fontSize={0}>
+              <Typography align="center" className={styles.topLabel}>{destTx ? networkSlugToName(destNetworkName) : networkSlugToName(networkName)}</Typography>
+            </Box>
 
             {txConfirmed || (!showConfirmations && confirmations) ? (
               <Check className={styles.completed} />
             ) : destTx && !srcConfirmed ? (
-              <Div width={20} height={20} borderRadius="50%" bg="darkgrey" />
+              <Box width={20} height={20} borderRadius="50%" />
             ) : (
               <CircularProgress size={20} thickness={5} />
             )}
 
-            <Div mt={1} fontSize={0}>
+            <Box mt={1} fontSize={0} textAlign="center">
               {link ? (
                 <Link color="inherit" href={link} target="_blank" rel="noopener noreferrer">
-                  <Text>{text}</Text>
+                  <Typography>{text}</Typography>
                 </Link>
               ) : (
-                <Text>{text}</Text>
+                <Typography>{text}</Typography>
               )}
-            </Div>
-          </Flex>
+            </Box>
+          </Box>
         )}
-      </Flex>
+      </Box>
     </>
   )
 }

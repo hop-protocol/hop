@@ -10,7 +10,7 @@ import { ExternalLink } from 'src/components/Link'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { isMainnet, reactAppNetwork } from 'src/config'
 import { useQuery } from 'react-query'
-import { useTheme } from '@material-ui/core'
+import { useTheme } from '@material-ui/core/styles'
 
 type Item = {
   transferId: string

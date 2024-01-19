@@ -2,7 +2,7 @@ import Box from '@material-ui/core/Box'
 import React, { FC } from 'react'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { commafy } from 'src/utils'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles(theme => ({
   root: {

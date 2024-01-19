@@ -1,7 +1,8 @@
+import Box from '@material-ui/core/Box'
 import MuiTooltip from '@material-ui/core/Tooltip'
 import React, { useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { Div, EthAddress, EthAddressProps } from 'src/components/ui'
+import { EthAddress, EthAddressProps } from 'src/components/ui/EthAddress'
 import { withStyles } from '@material-ui/core/styles'
 
 const tooltipStyles = {
@@ -33,9 +34,9 @@ export function CopyEthAddress(props: Props & EthAddressProps) {
   return (
     <Tooltip title={text} open={!!text} placement="top-start">
       <CopyToClipboard text={value} onCopy={handleClick}>
-        <Div pointer>
+        <Box style={{ cursor: "pointer" }}>
           <EthAddress {...rest} value={value} />
-        </Div>
+        </Box>
       </CopyToClipboard>
     </Tooltip>
   )

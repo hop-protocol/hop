@@ -598,8 +598,15 @@ export function useSend(): SendResponseProps {
           return
         }
 
+        let gasCost = estimatedGasCost?.toString()
+        if (fromNetwork?.isL1 && toNetwork.slug === ChainSlug.Optimism) {
+          // reduce estimated gas cost for fee refund display due to hardcoded gas limit in sdk being too high.
+          // this can be removed once the sdk txOverrides is fixed.
+          gasCost = BigNumber.from(gasCost).div(2).toString()
+        }
+
         const payload :Record<string, string> = {
-          gasCost: estimatedGasCost?.toString(),
+          gasCost,
           amount: fromTokenAmountBN?.toString(),
           token: fromToken?.symbol,
           bonderFee: totalBonderFee.toString(),

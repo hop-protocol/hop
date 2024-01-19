@@ -5,7 +5,7 @@ import React, { FC, useState } from 'react'
 import SettingsIcon from 'src/assets/settings-icon.svg'
 import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
-import { Flex, Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui/Icon'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { SmallTextField } from 'src/components/SmallTextField'
 import { makeStyles } from '@material-ui/core/styles'
@@ -100,12 +100,12 @@ export const Settings: FC = () => {
   const deadlineError = Number(deadlineMinutes) < 10
 
   return (
-    <Flex alignCenter>
-      <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
+    <Box display="flex" alignItems="center">
+      <Box alignItems="center" p={[1, 1]} mx={[2, 0]}>
         <IconButton onClick={handleClick}>
           <Icon src={SettingsIcon} width={20} />
         </IconButton>
-      </Flex>
+      </Box>
 
       <Popover
         open={open}
@@ -193,6 +193,6 @@ export const Settings: FC = () => {
           </Box>
         </div>
       </Popover>
-    </Flex>
+    </Box>
   )
 }

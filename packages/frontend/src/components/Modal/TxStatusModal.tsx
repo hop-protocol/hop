@@ -5,7 +5,7 @@ import Transaction from 'src/models/Transaction'
 import TxStatusTracker from 'src/components/Transaction/TxStatusTracker'
 import Typography from '@material-ui/core/Typography'
 import { Button } from 'src/components/Button'
-import { Div, Flex, Icon } from 'src/components/ui'
+import { Icon } from 'src/components/ui/Icon'
 import { Modal } from 'src/components/Modal/Modal'
 import { StyledButton } from 'src/components/Button/StyledButton'
 import { networkSlugToName } from 'src/utils'
@@ -97,21 +97,21 @@ export function TxStatusModal(props: Props) {
         </Box>
 
         {tx?.token?.symbol && (
-          <Flex mt={2} justifyCenter>
+          <Box display="flex" mt={2} justifyItems="center">
             <StyledButton onClick={addTokenToDestNetwork}>
               {!success ? (
-                <Flex alignCenter>
-                  <Div mr={2}>Add {tx.token.symbol} to Metamask</Div>
+                <Box display="flex" alignItems="center">
+                  <Box mr={2}>Add {tx.token.symbol} to Metamask</Box>
                   <Icon width={20} src={MetaMaskLogo} />
-                </Flex>
+                </Box>
               ) : (
-                <Flex alignCenter>
-                  <Div mr={2}>Added {tx.token.symbol}</Div>
+                <Box display="flex" alignItems="center">
+                  <Box mr={2}>Added {tx.token.symbol}</Box>
                   <Icon.Circle width={0} stroke="green" />
-                </Flex>
+                </Box>
               )}
             </StyledButton>
-          </Flex>
+          </Box>
         )}
 
         <Button className={styles.txStatusCloseButton} onClick={handleTxStatusClose}>

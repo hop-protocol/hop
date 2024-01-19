@@ -1,9 +1,9 @@
+import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import React from 'react'
 import Transaction from 'src/models/Transaction'
 import TransactionRow from 'src/components/Transaction/TransactionRow'
 import Typography from '@material-ui/core/Typography'
-import { Flex } from 'src/components/ui'
 import { useApp } from 'src/contexts/AppContext'
 import { useTxStatusStyles } from 'src/components/Transaction/useTxStatusStyles'
 
@@ -18,14 +18,14 @@ function TransactionsList(props: any) {
 
   return (
     <>
-      <Flex justifyBetween alignCenter>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="h3" className={styles.header}>
           Recent transactions
         </Typography>
         <Button className={styles.clearButton} onClick={clear}>
           (clear all)
         </Button>
-      </Flex>
+      </Box>
       {transactions?.map((tx: Transaction) => (
         <TransactionRow key={tx.hash} tx={tx} styles={styles} rmTx={removeTransaction} />
       ))}

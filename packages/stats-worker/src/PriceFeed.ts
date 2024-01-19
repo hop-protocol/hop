@@ -15,7 +15,10 @@ const cacheTimestamps: {
 } = {}
 
 export class PriceFeed {
-  cacheTimeMs = 5 * 60 * 1000
+  // Price granularity is not terribly important for our use case, so we cache
+  // 5 minute cache is very low and uses 1/2 of all of our CoinGecko API calls (150k per month)
+  // 30 minutes seems like a reasonable balance between accuracy and cost
+  cacheTimeMs = 30 * 60 * 1000
 
   instance: PriceFeedSdk
 

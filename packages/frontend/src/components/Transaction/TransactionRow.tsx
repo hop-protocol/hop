@@ -1,10 +1,10 @@
+import Box from '@material-ui/core/Box'
 import Link from '@material-ui/core/Link'
 import React, { useEffect } from 'react'
 import RightArrow from '@material-ui/icons/ArrowRightAlt'
 import Transaction from 'src/models/Transaction'
 import TransactionStatus from 'src/components/Transaction/TransactionStatus'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
-import { Flex } from 'src/components/ui'
 import { isOlderThanOneHour, networkSlugToName } from 'src/utils'
 
 function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rmTx: any }) {
@@ -25,8 +25,8 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
   }, [replaced])
 
   return (
-    <Flex justifyBetween mb=".5rem" alignCenter marginBottom="1rem" paddingBottom="1rem">
-      <Flex flexDirection="column" alignItems="flex-start" width="50%">
+    <Box display="flex" justifyContent="space-between" mb=".5rem" alignItems="center" marginBottom="1rem" paddingBottom="1rem">
+      <Box display="flex" flexDirection="column" alignItems="flex-start" width="50%">
         <div>
           <span className={styles.network}>{networkSlugToName(tx.networkName)}:</span>
           <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
@@ -36,9 +36,9 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
         <div>
           {tx.methodName && <small className={styles.methodName}>({tx.methodName})</small>}
         </div>
-      </Flex>
+      </Box>
 
-      <Flex justifyContent="space-between" alignItems="center" width="50%">
+      <Box display="flex" justifyContent="space-between" alignItems="center" width="50%">
         <TransactionStatus
           txConfirmed={completed}
           link={tx.explorerLink}
@@ -62,8 +62,8 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
             styles={styles}
           />
       </>}
-      </Flex>
-    </Flex>
+      </Box>
+    </Box>
   )
 }
 

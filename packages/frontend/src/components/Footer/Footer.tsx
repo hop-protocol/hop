@@ -1,8 +1,8 @@
 import Box from '@material-ui/core/Box'
 import React from 'react'
 import Typography from '@material-ui/core/Typography'
-import { Flex, SvgImg } from 'src/components/ui'
-import { StyledLink } from 'src/components/ui/StyledLink'
+import { StyledLink } from 'src/components/Link/StyledLink'
+import { SvgImg } from 'src/components/ui/SvgImg'
 import {
   careersUrl,
   discordUrl,
@@ -68,7 +68,7 @@ export const Footer = () => {
       justifyContent="space-between"
       className={styles.container}
     >
-      <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
+      <Box display="flex" alignItems="center" mx={[5]} justifyContent="space-around" width={['20%']}>
         {iconLinks.map((il, i) => (
           <Box mr={'1.6rem'} key={il.url}>
             <StyledLink
@@ -80,7 +80,7 @@ export const Footer = () => {
             </StyledLink>
           </Box>
         ))}
-      </Flex>
+      </Box>
 
       <Box display="flex" alignItems="center" style={{ opacity: 0.5 }}>
         {!!blockNumber && (
@@ -114,7 +114,7 @@ export const Footer = () => {
         )}
       </Box>
 
-      <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
+      <Box display="flex" alignItems="center" mx={[5]} justifyContent="space-around" width={['20%']}>
         <Box ml={'1.6rem'}>
           <StyledLink href={faqUrl} opacity={0.6}>
             <Typography variant="subtitle2">FAQ</Typography>
@@ -135,7 +135,7 @@ export const Footer = () => {
             <Typography variant="subtitle2">Careers</Typography>
           </StyledLink>
         </Box>
-      </Flex>
+      </Box>
     </Box>
   )
 }

@@ -1,8 +1,8 @@
+import Box from '@material-ui/core/Box'
 import React from 'react'
 import styled from 'styled-components/macro'
-import { Div } from 'src/components/ui/Div'
 
-export const OverflowText = styled(Div)`
+export const OverflowText = styled(Box)`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -28,8 +28,8 @@ export function EthAddress(props: EthAddressProps) {
   }, [value, full, length])
 
   return (
-    <Div width={width} textAlign={textAlign}>
+    <Box width={width} textAlign={textAlign}>
       <OverflowText>{displayedAddress || children}</OverflowText>
-    </Div>
+    </Box>
   )
 }

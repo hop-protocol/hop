@@ -2,7 +2,6 @@ import Box from '@material-ui/core/Box'
 import React, { FC } from 'react'
 import Typography from '@material-ui/core/Typography'
 import clsx from 'clsx'
-import { Flex } from 'src/components/ui/Flex'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 
@@ -88,9 +87,9 @@ export const DetailRow: FC<DetailRowProps> = props => {
         color="textSecondary"
         className={clsx(styles.detailLabel, styles.label)}
       >
-        <Flex $wrap>
+        <Box display="column" flexWrap="wrap">
           {title}&nbsp;
-        </Flex>
+        </Box>
         {tooltip ? <InfoTooltip title={tooltip} /> : null}
       </Typography>
       <Typography

@@ -72,6 +72,7 @@
     "@types/pluralize": "0.0.33",
     "@types/qs": "6.9.11",
     "@types/react": "17.0.75",
+    "@types/react-copy-to-clipboard": "5.0.7",
     "@types/react-dom": "17.0.25",
     "@types/react-google-recaptcha": "2.1.8",
     "@types/react-table": "7.7.19",
@@ -79,8 +80,9 @@
     "@types/styled-system": "5.1.22",
     "csp-html-webpack-plugin": "5.1.0",
     "customize-cra": "1.0.0",
-    "react-app-rewired": "2.2.1",
     "eslint-plugin-react": "7.33.2",
-    "eslint-plugin-react-hooks": "4.6.0"
+    "eslint-plugin-react-hooks": "4.6.0",
+    "html-webpack-plugin": "5.6.0",
+    "react-app-rewired": "2.2.1"
   }
 }

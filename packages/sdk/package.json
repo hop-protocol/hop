@@ -10,7 +10,7 @@
     "test": "jest",
     "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:ts",
-    "build:ts": "ls -l node_modules | grep @hop; ls -l ../../node_modules | grep @hop; tsc",
+    "build:ts": "tsc",
     "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
     "clean": "rimraf dist && rimraf hop.js",
     "clean:docs": "rimraf docs",

@@ -25,7 +25,7 @@
     "keccak256": "1.0.3",
     "lodash": "4.17.21",
     "luxon": "1.28.0",
-    "merkletreejs": "0.2.32",
+    "merkletreejs": "0.3.11",
     "numbro": "2.3.6",
     "pluralize": "8.0.0",
     "qs": "6.11.0",

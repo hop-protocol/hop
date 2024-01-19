@@ -68,7 +68,7 @@
     "level-party": "5.1.1",
     "lodash": "4.17.21",
     "luxon": "1.28.0",
-    "merkletreejs": "0.2.32",
+    "merkletreejs": "0.3.11",
     "minimist": "1.2.6",
     "mkdirp": "0.5.6",
     "module-alias": "2.2.2",

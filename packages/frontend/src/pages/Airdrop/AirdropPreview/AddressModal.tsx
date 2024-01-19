@@ -1,8 +1,8 @@
 import Box from '@material-ui/core/Box'
 import React, { useState } from 'react'
+import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import { Button } from 'src/components/Button'
-import TextField from '@material-ui/core/TextField'
 import { Modal } from 'src/components/Modal'
 
 interface Props {

@@ -5,12 +5,12 @@ import React, { FC, useState } from 'react'
 import SettingsIcon from 'src/assets/settings-icon.svg'
 import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
+import { Icon } from 'src/components/ui/Icon'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { SmallTextField } from 'src/components/SmallTextField'
 import { makeStyles } from '@material-ui/core/styles'
 import { sanitizeNumericalString } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
-import { Icon } from 'src/components/ui/Icon'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

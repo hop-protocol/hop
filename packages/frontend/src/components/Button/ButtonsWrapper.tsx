@@ -1,5 +1,5 @@
-import React from 'react'
 import Box from '@material-ui/core/Box'
+import React from 'react'
 
 export function ButtonsWrapper(props: any) {
   const { children } = props

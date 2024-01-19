@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react'
 import Box from '@material-ui/core/Box'
-import MenuItem from '@material-ui/core/MenuItem'
-import Typography from '@material-ui/core/Typography'
-import { useApp } from 'src/contexts/AppContext'
 import FlatSelect from '../selects/FlatSelect'
+import MenuItem from '@material-ui/core/MenuItem'
+import React, { useMemo } from 'react'
+import Typography from '@material-ui/core/Typography'
 import { findNetworkBySlug } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
 
 interface Props {

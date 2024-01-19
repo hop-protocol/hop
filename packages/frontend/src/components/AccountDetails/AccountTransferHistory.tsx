@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react'
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton'
 import NavigateBeforeIcon from '@material-ui/icons/NavigatePrevious'
 import NavigateNextIcon from '@material-ui/icons/NavigateNext'
-import { useTheme } from '@material-ui/core/styles'
+import React, { useEffect, useState } from 'react'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'
 import useQueryParams from 'src/hooks/useQueryParams'
@@ -11,6 +10,7 @@ import { ExternalLink } from 'src/components/Link'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { isMainnet, reactAppNetwork } from 'src/config'
 import { useQuery } from 'react-query'
+import { useTheme } from '@material-ui/core/styles'
 
 type Item = {
   transferId: string

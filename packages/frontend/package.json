@@ -52,17 +52,16 @@
     "react-error-overlay": "6.0.9"
   },
   "scripts": {
-    "start": "npm run tempfix && NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
     "dev": "BROWSER=none npm start",
     "clean": "rimraf build",
     "lint": "eslint --fix \"**/*.{ts,tsx}\"",
-    "build": "npm run tempfix && NODE_OPTIONS=--openssl-legacy-provider  SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider  SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "deploy": "npx --yes netlify-cli deploy --prod",
     "deploy:ipfs": "npx --yes ipfs-deploy -p infura build --no-open --no-clipboard",
-    "deploy:local": "git stash && yarn clean && yarn build && yarn deploy",
-    "tempfix": "./scripts/walletconnect_fix.sh"
+    "deploy:local": "git stash && yarn clean && yarn build && yarn deploy"
   },
   "browserslist": [
     ">0.2%",

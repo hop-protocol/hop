@@ -1,16 +1,16 @@
 {
   "name": "@hop-protocol/api",
   "version": "0.0.0",
-  "description": "",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "private": "true",
   "main": "dist/src/index.js",
   "scripts": {
     "start": "node dist/src/index.js",
-    "build": "npx -p typescript tsc",
-    "lint": "npx eslint --fix \"src/**/*\"",
+    "build": "tsc",
+    "lint": "eslint --fix \"src/**/*\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "@hop-protocol/core": "0.0.1-beta.218",
     "@hop-protocol/sdk": "0.0.1-beta.595",

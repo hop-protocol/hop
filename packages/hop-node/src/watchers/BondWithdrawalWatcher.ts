@@ -118,12 +118,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const logger = this.logger.create({ id: transferId })
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} start`)
       logger.debug('checking db poll')
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
-      const notEnoughCredit = availableCredit.lt(amount!)
+      if (!destinationChainId || !amount) {
+        logger.warn(`missing destinationChainId: ${destinationChainId}, amount: ${amount}`)
+        return
+      }
+
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      const notEnoughCredit = availableCredit.lt(amount)
       const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
       if (isUnbondable) {
         logger.warn(
-          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
           `withdrawalBondTxErr: ${withdrawalBondTxError}`
         )
         logger.debug('db poll completed')

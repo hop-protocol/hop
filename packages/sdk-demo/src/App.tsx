@@ -17,6 +17,9 @@ import { providers } from 'ethers'
 import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useInterval } from 'usehooks-ts'
 
+// Temp fix to resolve type issues
+const AnySyntaxHighlighter = SyntaxHighlighter as any
+
 function TokenDropdown (props: any) {
   const { label, tokens, value, handleChange } = props
   return (
@@ -383,13 +386,13 @@ main().catch(console.error)
                 )}
               </Box>
               <Box p={4}>
-                <SyntaxHighlighter
+                <AnySyntaxHighlighter
                   language="javascript"
                   style={theme}
                   showLineNumbers={true}
                 >
                   {codeSnippet}
-                </SyntaxHighlighter>
+                </AnySyntaxHighlighter>
               </Box>
             </Box>
           </Box>

@@ -443,7 +443,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     const n = findNetworkBySlug(slug)
     return {
-      network: n!,
+      network: n,
       name,
       address,
       balance: formattedBalance,

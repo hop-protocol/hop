@@ -1,21 +1,10 @@
 module.exports = {
+  "root": true,
   "env": {
     "node": true,
     "es2021": true,
-    "jest": true
-  },
-  "extends": [
-    "eslint:recommended",
-    "plugin:json/recommended"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    },
-    "ecmaVersion": 2021,
-    "sourceType": "module",
-    "project": "./tsconfig.json"
+    "jest": true,
+    "browser": true
   },
   "plugins": [
     "n",
@@ -23,6 +12,21 @@ module.exports = {
     "unused-imports",
     "sort-imports-es6-autofix"
   ],
+  "extends": [
+    "eslint:recommended",
+    'plugin:@typescript-eslint/recommended',
+    "plugin:@typescript-eslint/recommended-type-checked"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "project": [
+      "./tsconfig.json",
+      "./packages/*/tsconfig.json"
+    ],
+    "tsconfigRootDir": __dirname
+  },
   "rules": {
     // Explicit offs
     "@typescript-eslint/no-misused-promises": 0,
@@ -76,13 +80,5 @@ module.exports = {
     // https://github.com/eslint/eslint/issues/3400
     "no-lonely-if": 0, // Could be a 1 but erroneously fixes nested items. Nesting is user error but still not worth the hassle
     "@typescript-eslint/no-unnecessary-condition": 0 // Nice to have but need to clean up first
-  },
-  "ignorePatterns": [
-    "node_modules",
-    "build",
-    "dist",
-    "*.json",
-    "*.md"
-  ],
-  "root": true
+  }
 }

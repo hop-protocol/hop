@@ -125,11 +125,11 @@ export const Withdraw: FC = () => {
                   bonderFee,
                   amountOutMin,
                   deadline,
-                  transferRootHash!,
-                  rootTotalAmount!,
-                  transferIdTreeIndex!,
-                  siblings!,
-                  totalLeaves!
+                  transferRootHash,
+                  rootTotalAmount,
+                  transferIdTreeIndex,
+                  siblings,
+                  totalLeaves
                 )
                 return tx
               },

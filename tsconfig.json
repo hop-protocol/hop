@@ -1,20 +1,26 @@
 {
-  "_comment": "Base config inspired by the node16 base at https://github.com/tsconfig/bases/blob/main/bases/node16.json. Not imported for simplicity.",
   "env": {
     "es2021": true
   },
   "compilerOptions": {
-    // Base config
+
+   /**
+    * Base config
+    */
+
+    "strict": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2021"],
-    "module": "node16",
-    "moduleResolution": "node16",
-    "strict": true,
-    "target": "es2021",
+    // nodenext and es2020 optimize for backwards compatability while
+    // still allowing for new features, such as node's native fetch
+    "module": "nodenext",
+    "target": "es2020",
 
-    // Custom
+   /**
+    * Custom config
+    */
+
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -25,9 +31,21 @@
     "resolveJsonModule": true,
     "sourceMap": true,
 
-    // Custom - remove over time as codebase is cleaned up
-    "skipLibCheck": true, // resolves 25+ matic and aave type errors out of our control
+   /**
+    * Custom config - remove over time as codebase is cleaned up
+    */
+
     "strictPropertyInitialization": false, // overwrites strict `true`
     "useUnknownInCatchVariables": false // overwrites strcit `true`
-  }
+
+   /**
+    * Explicitly define outDir and rootDir in each package since they
+    * define package-specific dirs.
+    */
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
+  ]
 }

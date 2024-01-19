@@ -1,13 +1,14 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "outDir": "dist",
-    "baseUrl": "src",
-    "lib": ["es2021", "dom"],
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
-      "src/*": ["*"]
+      "src/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "src/data/*.json"]
+  "include": [
+    "src",
+    "src/**/*.json", // Include JSON files specifically
+  ]
 }

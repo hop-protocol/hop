@@ -7,7 +7,7 @@
     /**
      * Automatically set by react-app-rewired
      * Do not delete or else these will be re-added automatically on build.
-     * TODO: Long term, move away from react-app-rewird
+     * TODO: Long term, move away from react-app-rewired, if possible
      */
 
     "allowJs": true,

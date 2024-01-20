@@ -17,7 +17,7 @@
     "packages/hop-node"
   ],
   "scripts": {
-    "clean": "npm run clean --workspaces && npx rimraf node_modules"
+    "clean": "npm run clean --workspaces && rm -rf node_modules"
   },
   "devDependencies": {
     "@types/jest": "29.5.11",

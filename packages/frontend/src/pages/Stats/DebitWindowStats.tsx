@@ -4,6 +4,7 @@ import { commafy } from 'src/utils'
 import { Icon } from 'src/components/ui/Icon'
 import Box from '@material-ui/core/Box'
 import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
+import { NewTable } from 'src/components/Table/NewTable'
 
 export const populateDebitWindowStats = (item: any, bonderStats: any, i: number) => {
   return {
@@ -30,6 +31,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Token',
             accessor: 'token',
+            width: 100,
             Cell: ({ cell }) => {
               return (
                 <CellWrapper cell={cell}>
@@ -41,6 +43,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Slot 0',
             accessor: 'slot0',
+            width: 100,
             Cell: ({ cell }) => {
               return <RightAlignedValue cell={cell} />
             },
@@ -48,6 +51,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Slot 1',
             accessor: 'slot1',
+            width: 100,
             Cell: ({ cell }) => {
               return <RightAlignedValue cell={cell} />
             },
@@ -55,6 +59,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Slot 2',
             accessor: 'slot2',
+            width: 100,
             Cell: ({ cell }) => {
               return <RightAlignedValue cell={cell} />
             },
@@ -62,6 +67,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Slot 3',
             accessor: 'slot3',
+            width: 100,
             Cell: ({ cell }) => {
               return <RightAlignedValue cell={cell} />
             },
@@ -69,6 +75,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Slot 4',
             accessor: 'slot4',
+            width: 100,
             Cell: ({ cell }) => {
               return <RightAlignedValue cell={cell} />
             },
@@ -76,6 +83,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Slot 5',
             accessor: 'slot5',
+            width: 100,
             Cell: ({ cell }) => {
               return <RightAlignedValue cell={cell} />
             },
@@ -83,6 +91,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Minutes',
             accessor: 'minutes',
+            width: 150,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 {cell.value}
@@ -92,9 +101,11 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Virtual Debt',
             accessor: 'virtualDebt',
+            width: 150,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                <Icon mr={1} src={cell.row.values.token} />
+                {/*<Icon mr={1} src={cell.row.values?.token} />*/}
+                <Icon mr={1} src={cell.row.token} />
                 {cell.value && <>{commafy(cell.value)}</>}
               </CellWrapper>
             ),
@@ -109,6 +120,8 @@ const DebitWindowStats: FC = () => {
 
   return (
     <Box overflow-x="scroll">
+      <NewTable columns={columns} stats={debitWindowStats.map((x: any, i: number) => populateDebitWindowStats(x, bonderStats, i))} loading={fetchingDebitWindowStats} error={error} />
+      {/*
       <SortableTable
         stats={debitWindowStats}
         columns={columns}
@@ -117,6 +130,7 @@ const DebitWindowStats: FC = () => {
         loading={fetchingDebitWindowStats}
         error={error}
       />
+      */}
     </Box>
   )
 }

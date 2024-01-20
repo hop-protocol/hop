@@ -4,7 +4,7 @@ import Box from '@material-ui/core/Box'
 
 export function CellWrapper({ cell, end, style, children }: any) {
   return (
-    <Box display="flex" alignItems="center" justifyContent={end ? 'flex-end' : 'center'} {...cell.getCellProps()} style={style}>
+    <Box display="flex" alignItems="center" justifyContent={end ? 'flex-end' : 'center'} style={style}>
       {children}
     </Box>
   )

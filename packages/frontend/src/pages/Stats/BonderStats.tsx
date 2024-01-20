@@ -4,6 +4,7 @@ import { Icon } from 'src/components/ui/Icon'
 import Box from '@material-ui/core/Box'
 import { RightAlignedValue, SortableTable } from 'src/components/Table'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import { NewTable } from 'src/components/Table/NewTable'
 
 export const populateBonderStats = (item: any) => {
   return {
@@ -31,9 +32,10 @@ function BonderStats() {
           {
             Header: 'Chain',
             accessor: 'chain',
+            width: 100,
             Cell: ({ cell }) => {
               return (
-                <Box display="flex" justifyContent="center" {...cell.getCellProps()}>
+                <Box display="flex" justifyContent="center">
                   <Icon src={cell.value} />
                 </Box>
               )
@@ -42,9 +44,10 @@ function BonderStats() {
           {
             Header: 'Token',
             accessor: 'token',
+            width: 100,
             Cell: ({ cell }) => {
               return (
-                <Box display="flex" justifyContent="center" {...cell.getCellProps()}>
+                <Box display="flex" justifyContent="center">
                   <Icon src={cell.value} />
                 </Box>
               )
@@ -53,9 +56,10 @@ function BonderStats() {
           {
             Header: 'Bonder',
             accessor: 'bonder',
+            width: 100,
             Cell: ({ cell }) => {
               return (
-                <Box display="flex" justifyContent="center" {...cell.getCellProps()}>
+                <Box display="flex" justifyContent="center">
                   <CopyEthAddress value={cell.value} />
                 </Box>
               )
@@ -64,36 +68,43 @@ function BonderStats() {
           {
             Header: 'Credit',
             accessor: 'credit',
+            width: 100,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Debit',
             accessor: 'debit',
+            width: 100,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Available Liquidity',
             accessor: 'availableLiquidity',
+            width: 180,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Pending Amount',
             accessor: 'pendingAmount',
+            width: 150,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Total Amount',
             accessor: 'totalAmount',
+            width: 150,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Available Native',
             accessor: 'availableNative',
+            width: 150,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Vault Balance',
             accessor: 'vaultBalance',
+            width: 150,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
         ],
@@ -106,6 +117,8 @@ function BonderStats() {
 
   return (
     <Box overflow-x="scroll" alignSelf="center">
+      <NewTable columns={columns} stats={bonderStats.map(populateBonderStats)} loading={fetchingBonderStats} error={error} />
+      {/*
       <SortableTable
         stats={bonderStats}
         columns={columns}
@@ -113,6 +126,7 @@ function BonderStats() {
         loading={fetchingBonderStats}
         error={error}
       />
+      */}
     </Box>
   )
 }

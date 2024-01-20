@@ -37,32 +37,38 @@ const Stats: FC = () => {
       maxWidth="1400px"
       margin="0 auto"
     >
-      <Box display="flex" mb={4}>
-        <Box display="flex" flexWrap="wrap" mb={4}>
-          <Box display="flex" mb={4}>
-            <Group mr={4} title="Pool Stats" clickTitle={() => toggleGroup('pool')}>
+      <Box display="flex" flexDirection="column" mb={4} width="100%">
+
+        <Box display="flex" width="100%" mb={4}>
+          <Box display="flex" width="50%"mr={4}>
+            <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')} width="100%">
               {groups.pool && <PoolStats />}
             </Group>
           </Box>
-          <Box display="flex" flexDirection="column">
-            <Group mb={4} title="Native Token Balance" clickTitle={() => toggleGroup('balance')}>
+          <Box display="flex" width="50%">
+            <Group title="Native Token Balance" clickTitle={() => toggleGroup('balance')} width="100%">
               {groups.balance && <BalanceStats />}
-            </Group>
-            <Group title="Debit Window Stats" clickTitle={() => toggleGroup('debitWindow')}>
-              {groups.debitWindow && <DebitWindowStats />}
-            </Group>
-          </Box>
-          <Box>
-            <Group title="Bonder Stats" clickTitle={() => toggleGroup('bonder')}>
-              {groups.bonder && <BonderStats />}
             </Group>
           </Box>
         </Box>
-      </Box>
-      <Box>
-        <Group title="Pending Amount Stats" clickTitle={() => toggleGroup('pendingAmount')}>
-          {groups.pendingAmount && <PendingAmountStats />}
-        </Group>
+
+        <Box display="flex" width="100%" mb={4}>
+          <Group title="Debit Window Stats" clickTitle={() => toggleGroup('debitWindow')} width="100%">
+            {groups.debitWindow && <DebitWindowStats />}
+          </Group>
+        </Box>
+
+        <Box display="flex" width="100%" mb={4}>
+          <Group title="Bonder Stats" clickTitle={() => toggleGroup('bonder')} width="100%">
+            {groups.bonder && <BonderStats />}
+          </Group>
+        </Box>
+
+        <Box display="flex" width="100%">
+          <Group title="Pending Amount Stats" clickTitle={() => toggleGroup('pendingAmount')} width="100%">
+            {groups.pendingAmount && <PendingAmountStats />}
+          </Group>
+        </Box>
       </Box>
     </Box>
   )

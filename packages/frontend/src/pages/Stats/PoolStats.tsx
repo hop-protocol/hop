@@ -4,6 +4,7 @@ import { Icon } from 'src/components/ui/Icon'
 import Box from '@material-ui/core/Box'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { commafy } from 'src/utils'
+import { NewTable } from 'src/components/Table/NewTable'
 
 function formatRatio(item: any) {
   const { reserve0, reserve1 } = item
@@ -14,7 +15,7 @@ function formatRatio(item: any) {
   return `${div.toString().slice(0, 6)}`
 }
 
-export const populatePoolStats = (item: any, extraData: any, i: number) => {
+export const populatePoolStats = (item: any) => {
   return {
     chain: item.network?.imageUrl,
     canonicalToken: item.reserve0,
@@ -34,6 +35,7 @@ const PoolStats: FC = () => {
           {
             Header: 'Chain',
             accessor: 'chain',
+            width: 100,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
                 <Icon src={cell.value} />
@@ -43,6 +45,7 @@ const PoolStats: FC = () => {
           {
             Header: 'Token',
             accessor: 'canonicalToken',
+            width: 100,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 {commafy(cell.value)}
@@ -52,6 +55,7 @@ const PoolStats: FC = () => {
           {
             Header: 'H Token',
             accessor: 'hToken',
+            width: 120,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 {commafy(cell.value)}
@@ -61,6 +65,7 @@ const PoolStats: FC = () => {
           {
             Header: 'Ratio',
             accessor: 'ratio',
+            width: 100,
             Cell: ({ cell, ...rest }) => {
               return (
                 <CellWrapper cell={cell}>
@@ -80,6 +85,8 @@ const PoolStats: FC = () => {
 
   return (
     <Box>
+      <NewTable columns={columns} stats={poolStats.map(populatePoolStats)} loading={fetching} error={error} />
+      {/*
       <SortableTable
         stats={poolStats}
         columns={columns}
@@ -88,6 +95,7 @@ const PoolStats: FC = () => {
         loading={fetching}
         error={error}
       />
+      */}
     </Box>
   )
 }

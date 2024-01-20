@@ -6,6 +6,7 @@ import { Icon } from 'src/components/ui/Icon'
 import Box from '@material-ui/core/Box'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import ethLogo from 'src/assets/logos/eth.svg'
+import { NewTable } from 'src/components/Table/NewTable'
 
 export const populatePoolStats = (item: any) => {
   return {
@@ -26,6 +27,7 @@ const BalanceStats: FC = () => {
           {
             Header: 'Chain',
             accessor: 'chain',
+            width: 100,
             Cell: ({ cell }) => {
               return (
                 <CellWrapper cell={cell}>
@@ -37,6 +39,7 @@ const BalanceStats: FC = () => {
           {
             Header: 'Name',
             accessor: 'name',
+            width: 200,
             Cell: ({ cell }) => {
               return <CellWrapper cell={cell}>{cell.value}</CellWrapper>
             },
@@ -44,6 +47,7 @@ const BalanceStats: FC = () => {
           {
             Header: 'Address',
             accessor: 'address',
+            width: 150,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
                 <CopyEthAddress value={cell.value} />
@@ -53,6 +57,7 @@ const BalanceStats: FC = () => {
           {
             Header: 'Balance',
             accessor: 'balance',
+            width: 150,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
                 <Icon mr={1} src={ethLogo} />
@@ -70,6 +75,8 @@ const BalanceStats: FC = () => {
 
   return (
     <Box>
+      <NewTable columns={columns} stats={balances.map(populatePoolStats)} loading={fetchingBalances} error={error} />
+      {/*
       <SortableTable
         stats={balances}
         columns={columns}
@@ -77,6 +84,7 @@ const BalanceStats: FC = () => {
         loading={fetchingBalances}
         error={error}
       />
+      */}
     </Box>
   )
 }

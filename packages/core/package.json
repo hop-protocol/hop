@@ -7,7 +7,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "clean": "npx rimraf node_modules dist ./tsconfig.tsbuildinfo",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "jest test",
     "dev": "npm run version && npx -p typescript tsc --watch",
     "build": "npm run version && npm run build:typechain && npm run build:ts",
@@ -15,7 +15,7 @@
     "build:typechain": "npx typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "version:bump": "npm version prerelease --preid=beta",
-    "lint": "npx eslint --fix \"src/**/*\"",
+    "lint": "eslint --fix \"src/**/*\"",
     "publish:latest": "npm publish --tag latest --access public",
     "publish:beta": "npm publish --tag beta --access public",
     "publish:next": "npm publish --tag next --access public",

@@ -47,6 +47,7 @@
     "csp-html-webpack-plugin": {
       "html-webpack-plugin": "4.5.2"
     },
-    "type-fest": "4.9.0"
+    "type-fest": "4.9.0",
+    "minimatch": "5.1.2"
   }
 }

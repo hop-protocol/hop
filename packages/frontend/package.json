@@ -49,10 +49,10 @@
     "web-vitals": "0.2.4"
   },
   "scripts": {
-    "clean": "npx rimraf node_modules build ./tsconfig.tsbuildinfo",
+    "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
     "start": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
     "dev": "BROWSER=none npm start",
-    "lint": "npx eslint --fix \"**/*.{ts,tsx}\"",
+    "lint": "eslint --fix \"**/*.{ts,tsx}\"",
     "build": "NODE_OPTIONS=--openssl-legacy-provider  SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",

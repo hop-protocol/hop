@@ -56,7 +56,7 @@ function BonderStats() {
           {
             Header: 'Bonder',
             accessor: 'bonder',
-            width: 100,
+            width: 120,
             Cell: ({ cell }) => {
               return (
                 <Box display="flex" justifyContent="center">
@@ -80,31 +80,31 @@ function BonderStats() {
           {
             Header: 'Available Liquidity',
             accessor: 'availableLiquidity',
-            width: 180,
+            width: 170,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Pending Amount',
             accessor: 'pendingAmount',
-            width: 150,
+            width: 160,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Total Amount',
             accessor: 'totalAmount',
-            width: 150,
+            width: 140,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Available Native',
             accessor: 'availableNative',
-            width: 150,
+            width: 160,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
             Header: 'Vault Balance',
             accessor: 'vaultBalance',
-            width: 150,
+            width: 140,
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
         ],
@@ -117,7 +117,7 @@ function BonderStats() {
 
   return (
     <Box overflow-x="scroll" alignSelf="center">
-      <NewTable columns={columns} stats={bonderStats.map(populateBonderStats)} loading={fetchingBonderStats} error={error} />
+      <NewTable columns={columns} stats={bonderStats.map(populateBonderStats)} loading={fetchingBonderStats} error={error} height="1540px" />
       {/*
       <SortableTable
         stats={bonderStats}

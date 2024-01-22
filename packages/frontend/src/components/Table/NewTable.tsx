@@ -3,7 +3,16 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid'
 
-export function NewTable (props: any) {
+export type Props = {
+  stats?: any
+  columns?: any
+  header?: string
+  loading?: boolean
+  height?: string
+  error?: any
+}
+
+export function NewTable (props: Props) {
   const _rows = props.stats
   const _columns = props.columns
   const header = _columns?.[0].Header
@@ -36,7 +45,7 @@ export function NewTable (props: any) {
   return (
     <Box>
       <Typography variant="h6">{header}</Typography>
-      <Box sx={{ height: '500px', width: '100%' }}>
+      <Box sx={{ height: props.height ?? '500px', width: '100%' }}>
         <DataGrid
           rows={rows1}
           rowHeight={30}

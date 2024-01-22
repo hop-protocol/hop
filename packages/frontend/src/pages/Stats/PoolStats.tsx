@@ -55,7 +55,7 @@ const PoolStats: FC = () => {
           {
             Header: 'H Token',
             accessor: 'hToken',
-            width: 120,
+            width: 110,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 {commafy(cell.value)}
@@ -65,7 +65,7 @@ const PoolStats: FC = () => {
           {
             Header: 'Ratio',
             accessor: 'ratio',
-            width: 100,
+            width: 90,
             Cell: ({ cell, ...rest }) => {
               return (
                 <CellWrapper cell={cell}>
@@ -85,7 +85,7 @@ const PoolStats: FC = () => {
 
   return (
     <Box>
-      <NewTable columns={columns} stats={poolStats.map(populatePoolStats)} loading={fetching} error={error} />
+      <NewTable columns={columns} stats={poolStats.map(populatePoolStats)} loading={fetching} error={error} height="980px" />
       {/*
       <SortableTable
         stats={poolStats}

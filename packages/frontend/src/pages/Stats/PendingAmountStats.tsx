@@ -40,7 +40,7 @@ const PendingAmountStats: FC = () => {
           {
             Header: 'Destination',
             accessor: 'destination',
-            width: 150,
+            width: 130,
             Cell: ({ cell }) => {
               return (
                 <CellWrapper cell={cell}>
@@ -52,7 +52,7 @@ const PendingAmountStats: FC = () => {
           {
             Header: 'Pending Amount',
             accessor: 'pendingAmount',
-            width: 200,
+            width: 160,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 <Icon mr={1} src={cell.row.original.token} />
@@ -63,7 +63,7 @@ const PendingAmountStats: FC = () => {
           {
             Header: 'Available Liquidity',
             accessor: 'availableLiquidity',
-            width: 200,
+            width: 170,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 <Icon mr={1} src={cell.row.original.token} />
@@ -81,7 +81,7 @@ const PendingAmountStats: FC = () => {
 
   return (
     <Box>
-      <NewTable columns={columns} stats={pendingAmounts.map(populatePendingAmountStats)} loading={fetchingPendingAmounts} error={error} />
+      <NewTable columns={columns} stats={pendingAmounts.map(populatePendingAmountStats)} loading={fetchingPendingAmounts} error={error} height="3120px" />
       {/*
       <SortableTable
         stats={pendingAmounts}

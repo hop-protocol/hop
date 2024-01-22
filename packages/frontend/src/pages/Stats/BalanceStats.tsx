@@ -39,7 +39,7 @@ const BalanceStats: FC = () => {
           {
             Header: 'Name',
             accessor: 'name',
-            width: 200,
+            width: 160,
             Cell: ({ cell }) => {
               return <CellWrapper cell={cell}>{cell.value}</CellWrapper>
             },
@@ -47,7 +47,7 @@ const BalanceStats: FC = () => {
           {
             Header: 'Address',
             accessor: 'address',
-            width: 150,
+            width: 110,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
                 <CopyEthAddress value={cell.value} />
@@ -57,7 +57,7 @@ const BalanceStats: FC = () => {
           {
             Header: 'Balance',
             accessor: 'balance',
-            width: 150,
+            width: 110,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
                 <Icon mr={1} src={ethLogo} />
@@ -75,7 +75,7 @@ const BalanceStats: FC = () => {
 
   return (
     <Box>
-      <NewTable columns={columns} stats={balances.map(populatePoolStats)} loading={fetchingBalances} error={error} />
+      <NewTable columns={columns} stats={balances.map(populatePoolStats)} loading={fetchingBalances} error={error} height="440px" />
       {/*
       <SortableTable
         stats={balances}

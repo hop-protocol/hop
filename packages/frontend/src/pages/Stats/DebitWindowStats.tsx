@@ -91,7 +91,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Minutes',
             accessor: 'minutes',
-            width: 150,
+            width: 110,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 {cell.value}
@@ -101,7 +101,7 @@ const DebitWindowStats: FC = () => {
           {
             Header: 'Virtual Debt',
             accessor: 'virtualDebt',
-            width: 150,
+            width: 130,
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
                 {/*<Icon mr={1} src={cell.row.values?.token} />*/}
@@ -120,7 +120,7 @@ const DebitWindowStats: FC = () => {
 
   return (
     <Box overflow-x="scroll">
-      <NewTable columns={columns} stats={debitWindowStats.map((x: any, i: number) => populateDebitWindowStats(x, bonderStats, i))} loading={fetchingDebitWindowStats} error={error} />
+      <NewTable columns={columns} stats={debitWindowStats.map((x: any, i: number) => populateDebitWindowStats(x, bonderStats, i))} loading={fetchingDebitWindowStats} error={error} height="420px" />
       {/*
       <SortableTable
         stats={debitWindowStats}

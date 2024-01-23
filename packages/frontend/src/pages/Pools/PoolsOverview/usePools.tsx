@@ -1,5 +1,5 @@
-import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { BigNumber, BigNumberish } from 'ethers'
 import { Multicall } from '@hop-protocol/sdk'
 import { addresses, hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
@@ -220,7 +220,7 @@ export function usePools () {
 
             const balancesOpts: any = []
             balancesOpts.push({
-              abi: Erc20Abi,
+              abi: erc20Abi,
               method: 'balanceOf',
               address: lpTokenAddress,
               tokenSymbol,
@@ -229,13 +229,13 @@ export function usePools () {
             if (stakingContractAddress) {
               const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'balanceOf',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
               })
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'earned',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
@@ -243,13 +243,13 @@ export function usePools () {
             }
             if (hopStakingContractAddress) {
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'balanceOf',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'
               })
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'earned',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'

@@ -1,4 +1,4 @@
-import bridgeAbi from '@hop-protocol/core/abi/generated/Bridge.json'
+import { bridgeAbi } from '@hop-protocol/core/abi'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'

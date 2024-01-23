@@ -14,13 +14,12 @@
     "test": "jest test",
     "bonder": "npm run build && node bin/hop-node bonder",
     "arb-bot": "npm run build && node bin/hop-node arb-bot",
-    "start": "npm run build-info && node bin/hop-node",
-    "dev": "npm run build-info && npx -p typescript tsc -p tsconfig.json --watch",
+    "start": "npm run build && npm run build-info && node bin/hop-node",
+    "dev": "npm run build-info && tsc -p tsconfig.json --watch",
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
     "postinstall": "mkdir -p dist/src && npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
-    "build": "npx -p typescript tsc -p tsconfig.json",
-    "lint": "eslint --fix \"src/**/*\"",
-    "prepare": "npm run build"
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint --fix \"src/**/*\""
   },
   "bin": {
     "hop-node": "bin/hop-node"
@@ -57,7 +56,7 @@
     "commander": "6.2.1",
     "console-clear": "1.1.1",
     "dotenv": "10.0.0",
-    "ethereum-block-by-date": "1.4.6",
+    "ethereum-block-by-date": "1.4.9",
     "ethereumjs-util": "7.1.5",
     "ethers": "5.7.2",
     "express": "4.18.1",
@@ -85,6 +84,7 @@
   },
   "devDependencies": {
     "@types/commander": "2.12.2",
+    "@types/ethereum-block-by-date": "1.4.1",
     "@types/express": "4.17.13",
     "@types/keythereum": "1.2.4",
     "@types/level": "6.0.0",

@@ -5,7 +5,7 @@ import {
   Chain,
   Hop
 } from '../src/index'
-import { Swap__factory } from '@hop-protocol/core/contracts/factories/generated/Swap__factory'
+import { Swap__factory } from '@hop-protocol/core/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'

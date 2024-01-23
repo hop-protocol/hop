@@ -1,5 +1,5 @@
 import Address from 'src/models/Address'
-import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import Network from 'src/models/Network'
 import React, {
   ChangeEvent,
@@ -11,7 +11,7 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import logger from 'src/logger'
 import { BigNumber, Signer, constants } from 'ethers'
 import { Multicall, Token } from '@hop-protocol/sdk'
@@ -381,7 +381,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         const balancesOpts: any = []
         balancesOpts.push({
-          abi: Erc20Abi,
+          abi: erc20Abi,
           method: 'balanceOf',
           address: lpTokenAddress,
           tokenSymbol,
@@ -390,7 +390,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         if (stakingContractAddress) {
           const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
           balancesOpts.push({
-            abi: StakingRewardsAbi,
+            abi: stakingRewardsAbi,
             method: 'balanceOf',
             address: stakingContractAddress,
             tokenSymbol: stakingContractRewardToken
@@ -398,7 +398,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
         if (hopStakingContractAddress) {
           balancesOpts.push({
-            abi: StakingRewardsAbi,
+            abi: stakingRewardsAbi,
             method: 'balanceOf',
             address: hopStakingContractAddress,
             tokenSymbol: 'HOP'

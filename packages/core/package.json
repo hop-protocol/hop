@@ -9,10 +9,10 @@
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "jest test",
-    "dev": "npm run version && npx -p typescript tsc --watch",
+    "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:typechain && npm run build:ts",
-    "build:ts": "npx -p typescript tsc",
-    "build:typechain": "npx typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
+    "build:ts": "tsc",
+    "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "version:bump": "npm version prerelease --preid=beta",
     "lint": "eslint --fix \"src/**/*\"",
@@ -25,7 +25,7 @@
     "release": "npm run clean && npm test && npm run publish:latest",
     "bump": "npm run clean && npm run build && npm test && npm run json:mainnet && npm run version:bump",
     "bump-release": "npm run version:bump && npm run release && npm run json:mainnet",
-    "prepare": "npm run lint && npm run build",
+    "prepublishOnly": "npm run lint && npm run build",
     "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
     "json:staging": "node -e \"console.log(JSON.stringify(require('./addresses').staging, null, 2))\" > build/addresses/staging.json",
     "upload": "npm run build && node s3upload/main"

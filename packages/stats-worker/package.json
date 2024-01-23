@@ -5,7 +5,7 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "main": "index.js",
-  "private": "true",
+  "private": true,
   "engines": {
     "node": ">=18.19.0"
   },
@@ -20,7 +20,7 @@
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
     "start:bonder:migration": "ts-node src/index.ts --bonder --bonderDays=30 --migrations=[19]",
     "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
-    "build": "npx -p typescript tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
+    "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "eslint --fix \"src/**/*\"",
     "test": "jest test"
   },
@@ -29,10 +29,10 @@
     "@hop-protocol/core": "0.0.1-beta.218",
     "@hop-protocol/sdk": "0.0.1-beta.595",
     "@pinata/sdk": "1.1.26",
-    "comment-json": "4.2.2",
+    "comment-json": "4.2.3",
     "csv-writer": "1.6.0",
     "dotenv": "10.0.0",
-    "ethereum-block-by-date": "1.4.6",
+    "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "luxon": "2.5.0",
     "minimist": "1.2.6",

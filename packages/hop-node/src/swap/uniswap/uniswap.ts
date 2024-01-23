@@ -1,6 +1,6 @@
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import erc20Abi from '@hop-protocol/core/abi/generated/MockERC20.json'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants } from 'ethers'

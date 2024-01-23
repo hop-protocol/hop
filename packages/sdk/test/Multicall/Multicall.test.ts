@@ -1,5 +1,5 @@
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import stakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { Multicall } from '../../src/Multicall'
 
 describe.skip('Multicall', () => {

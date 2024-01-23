@@ -1,5 +1,5 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { BigNumber, Contract, Signer, constants, providers } from 'ethers'

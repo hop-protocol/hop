@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "private": "true",
+  "private": true,
   "main": "dist/src/index.js",
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "node dist/src/index.js",
-    "build": "npx -p typescript tsc",
-    "lint": "eslint --fix \"src/**/*\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "lint": "eslint --fix \"src/**/*\""
   },
   "dependencies": {
     "@hop-protocol/core": "0.0.1-beta.218",

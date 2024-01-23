@@ -1,5 +1,5 @@
-import ERC20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import Multicall3Abi from '@hop-protocol/core/abi/static/Multicall3.json'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import { Multicall3 } from '@hop-protocol/core/abi'
 import { Contract, constants, ethers, providers } from 'ethers'
 import { PriceFeedFromS3 } from '../priceFeed'
 import { defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
@@ -128,7 +128,7 @@ export class Multicall {
 
     let results : any
     if (multicallAddress) {
-      const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+      const multicallContract = new Contract(multicallAddress, Multicall3, provider)
       results = await multicallContract.callStatic.aggregate3(calls)
     } else {
       results = await Promise.all(calls.map(async ({ target, callData }: any) => {
@@ -168,7 +168,7 @@ export class Multicall {
     const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
 
     const calls = tokenAddresses.map(({ address, abi, method }: GetMulticallBalanceOptions) => {
-      const tokenContract = new Contract(address!, abi ?? ERC20Abi, provider)
+      const tokenContract = new Contract(address!, abi ?? erc20Abi, provider)
       const balanceMethod = method ?? 'balanceOf'
       return {
         target: address,
@@ -178,7 +178,7 @@ export class Multicall {
 
     let results: any
     if (multicallAddress) {
-      const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+      const multicallContract = new Contract(multicallAddress, Multicall3, provider)
       results = await multicallContract.callStatic.aggregate3(calls)
     } else {
       results = await Promise.all(calls.map(async ({ target, callData }: any) => {

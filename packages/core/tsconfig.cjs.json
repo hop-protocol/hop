@@ -1,0 +1,17 @@
+// Export CommonJS module for use by config-overrides.js for create-react-app
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "dist/cjs",
+    "paths": {
+      "src/*": ["./src/*"]
+    },
+
+    "module": "CommonJS",
+  },
+  "include": [
+    "src",
+    "src/**/*.json" // Include JSON files specifically
+  ]
+}

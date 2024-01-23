@@ -17,7 +17,9 @@
     "packages/hop-node"
   ],
   "scripts": {
-    "clean": "npm run clean --workspaces && rm -rf node_modules"
+    "clean": "npm run clean --workspaces && rm -rf tsconfig.buildinfo && rm -rf node_modules",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces"
   },
   "devDependencies": {
     "@types/jest": "29.5.11",

@@ -1,4 +1,4 @@
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import useQueryParams from 'src/hooks/useQueryParams'

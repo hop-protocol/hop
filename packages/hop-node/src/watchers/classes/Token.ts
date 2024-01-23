@@ -1,6 +1,6 @@
 import ContractBase from './ContractBase'
 import { BigNumber, constants, ethers, providers } from 'ethers'
-import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
+import { ERC20 } from '@hop-protocol/core/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 export default class Token extends ContractBase {

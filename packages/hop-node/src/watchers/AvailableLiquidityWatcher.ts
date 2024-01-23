@@ -8,8 +8,8 @@ import {
   Chain,
   TenMinutesMs
 } from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getConfigBonderForRoute,

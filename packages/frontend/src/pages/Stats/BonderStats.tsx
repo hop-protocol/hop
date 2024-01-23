@@ -1,7 +1,7 @@
 import React from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { Icon } from 'src/components/ui/Icon'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { RightAlignedValue, SortableTable } from 'src/components/Table'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 

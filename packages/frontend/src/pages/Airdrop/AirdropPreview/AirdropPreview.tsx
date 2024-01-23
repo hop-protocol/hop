@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { Alert } from 'src/components/Alert'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { EthAddress } from 'src/components/ui/EthAddress'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { AirdropPreviewWrapper } from 'src/pages/Airdrop/AirdropPreview/AirdropPreviewWrapper'
 import { StyledButton } from 'src/components/Button/StyledButton'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { useDistribution } from 'src/pages/Airdrop/AirdropPreview/useDistribution'
 import { Button } from 'src/components/Button'
-import { useTheme } from '@material-ui/core/styles'
+import { useTheme } from '@mui/styles'
 import { AddressModal } from 'src/pages/Airdrop/AirdropPreview/AddressModal'
 import { getAddress } from 'ethers/lib/utils'
 import { InfoTooltip } from 'src/components/InfoTooltip'
@@ -19,7 +19,7 @@ import { useClaim } from 'src/pages/Claim/useClaim'
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
-  const theme = useTheme()
+  const theme: any = useTheme()
   const navigate = useNavigate()
   const { address } = useWeb3Context()
   const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')

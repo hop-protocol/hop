@@ -2,22 +2,21 @@ import React from 'react'
 import { Link } from 'src/components/Link'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { Button } from 'src/components/Button'
-import CircularProgress from '@material-ui/core/CircularProgress'
+import CircularProgress from '@mui/material/CircularProgress'
 import { useDelegates } from './useDelegates'
 import { Delegate } from 'src/pages/Claim/useClaim'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
 import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
-import ChatIcon from '@material-ui/icons/Chat'
-import TextField from '@material-ui/core/TextField'
+import ChatIcon from '@mui/icons-material/Chat'
+import TextField from '@mui/material/TextField'
 import { DelegateConfirmModal } from 'src/pages/Claim/DelegateConfirmModal'
 import { DelegateInfoModal } from 'src/pages/Claim/DelegateInfoModal'
 
 const useStyles = makeStyles(() => ({
   box: {
     borderRadius: '10px',
-    transition: 'background-color 0.25s ease',
     '&:hover': {
       backgroundColor: '#b7b7b721',
     }
@@ -161,7 +160,7 @@ export function ChooseDelegate(props: any) {
           </Box>
         </Box>
       </Box>
-      <Box mt={4} display="flex" justifyContent="center" maxWidth>
+      <Box mt={4} display="flex" justifyContent="center" width="100%">
         <Button large highlighted onClick={onContinue} disabled={!delegate?.address}>
           Continue to Review
         </Button>

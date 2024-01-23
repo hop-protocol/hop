@@ -1,13 +1,12 @@
 import React from 'react'
-import styled from 'styled-components/macro'
-import Box from '@material-ui/core/Box'
+import styled from 'styled-components'
+import Box from '@mui/material/Box'
 
 export const OverflowText = styled(Box)`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: 'Source Code Pro';
-  transition: all 0.15s ease-out;
 `
 
 export interface EthAddressProps {

@@ -1,10 +1,10 @@
 import React, { FC } from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import Tooltip from '@material-ui/core/Tooltip'
-import Box from '@material-ui/core/Box'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
+import Tooltip from '@mui/material/Tooltip'
+import Box from '@mui/material/Box'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     padding: theme.padding.extraLight,
     width: '22rem',

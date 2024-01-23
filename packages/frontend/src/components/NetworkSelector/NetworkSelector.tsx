@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
-import Box from '@material-ui/core/Box'
-import MenuItem from '@material-ui/core/MenuItem'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import MenuItem from '@mui/material/MenuItem'
+import Typography from '@mui/material/Typography'
 import { useApp } from 'src/contexts/AppContext'
 import FlatSelect from '../selects/FlatSelect'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
@@ -46,7 +46,7 @@ export function NetworkSelector({ network, setNetwork, availableNetworks, onChan
 
       {networks.map(network => (
         <MenuItem value={network.slug} key={network.slug}>
-          <Box className={styles.networkSelectionBox}>
+          <Box className={styles.networkSelectionBox} >
             <Box className={styles.networkIconContainer}>
               <img src={network.imageUrl} className={styles.networkIcon} alt={network.name} />
             </Box>

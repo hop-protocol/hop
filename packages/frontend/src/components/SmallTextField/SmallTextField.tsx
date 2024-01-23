@@ -1,8 +1,8 @@
 import React, { FC, ReactNode } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@mui/styles'
+import MuiTextField, { TextFieldProps } from '@mui/material/TextField'
+import InputAdornment from '@mui/material/InputAdornment'
+import Typography from '@mui/material/Typography'
 
 type SmallTextFieldProps = {
   units?: string | ReactNode
@@ -13,7 +13,7 @@ interface StyleProps {
   centerAlign: boolean
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {},
   adornment: {
     marginRight: '0',
@@ -21,7 +21,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const useInputStyles = makeStyles(theme => ({
+const useInputStyles = makeStyles((theme: any) => ({
   root: (props: StyleProps) => ({
     padding: '0.1rem 0.4rem',
     borderRadius: '2rem',

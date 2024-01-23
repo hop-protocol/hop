@@ -1,5 +1,5 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 
 export function TokenIcon(props: any) {
   let { src, alt = '', title = '', width, inline, bgTransparent } = props

@@ -1,7 +1,7 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {

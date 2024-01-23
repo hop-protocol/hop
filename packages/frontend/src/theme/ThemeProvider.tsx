@@ -1,10 +1,11 @@
 import React, { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react'
-import { ThemeProvider as MuiThemeProvider, Theme } from '@material-ui/core/styles'
+import { ThemeProvider as MuiThemeProvider, Theme } from '@mui/material/styles'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
 import { lightTheme, darkTheme } from 'src/theme/theme'
 import { useLocalStorage } from 'usehooks-ts'
 import { Theme as StyledSystemTheme } from 'styled-system'
 import { paletteDark, paletteLight } from 'src/theme/overrides'
+import CssBaseline from '@mui/material/CssBaseline'
 import get from 'lodash/get'
 import merge from 'lodash/merge'
 
@@ -131,6 +132,7 @@ const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }}
     >
       <MuiThemeProvider theme={theme}>
+        <CssBaseline />
         <SCThemeProvider theme={ssTheme}>{children}</SCThemeProvider>
       </MuiThemeProvider>
     </ThemeContext.Provider>

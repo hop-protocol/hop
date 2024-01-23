@@ -1,6 +1,6 @@
 import React from 'react'
 import { commafy } from 'src/utils'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 
 export function CellWrapper({ cell, end, style, children }: any) {
   return (

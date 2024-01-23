@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import Transaction from 'src/models/Transaction'
 import { Modal } from 'src/components/Modal/Modal'
 import { useTxStatusStyles } from 'src/components/Transaction'

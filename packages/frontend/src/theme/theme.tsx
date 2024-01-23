@@ -1,6 +1,6 @@
 import { CSSProperties } from 'react'
-import createBreakpoints from '@material-ui/core/styles/createBreakpoints'
-import { SkeletonClassKey } from '@material-ui/lab/Skeleton'
+import createBreakpoints from '@mui/system/createTheme/createBreakpoints';
+import { SkeletonClassKey } from '@mui/lab/Skeleton'
 import {
   boxShadowsLight,
   boxShadowsDark,
@@ -10,73 +10,66 @@ import {
 } from 'src/theme/overrides'
 import { typographyOptions } from 'src/theme/typography'
 
-// https://stackoverflow.com/a/64135466/1439168
-import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles'
+import { createTheme } from '@mui/material/styles';
 import { palette as paletteLight } from 'src/theme/light'
 import { palette as paletteDark } from 'src/theme/dark'
 
-declare module '@material-ui/core/styles/overrides' {
-  export interface ComponentNameToClassKey {
-    MuiSkeleton: SkeletonClassKey
-  }
-}
+// declare module '@mui/styles/createTheme' {
+//   interface Theme {
+//     padding: {
+//       thick: CSSProperties['paddingTop']
+//       default: CSSProperties['paddingTop']
+//       light: CSSProperties['paddingTop']
+//       extraLight: CSSProperties['paddingTop']
+//     }
+//     boxShadow: {
+//       input: {
+//         bold: CSSProperties['boxShadow']
+//         normal: CSSProperties['boxShadow']
+//       }
+//       inner: CSSProperties['boxShadow']
+//       card: CSSProperties['boxShadow']
+//       button: {
+//         default: CSSProperties['boxShadow']
+//         disabled: CSSProperties['boxShadow']
+//         highlighted: CSSProperties['boxShadow']
+//       }
+//       select: CSSProperties['boxShadow']
+//     }
+//     bgGradient: {
+//       main: CSSProperties['background']
+//       flat: CSSProperties['background']
+//     }
+//   }
 
-declare module '@material-ui/core/styles/createTheme' {
-  interface Theme {
-    padding: {
-      thick: CSSProperties['paddingTop']
-      default: CSSProperties['paddingTop']
-      light: CSSProperties['paddingTop']
-      extraLight: CSSProperties['paddingTop']
-    }
-    boxShadow: {
-      input: {
-        bold: CSSProperties['boxShadow']
-        normal: CSSProperties['boxShadow']
-      }
-      inner: CSSProperties['boxShadow']
-      card: CSSProperties['boxShadow']
-      button: {
-        default: CSSProperties['boxShadow']
-        disabled: CSSProperties['boxShadow']
-        highlighted: CSSProperties['boxShadow']
-      }
-      select: CSSProperties['boxShadow']
-    }
-    bgGradient: {
-      main: CSSProperties['background']
-      flat: CSSProperties['background']
-    }
-  }
-
-  // allow configuration using `createMuiTheme`
-  interface ThemeOptions {
-    padding?: {
-      thick?: CSSProperties['paddingTop']
-      default?: CSSProperties['paddingTop']
-      light?: CSSProperties['paddingTop']
-      extraLight?: CSSProperties['paddingTop']
-    }
-    boxShadow?: {
-      input?: {
-        bold?: CSSProperties['boxShadow']
-        normal?: CSSProperties['boxShadow']
-      }
-      inner?: CSSProperties['boxShadow']
-      card?: CSSProperties['boxShadow']
-      button?: {
-        default?: CSSProperties['boxShadow']
-        disabled?: CSSProperties['boxShadow']
-        highlighted?: CSSProperties['boxShadow']
-      }
-      select?: CSSProperties['boxShadow']
-    }
-    bgGradient?: {
-      main?: CSSProperties['background']
-      flat?: CSSProperties['background']
-    }
-  }
-}
+//   // allow configuration using `createTheme`
+//   interface ThemeOptions {
+//     padding?: {
+//       thick?: CSSProperties['paddingTop']
+//       default?: CSSProperties['paddingTop']
+//       light?: CSSProperties['paddingTop']
+//       extraLight?: CSSProperties['paddingTop']
+//     }
+//     boxShadow?: {
+//       input?: {
+//         bold?: CSSProperties['boxShadow']
+//         normal?: CSSProperties['boxShadow']
+//       }
+//       inner?: CSSProperties['boxShadow']
+//       card?: CSSProperties['boxShadow']
+//       button?: {
+//         default?: CSSProperties['boxShadow']
+//         disabled?: CSSProperties['boxShadow']
+//         highlighted?: CSSProperties['boxShadow']
+//       }
+//       select?: CSSProperties['boxShadow']
+//     }
+//     bgGradient?: {
+//       main?: CSSProperties['background']
+//       flat?: CSSProperties['background']
+//     }
+//   }
+// }
 
 const padding = {
   thick: '4.2rem',
@@ -87,9 +80,9 @@ const padding = {
 
 const breakpoints = createBreakpoints({})
 
-export const lightTheme = createMuiTheme({
+export const lightTheme = createTheme({
   palette: {
-    type: 'light',
+    mode: 'light',
     ...paletteLight,
   },
   padding,
@@ -97,22 +90,25 @@ export const lightTheme = createMuiTheme({
   breakpoints,
   boxShadow: boxShadowsLight,
   bgGradient: bgGradients,
-  overrides: {
+  components: {
     ...overridesLight,
     MuiTab: {
-      root: {
-        ...overridesLight.MuiTab.root,
-        [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
+      ...overridesLight.MuiTab,
+      styleOverrides: {
+        root: {
+          // ...overridesLight.MuiTab.styleOverrides.root,
+          [breakpoints.down('sm')]: {
+            fontSize: '1.5rem',
+          },
         },
       },
     },
   },
-})
+} as any)
 
-export const darkTheme = createMuiTheme({
+export const darkTheme = createTheme({
   palette: {
-    type: 'dark',
+    mode: 'dark',
     ...paletteDark,
   },
   padding,
@@ -120,22 +116,25 @@ export const darkTheme = createMuiTheme({
   breakpoints,
   boxShadow: boxShadowsDark,
   bgGradient: bgGradients,
-  overrides: {
+  components: {
     ...overridesDark,
     MuiTab: {
-      root: {
-        ...overridesDark.MuiTab.root,
-        [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
+      ...overridesDark.MuiTab,
+      styleOverrides: {
+        root: {
+          // ...overridesDark.MuiTab.styleOverrides.root,
+          [breakpoints.down('sm')]: {
+            fontSize: '1.5rem',
+          },
         },
-      },
+      }
     },
   },
-})
+} as any)
 
 interface PaletteType {
   palette: {
-    type: 'dark' | 'light'
+    mode: 'dark' | 'light'
   }
 }
 
@@ -155,5 +154,5 @@ export function isDarkMode(themeOrMode?: ThemeOrMode): boolean {
     return themeOrMode === 'dark'
   }
 
-  return themeOrMode.palette.type === ThemeMode.dark
+  return themeOrMode.palette.mode === ThemeMode.dark
 }

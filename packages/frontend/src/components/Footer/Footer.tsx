@@ -1,6 +1,6 @@
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 import { gitRevision } from 'src/config/config'
 import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
 import { ReactComponent as github } from 'src/assets/logos/github.svg'
@@ -20,7 +20,7 @@ import { SvgImg } from 'src/components/ui/SvgImg'
 import { StyledLink } from 'src/components/Link/StyledLink'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {
@@ -93,8 +93,7 @@ export const Footer = () => {
               minWidth: '8px',
               borderRadius: '50%',
               position: 'relative',
-              backgroundColor: 'rgb(118, 209, 145)',
-              transition: 'background-color 250ms ease 0s'
+              backgroundColor: 'rgb(118, 209, 145)'
             }}></Box>
             <a href={`https://etherscan.io/block/${blockNumber}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'inline-flex' }}>
               <Typography variant="body2" color="secondary">

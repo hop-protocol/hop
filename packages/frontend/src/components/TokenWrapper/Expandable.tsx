@@ -1,8 +1,8 @@
 import React, { FC, ChangeEvent, useMemo, useEffect } from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   details: {
     width: '46.0rem',
     marginBottom: '3.4rem',

@@ -1,9 +1,9 @@
 import React, { useState, ChangeEvent } from 'react'
 import { Button } from 'src/components/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
+import { makeStyles } from '@mui/styles'
+import Typography from '@mui/material/Typography'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Checkbox from '@mui/material/Checkbox'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 

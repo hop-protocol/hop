@@ -1,17 +1,17 @@
 import React from 'react'
 import { Button } from 'src/components/Button'
 import { Alert } from 'src/components/Alert'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Grid from '@material-ui/core/Grid'
+import { makeStyles } from '@mui/styles'
+import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Grid'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 import { useTransferTimeEstimate } from 'src/hooks/useTransferTimeEstimate'
 import { transferTimeDisplay } from 'src/utils/transferTimeDisplay'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
-import Skeleton from '@material-ui/lab/Skeleton'
+import Skeleton from '@mui/lab/Skeleton'
 
 const useStyles = makeStyles(() => ({
   root: {

@@ -1,4 +1,5 @@
-import { Theme, makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
+import { Theme } from '@mui/material/styles'
 
 export const useTxStatusStyles = makeStyles((theme: Theme) => ({
   header: {

@@ -2,10 +2,10 @@ import React from 'react'
 import styled from 'styled-components'
 import { useTable, useSortBy } from 'react-table'
 import makeData from './makeData'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Alert from '@material-ui/lab/Alert'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
+import Skeleton from '@mui/lab/Skeleton'
+import Alert from '@mui/lab/Alert'
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -28,7 +28,6 @@ const Styles = styled.div`
     }
 
     tr {
-      transition: background 0.15s ease-out;
       :last-child {
         td {
           border-bottom: 0;
@@ -54,7 +53,6 @@ const Styles = styled.div`
 
     th,
     td {
-      transition: background 0.15s ease-out;
       margin: 0;
       padding: 0.5rem 1rem;
       border-bottom: 1px solid #dbdbdb;

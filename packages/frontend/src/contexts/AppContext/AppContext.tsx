@@ -12,7 +12,8 @@ import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAc
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { reactAppNetwork, blocklist, rpcProviderOverrides } from 'src/config'
 import { allNetworks as networks } from 'src/config/networks'
-import { Theme, useTheme } from '@material-ui/core/styles'
+import { useTheme } from '@mui/styles'
+import { Theme } from '@mui/material/styles'
 
 type AppContextProps = {
   sdk: Hop
@@ -26,7 +27,7 @@ type AppContextProps = {
   txHistory: TxHistory
   txConfirm: TxConfirm
   settings: Settings
-  theme: Theme
+  theme: any
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined)

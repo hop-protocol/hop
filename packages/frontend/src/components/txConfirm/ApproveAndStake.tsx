@@ -1,10 +1,10 @@
 import React from 'react'
 import { Button }  from 'src/components/Button'
-import Box from '@material-ui/core/Box'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import { makeStyles } from '@mui/styles'
+import Typography from '@mui/material/Typography'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
   },
   image: {
@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
     'white-space': 'nowrap'
   },
   boxWrapper: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '2rem'
   }
 }))

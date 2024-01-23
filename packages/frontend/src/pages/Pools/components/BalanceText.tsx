@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { BigNumber } from 'ethers'
 import { Link } from 'react-router-dom'
 import { sanitizeNumericalString } from 'src/utils'

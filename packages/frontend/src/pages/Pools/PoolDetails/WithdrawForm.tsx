@@ -1,12 +1,12 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { Button } from 'src/components/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import MenuItem from '@material-ui/core/MenuItem'
-import MuiLink from '@material-ui/core/Link'
+import MenuItem from '@mui/material/MenuItem'
+import MuiLink from '@mui/material/Link'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { BalanceText } from 'src/pages/Pools/components/BalanceText'
 import { BigNumber } from 'ethers'
 import { InputField } from 'src/pages/Pools/components/InputField'
@@ -117,7 +117,7 @@ export function WithdrawForm(props: any) {
     }
   }, [amountBN, proportional, amountPercent, tokenIndex])
 
-  function handleSelection (event: ChangeEvent<{ value: unknown }>) {
+  function handleSelection (event: any) {
     const value = Number(event.target.value)
     const _selection = selections.find(item => item.value === value)
     const _proportional = value === -1

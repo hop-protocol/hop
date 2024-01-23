@@ -1,8 +1,8 @@
 import React, { FC, useEffect, useState } from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
+import Box from '@mui/material/Box'
+import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
 import { Button } from 'src/components/Button'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
 import { Alert } from 'src/components/Alert'
@@ -18,10 +18,10 @@ import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   title: {
     marginBottom: '4.2rem',
   },

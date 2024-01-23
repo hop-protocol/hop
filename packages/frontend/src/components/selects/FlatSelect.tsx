@@ -1,16 +1,18 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Select, { SelectProps } from '@material-ui/core/Select'
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
+import { makeStyles } from '@mui/styles'
+import Select, { SelectProps } from '@mui/material/Select'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: ({ value }: any) => ({
     color: value === 'default' ? '#fff' : theme.palette.text.secondary,
-    background: value === 'default' ? theme.bgGradient.flat : theme.palette.action.disabled,
+    background: value === 'default' ? theme.bgGradient?.flat : theme.palette.action.disabled,
     minWidth: '13.5rem',
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
-    '&.MuiSelect-select': {
+    '& .MuiSelect-select': {
+      minHeight: '0',
+      padding: '0',
       paddingRight: '2.8rem',
     },
     fontSize: '1.8rem',
@@ -19,6 +21,14 @@ const useStyles = makeStyles(theme => ({
     '&:focus': {
       borderRadius: '2.3rem',
       backgroundColor: theme.palette.action.disabled,
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      border: 'none'
+    },
+    '&.MuiInputBase-colorPrimary': {
+      '& .MuiTypography-root': {
+        color: value === 'default' ? theme.palette?.primary.contrastText : 'inherit',
+      },
     },
     [theme.breakpoints.down('xs')]: {
       minWidth: 0,

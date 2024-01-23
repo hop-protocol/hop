@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Claiming, Claimed } from 'src/pages/Claim'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { ChooseDelegate } from 'src/pages/Claim/ChooseDelegate'
 import { ClaimReview } from 'src/pages/Claim/ClaimReview'

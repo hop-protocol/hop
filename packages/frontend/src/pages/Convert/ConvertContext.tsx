@@ -52,7 +52,7 @@ type ConvertContextProps = {
   loadingSourceBalance: boolean
   needsApproval?: boolean
   needsTokenForFee?: boolean
-  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  selectBothNetworks: (event: any) => void
   selectedNetwork?: Network
   sending: boolean
   setDestTokenAmount: (value: string) => void

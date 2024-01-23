@@ -1,6 +1,6 @@
 import React, { FC, lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import Send from 'src/pages/Send'
 import { Claim } from 'src/pages/Claim'
 import { AirdropPreview } from 'src/pages/Airdrop/AirdropPreview'

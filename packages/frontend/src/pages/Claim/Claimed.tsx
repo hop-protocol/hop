@@ -7,8 +7,8 @@ import { ReactComponent as discordIcon } from 'src/assets/logos/discord.svg'
 import { Button } from 'src/components/Button'
 import { ButtonLink } from 'src/components/Button/ButtonLink'
 import { useWindowSize } from 'usehooks-ts'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 
 export function Claimed() {
   const { width, height } = useWindowSize()

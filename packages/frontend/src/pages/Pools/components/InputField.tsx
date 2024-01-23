@@ -1,12 +1,12 @@
 import React, { ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
-export const useStyles = makeStyles(theme => ({
+export const useStyles = makeStyles((theme: any) => ({
   box: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
     position: 'relative'
   },

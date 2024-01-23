@@ -3,7 +3,7 @@ import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 import { Icon } from 'src/components/ui/Icon'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import ethLogo from 'src/assets/logos/eth.svg'
 

@@ -1,7 +1,7 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import MenuItem from '@material-ui/core/MenuItem'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 

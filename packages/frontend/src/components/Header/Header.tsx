@@ -1,7 +1,8 @@
 import React, { FC, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Theme, makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
+import { makeStyles } from '@mui/styles'
+import { Theme } from '@mui/material/styles'
+import Box from '@mui/material/Box'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
@@ -22,14 +23,14 @@ import {
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
 import { Icon } from 'src/components/ui/Icon'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { Banner } from 'src/components/Banner'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -43,8 +44,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       flexDirection: 'column',
       paddingTop: '2rem',
       marginBottom: '4rem',
-    },
-    transition: 'all 0.15s ease-out',
+    }
   },
   hopLogo: {
     display: 'flex',
@@ -82,7 +82,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     [theme.breakpoints.down('xs')]: {
       display: 'none',
     },
-    transition: 'all 0.15s ease-out',
   },
   balance: {
     display: 'flex',

@@ -45,7 +45,7 @@ const validTokenSymbols = new Set(Object.values(CanonicalToken))
 export function parseDisabledRoutes(
   serializedDisabledRoutes: string,
   serializedWarningRoutes: string,
-  disabledRoutesNoLiquidityWarningMessage: boolean
+  disabledRoutesNoLiquidityWarningMessage: boolean = false
 ): DisabledRoute[] {
   const disabledRoutes = serializedDisabledRoutes?.split(',').map(x => x?.trim())
   const warningRoutes = serializedWarningRoutes?.split(',').map(x => x?.trim())

@@ -1,10 +1,10 @@
 import React, { FC } from 'react'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
-import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
+import { makeStyles } from '@mui/styles'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     padding: theme.padding.extraLight,
     width: '32.0rem',

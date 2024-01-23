@@ -1,14 +1,13 @@
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
-export const useAmountSelectorCardStyles = makeStyles(theme => ({
+export const useAmountSelectorCardStyles = makeStyles((theme: any) => ({
   root: {
     maxWidth: '51.6rem',
     boxSizing: 'border-box',
     [theme.breakpoints.down('xs')]: {
       width: '100%',
     },
-    boxShadow: theme.boxShadow.inner,
-    transition: 'all 0.15s ease-out',
+    boxShadow: theme.boxShadow?.inner, // TODO1
   },
   topRow: {
     marginBottom: '1.8rem',
@@ -16,7 +15,6 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
   networkSelectionBox: {
     display: 'flex',
     alignItems: 'center',
-    transition: 'all 0.15s ease-out',
   },
   networkLabel: {
     display: 'flex',

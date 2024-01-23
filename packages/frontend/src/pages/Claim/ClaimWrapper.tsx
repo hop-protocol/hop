@@ -1,9 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'src/components/Button'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 
 export function ClaimWrapper(props: any) {

@@ -1,19 +1,18 @@
 import React, { FC, useEffect } from 'react'
 import { constants } from 'ethers'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { Button } from 'src/components/Button'
 import { Alert } from 'src/components/Alert'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
 import { useTokenWrapper } from './TokenWrapperContext'
 import Network from 'src/models/Network'
 import Expandable from 'src/components/TokenWrapper/Expandable'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   button: {
     margin: `0 ${theme.padding.light}`,
-    minWidth: '11rem',
-    transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
+    minWidth: '11rem'
   },
   warning: {
     marginBottom: theme.padding.default,

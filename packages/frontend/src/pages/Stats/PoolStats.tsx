@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { Icon } from 'src/components/ui/Icon'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { commafy } from 'src/utils'
 

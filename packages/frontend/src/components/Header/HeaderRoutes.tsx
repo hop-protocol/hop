@@ -1,18 +1,18 @@
 import React, { FC, ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import Tabs from '@material-ui/core/Tabs'
-import Tab from '@material-ui/core/Tab'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
 import { isMainnet, showRewards } from 'src/config'
 import { useClaim } from 'src/pages/Claim/useClaim'
-import { useTheme, makeStyles } from '@material-ui/core/styles'
+import { useTheme, makeStyles } from '@mui/styles'
 // import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 
 const useStyles = makeStyles((theme: any) => ({
   tabs: {
     "& .MuiTabs-flexContainer": {
       flexWrap: 'wrap',
-      justifyContent: 'center'
-    }
+      justifyContent: 'center',
+    },
   }
 }));
 
@@ -20,7 +20,7 @@ export const HeaderRoutes: FC = () => {
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const styles = useStyles()
-  const theme = useTheme()
+  const theme: any = useTheme()
 
   const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
     event.preventDefault()

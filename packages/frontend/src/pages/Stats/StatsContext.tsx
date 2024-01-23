@@ -60,11 +60,7 @@ const columns: TableColumns[] = [
       {
         Header: 'Available Native',
         accessor: 'availableNative',
-      },
-      {
-        Header: 'Vault Balance',
-        accessor: 'vaultBalance',
-      },
+      }
     ],
   },
 ]
@@ -100,7 +96,6 @@ type BonderStats = {
   virtualDebt: number
   totalAmount: number
   availableNative: number
-  vaultBalance: number
   error?: string
 }
 
@@ -246,14 +241,13 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
       return
     }
-    const [credit, debit, totalDebit, availableLiquidity, nativeBalance, vaultBalance] =
+    const [credit, debit, totalDebit, availableLiquidity, nativeBalance ] =
       await Promise.all([
         bridge.getCredit(selectedNetwork.slug, bonder),
         bridge.getDebit(selectedNetwork.slug, bonder),
         bridge.getTotalDebit(selectedNetwork.slug, bonder),
         bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
         bridge.getEthBalance(selectedNetwork.slug, bonder),
-        bridge.getVaultBalance(selectedNetwork.slug, bonder),
       ])
 
     const virtualDebt = totalDebit.sub(debit)
@@ -278,7 +272,6 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
       ),
       availableNative: Number(formatEther(nativeBalance.toString())),
-      vaultBalance: Number(formatUnits(vaultBalance.toString(), token.decimals)),
     }
   }
 

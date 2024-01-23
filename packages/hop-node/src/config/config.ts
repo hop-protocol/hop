@@ -132,20 +132,6 @@ export type SignerConfig = {
   lambdaFunctionName?: string
 }
 
-export type VaultChainTokenConfig = {
-  depositThresholdAmount: number
-  depositAmount: number
-  autoDeposit: boolean
-  autoWithdraw: boolean
-  strategy: string
-}
-
-export type VaultChain = {
-  [key in ChainSlug]: VaultChainTokenConfig
-}
-
-export type Vault = Record<string, VaultChain>
-
 export type BlocklistConfig = {
   path: string
   addresses: Record<string, boolean>
@@ -168,7 +154,6 @@ export type Config = {
   fees: Fees
   routes: Routes
   signerConfig: SignerConfig
-  vault: Vault
   blocklist: BlocklistConfig
   emergencyDryMode: boolean
 }
@@ -293,7 +278,6 @@ export const config: Config = {
   signerConfig: {
     type: 'keystore'
   },
-  vault: {},
   blocklist: {
     path: '',
     addresses: {}
@@ -438,10 +422,6 @@ export const setConfigTokens = (tokens: Tokens) => {
 
 export const setSignerConfig = (signerConfig: SignerConfig) => {
   config.signerConfig = { ...config.signerConfig, ...signerConfig }
-}
-
-export const setVaultConfig = (vault: Vault) => {
-  config.vault = { ...config.vault, ...vault }
 }
 
 export const setBlocklistConfig = (blocklist: BlocklistConfig) => {

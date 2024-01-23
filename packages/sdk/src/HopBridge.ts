@@ -1375,7 +1375,7 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const promiseResult = await Promise.all([
-      this.getBaseAvailableCreditIncludingVault(
+      this.getBaseAvailableCredit(
         sourceChain,
         destinationChain
       ),
@@ -1474,7 +1474,7 @@ class HopBridge extends Base {
     return BigNumber.from(0)
   }
 
-  private async getBaseAvailableCreditIncludingVault (
+  private async getBaseAvailableCredit (
     sourceChain: TChain,
     destinationChain: TChain
   ) : Promise<BigNumber | undefined> {
@@ -1484,34 +1484,14 @@ class HopBridge extends Base {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
         const tokenData = data?.[this.tokenSymbol]
-        const _baseAvailableCreditIncludingVault = tokenData?.baseAvailableCreditIncludingVault?.[sourceChain.slug]?.[destinationChain.slug]
-        if (_baseAvailableCreditIncludingVault) {
-          return BigNumber.from(_baseAvailableCreditIncludingVault)
+        const _baseAvailableCredit = tokenData?.baseAvailableCredit?.[sourceChain.slug]?.[destinationChain.slug]
+        if (_baseAvailableCredit) {
+          return BigNumber.from(_baseAvailableCredit)
         }
       }
     } catch (err) {
       console.error(err)
     }
-  }
-
-  public async getVaultBalance (
-    destinationChain: TChain,
-    bonder: string
-  ): Promise<BigNumber> {
-    destinationChain = this.toChainModel(destinationChain)
-    try {
-      const data = await this.getBonderAvailableLiquidityData()
-      if (data) {
-        const tokenData = data?.[this.tokenSymbol]
-        const _vaultBalance = tokenData?.bonderVaultBalance?.[bonder]?.[destinationChain.slug]
-        if (_vaultBalance) {
-          return BigNumber.from(_vaultBalance)
-        }
-      }
-    } catch (err) {
-      console.error(err)
-    }
-    return BigNumber.from(0)
   }
 
   /**

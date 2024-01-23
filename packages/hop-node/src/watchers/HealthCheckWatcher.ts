@@ -633,7 +633,7 @@ export class HealthCheckWatcher {
       if (!totalLiquidity || totalLiquidity?.eq(0)) {
         throw new Error('Expected totalLiquidity to be defined and non-zero')
       }
-      const availableAmounts = tokenData.baseAvailableCreditIncludingVault
+      const availableAmounts = tokenData.baseAvailableCredit
       for (const source in availableAmounts) {
         for (const dest in availableAmounts[source]) {
           chainAmounts[dest] = BigNumber.from(availableAmounts[source][dest])

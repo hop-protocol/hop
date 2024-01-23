@@ -27,7 +27,6 @@ import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
 } from 'src/types/error'
-import { Strategy, Vault } from 'src/vault'
 import {
   TxRetryDelayMs,
   config as globalConfig,
@@ -65,7 +64,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean = false
   tag: string
   prefix: string
-  vault?: Vault
   mutex: Mutex
 
   constructor (config: Config) {
@@ -101,14 +99,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.dryMode = config.dryMode
     }
     const signer = wallets.get(this.chainSlug)
-    const vaultConfig = globalConfig.vault
-    if (vaultConfig[this.tokenSymbol as AssetSymbol]?.[this.chainSlug as ChainSlug]) {
-      const strategy = vaultConfig[this.tokenSymbol as AssetSymbol]?.[this.chainSlug as ChainSlug]?.strategy as Strategy
-      if (strategy) {
-        this.logger.debug(`setting vault instance. strategy: ${strategy}, chain: ${this.chainSlug}, token: ${this.tokenSymbol}`)
-        this.vault = Vault.from(strategy, this.chainSlug as Chain, this.tokenSymbol, signer)
-      }
-    }
     if (!mutexes[this.chainSlug]) {
       mutexes[this.chainSlug] = new Mutex()
     }
@@ -249,31 +239,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  async unstakeAndDepositToVault (amount: BigNumber) {
-    if (!this.vault) {
-      return
-    }
-
-    if (amount.eq(0)) {
-      return
-    }
-
-    const creditBalance = await this.bridge.getBaseAvailableCredit()
-    if (creditBalance.lt(amount)) {
-      this.logger.warn(`available credit balance is less than amount wanting to deposit. Returning. creditBalance: ${this.bridge.formatUnits(creditBalance)}, unstakeAndDepositAmount: ${this.bridge.formatUnits(amount)}`)
-      return
-    }
-
-    this.logger.debug(`unstaking from bridge. amount: ${this.bridge.formatUnits(amount)}`)
-    let tx = await this.bridge.unstake(amount)
-    await tx.wait()
-
-    this.logger.debug(`depositing to vault. amount: ${this.bridge.formatUnits(amount)}`)
-    tx = await this.vault.deposit(amount)
-    await tx.wait()
-    this.logger.debug('unstake and vault deposit complete')
-  }
-
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
     // PolygonZk RPC does not allow eth_call with a from address of 0x0.
     // TODO: More robust check for PolygonZk
@@ -300,44 +265,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       logger.error(`getIsRecipientReceivable non-revert err: ${err.message}`)
       return true
     }
-  }
-
-  async withdrawFromVaultAndStake (amount: BigNumber) {
-    if (!this.vault) {
-      return
-    }
-
-    if (amount.eq(0)) {
-      return
-    }
-
-    const vaultBalance = await this.vault.getBalance()
-    if (vaultBalance.lt(amount)) {
-      this.logger.warn(`vault balance is less than amount wanting to withdraw. Returning. vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, withdrawAndStakeAmount: ${this.bridge.formatUnits(amount)}`)
-      return
-    }
-
-    this.logger.debug(`withdrawing from vault. amount: ${this.bridge.formatUnits(amount)}`)
-    let tx = await this.vault.withdraw(amount)
-    await tx.wait()
-
-    let balance: BigNumber
-    const isNative = isNativeToken(this.chainSlug as Chain, this.tokenSymbol)
-    if (isNative) {
-      const address = await this.bridge.getBonderAddress()
-      balance = await this.bridge.getBalance(address)
-    } else {
-      const token = await (this.bridge as L1Bridge).l1CanonicalToken()
-      balance = await token.getBalance()
-    }
-
-    // this is needed because the amount withdrawn from vault may not be exact
-    amount = bigNumberMin(amount, balance)
-
-    this.logger.debug(`staking on bridge. amount: ${this.bridge.formatUnits(amount)}`)
-    tx = await this.bridge.stake(amount)
-    await tx.wait()
-    this.logger.debug('vault withdraw and stake complete')
   }
 
   // force quit so docker can restart

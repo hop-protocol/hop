@@ -16,7 +16,6 @@ export const populateBonderStats = (item: any) => {
     pendingAmount: item.pendingAmount,
     totalAmount: item.totalAmount,
     availableNative: item.availableNative,
-    vaultBalance: item.vaultBalance,
   }
 }
 
@@ -90,12 +89,7 @@ function BonderStats() {
             Header: 'Available Native',
             accessor: 'availableNative',
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
-          },
-          {
-            Header: 'Vault Balance',
-            accessor: 'vaultBalance',
-            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
-          },
+          }
         ],
       },
     ],

@@ -4,14 +4,52 @@
   "description": "Hop Protocol networks config",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./abi": {
+      "types": "./dist/abi/index.d.ts",
+      "import": "./dist/abi/index.js",
+      "require": "./dist/cjs/abi/index.js"
+    },
+    "./addresses": {
+      "types": "./dist/addresses/index.d.ts",
+      "import": "./dist/addresses/index.js",
+      "require": "./dist/cjs/addresses/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js",
+      "require": "./dist/cjs/config/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js",
+      "require": "./dist/cjs/contracts/index.js"
+    },
+    "./contracts/*": {
+      "types": "./dist/contracts/*.d.ts",
+      "import": "./dist/contracts/*.js",
+      "require": "./dist/cjs/contracts/*.js"
+    },
+    "./metadata": {
+      "types": "./dist/metadata/index.d.ts",
+      "import": "./dist/metadata/index.js",
+      "require": "./dist/cjs/metadata/index.js"
+    },
+    "./networks": {
+      "types": "./dist/networks/index.d.ts",
+      "import": "./dist/networks/index.js",
+      "require": "./dist/cjs/networks/index.js"
+    }
+  },
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "jest test",
     "dev": "npm run version && tsc --watch",
-    "build": "npm run version && npm run build:typechain && npm run build:ts",
+    "build": "npm run version && npm run build:typechain && npm run build:ts && npm run build:cjs",
     "build:ts": "tsc",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "version:bump": "npm version prerelease --preid=beta",
@@ -27,7 +65,6 @@
     "bump-release": "npm run version:bump && npm run release && npm run json:mainnet",
     "prepublishOnly": "npm run lint && npm run build",
     "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
-    "json:staging": "node -e \"console.log(JSON.stringify(require('./addresses').staging, null, 2))\" > build/addresses/staging.json",
     "upload": "npm run build && node s3upload/main"
   },
   "directories": {},

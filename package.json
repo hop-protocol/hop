@@ -30,7 +30,6 @@
     "eslint-plugin-n": "16.6.2",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
     "eslint-plugin-unused-imports": "3.0.0",
-    "rimraf": "5.0.5",
     "typescript": "5.3.3"
   },
   "//": [

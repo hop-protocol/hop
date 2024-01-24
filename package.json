@@ -5,7 +5,8 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=18.19.0"
+    "node": ">=18.19.0",
+    "npm": ">=7.24.2"
   },
   "workspaces": [
     "packages/core",

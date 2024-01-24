@@ -6,6 +6,9 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js",
     "test": "jest",

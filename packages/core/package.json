@@ -6,6 +6,16 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "abi",
+    "addresses",
+    "config",
+    "contracts",
+    "metadata",
+    "networks",
+    "s3upload"
+  ],
   "exports": {
     "./abi": {
       "types": "./dist/abi/index.d.ts",

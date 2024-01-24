@@ -1,6 +1,6 @@
 module.exports = {
-  "extends": "../../.eslintrc.js",
-  "ignorePatterns": [
-    "src/contracts"
+  extends: '../../.eslintrc.js',
+  ignorePatterns: [
+    'src/contracts'
   ]
 }

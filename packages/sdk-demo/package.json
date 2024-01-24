@@ -4,6 +4,27 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
+    "start": "react-app-rewired start",
+    "dev": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none npm run start",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true react-app-rewired build",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
   "dependencies": {
     "@emotion/react": "11.9.0",
     "@emotion/styled": "11.8.1",
@@ -28,27 +49,6 @@
     "url": "0.11.3",
     "usehooks-ts": "2.9.1",
     "web-vitals": "2.1.4"
-  },
-  "scripts": {
-    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
-    "start": "react-app-rewired start",
-    "dev": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none npm run start",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true react-app-rewired build",
-    "lint": "eslint --fix \"**/*.{ts,tsx}\"",
-    "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   },
   "devDependencies": {
     "@types/react-syntax-highlighter": "15.5.4",

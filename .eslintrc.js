@@ -80,5 +80,10 @@ module.exports = {
     // https://github.com/eslint/eslint/issues/3400
     'no-lonely-if': 'off', // Could be a 1 but erroneously fixes nested items. Nesting is user error but still not worth the hassle
     '@typescript-eslint/no-unnecessary-condition': 0 // Nice to have but need to clean up first
-  }
+  },
+  ignorePatterns: [
+    'node_modules',
+    'build',
+    'dist'
+  ]
 }

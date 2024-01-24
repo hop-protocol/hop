@@ -14,12 +14,10 @@
     "test": "jest test",
     "bonder": "npm run build && node bin/hop-node bonder",
     "arb-bot": "npm run build && node bin/hop-node arb-bot",
-    "start": "npm run build && npm run build-info && node bin/hop-node",
-    "dev": "npm run build-info && tsc -p tsconfig.json --watch",
-    "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
-    "postinstall": "mkdir -p dist/src && npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
+    "start": "npm run build && node bin/hop-node",
+    "dev": "tsc -p tsconfig.json --watch",
     "build": "tsc -p tsconfig.json",
-    "lint": "eslint --fix \"src/**/*\""
+    "lint": "eslint . --ext .ts --fix"
   },
   "bin": {
     "hop-node": "bin/hop-node"

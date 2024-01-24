@@ -63,7 +63,7 @@
     "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "version:bump": "npm version prerelease --preid=beta",
-    "lint": "eslint --fix \"src/**/*\"",
+    "lint": "eslint . --ext .ts --fix",
     "publish:latest": "npm publish --tag latest --access public",
     "publish:beta": "npm publish --tag beta --access public",
     "publish:next": "npm publish --tag next --access public",
@@ -89,5 +89,8 @@
     "jest": "29.7.0",
     "ts-jest": "29.1.1",
     "typechain": "8.1.0"
+  },
+  "peerDependencies": {
+    "ethers": "^5"
   }
 }

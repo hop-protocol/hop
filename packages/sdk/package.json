@@ -19,7 +19,7 @@
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
-    "lint": "eslint --fix",
+    "lint": "eslint . --ext .ts --fix",
     "version:bump": "npm version prerelease --preid=beta",
     "publish:latest": "npm publish --tag latest --access public",
     "publish:beta": "npm publish --tag beta --access public",
@@ -48,8 +48,7 @@
     "fast-memoize": "2.5.2",
     "luxon": "2.5.0",
     "merkletreejs": "0.3.11",
-    "p-queue": "6.6.2",
-    "web3": "1.7.5"
+    "p-queue": "6.6.2"
   },
   "devDependencies": {
     "@babel/cli": "7.23.4",
@@ -69,5 +68,8 @@
     "typedoc": "0.25.7",
     "typedoc-plugin-markdown": "3.17.1",
     "uglify-es": "3.3.9"
+  },
+  "peerDependencies": {
+    "ethers": "^5"
   }
 }

@@ -4,6 +4,23 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
+    "dev": "BROWSER=none npm start",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
+    "test": "react-app-rewired test",
+    "eject": "react-scripts eject",
+    "deploy": "npx --yes netlify-cli deploy --prod",
+    "deploy:ipfs": "npx --yes ipfs-deploy -p infura build --no-open --no-clipboard",
+    "deploy:local": "git stash && yarn clean && yarn build && yarn deploy"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ],
   "dependencies": {
     "@ethersproject/abi": "5.7.0",
     "@gnosis.pm/safe-apps-react-sdk": "4.6.2",
@@ -48,23 +65,6 @@
     "usehooks-ts": "2.9.1",
     "web-vitals": "0.2.4"
   },
-  "scripts": {
-    "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
-    "start": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
-    "dev": "BROWSER=none npm start",
-    "lint": "eslint --fix \"**/*.{ts,tsx}\"",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
-    "test": "react-app-rewired test",
-    "eject": "react-scripts eject",
-    "deploy": "npx --yes netlify-cli deploy --prod",
-    "deploy:ipfs": "npx --yes ipfs-deploy -p infura build --no-open --no-clipboard",
-    "deploy:local": "git stash && yarn clean && yarn build && yarn deploy"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not op_mini all"
-  ],
   "devDependencies": {
     "@testing-library/jest-dom": "5.17.0",
     "@types/lodash": "4.14.202",

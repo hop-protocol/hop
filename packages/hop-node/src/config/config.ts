@@ -1,4 +1,3 @@
-import buildInfo from 'src/.build-info.json'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
@@ -17,7 +16,9 @@ import {
 } from 'src/constants'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
+import { execSync } from 'child_process';
 import { parseEther } from 'ethers/lib/utils'
+
 require('./loadEnvFile')
 const defaultDbPath = path.resolve(__dirname, '../../db_data')
 
@@ -43,7 +44,7 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const awsProfile = process.env.AWS_PROFILE
-export const gitRev = buildInfo.rev
+export const gitRev = execSync('git rev-parse --short HEAD').toString().trim()
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 

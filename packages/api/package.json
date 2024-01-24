@@ -10,10 +10,9 @@
     "start": "node dist/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "lint": "eslint --fix \"src/**/*\""
+    "lint": "eslint . --ext .ts --fix"
   },
   "dependencies": {
-    "@hop-protocol/core": "0.0.1-beta.218",
     "@hop-protocol/sdk": "0.0.1-beta.595",
     "cors": "2.8.5",
     "express": "4.18.1",

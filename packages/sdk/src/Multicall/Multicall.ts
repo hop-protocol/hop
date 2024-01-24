@@ -1,8 +1,8 @@
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { Multicall3 } from '@hop-protocol/core/abi'
 import { Contract, constants, ethers, providers } from 'ethers'
+import { Multicall3 } from '@hop-protocol/core/abi'
 import { PriceFeedFromS3 } from '../priceFeed'
 import { defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { getTokenDecimals } from '../utils/getTokenDecimals'
 import { config as sdkConfig } from '../config'
 

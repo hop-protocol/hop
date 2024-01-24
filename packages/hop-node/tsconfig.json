@@ -9,7 +9,6 @@
   },
   "include": [
     "src",
-    "src/**/*.json", // Required to include JSON files specifically
-    "src/.build-info.json" // Spefically include hidden build file
+    "src/**/*.json" // Required to include JSON files specifically
   ]
 }

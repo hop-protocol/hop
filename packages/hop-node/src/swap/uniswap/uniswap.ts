@@ -1,6 +1,5 @@
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import { erc20Abi } from '@hop-protocol/core/abi'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants } from 'ethers'
@@ -9,6 +8,7 @@ import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-c
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { SwapInput } from '../types'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 const logger = new Logger({

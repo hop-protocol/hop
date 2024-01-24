@@ -4,7 +4,7 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
-import { AssetSymbol, Bps, ChainSlug, config as coreConfig } from '@hop-protocol/core/config'
+import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
 import { BonderConfig } from 'src/config/types'
 import {
   Chain,

@@ -9,7 +9,6 @@ import bigNumberMin from 'src/utils/bigNumberMin'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { BigNumber, constants } from 'ethers'
 import {
   Chain,
@@ -33,7 +32,6 @@ import {
   hostname
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import { isNativeToken } from 'src/utils/isNativeToken'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract

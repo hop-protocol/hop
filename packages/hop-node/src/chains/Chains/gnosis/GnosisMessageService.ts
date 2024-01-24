@@ -1,6 +1,4 @@
 import assert from 'assert'
-import { l1xDaiAmbAbi } from '@hop-protocol/core/abi'
-import { l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit, Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
@@ -8,6 +6,8 @@ import { GnosisAddresses, GnosisCanonicalAddresses } from 'src/chains/Chains/gno
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts'
 import { NetworkSlug } from '@hop-protocol/core/networks'
+import { l1xDaiAmbAbi } from '@hop-protocol/core/abi'
+import { l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 import { toHex } from 'web3-utils'
 

@@ -11,13 +11,13 @@ module.exports = {
   },
   plugins: ['react'],
   rules: {
-    'react-hooks/exhaustive-deps': 0,
-    'react-hooks/rules-of-hooks': 0,
-    'react/display-name': 0,
-    'react/jsx-key': 0,
-    'react/jsx-one-expression-per-line': 0,
-    'react/no-unescaped-entities': 0,
-    'react/prop-types': 0,
+    'react-hooks/exhaustive-deps': 'off',
+    'react-hooks/rules-of-hooks': 'off',
+    'react/display-name': 'off',
+    'react/jsx-key': 'off',
+    'react/jsx-one-expression-per-line': 'off',
+    'react/no-unescaped-entities': 'off',
+    'react/prop-types': 'off',
     'react/jsx-filename-extension': [
       2,
       {

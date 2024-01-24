@@ -1,5 +1,4 @@
 import Address from 'src/models/Address'
-import { erc20Abi } from '@hop-protocol/core/abi'
 import Network from 'src/models/Network'
 import React, {
   ChangeEvent,
@@ -11,17 +10,18 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import logger from 'src/logger'
 import { BigNumber, Signer, constants } from 'ethers'
 import { Multicall, Token } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { l2Networks } from 'src/config/networks'
 import { stableCoins } from 'src/utils/constants'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
 import { usePoolStats } from './usePoolStats'

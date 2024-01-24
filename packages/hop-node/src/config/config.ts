@@ -19,7 +19,7 @@ import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { parseEther } from 'ethers/lib/utils'
 require('./loadEnvFile')
-const defaultDbPath = path.resolve(__dirname, '../../../db_data')
+const defaultDbPath = path.resolve(__dirname, '../../db_data')
 
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const hostname = process.env.HOSTNAME ?? os.hostname()

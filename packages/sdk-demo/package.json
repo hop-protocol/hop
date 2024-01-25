@@ -1,6 +1,7 @@
 {
   "name": "@hop-protocol/sdk-demo",
   "version": "0.0.0",
+  "description": "Hop Protocol SDK Demo",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,

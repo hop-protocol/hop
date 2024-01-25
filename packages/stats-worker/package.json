@@ -1,10 +1,9 @@
 {
   "name": "@hop-protocol/stats-worker",
   "version": "0.0.0",
-  "description": "",
+  "description": "Hop Protocol Stats Worker",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "index.js",
   "private": true,
   "engines": {
     "node": ">=18.19.0"

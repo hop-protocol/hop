@@ -4,10 +4,9 @@
   "description": "The Hop Node for Hop Protocol",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "dist/index.js",
   "private": true,
   "engines": {
-    "node": ">=20.10.0"
+    "node": ">=18.19.0"
   },
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",

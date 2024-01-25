@@ -4,6 +4,9 @@
   "description": "Hop Protocol networks config",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.19.0"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -76,7 +79,7 @@
     "bump-release": "npm run version:bump && npm run release && npm run json:mainnet",
     "prepublishOnly": "npm run lint && npm run build",
     "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
-    "upload": "npm run build && node s3upload/main"
+    "upload": "npm run build && node dist/s3upload/main"
   },
   "directories": {},
   "dependencies": {

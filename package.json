@@ -1,6 +1,7 @@
 {
   "name": "hop",
   "version": "1.0.0",
+  "description": "Hop Protocol Monorepo",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,

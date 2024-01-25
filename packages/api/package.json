@@ -1,6 +1,7 @@
 {
   "name": "@hop-protocol/api",
   "version": "0.0.0",
+  "description": "Hop Protocol API",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,

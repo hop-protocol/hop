@@ -7,6 +7,7 @@
   "private": true,
   "main": "dist/src/index.js",
   "scripts": {
+    "preinstall": "pnpm dlx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "node dist/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,7 +15,7 @@
     "lint": "eslint . --ext .ts --fix"
   },
   "dependencies": {
-    "@hop-protocol/sdk": "0.0.1-beta.595",
+    "@hop-protocol/sdk": "workspace:*",
     "cors": "2.8.5",
     "express": "4.18.1",
     "express-rate-limit": "7.1.5",

@@ -6,14 +6,16 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=20.10.0"
+    "node": ">=20.10.0",
+    "pnpm": ">=8"
   },
   "scripts": {
+    "preinstall": "pnpm dlx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "jest test",
-    "bonder": "npm run build && node bin/hop-node bonder",
-    "arb-bot": "npm run build && node bin/hop-node arb-bot",
-    "start": "npm run build && node bin/hop-node",
+    "bonder": "pnpm build && node bin/hop-node bonder",
+    "arb-bot": "pnpm build && node bin/hop-node arb-bot",
+    "start": "pnpm build && node bin/hop-node",
     "dev": "tsc -p tsconfig.json --watch",
     "build": "tsc -p tsconfig.json",
     "lint": "eslint . --ext .ts --fix"
@@ -35,8 +37,8 @@
     "@ethereumjs/tx": "5.0.0",
     "@ethersproject/hdnode": "5.0.9",
     "@fxportal/maticjs-fxportal": "1.1.1",
-    "@hop-protocol/core": "0.0.1-beta.218",
-    "@hop-protocol/sdk": "0.0.1-beta.595",
+    "@hop-protocol/core": "workspace:*",
+    "@hop-protocol/sdk": "workspace:*",
     "@maticnetwork/maticjs-zkevm": "npm:@maticnetwork/maticjs@3.7.7",
     "@maticnetwork/maticjs": "3.5.0",
     "@maticnetwork/maticjs-ethers": "1.0.3",

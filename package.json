@@ -7,21 +7,13 @@
   "private": true,
   "engines": {
     "node": ">=20.10.0",
-    "npm": ">=7.24.2"
+    "pnpm": ">=8"
   },
-  "workspaces": [
-    "packages/core",
-    "packages/sdk",
-    "packages/api",
-    "packages/frontend",
-    "packages/sdk-demo",
-    "packages/stats-worker",
-    "packages/hop-node"
-  ],
   "scripts": {
-    "clean": "npm run clean --workspaces && rm -rf tsconfig.buildinfo && rm -rf node_modules",
-    "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces"
+    "preinstall": "pnpm dlx only-allow pnpm",
+    "clean": "pnpm recursive run clean && rm -rf tsconfig.buildinfo && rm -rf node_modules",
+    "build": "pnpm recursive run build",
+    "lint": "pnpm recursive run lint"
   },
   "devDependencies": {
     "@types/jest": "29.5.11",
@@ -35,22 +27,17 @@
     "typescript": "5.3.3"
   },
   "//": [
-    "Temporary overrides, remove when packages are updated. npm workspaces requires overrides at the root: https://github.com/npm/rfcs/blob/main/accepted/0036-overrides.md#only-root-package-may-contain-overrides",
-    " * react-scripts: Our react-scripts version is old and needs newer TS and linting versions to work. Remove when we update react-scripts.",
-    " * csp-html-webpack-plugin: The latest version uses an old version of html-webpack-plugin that has incompatible types. Remove when we use a different package than csp-html-webpack-plugin.",
-    " * type-fest: Not sure exactly which package breaks without this."
+    "Temporary overrides, remove when packages are updated. pnpm workspaces requires overrides at the root: https://github.com/npm/rfcs/blob/main/accepted/0036-overrides.md#only-root-package-may-contain-overrides",
+    " * @typescript-eslint/*: Remove when the frontend react-scripts version is updated or removed",
+    " * type-fest & minimatch: Not sure exactly which package breaks without this."
   ],
-  "overrides": {
-    "react-scripts": {
-      "typescript": "5.3.3",
+  "pnpm": {
+    "overrides": {
       "@typescript-eslint/eslint-plugin": "6.18.1",
       "@typescript-eslint/parser": "6.18.0",
+      "@types/eslint": "8.56.2",
+      "type-fest": "4.9.0",
       "minimatch": "5.1.2"
-    },
-    "csp-html-webpack-plugin": {
-      "html-webpack-plugin": "4.5.2"
-    },
-    "type-fest": "4.9.0",
-    "minimatch": "5.1.2"
+    }
   }
 }

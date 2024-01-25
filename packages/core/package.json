@@ -5,7 +5,8 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "engines": {
-    "node": ">=20.10.0"
+    "node": ">=20.10.0",
+    "pnpm": ">=8"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -57,29 +58,24 @@
     }
   },
   "scripts": {
+    "preinstall": "pnpm dlx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./abi ./addresses ./config ./contracts ./metadata ./networks",
     "test": "jest test",
-    "dev": "npm run version && tsc --watch",
-    "build": "npm run version && npm run build:typechain && npm run build:ts && npm run build:cjs && npm run build:toplevel",
+    "dev": "pnpm version && tsc --watch",
+    "build": "pnpm version && pnpm build:all",
+    "build:all": "pnpm build:ts && pnpm build:cjs && pnpm build:typechain && pnpm build:toplevel",
     "build:ts": "tsc",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
     "build:toplevel": "cp -r ./dist/{abi,addresses,config,contracts,metadata,networks} ./",
-    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
-    "version:bump": "npm version prerelease --preid=beta",
     "lint": "eslint . --ext .ts --fix",
-    "publish:latest": "npm publish --tag latest --access public",
-    "publish:beta": "npm publish --tag beta --access public",
-    "publish:next": "npm publish --tag next --access public",
-    "dist-tag:latest": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" latest",
-    "dist-tag:beta": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" beta",
-    "dist-tag:next": "npm dist-tag add \"@hop-protocol/core@$(jq -r .version <package.json)\" next",
-    "release": "npm run clean && npm test && npm run publish:latest",
-    "bump": "npm run clean && npm run build && npm test && npm run json:mainnet && npm run version:bump",
-    "bump-release": "npm run version:bump && npm run release && npm run json:mainnet",
-    "prepublishOnly": "npm run lint && npm run build",
+    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
+    "publish": "pnpm publish --tag latest --access public",
+    "bump": "pnpm version prerelease --preid=beta",
+    "release": "pnpm clean && pnpm build:all && pnpm lint && pnpm test && pnpm json:mainnet && pnpm publish",
+    "bump-release": "pnpm bump && pnpm release",
     "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
-    "upload": "npm run build && node dist/s3upload/main"
+    "upload": "pnpm build:ts && node dist/s3upload/main"
   },
   "directories": {},
   "dependencies": {

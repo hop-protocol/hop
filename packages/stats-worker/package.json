@@ -5,10 +5,8 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
-  "engines": {
-    "node": ">=20.10.0"
-  },
   "scripts": {
+    "preinstall": "pnpm dlx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "ts-node src/index.ts",
     "start:yields": "ts-node src/index.ts --yields",
@@ -25,8 +23,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.338.0",
-    "@hop-protocol/core": "0.0.1-beta.218",
-    "@hop-protocol/sdk": "0.0.1-beta.595",
+    "@hop-protocol/core": "workspace:*",
+    "@hop-protocol/sdk": "workspace:*",
     "@pinata/sdk": "1.1.26",
     "comment-json": "4.2.3",
     "csv-writer": "1.6.0",

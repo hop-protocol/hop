@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=18.19.0"
+    "node": ">=20.10.0"
   },
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",

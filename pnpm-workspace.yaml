@@ -3,7 +3,7 @@ packages:
   - 'packages/core'
   - 'packages/sdk'
   - 'packages/api'
-  # - 'packages/frontend'
+  - 'packages/frontend'
   # - 'packages/sdk-demo'
   - 'packages/stats-worker'
   - 'packages/hop-node'

@@ -31,7 +31,8 @@
     "moduleResolution": "node",
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "src",

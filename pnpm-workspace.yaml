@@ -1,5 +1,5 @@
 packages:
-  # TODO: convert to single 'pacakges/*' once FE and sdk-demo build
+  # TODO: convert to single 'pacakges/*' once sdk-demo builds
   - 'packages/core'
   - 'packages/sdk'
   - 'packages/api'

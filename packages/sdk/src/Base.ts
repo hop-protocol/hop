@@ -5,7 +5,7 @@ import { ArbERC20 } from '@hop-protocol/core/contracts'
 import { ArbERC20__factory } from '@hop-protocol/core/contracts'
 import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts'
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts'
-import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { ChainSlug, Errors, NetworkSlug } from './constants'
 import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts'
@@ -25,7 +25,6 @@ import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMinGasLimit } from './utils/getMinGasLimit'
 import { getMinGasPrice } from './utils/getMinGasPrice'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
@@ -951,8 +950,6 @@ export class Base {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
     const gasPrice = await this.getGasPrice(chain.provider!)
-    const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider!)
     const serializedTx = serializeTransaction({
       value: parseEther('0'),
       gasPrice,
@@ -960,8 +957,12 @@ export class Base {
       to,
       data
     })
+
+    const gasPriceOracleAddress = '0x420000000000000000000000000000000000000F'
+    const gasPriceOracleAbi = ['function getL1Fee(bytes memory _data) external view returns (uint256)']
+    const GasPriceOracle: Contract = new Contract(gasPriceOracleAddress, gasPriceOracleAbi, chain.provider!)
     const timeStart = Date.now()
-    const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    const l1FeeInWei = await GasPriceOracle.getL1Fee(serializedTx)
     this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
     return l1FeeInWei
   }

@@ -32,7 +32,6 @@
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
   "dependencies": {
-    "@eth-optimism/contracts": "0.6.0",
     "@hop-protocol/core": "workspace:*",
     "dotenv": "16.4.1",
     "esbuild": "0.20.0",

@@ -413,7 +413,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
   // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
   async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
-    const res = await fetch(getRpcUrl(chainSlug)!, {
+    const res = await fetch(getRpcUrl(chainSlug), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

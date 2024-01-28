@@ -1,4 +1,4 @@
-// @ts-expect-error
+// @ts-expect-error No types as of 20240128
 import BlockDater from 'ethereum-block-by-date'
 import { Chain } from '../models/Chain'
 import { DateTime } from 'luxon'

@@ -246,7 +246,7 @@ export async function swap (config: SwapInput) {
   }
 
   if (ethNativeChains.includes(chain) && toToken === 'ETH') {
-    routeToken1 = Ether.onChain(chainSlugToId(chain)!)
+    routeToken1 = Ether.onChain(chainSlugToId(chain))
   }
 
   if (chain === Chain.Polygon && toToken === 'MATIC') {
@@ -255,7 +255,7 @@ export async function swap (config: SwapInput) {
     } else if (pool.token1.symbol === 'WMATIC') {
       routeToken1 = pool.token1
     } else {
-      routeToken1 = Ether.onChain(chainSlugToId(chain)!)
+      routeToken1 = Ether.onChain(chainSlugToId(chain))
     }
   }
 

@@ -50,7 +50,6 @@ module.exports = {
     }],
 
     // Explicit errors
-    '@typescript-eslint/prefer-nullish-coalescing': 'error',
     'array-callback-return': 'error',
     'block-scoped-var': 'error',
     'dot-notation': 'error',
@@ -74,6 +73,8 @@ module.exports = {
     '@typescript-eslint/no-redundant-type-constituents': 'off',
 
     // Custom - Set to 1 or 2 over time as codebase is cleaned up. Possibly add options
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
+    '@typescript-eslint/no-unnecessary-type-assertion': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-floating-promises': 'off',
     'no-else-return': 'off', // Could be a 1 but --fix does not correctly indent

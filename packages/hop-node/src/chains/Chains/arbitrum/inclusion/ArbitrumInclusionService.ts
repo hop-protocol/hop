@@ -93,7 +93,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
 
   // Needed to get Arbitrum-specific tx info from raw RPC call since ethers doesn't handle custom chain data
   async #getArbitrumTxReceipt (txHash: string): Promise<ArbitrumTransactionReceipt> {
-    const res = await fetch(getRpcUrl(this.chainSlug)!, {
+    const res = await fetch(getRpcUrl(this.chainSlug), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

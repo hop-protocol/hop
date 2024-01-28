@@ -163,7 +163,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
   }
 
   async #fetchRpcCall (method: string, params: any[] = []): Promise<any> {
-    const res = await fetch(getRpcUrl(Chain.PolygonZk)!, {
+    const res = await fetch(getRpcUrl(Chain.PolygonZk), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

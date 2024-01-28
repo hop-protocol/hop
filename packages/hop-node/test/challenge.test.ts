@@ -7,7 +7,9 @@ import { User, waitForEvent } from './utils/helpers'
 import { bonderPrivateKey, governancePrivateKey, privateKey } from './config'
 import { keccak256 } from 'ethereumjs-util'
 import { startWatchers } from 'src/watchers/watchers'
-require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const TOKEN = 'DAI'
 const TRANSFER_AMOUNT = 1

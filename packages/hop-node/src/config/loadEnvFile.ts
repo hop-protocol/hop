@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 const argv = require('minimist')(process.argv.slice(2))
@@ -15,4 +15,4 @@ if (typeof argv.env === 'string') {
   console.log(`using environment variable file: ${opts.path}`)
 }
 
-require('dotenv').config(opts)
+dotenv.config(opts)

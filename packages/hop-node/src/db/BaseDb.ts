@@ -2,7 +2,6 @@ import DatabaseMigrator from './DatabaseMigrator'
 import Logger from 'src/logger'
 // @ts-expect-error level-party does not have a types file as of 20231227
 import level from 'level-party'
-import mkdirp from 'mkdirp'
 import os from 'os'
 import path from 'path'
 import sub from 'subleveldown'
@@ -10,6 +9,7 @@ import { EventEmitter } from 'events'
 import { Migration } from 'src/db/migrations'
 import { config as globalConfig } from 'src/config'
 import { isEqual } from 'lodash'
+import { mkdirp } from 'mkdirp'
 import { normalizeDbValue } from './utils'
 const dbMap: { [key: string]: any } = {}
 

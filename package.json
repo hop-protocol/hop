@@ -17,9 +17,9 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.11",
-    "@types/node": "20.11.3",
-    "@typescript-eslint/eslint-plugin": "6.18.1",
-    "@typescript-eslint/parser": "6.18.0",
+    "@types/node": "20.11.8",
+    "@typescript-eslint/eslint-plugin": "6.19.1",
+    "@typescript-eslint/parser": "6.19.1",
     "eslint": "8.56.0",
     "eslint-plugin-n": "16.6.2",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
@@ -33,8 +33,10 @@
   ],
   "pnpm": {
     "overrides": {
-      "@typescript-eslint/eslint-plugin": "6.18.1",
-      "@typescript-eslint/parser": "6.18.0",
+      "react-scripts@4.0.3>@typescript-eslint/eslint-plugin": "6.18.1",
+      "react-app-rewired@2.2.1>@typescript-eslint/eslint-plugin": "6.18.1",
+      "react-script@4.0.3>@typescript-eslint/parser": "6.18.0",
+      "react-app-rewired@2.2.1>@typescript-eslint/parser": "6.18.0",
       "type-fest": "4.9.0",
       "minimatch": "5.1.2"
     }

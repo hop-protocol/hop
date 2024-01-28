@@ -43,7 +43,7 @@
     "fast-memoize": "2.5.2",
     "keccak256": "1.0.3",
     "lodash": "4.17.21",
-    "luxon": "1.28.0",
+    "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
     "numbro": "2.3.6",
     "pluralize": "8.0.0",
@@ -71,7 +71,7 @@
   "devDependencies": {
     "@testing-library/jest-dom": "5.17.0",
     "@types/lodash": "4.14.202",
-    "@types/luxon": "3.4.1",
+    "@types/luxon": "3.4.2",
     "@types/pluralize": "0.0.33",
     "@types/qs": "6.9.11",
     "@types/react": "17.0.75",

@@ -9,7 +9,6 @@ import { NetworkSlug } from '@hop-protocol/core/networks'
 import { l1xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils'
-import { toHex } from 'web3-utils'
 
 type Message = string
 type MessageStatus = string
@@ -82,7 +81,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
   }
 
   #packSignatures (array: any[]) {
-    const length = this.#strip0x(toHex(array.length))
+    const length = this.#strip0x(array.length.toString(16))
     const msgLength = length.length === 1 ? `0${length}` : length
     let v = ''
     let r = ''

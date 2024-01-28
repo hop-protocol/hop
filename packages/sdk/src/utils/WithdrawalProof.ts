@@ -1,9 +1,9 @@
+import keccak256 from 'keccak256'
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
 import { chainIdToSlug } from './chainIdToSlug'
 import { getSubgraphChains } from './getSubgraphChains'
 import { getSubgraphUrl } from './getSubgraphUrl'
 import { getTokenDecimals } from './getTokenDecimals'
-import { keccak256 } from 'ethereumjs-util'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {

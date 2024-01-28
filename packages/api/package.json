@@ -24,7 +24,6 @@
   "devDependencies": {
     "@types/cors": "2.8.17",
     "@types/express": "4.17.13",
-    "@types/express-rate-limit": "6.0.0",
     "@types/memory-cache": "0.2.5"
   }
 }

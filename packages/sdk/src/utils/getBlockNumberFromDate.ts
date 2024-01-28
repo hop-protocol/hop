@@ -1,3 +1,4 @@
+// @ts-expect-error
 import BlockDater from 'ethereum-block-by-date'
 import { Chain } from '../models/Chain'
 import { DateTime } from 'luxon'

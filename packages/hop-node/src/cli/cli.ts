@@ -1,5 +1,6 @@
 import '../moduleAlias'
 import Logger from 'src/logger'
+import { execSync } from 'child_process'
 import { program } from './shared'
 
 import './arbBot'
@@ -52,9 +53,8 @@ import './withdrawalProof'
 import './metrics/bonderBalance'
 import './metrics/bonderTxCost'
 
-// TODO: Since package.json version isn't updated, it shouldn't be used here
-const version = '0.0.1'
-program.version(version)
+const gitRev = execSync('git rev-parse --short HEAD').toString().trim()
+program.version(`Version: ${gitRev}`)
 program.parse(process.argv)
 
 const logger = new Logger('process')

@@ -16,7 +16,7 @@ import {
 } from 'src/constants'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
-import { execSync } from 'child_process';
+import { execSync } from 'child_process'
 import { parseEther } from 'ethers/lib/utils'
 
 require('./loadEnvFile')

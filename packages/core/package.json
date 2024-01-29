@@ -72,9 +72,8 @@
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "publish": "pnpm publish --tag latest --access public",
     "bump": "pnpm version prerelease --preid=beta",
-    "release": "pnpm clean && pnpm build:all && pnpm lint && pnpm test && pnpm json:mainnet && pnpm publish",
+    "release": "pnpm clean && pnpm build:all && pnpm lint && pnpm test && pnpm publish",
     "bump-release": "pnpm bump && pnpm release",
-    "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
     "upload": "pnpm build:ts && node dist/s3upload/main"
   },
   "directories": {},

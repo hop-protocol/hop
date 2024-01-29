@@ -23,8 +23,8 @@ COPY --chown=node:node .npmrc ./
 COPY --chown=node:node packages packages
 
 # Install root dependencies and build specific package
-RUN npm install \
-    && npm run build --workspace=@hop-protocol/hop-node
+RUN pnpm install --prod \
+    && pnpm --filter @hop-protocol/hop-node build
 
 # Production Stage
 FROM node:20.10.0-alpine
@@ -37,9 +37,7 @@ ENV GIT_REV=${GIT_REV}
 WORKDIR /usr/src
 
 # Copy built files from the build stage
-COPY --from=build /usr/src/packages/hop-node /app/packages/hop-node
-COPY --from=build /usr/src/node_modules /app/node_modules
+COPY dist/ dist/
 
 # Set the entry point
-ENTRYPOINT ["/app/packages/hop-node/bin/hop-node"]
-CMD []
+CMD ["node", "dist/cli/cli.js"]

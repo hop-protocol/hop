@@ -1,0 +1,49 @@
+{
+  "env": {
+    "es2021": true
+  },
+  "compilerOptions": {
+    // Type Checking
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+
+    // Modules
+    "module": "nodenext",
+    "resolveJsonModule": true,
+
+    // Emit
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    // Language and Environment
+    "target": "es2020",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+
+    // Interop Constraints
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Projects
+    "composite": true,
+
+   /**
+    * Custom config - remove over time as codebase is cleaned up
+    */
+
+    "strictPropertyInitialization": false, // overwrites strict `true`
+    "useUnknownInCatchVariables": false // overwrites strcit `true`
+
+   /**
+    * Explicitly define outDir and rootDir in each package since they
+    * define package-specific dirs.
+    */
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
+  ]
+}

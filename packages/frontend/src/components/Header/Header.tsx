@@ -1,33 +1,33 @@
-import React, { FC, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
-import { TxPill } from 'src/components/Header/TxPill'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
-import { isMainnet, showBannerMessage, reactAppNetwork } from 'src/config'
+import IconButton from '@material-ui/core/IconButton'
+import MoonIcon from 'src/assets/moon-icon.svg'
+import Network from 'src/models/Network'
+import React, { FC, useState } from 'react'
+import SunIcon from 'src/assets/sun-icon.svg'
+import logger from 'src/logger'
+import { Banner } from 'src/components/Banner'
+import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
+import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
+import { Icon } from 'src/components/ui/Icon'
+import { Link } from 'react-router-dom'
 import { Settings } from 'src/components/Header/Settings'
+import { Theme, makeStyles } from '@material-ui/core/styles'
+import { TxPill } from 'src/components/Header/TxPill'
 import { WalletWarning } from 'src/components/Header/WalletWarning'
-import { useQuery } from 'react-query'
 import {
-  toTokenDisplay,
-  networkIdNativeTokenSymbol,
-  networkIdToSlug,
   findNetworkBySlug,
   fixedDecimals,
+  networkIdNativeTokenSymbol,
+  networkIdToSlug,
+  toTokenDisplay,
 } from 'src/utils'
-import Network from 'src/models/Network'
-import logger from 'src/logger'
-import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
-import IconButton from '@material-ui/core/IconButton'
-import SunIcon from 'src/assets/sun-icon.svg'
-import MoonIcon from 'src/assets/moon-icon.svg'
-import { Icon } from 'src/components/ui/Icon'
+import { isMainnet, reactAppNetwork, showBannerMessage } from 'src/config'
+import { useApp } from 'src/contexts/AppContext'
+import { useQuery } from 'react-query'
 import { useThemeMode } from 'src/theme/ThemeProvider'
-import { Banner } from 'src/components/Banner'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {

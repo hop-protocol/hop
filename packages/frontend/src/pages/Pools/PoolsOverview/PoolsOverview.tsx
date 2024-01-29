@@ -1,9 +1,9 @@
-import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import React, { ChangeEvent } from 'react'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Typography from '@material-ui/core/Typography'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'
 import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
 import { makeStyles } from '@material-ui/core/styles'
@@ -95,21 +95,21 @@ export function PoolsOverview () {
   const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterToken(symbol)
     }
   }
 
   function handleChainToggleFilterFn (slug: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterChain(slug)
     }
   }
 
   function handleColumnSortFn(column: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleColumnSort(column)
     }

@@ -1,52 +1,19 @@
 {
-  "name": "hop-sdk-demo",
-  "version": "0.1.0",
+  "name": "@hop-protocol/sdk-demo",
+  "version": "0.0.0",
+  "description": "Hop Protocol SDK Demo",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "private": true,
-  "dependencies": {
-    "@emotion/react": "^11.9.0",
-    "@emotion/styled": "^11.8.1",
-    "@hop-protocol/sdk": "0.0.1-beta.595",
-    "@mui/lab": "^5.0.0-alpha.84",
-    "@mui/material": "^5.7.0",
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.2.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.1",
-    "@types/node": "^16.11.35",
-    "@types/react": "^18.0.9",
-    "@types/react-dom": "^18.0.4",
-    "assert": "^2.1.0",
-    "crypto-browserify": "^3.12.0",
-    "dotenv": "^16.0.1",
-    "ethers": "^5.6.6",
-    "https-browserify": "^1.0.0",
-    "os-browserify": "^0.3.0",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "react-scripts": "^5.0.1",
-    "react-syntax-highlighter": "^15.5.0",
-    "react-use": "^17.4.0",
-    "stream-browserify": "^3.0.0",
-    "stream-http": "^3.2.0",
-    "typescript": "^4.6.4",
-    "url": "^0.11.3",
-    "usehooks-ts": "^2.9.1",
-    "wait": "^0.4.2",
-    "web-vitals": "^2.1.4"
-  },
   "scripts": {
+    "preinstall": "pnpm dlx only-allow pnpm",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "react-app-rewired start",
-    "dev": "BROWSER=none npm run start",
-    "build": "react-app-rewired build",
-    "lint": "eslint --fix \"**/*.{ts,tsx}\"",
+    "dev": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none pnpm start",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true react-app-rewired build",
+    "lint": "eslint . --ext .ts,.tsx --fix",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [
@@ -60,17 +27,35 @@
       "last 1 safari version"
     ]
   },
+  "dependencies": {
+    "@emotion/react": "11.9.0",
+    "@emotion/styled": "11.8.1",
+    "@mui/lab": "5.0.0-alpha.84",
+    "@hop-protocol/sdk": "workspace:*",
+    "@mui/material": "5.7.0",
+    "@testing-library/jest-dom": "5.16.4",
+    "@testing-library/react": "14.1.2",
+    "@types/react": "18.2.48",
+    "@types/react-dom": "18.0.4",
+    "assert": "2.1.0",
+    "crypto-browserify": "3.12.0",
+    "dotenv": "16.4.1",
+    "ethers": "5.7.2",
+    "https-browserify": "1.0.0",
+    "os-browserify": "0.3.0",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
+    "react-syntax-highlighter": "15.5.0",
+    "stream-browserify": "3.0.0",
+    "stream-http": "3.2.0",
+    "url": "0.11.3",
+    "usehooks-ts": "2.9.1",
+    "web-vitals": "2.1.4"
+  },
   "devDependencies": {
-    "@types/react-syntax-highlighter": "^15.5.4",
-    "@typescript-eslint/eslint-plugin": "^5.27.1",
-    "@typescript-eslint/parser": "^5.27.1",
-    "eslint": "^8.17.0",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-n": "^15.2.1",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-react": "^7.30.0",
-    "eslint-plugin-react-hooks": "^4.5.0",
-    "react-app-rewired": "^2.2.1"
+    "@types/react-syntax-highlighter": "15.5.4",
+    "react-app-rewired": "2.2.1",
+    "eslint-plugin-react": "7.21.5",
+    "eslint-plugin-react-hooks": "4.2.0"
   }
 }

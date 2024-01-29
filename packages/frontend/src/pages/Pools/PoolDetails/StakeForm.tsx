@@ -1,24 +1,24 @@
-import React, { ChangeEvent } from 'react'
-import { Alert } from 'src/components/Alert'
-import { BigNumber } from 'ethers'
 import Box from '@material-ui/core/Box'
+import React, { ChangeEvent } from 'react'
+import Tab from '@material-ui/core/Tab'
+import Tabs from '@material-ui/core/Tabs'
+import Typography from '@material-ui/core/Typography'
+import { Alert } from 'src/components/Alert'
+import { BalanceText } from 'src/pages/Pools/components/BalanceText'
+import { BigNumber } from 'ethers'
+import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { Button } from 'src/components/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import Typography from '@material-ui/core/Typography'
-import Tabs from '@material-ui/core/Tabs'
-import Tab from '@material-ui/core/Tab'
-import { BalanceText } from 'src/pages/Pools/components/BalanceText'
 import { InputField } from 'src/pages/Pools/components/InputField'
-import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { sanitizeNumericalString } from 'src/utils'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { sanitizeNumericalString } from 'src/utils'
 import { useStaking } from 'src/pages/Pools/useStaking'
 import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {
   chainSlug: string
-  handleStakingChange: (event: React.ChangeEvent<{}>, newValue: string) => void
+  handleStakingChange: (event: React.ChangeEvent<object>, newValue: string) => void
   isTokenDeprecated: boolean
   selectedStaking: string
   stakingContractAddress: string
@@ -67,12 +67,12 @@ export function StakeForm(props: Props) {
     withdraw,
   } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
 
-  function handleStakeClick (event: ChangeEvent<{}>) {
+  function handleStakeClick (event: ChangeEvent<object>) {
     event.preventDefault()
     approveAndStake()
   }
 
-  function handleWithdrawClick (event: ChangeEvent<{}>) {
+  function handleWithdrawClick (event: ChangeEvent<object>) {
     event.preventDefault()
     withdraw()
   }

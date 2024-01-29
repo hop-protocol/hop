@@ -46,12 +46,6 @@ Install dependencies
 npm install
 ```
 
-Lerna link, to link hop core package:
-
-```sh
-npx lerna link
-```
-
 Run build watcher
 
 ```bash
@@ -68,6 +62,12 @@ Generate documentation
 
 ```bash
 npm run docs
+```
+
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../../ && act --job publish-sdk --workflows .github/workflows/npm_publish_sdk.yml --secret-file=.secrets --verbose)
 ```
 
 ## Test

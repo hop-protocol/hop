@@ -1,8 +1,8 @@
-import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import ErrorIcon from '@material-ui/icons/ErrorOutline'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import React, { ChangeEvent } from 'react'
 import Typography from '@material-ui/core/Typography'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {
@@ -25,7 +25,7 @@ export function TopPoolStats (props: Props) {
     volume24hFormatted,
   } = props
 
-  function handleStakeClick (event: ChangeEvent<{}>) {
+  function handleStakeClick (event: ChangeEvent<object>) {
     event.preventDefault()
     goToTab('stake')
   }

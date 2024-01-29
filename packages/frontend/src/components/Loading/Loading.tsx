@@ -1,9 +1,9 @@
-import React from 'react'
-import { useTheme } from '@material-ui/core/styles'
-import { squareDimensions } from 'src/utils'
-import styled, { keyframes, css } from 'styled-components/macro'
-import { background, color } from 'styled-system'
 import Box from '@material-ui/core/Box'
+import React from 'react'
+import styled, { css, keyframes } from 'styled-components/macro'
+import { background, color } from 'styled-system'
+import { squareDimensions } from 'src/utils'
+import { useTheme } from '@material-ui/core/styles'
 
 export function logStyleProps(props: any) {
   console.log('style props:', props)

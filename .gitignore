@@ -22,5 +22,7 @@ yarn.lock
 *.sublime-workspace
 *.sublime-project
 
-.secrets
 *.tsbuildinfo
+
+secrets.json
+.secrets

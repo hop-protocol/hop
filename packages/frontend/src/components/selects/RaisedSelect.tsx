@@ -1,7 +1,7 @@
-import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Select, { SelectProps } from '@material-ui/core/Select'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
+import React, { FC } from 'react'
+import Select, { SelectProps } from '@material-ui/core/Select'
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles(theme => ({
   root: {

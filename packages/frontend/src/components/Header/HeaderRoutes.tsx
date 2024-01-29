@@ -1,10 +1,10 @@
-import React, { FC, ChangeEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import Tabs from '@material-ui/core/Tabs'
+import React, { ChangeEvent, FC } from 'react'
 import Tab from '@material-ui/core/Tab'
+import Tabs from '@material-ui/core/Tabs'
 import { isMainnet, showRewards } from 'src/config'
+import { makeStyles, useTheme } from '@material-ui/core/styles'
 import { useClaim } from 'src/pages/Claim/useClaim'
-import { useTheme, makeStyles } from '@material-ui/core/styles'
+import { useLocation, useNavigate } from 'react-router-dom'
 // import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 
 const useStyles = makeStyles((theme: any) => ({
@@ -22,7 +22,7 @@ export const HeaderRoutes: FC = () => {
   const styles = useStyles()
   const theme = useTheme()
 
-  const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
+  const handleChange = (event: ChangeEvent<object>, newValue: string) => {
     event.preventDefault()
     navigate(`${newValue}${search}`)
   }

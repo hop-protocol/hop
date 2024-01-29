@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
+import ReCAPTCHA from 'react-google-recaptcha'
+import React, { useState } from 'react'
+import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import { Alert } from 'src/components/Alert'
-import { ExternalLink } from 'src/components/Link'
-import { StyledButton } from 'src/components/Button/StyledButton'
-import TextField from '@material-ui/core/TextField'
-import ReCAPTCHA from 'react-google-recaptcha'
 import { Button } from 'src/components/Button'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
+import { ExternalLink } from 'src/components/Link'
+import { StyledButton } from 'src/components/Button/StyledButton'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
@@ -52,7 +52,7 @@ export function AuthereumVerify() {
   }
 
   const onCaptchaChange = (value: string | null) => {
-    setCaptchaResponseToken(value || '')
+    setCaptchaResponseToken(value ?? '')
   }
 
   const submitDisabled = !(inputValue && captchaResponseToken)

@@ -1,6 +1,6 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import getTransferSent from 'src/theGraph/getTransferSent'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { WatcherNotFoundError } from './shared/utils'
 import {
   getBondWithdrawalWatcher

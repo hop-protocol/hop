@@ -1,7 +1,7 @@
-import React, { FC, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 import HelpIcon from '@material-ui/icons/Help'
+import React, { FC, useState } from 'react'
+import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
+import { makeStyles } from '@material-ui/core/styles'
 
 type Props = {
   title: React.ReactNode

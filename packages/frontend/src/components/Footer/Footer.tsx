@@ -1,26 +1,26 @@
+import Box from '@material-ui/core/Box'
 import React from 'react'
 import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
-import { gitRevision } from 'src/config/config'
-import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
-import { ReactComponent as github } from 'src/assets/logos/github.svg'
-import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
-import { ReactComponent as twitter } from 'src/assets/logos/twitter.svg'
+import { StyledLink } from 'src/components/Link/StyledLink'
+import { SvgImg } from 'src/components/ui/SvgImg'
 import {
   careersUrl,
+  discordUrl,
   docsUrl,
   faqUrl,
-  discordUrl,
+  forumUrl,
   githubUrl,
   mediumUrl,
   twitterUrl,
-  forumUrl,
 } from 'src/utils/constants'
-import { SvgImg } from 'src/components/ui/SvgImg'
-import { StyledLink } from 'src/components/Link/StyledLink'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
+import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
+import { gitRevision } from 'src/config/config'
+import { ReactComponent as github } from 'src/assets/logos/github.svg'
 import { makeStyles } from '@material-ui/core/styles'
+import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
+import { ReactComponent as twitter } from 'src/assets/logos/twitter.svg'
+import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {

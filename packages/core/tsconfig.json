@@ -1,32 +1,14 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "lib": ["dom", "es2017", "esnext"],
-    "types": ["node", "jest"],
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "emitDecoratorMetadata": true,
-    "declaration": true,
-    "declarationDir": ".",
-    "declarationMap": true,
-    "skipLibCheck": true,
-    "target": "es2015",
-    "noImplicitAny": true,
-    "noUnusedLocals": true,
-    "moduleResolution": "node",
-    "sourceMap": false,
-    "outDir": ".",
-    "baseUrl": ".",
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "rootDir": "src",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
-      "*": ["node_modules/*"]
-    },
-    "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["node", "./node_modules/@types", "./@types"],
-    "downlevelIteration": true
+      "src/*": ["./src/*"]
+    }
   },
-  "include": ["src/*", "src/abi/*", "src/addresses/*", "src/contracts/*", "src/contracts/factories/*", "src/contracts/generated/*", "src/contracts/static/*", "src/metadata/*", "src/networks/*", "src/config", "src/s3upload/*"],
-  "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
+  "include": [
+    "src",
+    "src/**/*.json" // Include JSON files specifically
+  ]
 }

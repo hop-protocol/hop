@@ -69,7 +69,11 @@ export class Logger {
     }
     if (tag) {
       if (opts.color) {
-        this.tag = chalk[opts.color](`[${tag}]`)
+        const color: typeof chalk.Color | undefined = opts?.color as any
+        if (!color) {
+          throw new Error(`invalid color: ${opts.color}`)
+        }
+        this.tag = chalk[color](`[${tag}]`)
       } else {
         this.tag = `[${tag}]`
       }
@@ -103,7 +107,11 @@ export class Logger {
   headers (logLevelEnum: LogLevels): string[] {
     const keys = Object.keys(LogLevels)
     const logLevelName = keys[logLevelEnum + keys.length / 2].toUpperCase()
-    const coloredLogLevel = chalk[logLevelColors[logLevelEnum]](
+    const color: typeof chalk.Color | undefined = logLevelColors?.[logLevelEnum] as any
+    if (!color) {
+      throw new Error(`invalid color: ${logLevelColors?.[logLevelEnum]}`)
+    }
+    const coloredLogLevel = chalk[color](
       logLevelName.padEnd(5, ' ')
     )
     return [this.timestamp, coloredLogLevel, this.tag, this.prefix]

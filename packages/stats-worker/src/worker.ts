@@ -1,11 +1,11 @@
-import YieldStats from './YieldStats'
-import VolumeStats from './VolumeStats'
-import TvlStats from './TvlStats'
-import { AmmStats } from './AmmStats'
-import { PriceStats } from './PriceStats'
 import BonderStats from './BonderStats'
 import S3Upload from './S3Upload'
+import TvlStats from './TvlStats'
+import VolumeStats from './VolumeStats'
+import YieldStats from './YieldStats'
 import wait from 'wait'
+import { AmmStats } from './AmmStats'
+import { PriceStats } from './PriceStats'
 
 type Options = {
   yields?: boolean
@@ -51,7 +51,7 @@ class Worker {
   bonder: boolean = false
 
   constructor (options: Options = {}) {
-    let {
+    const {
       yields,
       prices,
       tvl,
@@ -76,11 +76,21 @@ class Worker {
       pollIntervalSeconds,
       pricesPollIntervalSeconds
     } = options
-    this.yields = yields
-    this.prices = prices
-    this.tvl = tvl
-    this.amm = amm
-    this.volume = volume
+    if (yields) {
+      this.yields = yields
+    }
+    if (prices) {
+      this.prices = prices
+    }
+    if (tvl) {
+      this.tvl = tvl
+    }
+    if (amm) {
+      this.amm = amm
+    }
+    if (volume) {
+      this.volume = volume
+    }
     if (pollIntervalSeconds) {
       this.pollIntervalMs = pollIntervalSeconds * 1000
     }
@@ -88,7 +98,7 @@ class Worker {
       this.pricesPollIntervalMs = pricesPollIntervalSeconds * 1000
     }
 
-    if (bonder || bonderProfit || bonderFees || bonderTxFees) {
+    if (bonder ?? bonderProfit ?? bonderFees ?? bonderTxFees) {
       this.bonder = true
     }
     this.yieldStats = new YieldStats()

@@ -1,9 +1,9 @@
-import React, { FC } from 'react'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy } from 'src/utils'
-import { Icon } from 'src/components/ui/Icon'
 import Box from '@material-ui/core/Box'
+import React, { FC } from 'react'
 import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
+import { Icon } from 'src/components/ui/Icon'
+import { commafy } from 'src/utils'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
 export const populateDebitWindowStats = (item: any, bonderStats: any, i: number) => {
   return {

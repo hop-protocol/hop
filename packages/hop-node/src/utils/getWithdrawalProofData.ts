@@ -2,7 +2,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import { BigNumber } from 'ethers'
 
 export interface WithdrawalProofData {
-  rootTotalAmount: string
+  rootTotalAmount: BigNumber
   numLeaves: number
   proof: string[]
   transferIndex: number
@@ -25,7 +25,7 @@ export function getWithdrawalProofData (
   const proof = tree.getHexProof(leaves[transferIndex])
 
   return {
-    rootTotalAmount: totalAmount.toString(),
+    rootTotalAmount: totalAmount,
     numLeaves,
     proof,
     transferIndex,

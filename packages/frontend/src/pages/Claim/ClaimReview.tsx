@@ -1,13 +1,13 @@
-import React from 'react'
-import { Icon } from 'src/components/ui/Icon'
-import { Button } from 'src/components/Button'
-import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
-import { toTokenDisplay } from 'src/utils'
-import { BigNumber } from 'ethers'
 import Box from '@material-ui/core/Box'
-import { StyledButton } from 'src/components/Button/StyledButton'
+import React from 'react'
 import Typography from '@material-ui/core/Typography'
+import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
+import { BigNumber } from 'ethers'
+import { Button } from 'src/components/Button'
 import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
+import { Icon } from 'src/components/ui/Icon'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { toTokenDisplay } from 'src/utils'
 
 export function ClaimReview (props: any) {
   const { claimableTokens, delegate, isDarkMode, handleClaimTokens, prevStep } = props

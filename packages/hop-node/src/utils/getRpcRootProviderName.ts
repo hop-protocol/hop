@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getRpcUrlFromProvider from './getRpcUrlFromProvider'
 import { RootProviderName } from 'src/constants'
 import { promiseTimeout } from './promiseTimeout'
@@ -80,7 +79,7 @@ async function getRootProviderNameFromRpcCall (url: string): Promise<RootProvide
     return
   }
 
-  const jsonRes = await res.json()
+  const jsonRes: any = await res.json()
   if (!jsonRes?.error) {
     return
   }
@@ -97,9 +96,9 @@ async function getRootProviderNameFromRpcCall (url: string): Promise<RootProvide
 function getUrlFromProviderOrUrl (providerOrUrl: providers.Provider | string): string {
   if (providerOrUrl instanceof providers.Provider) {
     return getRpcUrlFromProvider(providerOrUrl)
-  } else {
-    return providerOrUrl
   }
+
+  return providerOrUrl
 }
 
 export default getRpcRootProviderName

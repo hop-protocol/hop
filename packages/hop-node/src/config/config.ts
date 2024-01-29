@@ -1,10 +1,9 @@
-import buildInfo from 'src/.build-info.json'
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
-import { AssetSymbol, Bps, ChainSlug, config as coreConfig } from '@hop-protocol/core/config'
+import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
 import { BonderConfig } from 'src/config/types'
 import {
   Chain,
@@ -17,9 +16,11 @@ import {
 } from 'src/constants'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
+import { execSync } from 'child_process'
 import { parseEther } from 'ethers/lib/utils'
+
 require('./loadEnvFile')
-const defaultDbPath = path.resolve(__dirname, '../../../db_data')
+const defaultDbPath = path.resolve(__dirname, '../../db_data')
 
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const hostname = process.env.HOSTNAME ?? os.hostname()
@@ -43,7 +44,7 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const awsProfile = process.env.AWS_PROFILE
-export const gitRev = buildInfo.rev
+export const gitRev = execSync('git rev-parse --short HEAD').toString().trim()
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 
@@ -132,20 +133,6 @@ export type SignerConfig = {
   lambdaFunctionName?: string
 }
 
-export type VaultChainTokenConfig = {
-  depositThresholdAmount: number
-  depositAmount: number
-  autoDeposit: boolean
-  autoWithdraw: boolean
-  strategy: string
-}
-
-export type VaultChain = {
-  [key in ChainSlug]: VaultChainTokenConfig
-}
-
-export type Vault = Record<string, VaultChain>
-
 export type BlocklistConfig = {
   path: string
   addresses: Record<string, boolean>
@@ -168,7 +155,6 @@ export type Config = {
   fees: Fees
   routes: Routes
   signerConfig: SignerConfig
-  vault: Vault
   blocklist: BlocklistConfig
   emergencyDryMode: boolean
 }
@@ -200,7 +186,12 @@ for (const network in coreNetworks) {
 }
 
 const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'bonderConfig' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, bonders, bonderConfig, networks, metadata } = isTestMode ? networkConfigs.test : networkConfigs?.[network]
+  const networkConfig = isTestMode ? networkConfigs.test : networkConfigs?.[network]
+  if (!networkConfig) {
+    throw new Error(`Network config not found for network: ${network}`)
+  }
+
+  const { addresses, bonders, bonderConfig, networks, metadata } = networkConfig
   const isMainnet = network === Network.Mainnet
 
   return {
@@ -288,7 +279,6 @@ export const config: Config = {
   signerConfig: {
     type: 'keystore'
   },
-  vault: {},
   blocklist: {
     path: '',
     addresses: {}
@@ -433,10 +423,6 @@ export const setConfigTokens = (tokens: Tokens) => {
 
 export const setSignerConfig = (signerConfig: SignerConfig) => {
   config.signerConfig = { ...config.signerConfig, ...signerConfig }
-}
-
-export const setVaultConfig = (vault: Vault) => {
-  config.vault = { ...config.vault, ...vault }
 }
 
 export const setBlocklistConfig = (blocklist: BlocklistConfig) => {

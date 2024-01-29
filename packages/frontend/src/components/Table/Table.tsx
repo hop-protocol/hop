@@ -1,11 +1,11 @@
-import React from 'react'
-import styled from 'styled-components'
-import { useTable, useSortBy } from 'react-table'
-import makeData from './makeData'
-import Skeleton from '@material-ui/lab/Skeleton'
 import Alert from '@material-ui/lab/Alert'
-import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
+import React from 'react'
+import Skeleton from '@material-ui/lab/Skeleton'
+import Typography from '@material-ui/core/Typography'
+import makeData from './makeData'
+import styled from 'styled-components'
+import { useSortBy, useTable } from 'react-table'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -100,7 +100,7 @@ function Table({ columns, data, loading }) {
                     {
                       style: {
                         ...column.style,
-                        backgroundColor: (column as any).isSorted ? '#eed0ff' : 'transparent',
+                        backgroundColor: (column).isSorted ? '#eed0ff' : 'transparent',
                       },
                     },
                   ])}

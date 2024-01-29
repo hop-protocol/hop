@@ -1,20 +1,20 @@
-import React, { FC, ChangeEvent, useEffect, useState } from 'react'
-import Card from '@material-ui/core/Card'
-import { makeStyles } from '@material-ui/core/styles'
-import { LargeTextField } from 'src/components/LargeTextField'
-import Typography from '@material-ui/core/Typography'
 import Box from '@material-ui/core/Box'
+import Card from '@material-ui/core/Card'
+import React, { ChangeEvent, FC, useEffect, useState } from 'react'
+import Typography from '@material-ui/core/Typography'
+import useQueryParams from 'src/hooks/useQueryParams'
 import { Alert } from 'src/components/Alert'
-import { toTokenDisplay } from 'src/utils'
-import { formatError } from 'src/utils/format'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import { Button } from 'src/components/Button/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import useQueryParams from 'src/hooks/useQueryParams'
-import { updateQueryParams } from 'src/utils/updateQueryParams'
-import { reactAppNetwork } from 'src/config'
+import { LargeTextField } from 'src/components/LargeTextField'
 import { WithdrawalProof } from '@hop-protocol/sdk'
+import { formatError } from 'src/utils/format'
+import { makeStyles } from '@material-ui/core/styles'
+import { reactAppNetwork } from 'src/config'
+import { toTokenDisplay } from 'src/utils'
+import { updateQueryParams } from 'src/utils/updateQueryParams'
+import { useApp } from 'src/contexts/AppContext'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {
@@ -97,7 +97,7 @@ export const Withdraw: FC = () => {
                 }
               },
               sendTx: async () => {
-                await wp.checkWithdrawable()
+                wp.checkWithdrawable()
                 const networkId = Number(wp.transfer.destinationChainId)
                 const isNetworkConnected = await checkConnectedNetworkId(networkId)
                 if (!isNetworkConnected) {
@@ -125,15 +125,15 @@ export const Withdraw: FC = () => {
                   bonderFee,
                   amountOutMin,
                   deadline,
-                  transferRootHash!,
-                  rootTotalAmount!,
-                  transferIdTreeIndex!,
-                  siblings!,
-                  totalLeaves!
+                  transferRootHash,
+                  rootTotalAmount,
+                  transferIdTreeIndex,
+                  siblings,
+                  totalLeaves
                 )
                 return tx
               },
-              onError: err => {
+              onError: (err: any) => {
                 reject(err)
               },
             },

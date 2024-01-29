@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react'
-import { Alert } from 'src/components/Alert'
 import Box from '@material-ui/core/Box'
-import { EthAddress } from 'src/components/ui/EthAddress'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { AirdropPreviewWrapper } from 'src/pages/Airdrop/AirdropPreview/AirdropPreviewWrapper'
-import { StyledButton } from 'src/components/Button/StyledButton'
+import React, { useEffect, useState } from 'react'
 import Typography from '@material-ui/core/Typography'
-import { useDistribution } from 'src/pages/Airdrop/AirdropPreview/useDistribution'
-import { Button } from 'src/components/Button'
-import { useTheme } from '@material-ui/core/styles'
 import { AddressModal } from 'src/pages/Airdrop/AirdropPreview/AddressModal'
-import { getAddress } from 'ethers/lib/utils'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import { AirdropPreviewWrapper } from 'src/pages/Airdrop/AirdropPreview/AirdropPreviewWrapper'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
+import { EthAddress } from 'src/components/ui/EthAddress'
 import { ExternalLink } from 'src/components/Link'
-import { useNavigate } from 'react-router-dom'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { getAddress } from 'ethers/lib/utils'
 import { useClaim } from 'src/pages/Claim/useClaim'
+import { useDistribution } from 'src/pages/Airdrop/AirdropPreview/useDistribution'
+import { useNavigate } from 'react-router-dom'
+import { useTheme } from '@material-ui/core/styles'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export const respMaxWidths = [350, 624, 824]
 
@@ -22,7 +22,7 @@ export function AirdropPreview() {
   const theme = useTheme()
   const navigate = useNavigate()
   const { address } = useWeb3Context()
-  const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')
+  const [airdropAddress, setAirdropAddress] = useState<string>(address?.address ?? '')
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
   const userDistribution = useDistribution(airdropAddress)
   const isEligible = userDistribution?.total >= 0.0001

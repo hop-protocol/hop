@@ -1,6 +1,6 @@
 import React from 'react'
-import { composedStyleFns, ComposedStyleProps, SquareDimensions, squareDimensions } from 'src/utils'
 import styled from 'styled-components/macro'
+import { ComposedStyleProps, SquareDimensions, composedStyleFns, squareDimensions } from 'src/utils'
 
 type SvgImgProps = ComposedStyleProps & SquareDimensions
 

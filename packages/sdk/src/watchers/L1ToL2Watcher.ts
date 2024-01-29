@@ -44,7 +44,7 @@ class L1ToL2Watcher extends BaseWatcher {
       if (!destTx) {
         return false
       }
-      const destBlock = await this.destinationChain.provider.getBlock(
+      const destBlock = await this.destinationChain.provider?.getBlock(
         destTx.blockNumber
       )
       if (!destBlock) {
@@ -66,7 +66,7 @@ class L1ToL2Watcher extends BaseWatcher {
       for (const event of events) {
         if (event.recipient.toLowerCase() === recipient.toLowerCase()) {
           if (event.amount.toString() === amount.toString()) {
-            const destTx = await this.destinationChain.provider.getTransaction(event.transactionHash)
+            const destTx = await this.destinationChain.provider?.getTransaction(event.transactionHash)
             return handleDestTx(destTx)
           }
         }

@@ -1,23 +1,42 @@
-FROM node:14 AS build
+# Build Stage
+FROM node:20.10.0 AS build
 
-# Create the working directory and give node use permissions
-RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app
+# Set ARG and ENV for GIT_REV
+ARG GIT_REV
+ENV GIT_REV=${GIT_REV}
 
-WORKDIR /usr/src/app
+# Create the working directory and change ownership
+WORKDIR /usr/src
+RUN chown -R node:node /usr/src
 
+# Install pnpm and only-allow as global dependencies
+RUN npm install -g pnpm@latest only-allow@latest
+
+# Switch to 'node' user for better security
 USER node
 
-COPY --chown=node:node package*.json ./
-COPY --chown=node:node . .
+# Copy necessary files for installation
+COPY --chown=node:node package*.json .eslintrc.js tsconfig.json .npmrc ./
 
+# Copy the monorepo files into the Docker image
+COPY --chown=node:node packages packages
+
+# Install root dependencies
 RUN npm install
-RUN npm run build
 
-FROM node:16
-WORKDIR /usr/src/app
-COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
-COPY --from=build /usr/src/app/dist /usr/src/app/dist
-COPY --from=build /usr/src/app/bin /usr/src/app/bin
-COPY --from=build /usr/src/app/*.json /usr/src/app/
-ENTRYPOINT [ "/usr/src/app/bin/stats" ]
+# Build specific package
+RUN npm run build --workspace=@hop-protocol/stats-worker
+
+# Production Stage
+FROM node:20.10.0-alpine
+
+# Set working directory
+WORKDIR /usr/src
+
+# Copy built files from the build stage
+COPY --from=build /usr/src/packages/stats-worker /app/packages/stats-worker
+COPY --from=build /usr/src/node_modules /app/node_modules
+
+# Set the entry point
+ENTRYPOINT ["/app/packages/stats-worker/bin/stats"]
 CMD []

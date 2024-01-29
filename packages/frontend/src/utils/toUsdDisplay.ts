@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import { commafy } from 'src/utils/commafy'
+import { formatUnits } from 'ethers/lib/utils'
 
 export function toUsdDisplay(amount?: BigNumber, tokenDecimals?: number, tokenUsdPrice?: number): string {
   try {

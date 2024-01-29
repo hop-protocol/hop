@@ -1,10 +1,10 @@
-import React, { useState, ChangeEvent } from 'react'
-import { Button } from 'src/components/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
-import { commafy, NetworkTokenEntity } from 'src/utils'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import React, { ChangeEvent, useState } from 'react'
+import Typography from '@material-ui/core/Typography'
+import { Button } from 'src/components/Button'
+import { NetworkTokenEntity, commafy } from 'src/utils'
+import { makeStyles } from '@material-ui/core/styles'
 import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({

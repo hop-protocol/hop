@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Alert } from 'src/components/Alert'
 import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import { useQueryParams } from 'src/hooks'
-import TextField from '@material-ui/core/TextField'
-import { Button } from 'src/components/Button'
-import { StyledButton } from 'src/components/Button/StyledButton'
-import ReCAPTCHA from 'react-google-recaptcha'
 import CheckIcon from '@material-ui/icons/Check'
-import { updateQueryParams } from 'src/utils/updateQueryParams'
+import ReCAPTCHA from 'react-google-recaptcha'
+import React, { useEffect, useState } from 'react'
+import TextField from '@material-ui/core/TextField'
+import Typography from '@material-ui/core/Typography'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { updateQueryParams } from 'src/utils/updateQueryParams'
+import { useNavigate } from 'react-router-dom'
+import { useQueryParams } from 'src/hooks'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
@@ -103,7 +103,7 @@ export function SocialVerified() {
   }
 
   const onCaptchaChange = (value: string | null) => {
-    setCaptchaResponseToken(value || '')
+    setCaptchaResponseToken(value ?? '')
   }
 
   const isEligible = userData?.eligible && userData?.userId && userData?.username
@@ -113,7 +113,7 @@ export function SocialVerified() {
       <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
         <Box my={3} maxWidth={[350, 400, 525]}>
           <Typography variant="h6">
-            Sorry, the {socialNames[userData?.social!]} account @{userData?.username!} is not eligible for the Hop airdrop
+            Sorry, the {socialNames[userData!.social]} account @{userData!.username} is not eligible for the Hop airdrop
           </Typography>
         </Box>
         <Box my={3} display="flex" flexDirection="column" justifyContent="center">
@@ -137,7 +137,7 @@ export function SocialVerified() {
           Congrats! You're eligible for the airdrop
         </Typography>
         <Typography variant="body1">
-          Verified {socialNames[userData?.social!]} account @{userData?.username!} <CheckIcon style={{ color: 'green' }} />
+          Verified {socialNames[userData?.social]} account @{userData?.username} <CheckIcon style={{ color: 'green' }} />
         </Typography>
 
         <Box mt={3}>

@@ -1,9 +1,9 @@
-import { ChainSlug } from '@hop-protocol/sdk'
+import Network from 'src/models/Network'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
-import Network from 'src/models/Network'
-import { networks } from 'src/config/addresses'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { metadata } from 'src/config/metadata'
+import { networks } from 'src/config/addresses'
 
 export const allNetworks = Object.keys(networks).map(key => {
   const net = networks[key]

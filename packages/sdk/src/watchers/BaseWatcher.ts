@@ -56,17 +56,20 @@ class BaseWatcher extends Base {
   public async startBase () {
     this.bridge = new HopBridge(this.network, this.signer, this.token)
 
-    const receipt = await this.sourceChain.provider.waitForTransaction(
+    const receipt = await this.sourceChain.provider?.waitForTransaction(
       this.sourceTxHash
     )
     await this.emitSourceTxEvent(receipt)
-    if (!receipt.status) {
+    if (!receipt?.status) {
       return
     }
-    const sourceTx = await this.sourceChain.provider.getTransaction(
+    const sourceTx = await this.sourceChain.provider?.getTransaction(
       this.sourceTxHash
     )
-    const sourceBlock = await this.sourceChain.provider.getBlock(
+    if (!sourceTx?.blockNumber) {
+      return
+    }
+    const sourceBlock = await this.sourceChain.provider?.getBlock(
       sourceTx.blockNumber
     )
     if (!sourceBlock) {
@@ -101,7 +104,7 @@ class BaseWatcher extends Base {
     if (!destTx) {
       return false
     }
-    const destTxReceipt = await this.destinationChain.provider.waitForTransaction(
+    const destTxReceipt = await this.destinationChain.provider?.waitForTransaction(
       destTx.hash
     )
     this.ee.emit(

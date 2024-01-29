@@ -1,6 +1,6 @@
 # Build docker target
 docker-build:
-	docker build -f Dockerfile -t hopprotocol/stats-worker .
+	(cd ../../ && docker build -f packages/stats-worker/Dockerfile -t hopprotocol/stats-worker .)
 
 # Tag docker image with latest
 docker-image-tag-latest:
@@ -26,6 +26,3 @@ docker-build-and-push: docker-build docker-image-tag docker-registry-push
 
 # Tag docker and push to registry
 docker-tag-and-push: docker-image-tag docker-registry-push
-
-docker-start:
-	docker run --env-file .env hopprotocol/stats-worker

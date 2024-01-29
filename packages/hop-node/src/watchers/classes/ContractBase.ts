@@ -51,6 +51,10 @@ export default class ContractBase extends EventEmitter {
   }
 
   getChainId = async (): Promise<number> => {
+    return this.getChainIdFn()
+  }
+
+  getChainIdFn = async (): Promise<number> => {
     if (this.chainId) {
       return this.chainId
     }
@@ -80,13 +84,13 @@ export default class ContractBase extends EventEmitter {
     if (!txHash) {
       throw new Error('tx hash is required')
     }
-    return await this.contract.provider.getTransaction(txHash)
+    return this.contract.provider.getTransaction(txHash)
   }
 
   getTransactionReceipt = async (
     txHash: string
   ): Promise<providers.TransactionReceipt> => {
-    return await this.contract.provider.getTransactionReceipt(txHash)
+    return this.contract.provider.getTransactionReceipt(txHash)
   }
 
   getBlockNumber = async (): Promise<number> => {
@@ -113,7 +117,7 @@ export default class ContractBase extends EventEmitter {
     if (!tx) {
       throw new Error(`transaction not found. transactionHash: ${txHash}`)
     }
-    return tx.blockNumber! // eslint-disable-line
+    return tx.blockNumber!
   }
 
   getBlockTimestamp = async (
@@ -130,7 +134,7 @@ export default class ContractBase extends EventEmitter {
     txHash: string
   ): Promise<number> {
     const blockNumber = await this.getTransactionBlockNumber(txHash)
-    return await this.getBlockTimestamp(blockNumber)
+    return this.getBlockTimestamp(blockNumber)
   }
 
   async getEventTimestamp (event: Event): Promise<number> {
@@ -148,7 +152,7 @@ export default class ContractBase extends EventEmitter {
     address: string,
     blockNumber: string | number = 'latest'
   ): Promise<string> => {
-    return await this.contract.provider.getCode(address, blockNumber)
+    return this.contract.provider.getCode(address, blockNumber)
   }
 
   getBalance = async (
@@ -157,11 +161,11 @@ export default class ContractBase extends EventEmitter {
     if (!address) {
       throw new Error('expected address')
     }
-    return await this.contract.provider.getBalance(address)
+    return this.contract.provider.getBalance(address)
   }
 
   protected getGasPrice = async (): Promise<BigNumber> => {
-    return await this.contract.provider.getGasPrice()
+    return this.contract.provider.getGasPrice()
   }
 
   protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {

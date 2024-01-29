@@ -1,8 +1,8 @@
-import ERC20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import Multicall3Abi from '@hop-protocol/core/abi/static/Multicall3.json'
 import { Contract, constants, ethers, providers } from 'ethers'
+import { Multicall3 } from '@hop-protocol/core/abi'
 import { PriceFeedFromS3 } from '../priceFeed'
 import { defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { getTokenDecimals } from '../utils/getTokenDecimals'
 import { config as sdkConfig } from '../config'
 
@@ -44,7 +44,7 @@ export type MulticallOptions = {
 
 export class Multicall {
   network: string
-  accountAddress: string
+  accountAddress?: string
   priceFeed: PriceFeedFromS3
 
   constructor (config: Config) {
@@ -59,7 +59,7 @@ export class Multicall {
     this.priceFeed = new PriceFeedFromS3()
   }
 
-  getMulticallAddressForChain (chainSlug: string): string {
+  getMulticallAddressForChain (chainSlug: string): string | null {
     const address = sdkConfig[this.network].chains?.[chainSlug]?.multicall
     if (!address) {
       return null
@@ -128,7 +128,7 @@ export class Multicall {
 
     let results : any
     if (multicallAddress) {
-      const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+      const multicallContract = new Contract(multicallAddress, Multicall3, provider)
       results = await multicallContract.callStatic.aggregate3(calls)
     } else {
       results = await Promise.all(calls.map(async ({ target, callData }: any) => {
@@ -147,8 +147,8 @@ export class Multicall {
       for (const key in contractInterface.functions) {
         const _method = key.split('(')[0]
         if (_method === method) {
-          const returnTypes = contractInterface.functions[key].outputs.map((output: any) => output.type)
-          const returnValues = defaultAbiCoder.decode(returnTypes, returnData)
+          const returnTypes = contractInterface?.functions[key]?.outputs?.map((output: any) => output.type)
+          const returnValues = defaultAbiCoder.decode(returnTypes!, returnData)
           return returnValues
         }
       }
@@ -167,8 +167,8 @@ export class Multicall {
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
 
-    const calls = tokenAddresses.map(({ address, abi, method }: TokenAddress & {abi: any, method: string}) => {
-      const tokenContract = new Contract(address, abi ?? ERC20Abi, provider)
+    const calls = tokenAddresses.map(({ address, abi, method }: GetMulticallBalanceOptions) => {
+      const tokenContract = new Contract(address!, abi ?? erc20Abi, provider)
       const balanceMethod = method ?? 'balanceOf'
       return {
         target: address,
@@ -178,7 +178,7 @@ export class Multicall {
 
     let results: any
     if (multicallAddress) {
-      const multicallContract = new Contract(multicallAddress, Multicall3Abi, provider)
+      const multicallContract = new Contract(multicallAddress, Multicall3, provider)
       results = await multicallContract.callStatic.aggregate3(calls)
     } else {
       results = await Promise.all(calls.map(async ({ target, callData }: any) => {
@@ -195,9 +195,9 @@ export class Multicall {
       const { tokenSymbol, address, tokenDecimals } = tokenAddresses[index]
       try {
         const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]
-        const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol)
+        const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol!)
         const balanceFormatted = Number(formatUnits(balance, _tokenDecimals))
-        const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol) // don't fetch usd price if using custom abi
+        const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol!) // don't fetch usd price if using custom abi
         const balanceUsd = tokenPrice ? balanceFormatted * tokenPrice : null
         return {
           tokenSymbol,

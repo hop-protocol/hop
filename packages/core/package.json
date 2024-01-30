@@ -72,7 +72,7 @@
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "publish": "pnpm publish --tag latest --access public",
     "bump": "pnpm version prerelease --preid=beta",
-    "release": "pnpm clean && pnpm build:all && pnpm lint && pnpm test && pnpm publish",
+    "release": "pnpm build:all && pnpm lint && pnpm test && pnpm publish",
     "bump-release": "pnpm bump && pnpm release",
     "upload": "pnpm build:ts && node dist/s3upload/main"
   },

@@ -1,43 +1,21 @@
-# Build Stage
-FROM node:20.10.0 AS build
+FROM node:20.10.0-slim AS base
 
-# Set ARG and ENV for GIT_REV
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+COPY . /app
+WORKDIR /app
+
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm --filter=@hop-protocol/hop-node build
+RUN pnpm --filter=@hop-protocol/hop-node deploy --prod /prod/app
+
+FROM base
+COPY --from=build /prod/app /prod/app
+WORKDIR /prod/app
+
 ARG GIT_REV
 ENV GIT_REV=${GIT_REV}
 
-# Create the working directory and set ownership to 'node' user
-WORKDIR /usr/src
-RUN chown -R node:node /usr/src
-
-# Install required global commands to build @eth-optimism packages
-RUN npm install -g pnpm@latest only-allow@latest
-
-# Switch to 'node' user
-USER node
-
-# Copy necessary files for installation
-COPY --chown=node:node package*.json ./
-COPY --chown=node:node .eslintrc.js ./
-COPY --chown=node:node tsconfig.json ./
-COPY --chown=node:node .npmrc ./
-COPY --chown=node:node packages packages
-
-# Install root dependencies and build specific package
-RUN pnpm install --prod \
-    && pnpm --filter @hop-protocol/hop-node build
-
-# Production Stage
-FROM node:20.10.0-alpine
-
-# Set ARG and ENV for GIT_REV
-ARG GIT_REV
-ENV GIT_REV=${GIT_REV}
-
-# Create the working directory
-WORKDIR /usr/src
-
-# Copy built files from the build stage
-COPY dist/ dist/
-
-# Set the entry point
-CMD ["node", "dist/cli/cli.js"]
+CMD [ "node", "/prod/app/dist/cli/cli.js" ]

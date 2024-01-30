@@ -46,7 +46,7 @@
     "bip39": "3.1.0",
     "chalk": "4.1.2",
     "check-disk-space": "3.4.0",
-    "commander": "11.1.0",
+    "commander": "6.2.1",
     "console-clear": "1.1.1",
     "dotenv": "16.4.1",
     "ethereum-block-by-date": "1.4.9",

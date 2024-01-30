@@ -106,8 +106,8 @@ jobs:
 
       - name: Install node dependencies
         run: |
-          npm install -g only-allow@latest pnpm@latest # required to build @eth-optimism packages
-          npm install
+          npm install -g pnpm@latest only-allow@latest # required to build @eth-optimism packages
+          pnpm install
 
       - name: Build the frontend app
         env:
@@ -125,7 +125,7 @@ jobs:
           REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
           REACT_APP_SHOW_BANNER_MESSAGE: ${{ secrets.REACT_APP_SHOW_BANNER_MESSAGE }}
           REACT_APP_BLOCKLIST_ENABLED: ${{ secrets.REACT_APP_BLOCKLIST_ENABLED }}
-        run: NODE_OPTIONS=--openssl-legacy-provider npm run build --workspace=@hop-protocol/frontend
+        run: NODE_OPTIONS=--openssl-legacy-provider pnpm build
 
       - name: Write commit file
         uses: "DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c"

@@ -37,16 +37,21 @@ jobs:
       - name: Install global dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: npm install -g only-allow@latest pnpm@latest
+        run: npm install -g pnpm@latest only-allow@latest
 
       - name: Install local dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: npm install
+        run: pnpm install
+
+      - name: Build packages
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: pnpm build
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
         working-directory: packages/core
-        run: npm publish
+        run: npm run publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -25,5 +25,10 @@
     "@types/cors": "2.8.17",
     "@types/express": "4.17.13",
     "@types/memory-cache": "0.2.5"
-  }
+  },
+  "//": "Required for pnpm deploy command in Dockerfile",
+  "files": [
+    "bin",
+    "dist"
+  ]
 }

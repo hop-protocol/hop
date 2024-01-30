@@ -88,5 +88,9 @@
   },
   "_moduleAliases": {
     "src": "src"
-  }
+  },
+  "//": "Required for pnpm deploy command in Dockerfile",
+  "files": [
+    "dist"
+  ]
 }

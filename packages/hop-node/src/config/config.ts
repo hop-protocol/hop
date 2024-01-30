@@ -44,7 +44,7 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const awsProfile = process.env.AWS_PROFILE
-export const gitRev = execSync('git rev-parse --short HEAD').toString().trim()
+export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 

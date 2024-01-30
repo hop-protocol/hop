@@ -53,8 +53,8 @@ import './withdrawalProof'
 import './metrics/bonderBalance'
 import './metrics/bonderTxCost'
 
-const gitRev = execSync('git rev-parse --short HEAD').toString().trim()
-program.version(`Version: ${gitRev}`)
+const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
+program.version(`Version: ${gitRev ?? 'unknown'}`)
 program.parse(process.argv)
 
 const logger = new Logger('process')

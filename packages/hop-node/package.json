@@ -12,6 +12,7 @@
   "scripts": {
     "preinstall": "pnpm dlx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
+    "clean:db": "rm -rf ./db_data",
     "test": "jest test",
     "start": "ts-node ./src/cli/cli.ts",
     "dev": "pnpm start",

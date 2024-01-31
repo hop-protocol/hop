@@ -42,6 +42,21 @@ jobs:
         working-directory: .
         run: npm install -g pnpm@latest only-allow@latest
 
+      - name: Install local packages and dependencies
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: pnpm --filter @hop-protocol/core install && pnpm --filter @hop-protocol/sdk install
+
+      - name: Install local dependencies
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: pnpm --filter @hop-protocol/
+
+      - name: Build packages
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: pnpm --filter @hop-protocol/core build && pnpm --filter @hop-protocol/sdk build 
+
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .

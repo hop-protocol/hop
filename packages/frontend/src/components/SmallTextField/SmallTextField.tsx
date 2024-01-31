@@ -13,7 +13,7 @@ interface StyleProps {
   centerAlign: boolean
 }
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   root: {},
   adornment: {
     marginRight: '0',
@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme: any) => ({
   },
 }))
 
-const useInputStyles = makeStyles((theme: any) => ({
+const useInputStyles = makeStyles(theme => ({
   root: (props: StyleProps) => ({
     padding: '0.1rem 0.4rem',
     borderRadius: '2rem',

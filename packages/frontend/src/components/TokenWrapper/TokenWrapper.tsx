@@ -9,7 +9,7 @@ import { constants } from 'ethers'
 import { makeStyles } from '@mui/styles'
 import { useTokenWrapper } from './TokenWrapperContext'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   button: {
     margin: `0 ${theme.padding.light}`,
     minWidth: '11rem'

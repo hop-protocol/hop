@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 import { makeStyles } from '@mui/styles'
 
-export const useStyles = makeStyles((theme: any) => ({
+export const useStyles = makeStyles(theme => ({
   box: {
     background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',

@@ -130,7 +130,11 @@ export const overridesDark = {
   },
   MuiInputBase: {
     styleOverrides: {
-      root: {
+      input: {
+        '&.Mui-disabled': {
+          opacity: 1,
+          WebkitTextFillColor: 'inherit'
+        },
       },
     },
   },
@@ -219,6 +223,14 @@ export const overridesDark = {
     styleOverrides: {
       root: {
         color: '#E3DDF1',
+      },
+    },
+  },
+  MuiAlert: {
+    styleOverrides: {
+      root: {
+        backgroundColor: 'inherit',
+        color: 'inherit'
       },
     },
   },

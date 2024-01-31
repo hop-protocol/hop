@@ -20,7 +20,7 @@ export const HeaderRoutes: FC = () => {
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const styles = useStyles()
-  const theme: any = useTheme()
+  const theme = useTheme()
 
   const handleChange = (event: ChangeEvent<object>, newValue: string) => {
     event.preventDefault()

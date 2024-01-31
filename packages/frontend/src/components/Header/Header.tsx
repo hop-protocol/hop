@@ -29,7 +29,7 @@ import { useQuery } from 'react-query'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -72,13 +72,13 @@ const useStyles = makeStyles((theme: any) => ({
     padding: '1.2rem 2rem',
     boxShadow: ({ isDarkMode }: any) =>
       isDarkMode
-        ? theme.boxShadow.inner
+        ? theme?.boxShadow?.inner
         : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
-    color: theme.palette.text.secondary,
-    [theme.breakpoints.down('sm')]: {
+    color: theme?.palette.text.secondary,
+    [theme?.breakpoints.down('sm')]: {
       fontSize: '.8rem',
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme?.breakpoints.down('xs')]: {
       display: 'none',
     },
   },
@@ -148,8 +148,8 @@ export const Header: FC = () => {
       {showBannerMessage && (
         <Banner>{showBannerMessage}</Banner>
       )}
-      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
-        <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
+      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center" justifyContent="flex-start">
+        <Box display="flex" flexDirection="row" flex={1}>
           <Link to="/" style={{ position: 'relative' }}>
             <img
               className={styles.hopLogo}
@@ -171,7 +171,7 @@ export const Header: FC = () => {
           justifyContent="flex-end"
           alignItems="center"
         >
-          <Box display="flex" alignItems="center" p={[1, 1]} mx={[2, 0]}>
+          <Box display="flex" alignItems="center" p={1} mx={2}>
             <IconButton onClick={toggleMode}>
               <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
             </IconButton>
@@ -181,7 +181,7 @@ export const Header: FC = () => {
 
           {showBalance && (
             <Box
-              display={['none', 'flex']}
+              className={styles.balancePill}
               justifyContent="center"
               alignItems="center"
               borderRadius={'3rem'}

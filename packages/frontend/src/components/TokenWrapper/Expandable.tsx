@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import Typography from '@mui/material/Typography'
 import { makeStyles } from '@mui/styles'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   details: {
     width: '46.0rem',
     marginBottom: '3.4rem',

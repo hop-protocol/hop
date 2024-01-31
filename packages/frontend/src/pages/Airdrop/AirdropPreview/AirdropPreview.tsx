@@ -19,7 +19,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
-  const theme: any = useTheme()
+  const theme = useTheme()
   const navigate = useNavigate()
   const { address } = useWeb3Context()
   const [airdropAddress, setAirdropAddress] = useState<string>(address?.address ?? '')

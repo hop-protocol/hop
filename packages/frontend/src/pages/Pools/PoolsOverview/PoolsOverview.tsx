@@ -9,7 +9,7 @@ import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsC
 import { makeStyles } from '@mui/styles'
 import { usePools } from 'src/pages/Pools/PoolsOverview/usePools'
 
-export const useStyles = makeStyles((theme: any) => ({
+export const useStyles = makeStyles(theme => ({
   box: {
     boxShadow: theme.boxShadow.inner,
     borderRadius: '3rem',

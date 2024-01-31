@@ -19,7 +19,7 @@ interface Props {
   description: string
 }
 
-export const useStyles = makeStyles((theme: any) => ({
+export const useStyles = makeStyles(theme => ({
   root: {
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',

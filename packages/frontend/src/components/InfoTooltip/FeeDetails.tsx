@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { makeStyles } from '@mui/styles'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.padding.extraLight,
     width: '32.0rem',

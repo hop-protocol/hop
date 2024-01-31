@@ -7,7 +7,7 @@ import { isDarkMode } from 'src/theme/theme'
 import { makeStyles } from '@mui/styles'
 import { useApp } from 'src/contexts/AppContext'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     position: 'fixed',
     top: 0,

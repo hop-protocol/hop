@@ -37,11 +37,12 @@ const Styles = styled.div`
 
     tbody {
       > tr {
-        :first-child {
+        &:first-child {
           background-color: transparent;
         }
-        :nth-child(odd) {
+        &:nth-child(odd) {
           background-color: ${({ theme }) => theme.colors.background.contrast};
+          border: 4px solid red;
         }
 
         &:hover {

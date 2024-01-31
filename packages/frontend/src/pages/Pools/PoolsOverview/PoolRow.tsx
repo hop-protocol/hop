@@ -9,7 +9,7 @@ import { Button } from 'src/components/Button'
 import { Link, useNavigate } from 'react-router-dom'
 import { makeStyles } from '@mui/styles'
 
-export const useStyles = makeStyles((theme: any) => ({
+export const useStyles = makeStyles(theme => ({
   box: {
   },
   imageContainer: {

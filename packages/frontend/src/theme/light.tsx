@@ -14,8 +14,7 @@ export const palette = {
     active: '#B32EFF',
     hover: '#e8c1ff',
     selected: '#B32EFF',
-    disabled: 'white',
-  },
+    disabled: 'white', },
   secondary: {
     main: '#666077',
     light: '#6660777f',
@@ -130,7 +129,11 @@ export const overridesLight = {
   },
   MuiInputBase: {
     styleOverrides: {
-      root: {
+      input: {
+        '&.Mui-disabled': {
+          opacity: 1,
+          WebkitTextFillColor: 'inherit'
+        },
       },
     },
   },
@@ -219,6 +222,14 @@ export const overridesLight = {
     styleOverrides: {
       root: {
         color: '#0F0524',
+      },
+    },
+  },
+  MuiAlert: {
+    styleOverrides: {
+      root: {
+        backgroundColor: 'inherit',
+        color: 'inherit'
       },
     },
   },

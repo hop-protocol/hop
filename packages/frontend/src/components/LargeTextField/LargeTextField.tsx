@@ -22,7 +22,7 @@ interface StyleProps {
   smallFontSize: boolean
 }
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     width: '100%',
@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme: any) => ({
   },
 }))
 
-const useInputStyles = makeStyles((theme: any) => ({
+const useInputStyles = makeStyles(theme => ({
   '@global': {
     '@keyframes loadingEffect': {
       '0%': {

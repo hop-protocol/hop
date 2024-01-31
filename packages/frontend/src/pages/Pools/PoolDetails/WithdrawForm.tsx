@@ -10,6 +10,7 @@ import { BigNumber } from 'ethers'
 import { Button } from 'src/components/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { InputField } from 'src/pages/Pools/components/InputField'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { Slider } from 'src/components/slider'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 import { commafy, formatTokenDecimalString, sanitizeNumericalString } from 'src/utils'
@@ -117,8 +118,8 @@ export function WithdrawForm(props: any) {
     }
   }, [amountBN, proportional, amountPercent, tokenIndex])
 
-  function handleSelection (event: any) {
-    const value = Number(event.target.value)
+  function handleSelection (event: SelectChangeEvent<unknown>) {
+    const value = Number(event.target.value as string)
     const _selection = selections.find(item => item.value === value)
     const _proportional = value === -1
     setSelection(_selection)

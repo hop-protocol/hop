@@ -21,7 +21,7 @@ import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { sanitizeNumericalString } from 'src/utils'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: '4.2rem',
   },
@@ -303,7 +303,7 @@ const ConvertContent: FC = () => {
           { address
           ? <ButtonsWrapper>
               {!sendButtonActive && (
-                <Box mb={[3]} width={approvalButtonActive ? '100%' : 'auto'}>
+                <Box mb={3} width={approvalButtonActive ? '100%' : 'auto'}>
                   <Button
                     className={styles.button}
                     large
@@ -318,7 +318,7 @@ const ConvertContent: FC = () => {
                 </Box>
               )}
 
-              <Box mb={[3]} width={sendButtonActive ? '100%' : 'auto'}>
+              <Box mb={3} width={sendButtonActive ? '100%' : 'auto'}>
                 <Button
                   className={styles.button}
                   onClick={handleSend}
@@ -332,7 +332,7 @@ const ConvertContent: FC = () => {
               </Box>
             </ButtonsWrapper>
           : <ButtonsWrapper>
-              <Box mb={[3]} width="100%">
+              <Box mb={3} width="100%">
                 <ConnectWalletButton fullWidth large />
               </Box>
             </ButtonsWrapper>

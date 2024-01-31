@@ -9,7 +9,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useEns } from 'src/hooks'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     boxShadow: 'none',
     display: 'flex',

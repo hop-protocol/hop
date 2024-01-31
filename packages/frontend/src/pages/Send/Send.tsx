@@ -236,7 +236,7 @@ const Send: FC = () => {
       { accountAddress
       ? <ButtonsWrapper>
           {!isSendButtonActive && (
-            <Box mb={[3]} width={isApproveButtonActive ? '100%' : 'auto'}>
+            <Box mb={3} width={isApproveButtonActive ? '100%' : 'auto'}>
               <Button
                 className={styles.button}
                 large
@@ -250,7 +250,7 @@ const Send: FC = () => {
               </Button>
             </Box>
           )}
-          <Box mb={[3]} width={isSendButtonActive ? '100%' : 'auto'}>
+          <Box mb={3} width={isSendButtonActive ? '100%' : 'auto'}>
             <Button
               className={styles.button}
               startIcon={isSendButtonActive && <SendIcon />}
@@ -265,12 +265,13 @@ const Send: FC = () => {
           </Box>
         </ButtonsWrapper>
       : <ButtonsWrapper>
-          <Box mb={[3]} width="100%">
+          <Box mb={3} width="100%">
             <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
           </Box>
         </ButtonsWrapper>
       }
 
+        <Alert severity="error" onClose={() => setInfo('')} text={'test'} />
       <Box mt={1}>
         <Alert severity="info" onClose={() => setInfo('')} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}

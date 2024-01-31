@@ -6,7 +6,7 @@ import { makeStyles } from '@mui/styles'
 import { useStaking } from 'src/pages/Pools/useStaking'
 import { useStakingAll } from 'src/pages/Pools/useStakingAll'
 
-export const useStyles = makeStyles((theme: any) => ({
+export const useStyles = makeStyles(theme => ({
   claimRewards: {
     [theme.breakpoints.down('xs')]: {
       width: '90%',

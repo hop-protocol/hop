@@ -19,6 +19,7 @@ import logger from 'src/logger'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { BigNumber } from 'ethers'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { Token } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, toTokenDisplay } from 'src/utils'
@@ -51,7 +52,7 @@ type ConvertContextProps = {
   loadingSourceBalance: boolean
   needsApproval?: boolean
   needsTokenForFee?: boolean
-  selectBothNetworks: (event: any) => void
+  selectBothNetworks: (event: SelectChangeEvent<unknown>) => void
   selectedNetwork?: Network
   sending: boolean
   setDestTokenAmount: (value: string) => void

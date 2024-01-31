@@ -47,7 +47,7 @@ const AppRoutes: FC = () => {
         path="/*"
         element={
           <Box display="flex" flexGrow={1}>
-            <Box p={['2.2rem', '2.5rem']} flexGrow={1}>
+            <Box p="2.2rem" flexGrow={1}>
               <Suspense fallback={<Loading />}>
                 <Routes>
                   <Route path="/stats" element={<Stats />} />

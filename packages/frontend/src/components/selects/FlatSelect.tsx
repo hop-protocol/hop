@@ -3,7 +3,7 @@ import React, { FC } from 'react'
 import Select, { SelectProps } from '@mui/material/Select'
 import { makeStyles } from '@mui/styles'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   root: ({ value }: any) => ({
     color: value === 'default' ? '#fff' : theme.palette.text.secondary,
     background: value === 'default' ? theme.bgGradient?.flat : theme.palette.action.disabled,

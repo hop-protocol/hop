@@ -1,6 +1,6 @@
 import { makeStyles } from '@mui/styles'
 
-export const useStyles = makeStyles((theme: any) => ({
+export const useStyles = makeStyles(theme => ({
   backLink: {
     cursor: 'pointer',
     textDecoration: 'none'

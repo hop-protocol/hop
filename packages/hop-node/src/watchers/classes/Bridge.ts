@@ -904,12 +904,14 @@ export default class Bridge extends ContractBase {
       to
     ) {
       try {
+        const txType = 0
         const tx = {
           value: parseEther('0'),
           gasPrice,
           gasLimit,
           to,
-          data
+          data,
+          type: txType
         }
         const l1FeeInWei = await estimateL1GasCost(getRpcProvider(this.chainSlug)!, tx)
         gasCost = gasCost.add(l1FeeInWei)

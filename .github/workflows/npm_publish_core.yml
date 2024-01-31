@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            packages/core
 
       - uses: actions/setup-node@v3
         with:
@@ -42,12 +45,12 @@ jobs:
       - name: Install local dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm install
+        run: pnpm --filter @hop-protocol/core install
 
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm build
+        run: pnpm --filter @hop-protocol/core build
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'

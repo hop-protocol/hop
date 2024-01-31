@@ -30,7 +30,6 @@ root
     'File containing password to unlock keystore',
     parseString
   )
-  .option('--clear-db [boolean]', 'Clear cache database on start', parseBool)
   .option('--log-db-state [boolean]', 'Log db state periodically', parseBool)
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD', parseString)
   .option('--s3-upload [boolean]', 'Upload available liquidity info as JSON to S3', parseBool)
@@ -52,7 +51,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -63,11 +62,6 @@ async function main (source: any) {
   }
   if (s3Namespace) {
     logger.info(`s3 namespace: ${s3Namespace}`)
-  }
-
-  if (clearDb) {
-    await clearDb()
-    logger.debug(`cleared db at: ${globalConfig.db.path}`)
   }
 
   const tokens = []

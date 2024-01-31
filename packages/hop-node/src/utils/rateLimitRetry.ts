@@ -16,7 +16,7 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
   const logger = _logger.create({ id })
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
-    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000) // eslint-disable-line
+    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)
     while (true) {
       try {
         // the await here is intentional so it's caught in the try/catch below.
@@ -74,7 +74,7 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
           logger.error(`max retries reached (${rateLimitMaxRetries}). Error: ${err}`)
           // this must be a regular console log to print original function name
           console.error('max retries reached', fn, id, ...args)
-          notifier.error(`max retries (${rateLimitMaxRetries}) reached (logId: ${id}). Error: ${errMsg}`)
+          await notifier.error(`max retries (${rateLimitMaxRetries}) reached (logId: ${id}). Error: ${errMsg}`)
           throw err
         }
 

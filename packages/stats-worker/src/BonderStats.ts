@@ -1,31 +1,31 @@
-import path from 'path'
 import fs from 'fs'
 import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
-import { BigNumber, providers, Contract, constants } from 'ethers'
+import path from 'path'
+import { BigNumber, Contract, constants, providers } from 'ethers'
+import { DateTime } from 'luxon'
+import { PriceFeed } from './PriceFeed'
 import {
+  archiveRpcUrls,
+  enabledChains,
+  enabledTokens,
+  etherscanApiKeys,
+  rpcUrls
+} from './config'
+import { chunk } from 'lodash'
+import { createObjectCsvWriter } from 'csv-writer'
+import { db } from './Db'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import {
+  formatEther,
   formatUnits,
   parseEther,
-  formatEther,
   parseUnits
 } from 'ethers/lib/utils'
-import { DateTime } from 'luxon'
-import { db } from './Db'
-import {
-  enabledTokens,
-  enabledChains,
-  etherscanApiKeys,
-  rpcUrls,
-  archiveRpcUrls
-} from './config'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { createObjectCsvWriter } from 'csv-writer'
-import { chunk } from 'lodash'
-import { parse } from 'comment-json'
-import { PriceFeed } from './PriceFeed'
 import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl'
-import { getTokenDecimals } from './utils/getTokenDecimals'
 import { getSubgraphUrl } from './utils/getSubgraphUrl'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { parse } from 'comment-json'
 
 const jsonData = parse(
   fs
@@ -33,11 +33,8 @@ const jsonData = parse(
     .toString()
 ) as any
 
-const {
-  arbitrumAliases,
-  oldArbitrumAliases
-} = require('./data/arbitrum_alises.json')
-const { wethAddresses } = require('./data/weth_addresses.json')
+import { arbitrumAliases, oldArbitrumAliases } from './data/arbitrum_alises.json'
+import { wethAddresses } from './data/weth_addresses.json'
 
 const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
@@ -192,6 +189,7 @@ class BonderStats {
         dbData.novaFeesAmount,
         dbData.baseFeesAmount,
         dbData.lineaFeesAmount,
+        dbData.polygonzkFeesAmount,
         dbData.ethereumFeesAmount,
         dbData.totalFeesAmount,
         startDate
@@ -279,6 +277,7 @@ class BonderStats {
         Number(dbData.novaTxFees || 0) +
         Number(dbData.baseTxFees || 0) +
         Number(dbData.lineaTxFees || 0) +
+        Number(dbData.polygonzkTxFees || 0) +
         Number(dbData.ethereumTxFees || 0)) *
         ethPrice
     console.log(dbData.totalFees)
@@ -293,6 +292,7 @@ class BonderStats {
         dbData.novaTxFees,
         dbData.baseTxFees,
         dbData.lineaTxFees,
+        dbData.polygonzkTxFees,
         dbData.ethereumTxFees,
         dbData.totalFees,
         dbData.ethPrice,
@@ -342,8 +342,8 @@ class BonderStats {
       bonderAddress = bonderAddress.toLowerCase()
 
       console.log('day:', day)
-      let now = this.endDate ?? DateTime.utc()
-      let date = now.minus({ days: day + this.offsetDays }).startOf('day')
+      const now = this.endDate ?? DateTime.utc()
+      const date = now.minus({ days: day + this.offsetDays }).startOf('day')
       console.log('date:', date.toISO())
       const timestamp = Math.floor(date.toSeconds())
       const isoDate = date.toISO()
@@ -665,7 +665,11 @@ class BonderStats {
           dbData.lineaBlockNumber,
           dbData.lineaCanonicalAmount,
           dbData.lineaHTokenAmount,
-          dbData.lineaNativeAmount
+          dbData.lineaNativeAmount,
+          dbData.polygonzkBlockNumber,
+          dbData.polygonzkCanonicalAmount,
+          dbData.polygonzkHTokenAmount,
+          dbData.polygonzkNativeAmount
         )
         console.log(
           day,
@@ -749,7 +753,7 @@ class BonderStats {
               new Promise(async (resolve, reject) => {
                 try {
                   // console.log('fetching', token, chain)
-                  let provider = this.allProviders[chain]
+                  const provider = this.allProviders[chain]
                   const archiveProvider =
                     this.allArchiveProviders[chain] || provider
                   const bonder = bonderMap[sourceChain][
@@ -843,7 +847,7 @@ class BonderStats {
                   )
 
                   if (chain === 'arbitrum') {
-                    let aliasAddress = arbitrumAliases[token]
+                    let aliasAddress = (arbitrumAliases as Record<string, string>)[token]
                     if (
                       token === 'DAI' &&
                       bonder === '0x305933e09871d4043b5036e09af794facb3f6170' &&
@@ -863,7 +867,7 @@ class BonderStats {
 
                   if (chain === 'ethereum') {
                     const messengerWrapperAddress = (mainnetAddresses as any)
-                      .bridges[token]['arbitrum'].l1MessengerWrapper
+                      .bridges[token].arbitrum.l1MessengerWrapper
                     balancePromises.push(
                       provider.getBalance(messengerWrapperAddress, blockTag)
                     )
@@ -897,8 +901,8 @@ class BonderStats {
                     ? Number(formatEther(native.toString()))
                     : 0
 
-                  dbData.ethPriceUsd = Number(priceMap['ETH'])
-                  dbData.maticPriceUsd = Number(priceMap['MATIC'])
+                  dbData.ethPriceUsd = Number(priceMap.ETH)
+                  dbData.maticPriceUsd = Number(priceMap.MATIC)
                   if (chain !== 'ethereum') {
                     dbData[`${chain}HTokenAmount`] = hBalance
                       ? Number(
@@ -919,9 +923,7 @@ class BonderStats {
                     )
                   }
                   if (chain === 'ethereum') {
-                    dbData[
-                      `arbitrumMessengerWrapperAmount`
-                    ] = messengerWrapperBalance
+                    dbData.arbitrumMessengerWrapperAmount = messengerWrapperBalance
                       ? Number(formatEther(messengerWrapperBalance.toString()))
                       : 0
                     console.log(
@@ -1216,6 +1218,8 @@ class BonderStats {
       (dbData.baseHTokenAmount || 0) +
       (dbData.lineaCanonicalAmount || 0) +
       (dbData.lineaHTokenAmount || 0) +
+      (dbData.polygonzkCanonicalAmount || 0) +
+      (dbData.polygonzkHTokenAmount || 0) +
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount) -
       dbData.initialCanonicalAmount -
@@ -1248,6 +1252,7 @@ class BonderStats {
         (dbData.novaNativeAmount || 0) +
         (dbData.baseNativeAmount || 0) +
         (dbData.lineaNativeAmount || 0)) *
+        (dbData.polygonzkNativeAmount || 0) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1262,7 +1267,8 @@ class BonderStats {
           dbData.arbitrumMessengerWrapperAmount +
           (dbData.novaNativeAmount || 0) +
           (dbData.baseNativeAmount || 0) +
-          (dbData.lineaNativeAmount || 0))
+          (dbData.lineaNativeAmount || 0) +
+          (dbData.polygonzkNativeAmount || 0))
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
@@ -1291,12 +1297,12 @@ class BonderStats {
       target = target.getTime()
     }
 
-    var nearest = Infinity
-    var winner = -1
+    let nearest = Infinity
+    let winner = -1
 
     dates.forEach(function (date, index) {
       if (date instanceof Date) date = date.getTime()
-      var distance = Math.abs(date - target)
+      const distance = Math.abs(date - target)
       if (distance < nearest) {
         nearest = distance
         winner = index
@@ -1318,7 +1324,7 @@ class BonderStats {
         variables: variables || {}
       })
     })
-    const jsonRes = await res.json()
+    const jsonRes: any = await res.json()
     if (!jsonRes.data) {
       throw new Error(jsonRes.errors[0].message)
     }
@@ -1386,7 +1392,7 @@ class BonderStats {
         const url = this.getEtherscanUrl(chain, address, startBlock, endBlock)
 
         const res = await fetch(url)
-        const json = await res.json()
+        const json: any = await res.json()
         if (json.message === 'NOTOK') {
           throw new Error(json.result)
         }
@@ -1477,7 +1483,7 @@ class BonderStats {
       arr = amount
     }
 
-    return arr.map((value: string) =>
+    return (arr as string[]).map((value: string) =>
       parseUnits(value, getTokenDecimals(token))
     )
   }

@@ -1,5 +1,4 @@
 import Logger, { setLogLevel } from 'src/logger'
-import fetch from 'node-fetch'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -10,7 +9,6 @@ import {
   Fees,
   Routes,
   SignerConfig,
-  Vault,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,
@@ -29,8 +27,7 @@ import {
   setNetworkRpcUrl,
   setRoutesConfig,
   setSignerConfig,
-  setSyncConfig,
-  setVaultConfig
+  setSyncConfig
 } from './config'
 import { getAddress } from 'ethers/lib/utils'
 import { getParameter } from 'src/aws/parameterStore'
@@ -103,7 +100,6 @@ export type FileConfig = {
   fees?: Fees
   routes: Routes
   bonders?: Bonders
-  vault?: Vault
   blocklist?: BlocklistConfig
 }
 
@@ -253,11 +249,6 @@ export async function setGlobalConfigFromConfigFile (
 
   if (config.bonders) {
     setConfigBonders(config.bonders)
-  }
-
-  logger.debug('optional vault config:', JSON.stringify(config.vault))
-  if (config.vault) {
-    setVaultConfig(config.vault)
   }
 
   logger.debug('optional blocklist config:', JSON.stringify(config.blocklist))

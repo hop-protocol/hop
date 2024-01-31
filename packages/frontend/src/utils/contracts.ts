@@ -1,15 +1,15 @@
+import { ENSToken__factory } from 'src/abis'
 import {
-  L1_Bridge__factory,
+  ERC20__factory,
   HopBridgeToken__factory,
+  L1_Bridge__factory,
   L2_AmmWrapper__factory,
   L2_Bridge__factory,
   Swap__factory,
-  ERC20__factory,
   WETH9__factory,
 } from '@hop-protocol/core/contracts'
 import { Interface } from '@ethersproject/abi'
-import { providers, Signer } from 'ethers'
-import { ENSToken__factory } from 'src/abis'
+import { Signer, providers } from 'ethers'
 
 export const hopBridgeTokenInterface = HopBridgeToken__factory.createInterface()
 export const l1BridgeInterface = L1_Bridge__factory.createInterface()

@@ -1,4 +1,4 @@
-export * from './BNMin'
+export * from './bigNumberMin'
 export * from './bridges'
 export * from './commafy'
 export * from './constants'

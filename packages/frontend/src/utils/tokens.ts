@@ -1,5 +1,5 @@
 import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
-import { metadata, addresses } from 'src/config'
+import { addresses, metadata } from 'src/config'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 
 export function getTokenImage(tokenSymbol: string = 'ETH') {
@@ -31,7 +31,7 @@ export function getTokenByAddress(network: string, address?: string): TokenSymbo
     const networkContracts = addresses.tokens[token][network]
 
     if (network === ChainSlug.Ethereum && networkContracts.l1Bridge === address) {
-      return token as TokenSymbol
+      return token 
     }
 
     if (
@@ -42,7 +42,7 @@ export function getTokenByAddress(network: string, address?: string): TokenSymbo
         networkContracts.l2CanonicalToken,
       ].includes(address)
     ) {
-      return token as TokenSymbol
+      return token 
     }
   }
 }

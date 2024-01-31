@@ -5,8 +5,8 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain, Token } from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData'
 import { config as globalConfig } from 'src/config'
 
@@ -21,7 +21,7 @@ type Config = {
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
+  override siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
 
   constructor (config: Config) {
     super({
@@ -33,7 +33,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await this.checkUnsettledTransferRootsFromDb()
   }
 
@@ -70,7 +70,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       throw new Error('transferIds expected to be array')
     }
 
-    const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
+    if (!destinationChainId || !totalAmount) {
+      logger.error('destinationChainId or totalAmount not found')
+      return
+    }
+
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
     bonder = bonder ?? await destBridge.getBonderAddress()
     logger.debug(`transferRootId: ${transferRootId}`)
@@ -92,13 +97,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('computed transferRootHash:', transferRootHash)
     logger.debug('bonder:', bonder)
-    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!))
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferIds', JSON.stringify(transferIds))
 
     const {
       total: onChainTotalAmount,
       amountWithdrawn: onChainAmountWithdrawn
-    } = await destBridge.getTransferRoot(transferRootHash, totalAmount!)
+    } = await destBridge.getTransferRoot(transferRootHash, totalAmount)
     if (onChainTotalAmount.eq(0)) {
       logger.debug('onChainTotalAmount is 0. Skipping')
       return
@@ -126,11 +131,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferRootHash,
         bonder!,
         transferIds,
-        totalAmount!
+        totalAmount
       )
 
       const txHashes = txs.map(tx => tx.hash)
-      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}), transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
+      const msg = `settleBondedWithdrawals on destinationChainId: txHashes: ${txHashes}, ${destinationChainId} (sourceChainId: ${sourceChainId}), transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount)}, transferIds: ${transferIds.length}`
       logger.info(msg)
     } catch (err) {
       logger.error('settleBondedWithdrawals error:', err.message)

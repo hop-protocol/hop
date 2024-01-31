@@ -2,11 +2,11 @@ import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
-import { ERC20__factory } from '@hop-protocol/core/contracts/factories/generated/ERC20__factory'
+import { ERC20__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
-import { WETH9__factory } from '@hop-protocol/core/contracts/factories/static/WETH9__factory'
-import { chains as chainMetadata } from '@hop-protocol/core/metadata/chains'
+import { WETH9__factory } from '@hop-protocol/core/contracts'
+import { chains as chainMetadata } from '@hop-protocol/core/metadata'
 
 export type TokenConstructorOptions = {
   chain: TChain,
@@ -56,8 +56,8 @@ class Token extends Base {
     super(networkOrOptionsObject, signer, chainProviders)
 
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject as TokenConstructorOptions
-      if (chain || address || decimals || symbol || name || image || signer || chainProviders) {
+      const options = networkOrOptionsObject 
+      if (chain ?? address ?? decimals ?? symbol ?? name ?? image ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
       decimals = options.decimals
@@ -77,10 +77,10 @@ class Token extends Base {
     }
 
     this.address = ethers.utils.getAddress(address)
-    this.decimals = decimals
-    this._symbol = symbol
-    this.name = name
-    this.image = image
+    this.decimals = decimals!
+    this._symbol = symbol!
+    this.name = name!
+    this.image = image!
     this.chain = this.toChainModel(chain)
   }
 
@@ -284,7 +284,7 @@ class Token extends Base {
     if (!address) {
       throw new Error('address is required')
     }
-    return this.chain.provider.getBalance(address)
+    return this.chain.provider!.getBalance(address)
   }
 
   async getWethContract (): Promise<any> {

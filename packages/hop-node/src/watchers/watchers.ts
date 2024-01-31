@@ -244,7 +244,7 @@ export async function startWatchers (config: GetWatchersConfig) {
   const starts = watchers.map(async (watcher: Watcher) => watcher.start())
   const stop = () => {
     return watchers.map(async (watcher: Watcher) => {
-      return await watcher.stop()
+      return watcher.stop()
     })
   }
 
@@ -253,10 +253,10 @@ export async function startWatchers (config: GetWatchersConfig) {
 
 export function startChallengeWatchers (config: GetChallengeWatchersConfig) {
   const watchers = getChallengeWatchers(config)
-  watchers.forEach(async (watcher: Watcher) => await watcher.start())
+  watchers.forEach(async (watcher: Watcher) => watcher.start())
   const stop = () => {
     return watchers.map(async (watcher: Watcher) => {
-      return await watcher.stop()
+      return watcher.stop()
     })
   }
 
@@ -367,7 +367,7 @@ export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: stri
   })
 }
 
-export async function getWatcher (config: GetWatcherConfig) {
+export async function getWatcher (config: GetWatcherConfig): Promise<Watcher> {
   const { chain, token, dryMode, watcherName } = config
   const watchers = await getWatchers({
     enabledWatchers: [watcherName!],
@@ -376,34 +376,37 @@ export async function getWatcher (config: GetWatcherConfig) {
   })
 
   const WatcherClass = WatcherClasses[watcherName!]
-  const watcher = findWatcher(watchers, WatcherClass, chain) as typeof WatcherClass
+  const watcher = findWatcher(watchers, WatcherClass, chain)
+  if (!watcher) {
+    throw new Error(`Watcher not found for chain ${chain} and token ${token}`)
+  }
   return watcher
 }
 
-export async function getBondTransferRootWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.BondTransferRoot })
+export async function getBondTransferRootWatcher (config: GetWatcherConfig): Promise<BondTransferRootWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.BondTransferRoot })) as BondTransferRootWatcher
 }
 
-export async function getBondWithdrawalWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.BondWithdrawal })
+export async function getBondWithdrawalWatcher (config: GetWatcherConfig): Promise<BondWithdrawalWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.BondWithdrawal })) as BondWithdrawalWatcher
 }
 
-export async function getCommitTransfersWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.CommitTransfers })
+export async function getCommitTransfersWatcher (config: GetWatcherConfig): Promise<CommitTransfersWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.CommitTransfers })) as CommitTransfersWatcher
 }
 
-export async function getConfirmRootsWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.ConfirmRoots })
+export async function getConfirmRootsWatcher (config: GetWatcherConfig): Promise<ConfirmRootsWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.ConfirmRoots })) as ConfirmRootsWatcher
 }
 
-export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.SettleBondedWithdrawals })
+export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig): Promise<SettleBondedWithdrawalWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.SettleBondedWithdrawals })) as SettleBondedWithdrawalWatcher
 }
 
-export async function getL1ToL2RelayWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.L1ToL2Relay })
+export async function getL1ToL2RelayWatcher (config: GetWatcherConfig): Promise<RelayWatcher> {
+  return (await getWatcher({ ...config, watcherName: Watchers.L1ToL2Relay })) as RelayWatcher
 }
 
-export async function getSyncWatcher (config: GetWatcherConfig) {
+export async function getSyncWatcher (config: GetWatcherConfig): Promise<SyncWatcher> {
   return (await getBondWithdrawalWatcher(config)).syncWatcher
 }

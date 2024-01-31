@@ -1,6 +1,6 @@
 # Build docker target
 docker-build:
-	docker build -f Dockerfile -t hopprotocol/stats-worker .
+	(cd ../../ && docker build -f packages/stats-worker/Dockerfile -t hopprotocol/stats-worker .)
 
 # Tag docker image with latest
 docker-image-tag-latest:

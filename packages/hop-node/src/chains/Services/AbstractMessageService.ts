@@ -55,12 +55,12 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
 
   async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const messageDirection: MessageDirection = MessageDirection.L1_TO_L2
-    return await this.#relayMessage(l1TxHash, messageDirection, messageIndex)
+    return this.#relayMessage(l1TxHash, messageDirection, messageIndex)
   }
 
   async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const messageDirection: MessageDirection = MessageDirection.L2_TO_L1
-    return await this.#relayMessage(l2TxHash, messageDirection, messageIndex)
+    return this.#relayMessage(l2TxHash, messageDirection, messageIndex)
   }
 
   /**
@@ -70,7 +70,7 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
   async #relayMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<providers.TransactionResponse> {
     const message: Message = await this.getMessage(txHash, messageDirection, messageIndex)
     await this.#validateMessage(message, messageDirection)
-    return await this.sendRelayTx(message, messageDirection)
+    return this.sendRelayTx(message, messageDirection)
   }
 
   async #validateMessage (message: Message, messageDirection: MessageDirection): Promise<void> {

@@ -69,7 +69,7 @@ class DatabaseMigrator<T> {
   }
 
   // Get a property from a generic object, if it exists
-  protected getPropertyValue<T extends { [key: string]: any }>(obj: T, property: string): any | undefined {
+  protected getPropertyValue<T extends { [key: string]: any }>(obj: T, property: string): any {
     return obj?.[property]
   }
 }

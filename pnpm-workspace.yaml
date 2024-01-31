@@ -1,0 +1,9 @@
+packages:
+  # TODO: convert to single 'pacakges/*' once sdk-demo builds
+  - 'packages/core'
+  - 'packages/sdk'
+  - 'packages/api'
+  - 'packages/frontend'
+  # - 'packages/sdk-demo'
+  - 'packages/stats-worker'
+  - 'packages/hop-node'

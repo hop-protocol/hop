@@ -1,6 +1,5 @@
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import erc20Abi from '@hop-protocol/core/abi/generated/MockERC20.json'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants } from 'ethers'
@@ -9,6 +8,7 @@ import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-c
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { SwapInput } from '../types'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 const logger = new Logger({
@@ -246,7 +246,7 @@ export async function swap (config: SwapInput) {
   }
 
   if (ethNativeChains.includes(chain) && toToken === 'ETH') {
-    routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
+    routeToken1 = Ether.onChain(chainSlugToId(chain))
   }
 
   if (chain === Chain.Polygon && toToken === 'MATIC') {
@@ -255,7 +255,7 @@ export async function swap (config: SwapInput) {
     } else if (pool.token1.symbol === 'WMATIC') {
       routeToken1 = pool.token1
     } else {
-      routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
+      routeToken1 = Ether.onChain(chainSlugToId(chain))
     }
   }
 
@@ -283,7 +283,7 @@ export async function swap (config: SwapInput) {
 
   const slippageTolerance = new Percent((slippage ?? 1) * 100, 10000)
   recipient = recipient ?? sender
-  deadline = (Date.now() / 1000 + (deadline || 300)) | 0 // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+  deadline = (Date.now() / 1000 + (deadline ?? 300)) | 0
 
   logger.debug(`slippage tolerance: ${slippageTolerance.toFixed(2)}`)
 
@@ -321,7 +321,7 @@ export async function swap (config: SwapInput) {
     await tx.wait()
   }
 
-  return await wallet.sendTransaction({
+  return wallet.sendTransaction({
     to: swapRouter,
     data: calldata,
     value

@@ -1,5 +1,5 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import Box from '@material-ui/core/Box'
 import { RewardsWidget } from 'src/pages/Rewards/RewardsWidget'
 import { configs } from 'src/pages/Rewards/config'
 

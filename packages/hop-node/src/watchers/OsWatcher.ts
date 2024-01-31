@@ -65,7 +65,7 @@ class OsWatcher {
 
   static async getDiskUsage (): Promise<any> {
     return new Promise((resolve) => {
-      checkDiskSpace('/').then((diskSpace) => {
+      checkDiskSpace('/').then((diskSpace: any) => {
         const totalSize = diskSpace?.size
         const freeSize = diskSpace?.free
         const freeSizeGb = freeSize / 1024 / 1024 / 1024

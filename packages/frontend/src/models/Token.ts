@@ -1,5 +1,5 @@
-import Network from 'src/models/Network'
 import Address from 'src/models/Address'
+import Network from 'src/models/Network'
 import { TokenSymbol } from '@hop-protocol/sdk'
 
 type TokenProps = {
@@ -22,12 +22,12 @@ class Token {
     this.symbol = props.symbol
     this.tokenName = props.tokenName
     this.imageUrl = props.imageUrl
-    this.decimals = props.decimals || 18
-    this.supportedNetworks = props.supportedNetworks || []
+    this.decimals = props.decimals ?? 18
+    this.supportedNetworks = props.supportedNetworks ?? []
   }
 
   networkSymbol(network: Network | undefined) {
-    const prefix = network?.slug || ''
+    const prefix = network?.slug ?? ''
     return prefix + '.' + this.symbol
   }
 

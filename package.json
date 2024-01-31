@@ -1,18 +1,44 @@
 {
-  "name": "root",
+  "name": "hop",
+  "version": "1.0.0",
+  "description": "Hop Protocol Monorepo",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=14",
-    "yarn": "^1.22.11"
-  },
-  "devDependencies": {
-    "lerna": "^3.20.2"
+    "node": ">=20.10.0",
+    "pnpm": ">=8"
   },
   "scripts": {
-    "bootstrap": "npx lerna bootstrap",
-    "nuke": "npx lerna clean"
+    "preinstall": "pnpm dlx only-allow pnpm",
+    "clean": "pnpm recursive run clean && rm -rf tsconfig.buildinfo && rm -rf node_modules",
+    "build": "pnpm recursive run build",
+    "lint": "pnpm recursive run lint"
   },
-  "dependencies": {
-
+  "devDependencies": {
+    "@types/jest": "29.5.11",
+    "@types/node": "20.11.8",
+    "@typescript-eslint/eslint-plugin": "6.19.1",
+    "@typescript-eslint/parser": "6.19.1",
+    "eslint": "8.56.0",
+    "eslint-plugin-n": "16.6.2",
+    "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
+    "eslint-plugin-unused-imports": "3.0.0",
+    "typescript": "5.3.3"
+  },
+  "//": [
+    "Temporary overrides, remove when packages are updated. pnpm workspaces requires overrides at the root: https://github.com/npm/rfcs/blob/main/accepted/0036-overrides.md#only-root-package-may-contain-overrides",
+    " * @typescript-eslint/*: Remove when the frontend react-scripts version is updated or removed",
+    " * type-fest & minimatch: Not sure exactly which package breaks without this."
+  ],
+  "pnpm": {
+    "overrides": {
+      "react-scripts@4.0.3>@typescript-eslint/eslint-plugin": "6.18.1",
+      "react-app-rewired@2.2.1>@typescript-eslint/eslint-plugin": "6.18.1",
+      "react-script@4.0.3>@typescript-eslint/parser": "6.18.0",
+      "react-app-rewired@2.2.1>@typescript-eslint/parser": "6.18.0",
+      "type-fest": "4.9.0",
+      "minimatch": "5.1.2"
+    }
   }
 }

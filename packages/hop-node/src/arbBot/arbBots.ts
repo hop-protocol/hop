@@ -1,4 +1,4 @@
-import arbBotsConfig from './example/arbBotsConfig.json'
+import arbBotsConfig from 'src/arbBot/example/arbBotsConfig.json'
 import fs from 'fs'
 import path from 'path'
 import { ArbBot } from './ArbBot'

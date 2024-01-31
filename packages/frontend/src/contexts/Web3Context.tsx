@@ -1,27 +1,27 @@
+import Address from 'src/models/Address'
+import Onboard from '@web3-onboard/core'
 import React, {
   FC,
   ReactNode,
   createContext,
   useContext,
+  useEffect,
   useMemo,
-  useState,
-  useEffect
+  useState
 } from 'react'
-import { ethers } from 'ethers'
-import Address from 'src/models/Address'
-import { networks } from '@hop-protocol/core/networks'
-import { chains as chainMetadata } from '@hop-protocol/core/metadata/chains'
-import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
-import { networkSlugToId } from 'src/utils'
-import { capitalize } from 'src/utils/capitalize'
-import { l1Network } from 'src/config/networks'
-import logger from 'src/logger'
-import { chainIdToHex } from 'src/utils/chainIdToHex'
-import Onboard from '@web3-onboard/core'
-import injectedModule from '@web3-onboard/injected-wallets'
 import coinbaseWalletModule from '@web3-onboard/coinbase'
-import walletConnectModule from '@web3-onboard/walletconnect'
 import gnosisModule from '@web3-onboard/gnosis'
+import injectedModule from '@web3-onboard/injected-wallets'
+import logger from 'src/logger'
+import walletConnectModule from '@web3-onboard/walletconnect'
+import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
+import { capitalize } from 'src/utils/capitalize'
+import { chainIdToHex } from 'src/utils/chainIdToHex'
+import { chains as chainMetadata } from '@hop-protocol/core/metadata'
+import { ethers } from 'ethers'
+import { l1Network } from 'src/config/networks'
+import { networkSlugToId } from 'src/utils'
+import { networks } from '@hop-protocol/core/networks'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export type Props = {
@@ -127,6 +127,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }
 
   const onboard = useMemo(() => {
+    // eslint-disable-next-line new-cap
     const instance = Onboard({
       theme: customTheme,
       appMetadata: {
@@ -252,7 +253,8 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const state = onboard.state.select('wallets')
     let lastUpdate = ''
-    const { unsubscribe } = state.subscribe((update) => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { unsubscribe } = state.subscribe((update: any) => {
       let shouldUpdate = true
       const _walletName = update?.[0]?.label
       if (_walletName === 'WalletConnect') {

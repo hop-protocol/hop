@@ -1,3 +1,4 @@
+// @ts-expect-error No types as of 20240128
 import BlockDater from 'ethereum-block-by-date'
 import { Chain } from '../models/Chain'
 import { DateTime } from 'luxon'
@@ -44,7 +45,7 @@ export async function getBlockNumberFromDateUsingLib (provider: any, timestamp: 
   let info
   while (true) {
     try {
-      info = await blockDater.getDate(date)
+      info = blockDater.getDate(date)
       if (!info) {
         throw new Error('could not retrieve block number')
       }

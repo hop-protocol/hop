@@ -10,7 +10,7 @@ export async function swap (dex: string, input: SwapInput) {
     return uniswapSwap(input)
   } else if (dex === '1inch') {
     return oneInchSwap(input)
-  } else {
-    throw new Error(`Invalid dex: ${dex}`)
   }
+
+  throw new Error(`Invalid dex: ${dex}`)
 }

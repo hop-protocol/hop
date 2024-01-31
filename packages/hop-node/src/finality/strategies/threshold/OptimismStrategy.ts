@@ -3,7 +3,7 @@ import { FinalityStrategy } from '../FinalityStrategy'
 import { IFinalityStrategy } from '../IFinalityStrategy'
 
 export class OptimismStrategy extends FinalityStrategy implements IFinalityStrategy {
-  getSafeBlockNumber = async (): Promise<number> => {
+  override getSafeBlockNumber = async (): Promise<number> => {
     const blockNumber = await this._getCustomBlockNumber(FinalityBlockTag.Safe)
     if (blockNumber) {
       return blockNumber

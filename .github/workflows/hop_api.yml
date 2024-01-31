@@ -1,0 +1,59 @@
+name: Build and Push Hop API Docker Image
+
+on:
+  push:
+    branches:
+      - hop-api
+  workflow_dispatch:
+
+jobs:
+  _build-hop-api:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOCKER_IMAGE: hopprotocol/hop-api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Build application Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./packages/api/Dockerfile
+          build-args: GIT_REV=${{ github.sha }}
+          tags: app
+          load: true
+          push: false
+
+      - name: Push Hop API Docker image to Docker Hub
+        run: |
+          BRANCH=${GITHUB_REF##*/}
+          BRANCH=$(echo $BRANCH | sed 's/\//-/g')
+          docker tag app $DOCKER_IMAGE:${{ github.sha }}
+          docker tag app $DOCKER_IMAGE:$BRANCH
+          docker push $DOCKER_IMAGE:${{ github.sha }}
+          docker push $DOCKER_IMAGE:$BRANCH
+          if [ "$BRANCH" == "hop-api" ]; then
+            docker tag app $DOCKER_IMAGE:latest
+            docker push $DOCKER_IMAGE:latest
+          fi
+
+  build-hop-api:
+    needs: [_build-hop-api]
+    name: Send Status Notification Webhook Request
+    uses: ./.github/workflows/status_notify.yml
+    with:
+      environment: production
+    secrets:
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_HOP_API }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

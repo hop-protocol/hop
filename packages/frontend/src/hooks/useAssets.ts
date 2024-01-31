@@ -1,7 +1,7 @@
-import { CanonicalToken, HopBridge } from '@hop-protocol/sdk'
-import { useMemo } from 'react'
-import logger from 'src/logger'
 import Network from 'src/models/Network'
+import logger from 'src/logger'
+import { HopBridge } from '@hop-protocol/sdk'
+import { useMemo } from 'react'
 
 export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwork?: Network) {
   // Check if asset is supported by networks

@@ -54,7 +54,7 @@ export function getConvertedFees(input: Input) {
   ) : ''
 
   const relayFeeUsdDisplay = relayFeeEth?.gt(0) ? toUsdDisplay(relayFeeEth, 18, tokenUsdPrice) : ''
-  const totalFee = tokenSymbol === 'ETH' ? totalBonderFee?.add(relayFeeEth || 0) : totalBonderFee
+  const totalFee = tokenSymbol === 'ETH' ? totalBonderFee?.add(relayFeeEth ?? 0) : totalBonderFee
   const totalFeeDisplay = toTokenDisplay(totalFee, tokenDecimals, tokenSymbol)
   const totalFeeUsdDisplay = toUsdDisplay(totalFee, tokenDecimals, tokenUsdPrice)
 

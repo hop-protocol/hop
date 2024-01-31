@@ -1,15 +1,14 @@
 import assert from 'assert'
-import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
-import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit, Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { GnosisAddresses, GnosisCanonicalAddresses } from 'src/chains/Chains/gnosis/GnosisAddresses'
-import { L1_xDaiAMB } from '@hop-protocol/core/contracts/static/L1_xDaiAMB'
-import { L2_xDaiAMB } from '@hop-protocol/core/contracts/static/L2_xDaiAMB'
+import { L1_xDaiAMB } from '@hop-protocol/core/contracts'
+import { L2_xDaiAMB } from '@hop-protocol/core/contracts'
 import { NetworkSlug } from '@hop-protocol/core/networks'
+import { l1xDaiAmbAbi } from '@hop-protocol/core/abi'
+import { l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils'
-import { toHex } from 'web3-utils'
 
 type Message = string
 type MessageStatus = string
@@ -36,7 +35,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
     this.#l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  override async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
@@ -82,7 +81,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
   }
 
   #packSignatures (array: any[]) {
-    const length = this.#strip0x(toHex(array.length))
+    const length = this.#strip0x(array.length.toString(16))
     const msgLength = length.length === 1 ? `0${length}` : length
     let v = ''
     let r = ''

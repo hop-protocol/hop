@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react'
-import { Alert } from 'src/components/Alert'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import { useQueryParams } from 'src/hooks'
-import { Input } from 'src/components/ui'
-import { Button } from 'src/components/Button'
-import { StyledButton } from 'src/components/Button/StyledButton'
+import Box from '@mui/material/Box'
+import CheckIcon from '@mui/icons-material/Check'
 import ReCAPTCHA from 'react-google-recaptcha'
-import CheckIcon from '@material-ui/icons/Check'
-import { updateQueryParams } from 'src/utils/updateQueryParams'
+import React, { useEffect, useState } from 'react'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { updateQueryParams } from 'src/utils/updateQueryParams'
+import { useQueryParams } from 'src/hooks'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
@@ -84,7 +84,7 @@ export function AuthereumVerified() {
   }
 
   const onCaptchaChange = (value: string | null) => {
-    setCaptchaResponseToken(value || '')
+    setCaptchaResponseToken(value ?? '')
   }
 
   const isEligible = userData?.userId
@@ -94,7 +94,7 @@ export function AuthereumVerified() {
       <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
         <Box my={3} maxWidth={[350, 400, 525]}>
           <Typography variant="h6">
-            Sorry, the {userData?.email!} account is not eligible for the Hop airdrop
+            Sorry, the {userData!.email} account is not eligible for the Hop airdrop
           </Typography>
         </Box>
         <Box my={3} display="flex" flexDirection="column" justifyContent="center">
@@ -118,7 +118,7 @@ export function AuthereumVerified() {
           Congrats! You're eligible for the airdrop
         </Typography>
         <Typography variant="body1">
-          Verified {userData?.email!} account <CheckIcon style={{ color: 'green' }} />
+          Verified {userData?.email} account <CheckIcon style={{ color: 'green' }} />
         </Typography>
 
         <Box mt={3}>
@@ -147,16 +147,13 @@ export function AuthereumVerified() {
       <ClaimDateMessage />
 
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
-        <Input
-          width={[320, 420]}
-          maxWidth={['auto']}
+        <TextField
           value={inputValue}
           onChange={handleInputChange}
           placeholder="0x123..."
-          mb={2}
         />
 
-        <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+        <Box mt={2} my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
           <ReCAPTCHA
             sitekey={captchaSiteKey}
             onChange={onCaptchaChange}

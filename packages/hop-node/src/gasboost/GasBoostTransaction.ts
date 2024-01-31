@@ -1,9 +1,8 @@
-import BNMax from 'src/utils/BNMax'
-import BNMin from 'src/utils/BNMin'
 import Logger from 'src/logger'
 import Store from './Store'
+import bigNumberMax from 'src/utils/bigNumberMax'
+import bigNumberMin from 'src/utils/bigNumberMin'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
@@ -267,7 +266,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
-      return prevItem.hash! // eslint-disable-line
+      return prevItem.hash!
     }
     throw new Error('transaction hash not available yet')
   }
@@ -335,10 +334,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   static async fromId (id: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const item = await store.getItem(id)
-    return await GasBoostTransaction.unmarshal(item, signer, store, options)
+    return GasBoostTransaction.unmarshal(item, signer, store, options)
   }
 
-  static async unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,
@@ -395,26 +394,26 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getLatestNonce (): Promise<number> {
-    return await this.signer.getTransactionCount('pending')
+    return this.signer.getTransactionCount('pending')
   }
 
   async getGasFeeData () {
-    return await this.signer.provider!.getFeeData() // eslint-disable-line
+    return this.signer.provider!.getFeeData()
   }
 
   async getMarketGasPrice (): Promise<BigNumber> {
-    return await this.signer.getGasPrice()
+    return this.signer.getGasPrice()
   }
 
   async getMarketMaxFeePerGas (): Promise<BigNumber> {
     const { maxFeePerGas } = await this.getGasFeeData()
-    return maxFeePerGas! // eslint-disable-line
+    return maxFeePerGas!
   }
 
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
   // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
   async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
-    const res = await fetch(getRpcUrl(chainSlug)!, {
+    const res = await fetch(getRpcUrl(chainSlug), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -426,7 +425,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         id: 1
       })
     })
-    const gasData = await res.json()
+    const gasData: any = await res.json()
     return BigNumber.from(gasData.result)
   }
 
@@ -443,7 +442,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           }
         })
 
-        const gasData = await res.json()
+        const gasData: any = await res.json()
         const maxPriorityFeePerGas = gasData.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas
         return this.parseGwei(maxPriorityFeePerGas)
       } catch (err) {
@@ -462,14 +461,15 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.chainSlug === Chain.Linea
     ) {
       try {
-        return await this.getOruMaxFeePerGas(this.chainSlug)
+        const maxFeePerGas = await this.getOruMaxFeePerGas(this.chainSlug)
+        return maxFeePerGas
       } catch (err) {
         this.logger.error('oru max fee per gas call failed:', err)
       }
     }
 
     const { maxPriorityFeePerGas } = await this.getGasFeeData()
-    return maxPriorityFeePerGas! // eslint-disable-line
+    return maxPriorityFeePerGas!
   }
 
   getMaxGasPrice () {
@@ -487,7 +487,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.compareMarketGasPrice) {
       return bumpedGasPrice
     }
-    return BNMax(marketGasPrice, bumpedGasPrice)
+    return bigNumberMax(marketGasPrice, bumpedGasPrice)
   }
 
   async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
@@ -498,7 +498,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (!this.compareMarketGasPrice) {
       return bumpedMaxPriorityFeePerGas
     }
-    return BNMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
+    return bigNumberMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
@@ -516,7 +516,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
         maxFeePerGas = currentBaseFeePerGas.mul(2)
       }
-      maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
+      maxFeePerGas = bigNumberMin(maxFeePerGas, maxGasPrice)
 
       return {
         gasPrice: undefined,
@@ -536,14 +536,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (gasFeeData.gasPrice != null) {
       const maxGasPrice = this.getMaxGasPrice()
       return {
-        gasPrice: BNMin(gasFeeData.gasPrice, maxGasPrice)
+        gasPrice: bigNumberMin(gasFeeData.gasPrice, maxGasPrice)
       }
     }
 
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
     return {
-      maxFeePerGas: BNMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
-      maxPriorityFeePerGas: BNMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
+      maxFeePerGas: bigNumberMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
+      maxPriorityFeePerGas: bigNumberMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap)
     }
   }
 
@@ -602,13 +602,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.logger.debug(`wait() called, txHash: ${this.txHash}`)
     this.logger.debug(`wait() called, inFlightItems: ${JSON.stringify(this.inflightItems)}`)
     if (this.txHash) {
-      return await this.getReceipt(this.txHash)
+      return this.getReceipt(this.txHash)
     }
     for (const { hash } of this.inflightItems) {
       this.getReceipt(hash!)
         .then(async (receipt: providers.TransactionReceipt) => this.handleConfirmation(hash!, receipt))
     }
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this
         .on(State.Confirmed, (tx: providers.TransactionReceipt) => {
           this.logger.debug(`wait() confirmed, tx: ${this.hash} with status ${tx.status}`)
@@ -646,7 +646,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.confirmations = 1
     this.txHash = txHash
     this.clearInflightTxs()
-    const tx = await this.signer.provider!.getTransaction(txHash) // eslint-disable-line
+    const tx = await this.signer.provider!.getTransaction(txHash)
     this.gasPrice = tx.gasPrice!
     this.maxFeePerGas = tx.maxFeePerGas!
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
@@ -666,7 +666,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async getReceipt (txHash: string) {
-    return await this.signer.provider!.waitForTransaction(txHash) // eslint-disable-line
+    return this.signer.provider!.waitForTransaction(txHash)
   }
 
   private async startPoller () {
@@ -889,8 +889,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     console.timeEnd(_timeId2)
 
-    const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-    const gasCost = gasLimit.mul(gasPrice!) // eslint-disable-line
+    const gasPrice = gasFeeData.gasPrice ?? gasFeeData.maxFeePerGas
+    const gasCost = gasLimit.mul(gasPrice!)
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
     const formattedGasCost = formatUnits(gasCost, 18)
     const formattedEthBalance = formatUnits(ethBalance, 18)

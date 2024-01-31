@@ -1,19 +1,19 @@
 import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
-import { BigNumber, providers, Contract, constants } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { BigNumber, Contract, constants, providers } from 'ethers'
 import { DateTime } from 'luxon'
-import { db } from './Db'
-import { timestampPerBlockPerChain } from './constants'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { erc20Abi } from '@hop-protocol/core/abi'
 import { PriceFeed } from './PriceFeed'
+import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config'
+import { db } from './Db'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import { formatUnits } from 'ethers/lib/utils'
 import { getTokenDecimals } from './utils/getTokenDecimals'
-import { enabledTokens, enabledChains, rpcUrls, archiveRpcUrls } from './config'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { nearestDate } from './utils/nearestDate'
+import { timestampPerBlockPerChain } from './constants'
 
 function sumAmounts (items: any) {
   let sum = BigNumber.from(0)
-  for (let item of items) {
+  for (const item of items) {
     const amount = BigNumber.from(item.amount)
     sum = sum.add(amount)
   }
@@ -72,8 +72,8 @@ class TvlStats {
     console.log('done fetching prices')
 
     console.log('upserting prices')
-    for (let token in prices) {
-      for (let data of prices[token]) {
+    for (const token in prices) {
+      for (const data of prices[token]) {
         const price = data[1]
         const timestamp = data[0]
         try {
@@ -87,7 +87,7 @@ class TvlStats {
     }
     console.log('done upserting prices')
 
-    let tokens = enabledTokens
+    const tokens = enabledTokens
     let chains = enabledChains
     if (this.regenesis) {
       chains = ['optimism']
@@ -115,7 +115,7 @@ class TvlStats {
 
     const cachedData: any = await this.db.getTvlPoolStats()
     const promises: Promise<any>[] = []
-    for (let token of tokens) {
+    for (const token of tokens) {
       promises.push(
         new Promise(async (resolve, reject) => {
           await Promise.all(

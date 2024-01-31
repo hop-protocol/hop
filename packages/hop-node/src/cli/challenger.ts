@@ -16,7 +16,7 @@ root
 
 async function main (source: any) {
   const { dry: dryMode } = source
-  await startChallengeWatchers({
+  startChallengeWatchers({
     dryMode
   })
 }

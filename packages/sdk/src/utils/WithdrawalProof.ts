@@ -1,15 +1,14 @@
-import fetch from 'isomorphic-fetch'
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
 import { chainIdToSlug } from './chainIdToSlug'
+import { utils as ethersUtils } from 'ethers'
 import { getSubgraphChains } from './getSubgraphChains'
 import { getSubgraphUrl } from './getSubgraphUrl'
 import { getTokenDecimals } from './getTokenDecimals'
-import { keccak256 } from 'ethereumjs-util'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
-    super(leaves, keccak256, {
-      fillDefaultHash: () => keccak256(Buffer.alloc(32))
+    super(leaves, ethersUtils.keccak256, {
+      fillDefaultHash: () => ethersUtils.keccak256(Buffer.alloc(32))
     })
   }
 }

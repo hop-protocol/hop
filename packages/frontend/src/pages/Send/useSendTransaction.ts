@@ -1,16 +1,16 @@
-import { useState, useEffect, useMemo } from 'react'
-import { BigNumber, Signer } from 'ethers'
-import { getAddress } from 'ethers/lib/utils'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import logger from 'src/logger'
-import Transaction from 'src/models/Transaction'
-import { getBonderFeeWithId } from 'src/utils'
-import { createTransaction } from 'src/utils/createTransaction'
-import { amountToBN, formatError } from 'src/utils/format'
-import { Hop, HopBridge } from '@hop-protocol/sdk'
-import { useTransactionReplacement } from 'src/hooks'
 import EventEmitter from 'eventemitter3'
+import Transaction from 'src/models/Transaction'
+import logger from 'src/logger'
+import { BigNumber, Signer } from 'ethers'
+import { Hop, HopBridge } from '@hop-protocol/sdk'
+import { amountToBN, formatError } from 'src/utils/format'
+import { createTransaction } from 'src/utils/createTransaction'
+import { getAddress } from 'ethers/lib/utils'
+import { getBonderFeeWithId } from 'src/utils'
 import { isGoerli } from 'src/config'
+import { useEffect, useMemo, useState } from 'react'
+import { useTransactionReplacement } from 'src/hooks'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export type TransactionHandled = {
   transaction: any
@@ -175,7 +175,7 @@ export function useSendTransaction (props: any) {
         // Replace watcher
         const replacementWatcher = sdk.watch(
           txModelReplacement.hash,
-          fromToken!.symbol,
+          fromToken.symbol,
           fromNetwork.slug,
           toNetwork.slug
         )

@@ -1,6 +1,11 @@
-import { TransactionResponse, TransactionReceipt } from '@ethersproject/providers'
+import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
-import { sigHashes } from 'src/hooks/useTransaction'
+import range from 'lodash/range'
+import { BigNumber, providers, utils } from 'ethers'
+import { EventNames } from 'src/utils/constants'
+import { Interface, LogDescription } from '@ethersproject/abi'
+import { TokenModel, TokenSymbol } from '@hop-protocol/sdk'
+import { TransactionReceipt, TransactionResponse } from '@ethersproject/providers'
 import {
   contractInterfaces,
   hopBridgeTokenInterface,
@@ -8,12 +13,7 @@ import {
   l2AmmWrapperInterface,
 } from './contracts'
 import { findTransferSentLog, findTransferSentToL2Log, formatLogArgs } from '.'
-import { EventNames } from 'src/utils/constants'
-import { utils, BigNumber, providers } from 'ethers'
-import { Interface, LogDescription } from '@ethersproject/abi'
-import Network from 'src/models/Network'
-import { TokenSymbol, TokenModel } from '@hop-protocol/sdk'
-import range from 'lodash/range'
+import { sigHashes } from 'src/hooks/useTransaction'
 
 export function getTruncatedHash(hash): string {
   return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`

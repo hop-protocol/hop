@@ -56,7 +56,6 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'routes',
     'bonders',
     'signer',
-    'vault',
     'blocklist'
   ]
 
@@ -261,22 +260,6 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     }
   }
 
-  if (config.vault) {
-    const vaultConfig = config.vault
-    const vaultTokens = Object.keys(vaultConfig)
-    validateKeys(validTokenKeys, vaultTokens)
-    for (const tokenSymbol in vaultConfig) {
-      const vaultChains = Object.keys(vaultConfig[tokenSymbol])
-      validateKeys(validChainKeys, vaultChains)
-      for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol as AssetSymbol][chain as ChainSlug]
-        const validConfigKeys = ['depositThresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
-        const chainTokenConfigKeys = Object.keys(chainTokenConfig)
-        validateKeys(validConfigKeys, chainTokenConfigKeys)
-      }
-    }
-  }
-
   if (config.blocklist) {
     const blocklistConfig = config.blocklist
     if (!(blocklistConfig instanceof Object)) {
@@ -384,34 +367,6 @@ export async function validateConfigValues (config?: Config) {
           } catch (err) {
             throw new Error(`config bonder address "${bonderAddress}" is invalid`)
           }
-        }
-      }
-    }
-  }
-
-  if (config.vault) {
-    const vaultConfig = config.vault
-    for (const tokenSymbol in vaultConfig) {
-      for (const chain in vaultConfig[tokenSymbol]) {
-        const chainTokenConfig = vaultConfig[tokenSymbol as AssetSymbol][chain as ChainSlug]
-        if (typeof chainTokenConfig.autoDeposit !== 'boolean') {
-          throw new Error('autoDeposit should be boolean')
-        }
-        if (chainTokenConfig.autoDeposit) {
-          if (typeof chainTokenConfig.depositThresholdAmount !== 'number') {
-            throw new Error('depositThresholdAmount should be a number')
-          }
-          if (typeof chainTokenConfig.depositAmount !== 'number') {
-            throw new Error('depositAmount should be a number')
-          }
-        }
-        if (typeof chainTokenConfig.autoWithdraw !== 'boolean') {
-          throw new Error('autoWithdraw should be boolean')
-        }
-
-        const validStrategies = new Set(['yearn', 'aave'])
-        if (!validStrategies.has(chainTokenConfig.strategy)) {
-          throw new Error('strategy is invalid. Valid options are: yearn, aave')
         }
       }
     }

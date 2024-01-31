@@ -1,11 +1,13 @@
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 import React, { useEffect, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { Circle } from 'src/components/ui/Circle'
+import { Icon } from 'src/components/ui/Icon'
 import { StyledButton } from 'src/components/Button/StyledButton'
-import { Circle, Div, Icon } from 'src/components/ui'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
 import { useEns } from 'src/hooks'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -67,7 +69,7 @@ export const TxPill = () => {
               <Icon src={ensAvatar} height="100%" />
             </Circle>
           )}
-          <Div>{ensName || address?.truncate()}</Div>
+          <Box>{ensName ?? address?.truncate()}</Box>
         </StyledButton>
       )}
     </div>

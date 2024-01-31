@@ -1,9 +1,0 @@
-*.env
-dist
-yarn.lock
-build
-_data
-generated
-sqlite3.db
-*.csv
-out

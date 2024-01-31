@@ -19,11 +19,11 @@ class RelayerFee {
    * @returns {BigNumber} The cost of in Wei
    */
   static getRelayCost = async (network: string, chain: string, token: string): Promise<BigNumber> => {
-    const relayerFeeConstructor: RelayerFeeClass | undefined = RelayerFees?.[chain]
-    if (!relayerFeeConstructor) {
+    const RelayerFeeConstructor: RelayerFeeClass | undefined = RelayerFees?.[chain]
+    if (!RelayerFeeConstructor) {
       throw new Error(`Relayer fee not implemented for network ${network}, chain ${chain}, token ${token}`)
     }
-    const relayerFee = new relayerFeeConstructor(network, chain, token)
+    const relayerFee = new RelayerFeeConstructor(network, chain, token)
     return relayerFee.getRelayCost()
   }
 }

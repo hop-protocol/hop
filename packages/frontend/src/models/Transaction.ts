@@ -1,22 +1,22 @@
-import { ethers, providers } from 'ethers'
+import logger from 'src/logger'
+import { ChainSlug, Hop, Token, utils as sdkUtils } from '@hop-protocol/sdk'
 import { EventEmitter } from 'events'
-import { Hop, Token, ChainSlug, utils as sdkUtils } from '@hop-protocol/sdk'
+import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
 import {
-  getBaseExplorerUrl,
-  findTransferFromL1CompletedLog,
-  getTransferSentDetailsFromLogs,
+  L1Transfer,
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
-  L1Transfer,
+  findTransferFromL1CompletedLog,
+  getBaseExplorerUrl,
+  getTransferSentDetailsFromLogs,
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
 } from 'src/utils'
-import { reactAppNetwork } from 'src/config'
-import logger from 'src/logger'
+import { ethers, providers } from 'ethers'
 import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
-import { sigHashes } from 'src/hooks/useTransaction'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
+import { reactAppNetwork } from 'src/config'
+import { sigHashes } from 'src/hooks/useTransaction'
 
 interface ContructorArgs {
   hash: string
@@ -88,7 +88,7 @@ export class Transaction extends EventEmitter {
     }
 
     this.provider = getProviderByNetworkName(networkName)
-    this.timestampMs = timestampMs || Date.now()
+    this.timestampMs = timestampMs ?? Date.now()
     this.pending = pending
     this.transferId = transferId
     this.replaced = replaced
@@ -96,7 +96,7 @@ export class Transaction extends EventEmitter {
     this.nonce = nonce
     this.from = from
     this.to = to
-    this.token = token || null
+    this.token = token ?? null
     this.safeTx = safeTx
 
     this.getTransaction().then((txResponse: providers.TransactionResponse) => {
@@ -208,7 +208,7 @@ export class Transaction extends EventEmitter {
         const l1Bridge = await bridge.getL1Bridge(this.provider)
         // Get the rest of the event data
         const decodedData = l1Bridge.interface.decodeEventLog(
-          tsDetails?.eventName!,
+          tsDetails?.eventName,
           tsDetails?.log.data
         )
 

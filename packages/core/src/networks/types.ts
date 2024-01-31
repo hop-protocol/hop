@@ -4,7 +4,7 @@ export type Network = {
   name: string
   image: string
   networkId: number
-  publicRpcUrl?: string
+  publicRpcUrl: string
   fallbackPublicRpcUrls?: string[]
   explorerUrls: string[]
   nativeBridgeUrl?: string

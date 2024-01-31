@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import { Alert } from 'src/components/Alert'
-import { ExternalLink } from 'src/components/Link'
-import { StyledButton } from 'src/components/Button/StyledButton'
-import { Input } from 'src/components/ui'
+import Box from '@mui/material/Box'
 import ReCAPTCHA from 'react-google-recaptcha'
+import React, { useState } from 'react'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
 import { Button } from 'src/components/Button'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
+import { ExternalLink } from 'src/components/Link'
+import { StyledButton } from 'src/components/Button/StyledButton'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
@@ -52,7 +52,7 @@ export function AuthereumVerify() {
   }
 
   const onCaptchaChange = (value: string | null) => {
-    setCaptchaResponseToken(value || '')
+    setCaptchaResponseToken(value ?? '')
   }
 
   const submitDisabled = !(inputValue && captchaResponseToken)
@@ -71,14 +71,11 @@ export function AuthereumVerify() {
       </Box>
       <ClaimDateMessage />
       <Box mb={3} display="flex" flexDirection="column" justifyContent="center">
-        <Input
-          width={[320, 420]}
-          maxWidth={['auto']}
+        <TextField
           value={inputValue}
           onChange={handleInputChange}
           label="Authereum Email"
           placeholder="alice@example.com"
-          fontSize={[0, 2]}
         />
         <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
           <ReCAPTCHA

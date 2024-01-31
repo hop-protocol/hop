@@ -181,9 +181,9 @@ const cspOptions = {
 }
 
 function addCspHtmlWebpackPlugin(config) {
-  if (process.env.NODE_ENV === 'production') {
-    config.plugins.push(new CspHtmlWebpackPlugin(cspConfigPolicy, cspOptions))
-  }
+  // note: this may also require another module "html-webpack-plugin" to work,
+  // see https://github.com/jantimon/html-webpack-plugin/issues/1068#issuecomment-454840740
+  config.plugins.push(new CspHtmlWebpackPlugin(cspConfigPolicy, cspOptions))
 
   return config
 }
@@ -225,5 +225,8 @@ module.exports = {
     }
   },
 
-  webpack: override(customWebpackConfig, addCspHtmlWebpackPlugin)
+  webpack: override(
+    customWebpackConfig,
+    addCspHtmlWebpackPlugin
+  )
 }

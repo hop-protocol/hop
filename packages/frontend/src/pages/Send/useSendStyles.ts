@@ -1,11 +1,10 @@
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
 export const useSendStyles = makeStyles((theme: any) => ({
   header: {
     display: 'flex',
     justifyContent: 'center',
     position: 'relative',
-    transition: 'all 0.15s ease-out',
   },
   sendSelect: {
     marginBottom: '4.2rem',
@@ -98,7 +97,7 @@ export const useSendStyles = makeStyles((theme: any) => ({
     marginTop: '1rem',
     boxSizing: 'border-box',
     borderRadius: '3rem',
-    boxShadow: theme.boxShadow.inner,
+    boxShadow: theme.boxShadow?.inner,
     [theme.breakpoints.down('xs')]: {
       width: '100%',
     },
@@ -108,17 +107,16 @@ export const useSendStyles = makeStyles((theme: any) => ({
     marginBottom: '1.5rem',
   },
   buttons: {
-    marginTop: theme.padding.light,
+    marginTop: theme.padding?.light,
   },
   button: {
-    margin: `0 ${theme.padding.light}`,
-    minWidth: '17.5rem',
-    transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
+    margin: `0 ${theme.padding?.light}`,
+    minWidth: '17.5rem'
   },
   smartContractWalletWarning: {
-    marginTop: theme.padding.light,
+    marginTop: theme.padding?.light,
   },
   pausedWarning: {
-    marginTop: theme.padding.light,
+    marginTop: theme.padding?.light,
   }
 }))

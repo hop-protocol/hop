@@ -12,12 +12,12 @@ export class Chain {
   isL1: boolean = false
   nativeTokenSymbol: string
 
-  static Ethereum = newChain(ChainSlug.Ethereum, mainnet.ethereum.networkId)
-  static Optimism = newChain(ChainSlug.Optimism, mainnet.optimism.networkId)
-  static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum.networkId)
-  static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis.networkId)
-  static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon.networkId)
-  static Nova = newChain(ChainSlug.Nova, mainnet.nova.networkId)
+  static Ethereum = newChain(ChainSlug.Ethereum, mainnet.ethereum!.networkId)
+  static Optimism = newChain(ChainSlug.Optimism, mainnet.optimism!.networkId)
+  static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum!.networkId)
+  static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis!.networkId)
+  static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon!.networkId)
+  static Nova = newChain(ChainSlug.Nova, mainnet.nova!.networkId)
   static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
   static Linea = newChain(ChainSlug.Linea, mainnet.linea?.networkId ?? goerli.linea?.networkId)
   static ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)

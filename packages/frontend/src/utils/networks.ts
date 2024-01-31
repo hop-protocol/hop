@@ -1,11 +1,11 @@
-import { JsonRpcProvider } from '@ethersproject/providers'
-import { CanonicalToken, ChainId, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
-import { Signer, providers } from 'ethers'
+import Network from 'src/models/Network'
 import find from 'lodash/find'
+import { ChainId, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
+import { JsonRpcProvider } from '@ethersproject/providers'
+import { Signer, providers } from 'ethers'
 import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
 import { networks as coreNetworks } from '@hop-protocol/core/networks'
-import Network from 'src/models/Network'
 import { getNativeTokenSymbol } from './getNativeTokenSymbol'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {

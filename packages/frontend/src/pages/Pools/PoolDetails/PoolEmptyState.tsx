@@ -1,8 +1,8 @@
+import Box from '@mui/material/Box'
+import LaunchIcon from '@mui/icons-material/Launch'
+import MuiLink from '@mui/material/Link'
 import React from 'react'
-import Box from '@material-ui/core/Box'
-import LaunchIcon from '@material-ui/icons/Launch'
-import MuiLink from '@material-ui/core/Link'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { DinoGame } from 'src/pages/Pools/PoolDetails/DinoGame'
 
 export function PoolEmptyState() {

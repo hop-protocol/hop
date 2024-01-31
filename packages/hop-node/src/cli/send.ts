@@ -192,12 +192,12 @@ async function sendTokens (
   const wallet = wallets.get(fromChain)
   let balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
-  logger.debug(`${label} balance: ${await bridge.formatUnits(balance)}`)
+  logger.debug(`${label} balance: ${bridge.formatUnits(balance)}`)
   let parsedAmount
   if (shouldSendMax) {
     parsedAmount = balance
   } else {
-    parsedAmount = await bridge.parseUnits(amount)
+    parsedAmount = bridge.parseUnits(amount)
   }
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
@@ -216,7 +216,7 @@ async function sendTokens (
     }
   }
 
-  const formattedAmount = (await bridge.formatUnits(parsedAmount)).toString()
+  const formattedAmount = (bridge.formatUnits(parsedAmount)).toString()
   logger.debug(`sendTokens: attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
   const destinationChainId = chainSlugToId(toChain)
   if (fromChain === Chain.Ethereum) {

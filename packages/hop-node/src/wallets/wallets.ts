@@ -16,17 +16,23 @@ import {
 import { getGasBoostDb } from 'src/db'
 
 export const constructSigner = memoize((network: string, privateKey: string): Signer => {
-  const provider = getRpcProvider(network)
+  const provider = getRpcProvider(network)!
   if (!provider) {
     throw new Error('expected provider')
   }
   let wallet
   if (globalConfig.signerConfig.type === 'kms') {
     const { keyId, awsRegion } = globalConfig.signerConfig
-    wallet = new KmsSigner({ keyId: keyId!, region: awsRegion }, provider)
+    if (!keyId) {
+      throw new Error('keyId is required')
+    }
+    wallet = new KmsSigner({ keyId, region: awsRegion }, provider)
   } else if (globalConfig.signerConfig.type === 'lambda') {
     const { keyId, awsRegion, lambdaFunctionName } = globalConfig.signerConfig
-    wallet = new LambdaSigner({ keyId: keyId!, region: awsRegion, lambdaFunctionName: lambdaFunctionName! }, provider)
+    if (!keyId || !awsRegion || !lambdaFunctionName) {
+      throw new Error('keyId, awsRegion, and lambdaFunctionName are required')
+    }
+    wallet = new LambdaSigner({ keyId, region: awsRegion, lambdaFunctionName }, provider)
   } else {
     if (!privateKey) {
       throw new Error('private key is required to instantiate wallet')

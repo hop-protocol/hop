@@ -51,7 +51,7 @@ class L2ToL1Watcher extends BaseWatcher {
       const events = await getWithdrawalBondedEvents(this.network, this.destinationChain.slug, transferId)
       if (events.length) {
         const event = events[0]
-        const destTx = await this.destinationChain.provider.getTransaction(event.transactionHash)
+        const destTx = await this.destinationChain.provider?.getTransaction(event.transactionHash)
         return this.emitDestTxEvent(destTx)
       }
       return false

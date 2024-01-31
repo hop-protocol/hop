@@ -5,7 +5,7 @@ type ConfirmParams = any
 export type TxConfirmParams = {
   kind: string
   inputProps: InputProps
-  onConfirm?: (params?: ConfirmParams) => void
+  onConfirm?: (params?: ConfirmParams) => Promise<any>
 }
 
 export interface TxConfirm {

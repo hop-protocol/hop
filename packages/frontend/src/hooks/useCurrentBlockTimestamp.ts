@@ -1,5 +1,5 @@
+import { useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { useState, useEffect } from 'react'
 
 const useCurrentBlockTimestamp = (): number | undefined => {
   const { provider } = useWeb3Context()

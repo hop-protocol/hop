@@ -1,7 +1,6 @@
-import { useMemo } from 'react'
 import Token from 'src/models/Token'
 import { addresses, metadata } from 'src/config'
-import { TokenSymbol } from '@hop-protocol/sdk'
+import { useMemo } from 'react'
 
 const useTokens = () => {
   const tokens = useMemo<Token[]>(() => {
@@ -10,9 +9,9 @@ const useTokens = () => {
         ? tokenSymbol.replace(/^W/, '')
         : tokenSymbol
       const tokenMeta = metadata.tokens[canonicalSymbol]
-      const supportedNetworks = Object.keys(addresses.tokens[canonicalSymbol] as any)
+      const supportedNetworks = Object.keys(addresses.tokens[canonicalSymbol])
       return new Token({
-        symbol: tokenMeta.symbol as TokenSymbol,
+        symbol: tokenMeta.symbol,
         tokenName: tokenMeta.name,
         decimals: tokenMeta.decimals,
         imageUrl: tokenMeta.image,

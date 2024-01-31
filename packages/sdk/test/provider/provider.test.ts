@@ -24,7 +24,7 @@ describe('fallback provider', () => {
 
     const feeData = await provider.getFeeData()
     console.log('feeData:', feeData)
-    expect(feeData.gasPrice.toNumber()).toBeGreaterThan(0)
+    expect(feeData.gasPrice!.toNumber()).toBeGreaterThan(0)
 
     const latestBlock = await provider.getBlock('latest')
     console.log('latest block:', latestBlock)
@@ -88,7 +88,7 @@ describe('fallback provider', () => {
     console.log('estimateGas:', estimateGas)
     expect(estimateGas.toNumber()).toBeGreaterThan(0)
 
-    const detectNetwork = await provider.detectNetwork()
+    const detectNetwork = await provider.detectNetwork!()
     console.log('detectNetwork:', detectNetwork)
     expect(detectNetwork.chainId).toBe(10)
 
@@ -102,11 +102,11 @@ describe('fallback provider', () => {
     console.log('resolveName:', resolveName)
     expect(resolveName).toBeTruthy()
 
-    const avatar = await ethProvider.getAvatar('vitalik.eth')
+    const avatar = await ethProvider.getAvatar!('vitalik.eth')
     console.log('avatar:', avatar)
     expect(avatar).toBeTruthy()
 
-    const resolver = await ethProvider.getResolver('vitalik.eth')
+    const resolver = await ethProvider.getResolver!('vitalik.eth')
     console.log('resolver:', resolver)
     expect(resolver).toBeTruthy()
   }, 10 * 60 * 1000)

@@ -1,7 +1,8 @@
+import Box from '@mui/material/Box'
 import React from 'react'
 import { StyledButton } from 'src/components/Button/StyledButton'
-import { Div, Flex, SvgImg } from 'src/components/ui'
-import { StyledLink } from 'src/components/ui/StyledLink'
+import { StyledLink } from 'src/components/Link/StyledLink'
+import { SvgImg } from 'src/components/ui/SvgImg'
 
 interface ButtonLinkProps {
   href: string
@@ -17,10 +18,10 @@ export function ButtonLink(props: ButtonLinkProps) {
   return (
     <StyledLink href={href} underline="none" mt={3}>
       <StyledButton width="250px" bg="background.default" py={3} onClick={onClick}>
-        <Flex alignCenter>
+        <Box display="flex" alignItems="center">
           {iconComponent && <SvgImg mr={3} size={24} color={iconColor} component={iconComponent} />}
-          <Div>{children}</Div>
-        </Flex>
+          <Box>{children}</Box>
+        </Box>
       </StyledButton>
     </StyledLink>
   )

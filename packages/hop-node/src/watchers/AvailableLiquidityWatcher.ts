@@ -8,8 +8,8 @@ import {
   Chain,
   TenMinutesMs
 } from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getConfigBonderForRoute,
@@ -29,9 +29,6 @@ type Config = {
 type S3JsonData = {
   [token: string]: {
     baseAvailableCredit: {[chain: string]: string}
-    baseAvailableCreditIncludingVault: {[chain: string]: string}
-    vaultBalance: {[chain: string]: string}
-    bonderVaultBalance: Record<string, Record<string, string>>
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
@@ -44,11 +41,8 @@ const cache: Record<string, BigNumber> = {}
 // TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
-const bonderVaultBalance: Record<string, Record<string, string>> = {}
 class AvailableLiquidityWatcher extends BaseWatcher {
   private baseAvailableCredit: { [destinationChain: string]: BigNumber } = {}
-  private baseAvailableCreditIncludingVault: { [destinationChain: string]: BigNumber } = {}
-  private vaultBalance: { [destinationChain: string]: BigNumber } = {}
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
@@ -92,8 +86,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     this.pollCount++
     this.logger.debug('syncing bonder credit index:', this.pollCount)
     await this.syncUnbondedTransferRootAmounts()
-      .then(async () => await this.syncPendingAmounts())
-      .then(async () => await this.syncAvailableCredit())
+      .then(async () => this.syncPendingAmounts())
+      .then(async () => this.syncAvailableCredit())
   }
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
@@ -107,10 +101,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
     let baseAvailableCredit = await this.getOnchainBaseAvailableCredit(destinationWatcher, bonder)
     this.logger.debug(`calculateAvailableCredit: baseAvailableCredit; bonder: ${bonder}, chain: ${destinationChain}, balance: ${baseAvailableCredit.toString()}`)
-    const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
-    this.logger.debug(`calculateAvailableCredit: on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
-    let baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
-    let availableCredit = baseAvailableCreditIncludingVault
+    let availableCredit = baseAvailableCredit
     const isToL1 = destinationChain === Chain.Ethereum
     if (isToL1) {
       const pendingAmount = await this.getOruToL1PendingAmount()
@@ -128,7 +119,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       if (shouldDisableRoute) {
         availableCredit = BigNumber.from('0')
         baseAvailableCredit = BigNumber.from('0')
-        baseAvailableCreditIncludingVault = BigNumber.from('0')
       }
     }
 
@@ -140,11 +130,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       baseAvailableCredit = BigNumber.from(0)
     }
 
-    if (baseAvailableCreditIncludingVault.lt(0)) {
-      baseAvailableCreditIncludingVault = BigNumber.from(0)
-    }
-
-    return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }
+    return { availableCredit, baseAvailableCredit }
   }
 
   async calculatePendingAmount (destinationChainId: number) {
@@ -189,15 +175,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const bonder = await this.getBonderAddress(destinationChain)
-    const { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance } = await this.calculateAvailableCredit(destinationChainId, bonder)
+    const { availableCredit, baseAvailableCredit } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
     this.baseAvailableCredit[destinationChain] = baseAvailableCredit
-    this.baseAvailableCreditIncludingVault[destinationChain] = baseAvailableCreditIncludingVault
-    this.vaultBalance[destinationChain] = vaultBalance
-    if (!bonderVaultBalance[bonder]) {
-      bonderVaultBalance[bonder] = {}
-    }
-    bonderVaultBalance[bonder][destinationChain] = vaultBalance.toString()
   }
 
   async getBonderAddress (destinationChain: string): Promise<string> {
@@ -347,16 +327,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return baseAvailableCredit
   }
 
-  public getBaseAvailableCreditIncludingVault (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    const baseAvailableCreditIncludingVault = this.baseAvailableCreditIncludingVault[destinationChain]
-    if (!baseAvailableCreditIncludingVault) {
-      return BigNumber.from(0)
-    }
-
-    return baseAvailableCreditIncludingVault
-  }
-
   public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
@@ -387,26 +357,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return unbondedAmounts
   }
 
-  public getVaultBalance (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    const vaultBalance = this.vaultBalance[destinationChain]
-    if (!vaultBalance) {
-      return BigNumber.from(0)
-    }
-
-    return vaultBalance
-  }
-
-  async getOnchainVaultBalance (bonder?: string) {
-    this.logger.debug(`getOnchainVaultBalance, bonder: ${bonder}, vault: ${!!this.vault}`)
-    if (!this.vault) {
-      return BigNumber.from(0)
-    }
-
-    const vaultBalance = await this.vault.getBalance(bonder)
-    return vaultBalance
-  }
-
   async uploadToS3 () {
     if (!this.s3Upload) {
       return
@@ -414,9 +364,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
     const data: any = {
       baseAvailableCredit: {},
-      baseAvailableCreditIncludingVault: {},
-      vaultBalance: {},
-      bonderVaultBalance: {},
       availableCredit: {},
       pendingAmounts: {},
       unbondedTransferRootAmounts: {}
@@ -431,12 +378,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         continue
       }
       data.baseAvailableCredit[sourceChain] = watcher.baseAvailableCredit
-      data.baseAvailableCreditIncludingVault[sourceChain] = watcher.baseAvailableCreditIncludingVault
-      data.vaultBalance[sourceChain] = watcher.vaultBalance
       data.availableCredit[sourceChain] = watcher.availableCredit
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
-      data.bonderVaultBalance = bonderVaultBalance
     }
 
     s3JsonData[this.tokenSymbol] = data

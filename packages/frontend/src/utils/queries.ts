@@ -1,7 +1,7 @@
-import { utils } from '@hop-protocol/sdk'
-import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
+import { BigNumberish } from 'ethers'
 import { reactAppNetwork } from 'src/config'
+import { utils } from '@hop-protocol/sdk'
 
 async function queryFetch(url: string, query: string, variables?: any) {
   try {

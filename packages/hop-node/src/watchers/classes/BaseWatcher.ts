@@ -1,15 +1,14 @@
 import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
-import BNMin from 'src/utils/BNMin'
 import Bridge from './Bridge'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import bigNumberMin from 'src/utils/bigNumberMin'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { BigNumber, constants } from 'ethers'
 import {
   Chain,
@@ -19,22 +18,20 @@ import {
 import { DbSet, getDbSet, isDbSetReady } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
 import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
 } from 'src/types/error'
-import { Strategy, Vault } from 'src/vault'
 import {
   TxRetryDelayMs,
   config as globalConfig,
   hostname
 } from 'src/config'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import { isNativeToken } from 'src/utils/isNativeToken'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract
@@ -65,7 +62,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean = false
   tag: string
   prefix: string
-  vault?: Vault
   mutex: Mutex
 
   constructor (config: Config) {
@@ -101,14 +97,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.dryMode = config.dryMode
     }
     const signer = wallets.get(this.chainSlug)
-    const vaultConfig = globalConfig.vault
-    if (vaultConfig[this.tokenSymbol as AssetSymbol]?.[this.chainSlug as ChainSlug]) {
-      const strategy = vaultConfig[this.tokenSymbol as AssetSymbol]?.[this.chainSlug as ChainSlug]?.strategy as Strategy
-      if (strategy) {
-        this.logger.debug(`setting vault instance. strategy: ${strategy}, chain: ${this.chainSlug}, token: ${this.tokenSymbol}`)
-        this.vault = Vault.from(strategy, this.chainSlug as Chain, this.tokenSymbol, signer)
-      }
-    }
     if (!mutexes[this.chainSlug]) {
       mutexes[this.chainSlug] = new Mutex()
     }
@@ -138,7 +126,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
         }
       } catch (err) {
         this.logger.error(`poll check error: ${err.message}\ntrace: ${err.stack}`)
-        this.notifier.error(`poll check error: ${err.message}`)
+        await this.notifier.error(`poll check error: ${err.message}`)
       }
       await this.postPollHandler()
     }
@@ -168,7 +156,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       await this.pollCheck()
     } catch (err) {
       this.logger.error(`base watcher error: ${err.message}\ntrace: ${err.stack}`)
-      this.notifier.error(`base watcher error: ${err.message}`)
+      await this.notifier.error(`base watcher error: ${err.message}`)
       this.quit()
     }
   }
@@ -249,31 +237,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  async unstakeAndDepositToVault (amount: BigNumber) {
-    if (!this.vault) {
-      return
-    }
-
-    if (amount.eq(0)) {
-      return
-    }
-
-    const creditBalance = await this.bridge.getBaseAvailableCredit()
-    if (creditBalance.lt(amount)) {
-      this.logger.warn(`available credit balance is less than amount wanting to deposit. Returning. creditBalance: ${this.bridge.formatUnits(creditBalance)}, unstakeAndDepositAmount: ${this.bridge.formatUnits(amount)}`)
-      return
-    }
-
-    this.logger.debug(`unstaking from bridge. amount: ${this.bridge.formatUnits(amount)}`)
-    let tx = await this.bridge.unstake(amount)
-    await tx.wait()
-
-    this.logger.debug(`depositing to vault. amount: ${this.bridge.formatUnits(amount)}`)
-    tx = await this.vault.deposit(amount)
-    await tx.wait()
-    this.logger.debug('unstake and vault deposit complete')
-  }
-
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
     // PolygonZk RPC does not allow eth_call with a from address of 0x0.
     // TODO: More robust check for PolygonZk
@@ -302,46 +265,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  async withdrawFromVaultAndStake (amount: BigNumber) {
-    if (!this.vault) {
-      return
-    }
-
-    if (amount.eq(0)) {
-      return
-    }
-
-    const vaultBalance = await this.vault.getBalance()
-    if (vaultBalance.lt(amount)) {
-      this.logger.warn(`vault balance is less than amount wanting to withdraw. Returning. vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, withdrawAndStakeAmount: ${this.bridge.formatUnits(amount)}`)
-      return
-    }
-
-    this.logger.debug(`withdrawing from vault. amount: ${this.bridge.formatUnits(amount)}`)
-    let tx = await this.vault.withdraw(amount)
-    await tx.wait()
-
-    let balance: BigNumber
-    const isNative = isNativeToken(this.chainSlug as Chain, this.tokenSymbol)
-    if (isNative) {
-      const address = await this.bridge.getBonderAddress()
-      balance = await this.bridge.getBalance(address)
-    } else {
-      const token = await (this.bridge as L1Bridge).l1CanonicalToken()
-      balance = await token.getBalance()
-    }
-
-    // this is needed because the amount withdrawn from vault may not be exact
-    amount = BNMin(amount, balance)
-
-    this.logger.debug(`staking on bridge. amount: ${this.bridge.formatUnits(amount)}`)
-    tx = await this.bridge.stake(amount)
-    await tx.wait()
-    this.logger.debug('vault withdraw and stake complete')
-  }
-
   // force quit so docker can restart
-  public async quit () {
+  public quit () {
     console.trace()
     this.logger.info('exiting')
     process.exit(1)
@@ -377,8 +302,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (nearestItemToTransferSent && nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
-      gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
-      minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+      gasCostInToken = bigNumberMin(gasCostInToken, currentGasCostInToken)
+      minBonderFeeAbsolute = bigNumberMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
       this.logger.debug('using nearestItemToTransferSent')
     } else if (nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
@@ -408,10 +333,13 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount, minBonderFeeAbsolute)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isBonderFeeOk = bonderFee!.gte(minBonderFeeTotal)
+      if (!bonderFee) {
+        throw new Error('expected relayerFee')
+      }
+    const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
     logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
-    this.logAdditionalBonderFeeData(bonderFee!, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
+    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
     return isBonderFeeOk
   }
 
@@ -438,7 +366,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
       const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, token: ${this.bridge.tokenSymbol}, sourceChain: ${this.bridge.chainSlug}, destinationChain: ${destinationChain}, transferId: ${transferId}`
       logger.warn(msg)
-      this.notifier.warn(msg)
     }
   }
 

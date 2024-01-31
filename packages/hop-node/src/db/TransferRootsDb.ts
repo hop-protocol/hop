@@ -275,7 +275,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async update (transferRootId: string, transferRoot: UpdateTransferRoot): Promise<void> {
-    const item = await this.get(transferRootId) ?? {} as TransferRoot // eslint-disable-line @typescript-eslint/consistent-type-assertions
+    const item = await this.get(transferRootId) ?? {} as TransferRoot
     const updatedValue: TransferRoot = this.getUpdatedValue(item, transferRoot as TransferRoot)
     updatedValue.transferRootId = transferRootId
 
@@ -652,7 +652,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       let rootSetTimestampOk = true
       const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && chainIdToSlug(filter.destinationChainId) === Chain.Gnosis
       if (checkRootSetTimestamp) {
-        rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now() // eslint-disable-line
+        rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now()
       }
 
       let bondSettleTimestampOk = true

@@ -1,5 +1,5 @@
-import { providers } from 'ethers'
 import Transaction from 'src/models/Transaction'
+import { providers } from 'ethers'
 
 export function createTransaction(
   tx: Transaction | providers.TransactionResponse,

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
-
-import { Circle, Icon } from 'src/components/ui'
 import Jazzicon, { jsNumberForAddress } from 'react-jazzicon'
+import React, { useEffect, useState } from 'react'
+import { Circle } from 'src/components/ui/Circle'
+import { Icon } from 'src/components/ui/Icon'
 
 const cache:any = {}
 const loaded:any = {}
@@ -47,7 +47,7 @@ export function DelegateIcon (props: any) {
         }} />
       )}
       {((error || loading || !avatar) && delegate.address) && (
-        <Jazzicon diameter={45} seed={jsNumberForAddress(delegate.address?.address!)} />
+        <Jazzicon diameter={45} seed={jsNumberForAddress(delegate.address?.address)} />
       )}
     </Circle>
   )

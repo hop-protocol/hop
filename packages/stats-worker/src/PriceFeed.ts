@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch'
 import { PriceFeed as PriceFeedSdk } from '@hop-protocol/sdk'
 import { coingeckoApiKey } from './config'
 import { tokens } from '@hop-protocol/core/metadata'
@@ -16,7 +15,10 @@ const cacheTimestamps: {
 } = {}
 
 export class PriceFeed {
-  cacheTimeMs = 5 * 60 * 1000
+  // Price granularity is not terribly important for our use case, so we cache
+  // 5 minute cache is very low and uses 1/2 of all of our CoinGecko API calls (150k per month)
+  // 30 minutes seems like a reasonable balance between accuracy and cost
+  cacheTimeMs = 30 * 60 * 1000
 
   instance: PriceFeedSdk
 
@@ -26,14 +28,14 @@ export class PriceFeed {
     })
   }
 
-  async getPriceByTokenSymbol (tokenSymbol: string) {
+  async getPriceByTokenSymbol (tokenSymbol: string): Promise<number> {
     const price = await this.instance.getPriceByTokenSymbol(tokenSymbol)
     return price
   }
 
   async getPriceHistory (tokenSymbol: string, days: number) {
     const cacheKey = `${tokenSymbol}:${days}`
-    if (cache[cacheKey] && cacheTimestamps[cacheKey]) {
+    if (cache[cacheKey] != null && cacheTimestamps[cacheKey] != null) {
       const isRecent = cacheTimestamps[cacheKey] > Date.now() - this.cacheTimeMs
       if (isRecent) {
         return cache[cacheKey]
@@ -60,8 +62,8 @@ export class PriceFeed {
     const url = `${baseUrl}/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily&x_cg_pro_api_key=${coingeckoApiKey}`
 
     return fetch(url)
-      .then(res => res.json())
-      .then(json => {
+      .then((res: any) => res.json())
+      .then((json: any) => {
         if (!json.prices) {
           console.log(json)
           throw new Error(`got api error: ${JSON.stringify(json)}`)

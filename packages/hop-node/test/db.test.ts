@@ -1,5 +1,7 @@
 import TransfersDb from 'src/db/TransfersDb'
-require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 describe('db', () => {
   it(

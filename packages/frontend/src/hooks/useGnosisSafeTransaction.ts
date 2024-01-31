@@ -1,12 +1,12 @@
-import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk'
-import { ContractTransaction, utils } from 'ethers'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import Transaction from 'src/models/Transaction'
-import { networkIdToName, wait } from 'src/utils'
-import { GatewayTransactionDetails as GnosisSafeTx } from '@gnosis.pm/safe-apps-sdk'
-import { useSelectedNetwork } from '.'
-import useIsSmartContractWallet from './useIsSmartContractWallet'
 import Network from 'src/models/Network'
+import Transaction from 'src/models/Transaction'
+import useIsSmartContractWallet from './useIsSmartContractWallet'
+import { ContractTransaction, utils } from 'ethers'
+import { GatewayTransactionDetails as GnosisSafeTx } from '@gnosis.pm/safe-apps-sdk'
+import { networkIdToName, wait } from 'src/utils'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk'
+import { useSelectedNetwork } from '.'
 
 export interface GnosisSafeWarning {
   severity: 'warning' | 'error' | 'info'
@@ -133,7 +133,7 @@ export function useGnosisSafeTransaction(
 
         if (!safeTransaction) {
           await wait(3000)
-          return getSafeTx(tx)
+          return await getSafeTx(tx)
         }
 
         if (safeTransaction.txHash) {

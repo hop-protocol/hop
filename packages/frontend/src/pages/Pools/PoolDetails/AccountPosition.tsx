@@ -1,7 +1,7 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import Box from '@material-ui/core/Box'
+import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import Typography from '@material-ui/core/Typography'
 import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
 
 type Props = {

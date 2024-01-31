@@ -11,7 +11,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { config, token, days, offsetDays, format } = source
+  const { token, days, offsetDays, format } = source
   const watcher = new IncompleteSettlementsWatcher({
     token,
     days,

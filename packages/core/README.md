@@ -69,6 +69,12 @@ Build
 npm run build
 ```
 
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../../ && act --job publish-core --workflows .github/workflows/npm_publish_core.yml --secret-file=.secrets --verbose)
+```
+
 ## License
 
 [MIT](LICENSE)

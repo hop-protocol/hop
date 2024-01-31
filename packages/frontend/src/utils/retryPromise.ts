@@ -1,6 +1,6 @@
 import { wait } from 'src/utils/wait'
 
-export async function retryPromise(fn: any, ...args: any[]) {
+export async function retryPromise(fn: (...a: any[]) => Promise<any>, ...args: any[]) {
   const maxRetries = 5
   let retries = 0
   while (true) {

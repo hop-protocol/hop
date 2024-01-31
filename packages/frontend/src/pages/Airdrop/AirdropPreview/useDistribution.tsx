@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
 import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import { commafy } from 'src/utils'
+import { formatUnits } from 'ethers/lib/utils'
+import { useEffect, useState } from 'react'
 
 const distributionCsvUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'
 const baseAmountJsonUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/baseAirdropTokens.json'

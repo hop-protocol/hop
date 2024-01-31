@@ -1,5 +1,4 @@
 import BlockDater from 'ethereum-block-by-date'
-import fetch from 'isomorphic-fetch'
 import { DateTime } from 'luxon'
 import { etherscanApiKeys } from '../config'
 import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl'
@@ -63,7 +62,7 @@ async function getBlockNumberFromDateUsingLib (
   let info
   while (true) {
     try {
-      info = await blockDater.getDate(date)
+      info = blockDater.getDate(date)
       if (!info) {
         throw new Error('could not retrieve block number')
       }

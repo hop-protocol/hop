@@ -4,13 +4,13 @@ import { networks as chainNetworks } from '@hop-protocol/core/networks'
 import { config as coreConfig } from '@hop-protocol/core/config'
 import { metadata } from './metadata'
 
-const bondableChainsSet = new Set([])
+const bondableChainsSet = new Set<string>([])
 const config : any = {}
 for (const network in chainNetworks) {
   const chains: Chains = {}
 
   for (const chain in (chainNetworks as any)[network]) {
-    const chainConfig = (chainNetworks as any)[network][chain] as any
+    const chainConfig = (chainNetworks as any)[network][chain] 
     if (!chains[chain]) {
       chains[chain] = {}
     }

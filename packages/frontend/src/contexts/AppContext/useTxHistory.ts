@@ -1,12 +1,10 @@
-import { useEffect, useCallback, Dispatch, SetStateAction, useRef, useState } from 'react'
-import { useQuery } from 'react-query'
-import { useLocalStorage } from 'react-use'
 import Transaction from 'src/models/Transaction'
-import find from 'lodash/find'
-import { filterByHash, sortByRecentTimestamp } from 'src/utils'
-import isFunction from 'lodash/isFunction'
 import cloneDeepWith from 'lodash/cloneDeepWith'
+import find from 'lodash/find'
+import isFunction from 'lodash/isFunction'
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import { Hop } from '@hop-protocol/sdk'
+import { filterByHash, sortByRecentTimestamp } from 'src/utils'
 
 export interface TxHistory {
   transactions?: Transaction[]
@@ -93,7 +91,7 @@ const useTxHistory = (sdk: Hop): TxHistory => {
   function updateTransaction(tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) {
     setTransactions(prevTransactions => {
       if (!prevTransactions) return []
-      
+
       // deep clone to avoid mutating state directly
       const customizer = (value) => {
         if (isFunction(value)) {
@@ -102,14 +100,14 @@ const useTxHistory = (sdk: Hop): TxHistory => {
       }
 
       const clonedTxs = cloneDeepWith(prevTransactions, customizer)
-      const targetTx = find(clonedTxs, ['hash', matchingHash || tx.hash])
+      const targetTx = find(clonedTxs, ['hash', matchingHash ?? tx.hash])
 
       if (targetTx) {
         for (const key in updateOpts) {
           targetTx[key] = updateOpts[key]
         }
       }
-      
+
       return sortByRecentTimestamp(clonedTxs).slice(0, MAX_TRANSACTION_COUNT)
     })
   }

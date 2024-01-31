@@ -1,6 +1,6 @@
 import Logger from 'src/logger'
 import express, { Express } from 'express'
-import { Registry, collectDefaultMetrics } from 'prom-client'
+import { Metric, Registry, collectDefaultMetrics } from 'prom-client'
 import { metrics } from './metrics'
 
 export class MetricsServer {
@@ -13,9 +13,21 @@ export class MetricsServer {
     this.registry = new Registry()
     MetricsServer._registerCustomMetrics(this.registry)
     this.app = express()
-    this.app.get('/metrics', async (req, resp) => {
+    this.#init()
+      .then(() => {
+        console.log('metrics server initialized')
+      })
+      .catch((err: Error) => {
+        console.error('metrics server initialization error:', err)
+        process.exit(1)
+      })
+  }
+
+  async #init (): Promise<void> {
+    const metrics = await this.registry.metrics()
+    this.app.get('/metrics', (req, resp) => {
       resp.setHeader('Content-Type', this.registry.contentType)
-      resp.send(await this.registry.metrics())
+      resp.send(metrics)
     })
   }
 
@@ -31,7 +43,7 @@ export class MetricsServer {
 
   private static _registerCustomMetrics (registry: Registry): void {
     for (const metric of Object.values(metrics)) {
-      registry.registerMetric(metric)
+      registry.registerMetric(metric as Metric<"url" | "method" | "params" | "instance_hostname">)
     }
   }
 }

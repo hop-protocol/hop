@@ -46,12 +46,6 @@ Install dependencies
 npm install
 ```
 
-Lerna link, to link hop core package:
-
-```sh
-npx lerna link
-```
-
 Run build watcher
 
 ```bash

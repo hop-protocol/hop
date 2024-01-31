@@ -1,8 +1,8 @@
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import MuiButton, { ButtonProps as MuiButtonProps } from '@mui/material/Button'
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import { Flex } from 'src/components/ui'
+import { makeStyles } from '@mui/styles'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 interface StyleProps {
@@ -24,7 +24,7 @@ interface StyleProps {
 export type ButtonProps = Partial<StyleProps> &
   MuiButtonProps & { boxShadow?: any; minWidth?: string }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: ({ highlighted, large, flat, text, isDarkMode, fullWidth }: StyleProps) => ({
     borderRadius: '3.0rem',
     textTransform: 'none',
@@ -34,22 +34,21 @@ const useStyles = makeStyles(theme => ({
     width: fullWidth ? '100%' : 'auto',
     color: text ? theme.palette.text.secondary : (highlighted ? 'white' : theme.palette.text.primary),
     background: text ? 'none' : (highlighted
-      ? theme.bgGradient.main
+      ? theme.bgGradient?.main
       : isDarkMode
       ? '#3A3547'
       : flat
       ? '#E2E2E5'
       : 'none'),
-    boxShadow: text ? 'none' : (highlighted ? theme.boxShadow.button.highlighted : theme.boxShadow.button.default),
+    boxShadow: text ? 'none' : (highlighted ? theme.boxShadow?.button.highlighted : theme.boxShadow?.button.default),
     '&:hover': {
       color: text ? theme.palette.text.primary : (highlighted ? 'white' : theme.palette.text.primary),
       background: text ? 'none' : (highlighted
-        ? theme.bgGradient.main
+        ? theme.bgGradient?.main
         : flat
         ? theme.palette.secondary.light
         : '#ffffff33'),
     },
-    transition: 'background-color 0.15s ease-out, box-shadow 0.15s ease-out',
     '&:disabled': {
       // background: '#272332',
       // boxShadow: theme.boxShadow.button.default,
@@ -87,7 +86,7 @@ export const Button: FC<ButtonProps> = props => {
   const styles = useStyles({ highlighted, large, flat, text, isDarkMode, fullWidth })
 
   return (
-    <Flex justifyCenter alignCenter borderRadius={borderRadius || '3.0rem'} fullWidth>
+    <Box display="flex" justifyContent="center" alignItems="center" borderRadius={borderRadius || '3.0rem'} width="100%">
       <MuiButton
         {...buttonProps}
         disabled={disabled || loading}
@@ -101,6 +100,6 @@ export const Button: FC<ButtonProps> = props => {
           </div>
         ) : null}
       </MuiButton>
-    </Flex>
+    </Box>
   )
 }

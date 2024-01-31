@@ -1,5 +1,4 @@
 import Logger from 'src/logger'
-import pify from 'pify'
 import {
   CloudWatchLogsClient,
   DescribeLogGroupsCommand,
@@ -24,7 +23,10 @@ export async function getLogGroups () {
     limit: 20
   }
   const command = new DescribeLogGroupsCommand(params)
-  const data = await pify(cloudwatch.send.bind(cloudwatch))(command)
+  const data = await cloudwatch.send(command)
+  if (!data?.logGroups) {
+    throw new Error('no log groups found')
+  }
   return data?.logGroups.map((item: any) => {
     return {
       name: item.logGroupName,
@@ -43,7 +45,10 @@ export async function getLogStreams (config: Partial<Config>) {
     limit: 10
   }
   const command = new DescribeLogStreamsCommand(params)
-  const data = await pify(cloudwatch.send.bind(cloudwatch))(command)
+  const data = await cloudwatch.send(command)
+  if (!data?.logStreams) {
+    throw new Error('no log streams found')
+  }
   return data?.logStreams.map((item: any) => {
     return {
       name: item.logStreamName,
@@ -64,7 +69,10 @@ export async function getLogs (config: Partial<Config>, cb: any) {
       limit: 5
     }
     const command = new DescribeLogStreamsCommand(params)
-    const data = await pify(cloudwatch.send.bind(cloudwatch))(command)
+    const data = await cloudwatch.send(command)
+    if (!data?.logStreams) {
+      throw new Error('no log streams found')
+    }
     return data?.logStreams?.[0]?.logStreamName
   }
 
@@ -87,7 +95,10 @@ export async function getLogs (config: Partial<Config>, cb: any) {
       nextToken
     }
     const command = new FilterLogEventsCommand(params)
-    const data = await pify(cloudwatch.send.bind(cloudwatch))(command)
+    const data = await cloudwatch.send(command)
+    if (!data?.events) {
+      throw new Error('no log events found')
+    }
     return {
       messages: data.events.map((event: any) => event.message),
       nextToken: data.nextToken

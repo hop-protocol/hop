@@ -1,10 +1,10 @@
-import React, { FC, useState } from 'react'
-import PoolStats from 'src/pages/Stats/PoolStats'
-import BonderStats from 'src/pages/Stats/BonderStats'
-import PendingAmountStats from 'src/pages/Stats/PendingAmountStats'
 import BalanceStats from 'src/pages/Stats/BalanceStats'
+import BonderStats from 'src/pages/Stats/BonderStats'
+import Box from '@mui/material/Box'
 import DebitWindowStats from 'src/pages/Stats/DebitWindowStats'
-import Box from '@material-ui/core/Box'
+import PendingAmountStats from 'src/pages/Stats/PendingAmountStats'
+import PoolStats from 'src/pages/Stats/PoolStats'
+import React, { FC, useState } from 'react'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 function Group({ title, children, clickTitle, ...rest }) {

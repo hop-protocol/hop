@@ -23,7 +23,7 @@ export const root = program
   )
   .option('--env <path>', 'Environment variables file', parseString)
 
-export function actionHandler (fn: Function) {
+export function actionHandler (fn: (source: any) => any) {
   return async (source: any = {}) => {
     try {
       const configFilePath = source.config || source?.parent?.config

@@ -32,8 +32,8 @@ import {
   SyncType,
   TxError
 } from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
@@ -64,7 +64,7 @@ export type SendBondWithdrawalTxParams = {
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  override siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
   // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
   private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
 
@@ -81,7 +81,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.log('bonder fees:', JSON.stringify(fees))
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     if (this.isL1) {
       return
     }
@@ -118,12 +118,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const logger = this.logger.create({ id: transferId })
       logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} start`)
       logger.debug('checking db poll')
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
-      const notEnoughCredit = availableCredit.lt(amount!)
+      if (!destinationChainId || !amount) {
+        logger.warn(`missing destinationChainId: ${destinationChainId}, amount: ${amount}`)
+        return
+      }
+
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      const notEnoughCredit = availableCredit.lt(amount)
       const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
       if (isUnbondable) {
         logger.warn(
-          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
           `withdrawalBondTxErr: ${withdrawalBondTxError}`
         )
         logger.debug('db poll completed')
@@ -252,7 +257,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       if (!isBonderFeeOk) {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
         logger.warn(msg)
-        this.notifier.warn(msg)
+        await this.notifier.warn(msg)
         throw new BonderFeeTooLowError(msg)
       }
 
@@ -275,7 +280,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const sentChain = attemptSwapDuringBondWithdrawal ? `destination chain ${destinationChainId}` : 'L1'
       const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendBondWithdrawalTx err:', err.message)
       const transfer = await this.db.transfers.getByTransferId(transferId)
@@ -390,7 +395,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
       logger.debug('checkTransferId l2Bridge.bondWithdrawalAndAttemptSwap')
-      return await l2Bridge.bondWithdrawalAndAttemptSwap(
+      return l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
         transferNonce,
@@ -398,21 +403,21 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amountOutMin,
         deadline
       )
-    } else {
-      // Redundantly verify that both amountOutMin and deadline are 0
-      if (!(amountOutMin.eq(0) && deadline.eq(0))) {
-        throw new Error('sendBondWithdrawalTx: amountOutMin and deadline must be 0 when calling bondWithdrawal')
-      }
-      logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
-      const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-      logger.debug('checkTransferId bridge.bondWithdrawal')
-      return bridge.bondWithdrawal(
-        recipient,
-        amount,
-        transferNonce,
-        bonderFee
-      )
     }
+
+    // Redundantly verify that both amountOutMin and deadline are 0
+    if (!(amountOutMin.eq(0) && deadline.eq(0))) {
+      throw new Error('sendBondWithdrawalTx: amountOutMin and deadline must be 0 when calling bondWithdrawal')
+    }
+    logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
+    const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    logger.debug('checkTransferId bridge.bondWithdrawal')
+    return bridge.bondWithdrawal(
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee
+    )
   }
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
@@ -426,9 +431,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return this.filterTransfersBySyncTypeBonder(dbTransfers)
     } else if (syncType === SyncType.Threshold) {
       return this.filterTransfersBySyncTypeThreshold(dbTransfers)
-    } else {
-      throw new Error(`Invalid syncType: ${syncType}`)
     }
+    throw new Error(`Invalid syncType: ${syncType}`)
   }
 
   private filterTransfersBySyncTypeBonder (dbTransfers: UnbondedSentTransfer[]): UnbondedSentTransfer[] {

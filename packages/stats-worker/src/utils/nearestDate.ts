@@ -5,12 +5,12 @@ export function nearestDate (dates: any[], target: any) {
     target = target.getTime()
   }
 
-  var nearest = Infinity
-  var winner = -1
+  let nearest = Infinity
+  let winner = -1
 
   dates.forEach(function (date, index) {
     if (date instanceof Date) date = date.getTime()
-    var distance = Math.abs(date - target)
+    const distance = Math.abs(date - target)
     if (distance < nearest) {
       nearest = distance
       winner = index

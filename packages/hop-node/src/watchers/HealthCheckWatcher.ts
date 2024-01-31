@@ -5,7 +5,6 @@ import OsWatcher from 'src/watchers/OsWatcher'
 import S3Upload from 'src/aws/s3Upload'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
-import fetch from 'node-fetch'
 import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
@@ -621,7 +620,7 @@ export class HealthCheckWatcher {
   private async getLowAvailableLiquidityBonders (): Promise<LowAvailableLiquidityBonder[]> {
     const url = 'https://assets.hop.exchange/mainnet/v1-available-liquidity.json'
     const res = await fetch(url)
-    const json = await res.json()
+    const json: any = await res.json()
     const result: any[] = []
 
     for (const token of this.tokens) {
@@ -634,7 +633,7 @@ export class HealthCheckWatcher {
       if (!totalLiquidity || totalLiquidity?.eq(0)) {
         throw new Error('Expected totalLiquidity to be defined and non-zero')
       }
-      const availableAmounts = tokenData.baseAvailableCreditIncludingVault
+      const availableAmounts = tokenData.baseAvailableCredit
       for (const source in availableAmounts) {
         for (const dest in availableAmounts[source]) {
           chainAmounts[dest] = BigNumber.from(availableAmounts[source][dest])

@@ -9,87 +9,87 @@ import { rateLimitRetry } from '../utils/rateLimitRetry'
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
 
 export class RetryProvider extends providers.StaticJsonRpcProvider implements providers.Provider {
-  async perform (method: string, params: any): Promise<any> {
-    return await super.perform(method, params)
+  override async perform (method: string, params: any): Promise<any> {
+    return super.perform(method, params)
   }
 
   // Network
-  getNetwork = rateLimitRetry(async (): Promise<Network> => {
+  override getNetwork = rateLimitRetry(async (): Promise<Network> => {
     return super.getNetwork()
   })
 
   // Latest State
-  getBlockNumber = rateLimitRetry(async (): Promise<number> => {
+  override getBlockNumber = rateLimitRetry(async (): Promise<number> => {
     return super.getBlockNumber()
   })
 
-  getGasPrice = rateLimitRetry(async (): Promise<BigNumber> => {
+  override getGasPrice = rateLimitRetry(async (): Promise<BigNumber> => {
     return super.getGasPrice()
   })
 
   // Account
-  getBalance = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber> => {
+  override getBalance = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber> => {
     return super.getBalance(addressOrName, blockTag)
   })
 
-  getTransactionCount = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<number> => {
+  override getTransactionCount = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<number> => {
     return super.getTransactionCount(addressOrName, blockTag)
   })
 
-  getCode = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
+  override getCode = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
     return super.getCode(addressOrName, blockTag)
   })
 
-  getStorageAt = rateLimitRetry(async (addressOrName: string | Promise<string>, position: BigNumberish | Promise<BigNumberish>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
+  override getStorageAt = rateLimitRetry(async (addressOrName: string | Promise<string>, position: BigNumberish | Promise<BigNumberish>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
     return super.getStorageAt(addressOrName, position, blockTag)
   })
 
   // Execution
-  sendTransaction = rateLimitRetry(async (signedTransaction: string | Promise<string>): Promise<TransactionResponse> => {
+  override sendTransaction = rateLimitRetry(async (signedTransaction: string | Promise<string>): Promise<TransactionResponse> => {
     return super.sendTransaction(signedTransaction)
   })
 
-  call = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
+  override call = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
     return super.call(transaction, blockTag)
   })
 
-  estimateGas = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>): Promise<BigNumber> => {
+  override estimateGas = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>): Promise<BigNumber> => {
     return super.estimateGas(transaction)
   })
 
   // Queries
-  getBlock = rateLimitRetry(async (blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<Block> => {
+  override getBlock = rateLimitRetry(async (blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<Block> => {
     return super.getBlock(blockHashOrBlockTag)
   })
 
-  getBlockWithTransactions = rateLimitRetry(async (blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<BlockWithTransactions> => {
+  override getBlockWithTransactions = rateLimitRetry(async (blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<BlockWithTransactions> => {
     return super.getBlockWithTransactions(blockHashOrBlockTag)
   })
 
-  getTransaction = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionResponse> => {
+  override getTransaction = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionResponse> => {
     return super.getTransaction(transactionHash)
   })
 
-  getTransactionReceipt = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionReceipt> => {
+  override getTransactionReceipt = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionReceipt> => {
     return super.getTransactionReceipt(transactionHash)
   })
 
   // Bloom-filter Queries
-  getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
+  override getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
     return super.getLogs(filter)
   })
 
   // ENS
-  resolveName = rateLimitRetry(async (name: string | Promise<string>): Promise<null | string> => {
+  override resolveName = rateLimitRetry(async (name: string | Promise<string>): Promise<null | string> => {
     return super.resolveName(name)
   })
 
-  lookupAddress = rateLimitRetry(async (address: string | Promise<string>): Promise<null | string> => {
+  override lookupAddress = rateLimitRetry(async (address: string | Promise<string>): Promise<null | string> => {
     return super.lookupAddress(address)
   })
 
-  getAvatar = rateLimitRetry(async (nameOrAddress: string): Promise<string> => {
-    return super.getAvatar(nameOrAddress)
+  override getAvatar = rateLimitRetry(async (nameOrAddress: string): Promise<string> => {
+    return (await super.getAvatar(nameOrAddress))!
   })
 }
 

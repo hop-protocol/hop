@@ -1,3 +1,4 @@
+import { ConnectionInfo } from "@ethersproject/web"
 import { Provider } from '../provider'
 import { providers } from 'ethers'
 
@@ -10,7 +11,7 @@ const getRpcProviderFromUrl = (
   if (cache[cacheKey]) {
     return cache[cacheKey]
   }
-  const options = {
+  const options: ConnectionInfo = {
     url: rpcUrl,
     timeout: 60 * 1000,
     throttleLimit: 1,

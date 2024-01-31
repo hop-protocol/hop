@@ -1,16 +1,16 @@
+import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
-import { Alert } from 'src/components/Alert'
-import { Button } from 'src/components/Button'
-import { InfoTooltip } from 'src/components/InfoTooltip'
 import TokenWrapper from 'src/components/TokenWrapper'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
 import { BalanceText } from 'src/pages/Pools/components/BalanceText'
 import { BigNumber } from 'ethers'
+import { Button } from 'src/components/Button'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { InputField } from 'src/pages/Pools/components/InputField'
 import { formatUnits } from 'ethers/lib/utils'
-import { sanitizeNumericalString } from 'src/utils'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { sanitizeNumericalString } from 'src/utils'
 
 type Props = {
   addLiquidity: any
@@ -81,7 +81,7 @@ export function DepositForm(props: Props) {
     setToken1Amount(token1Value)
   }
 
-  function handleClick (event: ChangeEvent<{}>) {
+  function handleClick (event: ChangeEvent<object>) {
     event.preventDefault()
     addLiquidity()
   }

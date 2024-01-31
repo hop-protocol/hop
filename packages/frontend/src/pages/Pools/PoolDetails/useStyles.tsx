@@ -1,5 +1,4 @@
-import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -34,7 +33,7 @@ export const useStyles = makeStyles(theme => ({
     left: '-5px'
   },
   topBox: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '2rem',
     width: '100%',
     [theme.breakpoints.down('xs')]: {
@@ -53,7 +52,6 @@ export const useStyles = makeStyles(theme => ({
   },
   poolStats: {
     boxShadow: theme.boxShadow.inner,
-    transition: 'all 0.15s ease-out',
     borderRadius: '3rem'
   },
   poolStatBoxes: {
@@ -63,7 +61,6 @@ export const useStyles = makeStyles(theme => ({
   },
   poolDetails: {
     boxShadow: theme.boxShadow.inner,
-    transition: 'all 0.15s ease-out',
     borderRadius: '3rem',
     [theme.breakpoints.down('xs')]: {
       padding: 0
@@ -101,7 +98,7 @@ export const useStyles = makeStyles(theme => ({
     padding: '0.5rem 2.5rem',
     '&[data-selected="true"]': {
       borderRadius: '3rem',
-      boxShadow: theme.palette.type === 'dark' ? '-6px 6px 12px 0px #121212, -5px -5px 14px 0px #00000026 inset, -6px 6px 12px 0px #26262666 inset' : '5px -5px 12px 0px #FFFFFF, -6px 6px 12px 0px #D8D5DC, -5px -5px 14px 0px #FFFFFF26 inset, -6px 6px 12px 0px #E9E5E866 inset',
+      boxShadow: theme.palette.mode === 'dark' ? '-6px 6px 12px 0px #121212, -5px -5px 14px 0px #00000026 inset, -6px 6px 12px 0px #26262666 inset' : '5px -5px 12px 0px #FFFFFF, -6px 6px 12px 0px #D8D5DC, -5px -5px 14px 0px #FFFFFF26 inset, -6px 6px 12px 0px #E9E5E866 inset',
     }
   },
   stakingTabImage: {
@@ -121,7 +118,7 @@ export const useStyles = makeStyles(theme => ({
   },
   bolt: {
     '& path': {
-      fill: theme.palette.type === 'dark' ? '#fff' : '#000'
+      fill: theme.palette.mode === 'dark' ? '#fff' : '#000'
     }
   }
 }))

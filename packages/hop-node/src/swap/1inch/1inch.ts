@@ -2,7 +2,6 @@ import Logger from 'src/logger'
 import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
-import fetch from 'node-fetch'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import serializeQueryParams from 'src/utils/serializeQueryParams'
@@ -65,7 +64,7 @@ class OneInch {
   async getJson (url: string) {
     logger.debug('url:', url)
     const res = await fetch(url)
-    const json = await res.json()
+    const json: any = await res.json()
     if (!json) {
       throw new Error('no response')
     }

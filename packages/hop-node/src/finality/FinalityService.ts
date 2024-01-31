@@ -23,12 +23,12 @@ export class FinalityService implements IFinalityService {
       throw new Error(`FinalityStrategyType ${finalityStrategyType} is not supported`)
     }
 
-    const strategyConstructor: Strategy | undefined = strategies[chainSlug]
-    if (!strategyConstructor) {
+    const StrategyConstructor: Strategy | undefined = strategies[chainSlug]
+    if (!StrategyConstructor) {
       throw new Error(`Finality strategy for ${chainSlug} is not supported`)
     }
 
-    this.strategy = new strategyConstructor(provider, chainSlug)
+    this.strategy = new StrategyConstructor(provider, chainSlug)
   }
 
   getBlockNumber = async (): Promise<number> => {

@@ -1,14 +1,14 @@
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import React from 'react'
-import { Theme, makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import Button from '@material-ui/core/Button'
-import { useApp } from 'src/contexts/AppContext'
-import { Modal } from 'src/components/Modal'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
+import Typography from '@mui/material/Typography'
 import { AccountTransferHistory } from 'src/components/AccountDetails/AccountTransferHistory'
-import { Div } from 'src/components/ui'
+import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
+import { Modal } from 'src/components/Modal'
+import { Theme } from '@mui/material/styles'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles((theme: Theme) => ({
   box: {
@@ -114,9 +114,9 @@ export const AccountDetails = () => {
           <ManageWallet onChange={handleChangeClick} onDisconnect={handleDisconnectClick} />
         )}
       </Box>
-      <Div position="relative">
+      <Box position="relative">
         <AccountTransferHistory address={address?.address} />
-      </Div>
+      </Box>
     </Modal>
   )
 }

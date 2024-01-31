@@ -1,4 +1,5 @@
 import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, DbOperations } from './BaseDb'
+// @ts-expect-error nearest-date does not have a types file as of 20231227
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'

@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { BigNumber } from 'ethers'
@@ -82,7 +81,7 @@ async function getUserTransactionsForDate (chain: string, startBlockNumber: numb
     body: JSON.stringify(query)
   })
 
-  const jsonRes = await res.json()
+  const jsonRes: any = await res.json()
   if (!jsonRes?.result) {
     const errMessages: Record<string, string> = {
       quickNode: 'Method alchemy_getAssetTransfers is not supported'.toLowerCase(),
@@ -138,7 +137,7 @@ async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> 
       id: 1
     })
   })
-  const json = await res.json()
+  const json: any = await res.json()
   return BigNumber.from(json.result.l1Fee)
 }
 
@@ -154,7 +153,7 @@ async function getPriceByTimestamp (token: string, unixTimestamp: number): Promi
   const baseUrl = 'https://pro-api.coingecko.com'
   const url = `${baseUrl}/api/v3/coins/${coinId}/history?date=${dmyOfDate}&x_cg_pro_api_key=${CoingeckoApiKey}`
 
-  const res = await fetch(url)
+  const res: any = await fetch(url)
   const price: number = (await res.json())?.market_data?.current_price?.usd
   if (!price) {
     throw new Error(`Failed to get price at ${dmyOfDate}`)

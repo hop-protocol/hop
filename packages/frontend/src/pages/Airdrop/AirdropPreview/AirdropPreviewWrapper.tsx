@@ -1,6 +1,5 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import Box from '@material-ui/core/Box'
-import { Flex } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export const respMaxWidths = [350, 624, 824]
@@ -10,8 +9,9 @@ export function AirdropPreviewWrapper({ children }) {
 
   return (
     <Box display="flex" justifyContent="center" width="100%">
-      <Flex
-        display="flex" justifyContent="center" flexDirection="column"
+      <Box
+        display="flex"
+        justifyContent="center" flexDirection="column"
         p={['18px 24px', '36px 46px']}
         mx={[0, 4]}
         maxWidth={respMaxWidths}
@@ -20,7 +20,7 @@ export function AirdropPreviewWrapper({ children }) {
         mt={2}
       >
         {children}
-      </Flex>
+      </Box>
     </Box>
   )
 }

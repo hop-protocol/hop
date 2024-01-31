@@ -1,5 +1,5 @@
-import { BigNumber, FixedNumber, utils } from 'ethers'
 import Network from 'src/models/Network'
+import { BigNumber, FixedNumber, utils } from 'ethers'
 import { commafy, prettifyErrorMessage, toTokenDisplay } from '.'
 
 type PossibleError = {
@@ -44,7 +44,7 @@ export function formatError(error: unknown, network?: Network): string {
     errMsg.includes('insufficient funds') ||
     errMsg.includes('Insufficient funds')
   ) {
-    const feeToken = network?.nativeTokenSymbol || 'funds'
+    const feeToken = network?.nativeTokenSymbol ?? 'funds'
     errMsg = `Insufficient balance. Please add ${feeToken} to pay for tx fees. Error: ${errMsg}`
   } else if (errMsg.includes('NetworkError when attempting to fetch resource')) {
     errMsg = `${errMsg} Please check your wallet network settings are correct and try again. More info: ${rpcEndpointsDocs}`
@@ -75,7 +75,7 @@ export function formatError(error: unknown, network?: Network): string {
   } else if (errMsg.includes('Cannot transfer staked or escrowed SNX')) {
     errMsg = `Cannot transfer staked or escrowed SNX. Error: ${errMsg}`
   } else if (errMsg.includes('Internal JSON-RPC error') || errMsg.includes('Internal error')) {
-    const feeToken = network?.nativeTokenSymbol || 'funds'
+    const feeToken = network?.nativeTokenSymbol ?? 'funds'
     errMsg = `An RPC error occurred. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
     errMsg = `An RPC error occurred. Please check your wallet network settings are correct and refresh page to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`

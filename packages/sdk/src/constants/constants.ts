@@ -1,4 +1,4 @@
-import { CanonicalToken, ChainId, ChainName, ChainSlug, HToken, NetworkSlug, Slug, WrappedToken } from '@hop-protocol/core/networks/enums'
+import { CanonicalToken, ChainId, ChainName, ChainSlug, HToken, NetworkSlug, Slug, WrappedToken } from '@hop-protocol/core/networks'
 
 export { NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
 
@@ -11,10 +11,15 @@ export enum TokenIndex {
 
 export enum BondTransferGasLimit {
   Ethereum = '165000',
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   Optimism = '350000',
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   Arbitrum = '2500000',
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   Nova = '2500000',
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   Base = '350000',
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   Linea = '350000'
 }
 

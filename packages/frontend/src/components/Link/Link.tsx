@@ -1,6 +1,6 @@
+import Box from '@mui/material/Box'
+import MuiLink, { LinkProps } from '@mui/material/Link'
 import React from 'react'
-import { Div } from 'src/components/ui'
-import { Link as MuiLink, LinkProps } from '@material-ui/core'
 
 interface Props {
   style?: any
@@ -24,7 +24,7 @@ export function ExternalLink(props: Props) {
   }
 
   return (
-    <Div>
+    <Box>
       {text}
       {linkText && (
         <>
@@ -36,7 +36,7 @@ export function ExternalLink(props: Props) {
         </>
       )}
       {postText}
-    </Div>
+    </Box>
   )
 }
 

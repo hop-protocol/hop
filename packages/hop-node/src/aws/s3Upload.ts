@@ -1,5 +1,4 @@
 import Logger from 'src/logger'
-import fetch from 'node-fetch'
 import { BigNumber } from 'ethers'
 import { Mutex } from 'async-mutex'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
@@ -40,7 +39,7 @@ class S3Upload {
   }
 
   async upload (data: any) {
-    return await mutex.runExclusive(async () => {
+    return mutex.runExclusive(async () => {
       try {
         data = JSON.parse(JSON.stringify(data)) // deep clone
         const uploadData = {

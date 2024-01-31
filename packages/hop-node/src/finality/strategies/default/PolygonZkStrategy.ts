@@ -3,7 +3,7 @@ import { FinalityStrategy } from '../FinalityStrategy'
 import { IFinalityStrategy } from '../IFinalityStrategy'
 
 export class PolygonZkStrategy extends FinalityStrategy implements IFinalityStrategy {
-  getSafeBlockNumber = async (): Promise<number> => {
+  override getSafeBlockNumber = async (): Promise<number> => {
     const blockNumber = await this._getCustomBlockNumber(FinalityBlockTag.Safe)
     if (!blockNumber) {
       throw new Error('PolygonZkStrategy: getSafeBlockNumber: blockNumber is undefined')
@@ -11,7 +11,7 @@ export class PolygonZkStrategy extends FinalityStrategy implements IFinalityStra
     return blockNumber
   }
 
-  getFinalizedBlockNumber = async (): Promise<number> => {
+  override getFinalizedBlockNumber = async (): Promise<number> => {
     const blockNumber = await this._getCustomBlockNumber(FinalityBlockTag.Finalized)
     if (!blockNumber) {
       throw new Error('PolygonZkStrategy: getFinalizedBlockNumber: blockNumber is undefined')

@@ -1,9 +1,9 @@
-import React, { useCallback } from 'react'
 import { addresses } from 'src/config'
 import { commafy, toPercentDisplay } from 'src/utils'
 import { findNetworkBySlug } from 'src/utils/networks'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { useApp } from 'src/contexts/AppContext'
+import { useCallback } from 'react'
 import { useQuery } from 'react-query'
 
 let stakingStats = {}

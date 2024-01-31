@@ -1,4 +1,6 @@
-require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export const privateKey = process.env.TEST_USER_PRIVATE_KEY
 export const mnemonic = process.env.TEST_MNEMONIC

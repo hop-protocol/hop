@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
 import { Chain } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
 import { getTransferTimeSeconds } from 'src/utils/getTransferTimeSeconds'
+import { useApp } from 'src/contexts/AppContext'
+import { useEffect, useRef, useState } from 'react'
 
 // return statistical data in whole minutes given recent transaction times
 export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destinationChainSlug?: string | null) => {

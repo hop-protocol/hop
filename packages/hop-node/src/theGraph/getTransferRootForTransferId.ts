@@ -81,7 +81,7 @@ export default async function getTransferRootForTransferId (chain: string, token
     const exists = transferIds.find((x: any) => x.transferId === transferId)
     if (exists) {
       // get complete object
-      return await getTransferRoot(chain, token, transferRoot.rootHash)
+      return getTransferRoot(chain, token, transferRoot.rootHash)
     }
   }
 }

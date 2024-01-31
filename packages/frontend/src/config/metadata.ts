@@ -1,11 +1,11 @@
-import { metadata as coreMetadata } from '@hop-protocol/core/metadata'
-import { TokenSymbol, Slug } from '@hop-protocol/sdk'
-import { reactAppNetwork, isMainnet } from 'src/config'
+import { Slug, TokenSymbol } from '@hop-protocol/sdk'
 import { capitalize } from 'src/utils/capitalize'
+import { metadata as coreMetadata } from '@hop-protocol/core/metadata'
+import { isMainnet, reactAppNetwork } from 'src/config'
 
 type Metadata = {
   tokens: {
-    [key in TokenSymbol | string]: {
+    [key in TokenSymbol  ]: {
       symbol: string
       name: string
       decimals: number

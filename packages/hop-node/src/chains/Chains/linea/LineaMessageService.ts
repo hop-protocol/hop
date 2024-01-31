@@ -68,22 +68,17 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     )
   }
 
-  protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex: number): Promise<LineaMessage> {
-    console.log('debuglog0', txHash, messageDirection, messageIndex)
+  protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<LineaMessage> {
+    messageIndex ??= 0
     const { sourceBridge } = this.#getSourceAndDestBridge(messageDirection)
-    console.log('debuglog1', JSON.stringify(sourceBridge))
     const messages: LineaMessage[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
-    console.log('debuglog2', messages)
     if (!messages?.length) {
-      console.log('debuglog3')
       throw new Error('could not find messages for tx hash')
     }
-    console.log('debuglog4')
     return messages[messageIndex]
   }
 
   protected async getMessageStatus (message: LineaMessage, messageDirection: MessageDirection): Promise<OnChainMessageStatus> {
-    console.log('debuglog5', message)
     const { destBridge } = this.#getSourceAndDestBridge(messageDirection)
     if (!message.messageHash) {
       throw new Error('message hash is missing. this might occur if there are multiple l1 to l2 messages in the tx')
@@ -105,16 +100,13 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
 
   #getSourceAndDestBridge (messageDirection: MessageDirection): LineaBridges {
     // Connect the wallet here since we cannot do so when the SDK is instantiated
-    console.log('debuglog6', this.#l1Contract, this.#l2Contract)
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      console.log('debuglog7')
       return {
         sourceBridge: this.#l1Contract,
         destBridge: this.#l2Contract
       }
     }
 
-    console.log('debuglog8')
     return {
       sourceBridge: this.#l2Contract,
       destBridge: this.#l1Contract

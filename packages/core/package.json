@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.221",
+  "version": "0.0.1-beta.222",
   "description": "Hop Protocol networks config",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -70,7 +70,6 @@
     "build:toplevel": "bash -c 'cp -r ./dist/{abi,addresses,config,contracts,metadata,networks} ./'",
     "lint": "eslint . --ext .ts --fix",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
-    "publish": "pnpm publish --tag latest --access public --publish-branch develop",
     "bump": "pnpm version prerelease --preid=beta",
     "release": "pnpm build:all && pnpm lint && pnpm test && pnpm bump",
     "upload": "pnpm build:ts && node dist/s3upload/main"

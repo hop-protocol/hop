@@ -12,6 +12,7 @@ on:
 jobs:
   build-hop-node:
     runs-on: ubuntu-latest
+    environment: production
     env:
       DOCKER_IMAGE: hopprotocol/hop-node
     steps:

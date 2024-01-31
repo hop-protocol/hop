@@ -5,7 +5,7 @@ import Skeleton from '@mui/lab/Skeleton'
 import Typography from '@mui/material/Typography'
 import makeData from './makeData'
 import styled from 'styled-components'
-import { useTable, useSortBy } from 'react-table'
+import { useSortBy, useTable } from 'react-table'
 
 const Styles = styled.div`
   padding: 0.25rem;

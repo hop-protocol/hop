@@ -1,4 +1,3 @@
-import React from 'react'
 import createBreakpoints from '@mui/system/createTheme/createBreakpoints'
 import {
 bgGradients,
@@ -7,10 +6,10 @@ boxShadowsLight,
 overridesDark,
 overridesLight,
 } from 'src/theme/overrides'
-import { typographyOptions } from 'src/theme/typography'
 import { createTheme } from '@mui/material/styles';
-import { palette as paletteLight } from 'src/theme/light'
 import { palette as paletteDark } from 'src/theme/dark'
+import { palette as paletteLight } from 'src/theme/light'
+import { typographyOptions } from 'src/theme/typography'
 
 const padding = {
   thick: '4.2rem',

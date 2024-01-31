@@ -1,22 +1,19 @@
-import React, { FC, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { makeStyles } from '@mui/styles'
-import { Theme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
-import { TxPill } from 'src/components/Header/TxPill'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
+import IconButton from '@mui/material/IconButton'
 import MoonIcon from 'src/assets/moon-icon.svg'
 import Network from 'src/models/Network'
+import React, { FC, useState } from 'react'
 import SunIcon from 'src/assets/sun-icon.svg'
 import logger from 'src/logger'
 import { Banner } from 'src/components/Banner'
 import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
+import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
 import { Icon } from 'src/components/ui/Icon'
+import { Link } from 'react-router-dom'
 import { Settings } from 'src/components/Header/Settings'
+import { TxPill } from 'src/components/Header/TxPill'
 import { WalletWarning } from 'src/components/Header/WalletWarning'
 import {
 findNetworkBySlug,
@@ -25,10 +22,12 @@ networkIdNativeTokenSymbol,
 networkIdToSlug,
 toTokenDisplay,
 } from 'src/utils'
-import IconButton from '@mui/material/IconButton'
 import { isMainnet, reactAppNetwork, showBannerMessage } from 'src/config'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
 import { useQuery } from 'react-query'
 import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

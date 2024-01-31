@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Network from 'src/models/Network'
-import React, { useMemo, FC, ChangeEvent } from 'react'
+import React, { ChangeEvent, FC, useMemo } from 'react'
 import Skeleton from '@mui/lab/Skeleton'
 import Typography from '@mui/material/Typography'
 import logger from 'src/logger'

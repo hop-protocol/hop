@@ -4,7 +4,6 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import Network from 'src/models/Network'
 import React, {
-  ChangeEvent,
   FC,
   ReactNode,
   createContext,

@@ -1,3 +1,8 @@
+import Box from '@mui/material/Box'
+import React from 'react'
+import Typography from '@mui/material/Typography'
+import { StyledLink } from 'src/components/Link/StyledLink'
+import { SvgImg } from 'src/components/ui/SvgImg'
 import {
   careersUrl,
   discordUrl,
@@ -8,17 +13,12 @@ import {
   mediumUrl,
   twitterUrl,
 } from 'src/utils/constants'
-import Box from '@mui/material/Box'
-import React from 'react'
-import Typography from '@mui/material/Typography'
 import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
+import { gitRevision } from 'src/config/config'
 import { ReactComponent as github } from 'src/assets/logos/github.svg'
+import { makeStyles } from '@mui/styles'
 import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
 import { ReactComponent as twitter } from 'src/assets/logos/twitter.svg'
-import { StyledLink } from 'src/components/Link/StyledLink'
-import { SvgImg } from 'src/components/ui/SvgImg'
-import { gitRevision } from 'src/config/config'
-import { makeStyles } from '@mui/styles'
 import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 

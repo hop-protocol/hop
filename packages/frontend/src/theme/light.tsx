@@ -196,13 +196,13 @@ export const overridesLight = {
   MuiTab: {
     styleOverrides: {
       root: {
-        color: palette.text.secondary, // Default color
+        color: palette.text.secondary,
         minWidth: 0,
         borderRadius: '3rem',
-        '&.Mui-selected': { // Use `.Mui-selected` for selected state
+        '&.Mui-selected': {
           color: palette.primary.main,
         },
-        '&:hover:not(.Mui-selected)': { // Use `:hover:not(.Mui-selected)` for hover state
+        '&:hover:not(.Mui-selected)': {
           color: palette.text.primary,
         },
       },

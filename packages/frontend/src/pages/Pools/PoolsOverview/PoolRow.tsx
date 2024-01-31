@@ -4,9 +4,9 @@ import React from 'react'
 import Skeleton from '@mui/lab/Skeleton'
 import Typography from '@mui/material/Typography'
 import { AprDetailsTooltip } from 'src/components/InfoTooltip/AprDetailsTooltip'
+import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { Button } from 'src/components/Button'
 import { Link, useNavigate } from 'react-router-dom'
-import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { makeStyles } from '@mui/styles'
 
 export const useStyles = makeStyles((theme: any) => ({

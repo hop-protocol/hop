@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
-import React, { FC, ChangeEvent } from 'react'
+import React, { FC } from 'react'
 import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 import { Button } from 'src/components/Button'

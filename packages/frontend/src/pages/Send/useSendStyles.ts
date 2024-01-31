@@ -97,7 +97,7 @@ export const useSendStyles = makeStyles((theme: any) => ({
     marginTop: '1rem',
     boxSizing: 'border-box',
     borderRadius: '3rem',
-    boxShadow: theme.boxShadow?.inner, // TODO1
+    boxShadow: theme.boxShadow?.inner,
     [theme.breakpoints.down('xs')]: {
       width: '100%',
     },

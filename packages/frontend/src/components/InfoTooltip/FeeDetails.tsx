@@ -1,8 +1,8 @@
+import Box from '@mui/material/Box'
 import React, { FC } from 'react'
 import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import { makeStyles } from '@mui/styles'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

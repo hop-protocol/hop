@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Typography from '@mui/material/Typography'
 import { AddressModal } from 'src/pages/Airdrop/AirdropPreview/AddressModal'
 import { AirdropPreviewWrapper } from 'src/pages/Airdrop/AirdropPreview/AirdropPreviewWrapper'
@@ -202,7 +202,7 @@ export function AirdropPreview() {
                   </Box>
                 )}
 
-                <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
+                <Box my={2} style={{ borderTop: `1px solid ${theme.palette?.secondary?.light}`, width: '100%', opacity: 0.5 }}></Box>
                 <Box display="flex" justifyContent="space-between" mb={4}>
                   <Typography variant="body1" component="div">
                     <strong>Total:</strong> <InfoTooltip

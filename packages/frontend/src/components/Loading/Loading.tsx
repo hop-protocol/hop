@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 import React from 'react'
-import styled, { keyframes, css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 import { background, color } from 'styled-system'
 import { squareDimensions } from 'src/utils'
 import { useTheme } from '@mui/styles'

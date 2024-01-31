@@ -7,7 +7,7 @@ export const useAmountSelectorCardStyles = makeStyles((theme: any) => ({
     [theme.breakpoints.down('xs')]: {
       width: '100%',
     },
-    boxShadow: theme.boxShadow?.inner, // TODO1
+    boxShadow: theme.boxShadow?.inner,
   },
   topRow: {
     marginBottom: '1.8rem',

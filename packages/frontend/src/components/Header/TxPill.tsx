@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from '@mui/styles'
-import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { StyledButton } from 'src/components/Button/StyledButton'
+import CircularProgress from '@mui/material/CircularProgress'
+import React, { useEffect, useState } from 'react'
 import { Circle } from 'src/components/ui/Circle'
 import { Icon } from 'src/components/ui/Icon'
+import { StyledButton } from 'src/components/Button/StyledButton'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
 import { useEns } from 'src/hooks'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

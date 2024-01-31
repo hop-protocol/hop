@@ -1,8 +1,8 @@
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import MuiButton, { ButtonProps as MuiButtonProps } from '@mui/material/Button'
 import React, { FC } from 'react'
 import { makeStyles } from '@mui/styles'
-import MuiButton, { ButtonProps as MuiButtonProps } from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import Box from '@mui/material/Box'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 interface StyleProps {
@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme: any) => ({
     width: fullWidth ? '100%' : 'auto',
     color: text ? theme.palette.text.secondary : (highlighted ? 'white' : theme.palette.text.primary),
     background: text ? 'none' : (highlighted
-      ? theme.bgGradient?.main // TODO1
+      ? theme.bgGradient?.main
       : isDarkMode
       ? '#3A3547'
       : flat

@@ -3,7 +3,7 @@ import Check from '@mui/icons-material/Check'
 import CircularProgress from '@mui/material/CircularProgress'
 import CloseIcon from '@mui/icons-material/Close'
 import CropSquare from '@mui/icons-material/CropSquare'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Step from '@mui/material/Step';
 import StepIcon from '@mui/material/StepIcon';
 import StepLabel from '@mui/material/StepLabel';

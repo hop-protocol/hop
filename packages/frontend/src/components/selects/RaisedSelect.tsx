@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme: any) => ({
     '&:focus': {
       borderRadius: '2.3rem',
     },
-    boxShadow: theme.boxShadow?.select, // TODO1
+    boxShadow: theme.boxShadow?.select,
     '& .MuiOutlinedInput-notchedOutline': {
       border: 'none'
     }

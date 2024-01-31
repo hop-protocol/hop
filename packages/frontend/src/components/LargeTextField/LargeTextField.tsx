@@ -57,7 +57,7 @@ const useInputStyles = makeStyles((theme: any) => ({
     marginLeft: '.7rem',
     borderRadius: '1.5rem',
     width: '100%',
-    boxShadow: defaultShadow ? theme.boxShadow?.input.normal : 'none', // TODO1
+    boxShadow: defaultShadow ? theme.boxShadow?.input.normal : 'none',
     '&:hover': {
       boxShadow: () => {
         if (hideShadow) {

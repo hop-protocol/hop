@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react'
-import Skeleton from '@mui/lab/Skeleton'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
-import { useTheme } from '@mui/material/styles'
-import { ExternalLink } from 'src/components/Link'
-import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
-import { useQuery } from 'react-query'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import React, { useEffect, useState } from 'react'
+import Skeleton from '@mui/lab/Skeleton'
+import Typography from '@mui/material/Typography'
 import useQueryParams from 'src/hooks/useQueryParams'
+import { ExternalLink } from 'src/components/Link'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { isMainnet, reactAppNetwork } from 'src/config'
+import { useQuery } from 'react-query'
+import { useTheme } from '@mui/material/styles'
 
 type Item = {
   transferId: string

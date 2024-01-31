@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
-import React, { useState, ChangeEvent } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 import Skeleton from '@mui/lab/Skeleton'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'

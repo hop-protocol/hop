@@ -28,7 +28,7 @@
     "@aws-sdk/client-s3": "3.338.0",
     "@aws-sdk/client-ssm": "3.338.0",
     "@consensys/linea-sdk": "0.1.6",
-    "@eth-optimism/sdk": "3.1.8",
+    "@eth-optimism/sdk": "3.1.4",
     "@ethereumjs/rlp": "5.0.1",
     "@ethereumjs/tx": "5.1.0",
     "@ethersproject/hdnode": "5.0.9",

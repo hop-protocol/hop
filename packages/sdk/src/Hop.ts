@@ -176,7 +176,7 @@ class Hop extends Base {
     destinationChain: TChain,
     isCanonicalTransfer: boolean = false,
     options: WatchOptions = {}
-  ): EventEmitter | Error {
+  ): EventEmitter {
     // TODO: detect type of transfer
     return this.watchBridge(txHash, token, sourceChain, destinationChain, options)
   }

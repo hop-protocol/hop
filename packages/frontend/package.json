@@ -16,7 +16,7 @@
     "eject": "react-scripts eject",
     "deploy": "pnpm dlx --yes netlify-cli deploy --prod",
     "deploy:ipfs": "pnpm dlx --yes ipfs-deploy -p infura build --no-open --no-clipboard",
-    "deploy:local": "git stash && yarn clean && yarn build && yarn deploy"
+    "deploy:local": "git stash && yarn build && yarn deploy"
   },
   "browserslist": [
     ">0.2%",

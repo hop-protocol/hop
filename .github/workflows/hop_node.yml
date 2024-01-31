@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: packages/hop-node
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

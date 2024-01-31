@@ -45,16 +45,16 @@ jobs:
       - name: Install local dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm install
+        run: pnpm --filter @hop-protocol/sdk install
 
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm build
+        run: pnpm --filter @hop-protocol/sdk build
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
         working-directory: packages/sdk
-        run: npm run publish
+        run: pnpm --filter @hop-protocol/sdk publish --tag latest --access public --publish-branch develop
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

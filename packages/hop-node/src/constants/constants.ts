@@ -215,7 +215,7 @@ export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
     [Chain.Arbitrum]: 15 * 60 * 1000, // L1 safe
     [Chain.Nova]: 15 * 60 * 1000, // L1 safe
     [Chain.Linea]: 25 * 60 * 1000, // L1 finalized
-    [Chain.PolygonZk]: 8 * 60 * 1000 // 32 L1 Blocks + buffer
+    [Chain.PolygonZk]: 15 * 60 * 1000 // 32 L1 Blocks + buffer
   },
   L2_TO_L1: {
     [Chain.Gnosis]: 1 * OneHourMs,

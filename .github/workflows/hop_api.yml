@@ -9,6 +9,7 @@ on:
 jobs:
   _build-hop-api:
     runs-on: ubuntu-latest
+    environment: production
     env:
       DOCKER_IMAGE: hopprotocol/hop-api
     steps:

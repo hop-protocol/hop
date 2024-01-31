@@ -9,6 +9,7 @@ on:
 jobs:
   _build-stats-worker:
     runs-on: ubuntu-latest
+    environment: production
     env:
       DOCKER_IMAGE: hopprotocol/stats-worker
     steps:

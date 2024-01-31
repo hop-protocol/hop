@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            packages/sdk
 
       - uses: actions/setup-node@v3
         with:
@@ -55,6 +58,6 @@ jobs:
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
         working-directory: packages/sdk
-        run: pnpm --filter @hop-protocol/sdk publish --tag latest --access public --publish-branch develop
+        run: pnpm --filter @hop-protocol/sdk publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

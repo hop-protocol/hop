@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch'
 import { getSubgraphUrl } from '../utils/getSubgraphUrl'
 
 export async function makeRequest (network: string, chain: string, query: string, variables?: any) {

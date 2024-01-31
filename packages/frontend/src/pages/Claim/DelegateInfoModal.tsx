@@ -1,11 +1,11 @@
-import React from 'react'
-import { Link } from 'src/components/Link'
-import { Button } from 'src/components/Button'
-import Typography from '@mui/material/Typography'
-import { Modal } from 'src/components/Modal'
 import Box from '@mui/material/Box'
+import React from 'react'
 import ReactMarkdown from 'react-markdown'
+import Typography from '@mui/material/Typography'
 import remarkGfm from 'remark-gfm'
+import { Button } from 'src/components/Button'
+import { Link } from 'src/components/Link'
+import { Modal } from 'src/components/Modal'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({

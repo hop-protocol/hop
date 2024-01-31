@@ -1,9 +1,9 @@
-import React, { FC } from 'react'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy, formatTokenString } from 'src/utils'
-import { Icon } from 'src/components/ui/Icon'
 import Box from '@mui/material/Box'
+import React, { FC } from 'react'
 import { CellWrapper, SortableTable } from 'src/components/Table'
+import { Icon } from 'src/components/ui/Icon'
+import { commafy, formatTokenString } from 'src/utils'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
 export const populatePendingAmountStats = (item: any) => {
   return {

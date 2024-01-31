@@ -1,8 +1,8 @@
-import React from 'react'
 import Card from '@mui/material/Card'
+import React from 'react'
 import Typography from '@mui/material/Typography'
-import { LargeTextField } from 'src/components/LargeTextField'
 import { InfoTooltip } from 'src/components/InfoTooltip'
+import { LargeTextField } from 'src/components/LargeTextField'
 
 function CustomRecipientDropdown(props: any) {
   const { styles, customRecipient, handleCustomRecipientInput, isOpen = false } = props

@@ -2,8 +2,8 @@ import React, { FC, lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Send from 'src/pages/Send'
-import { Claim } from 'src/pages/Claim'
 import { AirdropPreview } from 'src/pages/Airdrop/AirdropPreview'
+import { Claim } from 'src/pages/Claim'
 import { Loading } from 'src/components/Loading'
 
 const PoolsOverview = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools/PoolsOverview'))

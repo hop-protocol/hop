@@ -1,4 +1,4 @@
-import React, { useState, SyntheticEvent } from 'react'
+import React, { SyntheticEvent, useState } from 'react'
 import clsx from 'clsx'
 import copy from 'copy-to-clipboard'
 import { Theme } from '@mui/material/styles'

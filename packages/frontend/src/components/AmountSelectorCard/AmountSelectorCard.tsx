@@ -185,7 +185,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               </button>
             ) : null}
             <Typography variant="subtitle2" color="textSecondary" align="left">
-              {secondaryBalanceLabel || 'Balance:'} {secondaryBalanceDisplay}
+              {secondaryBalanceLabel ?? 'Balance:'} {secondaryBalanceDisplay}
             </Typography>
           </div>
         ) : null}
@@ -203,7 +203,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               </button>
             ) : null}
             <Typography variant="subtitle2" color="textSecondary" align="right">
-              {balanceLabel || 'Balance:'} {balanceDisplay}
+              {balanceLabel ?? 'Balance:'} {balanceDisplay}
             </Typography>
           </div>
         ) : null}

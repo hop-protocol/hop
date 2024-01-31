@@ -1,18 +1,18 @@
-import React from 'react'
-import { Link } from 'src/components/Link'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { Button } from 'src/components/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import { useDelegates } from './useDelegates'
-import { Delegate } from 'src/pages/Claim/useClaim'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import { makeStyles } from '@mui/styles'
-import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
 import ChatIcon from '@mui/icons-material/Chat'
+import CircularProgress from '@mui/material/CircularProgress'
+import React, { ChangeEvent } from 'react'
 import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import { Button } from 'src/components/Button'
+import { Delegate } from 'src/pages/Claim/useClaim'
 import { DelegateConfirmModal } from 'src/pages/Claim/DelegateConfirmModal'
+import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
 import { DelegateInfoModal } from 'src/pages/Claim/DelegateInfoModal'
+import { Link } from 'src/components/Link'
+import { makeStyles } from '@mui/styles'
+import { useDelegates } from './useDelegates'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles(() => ({
   box: {
@@ -72,7 +72,7 @@ export function ChooseDelegate(props: any) {
           </Box>
         )}
         {delegates.map((del: Delegate, i) => {
-          const isSelected = del?.address && delegate?.address?.toString() ! === del?.address?.toString()
+          const isSelected = (del?.address && delegate?.address) && delegate?.address.toString() !== del?.address.toString()
           return (
             <Box
               key={i}
@@ -154,7 +154,7 @@ export function ChooseDelegate(props: any) {
                 fullWidth
                 value={inputValue}
                 placeholder="Enter ENS or address"
-                onChange={e => setInputValue(e.target.value)}
+                onChange={(event: ChangeEvent<{value: string}>) => setInputValue(event.target.value)}
               />
             </Box>
           </Box>

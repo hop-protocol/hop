@@ -1,9 +1,9 @@
 import React from 'react'
-import { makeStyles } from '@mui/styles'
 import Typography from '@mui/material/Typography'
-import { Token } from '@hop-protocol/sdk'
 import { Button } from 'src/components/Button'
-import { commafy, NetworkTokenEntity } from 'src/utils'
+import { NetworkTokenEntity, commafy } from 'src/utils'
+import { Token } from '@hop-protocol/sdk'
+import { makeStyles } from '@mui/styles'
 import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({

@@ -1,21 +1,24 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useInterval } from 'usehooks-ts'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import './App.css'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import LoadingButton from '@mui/lab/LoadingButton'
-import Alert from '@mui/material/Alert'
-import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
-import { providers } from 'ethers'
-import { formatEther } from 'ethers/lib/utils'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import LoadingButton from '@mui/lab/LoadingButton'
+import MenuItem from '@mui/material/MenuItem'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Select from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/sdk'
-import './App.css'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { formatEther } from 'ethers/lib/utils'
+import { providers } from 'ethers'
+import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { useInterval } from 'usehooks-ts'
+
+// Temp fix to resolve type issues
+const AnySyntaxHighlighter = SyntaxHighlighter as any
 
 function TokenDropdown (props: any) {
   const { label, tokens, value, handleChange } = props
@@ -383,13 +386,13 @@ main().catch(console.error)
                 )}
               </Box>
               <Box p={4}>
-                <SyntaxHighlighter
+                <AnySyntaxHighlighter
                   language="javascript"
                   style={theme}
                   showLineNumbers={true}
                 >
                   {codeSnippet}
-                </SyntaxHighlighter>
+                </AnySyntaxHighlighter>
               </Box>
             </Box>
           </Box>

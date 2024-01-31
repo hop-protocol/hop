@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import { Icon } from 'src/components/ui/Icon'
-import { useAddTokenToMetamask } from 'src/hooks'
+import Box from '@mui/material/Box'
+import React from 'react'
+import Typography from '@mui/material/Typography'
 import mmIcon from 'src/assets/logos/metamask.svg'
-import { ReactComponent as twitterIcon } from 'src/assets/logos/twitter.svg'
-import { ReactComponent as discordIcon } from 'src/assets/logos/discord.svg'
 import { Button } from 'src/components/Button'
 import { ButtonLink } from 'src/components/Button/ButtonLink'
+import { Icon } from 'src/components/ui/Icon'
+import { ReactComponent as discordIcon } from 'src/assets/logos/discord.svg'
+import { ReactComponent as twitterIcon } from 'src/assets/logos/twitter.svg'
+import { useAddTokenToMetamask } from 'src/hooks'
 import { useWindowSize } from 'usehooks-ts'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 
 export function Claimed() {
   const { width, height } = useWindowSize()

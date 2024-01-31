@@ -1,75 +1,16 @@
-import { CSSProperties } from 'react'
-import createBreakpoints from '@mui/system/createTheme/createBreakpoints';
-import { SkeletonClassKey } from '@mui/lab/Skeleton'
+import React from 'react'
+import createBreakpoints from '@mui/system/createTheme/createBreakpoints'
 import {
-  boxShadowsLight,
-  boxShadowsDark,
-  bgGradients,
-  overridesLight,
-  overridesDark,
+bgGradients,
+boxShadowsDark,
+boxShadowsLight,
+overridesDark,
+overridesLight,
 } from 'src/theme/overrides'
 import { typographyOptions } from 'src/theme/typography'
-
 import { createTheme } from '@mui/material/styles';
 import { palette as paletteLight } from 'src/theme/light'
 import { palette as paletteDark } from 'src/theme/dark'
-
-// declare module '@mui/styles/createTheme' {
-//   interface Theme {
-//     padding: {
-//       thick: CSSProperties['paddingTop']
-//       default: CSSProperties['paddingTop']
-//       light: CSSProperties['paddingTop']
-//       extraLight: CSSProperties['paddingTop']
-//     }
-//     boxShadow: {
-//       input: {
-//         bold: CSSProperties['boxShadow']
-//         normal: CSSProperties['boxShadow']
-//       }
-//       inner: CSSProperties['boxShadow']
-//       card: CSSProperties['boxShadow']
-//       button: {
-//         default: CSSProperties['boxShadow']
-//         disabled: CSSProperties['boxShadow']
-//         highlighted: CSSProperties['boxShadow']
-//       }
-//       select: CSSProperties['boxShadow']
-//     }
-//     bgGradient: {
-//       main: CSSProperties['background']
-//       flat: CSSProperties['background']
-//     }
-//   }
-
-//   // allow configuration using `createTheme`
-//   interface ThemeOptions {
-//     padding?: {
-//       thick?: CSSProperties['paddingTop']
-//       default?: CSSProperties['paddingTop']
-//       light?: CSSProperties['paddingTop']
-//       extraLight?: CSSProperties['paddingTop']
-//     }
-//     boxShadow?: {
-//       input?: {
-//         bold?: CSSProperties['boxShadow']
-//         normal?: CSSProperties['boxShadow']
-//       }
-//       inner?: CSSProperties['boxShadow']
-//       card?: CSSProperties['boxShadow']
-//       button?: {
-//         default?: CSSProperties['boxShadow']
-//         disabled?: CSSProperties['boxShadow']
-//         highlighted?: CSSProperties['boxShadow']
-//       }
-//       select?: CSSProperties['boxShadow']
-//     }
-//     bgGradient?: {
-//       main?: CSSProperties['background']
-//       flat?: CSSProperties['background']
-//     }
-//   }
-// }
 
 const padding = {
   thick: '4.2rem',

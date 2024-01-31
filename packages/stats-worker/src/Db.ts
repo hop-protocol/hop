@@ -1,11 +1,12 @@
-const sqlite3 = require('sqlite3').verbose()
-import { v4 as uuid } from 'uuid'
-import { dbPath } from './config'
+import minimist from 'minimist'
+import sqlite3 from 'sqlite3'
 import wait from 'wait'
+import { dbPath } from './config'
+import { v4 as uuid } from 'uuid'
 
 console.log('db path:', dbPath)
 
-const argv = require('minimist')(process.argv.slice(2))
+const argv = minimist(process.argv.slice(2))
 
 let migrationRan = false
 
@@ -391,7 +392,7 @@ class Db {
     }
 
     await wait(100)
-    return await this.tilReady()
+    return this.tilReady()
   }
 
   async upsertLatestMigration () {

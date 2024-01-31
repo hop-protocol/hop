@@ -9,26 +9,26 @@ import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
 import { TxPill } from 'src/components/Header/TxPill'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
-import { isMainnet, showBannerMessage, reactAppNetwork } from 'src/config'
+import MoonIcon from 'src/assets/moon-icon.svg'
+import Network from 'src/models/Network'
+import SunIcon from 'src/assets/sun-icon.svg'
+import logger from 'src/logger'
+import { Banner } from 'src/components/Banner'
+import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
+import { Icon } from 'src/components/ui/Icon'
 import { Settings } from 'src/components/Header/Settings'
 import { WalletWarning } from 'src/components/Header/WalletWarning'
-import { useQuery } from 'react-query'
 import {
-  toTokenDisplay,
-  networkIdNativeTokenSymbol,
-  networkIdToSlug,
-  findNetworkBySlug,
-  fixedDecimals,
+findNetworkBySlug,
+fixedDecimals,
+networkIdNativeTokenSymbol,
+networkIdToSlug,
+toTokenDisplay,
 } from 'src/utils'
-import Network from 'src/models/Network'
-import logger from 'src/logger'
-import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
 import IconButton from '@mui/material/IconButton'
-import SunIcon from 'src/assets/sun-icon.svg'
-import MoonIcon from 'src/assets/moon-icon.svg'
-import { Icon } from 'src/components/ui/Icon'
+import { isMainnet, reactAppNetwork, showBannerMessage } from 'src/config'
+import { useQuery } from 'react-query'
 import { useThemeMode } from 'src/theme/ThemeProvider'
-import { Banner } from 'src/components/Banner'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

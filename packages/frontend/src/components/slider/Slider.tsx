@@ -1,7 +1,7 @@
-import React, { FC, useEffect, useState, ChangeEvent } from 'react'
 import MuiSlider from '@mui/material/Slider'
-import { makeStyles } from '@mui/styles'
+import React, { FC, useEffect, useState } from 'react'
 import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(() => ({
   root: {

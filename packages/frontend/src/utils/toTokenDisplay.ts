@@ -1,6 +1,6 @@
 import { BigNumberish } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import { commafy } from 'src/utils'
+import { formatUnits } from 'ethers/lib/utils'
 
 export const toTokenDisplay = (num?: BigNumberish, decimals: number = 18, symbol?: string, significantDecimals?: number) => {
   if (!num || !decimals) {

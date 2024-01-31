@@ -1,17 +1,17 @@
-import React, { useEffect, useState, ChangeEvent } from 'react'
-import { Button } from 'src/components/Button'
-import { makeStyles } from '@mui/styles'
-import Typography from '@mui/material/Typography'
-import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
-import logger from 'src/logger'
-import { commafy, NetworkTokenEntity } from 'src/utils'
-import { BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { Slider } from 'src/components/slider'
 import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React, { useEffect, useState, ChangeEvent } from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
+import Typography from '@mui/material/Typography'
+import logger from 'src/logger'
+import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { BigNumber } from 'ethers'
+import { Button } from 'src/components/Button'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { Slider } from 'src/components/slider'
+import { commafy, NetworkTokenEntity } from 'src/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {
@@ -65,8 +65,8 @@ const RemoveLiquidity = (props: Props) => {
   const [sending, setSending] = useState<boolean>(false)
   const selections: any[] = [
     { label: 'All tokens', value: -1 },
-    { label: token0.token.symbol, value: 0, icon: (token0.token as any).image },
-    { label: token1.token.symbol, value: 1, icon: (token1.token as any).image },
+    { label: token0.token.symbol, value: 0, icon: (token0.token).image },
+    { label: token1.token.symbol, value: 1, icon: (token1.token).image },
   ]
   const [selection, setSelection] = useState<any>(selections[0])
   const [proportional, setProportional] = useState<boolean>(true)
@@ -151,7 +151,7 @@ const RemoveLiquidity = (props: Props) => {
     let isSubscribed = true
     const update = async () => {
       try {
-        const _priceImpact = await calculatePriceImpact({
+        const _priceImpact = calculatePriceImpact({
           proportional,
           amountPercent,
           tokenIndex,
@@ -212,7 +212,7 @@ const RemoveLiquidity = (props: Props) => {
               balance={maxBalance}
               balanceLabel={'Available:'}
               value={amount}
-              token={selectedToken as any}
+              token={selectedToken }
               onChange={handleAmountChange}
               decimalPlaces={5}
             />

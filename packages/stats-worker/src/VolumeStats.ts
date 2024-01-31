@@ -1,12 +1,12 @@
-import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
-import { db } from './Db'
 import { PriceFeed } from './PriceFeed'
-import { queryFetch } from './utils/queryFetch'
-import { nearestDate } from './utils/nearestDate'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+import { db } from './Db'
+import { enabledChains, enabledTokens } from './config'
+import { formatUnits } from 'ethers/lib/utils'
 import { getSubgraphUrl } from './utils/getSubgraphUrl'
-import { enabledTokens, enabledChains } from './config'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { nearestDate } from './utils/nearestDate'
+import { queryFetch } from './utils/queryFetch'
 
 type Options = {
   regenesis?: boolean
@@ -53,7 +53,7 @@ class VolumeStats {
       return []
     }
 
-    let items = data.dailyVolumes
+    const items = data.dailyVolumes
 
     try {
       if (items.length === 1000) {
@@ -80,8 +80,8 @@ class VolumeStats {
     console.log('done fetching prices')
 
     console.log('upserting prices')
-    for (let token in prices) {
-      for (let data of prices[token]) {
+    for (const token in prices) {
+      for (const data of prices[token]) {
         const price = data[1]
         const timestamp = data[0]
         try {
@@ -108,7 +108,7 @@ class VolumeStats {
 
         console.log(`fetching daily volume stats, chain: ${chain}`)
         const items = await this.fetchDailyVolume(chain, startDate)
-        for (let item of items) {
+        for (const item of items) {
           const amount = item.amount
           const timestamp = item.date
           const token = item.token

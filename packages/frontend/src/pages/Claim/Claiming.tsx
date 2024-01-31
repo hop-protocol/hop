@@ -1,14 +1,14 @@
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 import React from 'react'
-import { Icon } from 'src/components/ui/Icon'
-import { StyledLink } from 'src/components/Link/StyledLink'
+import Typography from '@mui/material/Typography'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { Button } from 'src/components/Button'
-import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
-import { correctClaimChain } from './claims'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
-import CircularProgress from '@mui/material/CircularProgress'
+import { Icon } from 'src/components/ui/Icon'
+import { StyledLink } from 'src/components/Link/StyledLink'
+import { correctClaimChain } from './claims'
+import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
 
 export function Claiming(props: any) {
   const { claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props

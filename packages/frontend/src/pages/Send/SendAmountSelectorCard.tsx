@@ -1,17 +1,17 @@
-import React, { useMemo, FC, ChangeEvent } from 'react'
-import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import Card from '@mui/material/Card'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import Skeleton from '@mui/lab/Skeleton'
-import { Token } from '@hop-protocol/sdk'
-import { LargeTextField } from 'src/components/LargeTextField'
+import Card from '@mui/material/Card'
 import Network from 'src/models/Network'
-import { toTokenDisplay } from 'src/utils'
+import React, { useMemo, FC, ChangeEvent } from 'react'
+import Skeleton from '@mui/lab/Skeleton'
+import Typography from '@mui/material/Typography'
 import logger from 'src/logger'
-import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
+import { BigNumber } from 'ethers'
+import { LargeTextField } from 'src/components/LargeTextField'
 import { NetworkSelector } from 'src/components/NetworkSelector'
+import { Token } from '@hop-protocol/sdk'
+import { formatUnits } from 'ethers/lib/utils'
+import { toTokenDisplay } from 'src/utils'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 
 type Props = {
   value?: string
@@ -96,7 +96,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
       }
     }
 
-    let totalAmount = balance.sub(nativeTokenMaxGasCost).sub(maxButtonFixedAmountToSubtract || 0)
+    let totalAmount = balance.sub(nativeTokenMaxGasCost).sub(maxButtonFixedAmountToSubtract ?? 0)
     if (totalAmount.lt(0)) {
       totalAmount = BigNumber.from(0)
     }

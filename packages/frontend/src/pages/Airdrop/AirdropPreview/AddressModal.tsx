@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { Button } from 'src/components/Button'
-import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
-import { Modal } from 'src/components/Modal'
 import Box from '@mui/material/Box'
+import React, { useState } from 'react'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import { Button } from 'src/components/Button'
+import { Modal } from 'src/components/Modal'
 
 interface Props {
   onClose: () => void

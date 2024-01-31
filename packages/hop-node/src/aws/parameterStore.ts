@@ -10,7 +10,7 @@ export async function getParameter (name: string, region?: string): Promise<stri
     WithDecryption: true
   }
   const command = new GetParameterCommand(params)
-  return await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     ssm.send(command, function (err: Error, data: any) {
       if (err) {
         return reject(err)

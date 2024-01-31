@@ -1,14 +1,14 @@
-import React, { FC, ChangeEvent } from 'react'
-import { makeStyles } from '@mui/styles'
-import Typography from '@mui/material/Typography'
-import MenuItem from '@mui/material/MenuItem'
 import Box from '@mui/material/Box'
-import { useApp } from 'src/contexts/AppContext'
+import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React, { FC, ChangeEvent } from 'react'
+import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
-import { useFaucet } from 'src/pages/Faucet/FaucetContext'
 import { Button } from 'src/components/Button'
 import { findMatchingBridge } from 'src/utils'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
+import { useFaucet } from 'src/pages/Faucet/FaucetContext'
 
 const useStyles = makeStyles(theme => ({
   title: {

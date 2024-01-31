@@ -55,7 +55,7 @@ export class CoinGecko {
   public getPriceByTokenSymbol = async (
     tokenSymbol: string,
     base: string = 'usd'
-  ) => {
+  ): Promise<number> => {
     let symbol = tokenSymbol
     if (symbol === 'ETH') {
       symbol = 'WETH'
@@ -72,17 +72,24 @@ export class CoinGecko {
     const coinId = getCoinId(tokenSymbol)
     if (coinId) {
       const price = await this._getPriceByTokenSymbol(tokenSymbol)
+      if (price == null) {
+        throw new Error('price not found')
+      }
       return price
     } else {
       const prices = await this.getPricesByTokenSymbol([symbol], base)
-      return prices[0]
+      const price = prices[0]
+      if (price == null) {
+        throw new Error('price not found')
+      }
+      return price
     }
   }
 
   async _getPriceByTokenSymbol (
     tokenSymbol: string,
     base: string = 'usd'
-  ) {
+  ): Promise<number|null> {
     try {
       const coinId = getCoinId(tokenSymbol)
       const params: any = {
@@ -112,7 +119,7 @@ export class CoinGecko {
   public getPricesByTokenSymbol = async (
     symbols: string[],
     base: string = 'usd'
-  ) => {
+  ): Promise<Array<number|null>> => {
     const addresses: string[] = []
 
     for (let i = 0; i < symbols.length; i++) {
@@ -124,16 +131,17 @@ export class CoinGecko {
       addresses.push(address)
     }
 
-    return this.getPricesByTokenAddresses(addresses, base)
+    const prices = await this.getPricesByTokenAddresses(addresses, base)
+    return prices
   }
 
   public getPricesByTokenAddresses = async (
     allAddresses: string[],
     base: string = 'usd'
-  ) => {
+  ): Promise<Array<number|null>> => {
     let page = 0
     const limit = 100 // max addresses allowed per request
-    const allResults: number[] = []
+    const allResults: Array<number|null> = []
 
     if (!allAddresses.length) {
       return allResults
@@ -152,7 +160,7 @@ export class CoinGecko {
 
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
       const json = await fetchJsonOrThrow(url)
-      const prices: number[] = []
+      const prices: Array<number|null> = []
 
       for (let i = 0; i < addresses.length; i++) {
         try {

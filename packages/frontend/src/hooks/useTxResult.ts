@@ -1,7 +1,7 @@
-import { useQuery } from 'react-query'
-import { Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import { BigNumber } from 'ethers'
+import { Token } from '@hop-protocol/sdk'
+import { useQuery } from 'react-query'
 
 export function useTxResult(
   token?: Token,

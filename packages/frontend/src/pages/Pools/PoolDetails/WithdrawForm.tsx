@@ -1,14 +1,14 @@
-import React, { useState, ChangeEvent, useEffect } from 'react'
 import Box from '@mui/material/Box'
-import { Button } from 'src/components/Button'
-import { InfoTooltip } from 'src/components/InfoTooltip'
 import MenuItem from '@mui/material/MenuItem'
 import MuiLink from '@mui/material/Link'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
 import Typography from '@mui/material/Typography'
 import { BalanceText } from 'src/pages/Pools/components/BalanceText'
 import { BigNumber } from 'ethers'
+import { Button } from 'src/components/Button'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { InputField } from 'src/pages/Pools/components/InputField'
 import { Slider } from 'src/components/slider'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
@@ -166,13 +166,13 @@ export function WithdrawForm(props: any) {
     setAmountBN(_value)
   }
 
-  function handleSubmitClick (event: ChangeEvent<{}>) {
+  function handleSubmitClick (event: ChangeEvent<object>) {
     event.preventDefault()
     const amounts = { proportional, tokenIndex, amountPercent, amount: amountBN, priceImpactFormatted, proportionalAmount0, proportionalAmount1 }
     removeLiquidity(amounts)
   }
 
-  function handleUnstakeClick (event: ChangeEvent<{}>) {
+  function handleUnstakeClick (event: ChangeEvent<object>) {
     event.preventDefault()
     goToTab('stake')
   }

@@ -1,11 +1,11 @@
+import Alert from '@mui/lab/Alert'
+import Box from '@mui/material/Box'
 import React from 'react'
+import Skeleton from '@mui/lab/Skeleton'
+import Typography from '@mui/material/Typography'
+import makeData from './makeData'
 import styled from 'styled-components'
 import { useTable, useSortBy } from 'react-table'
-import makeData from './makeData'
-import Skeleton from '@mui/lab/Skeleton'
-import Alert from '@mui/lab/Alert'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -98,7 +98,7 @@ function Table({ columns, data, loading }) {
                     {
                       style: {
                         ...column.style,
-                        backgroundColor: (column as any).isSorted ? '#eed0ff' : 'transparent',
+                        backgroundColor: (column).isSorted ? '#eed0ff' : 'transparent',
                       },
                     },
                   ])}

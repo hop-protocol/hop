@@ -1,9 +1,9 @@
-import React from 'react'
-import { makeStyles } from '@mui/styles'
 import Box from '@mui/material/Box'
+import React from 'react'
 import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { getTokenImage } from 'src/utils/tokens'
+import { makeStyles } from '@mui/styles'
 
 export const useStyles = makeStyles((theme: any) => ({
   root: {

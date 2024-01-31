@@ -50,14 +50,14 @@ async function main (source: any) {
 
   for (const transferId of transferIds) {
     try {
-      const dbTransfer: Transfer = await watcher.db.transfers.getByTransferId(transferId)
+      const dbTransfer: Transfer | null = await watcher.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
         throw new Error('TransferId does not exist in the DB')
       }
       if (dbTransfer.sourceChainSlug !== chain) {
         throw new Error(`Source chain from DB does not match the source chain: dbTransfer.sourceChainSlug=${dbTransfer.sourceChainSlug}, chain=${chain}`)
       }
-      const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
+      const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin!, dbTransfer.deadline!)
       if (attemptSwap && isL1ChainId(dbTransfer.destinationChainId!)) {
         throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')
       }

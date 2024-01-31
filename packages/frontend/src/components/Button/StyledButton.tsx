@@ -1,7 +1,7 @@
 import React from 'react'
-import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components'
 import { Button } from 'src/components/Button/Button'
+import { ComposedStyleProps, composedStyleFns } from 'src/utils'
 
 interface StyleProps {
   highlighted?: boolean

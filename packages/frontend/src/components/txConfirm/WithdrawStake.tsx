@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
-import { Button } from 'src/components/Button'
-import { makeStyles } from '@mui/styles'
-import { Slider } from 'src/components/slider'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { BigNumber } from 'ethers'
 import Typography from '@mui/material/Typography'
-import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
-import { Token } from '@hop-protocol/sdk'
 import logger from 'src/logger'
+import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { BigNumber } from 'ethers'
+import { Button } from 'src/components/Button'
+import { Slider } from 'src/components/slider'
+import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(() => ({
   root: {

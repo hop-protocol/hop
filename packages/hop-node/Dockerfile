@@ -1,23 +1,21 @@
-FROM node:16 AS build
+FROM node:20.10.0-slim AS base
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+COPY . /app
+WORKDIR /app
+
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm --filter=@hop-protocol/hop-node build
+RUN pnpm --filter=@hop-protocol/hop-node deploy --prod /prod/app
+
+FROM base
+COPY --from=build /prod/app /prod/app
+WORKDIR /prod/app
 
 ARG GIT_REV
 ENV GIT_REV=${GIT_REV}
 
-# Create the working directory and give node use permissions
-RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app
-
-WORKDIR /usr/src/app
-USER node
-COPY --chown=node:node *.json ./
-COPY --chown=node:node . .
-RUN npm install
-RUN npm run build
-
-FROM node:16-alpine
-WORKDIR /usr/src/app
-COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
-COPY --from=build /usr/src/app/dist /usr/src/app/dist
-COPY --from=build /usr/src/app/bin /usr/src/app/bin
-COPY --from=build /usr/src/app/*.json /usr/src/app/
-ENTRYPOINT [ "/usr/src/app/bin/hop-node" ]
-CMD []
+CMD [ "node", "/prod/app/dist/cli/cli.js" ]

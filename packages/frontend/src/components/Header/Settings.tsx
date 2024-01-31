@@ -5,12 +5,12 @@ import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Popover from '@mui/material/Popover'
 import SettingsIcon from 'src/assets/settings-icon.svg'
-import { useApp } from 'src/contexts/AppContext'
-import { SmallTextField } from 'src/components/SmallTextField'
-import { InfoTooltip } from 'src/components/InfoTooltip'
 import { Alert } from 'src/components/Alert'
-import { sanitizeNumericalString } from 'src/utils'
 import { Icon } from 'src/components/ui/Icon'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { SmallTextField } from 'src/components/SmallTextField'
+import { sanitizeNumericalString } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles((theme: any) => ({
   root: {

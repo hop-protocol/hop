@@ -1,0 +1,68 @@
+name: Build and Push Hop Stats Worker Docker Image
+
+on:
+  push:
+    branches:
+      - stats-worker
+  workflow_dispatch:
+
+jobs:
+  _build-stats-worker:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE: hopprotocol/stats-worker
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build application Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./packages/stats-worker/Dockerfile
+          build-args: GIT_REV=${{ github.sha }}
+          tags: app
+          load: true
+          push: false
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Push Hop Stats Worker Docker image to Docker Hub
+        run: |
+          BRANCH=${GITHUB_REF##*/}
+          BRANCH=$(echo $BRANCH | sed 's/\//-/g')
+          docker tag app $DOCKER_IMAGE:${{ github.sha }}
+          docker tag app $DOCKER_IMAGE:$BRANCH
+          docker push $DOCKER_IMAGE:${{ github.sha }}
+          docker push $DOCKER_IMAGE:$BRANCH
+          if [ "$BRANCH" == "stats-worker" ]; then
+            docker tag app $DOCKER_IMAGE:latest
+            docker push $DOCKER_IMAGE:latest
+          fi
+
+  build-stats-worker:
+    needs: [_stats-worker-notify-1]
+    name: Send S3 Stats Worker Status Notification Webhook Request
+    uses: ./.github/workflows/status_notify.yml
+    with:
+      environment: production
+    secrets:
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_STATS_WORKER_S3 }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+
+  _stats-worker-notify-1:
+    needs: [_build-stats-worker]
+    name: Send Stats Worker Status Notification Webhook Request
+    uses: ./.github/workflows/status_notify.yml
+    with:
+      environment: production
+    secrets:
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_STATS_WORKER }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

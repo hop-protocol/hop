@@ -1,9 +1,9 @@
-import React, { ChangeEvent } from 'react'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import React, { ChangeEvent } from 'react'
 import Skeleton from '@mui/lab/Skeleton'
 import Typography from '@mui/material/Typography'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'
 import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
 import { makeStyles } from '@mui/styles'
@@ -94,21 +94,21 @@ export function PoolsOverview () {
   const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterToken(symbol)
     }
   }
 
   function handleChainToggleFilterFn (slug: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterChain(slug)
     }
   }
 
   function handleColumnSortFn(column: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleColumnSort(column)
     }

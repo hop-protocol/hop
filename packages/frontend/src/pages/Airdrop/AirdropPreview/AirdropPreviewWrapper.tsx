@@ -1,5 +1,5 @@
-import React from 'react'
 import Box from '@mui/material/Box'
+import React from 'react'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export const respMaxWidths = [350, 624, 824]

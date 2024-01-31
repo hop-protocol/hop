@@ -1,13 +1,13 @@
+import Box from '@mui/material/Box'
+import Expandable from 'src/components/TokenWrapper/Expandable'
+import Network from 'src/models/Network'
 import React, { FC, useEffect } from 'react'
-import { constants } from 'ethers'
-import { makeStyles } from '@mui/styles'
-import { Button } from 'src/components/Button'
 import { Alert } from 'src/components/Alert'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { Button } from 'src/components/Button'
+import { constants } from 'ethers'
+import { makeStyles } from '@mui/styles'
 import { useTokenWrapper } from './TokenWrapperContext'
-import Network from 'src/models/Network'
-import Expandable from 'src/components/TokenWrapper/Expandable'
-import Box from '@mui/material/Box'
 
 const useStyles = makeStyles((theme: any) => ({
   button: {

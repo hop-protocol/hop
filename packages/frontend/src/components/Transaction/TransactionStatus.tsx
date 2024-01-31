@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import CircularProgress from '@mui/material/CircularProgress'
-import Typography from '@mui/material/Typography'
-import Check from '@mui/icons-material/Check'
-import Link from '@mui/material/Link'
 import Box from '@mui/material/Box'
+import Check from '@mui/icons-material/Check'
+import CircularProgress from '@mui/material/CircularProgress'
+import Link from '@mui/material/Link'
+import React, { useEffect, useState } from 'react'
+import Typography from '@mui/material/Typography'
 import { isLayer1, networkSlugToName } from 'src/utils'
 
 function TransactionStatus(props: any) {

@@ -1,7 +1,7 @@
-import React from 'react'
 import Box from '@mui/material/Box'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import React from 'react'
 import Typography from '@mui/material/Typography'
+import { InfoTooltip } from 'src/components/InfoTooltip'
 import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 type Props = {

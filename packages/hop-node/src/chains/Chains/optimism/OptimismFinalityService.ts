@@ -13,7 +13,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
     this.#inclusionService = new AlchemyInclusionService(chainSlug)
   }
 
-  async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+  override async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     if (!this.#isCustomBlockNumberSupported(blockTag)) {
       throw new Error(`getCustomBlockNumber: blockTag ${blockTag} not supported`)
     }

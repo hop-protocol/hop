@@ -1,11 +1,11 @@
-import React from 'react'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import React from 'react'
 import Transaction from 'src/models/Transaction'
+import TransactionRow from 'src/components/Transaction/TransactionRow'
+import Typography from '@mui/material/Typography'
 import { useApp } from 'src/contexts/AppContext'
 import { useTxStatusStyles } from 'src/components/Transaction/useTxStatusStyles'
-import TransactionRow from 'src/components/Transaction/TransactionRow'
 
 function TransactionsList(props: any) {
   const styles = useTxStatusStyles()

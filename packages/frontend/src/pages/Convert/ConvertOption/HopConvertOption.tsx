@@ -1,13 +1,13 @@
-import React, { ReactNode } from 'react'
-import { Signer, BigNumber, BigNumberish } from 'ethers'
-import { getAddress } from 'ethers/lib/utils'
-import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
-import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
-import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
-import { RelayableChains } from 'src/utils/constants'
+import Network from 'src/models/Network'
+import React, { ReactNode } from 'react'
+import { BigNumber, BigNumberish, Signer } from 'ethers'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
+import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
+import { RelayableChains } from 'src/utils/constants'
+import { getAddress } from 'ethers/lib/utils'
+import { getBonderFeeWithId, toTokenDisplay } from 'src/utils'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
 type GetDetailsInput = {
@@ -45,7 +45,7 @@ class HopConvertOption extends ConvertOption {
     bonderFee?: BigNumberish,
     customRecipient?: string
   ) {
-    const bridge = sdk.bridge(l1TokenSymbol).connect(signer as Signer)
+    const bridge = sdk.bridge(l1TokenSymbol).connect(signer)
     if (bonderFee) {
       bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
     }

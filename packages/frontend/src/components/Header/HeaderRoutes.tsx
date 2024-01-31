@@ -1,7 +1,7 @@
-import React, { FC, ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
+import React, { ChangeEvent, FC } from 'react'
 import { isMainnet, showRewards } from 'src/config'
 import { useClaim } from 'src/pages/Claim/useClaim'
 import { useTheme, makeStyles } from '@mui/styles'
@@ -22,7 +22,7 @@ export const HeaderRoutes: FC = () => {
   const styles = useStyles()
   const theme: any = useTheme()
 
-  const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
+  const handleChange = (event: ChangeEvent<object>, newValue: string) => {
     event.preventDefault()
     navigate(`${newValue}${search}`)
   }

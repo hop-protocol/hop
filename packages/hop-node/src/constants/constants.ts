@@ -1,9 +1,9 @@
 import { AssetSymbol } from '@hop-protocol/core/config'
-import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks/enums'
-import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata/providers'
+import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks'
+import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata'
 import { chains } from '@hop-protocol/core/metadata'
 import { networks } from '@hop-protocol/core/networks'
-import { tokens } from '@hop-protocol/core/metadata/tokens'
+import { tokens } from '@hop-protocol/core/metadata'
 
 export { Network, Chain, Token, NativeChainToken }
 

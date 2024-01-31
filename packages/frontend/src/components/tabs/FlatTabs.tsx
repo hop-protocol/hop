@@ -1,6 +1,6 @@
 import React from 'react'
-import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
 
 interface ITab {
   value: string
@@ -15,7 +15,7 @@ interface Props {
 
 const FlatTabs = (props: Props) => {
   const { value, onChange, tabs } = props
-  const handleChange = (event: React.ChangeEvent<{}>, newValue: string) => {
+  const handleChange = (event: React.ChangeEvent<object>, newValue: string) => {
     if (onChange) {
       onChange(newValue)
     }

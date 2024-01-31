@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { withStyles } from '@mui/styles'
+import Box from '@mui/material/Box'
 import MuiTooltip from '@mui/material/Tooltip'
+import React, { useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { EthAddress, EthAddressProps } from 'src/components/ui/EthAddress'
-import Box from '@mui/material/Box'
+import { withStyles } from '@mui/styles'
 
 const tooltipStyles = {
   tooltip: {

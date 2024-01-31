@@ -1,9 +1,10 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import clsx from 'clsx'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import { Theme, makeStyles } from '@material-ui/core/styles'
+import { Theme } from '@mui/material/styles'
+import { makeStyles } from '@mui/styles'
 
 export type DetailRowProps = {
   title: string

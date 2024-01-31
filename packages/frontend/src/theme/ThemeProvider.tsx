@@ -1,7 +1,8 @@
+import CssBaseline from '@mui/material/CssBaseline'
 import React, { FC, ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import get from 'lodash/get'
 import merge from 'lodash/merge'
-import { ThemeProvider as MuiThemeProvider, Theme } from '@material-ui/core/styles'
+import { ThemeProvider as MuiThemeProvider, Theme } from '@mui/material/styles'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
 import { Theme as StyledSystemTheme } from 'styled-system'
 import { darkTheme, lightTheme } from 'src/theme/theme'
@@ -131,6 +132,7 @@ const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }}
     >
       <MuiThemeProvider theme={theme}>
+        <CssBaseline />
         <SCThemeProvider theme={ssTheme}>{children}</SCThemeProvider>
       </MuiThemeProvider>
     </ThemeContext.Provider>

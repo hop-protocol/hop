@@ -1,15 +1,15 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import ConvertContent from 'src/pages/Convert/ConvertContent'
-import Grid from '@material-ui/core/Grid'
-import MenuItem from '@material-ui/core/MenuItem'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
-import React, { ChangeEvent, FC, useEffect } from 'react'
+import React, { FC, useEffect } from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { findMatchingBridge } from 'src/utils'
 import { l2Networks } from 'src/config/networks'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { useApp } from 'src/contexts/AppContext'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -53,7 +53,7 @@ const Convert: FC = () => {
     }
   }, [viaParamValue, navigate])
 
-  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleBridgeChange = (event: any) => {
     const tokenSymbol = event.target.value as string
 
     const bridge = findMatchingBridge(bridges, tokenSymbol)
@@ -62,7 +62,7 @@ const Convert: FC = () => {
     }
   }
 
-  const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleTabChange = (event: any) => {
     const value = event.target.value as string
     setViaParamValue(value)
     navigate(`/convert/${value}${search}`)

@@ -1,4 +1,4 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React, { FC } from 'react'
 import ethLogo from 'src/assets/logos/eth.svg'
 import { CellWrapper, SortableTable } from 'src/components/Table'

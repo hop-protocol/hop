@@ -1,6 +1,6 @@
-import Card from '@material-ui/core/Card'
+import Card from '@mui/material/Card'
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { LargeTextField } from 'src/components/LargeTextField'
 

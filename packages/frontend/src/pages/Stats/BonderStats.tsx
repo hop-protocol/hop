@@ -1,4 +1,4 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React from 'react'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 import { Icon } from 'src/components/ui/Icon'

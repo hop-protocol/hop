@@ -1,4 +1,4 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React, { useEffect, useState } from 'react'
 import { ChooseDelegate } from 'src/pages/Claim/ChooseDelegate'
 import { ClaimReview } from 'src/pages/Claim/ClaimReview'

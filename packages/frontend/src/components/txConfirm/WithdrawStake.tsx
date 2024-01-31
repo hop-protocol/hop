@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import logger from 'src/logger'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
 import { BigNumber } from 'ethers'
@@ -8,7 +8,7 @@ import { Slider } from 'src/components/slider'
 import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(() => ({
   root: {

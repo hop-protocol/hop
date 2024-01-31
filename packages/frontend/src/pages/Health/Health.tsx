@@ -1,6 +1,6 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React, { useEffect, useState } from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 import { DateTime } from 'luxon'

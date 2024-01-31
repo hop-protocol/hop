@@ -1,4 +1,4 @@
-import MenuItem from '@material-ui/core/MenuItem'
+import MenuItem from '@mui/material/MenuItem'
 import Network from 'src/models/Network'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import React, { useMemo } from 'react'

@@ -1,6 +1,6 @@
 import 'src/App.css'
 import AppRoutes from 'src/AppRoutes'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React from 'react'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
 import bgImage from 'src/assets/circles-bg.svg'
@@ -16,9 +16,8 @@ const AppWrapper = styled(Box)<any>`
   flex-direction: column;
   align-items: stretch;
   background-image: ${({ isDarkMode }) => (isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`)};
-  background-color: ${({ theme }) => theme.colors.background.default};
+  background-color: ${({ theme }) => theme.colors?.background?.default};
   background-size: 120%;
-  transition: background 0.15s ease-out;
   min-height: 100vh;
 `
 

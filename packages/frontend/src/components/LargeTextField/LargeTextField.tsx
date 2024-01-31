@@ -1,8 +1,8 @@
-import InputAdornment from '@material-ui/core/InputAdornment'
-import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
+import InputAdornment from '@mui/material/InputAdornment'
+import MuiTextField, { TextFieldProps } from '@mui/material/TextField'
 import React, { FC, ReactNode } from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
 
 type LargeTextFieldProps = {
   units?: string | ReactNode
@@ -33,7 +33,7 @@ const useStyles = makeStyles(theme => ({
     width: 'auto',
     textAlign: 'right',
     [theme.breakpoints.down('xs')]: {
-      fontSize: theme.typography.subtitle1.fontSize,
+      fontSize: theme.typography?.subtitle1.fontSize,
     },
   },
 }))
@@ -55,20 +55,22 @@ const useInputStyles = makeStyles(theme => ({
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: '0.8rem 0',
     marginLeft: '.7rem',
-    transition: 'all 0.15s ease-out',
     borderRadius: '1.5rem',
     width: '100%',
-    boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
+    boxShadow: defaultShadow ? theme.boxShadow?.input.normal : 'none',
     '&:hover': {
       boxShadow: () => {
         if (hideShadow) {
           return 'none'
         } else if (defaultShadow) {
-          return theme.boxShadow.input.bold
+          return theme.boxShadow?.input.bold
         } else {
-          return theme.boxShadow.input.normal
+          return theme.boxShadow?.input.normal
         }
       },
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      border: 'none'
     },
     [theme.breakpoints.down('xs')]: {
       width: '100%',
@@ -82,9 +84,9 @@ const useInputStyles = makeStyles(theme => ({
     fontWeight: smallFontSize ? 'normal' : theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
     textOverflow: 'clip',
-    padding: `6px ${theme.padding.extraLight} 7px ${theme.padding.extraLight}`,
+    padding: `6px ${theme.padding?.extraLight} 7px ${theme.padding?.extraLight}`,
     animation: loadingValue
-      ? `loadingEffect 1s ${theme.transitions.easing.sharp} infinite`
+      ? `loadingEffect 1s ${theme.transitions?.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
       fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
@@ -93,7 +95,7 @@ const useInputStyles = makeStyles(theme => ({
   }),
   focused: {
     borderRadius: '1.5rem',
-    boxShadow: theme.boxShadow.input.normal,
+    boxShadow: theme.boxShadow?.input.normal,
   },
 }))
 

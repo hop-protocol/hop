@@ -1,6 +1,6 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import mmIcon from 'src/assets/logos/metamask.svg'
 import { Button } from 'src/components/Button'
 import { ButtonLink } from 'src/components/Button/ButtonLink'

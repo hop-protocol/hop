@@ -225,5 +225,8 @@ module.exports = {
     }
   },
 
-  webpack: override(customWebpackConfig, addCspHtmlWebpackPlugin)
+  webpack: override(
+    customWebpackConfig,
+    addCspHtmlWebpackPlugin
+  )
 }

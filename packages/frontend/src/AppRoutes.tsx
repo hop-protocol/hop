@@ -1,4 +1,4 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React, { FC, Suspense, lazy, useEffect } from 'react'
 import Send from 'src/pages/Send'
 import { AirdropPreview } from 'src/pages/Airdrop/AirdropPreview'
@@ -47,7 +47,7 @@ const AppRoutes: FC = () => {
         path="/*"
         element={
           <Box display="flex" flexGrow={1}>
-            <Box p={['2.2rem', '2.5rem']} flexGrow={1}>
+            <Box p="2.2rem" flexGrow={1}>
               <Suspense fallback={<Loading />}>
                 <Routes>
                   <Route path="/stats" element={<Stats />} />

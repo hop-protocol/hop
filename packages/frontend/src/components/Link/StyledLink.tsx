@@ -1,6 +1,6 @@
-import Link, { LinkProps } from '@material-ui/core/Link'
+import Link, { LinkProps } from '@mui/material/Link'
 import React from 'react'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { ComposedStyleProps, composedStyleFns } from 'src/utils'
 
 type StyledLinkProps = LinkProps & ComposedStyleProps
@@ -18,5 +18,5 @@ const StylishLink = styled(Link)<StyledLinkProps & { target: string; rel: string
 `
 
 export function StyledLink(props: StyledLinkProps) {
-  return <StylishLink target="_blank" rel="noopener noreferrer" {...props} />
+  return <StylishLink target="_blank" rel="noopener noreferrer" {...props} style={{ textDecoration: 'none' }}/>
 }

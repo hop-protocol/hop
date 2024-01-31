@@ -1,14 +1,14 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { getTokenImage } from 'src/utils/tokens'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
 export const useStyles = makeStyles((theme: any) => ({
   root: {
     width: '47rem',
-    background: theme.palette.type === 'dark' ? '#211e29' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#211e29' : '#fff',
     padding: '1rem 2rem',
     marginBottom: '2rem',
     marginLeft: '-20px',

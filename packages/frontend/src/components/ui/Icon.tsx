@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { Circle } from 'react-feather'
 import { ComposedStyleProps, SquareDimensions, composedStyleFns, squareDimensions } from 'src/utils'
 import { color, layout, space } from 'styled-system'

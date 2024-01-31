@@ -1,7 +1,7 @@
-import MuiAlert, { AlertProps as MuiAlertProps } from '@material-ui/lab/Alert'
+import MuiAlert, { AlertProps as MuiAlertProps } from '@mui/lab/Alert'
 import React, { FC } from 'react'
 import clsx from 'clsx'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { prettifyErrorMessage } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({

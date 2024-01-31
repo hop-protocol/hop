@@ -1,18 +1,18 @@
 import React, { ChangeEvent, FC } from 'react'
-import Tab from '@material-ui/core/Tab'
-import Tabs from '@material-ui/core/Tabs'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
 import { isMainnet, showRewards } from 'src/config'
-import { makeStyles, useTheme } from '@material-ui/core/styles'
+import { makeStyles, useTheme } from '@mui/styles'
 import { useClaim } from 'src/pages/Claim/useClaim'
 import { useLocation, useNavigate } from 'react-router-dom'
 // import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   tabs: {
     "& .MuiTabs-flexContainer": {
       flexWrap: 'wrap',
-      justifyContent: 'center'
-    }
+      justifyContent: 'center',
+    },
   }
 }));
 
@@ -51,7 +51,7 @@ export const HeaderRoutes: FC = () => {
             position: 'relative'
           }}>Rewards {hasRewards && <mark style={{
           background: 'none',
-          color: theme.palette.primary.main,
+          color: theme.palette?.primary?.main,
           display: 'inline-block',
           position: 'absolute',
           top: '-10px',

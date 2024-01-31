@@ -1,8 +1,8 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { Button } from 'src/components/Button'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { useStaking } from 'src/pages/Pools/useStaking'
 import { useStakingAll } from 'src/pages/Pools/useStakingAll'
 
@@ -15,7 +15,7 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   claimRewardsBox: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
   },
   claimRewardsFlex: {

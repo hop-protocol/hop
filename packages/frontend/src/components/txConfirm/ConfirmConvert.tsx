@@ -1,10 +1,10 @@
 import Address from 'src/models/Address'
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 import { Button } from 'src/components/Button'
 import { NetworkTokenEntity, commafy } from 'src/utils'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({

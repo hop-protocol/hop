@@ -1,9 +1,9 @@
-import Box from '@material-ui/core/Box'
-import Button from '@material-ui/core/Button'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import React from 'react'
 import Transaction from 'src/models/Transaction'
 import TransactionRow from 'src/components/Transaction/TransactionRow'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { useApp } from 'src/contexts/AppContext'
 import { useTxStatusStyles } from 'src/components/Transaction/useTxStatusStyles'
 

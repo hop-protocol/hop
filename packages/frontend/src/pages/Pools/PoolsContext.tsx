@@ -1,7 +1,6 @@
 import Address from 'src/models/Address'
 import Network from 'src/models/Network'
 import React, {
-  ChangeEvent,
   FC,
   ReactNode,
   createContext,
@@ -13,6 +12,7 @@ import React, {
 import logger from 'src/logger'
 import { BigNumber, Signer, constants } from 'ethers'
 import { Multicall, Token } from '@hop-protocol/sdk'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
 import { erc20Abi } from '@hop-protocol/core/abi'
@@ -78,7 +78,7 @@ type PoolsContextProps = {
   reserve1Formatted: string
   reserveTotalsUsd?: number
   reserveTotalsUsdFormatted: string
-  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  selectBothNetworks: (event: SelectChangeEvent<unknown>) => void
   selectedNetwork?: Network
   sendButtonText: string
   setError: (error?: string | null) => void

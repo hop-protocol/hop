@@ -1,8 +1,8 @@
-import MenuItem from '@material-ui/core/MenuItem'
+import MenuItem from '@mui/material/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
-import React, { ChangeEvent, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import logger from 'src/logger'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
 import { BigNumber } from 'ethers'
@@ -11,9 +11,9 @@ import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { NetworkTokenEntity, commafy } from 'src/utils'
 import { Slider } from 'src/components/slider'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -120,7 +120,7 @@ const RemoveLiquidity = (props: Props) => {
     }
   }
 
-  const handleSelection = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleSelection = (event: any) => {
     const value = Number(event.target.value)
     const _selection = selections.find(item => item.value === value)
     const _proportional = value === -1

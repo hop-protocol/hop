@@ -1,27 +1,37 @@
-import createBreakpoints from '@material-ui/core/styles/createBreakpoints'
+import createBreakpoints from '@mui/system/createTheme/createBreakpoints'
 import { CSSProperties } from 'react'
-import { SkeletonClassKey } from '@material-ui/lab/Skeleton'
+import { Theme } from '@mui/material/styles'
 import {
-  bgGradients,
-  boxShadowsDark,
-  boxShadowsLight,
-  overridesDark,
-  overridesLight,
+bgGradients,
+boxShadowsDark,
+boxShadowsLight,
+overridesDark,
+overridesLight,
 } from 'src/theme/overrides'
-import { typographyOptions } from 'src/theme/typography'
-
-// https://stackoverflow.com/a/64135466/1439168
-import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles'
+import { createTheme } from '@mui/material/styles';
 import { palette as paletteDark } from 'src/theme/dark'
 import { palette as paletteLight } from 'src/theme/light'
+import { typographyOptions } from 'src/theme/typography'
 
-declare module '@material-ui/core/styles/overrides' {
-  export interface ComponentNameToClassKey {
-    MuiSkeleton: SkeletonClassKey
+declare module '@mui/material/styles' {
+  interface BreakpointOverrides {
+    xs: true;
+    sm: true;
+    md: true;
+    lg: true;
+    xl: true;
+    mobile: false;
+    tablet: false;
+    laptop: false;
+    desktop: false;
   }
 }
 
-declare module '@material-ui/core/styles/createTheme' {
+declare module '@mui/system' {
+  interface DefaultTheme extends Theme {}
+}
+
+declare module '@mui/material/styles' {
   interface Theme {
     padding: {
       thick: CSSProperties['paddingTop']
@@ -49,8 +59,17 @@ declare module '@material-ui/core/styles/createTheme' {
     }
   }
 
-  // allow configuration using `createMuiTheme`
+  // allow configuration using `createTheme`
   interface ThemeOptions {
+    breakpoints?: {
+      values: {
+        xs?: number;
+        sm?: number;
+        md?: number;
+        lg?: number;
+        xl?: number;
+      };
+    };
     padding?: {
       thick?: CSSProperties['paddingTop']
       default?: CSSProperties['paddingTop']
@@ -85,11 +104,19 @@ const padding = {
   extraLight: '1.2rem',
 }
 
-const breakpoints = createBreakpoints({})
+const breakpoints = createBreakpoints({
+  values: {
+    xs: 600,
+    sm: 600,
+    md: 960,
+    lg: 1280,
+    xl: 1920,
+  },
+})
 
-export const lightTheme = createMuiTheme({
+export const lightTheme = createTheme({
   palette: {
-    type: 'light',
+    mode: 'light',
     ...paletteLight,
   },
   padding,
@@ -97,22 +124,24 @@ export const lightTheme = createMuiTheme({
   breakpoints,
   boxShadow: boxShadowsLight,
   bgGradient: bgGradients,
-  overrides: {
+  components: {
     ...overridesLight,
     MuiTab: {
-      root: {
-        ...overridesLight.MuiTab.root,
-        [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
+      ...overridesLight.MuiTab,
+      styleOverrides: {
+        root: {
+          [breakpoints.down('sm')]: {
+            fontSize: '1.5rem',
+          },
         },
       },
     },
   },
 })
 
-export const darkTheme = createMuiTheme({
+export const darkTheme = createTheme({
   palette: {
-    type: 'dark',
+    mode: 'dark',
     ...paletteDark,
   },
   padding,
@@ -120,22 +149,24 @@ export const darkTheme = createMuiTheme({
   breakpoints,
   boxShadow: boxShadowsDark,
   bgGradient: bgGradients,
-  overrides: {
+  components: {
     ...overridesDark,
     MuiTab: {
-      root: {
-        ...overridesDark.MuiTab.root,
-        [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
+      ...overridesDark.MuiTab,
+      styleOverrides: {
+        root: {
+          [breakpoints.down('sm')]: {
+            fontSize: '1.5rem',
+          },
         },
-      },
+      }
     },
   },
 })
 
 interface PaletteType {
   palette: {
-    type: 'dark' | 'light'
+    mode: 'dark' | 'light'
   }
 }
 
@@ -155,5 +186,5 @@ export function isDarkMode(themeOrMode?: ThemeOrMode): boolean {
     return themeOrMode === 'dark'
   }
 
-  return themeOrMode.palette.type === ThemeMode.dark
+  return themeOrMode.palette.mode === ThemeMode.dark
 }

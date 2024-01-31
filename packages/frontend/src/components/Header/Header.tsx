@@ -1,7 +1,7 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 import MoonIcon from 'src/assets/moon-icon.svg'
 import Network from 'src/models/Network'
 import React, { FC, useState } from 'react'
@@ -13,23 +13,23 @@ import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
 import { Icon } from 'src/components/ui/Icon'
 import { Link } from 'react-router-dom'
 import { Settings } from 'src/components/Header/Settings'
-import { Theme, makeStyles } from '@material-ui/core/styles'
 import { TxPill } from 'src/components/Header/TxPill'
 import { WalletWarning } from 'src/components/Header/WalletWarning'
 import {
-  findNetworkBySlug,
-  fixedDecimals,
-  networkIdNativeTokenSymbol,
-  networkIdToSlug,
-  toTokenDisplay,
+findNetworkBySlug,
+fixedDecimals,
+networkIdNativeTokenSymbol,
+networkIdToSlug,
+toTokenDisplay,
 } from 'src/utils'
 import { isMainnet, reactAppNetwork, showBannerMessage } from 'src/config'
+import { makeStyles } from '@mui/styles'
 import { useApp } from 'src/contexts/AppContext'
 import { useQuery } from 'react-query'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -43,8 +43,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       flexDirection: 'column',
       paddingTop: '2rem',
       marginBottom: '4rem',
-    },
-    transition: 'all 0.15s ease-out',
+    }
   },
   hopLogo: {
     display: 'flex',
@@ -73,16 +72,15 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: '1.2rem 2rem',
     boxShadow: ({ isDarkMode }: any) =>
       isDarkMode
-        ? theme.boxShadow.inner
+        ? theme?.boxShadow?.inner
         : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
-    color: theme.palette.text.secondary,
-    [theme.breakpoints.down('sm')]: {
+    color: theme?.palette.text.secondary,
+    [theme?.breakpoints.down('sm')]: {
       fontSize: '.8rem',
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme?.breakpoints.down('xs')]: {
       display: 'none',
     },
-    transition: 'all 0.15s ease-out',
   },
   balance: {
     display: 'flex',
@@ -150,8 +148,8 @@ export const Header: FC = () => {
       {showBannerMessage && (
         <Banner>{showBannerMessage}</Banner>
       )}
-      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
-        <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
+      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center" justifyContent="flex-start">
+        <Box display="flex" flexDirection="row" flex={1}>
           <Link to="/" style={{ position: 'relative' }}>
             <img
               className={styles.hopLogo}
@@ -173,7 +171,7 @@ export const Header: FC = () => {
           justifyContent="flex-end"
           alignItems="center"
         >
-          <Box display="flex" alignItems="center" p={[1, 1]} mx={[2, 0]}>
+          <Box display="flex" alignItems="center" p={1} mx={2}>
             <IconButton onClick={toggleMode}>
               <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
             </IconButton>
@@ -183,7 +181,7 @@ export const Header: FC = () => {
 
           {showBalance && (
             <Box
-              display={['none', 'flex']}
+              className={styles.balancePill}
               justifyContent="center"
               alignItems="center"
               borderRadius={'3rem'}

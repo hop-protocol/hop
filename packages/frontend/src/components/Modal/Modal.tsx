@@ -1,13 +1,13 @@
-import Card, { CardProps } from '@material-ui/core/Card'
-import ClickAwayListener from '@material-ui/core/ClickAwayListener'
+import Card, { CardProps } from '@mui/material/Card'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import React, { forwardRef, useCallback, useEffect } from 'react'
 import clsx from 'clsx'
-import { Theme, makeStyles } from '@material-ui/core/styles'
 import { Transition } from 'react-transition-group'
 import { isDarkMode } from 'src/theme/theme'
+import { makeStyles } from '@mui/styles'
 import { useApp } from 'src/contexts/AppContext'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     position: 'fixed',
     top: 0,
@@ -159,7 +159,7 @@ export const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(func
                   mouseEvent="onMouseDown"
                   touchEvent="onTouchStart"
                 >
-                  <Card className={styles.card} ref={ref}>
+                  <Card className={styles.card}>
                     <div className={styles.close} onClick={handleClose}>
                       ✕
                     </div>

@@ -1,5 +1,5 @@
-import Box from '@material-ui/core/Box'
-import MuiLink, { LinkProps } from '@material-ui/core/Link'
+import Box from '@mui/material/Box'
+import MuiLink, { LinkProps } from '@mui/material/Link'
 import React from 'react'
 
 interface Props {

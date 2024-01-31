@@ -1,6 +1,6 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React, { useEffect, useState } from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { AddressModal } from 'src/pages/Airdrop/AirdropPreview/AddressModal'
 import { AirdropPreviewWrapper } from 'src/pages/Airdrop/AirdropPreview/AirdropPreviewWrapper'
 import { Alert } from 'src/components/Alert'
@@ -13,7 +13,7 @@ import { getAddress } from 'ethers/lib/utils'
 import { useClaim } from 'src/pages/Claim/useClaim'
 import { useDistribution } from 'src/pages/Airdrop/AirdropPreview/useDistribution'
 import { useNavigate } from 'react-router-dom'
-import { useTheme } from '@material-ui/core/styles'
+import { useTheme } from '@mui/styles'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export const respMaxWidths = [350, 624, 824]
@@ -202,7 +202,7 @@ export function AirdropPreview() {
                   </Box>
                 )}
 
-                <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
+                <Box my={2} style={{ borderTop: `1px solid ${theme.palette?.secondary?.light}`, width: '100%', opacity: 0.5 }}></Box>
                 <Box display="flex" justifyContent="space-between" mb={4}>
                   <Typography variant="body1" component="div">
                     <strong>Total:</strong> <InfoTooltip

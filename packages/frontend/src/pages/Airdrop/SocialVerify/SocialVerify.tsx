@@ -1,6 +1,6 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { ClaimDateMessage } from 'src/pages/Airdrop/ClaimDateMessage'
 import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons"
 import { StyledButton } from 'src/components/Button/StyledButton'

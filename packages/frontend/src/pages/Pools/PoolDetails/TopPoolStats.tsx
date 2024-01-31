@@ -1,7 +1,7 @@
-import Box from '@material-ui/core/Box'
-import ErrorIcon from '@material-ui/icons/ErrorOutline'
+import Box from '@mui/material/Box'
+import ErrorIcon from '@mui/icons-material/ErrorOutline'
 import React, { ChangeEvent } from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 

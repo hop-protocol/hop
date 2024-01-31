@@ -8,10 +8,10 @@ import useTokens from 'src/contexts/AppContext/useTokens'
 import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
 import { AccountDetails, useAccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
-import { Theme, useTheme } from '@material-ui/core/styles'
 import { TxConfirm, useTxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { blocklist, reactAppNetwork, rpcProviderOverrides } from 'src/config'
 import { allNetworks as networks } from 'src/config/networks'
+import { useTheme } from '@mui/styles'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
 type AppContextProps = {
@@ -26,7 +26,7 @@ type AppContextProps = {
   txHistory: TxHistory
   txConfirm: TxConfirm
   settings: Settings
-  theme: Theme
+  theme: any
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined)

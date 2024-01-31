@@ -1,12 +1,12 @@
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import Box from '@material-ui/core/Box'
+import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
+import Box from '@mui/material/Box'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 import React, { FC, useEffect, useState } from 'react'
 import TokenWrapper from 'src/components/TokenWrapper'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { Alert } from 'src/components/Alert'
@@ -16,7 +16,7 @@ import { ButtonsWrapper } from 'src/components/Button/ButtonsWrapper'
 import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { sanitizeNumericalString } from 'src/utils'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
@@ -303,7 +303,7 @@ const ConvertContent: FC = () => {
           { address
           ? <ButtonsWrapper>
               {!sendButtonActive && (
-                <Box mb={[3]} width={approvalButtonActive ? '100%' : 'auto'}>
+                <Box mb={3} width={approvalButtonActive ? '100%' : 'auto'}>
                   <Button
                     className={styles.button}
                     large
@@ -318,7 +318,7 @@ const ConvertContent: FC = () => {
                 </Box>
               )}
 
-              <Box mb={[3]} width={sendButtonActive ? '100%' : 'auto'}>
+              <Box mb={3} width={sendButtonActive ? '100%' : 'auto'}>
                 <Button
                   className={styles.button}
                   onClick={handleSend}
@@ -332,7 +332,7 @@ const ConvertContent: FC = () => {
               </Box>
             </ButtonsWrapper>
           : <ButtonsWrapper>
-              <Box mb={[3]} width="100%">
+              <Box mb={3} width="100%">
                 <ConnectWalletButton fullWidth large />
               </Box>
             </ButtonsWrapper>

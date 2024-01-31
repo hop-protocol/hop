@@ -1,18 +1,18 @@
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { Button } from 'src/components/Button'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
   },
   label: {
     'white-space': 'nowrap'
   },
   boxWrapper: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '2rem'
   }
 }))

@@ -1,6 +1,6 @@
 import BalanceStats from 'src/pages/Stats/BalanceStats'
 import BonderStats from 'src/pages/Stats/BonderStats'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
 import DebitWindowStats from 'src/pages/Stats/DebitWindowStats'
 import PendingAmountStats from 'src/pages/Stats/PendingAmountStats'
 import PoolStats from 'src/pages/Stats/PoolStats'

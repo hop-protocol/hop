@@ -171,12 +171,6 @@ importers:
       fast-memoize:
         specifier: 2.5.2
         version: 2.5.2
-      fill-range:
-        specifier: ^7.0.1
-        version: 7.0.1
-      is-glob:
-        specifier: ^4.0.3
-        version: 4.0.3
       keccak256:
         specifier: 1.0.3
         version: 1.0.3
@@ -238,7 +232,7 @@ importers:
         specifier: 3.0.1
         version: 3.0.1
       styled-components:
-        specifier: '>=6'
+        specifier: 6.1.8
         version: 6.1.8(react-dom@17.0.2)(react@17.0.2)
       styled-system:
         specifier: 5.1.5

@@ -47,11 +47,6 @@ jobs:
         working-directory: .
         run: pnpm --filter @hop-protocol/core install && pnpm --filter @hop-protocol/sdk install
 
-      - name: Install local dependencies
-        if: env.VERSION_MISMATCH == 'true'
-        working-directory: .
-        run: pnpm --filter @hop-protocol/
-
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .

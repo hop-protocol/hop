@@ -8,6 +8,7 @@ WORKDIR /app
 
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm --filter=@hop-protocol/core build && pnpm --filter=@hop-protocol/sdk build
 RUN pnpm --filter=@hop-protocol/stats-worker build
 RUN pnpm --filter=@hop-protocol/stats-worker deploy --prod /prod/app
 
@@ -15,4 +16,4 @@ FROM base
 COPY --from=build /prod/app /prod/app
 WORKDIR /prod/app
 
-CMD [ "node", "/prod/app/bin/stats" ]
+ENTRYPOINT [ "/prod/app/bin/stats" ]

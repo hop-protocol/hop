@@ -1,13 +1,13 @@
-import { useQuery } from 'react-query'
-import { ChainId, Token } from '@hop-protocol/sdk'
 import { Addressish } from 'src/models/Address'
-import { StakingRewards } from '@hop-protocol/core/contracts'
+import { ChainId, Token } from '@hop-protocol/sdk'
 import { Contract } from 'ethers'
+import { StakingRewards } from '@hop-protocol/core/contracts'
+import { useQuery } from 'react-query'
 
-type ContractType = Token | StakingRewards | Token | Contract
+type ContractType = Token | StakingRewards   | Contract
 
 async function fetchBalance(token: ContractType, address: string) {
-  return await token.balanceOf(address)
+  return token.balanceOf(address)
 }
 
 const useBalance = (token?: ContractType, address?: Addressish, chainId?: ChainId) => {
@@ -19,7 +19,7 @@ const useBalance = (token?: ContractType, address?: Addressish, chainId?: ChainI
     [queryKey, chainId, token?.address, address?.toString()],
     async () => {
       if (token && address) {
-        return await fetchBalance(token, address.toString())
+        return fetchBalance(token, address.toString())
       }
     },
     {

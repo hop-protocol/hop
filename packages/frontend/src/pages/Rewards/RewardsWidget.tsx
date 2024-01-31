@@ -1,14 +1,14 @@
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
 import React, { useState } from 'react'
+import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
-import Box from '@material-ui/core/Box'
-import Card from '@material-ui/core/Card'
 import { Button } from 'src/components/Button'
-import Typography from '@material-ui/core/Typography'
-import { toTokenDisplay } from 'src/utils'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import { useRewards } from 'src/pages/Rewards/useRewards'
-import { makeStyles } from '@material-ui/core/styles'
 import { LargeTextField } from 'src/components/LargeTextField'
+import { makeStyles } from '@mui/styles'
+import { toTokenDisplay } from 'src/utils'
+import { useRewards } from 'src/pages/Rewards/useRewards'
 import { utils } from 'ethers'
 
 interface Props {
@@ -28,7 +28,6 @@ export const useStyles = makeStyles(theme => ({
   },
   box: {
     boxShadow: theme.boxShadow.inner,
-    transition: 'all 0.15s ease-out',
     minHeight: '200px',
   },
   header: {

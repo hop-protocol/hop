@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getSubgraphUrl from 'src/utils/getSubgraphUrl'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 
@@ -7,7 +6,7 @@ export default async function makeRequest (
   query: string,
   params: any = {}
 ) {
-  return await rateLimitRetry(_makeRequest)(chain, query, params)
+  return rateLimitRetry(_makeRequest)(chain, query, params)
 }
 
 async function _makeRequest (
@@ -27,7 +26,7 @@ async function _makeRequest (
       variables: params
     })
   })
-  const jsonRes = await res.json()
+  const jsonRes: any = await res.json()
   if (Array.isArray(jsonRes.errors) && jsonRes.errors.length) {
     console.error('query:', query)
     throw new Error(jsonRes.errors[0].message)

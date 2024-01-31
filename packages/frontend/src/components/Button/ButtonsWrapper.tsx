@@ -1,12 +1,12 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import { Flex } from 'src/components/ui'
 
-export function ButtonsWrapper(props) {
+export function ButtonsWrapper(props: any) {
   const { children } = props
 
   return (
-    <Flex my="1rem" justifyAround alignCenter $wrap maxWidth={['450px']} width="100%">
+    <Box my="1rem" display="flex" justifyContent="space-around" alignItems="center" flexWrap="wrap" maxWidth={['450px']} width="100%">
       {children}
-    </Flex>
+    </Box>
   )
 }

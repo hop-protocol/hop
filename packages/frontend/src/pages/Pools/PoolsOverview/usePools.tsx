@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react'
 import { BigNumber, BigNumberish } from 'ethers'
-import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 import { Multicall } from '@hop-protocol/sdk'
-import { addresses, stakingRewardsContracts, hopStakingRewardsContracts, stakingRewardTokens, reactAppNetwork } from 'src/config'
+import { addresses, hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
+import { commafy, toPercentDisplay } from 'src/utils'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { findNetworkBySlug } from 'src/utils/networks'
 import { formatTokenDecimalString } from 'src/utils/format'
 import { formatUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
-import { toPercentDisplay, commafy } from 'src/utils'
 import { stableCoins } from 'src/utils/constants'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
+import { useEffect, useState } from 'react'
 import { usePoolStats } from 'src/pages/Pools/usePoolStats'
 import { useQuery } from 'react-query'
 import { useQueryParams } from 'src/hooks'
@@ -220,7 +220,7 @@ export function usePools () {
 
             const balancesOpts: any = []
             balancesOpts.push({
-              abi: Erc20Abi,
+              abi: erc20Abi,
               method: 'balanceOf',
               address: lpTokenAddress,
               tokenSymbol,
@@ -229,13 +229,13 @@ export function usePools () {
             if (stakingContractAddress) {
               const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'balanceOf',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
               })
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'earned',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
@@ -243,13 +243,13 @@ export function usePools () {
             }
             if (hopStakingContractAddress) {
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'balanceOf',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'
               })
               balancesOpts.push({
-                abi: StakingRewardsAbi,
+                abi: stakingRewardsAbi,
                 method: 'earned',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'

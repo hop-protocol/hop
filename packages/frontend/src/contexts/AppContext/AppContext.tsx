@@ -1,18 +1,18 @@
-import React, { FC, ReactNode, useMemo, createContext, useContext } from 'react'
-import { Hop, HopBridge } from '@hop-protocol/sdk'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import Token from 'src/models/Token'
 import Network from 'src/models/Network'
-import useTokens from 'src/contexts/AppContext/useTokens'
+import React, { FC, ReactNode, createContext, useContext, useMemo } from 'react'
+import Token from 'src/models/Token'
 import useBridges from 'src/contexts/AppContext/useBridges'
-import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
 import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
 import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
-import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
-import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
-import { reactAppNetwork, blocklist, rpcProviderOverrides } from 'src/config'
+import useTokens from 'src/contexts/AppContext/useTokens'
+import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
+import { AccountDetails, useAccountDetails } from 'src/contexts/AppContext/useAccountDetails'
+import { Hop, HopBridge } from '@hop-protocol/sdk'
+import { TxConfirm, useTxConfirm } from 'src/contexts/AppContext/useTxConfirm'
+import { blocklist, reactAppNetwork, rpcProviderOverrides } from 'src/config'
 import { allNetworks as networks } from 'src/config/networks'
-import { Theme, useTheme } from '@material-ui/core'
+import { useTheme } from '@mui/styles'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 type AppContextProps = {
   sdk: Hop
@@ -26,7 +26,7 @@ type AppContextProps = {
   txHistory: TxHistory
   txConfirm: TxConfirm
   settings: Settings
-  theme: Theme
+  theme: any
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined)

@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch'
 import { isValidUrl } from './isValidUrl'
 import { promiseTimeout } from './promiseTimeout'
 

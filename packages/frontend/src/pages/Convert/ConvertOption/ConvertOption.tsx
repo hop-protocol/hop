@@ -1,7 +1,7 @@
-import React, { ReactNode } from 'react'
-import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
+import { BigNumber, BigNumberish, Signer } from 'ethers'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
+import { ReactNode } from 'react'
 
 export type SendData = {
   amountOut: BigNumber | undefined

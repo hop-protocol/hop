@@ -136,21 +136,21 @@ async function main (source: any) {
 function getTokenAddressesFromCore (chain: string, addresses: any): string[] {
   if (chain === Chain.Ethereum) {
     return [addresses.l1CanonicalToken]
-  } else {
-    return [
-      addresses.l2CanonicalToken,
-      addresses.l2HopBridgeToken,
-      addresses.l2SaddleLpToken
-    ]
   }
+
+  return [
+    addresses.l2CanonicalToken,
+    addresses.l2HopBridgeToken,
+    addresses.l2SaddleLpToken
+  ]
 }
 
 async function getBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<BigNumber> {
   if (tokenAddress === '0x0000000000000000000000000000000000000000') {
     return getEthBalance(chain, accountAddress, blockNumber)
-  } else {
+  } 
     return getTokenBalance(chain, accountAddress, tokenAddress, blockNumber)
-  }
+  
 }
 
 async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {

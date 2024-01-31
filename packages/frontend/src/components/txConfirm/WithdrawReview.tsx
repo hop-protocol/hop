@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import Typography from '@mui/material/Typography'
 import { Button } from 'src/components/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
+import { ExternalLink } from 'src/components/Link'
 import { NetworkTokenEntity } from 'src/utils'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
-import { ExternalLink } from 'src/components/Link'
+import { makeStyles } from '@mui/styles'
 import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({

@@ -1,25 +1,25 @@
-import React, { FC } from 'react'
-import { Button } from 'src/components/Button'
-import SendIcon from '@material-ui/icons/Send'
-import Box from '@material-ui/core/Box'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
-import { Alert } from 'src/components/Alert'
-import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
-import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
-import { AmmDetails } from 'src/components/AmmDetails'
-import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
-import { InfoTooltip } from 'src/components/InfoTooltip'
-import { useSendStyles } from './useSendStyles'
-import SendHeader from './SendHeader'
+import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
+import Box from '@mui/material/Box'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
+import IconButton from '@mui/material/IconButton'
+import React, { FC } from 'react'
+import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
+import SendHeader from './SendHeader'
+import SendIcon from '@mui/icons-material/Send'
+import { Alert } from 'src/components/Alert'
+import { AmmDetails } from 'src/components/AmmDetails'
+import { Button } from 'src/components/Button'
 import { ButtonsWrapper } from 'src/components/Button/ButtonsWrapper'
-import { ExternalLink } from 'src/components/Link'
-import { FeeRefund } from './FeeRefund'
-import IconButton from '@material-ui/core/IconButton'
 import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
-import { useSend } from 'src/pages/Send/useSend'
+import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
+import { ExternalLink } from 'src/components/Link'
+import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
+import { FeeRefund } from './FeeRefund'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
 import { useApp } from 'src/contexts/AppContext'
+import { useSend } from 'src/pages/Send/useSend'
+import { useSendStyles } from './useSendStyles'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -236,7 +236,7 @@ const Send: FC = () => {
       { accountAddress
       ? <ButtonsWrapper>
           {!isSendButtonActive && (
-            <Box mb={[3]} width={isApproveButtonActive ? '100%' : 'auto'}>
+            <Box mb={3} width={isApproveButtonActive ? '100%' : 'auto'}>
               <Button
                 className={styles.button}
                 large
@@ -250,7 +250,7 @@ const Send: FC = () => {
               </Button>
             </Box>
           )}
-          <Box mb={[3]} width={isSendButtonActive ? '100%' : 'auto'}>
+          <Box mb={3} width={isSendButtonActive ? '100%' : 'auto'}>
             <Button
               className={styles.button}
               startIcon={isSendButtonActive && <SendIcon />}
@@ -265,7 +265,7 @@ const Send: FC = () => {
           </Box>
         </ButtonsWrapper>
       : <ButtonsWrapper>
-          <Box mb={[3]} width="100%">
+          <Box mb={3} width="100%">
             <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
           </Box>
         </ButtonsWrapper>

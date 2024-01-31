@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { deprecatedTokens } from 'src/config'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { useEffect, useState } from 'react'
 
 const useCheckTokenDeprecated = (token: string | undefined): boolean | null => {
   const [isTokenDeprecated, setIsTokenDeprecated] = useState<boolean | null>(null)

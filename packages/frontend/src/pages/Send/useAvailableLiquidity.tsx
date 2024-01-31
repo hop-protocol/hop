@@ -1,7 +1,7 @@
-import { ChainSlug, HopBridge } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
-import { useQuery } from 'react-query'
+import { ChainSlug, HopBridge } from '@hop-protocol/sdk'
 import { getNativeTokenSymbol } from 'src/utils/getNativeTokenSymbol'
+import { useQuery } from 'react-query'
 
 function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
   const nativeTokenSymbol = getNativeTokenSymbol(sourceChain)

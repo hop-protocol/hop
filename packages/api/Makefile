@@ -1,7 +1,6 @@
 # Build docker target
 docker-build:
-	npm run build
-	docker build -f Dockerfile -t hopprotocol/hop-api .
+	(cd ../../ && docker build -f packages/api/Dockerfile -t hopprotocol/hop-api .)
 
 # Tag docker image with latest
 docker-image-tag-latest:
@@ -30,12 +29,3 @@ docker-tag-and-push: docker-image-tag docker-registry-push
 
 docker-start:
 	docker run --env-file .env hopprotocol/hop-api
-
-curl-quote:
-	curl -g "http://localhost:8000/v1/quote?amount=1000000&token=USDC&fromChain=polygon&toChain=gnosis&slippage=0.5"
-
-curl-transfer-status:
-	curl -g "http://localhost:8000/v1/transfer-status?transferId=0x5a15b2abd4d0f2e5d0ea3d5fc93758374b14940096487d70f7c95b5393fc9c89"
-
-curl-available-routes:
-	curl -g "http://localhost:8000/v1/available-routes" | jq

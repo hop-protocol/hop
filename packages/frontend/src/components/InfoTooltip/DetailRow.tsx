@@ -1,10 +1,10 @@
+import Box from '@mui/material/Box'
 import React, { FC } from 'react'
-import { makeStyles, Theme } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
-import { InfoTooltip } from 'src/components/InfoTooltip'
+import Typography from '@mui/material/Typography'
 import clsx from 'clsx'
-import { Flex } from 'src/components/ui/Flex'
+import { InfoTooltip } from 'src/components/InfoTooltip'
+import { Theme } from '@mui/material/styles'
+import { makeStyles } from '@mui/styles'
 
 export type DetailRowProps = {
   title: string
@@ -88,9 +88,9 @@ export const DetailRow: FC<DetailRowProps> = props => {
         color="textSecondary"
         className={clsx(styles.detailLabel, styles.label)}
       >
-        <Flex $wrap>
+        <Box display="column" flexWrap="wrap">
           {title}&nbsp;
-        </Flex>
+        </Box>
         {tooltip ? <InfoTooltip title={tooltip} /> : null}
       </Typography>
       <Typography

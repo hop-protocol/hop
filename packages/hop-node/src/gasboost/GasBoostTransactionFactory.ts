@@ -24,7 +24,7 @@ class GasBoostTransactionFactory {
   }
 
   async getTransactionFromId (id: string) {
-    return await GasBoostTransaction.fromId(id, this.signer, this.store, this.options)
+    return GasBoostTransaction.fromId(id, this.signer, this.store, this.options)
   }
 
   setOptions (options: Partial<Options>): void {

@@ -1,10 +1,11 @@
-import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Network from 'src/models/Network'
+import useQueryParams from './useQueryParams'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
+import { SafeInfo } from '@gnosis.pm/safe-apps-sdk'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { defaultL2Network as _defaultL2Network, l2Networks } from 'src/config/networks'
 import { findNetworkBySlug, networkSlugToId } from 'src/utils'
-import useQueryParams from './useQueryParams'
-import { SafeInfo } from '@gnosis.pm/safe-apps-sdk'
-import { ChainSlug } from '@hop-protocol/sdk'
 
 interface Options {
   l2Only?: boolean
@@ -57,7 +58,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
   }, [opts, queryParams])
 
   const selectSourceNetwork = (event: ChangeEvent<{ value: any }>) => {
-    const selectedNetworkSlug = event.target.value
+    const selectedNetworkSlug = event.target.value as string
     const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
@@ -67,8 +68,8 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     }
   }
 
-  const selectDestNetwork = (event: ChangeEvent<{ value: any }>) => {
-    const selectedNetworkSlug = event.target.value
+  const selectDestNetwork = (event: SelectChangeEvent<unknown>) => {
+    const selectedNetworkSlug = event.target.value as string
     const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
@@ -78,8 +79,8 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     }
   }
 
-  const selectBothNetworks = (event: ChangeEvent<{ value: any }>) => {
-    const selectedNetworkSlug = event.target.value
+  const selectBothNetworks = (event: SelectChangeEvent<unknown>) => {
+    const selectedNetworkSlug = event.target.value as string
     const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)

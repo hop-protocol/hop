@@ -1,10 +1,10 @@
-import React, { FC, lazy, Suspense, useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import Box from '@material-ui/core/Box'
+import Box from '@mui/material/Box'
+import React, { FC, Suspense, lazy, useEffect } from 'react'
 import Send from 'src/pages/Send'
-import { Claim } from 'src/pages/Claim'
 import { AirdropPreview } from 'src/pages/Airdrop/AirdropPreview'
+import { Claim } from 'src/pages/Claim'
 import { Loading } from 'src/components/Loading'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
 const PoolsOverview = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools/PoolsOverview'))
 const PoolDetails = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools'))
@@ -47,7 +47,7 @@ const AppRoutes: FC = () => {
         path="/*"
         element={
           <Box display="flex" flexGrow={1}>
-            <Box p={['2.2rem', '2.5rem']} flexGrow={1}>
+            <Box p="2.2rem" flexGrow={1}>
               <Suspense fallback={<Loading />}>
                 <Routes>
                   <Route path="/stats" element={<Stats />} />

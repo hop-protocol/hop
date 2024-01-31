@@ -1,18 +1,17 @@
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
 import React, { ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
-import IconButton from '@material-ui/core/IconButton'
+import Skeleton from '@mui/lab/Skeleton'
+import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Typography from '@material-ui/core/Typography'
 import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'
 import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { usePools } from 'src/pages/Pools/PoolsOverview/usePools'
 
 export const useStyles = makeStyles(theme => ({
   box: {
     boxShadow: theme.boxShadow.inner,
-    transition: 'all 0.15s ease-out',
     borderRadius: '3rem',
     [theme.breakpoints.down('xs')]: {
       paddingLeft: '1rem',
@@ -58,7 +57,7 @@ export const useStyles = makeStyles(theme => ({
   },
   chip: {
     padding: '0.5rem 1rem',
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    background: theme.palette.mode === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
     cursor: 'pointer'
   },
@@ -95,21 +94,21 @@ export function PoolsOverview () {
   const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterToken(symbol)
     }
   }
 
   function handleChainToggleFilterFn (slug: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleFilterChain(slug)
     }
   }
 
   function handleColumnSortFn(column: string) {
-    return (event: ChangeEvent<{}>) => {
+    return (event: ChangeEvent<object>) => {
       event.preventDefault()
       toggleColumnSort(column)
     }

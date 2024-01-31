@@ -1,16 +1,16 @@
 import Bridge, { CanonicalTokenConvertOptions, EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain, GasCostTransactionType, Network, RelayableChains, Token as TokenEnum } from 'src/constants'
-import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
+import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/generated/L1_ERC20_Bridge'
+import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
+import { l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
@@ -34,14 +34,14 @@ export default class L1Bridge extends Bridge {
   }
 
   getTransferBond = async (transferRootId: string) => {
-    return await this.l1BridgeContract.transferBonds(transferRootId)
+    return this.l1BridgeContract.transferBonds(transferRootId)
   }
 
   getTransferRootBondedEvents = async (
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferRootBonded(),
       startBlockNumber,
       endBlockNumber
@@ -52,7 +52,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferBondChallenged(),
       startBlockNumber,
       endBlockNumber
@@ -63,7 +63,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ) => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferSentToL2(),
       startBlockNumber,
       endBlockNumber
@@ -74,21 +74,21 @@ export default class L1Bridge extends Bridge {
     cb: EventCb<TransferRootBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferRootBondedEvents, cb, options)
   }
 
   async mapTransferBondChallengedEvents<R> (
     cb: EventCb<TransferBondChallengedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
   }
 
   async mapTransferSentToL2Events<R> (
     cb: EventCb<TransferSentToL2Event, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
+    return this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
   }
 
   async getTransferRootBondedEvent (
@@ -122,7 +122,7 @@ export default class L1Bridge extends Bridge {
     startBlockNumber: number,
     endBlockNumber: number
   ): Promise<TransferRootConfirmedEvent[]> => {
-    return await this.l1BridgeContract.queryFilter(
+    return this.l1BridgeContract.queryFilter(
       this.l1BridgeContract.filters.TransferRootConfirmed(),
       startBlockNumber,
       endBlockNumber
@@ -133,7 +133,7 @@ export default class L1Bridge extends Bridge {
     cb: EventCb<TransferRootConfirmedEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
-    return await this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
+    return this.mapEventsBatch(this.getTransferRootConfirmedEvents, cb, options)
   }
 
   async isTransferRootIdConfirmed (destChainId: number, transferRootId: string): Promise<boolean> {
@@ -261,7 +261,7 @@ export default class L1Bridge extends Bridge {
       throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
     }
 
-    return await this.l1BridgeContract.sendToL2(
+    return this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -317,7 +317,7 @@ export default class L1Bridge extends Bridge {
     if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
       throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
     }
-    return await this.l1BridgeContract.sendToL2(
+    return this.l1BridgeContract.sendToL2(
       destinationChainId,
       recipient,
       amount,
@@ -337,7 +337,7 @@ export default class L1Bridge extends Bridge {
   }
 
   getBondForTransferAmount = async (amount: BigNumber): Promise<BigNumber> => {
-    return await this.l1BridgeContract.getBondForTransferAmount(amount)
+    return this.l1BridgeContract.getBondForTransferAmount(amount)
   }
 
   async decodeBondTransferRootCalldata (data: string): Promise<any> {
@@ -358,7 +358,7 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  private async isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): Promise<boolean> {
+  private isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): boolean {
     return (
       relayer !== constants.AddressZero ||
       relayerFee.eq(0)

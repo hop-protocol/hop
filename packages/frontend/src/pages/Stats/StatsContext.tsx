@@ -1,15 +1,15 @@
-import React, { FC, ReactNode, createContext, useContext, useState, useEffect, useMemo } from 'react'
-import { BigNumber } from 'ethers'
-import { formatEther, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
+import React, { FC, ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react'
 import Token from 'src/models/Token'
-import { retryPromise } from 'src/utils/retryPromise'
-import { findNetworkBySlug } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import * as config from 'src/config'
-import { HToken, CanonicalToken } from '@hop-protocol/sdk'
+import { BigNumber } from 'ethers'
+import { CanonicalToken, HToken } from '@hop-protocol/sdk'
+import { findNetworkBySlug } from 'src/utils'
+import { formatEther, formatUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
+import { retryPromise } from 'src/utils/retryPromise'
+import { useApp } from 'src/contexts/AppContext'
+import * as config from 'src/config'
 
 interface Column {
   Header: string
@@ -60,11 +60,7 @@ const columns: TableColumns[] = [
       {
         Header: 'Available Native',
         accessor: 'availableNative',
-      },
-      {
-        Header: 'Vault Balance',
-        accessor: 'vaultBalance',
-      },
+      }
     ],
   },
 ]
@@ -100,7 +96,6 @@ type BonderStats = {
   virtualDebt: number
   totalAmount: number
   availableNative: number
-  vaultBalance: number
   error?: string
 }
 
@@ -246,14 +241,13 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
       return
     }
-    const [credit, debit, totalDebit, availableLiquidity, nativeBalance, vaultBalance] =
+    const [credit, debit, totalDebit, availableLiquidity, nativeBalance ] =
       await Promise.all([
         bridge.getCredit(selectedNetwork.slug, bonder),
         bridge.getDebit(selectedNetwork.slug, bonder),
         bridge.getTotalDebit(selectedNetwork.slug, bonder),
         bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
         bridge.getEthBalance(selectedNetwork.slug, bonder),
-        bridge.getVaultBalance(selectedNetwork.slug, bonder),
       ])
 
     const virtualDebt = totalDebit.sub(debit)
@@ -278,7 +272,6 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
       ),
       availableNative: Number(formatEther(nativeBalance.toString())),
-      vaultBalance: Number(formatUnits(vaultBalance.toString(), token.decimals)),
     }
   }
 
@@ -443,7 +436,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     const n = findNetworkBySlug(slug)
     return {
-      network: n!,
+      network: n,
       name,
       address,
       balance: formattedBalance,
@@ -555,7 +548,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         for (const bonder in config.addresses.bonders?.[token.symbol]) {
           for (const sourceChain in config.addresses.bonders?.[token.symbol]) {
             for (const destinationChain in config.addresses.bonders?.[token.symbol][
-              sourceChain as string
+              sourceChain 
             ]) {
               const bonder = config.addresses.bonders?.[token.symbol][sourceChain][destinationChain]
               if (bonder) {

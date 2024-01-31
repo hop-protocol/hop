@@ -1,10 +1,10 @@
 import React from 'react'
-import { composedStyleFns, ComposedStyleProps, SquareDimensions, squareDimensions } from 'src/utils'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
+import { ComposedStyleProps, SquareDimensions, composedStyleFns, squareDimensions } from 'src/utils'
 
 type SvgImgProps = ComposedStyleProps & SquareDimensions
 
-const Wrapper = styled.div<SvgImgProps>`
+const Wrapper = styled('div')<any>`
   ${squareDimensions}
 
   & svg {

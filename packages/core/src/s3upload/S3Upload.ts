@@ -1,8 +1,9 @@
+import { Credentials } from '@aws-sdk/types'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from './config'
 
-let credentials
-if (awsAccessKeyId) {
+let credentials: Credentials | undefined
+if (awsAccessKeyId && awsSecretAccessKey) {
   credentials = {
     accessKeyId: awsAccessKeyId,
     secretAccessKey: awsSecretAccessKey

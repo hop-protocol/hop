@@ -1,18 +1,18 @@
-import React, { FC, ChangeEvent, useEffect } from 'react'
-import { useNavigate, useLocation, useParams } from 'react-router-dom'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
-import Grid from '@material-ui/core/Grid'
-import MenuItem from '@material-ui/core/MenuItem'
-import { useApp } from 'src/contexts/AppContext'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
-import SelectOption from 'src/components/selects/SelectOption'
+import Box from '@mui/material/Box'
 import ConvertContent from 'src/pages/Convert/ConvertContent'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
+import React, { FC, useEffect } from 'react'
+import SelectOption from 'src/components/selects/SelectOption'
+import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
-import { useConvert } from 'src/pages/Convert/ConvertContext'
 import { findMatchingBridge } from 'src/utils'
 import { l2Networks } from 'src/config/networks'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
+import { useConvert } from 'src/pages/Convert/ConvertContext'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -53,7 +53,7 @@ const Convert: FC = () => {
     }
   }, [viaParamValue, navigate])
 
-  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleBridgeChange = (event: any) => {
     const tokenSymbol = event.target.value as string
 
     const bridge = findMatchingBridge(bridges, tokenSymbol)
@@ -62,7 +62,7 @@ const Convert: FC = () => {
     }
   }
 
-  const handleTabChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleTabChange = (event: any) => {
     const value = event.target.value as string
     setViaParamValue(value)
     navigate(`/convert/${value}${search}`)

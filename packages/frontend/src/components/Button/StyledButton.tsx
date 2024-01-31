@@ -1,7 +1,6 @@
-import React from 'react'
-import { composedStyleFns, ComposedStyleProps } from 'src/utils'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { Button } from 'src/components/Button/Button'
+import { ComposedStyleProps, composedStyleFns } from 'src/utils'
 
 interface StyleProps {
   highlighted?: boolean
@@ -21,7 +20,6 @@ type StylishButtonProps = ComposedStyleProps & StyleProps
 
 export const StyledButton = styled(Button)<StylishButtonProps>`
   text-transform: 'none';
-  transition: 'all 0.15s ease-out';
   white-space: nowrap;
 
   ${({ large }: any) => {
@@ -41,7 +39,6 @@ export const StyledButton = styled(Button)<StylishButtonProps>`
   ${({ disabled }: any) => {
     if (disabled) {
       return `
-        transition: all 0.15s ease-out;
         color: #FDF7F9;
         background: none;
       `

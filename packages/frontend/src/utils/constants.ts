@@ -1,7 +1,7 @@
+import Network from 'src/models/Network'
 import { ChainSlug, Token } from '@hop-protocol/sdk'
 import { networks } from '@hop-protocol/core/networks'
 import { tokens } from '@hop-protocol/core/metadata/tokens'
-import Network from 'src/models/Network'
 
 export const L1_NETWORK = ChainSlug.Ethereum
 

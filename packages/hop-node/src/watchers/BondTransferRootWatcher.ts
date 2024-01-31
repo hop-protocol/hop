@@ -8,8 +8,8 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
 import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
@@ -34,7 +34,7 @@ export type SendBondTransferRootTxParams = {
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
+  override siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
 
   constructor (config: Config) {
     super({
@@ -46,7 +46,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await this.checkTransfersCommittedFromDb()
   }
 
@@ -162,7 +162,7 @@ class BondTransferRootWatcher extends BaseWatcher {
           availableCredit
         )}, need ${this.bridge.formatUnits(bondAmount)}`
       logger.error(msg)
-      this.notifier.error(msg)
+      await this.notifier.error(msg)
       return
     }
 
@@ -191,7 +191,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
       const transferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
@@ -243,7 +243,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   getAvailableCreditForBond (destinationChainId: number) {
-    const baseAvailableCredit = this.availableLiquidityWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
+    const baseAvailableCredit = this.availableLiquidityWatcher.getBaseAvailableCredit(destinationChainId)
     return baseAvailableCredit
   }
 
@@ -286,7 +286,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
     const logger = this.logger.create({ root: txParams.transferRootId })
     logger.debug('validating uniqueness')
-    const transferIds = txParams.transferIds.map((x: string) => x.toLowerCase())
+
+    // Empty transferIds should only occur during times where event data is missed.
+    const txParamTransferIds = txParams?.transferIds ?? []
+    if (!txParamTransferIds.length) {
+      logger.debug('no transferIds to validate')
+      return
+    }
+    const transferIds = txParamTransferIds.map((x: string) => x.toLowerCase())
 
     // Only use roots that are not the current root, from the source chain, and have associated transferIds
     const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromWeek())

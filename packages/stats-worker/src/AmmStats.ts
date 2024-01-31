@@ -1,14 +1,14 @@
 import { BigNumber } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
-import { db } from './Db'
 import { PriceFeed } from './PriceFeed'
-import { queryFetch } from './utils/queryFetch'
-import { nearestDate } from './utils/nearestDate'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+import { db } from './Db'
 import { enabledChains, enabledTokens } from './config'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getSubgraphUrl } from './utils/getSubgraphUrl'
+import { getTokenDecimals } from './utils/getTokenDecimals'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { nearestDate } from './utils/nearestDate'
+import { queryFetch } from './utils/queryFetch'
 
 type Options = {
   regenesis?: boolean
@@ -86,7 +86,7 @@ export class AmmStats {
       return []
     }
 
-    let items = data.tokenSwaps
+    const items = data.tokenSwaps
 
     try {
       if (items.length === 1000) {
@@ -121,8 +121,8 @@ export class AmmStats {
     console.log('done fetching prices')
 
     console.log('upserting prices')
-    for (let token in prices) {
-      for (let data of prices[token]) {
+    for (const token in prices) {
+      for (const data of prices[token]) {
         const price = data[1]
         const timestamp = data[0]
         try {

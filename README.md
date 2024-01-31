@@ -2,8 +2,6 @@
 
 > The [Hop Protocol](https://hop.exchange/) v1 monorepo
 
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
-
 ## Packages
 
 | Library                                                       | Current Version                                                                                                                                   | Description                                 |
@@ -21,15 +19,32 @@
 
 Install dependencies & link packages
 
-    npm install
-    npm run bootstrap
+```bash
+npm install
+npm run build
+```
 
-Run frontend app in development
+#### Guidelines for using NPM workspaces
 
-    cd packages/frontend
-    REACT_APP_NETWORK=mainnet npm run dev
+All commands should be run from the root of the monorepo.
 
-Visit [http://localhost:3000/](http://localhost:3000/)
+```bash
+# Install a single package
+npm install -w <package_name>
+
+# Build a single package
+npm run build -w <package_name>
+
+# Run an NPM script in all packages
+npm run build --workspaces
+
+```
+
+**If you are developing on a single package only and need to ignore the rest of the packages**, you need to install with `--include-workspace-root`. This is because the installation of a single package does not install the root’s dependencies, which are usually needed for building and linting.
+
+```bash
+npm install -w @<package_name> --include-workspace-root
+```
 
 ## Contributing
 

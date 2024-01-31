@@ -1,6 +1,6 @@
 import '../moduleAlias'
 import Logger from 'src/logger'
-import packageJson from '../../package.json'
+import { execSync } from 'child_process'
 import { program } from './shared'
 
 import './arbBot'
@@ -43,7 +43,6 @@ import './unsettledRoots'
 import './unstake'
 import './unwithdrawnTransfers'
 import './updateConfig'
-import './vault'
 import './verifyAwsSigner'
 import './verifyChainBalance'
 import './verifyCommits'
@@ -54,7 +53,8 @@ import './withdrawalProof'
 import './metrics/bonderBalance'
 import './metrics/bonderTxCost'
 
-program.version(packageJson.version)
+const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
+program.version(`Version: ${gitRev ?? 'unknown'}`)
 program.parse(process.argv)
 
 const logger = new Logger('process')

@@ -15,6 +15,6 @@ export class S3 {
       }
     }
 
-    return null
+    throw new Error(`Price not found for ${symbol}`)
   }
 }

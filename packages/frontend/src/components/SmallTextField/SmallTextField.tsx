@@ -1,8 +1,8 @@
+import InputAdornment from '@mui/material/InputAdornment'
+import MuiTextField, { TextFieldProps } from '@mui/material/TextField'
 import React, { FC, ReactNode } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import MuiTextField, { TextFieldProps } from '@material-ui/core/TextField'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
 
 type SmallTextFieldProps = {
   units?: string | ReactNode

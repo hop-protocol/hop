@@ -1,0 +1,52 @@
+name: Build and Push Hop Node Docker Image
+
+on:
+  push:
+    branches:
+      - production-bonder
+      - mainnet-bonder
+      - develop-bonder
+      - goerli-bonder
+      - sepolia-bonder
+
+jobs:
+  build-hop-node:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOCKER_IMAGE: hopprotocol/hop-node
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build application Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./packages/hop-node/Dockerfile
+          build-args: GIT_REV=${{ github.sha }}
+          tags: app
+          load: true
+          push: false
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Push Hop Node Docker image to Docker Hub
+        run: |
+          BRANCH=${GITHUB_REF##*/}
+          BRANCH=$(echo $BRANCH | sed 's/\//-/g' | sed 's/-bonder//g')
+          docker tag app $DOCKER_IMAGE:${{ github.sha }}
+          docker tag app $DOCKER_IMAGE:$BRANCH
+          docker push $DOCKER_IMAGE:${{ github.sha }}
+          docker push $DOCKER_IMAGE:$BRANCH
+          if [ "$BRANCH" == "production" ]; then
+            docker tag app $DOCKER_IMAGE:latest
+            docker push $DOCKER_IMAGE:latest
+          fi

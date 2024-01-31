@@ -6,8 +6,8 @@ import getChainBridge from 'src/chains/getChainBridge'
 import { EnforceRelayerFee, RelayTransactionBatchSize, config as globalConfig } from 'src/config'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { IChainBridge } from 'src/chains/IChainBridge'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import {
   MessageInFlightError,
   MessageInvalidError,
@@ -31,7 +31,7 @@ type Config = {
 }
 
 class RelayWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: RelayWatcher }
+  override siblingWatchers: { [chainId: string]: RelayWatcher }
   private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {
@@ -48,7 +48,7 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await Promise.all([
       this.checkTransferSentToL2FromDb(),
       this.checkRelayableTransferRootsFromDb()
@@ -202,7 +202,7 @@ class RelayWatcher extends BaseWatcher {
 
       const msg = `sent relay on ${destinationChainId} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendTransferRelayErr err:', err)
 
@@ -343,7 +343,7 @@ class RelayWatcher extends BaseWatcher {
       )
       const msg = `transferRootSet dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err) {
       logger.error('transferRootSet error:', err.message)
 
@@ -395,7 +395,7 @@ class RelayWatcher extends BaseWatcher {
       `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex ?? 0} l1TxHash: ${transferSentTxHash}`
     )
     logger.debug('checkTransferSentToL2 l2Bridge.distribute')
-    return await this.sendRelayTx(destinationChainId, transferSentTxHash, messageIndex)
+    return this.sendRelayTx(destinationChainId, transferSentTxHash, messageIndex)
   }
 
   async sendTransferRootRelayTx (destinationChainId: number, transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
@@ -403,7 +403,7 @@ class RelayWatcher extends BaseWatcher {
     logger.debug(
       `relay root destinationChainId with txHash ${txHash}`
     )
-    return await this.sendRelayTx(destinationChainId, txHash)
+    return this.sendRelayTx(destinationChainId, txHash)
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {

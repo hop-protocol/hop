@@ -54,7 +54,7 @@ async function printAmounts (bridge: L2Bridge | L1Bridge) {
   logger.debug('allowance:', bridge.formatUnits(allowance))
 }
 
-async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
+async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
   if (isEthSend) {
     return
@@ -70,5 +70,5 @@ async function getTokenAllowance (bridge: L2Bridge | L1Bridge) {
   }
   const spender: string = bridge.getAddress()
   const token: Token = (await getToken(bridge)) as Token
-  return await token.getAllowance(spender)
+  return token.getAllowance(spender)
 }

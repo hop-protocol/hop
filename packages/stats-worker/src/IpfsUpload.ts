@@ -4,11 +4,18 @@ import pinataSDK from '@pinata/sdk'
 import { pinataApiKey, pinataSecretApiKey } from './config'
 
 class IpfsUpload {
-  pinata = pinataSDK(pinataApiKey, pinataSecretApiKey)
+  pinata: any
   dirName = 'generated'
 
   constructor () {
-    this.pinata.testAuthentication().catch(err => {
+    if (!pinataApiKey) {
+      throw new Error('pinataApiKey not found')
+    }
+    if (!pinataSecretApiKey) {
+      throw new Error('pinataSecretApiKey not found')
+    }
+    this.pinata = pinataSDK(pinataApiKey, pinataSecretApiKey)
+    this.pinata.testAuthentication().catch((err: any) => {
       console.error(err)
     })
   }

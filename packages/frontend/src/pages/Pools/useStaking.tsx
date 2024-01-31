@@ -1,15 +1,15 @@
-import React, { useMemo, useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
-import { StakingRewards__factory, ERC20__factory } from '@hop-protocol/core/contracts'
-import { commafy, getTokenImage, findMatchingBridge, isRewardsExpired as isRewardsExpiredCheck, calculateStakedPosition, findNetworkBySlug, formatError } from 'src/utils'
+import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/core/contracts'
+import { calculateStakedPosition, commafy, findMatchingBridge, findNetworkBySlug, formatError, getTokenImage, isRewardsExpired as isRewardsExpiredCheck } from 'src/utils'
 import { formatTokenDecimalString } from 'src/utils/format'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { stableCoins } from 'src/utils/constants'
 import { useApp } from 'src/contexts/AppContext'
 import { useApprove, useAsyncMemo } from 'src/hooks'
+import { useEffect, useMemo, useState } from 'react'
 import { usePoolStats } from 'src/pages/Pools/usePoolStats'
 import { useQuery } from 'react-query'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { stableCoins } from 'src/utils/constants'
 
 export function useStaking (chainSlug: string, tokenSymbol: string, stakingContractAddress: string) {
   const { bridges, sdk, txConfirm } = useApp()
@@ -352,7 +352,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
       setIsApproving(true)
       setError('')
-      await approve(parsedAmount, lpToken!, stakingContractAddress)
+      await approve(parsedAmount, lpToken, stakingContractAddress)
     } catch (err) {
       console.error(err)
       setError(formatError(err))

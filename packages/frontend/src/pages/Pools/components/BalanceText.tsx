@@ -1,6 +1,6 @@
+import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { BigNumber } from 'ethers'
 import { Link } from 'react-router-dom'
 import { sanitizeNumericalString } from 'src/utils'
@@ -17,7 +17,7 @@ export function BalanceText(props: Props) {
   const styles = useStyles()
   const { label, balanceFormatted, balanceBn, onClick } = props
 
-  function handleClick (event: ChangeEvent<{}>) {
+  function handleClick (event: ChangeEvent<object>) {
     event.preventDefault()
     if (onClick) {
       const value = balanceBn ?? sanitizeNumericalString(balanceFormatted)

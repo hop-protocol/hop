@@ -1,17 +1,17 @@
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 import React from 'react'
-import { Flex, Icon } from 'src/components/ui'
-import { StyledLink } from 'src/components/ui/StyledLink'
+import Typography from '@mui/material/Typography'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { Button } from 'src/components/Button'
-import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
-import { correctClaimChain } from './claims'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
 import { DelegateIcon } from 'src/pages/Claim/DelegateIcon'
-import CircularProgress from '@material-ui/core/CircularProgress'
+import { Icon } from 'src/components/ui/Icon'
+import { StyledLink } from 'src/components/Link/StyledLink'
+import { correctClaimChain } from './claims'
+import { getEtherscanLink, getTruncatedHash, toTokenDisplay } from 'src/utils'
 
 export function Claiming(props: any) {
-  const { isDarkMode, claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props
+  const { claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props
 
   return (
     <Box display="flex" flexDirection="column">
@@ -21,11 +21,11 @@ export function Claiming(props: any) {
         </Typography>
       </Box>
 
-      <Flex
+      <Box
+        display="flex"
         p={3}
         px={4}
-        alignCenter
-        bg={isDarkMode ? '#1F1E23' : 'white'}
+        alignItems="center"
         borderRadius={'25px'}
         boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
       >
@@ -52,10 +52,10 @@ export function Claiming(props: any) {
             </Typography>
           </Box>
         </Box>
-      </Flex>
+      </Box>
 
       {tx && (
-        <Flex mt={3} justifyCenter color="secondary.main">
+        <Box display="flex" mt={3} justifyContent="center" color="secondary.main">
           Transaction:&nbsp;
           <StyledLink
             href={getEtherscanLink(
@@ -66,7 +66,7 @@ export function Claiming(props: any) {
           >
             {getTruncatedHash(tx.transactionHash || tx.hash)} ↗
           </StyledLink>
-        </Flex>
+        </Box>
       )}
       {(showTryAgain && !claiming) && (
         <Box mt={4}>

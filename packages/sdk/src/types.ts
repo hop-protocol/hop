@@ -6,7 +6,7 @@ import { ChainSlug, TokenSymbol } from './constants'
 export type TChain = Chain | ChainSlug | string
 
 /** Token-ish type */
-export type TToken = Token | TokenSymbol | string
+export type TToken = Token | TokenSymbol  
 
 /** Amount-ish type alias */
 export type TAmount = BigNumberish

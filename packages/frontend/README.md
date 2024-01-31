@@ -10,12 +10,6 @@ Install dependencies:
 npm install
 ```
 
-Lerna link, to link hop core and sdk packages:
-
-```sh
-npx lerna link
-```
-
 Start app (uses `mainnet` network by default):
 
 ```sh
@@ -69,3 +63,9 @@ Make sure to set `if: true` in `debug.yml` first.
 | `preprod`    | mainnet | [preprod.hop.exchange](https://preprod.hop.exchange) | Beta     | Alternative mainnet pre-release environment |
 | `develop`    | mainnet | [dev.hop.exchange](https://dev.hop.exchange)         | Unstable | Unstable mainnet staging environment        |
 | `goerli`     | kovan   | [goerli.hop.exchange](https://goerli.hop.exchange)   | Stable   | Goerli staging environment                  |
+
+## FAQ
+
+- Q: I get the error `` when using `eslint` version `8` or higher.
+
+    - A: There are known issues with `react-scripts` version `4` when using newer versions of `eslint`. Use `eslint` version `7`.

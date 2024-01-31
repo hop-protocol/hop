@@ -1,30 +1,28 @@
-import React, { useState, ChangeEvent } from 'react'
-import { usePool } from '../PoolsContext'
-import Box from '@material-ui/core/Box'
-import { useParams } from 'react-router'
-import { Alert } from 'src/components/Alert'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import Typography from '@material-ui/core/Typography'
-import IconButton from '@material-ui/core/IconButton'
-import Tabs from '@material-ui/core/Tabs'
-import Tab from '@material-ui/core/Tab'
-import Skeleton from '@material-ui/lab/Skeleton'
-import { BigNumber } from 'ethers'
-import {
-  BNMin,
-  getTokenImage
-} from 'src/utils'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import React, { ChangeEvent, useState } from 'react'
+import Skeleton from '@mui/lab/Skeleton'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
+import Typography from '@mui/material/Typography'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
-import { stakingRewardTokens, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
-import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
-import { TopPoolStats } from 'src/pages/Pools/PoolDetails/TopPoolStats'
-import { BottomPoolStats } from 'src/pages/Pools/PoolDetails/BottomPoolStats'
-import { PoolEmptyState } from 'src/pages/Pools/PoolDetails/PoolEmptyState'
 import { AccountPosition } from 'src/pages/Pools/PoolDetails/AccountPosition'
-import { WithdrawForm } from 'src/pages/Pools/PoolDetails/WithdrawForm'
+import { Alert } from 'src/components/Alert'
+import { BigNumber } from 'ethers'
+import { BottomPoolStats } from 'src/pages/Pools/PoolDetails/BottomPoolStats'
 import { DepositForm } from 'src/pages/Pools/PoolDetails/DepositForm'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { PoolEmptyState } from 'src/pages/Pools/PoolDetails/PoolEmptyState'
 import { StakeForm } from 'src/pages/Pools/PoolDetails/StakeForm'
+import { TopPoolStats } from 'src/pages/Pools/PoolDetails/TopPoolStats'
+import { WithdrawForm } from 'src/pages/Pools/PoolDetails/WithdrawForm'
+import { bigNumberMin } from 'src/utils/bigNumberMin'
+import { getTokenImage } from 'src/utils/tokens'
+import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { useParams } from 'react-router'
+import { usePool } from '../PoolsContext'
+import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
 export function PoolDetails () {
   const styles = useStyles()
@@ -87,7 +85,7 @@ export function PoolDetails () {
   const navigate = useNavigate()
   const { search } = useLocation()
   const { tab } = useParams<{ tab: string }>()
-  const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
+  const [selectedTab, setSelectedTab] = useState(tab ?? 'deposit')
   const [selectedStaking, setSelectedStaking] = useState<string>('0')
   const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)
 
@@ -96,19 +94,19 @@ export function PoolDetails () {
     setSelectedTab(value)
   }
 
-  function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
+  function handleTabChange(event: ChangeEvent<object>, newValue: string) {
     event.preventDefault()
     goToTab(newValue)
   }
 
-  function handleStakingChange(event: ChangeEvent<{}>, newValue: string): void {
+  function handleStakingChange(event: ChangeEvent<object>, newValue: string): void {
     event.preventDefault()
     setSelectedStaking(newValue)
   }
 
-  const totalAmount = BigNumber.from(token0Deposited || 0).add(BigNumber.from(token1Deposited || 0))
-  const token0Max = BNMin(poolReserves[0], totalAmount)
-  const token1Max = BNMin(poolReserves[1], totalAmount)
+  const totalAmount = BigNumber.from(token0Deposited ?? 0).add(BigNumber.from(token1Deposited ?? 0))
+  const token0Max = bigNumberMin(poolReserves[0], totalAmount)
+  const token1Max = bigNumberMin(poolReserves[1], totalAmount)
 
   const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
   const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
@@ -232,10 +230,10 @@ export function PoolDetails () {
                       setToken0Amount={setToken0Amount}
                       setToken1Amount={setToken1Amount}
                       token0Amount={token0Amount}
-                      token0ImageUrl={canonicalToken?.imageUrl!}
+                      token0ImageUrl={canonicalToken!.imageUrl}
                       token0Symbol={canonicalTokenSymbol}
                       token1Amount={token1Amount}
-                      token1ImageUrl={hopToken?.imageUrl!}
+                      token1ImageUrl={hopToken!.imageUrl}
                       token1Symbol={hopTokenSymbol}
                       tokenDecimals={tokenDecimals}
                       walletConnected={walletConnected}
@@ -251,7 +249,7 @@ export function PoolDetails () {
                       setToken1Amount={setToken1Amount}
                       token0Amount={token0Amount}
                       token0AmountBn={token0Deposited}
-                      token0ImageUrl={canonicalToken?.imageUrl!}
+                      token0ImageUrl={canonicalToken!.imageUrl}
                       token0MaxBn={token0Max}
                       token0Symbol={canonicalTokenSymbol}
                       token1Amount={token1Amount}
@@ -259,7 +257,7 @@ export function PoolDetails () {
                       token1ImageUrl={hopToken?.imageUrl}
                       token1MaxBn={token1Max}
                       token1Symbol={hopTokenSymbol}
-                      tokenDecimals={canonicalToken?.decimals!}
+                      tokenDecimals={canonicalToken!.decimals}
                       totalAmount={totalAmount}
                       walletConnected={walletConnected}
                   />}

@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import wait from 'src/utils/wait'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { BigNumber, providers, utils } from 'ethers'
@@ -103,7 +102,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     }
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  override async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
@@ -222,6 +221,6 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(messageStatus)
     const url = `${this.apiUrl}/${l2Block.blockNumber}`
     const res = await fetch(url)
-    return res.json()
+    return (await res.json() as PolygonApiRes)
   }
 }

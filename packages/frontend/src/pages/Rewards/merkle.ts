@@ -1,7 +1,7 @@
-import { BigNumber } from 'ethers'
-import { solidityKeccak256 } from 'ethers/lib/utils'
-import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
+import { BigNumber } from 'ethers'
+import { MerkleTree } from 'merkletreejs'
+import { solidityKeccak256 } from 'ethers/lib/utils'
 
 function hashLeaf ([address, entry]) {
   const salt = keccak256('MERKLE_REWARDS_LEAF_HASH')

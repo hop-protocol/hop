@@ -1,10 +1,10 @@
-import { BigNumber, constants } from 'ethers'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { useApp } from 'src/contexts/AppContext'
-import { Token, Chain } from '@hop-protocol/sdk'
 import Transaction from 'src/models/Transaction'
+import { BigNumber, constants } from 'ethers'
+import { Chain, Token } from '@hop-protocol/sdk'
 import { toTokenDisplay } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
 import { useTransactionReplacement } from 'src/hooks/useTransactionReplacement'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useApprove = (token: any) => {
   const { provider } = useWeb3Context()

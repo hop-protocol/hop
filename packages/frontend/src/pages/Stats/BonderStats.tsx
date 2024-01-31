@@ -1,9 +1,9 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import { useStats } from 'src/pages/Stats/StatsContext'
-import { Icon } from 'src/components/ui'
-import Box from '@material-ui/core/Box'
-import { RightAlignedValue, SortableTable } from 'src/components/Table'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import { Icon } from 'src/components/ui/Icon'
+import { RightAlignedValue, SortableTable } from 'src/components/Table'
+import { useStats } from 'src/pages/Stats/StatsContext'
 
 export const populateBonderStats = (item: any) => {
   return {
@@ -16,7 +16,6 @@ export const populateBonderStats = (item: any) => {
     pendingAmount: item.pendingAmount,
     totalAmount: item.totalAmount,
     availableNative: item.availableNative,
-    vaultBalance: item.vaultBalance,
   }
 }
 
@@ -90,12 +89,7 @@ function BonderStats() {
             Header: 'Available Native',
             accessor: 'availableNative',
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
-          },
-          {
-            Header: 'Vault Balance',
-            accessor: 'vaultBalance',
-            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
-          },
+          }
         ],
       },
     ],

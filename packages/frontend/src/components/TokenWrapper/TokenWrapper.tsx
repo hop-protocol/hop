@@ -1,19 +1,18 @@
+import Box from '@mui/material/Box'
+import Expandable from 'src/components/TokenWrapper/Expandable'
+import Network from 'src/models/Network'
 import React, { FC, useEffect } from 'react'
-import { constants } from 'ethers'
-import { makeStyles } from '@material-ui/core/styles'
-import { Button } from 'src/components/Button'
 import { Alert } from 'src/components/Alert'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { Button } from 'src/components/Button'
+import { constants } from 'ethers'
+import { makeStyles } from '@mui/styles'
 import { useTokenWrapper } from './TokenWrapperContext'
-import Network from 'src/models/Network'
-import Expandable from 'src/components/TokenWrapper/Expandable'
-import { Div, Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   button: {
     margin: `0 ${theme.padding.light}`,
-    minWidth: '11rem',
-    transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
+    minWidth: '11rem'
   },
   warning: {
     marginBottom: theme.padding.default,
@@ -72,8 +71,8 @@ const TokenWrapper: FC<Props> = (props: Props) => {
 
   return (
     <Expandable title={`Click here to Wrap or Unwrap ${tokenSymbol}`}>
-      <Flex alignCenter my={1} justifyAround fullWidth>
-        <Flex column alignCenter fullWidth>
+      <Box display="flex" alignItems="center" my={1} justifyContent="space-around" width="100%">
+        <Box display="flex" flexDirection="column" alignItems="center" width="100%">
           <AmountSelectorCard
             secondaryToken={canonicalToken}
             secondaryBalance={canonicalTokenBalance}
@@ -94,8 +93,8 @@ const TokenWrapper: FC<Props> = (props: Props) => {
             maxButtonLeaveSmallAmount={true}
           />
 
-          <Flex my={3} fullWidth justifyAround alignCenter $wrap>
-            <Div mb={[3]}>
+          <Box display="flex" my={3} width="100%" justifyContent="space-around" alignItems="center" flexWrap="wrap">
+            <Box mb={[3]}>
               <Button
                 className={styles.button}
                 highlighted={hasNativeToken}
@@ -105,8 +104,8 @@ const TokenWrapper: FC<Props> = (props: Props) => {
               >
                 Wrap
               </Button>
-            </Div>
-            <Div mb={[3]}>
+            </Box>
+            <Box mb={3}>
               <Button
                 className={styles.button}
                 highlighted={hasWrappedToken}
@@ -116,14 +115,14 @@ const TokenWrapper: FC<Props> = (props: Props) => {
               >
                 Unwrap
               </Button>
-            </Div>
-          </Flex>
+            </Box>
+          </Box>
 
-          <Flex alignCenter fullWidth>
+          <Box display="flex" alignItems="center" width="100%">
             <Alert severity="error" onClose={() => setError(null)} text={error} />
-          </Flex>
-        </Flex>
-      </Flex>
+          </Box>
+        </Box>
+      </Box>
     </Expandable>
   )
 }

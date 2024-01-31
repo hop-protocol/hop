@@ -1,40 +1,40 @@
+import Address from 'src/models/Address'
+import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
+import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
+import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import Network from 'src/models/Network'
 import React, {
   FC,
+  ReactNode,
   createContext,
   useContext,
-  useState,
+  useEffect,
   useMemo,
   useRef,
-  useEffect,
-  ReactNode,
-  ChangeEvent,
+  useState,
 } from 'react'
+import Transaction from 'src/models/Transaction'
+import find from 'lodash/find'
+import logger from 'src/logger'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { BigNumber } from 'ethers'
-import { useLocation, useParams } from 'react-router-dom'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { Token } from '@hop-protocol/sdk'
-import find from 'lodash/find'
-import Network from 'src/models/Network'
-import Address from 'src/models/Address'
-import Transaction from 'src/models/Transaction'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import logger from 'src/logger'
-import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
-import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
-import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import { toTokenDisplay, commafy } from 'src/utils'
+import { amountToBN, formatError } from 'src/utils/format'
+import { commafy, toTokenDisplay } from 'src/utils'
 import { defaultL2Network, l1Network } from 'src/config/networks'
+import { useApp } from 'src/contexts/AppContext'
 import {
-  useTransactionReplacement,
   useApprove,
+  useAssets,
   useBalance,
   useNeedsTokenForFee,
-  useAssets,
   useSelectedNetwork,
+  useTransactionReplacement,
 } from 'src/hooks'
-import { formatError, amountToBN } from 'src/utils/format'
+import { useLocation, useParams } from 'react-router-dom'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 type ConvertContextProps = {
   address: Address | undefined
@@ -52,7 +52,7 @@ type ConvertContextProps = {
   loadingSourceBalance: boolean
   needsApproval?: boolean
   needsTokenForFee?: boolean
-  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  selectBothNetworks: (event: SelectChangeEvent<unknown>) => void
   selectedNetwork?: Network
   sending: boolean
   setDestTokenAmount: (value: string) => void
@@ -118,7 +118,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     () => find(
       convertOptions,
       option => pathname.includes(option.path) || option.path.includes(viaParamValue)
-    ) || convertOptions[0],
+    ) ?? convertOptions[0],
     [pathname, viaParamValue]
   )
 
@@ -313,7 +313,8 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         destNetwork
       )
 
-      return checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+      const isApprovalOk = await checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
+      return isApprovalOk
     } catch (err: any) {
       logger.error(err)
     }

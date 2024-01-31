@@ -45,19 +45,9 @@ jobs:
         working-directory: .
         run: npm install -g pnpm@latest only-allow@latest
 
-      - name: Install local dependencies
-        if: env.VERSION_MISMATCH == 'true'
-        working-directory: .
-        run: pnpm --filter @hop-protocol/sdk install
-
-      - name: Build packages
-        if: env.VERSION_MISMATCH == 'true'
-        working-directory: .
-        run: pnpm --filter @hop-protocol/sdk build
-
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
-        working-directory: packages/sdk
+        working-directory: .
         run: pnpm --filter @hop-protocol/sdk publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

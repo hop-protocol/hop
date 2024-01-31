@@ -271,7 +271,6 @@ const Send: FC = () => {
         </ButtonsWrapper>
       }
 
-        <Alert severity="error" onClose={() => setInfo('')} text={'test'} />
       <Box mt={1}>
         <Alert severity="info" onClose={() => setInfo('')} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}

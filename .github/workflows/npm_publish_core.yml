@@ -52,6 +52,6 @@ jobs:
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
         working-directory: packages/core
-        run: pnpm --filter @hop-protocol/core publish --tag latest --access public --publish-branch develop
+        run: pnpm --filter @hop-protocol/core publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

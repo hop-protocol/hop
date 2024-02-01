@@ -147,7 +147,7 @@ class IncompleteSettlementsWatcher {
       const startBlockNumber = await getBlockNumberFromDate(chain, timestamp)
       this.startBlockNumbers[chain] = startBlockNumber
 
-      const provider = getRpcProvider(chain)!
+      const provider = getRpcProvider(chain)
       let endBlockNumber: number
       if (this.offsetDays) {
         const date = DateTime.fromMillis(Date.now()).minus({ days: this.offsetDays })
@@ -192,7 +192,7 @@ class IncompleteSettlementsWatcher {
       }
       this.rootHashTotals[rootHash] = totalAmount
 
-      const provider = getRpcProvider(chain)!
+      const provider = getRpcProvider(chain)
       const { timestamp } = await provider.getBlock(log.blockNumber)
       this.rootHashTimestamps[rootHash] = timestamp
     }, { concurrency })
@@ -246,7 +246,7 @@ class IncompleteSettlementsWatcher {
   }
 
   private async setRootTransferIds (chain: string, token: string, log: any) {
-    const provider = getRpcProvider(chain)!
+    const provider = getRpcProvider(chain)
     const rootHash = log.args.rootHash
     const { data } = await provider.getTransaction(log.transactionHash)
     const contract = this.getContract(chain, token)
@@ -261,7 +261,7 @@ class IncompleteSettlementsWatcher {
   }
 
   private getContract (chain: string, token: string) {
-    const provider = getRpcProvider(chain)!
+    const provider = getRpcProvider(chain)
     const config = mainnetAddresses.bridges[token as AssetSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
     if (!config) {
       throw new Error(`Could not find bridge config for ${token} on ${chain}`)

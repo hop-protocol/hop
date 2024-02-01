@@ -44,9 +44,9 @@ export const StyledButton = styled(Button)<StylishButtonProps>`
       `
     }
   }};
-  ${({ highlighted, theme }: any) => (highlighted ? `color: white};` : theme.colors.primary.main)};
+  ${({ highlighted, theme }: any) => (highlighted ? `color: white !important` : `color: ${theme.colors.primary.main}`)};
   ${({ secondary, theme }: any) => secondary && `color: ${theme.colors.secondary.main}`}
-  ${({ fullWidth, theme }: any) => fullWidth && `width: 100%`}
+  ${({ fullWidth }: any) => fullWidth && `width: 100%`}
 
   ${composedStyleFns};
 `

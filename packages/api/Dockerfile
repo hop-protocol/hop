@@ -7,7 +7,7 @@ COPY . /app
 WORKDIR /app
 
 FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
 RUN pnpm --filter=@hop-protocol/api build
 RUN pnpm --filter=@hop-protocol/api deploy --prod /prod/app
 

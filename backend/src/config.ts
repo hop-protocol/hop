@@ -165,6 +165,7 @@ const _integrationsMap : Record<string, string> = {
   '0x3a23f943181408eac424116af7b7790c94cb97a5': 'socket', // socket gateway
   '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
   '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae': 'lifi',
+  '0xde1e598b81620773454588b85d6b5d4eec32573e': 'lifi',
   '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask',
   '0x0439e60f02a8900a951603950d8d4527f400c3f1': 'metamask', // mainnet
   '0xb90357f2b86dbfd59c3502215d4060f71df8ca0e': 'metamask', // optimism

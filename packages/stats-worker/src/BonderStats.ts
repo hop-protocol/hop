@@ -128,7 +128,7 @@ class BonderStats {
       const days = Array(this.days)
         .fill(0)
         .map((n, i) => n + i)
-      const chunkSize = 10
+      const chunkSize = 1
       const allChunks = chunk(days, chunkSize)
       const csv: any[] = []
       for (const chunks of allChunks) {
@@ -698,7 +698,7 @@ class BonderStats {
       const days = Array(this.days)
         .fill(0)
         .map((n, i) => n + i)
-      const chunkSize = 10
+      const chunkSize = 1
       const allChunks = chunk(days, chunkSize)
       let csv: any[] = []
       for (const chunks of allChunks) {

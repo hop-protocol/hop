@@ -124,12 +124,12 @@ export class ArbBot {
     this.sdk = new Hop({
       network: this.network,
       chainProviders: {
-        ethereum: getRpcProvider('ethereum')!,
-        polygon: getRpcProvider('polygon')!,
-        gnosis: getRpcProvider('gnosis')!,
-        arbitrum: getRpcProvider('arbitrum')!,
-        optimism: getRpcProvider('optimism')!,
-        linea: getRpcProvider('linea')!
+        ethereum: getRpcProvider('ethereum'),
+        polygon: getRpcProvider('polygon'),
+        gnosis: getRpcProvider('gnosis'),
+        arbitrum: getRpcProvider('arbitrum'),
+        optimism: getRpcProvider('optimism'),
+        linea: getRpcProvider('linea')
       }
     })
 

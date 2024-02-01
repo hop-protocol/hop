@@ -154,7 +154,7 @@ async function getBalance (chain: string, accountAddress: string, tokenAddress: 
 }
 
 async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {
-  const res = await getRpcProvider(chain)!.getBalance(accountAddress, blockNumber)
+  const res = await getRpcProvider(chain).getBalance(accountAddress, blockNumber)
   return BigNumber.from(res)
 }
 
@@ -168,7 +168,7 @@ async function getTokenBalance (chain: string, accountAddress: string, tokenAddr
     to: tokenAddress,
     data
   }
-  const res = await getRpcProvider(chain)!.call(tx, blockNumber)
+  const res = await getRpcProvider(chain).call(tx, blockNumber)
   if (res === '0x') {
     // Will occur if the token does not exist at the block number
     return BigNumber.from('0')

@@ -31,8 +31,8 @@ async function main () {
     throw new Error('watcher not found')
   }
 
-  const l1Provider = getRpcProvider(Chain.Ethereum)!
-  const l2Provider = getRpcProvider(chain)!
+  const l1Provider = getRpcProvider(Chain.Ethereum)
+  const l2Provider = getRpcProvider(chain)
   const chainBridge = getChainBridge(chain)
 
   const { l2TxHash, l2BlockNumber } = await _getL2TxHashToTest(chain, l2Provider)

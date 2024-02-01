@@ -10,7 +10,7 @@
     "pnpm": ">=8"
   },
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "pnpm recursive run clean && rm -rf tsconfig.buildinfo && rm -rf node_modules",
     "build": "pnpm recursive run build",
     "lint": "pnpm recursive run lint"

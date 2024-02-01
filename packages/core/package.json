@@ -58,7 +58,7 @@
     }
   },
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./abi ./addresses ./config ./contracts ./metadata ./networks",
     "test": "jest test",
     "dev": "pnpm version && tsc --watch",

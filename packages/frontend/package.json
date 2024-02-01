@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
     "start": "SKIP_PREFLIGHT_CHECK=true REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-app-rewired start",
     "dev": "BROWSER=none pnpm start",

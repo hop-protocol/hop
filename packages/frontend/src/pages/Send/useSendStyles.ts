@@ -10,12 +10,12 @@ export const useSendStyles = makeStyles((theme: any) => ({
     marginBottom: '4.2rem',
   },
   sendLabel: {
-    marginRight: '1.8rem',
+    marginRight: '1.8rem !important',
   },
   downArrow: {
     margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem',
+    height: '2.4rem !important',
+    width: '2.4rem !important',
   },
   switchDirectionButton: {
     padding: 0,

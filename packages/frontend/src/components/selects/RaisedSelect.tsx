@@ -9,7 +9,7 @@ const useStyles = makeStyles(theme => ({
     height: '4.8rem',
     borderRadius: '2.3rem',
     paddingTop: '0.0rem',
-    paddingLeft: '1.8rem',
+    paddingLeft: '1.8rem !important',
     paddingBottom: '0.0rem',
     paddingRight: '2.8rem',
     '& .MuiSelect-select': {

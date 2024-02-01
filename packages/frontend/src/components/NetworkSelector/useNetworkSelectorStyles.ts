@@ -8,7 +8,7 @@ export const useNetworkSelectorStyles = makeStyles((theme: any) => ({
   },
   selectNetworkText: {
     fontSize: '1.4rem',
-    fontWeight: 700,
+    fontWeight: '700 !important',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     marginLeft: '0.4rem',

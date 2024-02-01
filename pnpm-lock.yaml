@@ -326,8 +326,8 @@ importers:
         specifier: 0.1.6
         version: 0.1.6(ts-node@10.9.2)
       '@eth-optimism/sdk':
-        specifier: 3.1.8
-        version: 3.1.8(ethers@5.7.2)
+        specifier: 3.1.4
+        version: 3.1.4(ethers@5.7.2)
       '@ethereumjs/rlp':
         specifier: 5.0.1
         version: 5.0.1
@@ -4745,8 +4745,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@eth-optimism/sdk@3.1.8(ethers@5.7.2):
-    resolution: {integrity: sha512-hvv7f3xE5JWIRN1lSiBUeRXdr2Ue+Ircgl612Gi/WvW1M3KGWQzCO0GYl858yheM8ROZOboOjSyKRy+ObubJkw==}
+  /@eth-optimism/sdk@3.1.4(ethers@5.7.2):
+    resolution: {integrity: sha512-gqbw/7KAwXSiFF7KN57oe3iz0kcOuSUTfnkAf0aZImmSbegPY5AWszxYvnQCIXcWRY0kaDf3LpXrHKur4TdgGA==}
     requiresBuild: true
     peerDependencies:
       ethers: ^5
@@ -5218,8 +5218,8 @@ packages:
   /@ethersproject/providers@5.5.3:
     resolution: {integrity: sha512-ZHXxXXXWHuwCQKrgdpIkbzMNJMvs+9YWemanwp1fA7XZEv7QlilseysPvQe0D7Q7DlkJX/w/bGA1MdgK2TbGvA==}
     dependencies:
-      '@ethersproject/abstract-provider': 5.5.1
-      '@ethersproject/abstract-signer': 5.5.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/address': 5.7.0
       '@ethersproject/basex': 5.5.0
       '@ethersproject/bignumber': 5.7.0

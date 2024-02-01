@@ -63,7 +63,7 @@ async function main (source: any) {
         to: address,
         data: validFunctionSig
       }
-      const provider = getRpcProvider(chain)!
+      const provider = getRpcProvider(chain)
 
       // If the bonder does not have funds on the chain, skip
       const balance = await provider.getBalance(address)

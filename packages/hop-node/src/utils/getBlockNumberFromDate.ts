@@ -31,7 +31,7 @@ async function getBlockNumberFromDateUsingEtherscan (chain: string, timestamp: n
 }
 
 async function getBlockNumberFromDateUsingLib (chain: string, timestamp: number): Promise<number> {
-  const provider = getRpcProvider(chain)!
+  const provider = getRpcProvider(chain)
   const blockDater = new BlockDater(provider)
   const date = DateTime.fromSeconds(timestamp).toJSDate()
 

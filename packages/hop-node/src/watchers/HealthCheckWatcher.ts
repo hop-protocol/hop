@@ -541,9 +541,9 @@ export class HealthCheckWatcher {
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
     // TODO: Add Arbitrum and Optimism
     const chainProviders: Record<string, providers.Provider> = {
-      [Chain.Ethereum]: getRpcProvider(Chain.Ethereum)!,
-      [Chain.Gnosis]: getRpcProvider(Chain.Gnosis)!,
-      [Chain.Polygon]: getRpcProvider(Chain.Polygon)!
+      [Chain.Ethereum]: getRpcProvider(Chain.Ethereum),
+      [Chain.Gnosis]: getRpcProvider(Chain.Gnosis),
+      [Chain.Polygon]: getRpcProvider(Chain.Polygon)
     }
 
     const bonders = new Set<string>()
@@ -838,7 +838,7 @@ export class HealthCheckWatcher {
 
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
     const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
-    const provider = getRpcProvider(Chain.Ethereum)!
+    const provider = getRpcProvider(Chain.Ethereum)
     const endBlockNumber = Number((await provider.getBlockNumber()).toString())
     const startBlockNumber = endBlockNumber - blocksInDay
 
@@ -887,7 +887,7 @@ export class HealthCheckWatcher {
     // Note: Nova, Base, and Linea are unsupported here since there is no index-node subgraph for these chains
     const result: any = []
     for (const chain of chains) {
-      const provider = getRpcProvider(chain)!
+      const provider = getRpcProvider(chain)
       const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
       const syncedBlock = await provider.getBlock(syncedBlockNumber)
       if (!syncedBlock) {

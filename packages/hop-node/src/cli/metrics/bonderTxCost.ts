@@ -71,8 +71,7 @@ async function getUserTransactionsForDate (chain: string, startBlockNumber: numb
     params: [params]
   }
 
-  const rpcUrl = getRpcUrl(chain)!
-  const res = await fetch(rpcUrl, {
+  const res = await fetch(getRpcUrl(chain), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -102,8 +101,8 @@ async function getUserTransactionsForDate (chain: string, startBlockNumber: numb
 }
 
 async function getGasCost (chain: string, txHash: string): Promise<number> {
-  const receipt = await getRpcProvider(chain)!.getTransactionReceipt(txHash)
-  const block = await getRpcProvider(chain)!.getBlock(receipt.blockNumber)
+  const receipt = await getRpcProvider(chain).getTransactionReceipt(txHash)
+  const block = await getRpcProvider(chain).getBlock(receipt.blockNumber)
   const nativeToken = nativeChainTokens[chain]
 
   // Get bond gas data
@@ -124,8 +123,7 @@ async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> 
     return BigNumber.from(0)
   }
 
-  const rpcUrl = getRpcUrl(chain)!
-  const res = await fetch(rpcUrl, {
+  const res = await fetch(getRpcUrl(chain), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

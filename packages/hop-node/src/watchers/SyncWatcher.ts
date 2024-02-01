@@ -144,7 +144,7 @@ class SyncWatcher extends BaseWatcher {
 
     // TODO: This only works for Alchemy and Quiknode. Add WS url to config long term.
     if (wsEnabledChains.includes(this.chainSlug)) {
-      const wsProviderUrl = getRpcUrl(this.chainSlug)!.replace('https://', 'wss://')
+      const wsProviderUrl = getRpcUrl(this.chainSlug).replace('https://', 'wss://')
       const rpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(wsProviderUrl)
       if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
         this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
@@ -1719,7 +1719,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     this.logger.debug(`starting pollGasCost, chainSlug: ${this.chainSlug}`)
-    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
+    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)) as L1BridgeContract | L2BridgeContract
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)

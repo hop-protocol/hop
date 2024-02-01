@@ -913,7 +913,7 @@ export default class Bridge extends ContractBase {
           data,
           type: txType
         }
-        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(this.chainSlug)!, tx)
+        const l1FeeInWei = await estimateL1GasCost(getRpcProvider(this.chainSlug), tx)
         gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)

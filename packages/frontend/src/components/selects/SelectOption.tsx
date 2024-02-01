@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 0,
-    marginRight: '1rem',
+    marginRight: '1rem'
   },
   icon: {
     display: 'flex',

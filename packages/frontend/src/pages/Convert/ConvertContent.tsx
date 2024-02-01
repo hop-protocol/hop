@@ -32,8 +32,8 @@ const useStyles = makeStyles(theme => ({
   },
   downArrow: {
     margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem',
+    height: '2.4rem !important',
+    width: '2.4rem !important',
   },
   lastSelector: {
     marginBottom: '0'
@@ -257,7 +257,7 @@ const ConvertContent: FC = () => {
                 <ArrowDownIcon color="primary" className={styles.downArrow} />
               </IconButton>
             </Box>
-            <Box style={{ position: 'absolute', left: '65px', top: '22px', width: '200px' }} onClick={switchDirection}>
+            <Box style={{ position: 'absolute', left: '65px', top: '20px', width: '200px' }} onClick={switchDirection}>
               <Typography variant="body2" style={{ opacity: '0.2' }}>click to switch direction</Typography>
             </Box>
           </Box>

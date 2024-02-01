@@ -2538,7 +2538,7 @@ class HopBridge extends Base {
       chain = this.toChainModel(chain)
       const supported = this.getSupportedAssets()
       const token = this.toTokenModel(this.tokenSymbol)
-      return !!supported[chain?.slug]?.[token.canonicalSymbol] ?? false
+      return !!(supported[chain?.slug]?.[token.canonicalSymbol] ?? false)
     } catch (err: any) {
       console.error(err)
     }

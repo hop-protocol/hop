@@ -21,6 +21,11 @@
     "s3upload"
   ],
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js"
+    },
     "./abi": {
       "types": "./dist/abi/index.d.ts",
       "import": "./dist/abi/index.js",
@@ -50,6 +55,11 @@
       "types": "./dist/metadata/index.d.ts",
       "import": "./dist/metadata/index.js",
       "require": "./dist/cjs/metadata/index.js"
+    },
+    "./metadata/tokens": {
+      "types": "./dist/metadata/tokens.d.ts",
+      "import": "./dist/metadata/tokens.js",
+      "require": "./dist/cjs/metadata/tokens.js"
     },
     "./networks": {
       "types": "./dist/networks/index.d.ts",

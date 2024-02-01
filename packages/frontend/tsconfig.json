@@ -1,41 +1,25 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-
-    /**
-     * Custom, but should be removed over time as package gets modernized
-     */
-
-    // Needed for our absolute import since paths is overwritten in base config
-    "baseUrl": ".",
-    // These were set to true with strict in base config
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-
-    /**
-     * Automatically set by react-app-rewired
-     * Do not delete or else these will be re-added automatically on build.
-     * TODO: Long term, move away from react-app-rewired, if possible
-     */
-
-    "allowJs": true,
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "module": "esnext",
-    "moduleResolution": "node",
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "allowSyntheticDefaultImports": true
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": [
-    "src",
-    "src/**/*.json"
-  ]
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

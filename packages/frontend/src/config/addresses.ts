@@ -4,7 +4,7 @@ import { goerliAddresses, goerliNetworks } from 'src/config/goerli'
 import { mainnetAddresses, mainnetNetworks } from 'src/config/mainnet'
 import { sepoliaAddresses, sepoliaNetworks } from 'src/config/sepolia'
 
-const reactAppNetwork = process.env.REACT_APP_NETWORK ?? Slug.mainnet
+const reactAppNetwork = import.meta.env.VITE_NETWORK ?? Slug.mainnet
 let addresses: any
 let networks: any
 const isMainnet = reactAppNetwork === Slug.mainnet
@@ -24,7 +24,7 @@ if (isMainnet) {
   throw new Error(`Invalid network: ${reactAppNetwork}`)
 }
 
-let enabledTokens: string | string[] | undefined = process.env.REACT_APP_ENABLED_TOKENS
+let enabledTokens: string | string[] | undefined = import.meta.env.VITE_ENABLED_TOKENS
 if (enabledTokens) {
   enabledTokens = enabledTokens.split(',').map(x => x.trim())
   const filteredAddresses: { [key: string]: any } = {}
@@ -38,9 +38,9 @@ if (enabledTokens) {
 
 const chainsWithConfig = new Set(Object.values(addresses.tokens).map((x: any) => Object.keys(x)).flat())
 
-const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
+const deprecatedTokens = (import.meta.env.VITE_DEPRECATED_TOKENS ?? '').split(',')
 
-let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
+let enabledChains: string | string[] | undefined = import.meta.env.VITE_ENABLED_CHAINS
 if (enabledChains) {
   enabledChains = enabledChains.split(',').map(x => x.trim())
   const filteredNetworks: { [key: string]: any } = {}
@@ -60,7 +60,7 @@ if (enabledChains) {
   networks = filteredNetworks
 }
 
-if (process.env.NODE_ENV !== 'test') {
+if (import.meta.env.NODE_ENV !== 'test') {
   console.log(`
     __  __
    / / / /___  ____
@@ -75,10 +75,10 @@ if (process.env.NODE_ENV !== 'test') {
   console.debug('config react app network:', reactAppNetwork)
   console.debug('config chains (networks):', networks)
   console.debug('config addresses:', addresses.tokens)
-  console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
+  console.debug('deprecated tokens:', import.meta.env.VITE_DEPRECATED_TOKENS)
 }
 
-const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID
+const blocknativeDappid = import.meta.env.VITE_BNC_DAPP_ID
 
 const stakingRewardsContracts = {
   mainnet: {

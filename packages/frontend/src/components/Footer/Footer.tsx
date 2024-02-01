@@ -13,12 +13,12 @@ import {
   mediumUrl,
   twitterUrl,
 } from 'src/utils/constants'
-import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
+import discord from 'src/assets/logos/discord.svg'
 import { gitRevision } from 'src/config/config'
-import { ReactComponent as github } from 'src/assets/logos/github.svg'
+import github from 'src/assets/logos/github.svg'
 import { makeStyles } from '@mui/styles'
-import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
-import { ReactComponent as twitter } from 'src/assets/logos/twitter.svg'
+import medium from 'src/assets/logos/medium.svg'
+import twitter from 'src/assets/logos/twitter.svg'
 import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
@@ -76,7 +76,6 @@ export const Footer = () => {
               href={il.url}
               opacity={0.4}
             >
-              <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={il.image} />
             </StyledLink>
           </Box>
         ))}

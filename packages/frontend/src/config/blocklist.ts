@@ -1,5 +1,5 @@
 // blocklist is disabled by default, and only enabled if this env var is set
-const blocklistEnabled = process.env.REACT_APP_BLOCKLIST_ENABLED === 'true'
+const blocklistEnabled = import.meta.env.VITE_BLOCKLIST_ENABLED === 'true'
 
 // this list is from here:
 // https://github.com/ultrasoundmoney/ofac-ethereum-addresses

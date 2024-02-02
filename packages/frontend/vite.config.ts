@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 import path from 'path'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
+import legacy from '@vitejs/plugin-legacy'
 import { defineConfig } from 'vite'
 
 dotenv.config()
@@ -32,22 +33,8 @@ export default defineConfig({
     svgrOptions: {
       icon: true,
     },
-  })],
-
-  optimizeDeps: {
-    include: [
-      'linked-dep',
-      '@hop-protocol/core',
-      '@hop-protocol/core/abi',
-      '@hop-protocol/core/addresses',
-      '@hop-protocol/core/config',
-      '@hop-protocol/core/contracts',
-      '@hop-protocol/core/metadata',
-      '@hop-protocol/core/metadata/tokens',
-      '@hop-protocol/core/networks',
-      '@hop-protocol/sdk',
-    ],
-  },
+  }),
+  legacy()],
 
   resolve: {
     alias: {

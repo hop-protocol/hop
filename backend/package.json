@@ -41,7 +41,7 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "@hop-protocol/core": "^0.0.1-beta.218",
+    "@hop-protocol/core": "^0.0.1-beta.219",
     "@types/memory-cache": "^0.2.2",
     "@types/pidusage": "^2.0.2",
     "cors": "^2.8.5",

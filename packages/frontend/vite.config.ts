@@ -1,43 +1,57 @@
-import { defineConfig } from 'vite'
-import { viteCommonjs } from '@originjs/vite-plugin-commonjs'
-import react from '@vitejs/plugin-react'
+import dotenv from 'dotenv'
 import path from 'path'
+import react from '@vitejs/plugin-react'
+import svgr from 'vite-plugin-svgr'
+import { defineConfig } from 'vite'
+
+dotenv.config()
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  // plugins: [react(), viteCommonjs()],
+  base: process.env.PUBLIC_URL ?? '/',
+  server: {
+    port: 3000,
+  },
+
+  define: {
+    "process.env.REACT_APP_NETWORK": process.env.REACT_APP_NETWORK ? `"${process.env.REACT_APP_NETWORK}"` : undefined,
+    "process.env.REACT_APP_WARNING_ROUTES": process.env.REACT_APP_WARNING_ROUTES ? `"${process.env.REACT_APP_WARNING_ROUTES}"` : undefined,
+    "process.env.REACT_APP_DISABLED_ROUTES": process.env.REACT_APP_DISABLED_ROUTES ? `"${process.env.REACT_APP_DISABLED_ROUTES}"` : undefined,
+    "process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE": process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE ? `"${process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE}"` : undefined,
+    "process.env.REACT_APP_BLOCKLIST_ENABLED": process.env.REACT_APP_BLOCKLIST_ENABLED ? `"${process.env.REACT_APP_BLOCKLIST_ENABLED}"` : undefined,
+    "process.env.REACT_APP_ENABLED_TOKENS": process.env.REACT_APP_ENABLED_TOKENS ? `"${process.env.REACT_APP_ENABLED_TOKENS}"` : undefined,
+    "process.env.REACT_APP_DEPRECATED_TOKENS": process.env.REACT_APP_DEPRECATED_TOKENS ? `"${process.env.REACT_APP_DEPRECATED_TOKENS}"` : undefined,
+    "process.env.REACT_APP_ENABLED_CHAINS": process.env.REACT_APP_ENABLED_CHAINS ? `"${process.env.REACT_APP_ENABLED_CHAINS}"` : undefined,
+    "process.env.REACT_APP_BNC_DAPP_ID": process.env.REACT_APP_BNC_DAPP_ID ? `"${process.env.REACT_APP_BNC_DAPP_ID}"` : undefined,
+    "process.env.REACT_APP_SHOW_BANNER_MESSAGE": process.env.REACT_APP_SHOW_BANNER_MESSAGE ? `"${process.env.REACT_APP_SHOW_BANNER_MESSAGE}"` : undefined,
+    "process.env.REACT_APP_GIT_SHA": process.env.REACT_APP_GIT_SHA ? `"${process.env.REACT_APP_GIT_SHA}"` : undefined,
+    "process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS": process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS ? `"${process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS}"` : undefined,
+  },
+
+  plugins: [react(), svgr({
+    svgrOptions: {
+      icon: true,
+    },
+  })],
 
   optimizeDeps: {
-    include: ['linked-dep', '@hop-protocol/core', '@hop-protocol/sdk', '@hop-protocol/core/networks', '@hop-protocol/core/metadata', '@hop-protocol/core/metadata/tokens', '@hop-protocol/core/contracts', '@hop-protocol/core/addresses', '@hop-protocol/core/config'],
+    include: [
+      'linked-dep',
+      '@hop-protocol/core',
+      '@hop-protocol/core/abi',
+      '@hop-protocol/core/addresses',
+      '@hop-protocol/core/config',
+      '@hop-protocol/core/contracts',
+      '@hop-protocol/core/metadata',
+      '@hop-protocol/core/metadata/tokens',
+      '@hop-protocol/core/networks',
+      '@hop-protocol/sdk',
+    ],
   },
-  // commonjsOptions: {
-  //   esmExternals: true,
-  // },
-  // build: {
-  //   commonjsOptions: {
-  //     include: [/linked-dep/, /node_modules/],
-  //   },
-  // },
-
-  // optimizeDeps: {
-  //     exclude: ['@hop-protocol/core', '@hop-protocol/sdk'],
-  // },
 
   resolve: {
     alias: {
       'src': path.resolve(__dirname, './src'),
-      // '@hop-protocol/core': path.resolve(__dirname, 'node_modules/@hop-protocol/core'),
-      // '@hop-protocol/sdk': path.resolve(__dirname, 'node_modules/@hop-protocol/sdk/dist/index.js'),
-      // '@hop-protocol/sdk': path.resolve(__dirname, 'node_modules/@hop-protocol/sdk/src/index.ts'),
-      // '@hop-protocol/sdk/constants': path.resolve(__dirname, 'node_modules/@hop-protocol/sdk/src/constants/index.ts'),
-      // 'hop-protocol/core/metadata/tokens': path.resolve(__dirname, 'node_modules/@hop-protocol/core/src/metadata/tokens/index.ts'),
-      // 'hop-protocol/core/metadata': path.resolve(__dirname, 'node_modules/@hop-protocol/core/src/metadata/index.ts'),
-      // 'hop-protocol/core/networks': path.resolve(__dirname, 'node_modules/@hop-protocol/core/src/networks/index.ts'),
-      // 'hop-protocol/core/contracts': path.resolve(__dirname, 'node_modules/@hop-protocol/core/src/contracts/index.ts'),
-      // 'hop-protocol/core/addresses': path.resolve(__dirname, 'node_modules/@hop-protocol/core/src/addresses/index.ts'),
-      // 'hop-protocol/core/config': path.resolve(__dirname, 'node_modules/@hop-protocol/core/src/config/index.ts'),
-      // 'hop-protocol/core/abi': path.resolve(__dirname, 'node_modules/@hop-protocol/core/src/abi/index.ts'),
     },
   },
 })

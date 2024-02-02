@@ -1,6 +1,10 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
+import discord from 'src/assets/logos/discord.svg'
+import github from 'src/assets/logos/github.svg'
+import medium from 'src/assets/logos/medium.svg'
+import twitter from 'src/assets/logos/twitter.svg'
 import { StyledLink } from 'src/components/Link/StyledLink'
 import { SvgImg } from 'src/components/ui/SvgImg'
 import {
@@ -13,12 +17,8 @@ import {
   mediumUrl,
   twitterUrl,
 } from 'src/utils/constants'
-import discord from 'src/assets/logos/discord.svg'
 import { gitRevision } from 'src/config/config'
-import github from 'src/assets/logos/github.svg'
 import { makeStyles } from '@mui/styles'
-import medium from 'src/assets/logos/medium.svg'
-import twitter from 'src/assets/logos/twitter.svg'
 import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
@@ -76,6 +76,7 @@ export const Footer = () => {
               href={il.url}
               opacity={0.4}
             >
+              <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={<img src={il.image} />} />
             </StyledLink>
           </Box>
         ))}

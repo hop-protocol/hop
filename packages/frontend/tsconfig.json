@@ -1,25 +1,33 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Needed for our absolute import since paths is overwritten in base config
+    "baseUrl": ".",
+    // These were set to true with strict in base config
+    "noImplicitAny": false,
+    "strictNullChecks": false
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "src/**/*.json"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

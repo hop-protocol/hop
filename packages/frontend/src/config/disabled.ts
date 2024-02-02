@@ -83,7 +83,7 @@ export function parseDisabledRoutes(
         severity: 'warning'
       }
 
-      // Defaults to disabling the Send button. If VITE_WARNING_ROUTES contains a string,
+      // Defaults to disabling the Send button. If REACT_APP_WARNING_ROUTES contains a string,
       // that string will be displayed as the message, and the transaction can proceed.
       let warningOnly = false
       if (warningRoutes[i] && warningRoutes[i] !== '0' && warningRoutes[i] !== 'false') {
@@ -117,9 +117,9 @@ export function parseDisabledRoutes(
 }
 
 // ex: all:polygon,all:arbitrum,gnosis:ethereum
-const serializedDisabledRoutes = import.meta.env.VITE_DISABLED_ROUTES ?? ''
-const serializedWarningRoutes = import.meta.env.VITE_WARNING_ROUTES ?? ''
-const disabledRoutesNoLiquidityWarningMessage = !!(import.meta.env.VITE_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE ?? '')
+const serializedDisabledRoutes = process.env.REACT_APP_DISABLED_ROUTES ?? ''
+const serializedWarningRoutes = process.env.REACT_APP_WARNING_ROUTES ?? ''
+const disabledRoutesNoLiquidityWarningMessage = !!(process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE ?? '')
 // ex: '0,Warning: transfers to exchanges that do not support internal transactions may result in lost funds.,false'
 
 const disabledRoutes = parseDisabledRoutes(serializedDisabledRoutes, serializedWarningRoutes, disabledRoutesNoLiquidityWarningMessage)

@@ -1,16 +1,23 @@
 {
-  "name": "@hop-protocol/frontend-vite",
+  "name": "@hop-protocol/frontend",
   "version": "0.0.0",
   "description": "Hop Protocol Frontend",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preinstall": "npx only-allow pnpm",
+    "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
+    "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
+    "dev": "pnpm start",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
+    "preview": "vite preview",
+    "test": "react-app-rewired test",
+    "eject": "react-scripts eject",
+    "deploy": "pnpm dlx --yes netlify-cli deploy --prod",
+    "deploy:ipfs": "pnpm dlx --yes ipfs-deploy -p infura build --no-open --no-clipboard",
+    "deploy:local": "git stash && yarn build && yarn deploy"
   },
   "dependencies": {
     "@emotion/react": "11.5.0",
@@ -61,6 +68,7 @@
     "styled-system": "5.1.5",
     "use-async-memo": "1.2.4",
     "usehooks-ts": "2.9.1",
+    "vite-plugin-svgr": "4.2.0",
     "web-vitals": "0.2.4"
   },
   "devDependencies": {
@@ -80,6 +88,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "csp-html-webpack-plugin": "5.1.0",
     "customize-cra": "1.0.0",
+    "dotenv": "16.4.1",
     "eslint": "^8.55.0",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",

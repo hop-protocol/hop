@@ -1,3 +1,4 @@
+import Bolt from 'src/assets/bolt.svg'
 import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
 import Tab from '@mui/material/Tab'
@@ -6,7 +7,6 @@ import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 import { BalanceText } from 'src/pages/Pools/components/BalanceText'
 import { BigNumber } from 'ethers'
-import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { Button } from 'src/components/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { InputField } from 'src/pages/Pools/components/InputField'
@@ -122,7 +122,9 @@ export function StakeForm(props: Props) {
   if (stakingApr > 0) {
     stakingAprDisplay = (
       <Box display="flex" justifyContent="center" alignItems="center">
-        <Box mr={0.5} title="Boosted APR"><Bolt className={styles.bolt} /></Box>
+        <Box mr={0.5} title="Boosted APR">
+          <img src={Bolt} className={styles.bolt} />
+        </Box>
         {!!rewardsTokenImageUrl && <Box display="flex"><img className={styles.stakingAprChainImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} /></Box>}
         <Box ml={1}>{stakingAprFormatted}</Box>
       </Box>

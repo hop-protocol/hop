@@ -879,15 +879,16 @@ class HopBridge extends Base {
   }
 
   getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number): any {
-    const { sourceChain, destinationChain, requiredLiquidity, amountIn, amountOut, totalFee } = getSendDataResponse
+    const { sourceChain, destinationChain, requiredLiquidity, estimatedReceived, amountIn } = getSendDataResponse
 
-    const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
+    const amountOutMinSrc = this.calcAmountOutMin(requiredLiquidity, slippageTolerance)
+    const amountOutMinDest = this.calcAmountOutMin(estimatedReceived, slippageTolerance)
 
     // l1->l2
     if (sourceChain.isL1) {
       return {
         amount: amountIn,
-        amountOutMin: amountOutMin.sub(totalFee),
+        amountOutMin: amountOutMinDest,
         destinationAmountOutMin: null,
         deadline: this.defaultDeadlineSeconds,
         destinationDeadline: null
@@ -897,8 +898,7 @@ class HopBridge extends Base {
     // l2->l1
     if (destinationChain.isL1) {
       return {
-        amount: amountIn,
-        amountOutMin: amountOutMin.sub(totalFee),
+        amountOutMin: amountOutMinSrc,
         destinationAmountOutMin: BigNumber.from(0),
         deadline: this.defaultDeadlineSeconds,
         destinationDeadline: 0
@@ -907,11 +907,25 @@ class HopBridge extends Base {
 
     // l2->l2
     return {
-      amount: amountIn,
-      amountOutMin: this.calcAmountOutMin(requiredLiquidity, slippageTolerance).sub(totalFee),
-      destinationAmountOutMin: amountOutMin.sub(totalFee),
+      amountOutMin: amountOutMinSrc,
+      destinationAmountOutMin: amountOutMinDest,
       deadline: this.defaultDeadlineSeconds,
       destinationDeadline: this.defaultDeadlineSeconds
+    }
+  }
+
+  public async getFeeAndAmountOutMinData (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    slippageTolerance: number
+  ) : Promise<any> {
+    const sendData = await this.getSendData(amountIn, sourceChain, destinationChain)
+    const amountOutMins = this.getSendDataAmountOutMins(sendData, slippageTolerance)
+    return {
+      totalFee: sendData.totalFee,
+      amountOutMin: amountOutMins.amountOutMin,
+      destinationAmountOutMin: amountOutMins.destinationAmountOutMin
     }
   }
 

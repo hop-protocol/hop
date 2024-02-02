@@ -116,6 +116,20 @@ type RemoveLiquidityImbalanceOptions = {
   deadline: BigNumberish
 }
 
+type SendDataAmountOutMins = {
+  amount: BigNumberish
+  amountOutMin: BigNumber
+  destinationAmountOutMin: BigNumber | null
+  deadline: number
+  destinationDeadline: number | null
+}
+
+type FeeAndAmountOutMinData = {
+  totalFee: BigNumber
+  amountOutMin: BigNumber
+  destinationAmountOutMin: BigNumber | null
+}
+
 /**
  * Class representing Hop bridge.
  * @namespace HopBridge
@@ -878,7 +892,7 @@ class HopBridge extends Base {
     }
   }
 
-  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number): any {
+  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number): SendDataAmountOutMins {
     const { sourceChain, destinationChain, requiredLiquidity, estimatedReceived, amountIn } = getSendDataResponse
 
     const amountOutMinSrc = this.calcAmountOutMin(requiredLiquidity, slippageTolerance)
@@ -898,6 +912,7 @@ class HopBridge extends Base {
     // l2->l1
     if (destinationChain.isL1) {
       return {
+        amount: amountIn,
         amountOutMin: amountOutMinSrc,
         destinationAmountOutMin: BigNumber.from(0),
         deadline: this.defaultDeadlineSeconds,
@@ -907,6 +922,7 @@ class HopBridge extends Base {
 
     // l2->l2
     return {
+      amount: amountIn,
       amountOutMin: amountOutMinSrc,
       destinationAmountOutMin: amountOutMinDest,
       deadline: this.defaultDeadlineSeconds,
@@ -919,7 +935,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     slippageTolerance: number
-  ) : Promise<any> {
+  ) : Promise<FeeAndAmountOutMinData> {
     const sendData = await this.getSendData(amountIn, sourceChain, destinationChain)
     const amountOutMins = this.getSendDataAmountOutMins(sendData, slippageTolerance)
     return {

@@ -10,7 +10,7 @@
     "pnpm": ">=8"
   },
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf ./db_data",
     "test": "jest test",

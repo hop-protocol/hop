@@ -123,7 +123,7 @@ async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> 
     return BigNumber.from(0)
   }
 
-  const res = await fetch(getRpcUrl(chain), {
+  const res: Response = await fetch(getRpcUrl(chain), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -136,6 +136,12 @@ async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> 
     })
   })
   const json: any = await res.json()
+
+  // This might occur on system txs, like this: https://basescan.org/tx/0xdf9502ab0d2664449a4a80210574b3b644cd8b3604a8602156a6be26cecfc7a8
+  if (!json?.result?.l1Fee) {
+    return BigNumber.from(0)
+  }
+
   return BigNumber.from(json.result.l1Fee)
 }
 

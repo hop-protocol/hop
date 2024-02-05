@@ -1,4 +1,5 @@
-import Bolt from 'src/assets/bolt.svg'
+/// <reference types="vite-plugin-svgr/client" />
+import Bolt from 'src/assets/bolt.svg?react'
 import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
 import Tab from '@mui/material/Tab'
@@ -123,7 +124,7 @@ export function StakeForm(props: Props) {
     stakingAprDisplay = (
       <Box display="flex" justifyContent="center" alignItems="center">
         <Box mr={0.5} title="Boosted APR">
-          <img src={Bolt} className={styles.bolt} />
+          <Bolt className={styles.bolt} />
         </Box>
         {!!rewardsTokenImageUrl && <Box display="flex"><img className={styles.stakingAprChainImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} /></Box>}
         <Box ml={1}>{stakingAprFormatted}</Box>

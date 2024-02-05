@@ -1,4 +1,5 @@
-import Bolt from 'src/assets/bolt.svg'
+/// <reference types="vite-plugin-svgr/client" />
+import Bolt from 'src/assets/bolt.svg?react'
 import Box from '@mui/material/Box'
 import MuiButton from '@mui/material/Button'
 import React from 'react'
@@ -169,7 +170,7 @@ export function PoolRow (props: Props) {
               </Typography>
               {stakingRewards.length > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
                 <span title="Boosted APR">
-                  <img src={Bolt} className={styles.bolt} />
+                  <Bolt className={styles.bolt} />
                 </span>
                 {stakingRewards.length > 0 ? <Box ml={0.5} display="flex">
                   {stakingRewards.map((x: any, i: number) => {

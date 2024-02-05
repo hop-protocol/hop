@@ -16,8 +16,8 @@ interface StyleProps {
 const useStyles = makeStyles(theme => ({
   root: {},
   adornment: {
-    marginRight: '0',
-    fontSize: '1.4rem',
+    marginRight: '0 !important',
+    fontSize: '1.4rem !important',
   },
 }))
 
@@ -26,6 +26,9 @@ const useInputStyles = makeStyles(theme => ({
     padding: '0.1rem 0.4rem',
     borderRadius: '2rem',
     boxShadow: theme.boxShadow.input.normal,
+    '& .MuiOutlinedInput-notchedOutline': {
+      border: 'none'
+    },
   }),
   input: ({ centerAlign }: StyleProps) => ({
     textAlign: centerAlign ? 'center' : 'right',

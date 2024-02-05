@@ -91,7 +91,7 @@ const useInputStyles = makeStyles(theme => ({
       : 'none',
     [theme.breakpoints.down('xs')]: {
       fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
-      padding: '.5rem',
+      padding: '.5rem !important',
     },
   }),
   focused: {

@@ -3,7 +3,7 @@ import path from 'path'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
 import { defineConfig } from 'vite'
-import { mainnet, goerli, sepolia } from '@hop-protocol/core/networks'
+import { goerli, mainnet, sepolia } from '@hop-protocol/core/networks'
 
 dotenv.config()
 
@@ -104,10 +104,10 @@ const connectSrc = new Set([
   "https://media-exp1.licdn.com"
 ])
 
-const networks = [mainnet, goerli, sepolia]
-for (const network in networks) {
-  for (const chain in networks[network]) {
-    const { publicRpcUrl, fallbackPublicRpcUrls, subgraphUrl } = networks[network][chain]
+const networks: any[] = [mainnet, goerli, sepolia]
+for (const network of networks) {
+  for (const chain of Object.values(network)) {
+    const { publicRpcUrl, fallbackPublicRpcUrls, subgraphUrl } = chain
     if (publicRpcUrl) {
       connectSrc.add(publicRpcUrl)
     }

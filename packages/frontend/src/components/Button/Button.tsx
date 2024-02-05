@@ -53,11 +53,16 @@ const useStyles = makeStyles((theme: any) => ({
       // background: '#272332',
       // boxShadow: theme.boxShadow.button.default,
       // color: '#0202027f',
+      color: `#6660777f !important`,
+      background: `#FDF7F9 !important`,
+      boxShadow: `${theme.boxShadow.button.default} !important`,
     },
   }),
   disabled: {
-    color: '#FDF7F9',
-    background: 'none',
+    //color: '#FDF7F9',
+    color: `#6660777f !important`,
+    background: `#FDF7F9 !important`,
+    boxShadow: `${theme.boxShadow.button.default} !important`,
   },
   spinner: {
     display: 'inline-flex',

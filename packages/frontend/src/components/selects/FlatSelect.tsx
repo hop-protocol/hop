@@ -40,9 +40,9 @@ const useStyles = makeStyles(theme => ({
     height: '3.6rem',
   },
   icon: ({ value }: any) => ({
-    top: 'calc(50% - 0.75rem)',
-    right: '0.8rem',
-    color: value === 'default' ? '#fff' : theme.palette.text.secondary,
+    top: 'calc(50% - 0.75rem) !important',
+    right: '0.8rem !important',
+    color: `${value === 'default' ? '#fff' : theme.palette.text.secondary} !important`,
   }),
 }))
 

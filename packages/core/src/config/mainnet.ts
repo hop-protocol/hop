@@ -21,7 +21,7 @@ export const config : Config = {
     DAI: {
       ethereum: 30,
       polygon: 30,
-      gnosis: 30,
+      gnosis: 15,
       optimism: 30,
       arbitrum: 30
     },

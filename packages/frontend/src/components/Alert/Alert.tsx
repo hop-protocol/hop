@@ -1,4 +1,4 @@
-import MuiAlert, { AlertProps as MuiAlertProps } from '@mui/lab/Alert'
+import MuiAlert, { AlertProps as MuiAlertProps } from '@mui/material/Alert'
 import React, { FC } from 'react'
 import clsx from 'clsx'
 import { makeStyles } from '@mui/styles'
@@ -6,10 +6,10 @@ import { prettifyErrorMessage } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    fontSize: '1.6rem',
-    borderRadius: '2rem',
-    maxWidth: '51.6rem',
-    overflow: 'auto',
+    fontSize: '1.6rem !important',
+    borderRadius: '2rem !important',
+    maxWidth: '51.6rem !important',
+    overflow: 'auto !important',
   },
 }))
 

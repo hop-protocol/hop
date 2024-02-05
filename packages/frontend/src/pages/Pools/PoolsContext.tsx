@@ -171,7 +171,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const isNativeToken =
     useMemo(() => {
       try {
-        if (!selectedNetwork ?? unsupportedAsset?.chain) return false
+        if (!selectedNetwork || unsupportedAsset?.chain) return false
         const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
         return token?.isNativeToken
       } catch (err) {

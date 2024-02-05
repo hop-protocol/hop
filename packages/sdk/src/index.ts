@@ -16,6 +16,7 @@ export * from './types'
 export { eventTopics } from './constants'
 export {
   ChainSlug,
+  ChainName,
   Slug,
   NetworkSlug,
   ChainId,

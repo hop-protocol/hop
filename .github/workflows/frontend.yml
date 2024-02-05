@@ -130,7 +130,7 @@ jobs:
       - name: Write commit file
         uses: "DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c"
         with:
-          path: packages/frontend/build/cachebust
+          path: packages/frontend/dist/cachebust
           write-mode: overwrite
           contents: ${{ github.sha }}
 
@@ -139,7 +139,7 @@ jobs:
         uses: anantaramdas/ipfs-pinata-deploy-action@9f9c3b42b5d360352c4b768d98aff1309d62faa0
         with:
           pin-name: Hop ${{ github.sha }}
-          path: './packages/frontend/build'
+          path: './packages/frontend/dist'
           verbose: true
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}

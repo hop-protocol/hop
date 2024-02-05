@@ -5,6 +5,13 @@ import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs-zkevm'
 import { providers } from 'ethers'
 
+/**
+ * PolygonZk Implementation References
+ * - Proof generator URL (1 of 2): https://proof-generator.polygon.technology/api/zkevm/mainnet/bridge?net_id=0&deposit_cnt=163514
+ * - Proof generator URL (2 of 2): https://proof-generator.polygon.technology/api/zkevm/mainnet/merkle-proof?net_id=0&deposit_cnt=163514
+ * - Proof generator interface: https://github.com/maticnetwork/proof-generation-api/blob/362833c8c1b18b89ad013c363addc819919a8872/src/routes/zkEVM.js
+ */
+
 interface ZkEvmBridges {
   sourceBridge: ZkEvmBridge
   destBridge: ZkEvmBridge

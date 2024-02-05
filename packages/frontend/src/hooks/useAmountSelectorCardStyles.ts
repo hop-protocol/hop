@@ -59,9 +59,9 @@ export const useAmountSelectorCardStyles = makeStyles((theme: any) => ({
   mobileFlexColumn: {
     '@media (max-width: 420px)': {
       display: 'flex',
-      alignItems: 'flex-end',
+      alignItems: 'flex-end !important',
       flexDirection: 'column',
-      width: '100%',
+      width: '100% !important',
       marginBottom: '1rem'
     }
   }

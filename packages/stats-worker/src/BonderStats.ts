@@ -218,11 +218,9 @@ class BonderStats {
         } else if (this.trackOnlyFees) {
           await this.trackBonderFee()
         } else {
-          await Promise.all([
-            this.trackProfit(),
-            this.trackBonderFee(),
-            this.trackBonderTxFees()
-          ])
+          await this.trackProfit()
+          await this.trackBonderFee()
+          await this.trackBonderTxFees()
         }
         break
       } catch (err) {
@@ -875,13 +873,13 @@ class BonderStats {
                     balancePromises.push(Promise.resolve(0))
                   }
 
-                  const [
-                    balance,
-                    hBalance,
-                    native,
-                    aliasBalance,
-                    messengerWrapperBalance
-                  ] = await Promise.all(balancePromises)
+                  // TODO: Parallel processing of promises starts to hit rate limits
+                  // after enough token + chain combinations, so we serialize these calls.
+                  const balance = await balancePromises[0]
+                  const hBalance = await balancePromises[1]
+                  const native = await balancePromises[2]
+                  const aliasBalance = await balancePromises[3]
+                  const messengerWrapperBalance = await balancePromises[4]
 
                   bonderBalances[chain].canonical = balance
                   bonderBalances[chain].hToken = hBalance

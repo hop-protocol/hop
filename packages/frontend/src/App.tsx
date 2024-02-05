@@ -15,10 +15,10 @@ const AppWrapper = styled(Box)<any>`
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  min-height: 100vh;
+  background-size: 120%;
   background-image: ${({ isDarkMode }) => (isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`)};
   background-color: ${({ theme }) => theme.colors?.background?.default};
-  background-size: 120%;
-  min-height: 100vh;
 `
 
 function App() {

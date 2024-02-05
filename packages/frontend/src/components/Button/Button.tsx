@@ -32,18 +32,18 @@ const useStyles = makeStyles((theme: any) => ({
     minHeight: large ? '5.5rem' : '4.0rem',
     fontSize: large ? '2.2rem' : '1.5rem',
     width: fullWidth ? '100%' : 'auto',
-    color: text ? theme.palette.text.secondary : (highlighted ? 'white' : theme.palette.text.primary),
-    background: text ? 'none' : (highlighted
+    color: `${text ? theme.palette.text.secondary : (highlighted ? 'white' : theme.palette.text.primary)} !important`,
+    background: `${text ? 'none' : (highlighted
       ? theme.bgGradient?.main
       : isDarkMode
       ? '#3A3547'
       : flat
       ? '#E2E2E5'
-      : 'none'),
-    boxShadow: text ? 'none' : (highlighted ? theme.boxShadow?.button.highlighted : theme.boxShadow?.button.default),
+      : 'none')} !important`,
+    boxShadow: text ? 'none !important' : (highlighted ? theme.boxShadow?.button.highlighted : theme.boxShadow?.button.default),
     '&:hover': {
-      color: text ? theme.palette.text.primary : (highlighted ? 'white' : theme.palette.text.primary),
-      background: text ? 'none' : (highlighted
+      color: text ? theme.palette.text.primary : (highlighted ? 'white !important' : theme.palette.text.primary),
+      background: text ? 'rgba(15, 5, 36, 0.04) !important' : (highlighted
         ? theme.bgGradient?.main
         : flat
         ? theme.palette.secondary.light
@@ -53,11 +53,16 @@ const useStyles = makeStyles((theme: any) => ({
       // background: '#272332',
       // boxShadow: theme.boxShadow.button.default,
       // color: '#0202027f',
+      color: `#6660777f !important`,
+      background: `#FDF7F9 !important`,
+      boxShadow: `${theme.boxShadow.button.default} !important`,
     },
   }),
   disabled: {
-    color: '#FDF7F9',
-    background: 'none',
+    //color: '#FDF7F9',
+    color: `#6660777f !important`,
+    background: `#FDF7F9 !important`,
+    boxShadow: `${theme.boxShadow.button.default} !important`,
   },
   spinner: {
     display: 'inline-flex',

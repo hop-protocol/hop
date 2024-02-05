@@ -2,11 +2,8 @@ import getNonRetryableRpcProviderFromUrl from './getNonRetryableRpcProviderFromU
 import getRpcUrl from './getRpcUrl'
 import { providers } from 'ethers'
 
-export const getNonRetryableRpcProvider = (network: string): providers.Provider | null => {
+export const getNonRetryableRpcProvider = (network: string): providers.Provider => {
   const rpcUrl = getRpcUrl(network)
-  if (!rpcUrl) {
-    return null
-  }
   return getNonRetryableRpcProviderFromUrl(rpcUrl)
 }
 

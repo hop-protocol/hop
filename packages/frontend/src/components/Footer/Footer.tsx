@@ -1,6 +1,11 @@
+/// <reference types="vite-plugin-svgr/client" />
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
+import discord from 'src/assets/logos/discord.svg?react'
+import github from 'src/assets/logos/github.svg?react'
+import medium from 'src/assets/logos/medium.svg?react'
+import twitter from 'src/assets/logos/twitter.svg?react'
 import { StyledLink } from 'src/components/Link/StyledLink'
 import { SvgImg } from 'src/components/ui/SvgImg'
 import {
@@ -13,12 +18,8 @@ import {
   mediumUrl,
   twitterUrl,
 } from 'src/utils/constants'
-import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
 import { gitRevision } from 'src/config/config'
-import { ReactComponent as github } from 'src/assets/logos/github.svg'
 import { makeStyles } from '@mui/styles'
-import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
-import { ReactComponent as twitter } from 'src/assets/logos/twitter.svg'
 import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 

@@ -1,7 +1,7 @@
 import App from 'src/App'
 import AppProvider from 'src/contexts/AppContext'
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import SafeProvider from '@gnosis.pm/safe-apps-react-sdk'
 import ThemeProvider from 'src/theme/ThemeProvider'
 import Web3Provider from 'src/contexts/Web3Context'
@@ -28,7 +28,7 @@ const queryClient = new QueryClient({
   },
 })
 
-ReactDOM.render(
+ReactDOM.createRoot(document.getElementById('root')).render(
   <SafeProvider>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -43,7 +43,6 @@ ReactDOM.render(
       </QueryClientProvider>
     </ThemeProvider>
   </SafeProvider>,
-  document.getElementById('root')
 )
 
 // If you want to start measuring performance in your app, pass a function

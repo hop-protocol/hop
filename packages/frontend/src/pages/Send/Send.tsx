@@ -266,12 +266,11 @@ const Send: FC = () => {
         </ButtonsWrapper>
       : <ButtonsWrapper>
           <Box mb={3} width="100%">
-            <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
+            <ConnectWalletButton fullWidth large mode={theme?.palette?.mode} />
           </Box>
         </ButtonsWrapper>
       }
 
-        <Alert severity="error" onClose={() => setInfo('')} text={'test'} />
       <Box mt={1}>
         <Alert severity="info" onClose={() => setInfo('')} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}

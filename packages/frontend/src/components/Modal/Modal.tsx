@@ -85,7 +85,7 @@ const useStyles = makeStyles(theme => ({
   },
   card: {
     position: 'relative',
-    padding: 0,
+    padding: '0 !important',
     overflow: 'auto',
     maxHeight: '100%',
     border: isDarkMode(theme) ? '1px solid #353535' : 'none',

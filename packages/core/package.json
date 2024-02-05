@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.226",
+  "version": "0.0.1-beta.228",
   "description": "Hop Protocol networks config",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -21,6 +21,11 @@
     "s3upload"
   ],
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js"
+    },
     "./abi": {
       "types": "./dist/abi/index.d.ts",
       "import": "./dist/abi/index.js",
@@ -51,6 +56,11 @@
       "import": "./dist/metadata/index.js",
       "require": "./dist/cjs/metadata/index.js"
     },
+    "./metadata/tokens": {
+      "types": "./dist/metadata/tokens.d.ts",
+      "import": "./dist/metadata/tokens.js",
+      "require": "./dist/cjs/metadata/tokens.js"
+    },
     "./networks": {
       "types": "./dist/networks/index.d.ts",
       "import": "./dist/networks/index.js",
@@ -58,7 +68,6 @@
     }
   },
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./abi ./addresses ./config ./contracts ./metadata ./networks",
     "test": "jest test",
     "dev": "pnpm version && tsc --watch",

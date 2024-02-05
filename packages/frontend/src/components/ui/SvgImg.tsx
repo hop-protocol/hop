@@ -24,7 +24,7 @@ export function SvgImg(props: SvgImgProps & { component: any; children?: any; co
   const { component: SvgComponent, ...rest } = props
   return (
     <Wrapper {...rest}>
-      <SvgComponent />
+      {typeof SvgComponent === 'function' ? <SvgComponent /> : SvgComponent}
     </Wrapper>
   )
 }

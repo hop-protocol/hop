@@ -1,6 +1,11 @@
-const { override } = require('customize-cra')
-const { mainnet, goerli, sepolia } = require('@hop-protocol/core/networks')
-const CspHtmlWebpackPlugin = require('csp-html-webpack-plugin')
+import dotenv from 'dotenv'
+import path from 'path'
+import react from '@vitejs/plugin-react'
+import svgr from 'vite-plugin-svgr'
+import { defineConfig } from 'vite'
+import { goerli, mainnet, sepolia } from '@hop-protocol/core/networks'
+
+dotenv.config()
 
 const scriptSrc = new Set([
   "'self'",
@@ -99,10 +104,10 @@ const connectSrc = new Set([
   "https://media-exp1.licdn.com"
 ])
 
-const networks = [mainnet, goerli, sepolia]
-for (const network in networks) {
-  for (const chain in networks[network]) {
-    const { publicRpcUrl, fallbackPublicRpcUrls, subgraphUrl } = networks[network][chain]
+const networks: any[] = [mainnet, goerli, sepolia]
+for (const network of networks) {
+  for (const chain of Object.values(network)) {
+    const { publicRpcUrl, fallbackPublicRpcUrls, subgraphUrl } = chain
     if (publicRpcUrl) {
       connectSrc.add(publicRpcUrl)
     }
@@ -145,88 +150,58 @@ const cspConfigPolicy = {
   "block-all-mixed-content": [";"]
 }
 
-const cspOptions = {
-  enabled: true,
-  hashingMethod: 'sha256',
-  hashEnabled: {
-    "default-src": false,
-    "child-src": false,
-    "script-src": false,
-    "connect-src": false,
-    "img-src": false,
-    "frame-src": false,
-    "style-src": false,
-    "font-src": false,
-    "object-src": false,
-    "form-action": false,
-    "manifest-src": false,
-    "base-uri": false,
-    "block-all-mixed-content": false
-  },
-  nonceEnabled: {
-    "default-src": false,
-    "child-src": false,
-    "script-src": false,
-    "connect-src": false,
-    "img-src": false,
-    "frame-src": false,
-    "style-src": false,
-    "font-src": false,
-    "object-src": false,
-    "form-action": false,
-    "manifest-src": false,
-    "base-uri": false,
-    "block-all-mixed-content": false
-  },
-}
+function cspPlugin() {
+  return {
+    name: 'vite-plugin-csp',
+    transformIndexHtml(html) {
+      // Use the cspConfigPolicy directly to build the CSP string
+      const cspString = Object.entries(cspConfigPolicy)
+        .map(([directive, sources]) => {
+          // Join sources array into a space-separated string
+          return `${directive} ${sources.join(' ')}`
+        })
+        .join('; ')
 
-function addCspHtmlWebpackPlugin(config) {
-  // note: this may also require another module "html-webpack-plugin" to work,
-  // see https://github.com/jantimon/html-webpack-plugin/issues/1068#issuecomment-454840740
-  config.plugins.push(new CspHtmlWebpackPlugin(cspConfigPolicy, cspOptions))
-
-  return config
-}
-
-function customWebpackConfig(config) {
-  const rules = config.module.rules.find(r => r.oneOf).oneOf;
-  const babelRule = rules.find(r => r.loader && r.loader.includes('babel-loader'));
-
-  if (babelRule) {
-    babelRule.exclude = /node_modules/;
+      // Inject CSP meta tag into the head of the HTML document
+      return html.replace(
+        '<head>',
+        `<head><meta http-equiv="Content-Security-Policy" content="${cspString}">`
+      )
+    },
   }
-
-  // Continue with other custom modifications if necessary
-
-  return config;
 }
 
-module.exports = {
-  // The function to use to create a webpack dev server configuration when running the development
-  // server with 'npm run start' or 'yarn start'.
-  // Example: set the dev server to use a specific certificate in https.
-  devServer: function (configFunction) {
-    // Return the replacement function for create-react-app to use to generate the Webpack
-    // Development Server config. "configFunction" is the function that would normally have
-    // been used to generate the Webpack Development server config - you can use it to create
-    // a starting configuration to then modify instead of having to create a config from scratch.
-    return function (proxy, allowedHost) {
-      // Create the default config by calling configFunction with the proxy/allowedHost parameters
-      const config = configFunction(proxy, allowedHost)
-
-      config.headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
-      }
-
-      // Return your customised Webpack Development Server config.
-      return config
-    }
+// https://vitejs.dev/config/
+export default defineConfig({
+  base: process.env.PUBLIC_URL ?? '/',
+  server: {
+    port: 3000,
   },
 
-  webpack: override(
-    customWebpackConfig,
-    addCspHtmlWebpackPlugin
-  )
-}
+  plugins: [react(), svgr({
+    svgrOptions: {
+      icon: true,
+    },
+  }), cspPlugin()],
+
+  define: {
+    "process.env.REACT_APP_NETWORK": process.env.REACT_APP_NETWORK ? `"${process.env.REACT_APP_NETWORK}"` : undefined,
+    "process.env.REACT_APP_WARNING_ROUTES": process.env.REACT_APP_WARNING_ROUTES ? `"${process.env.REACT_APP_WARNING_ROUTES}"` : undefined,
+    "process.env.REACT_APP_DISABLED_ROUTES": process.env.REACT_APP_DISABLED_ROUTES ? `"${process.env.REACT_APP_DISABLED_ROUTES}"` : undefined,
+    "process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE": process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE ? `"${process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE}"` : undefined,
+    "process.env.REACT_APP_BLOCKLIST_ENABLED": process.env.REACT_APP_BLOCKLIST_ENABLED ? `"${process.env.REACT_APP_BLOCKLIST_ENABLED}"` : undefined,
+    "process.env.REACT_APP_ENABLED_TOKENS": process.env.REACT_APP_ENABLED_TOKENS ? `"${process.env.REACT_APP_ENABLED_TOKENS}"` : undefined,
+    "process.env.REACT_APP_DEPRECATED_TOKENS": process.env.REACT_APP_DEPRECATED_TOKENS ? `"${process.env.REACT_APP_DEPRECATED_TOKENS}"` : undefined,
+    "process.env.REACT_APP_ENABLED_CHAINS": process.env.REACT_APP_ENABLED_CHAINS ? `"${process.env.REACT_APP_ENABLED_CHAINS}"` : undefined,
+    "process.env.REACT_APP_BNC_DAPP_ID": process.env.REACT_APP_BNC_DAPP_ID ? `"${process.env.REACT_APP_BNC_DAPP_ID}"` : undefined,
+    "process.env.REACT_APP_SHOW_BANNER_MESSAGE": process.env.REACT_APP_SHOW_BANNER_MESSAGE ? `"${process.env.REACT_APP_SHOW_BANNER_MESSAGE}"` : undefined,
+    "process.env.REACT_APP_GIT_SHA": process.env.REACT_APP_GIT_SHA ? `"${process.env.REACT_APP_GIT_SHA}"` : undefined,
+    "process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS": process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS ? `"${process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS}"` : undefined,
+  },
+
+  resolve: {
+    alias: {
+      'src': path.resolve(__dirname, './src'),
+    },
+  },
+})

@@ -102,46 +102,44 @@ class VolumeStats {
 
     const now = Math.floor(DateTime.utc().toSeconds())
 
-    await Promise.all(
-      chains.map(async (chain: string) => {
-        const startDate = now - (daysN - 1) * 24 * 60 * 60
+    for (const chain of chains) {
+      const startDate = now - (daysN - 1) * 24 * 60 * 60
 
-        console.log(`fetching daily volume stats, chain: ${chain}`)
-        const items = await this.fetchDailyVolume(chain, startDate)
-        for (const item of items) {
-          const amount = item.amount
-          const timestamp = item.date
-          const token = item.token
-          const decimals = getTokenDecimals(token)
-          const formattedAmount = Number(formatUnits(amount, decimals))
-          if (!prices[token]) {
-            console.log('not found', token)
-            return
-          }
+      console.log(`fetching daily volume stats, chain: ${chain}`)
+      const items = await this.fetchDailyVolume(chain, startDate)
+      for (const item of items) {
+        const amount = item.amount
+        const timestamp = item.date
+        const token = item.token
+        const decimals = getTokenDecimals(token)
+        const formattedAmount = Number(formatUnits(amount, decimals))
+        if (!prices[token]) {
+          console.log('not found', token)
+          return
+        }
 
-          const dates = prices[token].reverse().map((x: any) => x[0])
-          const nearest = nearestDate(dates, timestamp)
-          const price = prices[token][nearest][1]
+        const dates = prices[token].reverse().map((x: any) => x[0])
+        const nearest = nearestDate(dates, timestamp)
+        const price = prices[token][nearest][1]
 
-          const usdAmount = price * formattedAmount
-          try {
-            this.db.upsertVolumeStat(
-              chain === 'ethereum' ? 'mainnet' : chain, // backwards compatibility name
-              token,
-              formattedAmount,
-              usdAmount,
-              timestamp
-            )
-          } catch (err) {
-            if (!err.message.includes('UNIQUE constraint failed')) {
-              console.log('error', chain, item.token)
-              throw err
-            }
+        const usdAmount = price * formattedAmount
+        try {
+          this.db.upsertVolumeStat(
+            chain === 'ethereum' ? 'mainnet' : chain, // backwards compatibility name
+            token,
+            formattedAmount,
+            usdAmount,
+            timestamp
+          )
+        } catch (err) {
+          if (!err.message.includes('UNIQUE constraint failed')) {
+            console.log('error', chain, item.token)
+            throw err
           }
         }
-        console.log(`done fetching daily volume stats, chain: ${chain}`)
-      })
-    )
+      }
+      console.log(`done fetching daily volume stats, chain: ${chain}`)
+    }
   }
 }
 

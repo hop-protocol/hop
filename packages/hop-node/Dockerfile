@@ -19,4 +19,4 @@ WORKDIR /prod/app
 ARG GIT_REV
 ENV GIT_REV=${GIT_REV}
 
-CMD [ "node", "/prod/app/dist/cli/cli.js" ]
+ENTRYPOINT ["node", "/prod/app/dist/cli/cli.js"]

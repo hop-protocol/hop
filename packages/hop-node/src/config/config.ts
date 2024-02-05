@@ -255,7 +255,7 @@ export const config: Config = {
     },
     [Chain.Linea]: {
       totalBlocks: 100_000,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.ScrollZk]: {
       totalBlocks: 100_000,

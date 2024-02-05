@@ -68,7 +68,8 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     )
   }
 
-  protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex: number): Promise<LineaMessage> {
+  protected async getMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<LineaMessage> {
+    messageIndex ??= 0
     const { sourceBridge } = this.#getSourceAndDestBridge(messageDirection)
     const messages: LineaMessage[] | null = await sourceBridge.getMessagesByTransactionHash(txHash)
     if (!messages?.length) {
@@ -78,7 +79,6 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
   }
 
   protected async getMessageStatus (message: LineaMessage, messageDirection: MessageDirection): Promise<OnChainMessageStatus> {
-    console.log('debuglog', message)
     const { destBridge } = this.#getSourceAndDestBridge(messageDirection)
     if (!message.messageHash) {
       throw new Error('message hash is missing. this might occur if there are multiple l1 to l2 messages in the tx')

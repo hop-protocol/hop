@@ -84,12 +84,19 @@ export const overridesDark = {
         backgroundColor: '#272332',
         boxShadow: boxShadows.button.default,
         color: palette.primary.main,
+        // fontSize: '2.2rem',
+        borderRadius: '3rem',
+        minWidth: '17.5rem',
+        padding: '0.8rem 4.2rem',
         '&:disabled': {
           background: '#272332',
           boxShadow: boxShadows.button.disabled,
           color: palette.text.disabled,
         },
       },
+      text: {
+        boxShadow: 'none !important'
+      }
     },
   },
   MuiCard: {
@@ -101,6 +108,13 @@ export const overridesDark = {
         transition: 'none'
       },
     },
+  },
+  MuiListItemIcon: {
+    styleOverrides: {
+      root: {
+        minWidth: '0',
+      }
+    }
   },
   MuiListItem: {
     styleOverrides: {
@@ -131,6 +145,11 @@ export const overridesDark = {
   MuiInputBase: {
     styleOverrides: {
       input: {
+        fontWeight: '700',
+        // fontSize: '2.7rem',
+        textOverflow: 'clip',
+        borderRadius: '1.5rem',
+        padding: '0 !important',
         '&.Mui-disabled': {
           opacity: 1,
           WebkitTextFillColor: 'inherit'
@@ -162,6 +181,17 @@ export const overridesDark = {
       root: {
         backgroundColor: '#66607738',
         // boxShadow: boxShadows.select,
+        padding: '0px 2.8rem 0px 0px',
+        fontSize: '1.8rem',
+        minWidth: '0',
+        // minWidth: '13.5rem',
+        fontWeight: '700',
+        lineHeight: '3.6rem',
+        borderRadius: '2.3rem'
+      },
+      select: {
+        minWidth: '0',
+        paddingRight: '2.8rem',
       },
     },
   },
@@ -234,4 +264,13 @@ export const overridesDark = {
       },
     },
   },
+  MuiIcon: {
+    styleOverrides: {
+      root: {
+        width: '100%',
+        height: '100%',
+        display: 'flex'
+      }
+    }
+  }
 }

@@ -15,7 +15,7 @@ export async function fetchJsonOrThrow (url: string, timeoutMs: number = 5 * 100
 
     const res = await (signal ? fetch(url, { signal }) : promiseTimeout(fetch(url), timeoutMs))
     const json = await res.json()
-    if (!json || !(json instanceof Object)) {
+    if (!json || !(typeof json === 'object')) {
       throw new Error('expected json object for response')
     }
     return json

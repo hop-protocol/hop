@@ -203,7 +203,7 @@ export const Header: FC = () => {
           )}
 
           <Box display="flex" alignItems="center" justifyContent="center" mx={1} fontSize={['.8rem', '1rem']}>
-            {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
+            {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette?.mode} />}
           </Box>
         </Box>
       </Box>

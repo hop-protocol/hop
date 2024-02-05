@@ -3,8 +3,6 @@ import AppRoutes from 'src/AppRoutes'
 import Box from '@mui/material/Box'
 import React from 'react'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
-import bgImage from 'src/assets/circles-bg.svg'
-import bgImageDark from 'src/assets/circles-bg-dark.svg'
 import styled from 'styled-components'
 import { AccountDetails } from 'src/components/AccountDetails'
 import { Footer } from 'src/components/Footer'
@@ -15,10 +13,10 @@ const AppWrapper = styled(Box)<any>`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  background-image: ${({ isDarkMode }) => (isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`)};
-  background-color: ${({ theme }) => theme.colors?.background?.default};
   background-size: 120%;
   min-height: 100vh;
+  background-image: ${({ isDarkMode }) => (isDarkMode ? `url('/assets/circles-bg-dark.svg')` : `url('/assets/circles-bg.svg')`)};
+  background-color: ${({ theme }) => theme.colors?.background?.default};
 `
 
 function App() {

@@ -7,7 +7,7 @@
   "private": true,
   "main": "dist/src/index.js",
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "node dist/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",

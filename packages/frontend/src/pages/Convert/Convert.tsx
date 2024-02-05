@@ -16,7 +16,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem',
+    marginBottom: '4.2rem !important',
   },
   selects: {
     marginBottom: '4.4rem',

@@ -6,12 +6,12 @@ import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.padding.extraLight,
-    width: '32.0rem',
+    padding: `${theme.padding.extraLight} !important`,
+    width: '32.0rem !important',
   },
   text: {
-    color: theme.palette.primary.contrastText,
-    paddingBottom: theme.padding.extraLight,
+    color: `${theme.palette.primary.contrastText} !important`,
+    paddingBottom: `${theme.padding.extraLight} !important`,
   },
 }))
 

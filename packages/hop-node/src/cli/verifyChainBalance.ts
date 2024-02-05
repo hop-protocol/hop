@@ -121,7 +121,7 @@ export async function main (source: any) {
   const timestamp = currentTimestamp - maxFinalizationTimeSec
 
   const metaBlockData: Record<string, MetaBlockData> = {}
-  const l1Provider = getRpcProvider(Chain.Ethereum)!
+  const l1Provider = getRpcProvider(Chain.Ethereum)
   const l1BlockNumber = getBlockNumberFromDate(Chain.Ethereum, timestamp)
   const l1Block = await l1Provider.getBlock(l1BlockNumber)
   const l1SubgraphSyncTimestamp = await getSubgraphSyncTimestamp(Chain.Ethereum, l1Provider)
@@ -133,7 +133,7 @@ export async function main (source: any) {
   }
   const l2Providers: Record<string, providers.Provider> = {}
   for (const l2ChainForToken of l2ChainsForToken) {
-    const l2Provider = getRpcProvider(l2ChainForToken)!
+    const l2Provider = getRpcProvider(l2ChainForToken)
     l2Providers[l2ChainForToken] = l2Provider
     const l2BlockNumber = getBlockNumberFromDate(l2ChainForToken, timestamp)
     const l2Block = await l2Provider.getBlock(l2BlockNumber)
@@ -298,7 +298,7 @@ async function getTokenAdjustments (
   metaBlockData: Record<string, MetaBlockData>
 ): Promise<TokenAdjustmentData> {
   // Constants
-  const l1Provider = getRpcProvider(Chain.Ethereum)!
+  const l1Provider = getRpcProvider(Chain.Ethereum)
   const l1BridgeAddress = l1Bridge.address
   const {
     blockTag,

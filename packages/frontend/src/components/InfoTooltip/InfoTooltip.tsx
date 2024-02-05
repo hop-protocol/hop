@@ -10,7 +10,7 @@ type Props = {
 
 const useStyles = makeStyles((theme: any) => ({
   tooltip: {
-    maxWidth: '100rem',
+    maxWidth: '100rem !important',
   },
   icon: {
     [theme.breakpoints.down('xs')]: {
@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: any) => ({
 }))
 
 export const InfoTooltip: FC<Props> = (props: any) => {
-  const [tooltipIsOpen, setTooltipIsOpen] = useState(false);
+  const [tooltipIsOpen, setTooltipIsOpen] = useState(false)
   const styles = useStyles()
   const children = props.children
 

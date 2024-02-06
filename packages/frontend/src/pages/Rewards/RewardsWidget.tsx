@@ -27,7 +27,7 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   box: {
-    boxShadow: theme.boxShadow.inner,
+    boxShadow: `${theme.boxShadow?.inner} !important`,
     minHeight: '200px',
   },
   header: {

@@ -5,7 +5,9 @@
     "outDir": "./dist",
     "paths": {
       "src/*": ["./src/*"]
-    }
+    },
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
   },
   "include": [
     "src",

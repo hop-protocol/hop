@@ -8,6 +8,7 @@ on:
       - develop-bonder
       - goerli-bonder
       - sepolia-bonder
+      - feat/drop-min-fee
 
 jobs:
   build-hop-node:

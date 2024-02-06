@@ -6,12 +6,14 @@ on:
       - preprod
       - mainnet
       - develop
+      - goerli
+      - sepolia
   workflow_dispatch:
 
 jobs:
   set_environment:
     name: Set Environment
-    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
+    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet') || contains(github.ref, 'goerli') || contains(github.ref, 'sepolia')
     outputs:
       env_name: ${{ steps.setenv.outputs.env_name }}
       dnslink_subdomain: ${{ steps.setdnslink.outputs.dnslink_subdomain }}
@@ -24,7 +26,7 @@ jobs:
         then
           echo "env_name=production" >> $GITHUB_OUTPUT
         else
-          echo "env_name=mainnet" >> $GITHUB_OUTPUT
+          echo "env_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         fi
 
     - name: Set dnslink var
@@ -74,7 +76,7 @@ jobs:
           default_bump: patch
 
   build:
-    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
+    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet') || contains(github.ref, 'goerli') || contains(github.ref, 'sepolia')
     name: Build and Deploy
     runs-on: ubuntu-latest
     needs: [set_environment, call-sdk-publish-workflow]
@@ -101,7 +103,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 20
           registry-url: https://registry.npmjs.org
 
       - name: Install node dependencies
@@ -113,12 +115,10 @@ jobs:
         env:
           PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
           REACT_APP_NETWORK: ${{ secrets.REACT_APP_NETWORK }}
-          REACT_APP_IPFS_BUILD: ${{ secrets.REACT_APP_IPFS_BUILD }}
           REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
           REACT_APP_ENABLED_CHAINS: ${{ secrets.REACT_APP_ENABLED_CHAINS }}
           REACT_APP_ENABLED_TOKENS: ${{ secrets.REACT_APP_ENABLED_TOKENS }}
           REACT_APP_DEPRECATED_TOKENS: ${{ secrets.REACT_APP_DEPRECATED_TOKENS }}
-          REACT_APP_FORTMATIC_KEY: ${{ secrets.REACT_APP_FORTMATIC_KEY }}
           REACT_APP_DISABLED_ROUTES: ${{ secrets.REACT_APP_DISABLED_ROUTES }}
           REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
           REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}

@@ -12,6 +12,7 @@ import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
 import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
 import { Icon } from 'src/components/ui/Icon'
 import { Link } from 'react-router-dom'
+import { NetworkSelector } from 'src/components/NetworkSelector/NetworkSelector'
 import { Settings } from 'src/components/Header/Settings'
 import { TxPill } from 'src/components/Header/TxPill'
 import { WalletWarning } from 'src/components/Header/WalletWarning'
@@ -105,7 +106,7 @@ const useStyles = makeStyles(theme => ({
 export const Header: FC = () => {
   const { toggleMode, isDarkMode } = useThemeMode()
   const styles = useStyles({ isDarkMode })
-  const { address, provider, connectedNetworkId } = useWeb3Context()
+  const { address, provider, connectedNetworkId, checkConnectedNetworkId } = useWeb3Context()
   const { theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
@@ -142,6 +143,17 @@ export const Header: FC = () => {
 
   const showBalance = !!displayBalance && !!connectedNetwork
   const ThemeModeIcon: any = isDarkMode ? SunIcon : MoonIcon
+  const showNetworkSelector = false
+
+  async function handleNetworkSelect (network: any) {
+    try {
+      if (network) {
+        await checkConnectedNetworkId(network?.networkId)
+      }
+    } catch (err: any) {
+      console.error(err)
+    }
+  }
 
   return (
     <>
@@ -200,6 +212,13 @@ export const Header: FC = () => {
                 {displayBalance}
               </div>
             </Box>
+          )}
+
+          {showNetworkSelector && !!address && (
+            <NetworkSelector
+              setNetwork={handleNetworkSelect}
+              network={connectedNetwork}
+            />
           )}
 
           <Box display="flex" alignItems="center" justifyContent="center" mx={1} fontSize={['.8rem', '1rem']}>

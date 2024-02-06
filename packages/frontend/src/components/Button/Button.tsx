@@ -50,20 +50,16 @@ const useStyles = makeStyles((theme: any) => ({
         : '#ffffff33'),
     },
     '&:disabled': {
-      // background: '#272332',
-      // boxShadow: theme.boxShadow.button.default,
-      // color: '#0202027f',
-      color: `#6660777f !important`,
-      background: `#FDF7F9 !important`,
+      color: `${isDarkMode ? '#968FA87f' : '#6660777f'} !important`,
+      background: `${isDarkMode ? '#272332' : '#FDF7F9'} !important`,
       boxShadow: `${theme.boxShadow.button.default} !important`,
     },
   }),
-  disabled: {
-    //color: '#FDF7F9',
-    color: `#6660777f !important`,
-    background: `#FDF7F9 !important`,
+  disabled: ({ isDarkMode }: StyleProps) => ({
+    color: `${isDarkMode ? '#968FA87f' : '#6660777f'} !important`,
+    background: `${isDarkMode ? '#272332' : '#FDF7F9'} !important`,
     boxShadow: `${theme.boxShadow.button.default} !important`,
-  },
+  }),
   spinner: {
     display: 'inline-flex',
     marginLeft: '1rem',

@@ -104,7 +104,6 @@ export const overridesDark = {
       root: {
         padding: '2.8rem',
         borderRadius: '3.0rem',
-        boxShadow: boxShadows.card,
         transition: 'none'
       },
     },

@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import React, { ChangeEvent, useState } from 'react'
-import Skeleton from '@mui/lab/Skeleton'
+import Skeleton from '@mui/material/Skeleton'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
@@ -230,10 +230,10 @@ export function PoolDetails () {
                       setToken0Amount={setToken0Amount}
                       setToken1Amount={setToken1Amount}
                       token0Amount={token0Amount}
-                      token0ImageUrl={canonicalToken!.imageUrl}
+                      token0ImageUrl={canonicalToken?.imageUrl}
                       token0Symbol={canonicalTokenSymbol}
                       token1Amount={token1Amount}
-                      token1ImageUrl={hopToken!.imageUrl}
+                      token1ImageUrl={hopToken?.imageUrl}
                       token1Symbol={hopTokenSymbol}
                       tokenDecimals={tokenDecimals}
                       walletConnected={walletConnected}
@@ -249,7 +249,7 @@ export function PoolDetails () {
                       setToken1Amount={setToken1Amount}
                       token0Amount={token0Amount}
                       token0AmountBn={token0Deposited}
-                      token0ImageUrl={canonicalToken!.imageUrl}
+                      token0ImageUrl={canonicalToken?.imageUrl}
                       token0MaxBn={token0Max}
                       token0Symbol={canonicalTokenSymbol}
                       token1Amount={token1Amount}

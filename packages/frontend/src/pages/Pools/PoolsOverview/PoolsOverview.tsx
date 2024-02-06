@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import React, { ChangeEvent } from 'react'
-import Skeleton from '@mui/lab/Skeleton'
+import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'

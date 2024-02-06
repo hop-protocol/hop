@@ -49,6 +49,7 @@
     <title>Hop Protocol | Hop Exchange</title>
     <script src="/js/static.js"></script>
     <script src="/js/dinoGame.js"></script>
+    <link id="onboard-css" rel="stylesheet" href="/css/onboard.css">
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -68,7 +69,7 @@
       /* BlockNative OnboardJS style overrides */
       const linkElem = document.createElement('link')
       linkElem.setAttribute('rel', 'stylesheet')
-      linkElem.setAttribute('href', '/css/onboard.css')
+      linkElem.setAttribute('href', document.getElementById('onboard-css').getAttribute('href'))
       var t = setInterval(() => {
         try {
           document.querySelector('onboard-v2').shadowRoot.appendChild(linkElem)

@@ -298,6 +298,14 @@ export class Controller {
       throw new Error('destinationChainSlug is required')
     }
 
+    const cacheKey = `${sourceChainSlug}-${destinationChainSlug}`
+    const cacheDurationMs = 5 * 60 * 1000 // 5 minutes
+    const cachedStats = cache.get(cacheKey)
+
+    if (cachedStats && typeof cachedStats === 'object' && 'avg' in cachedStats && 'median' in cachedStats && 'percentile90' in cachedStats) {
+      return cachedStats as TimeToBridgeStats
+    }
+
     let days = 2
     let txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, days)
 
@@ -311,15 +319,7 @@ export class Controller {
     }
 
     // array of transfer times as numbers
-    const timesArray = txTimes.map(record => Number(record.bondWithinTimestamp))
-
-    const cacheKey = `${sourceChainSlug}-${destinationChainSlug}`
-    const cacheDurationMs = 5 * 60 * 1000 // 5 minutes
-    const cachedStats = cache.get(cacheKey)
-
-    if (cachedStats && typeof cachedStats === 'object' && 'avg' in cachedStats && 'median' in cachedStats && 'percentile90' in cachedStats) {
-      return cachedStats as TimeToBridgeStats
-    }
+    const timesArray = txTimes.map((record: any) => Number(record.bondWithinTimestamp))
 
     const stats = timeToBridgeStats(timesArray)
 

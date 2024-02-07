@@ -41,6 +41,21 @@ cd frontend && npm run dev:local
 
 Visit [http://localhost:3000/](http://localhost:3000/)
 
+### Github Actions
+
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../ && act --job build-backend --workflows .github/workflows/backend.yml --secret-file=.secrets --verbose)
+```
+
+`.secrets`
+
+```sh
+DOCKER_USER=<username>
+DOCKER_PASS=<password>
+```
+
 ## Deployments
 
 Backend docker images are built and pushed to [Docker Hub](https://hub.docker.com/r/hopprotocol/explorer-backend).

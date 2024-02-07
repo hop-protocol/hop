@@ -4,3 +4,6 @@
 *.log
 1
 pgdata
+*.txt
+.secrets
+secrets.json

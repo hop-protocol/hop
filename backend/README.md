@@ -2,7 +2,7 @@
 
 > Backend indexer worker for explorer transfer data pull from the [TheGraph](https://thegraph.com/)
 
-Dev
+## Development
 
 ```sh
 npm run dev
@@ -49,6 +49,21 @@ LINEA_RPC=
 # (optional) example
 ENABLED_TOKENS=USDC,USDT,DAI,MATIC,ETH,WBTC,HOP,SNX,sUSD,rETH,MAGIC
 ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base,linea
+```
+
+### Github Actions
+
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../ && act --job build-backend --workflows .github/workflows/backend.yml --secret-file=.secrets --verbose)
+```
+
+`.secrets`
+
+```sh
+DOCKER_USER=<username>
+DOCKER_PASS=<password>
 ```
 
 ## Adding new tokens or chains

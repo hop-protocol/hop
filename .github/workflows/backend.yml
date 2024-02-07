@@ -19,9 +19,12 @@ jobs:
 
   _build-backend:
     runs-on: ubuntu-latest
-    environment: production
+    environment: docker
     env:
       DOCKER_IMAGE: hopprotocol/explorer-backend
+    defaults:
+      run:
+        working-directory: .
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,8 +35,8 @@ jobs:
       - name: Build application Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./packages/backend/Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           build-args: GIT_REV=${{ github.sha }}
           tags: app
           load: true
@@ -59,7 +62,7 @@ jobs:
           fi
 
   build-backend:
-    needs: [_build-backend]
+    needs: [prepare, _build-backend]
     name: Send Backend Status Notification Webhook Request
     uses: ./.github/workflows/status_notify.yml
     with:

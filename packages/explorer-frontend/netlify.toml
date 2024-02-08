@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/mainnet"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/_ipx/*"
+  to = "/"
+  status = 301

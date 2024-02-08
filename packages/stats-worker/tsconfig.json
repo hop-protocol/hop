@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "rootDir": "./src",
     "outDir": "./dist",
     "paths": {
@@ -9,6 +11,6 @@
   },
   "include": [
     "src",
-    "src/**/*.json", // Include JSON files specifically
+    "src/**/*.json" // Required to include JSON files specifically
   ]
 }

@@ -46,6 +46,8 @@ Build distribution build:
 pnpm build
 ```
 
+## Github Actions
+
 Run github action build locally with [act](https://github.com/nektos/act):
 
 ```sh

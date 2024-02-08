@@ -75,12 +75,23 @@ export class AmmStats {
       }
     `
     const url = getSubgraphUrl(chain)
-    const data = await queryFetch(url, query, {
-      token,
-      startDate,
-      endDate,
-      lastId
-    })
+    let data
+    try {
+      data = await queryFetch(url, query, {
+        token,
+        startDate,
+        endDate,
+        lastId
+      })
+    } catch (err) {
+      console.log('caught err', err.message, 'trying again')
+      data = await queryFetch(url, query, {
+        token,
+        startDate,
+        endDate,
+        lastId
+      })
+    }
 
     if (!data) {
       return []

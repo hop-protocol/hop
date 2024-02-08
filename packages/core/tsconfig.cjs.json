@@ -1,8 +1,7 @@
-// Export CommonJS module for use by config-overrides.js for create-react-app
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist/cjs",
-    "module": "CommonJS",
+    "module": "CommonJS"
   }
 }

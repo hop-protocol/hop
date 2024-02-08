@@ -1354,11 +1354,21 @@ class BonderStats {
       }
     `
     const url = getSubgraphUrl(chain)
-    const data = await this.queryFetch(url, query, {
-      token,
-      startDate,
-      endDate
-    })
+    let data
+    try {
+      data = await this.queryFetch(url, query, {
+        token,
+        startDate,
+        endDate
+      })
+    } catch (err) {
+      console.log('caught err', err.message, 'trying again')
+      data = await this.queryFetch(url, query, {
+        token,
+        startDate,
+        endDate
+      })
+    }
 
     if (!data) {
       return []

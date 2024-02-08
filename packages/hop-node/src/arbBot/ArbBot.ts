@@ -13,10 +13,8 @@ import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
 import { ChainSlug } from '@hop-protocol/core/config'
 import { CrossChainMessenger } from '@eth-optimism/sdk'
 import { Erc20Bridger, EthBridger, getL2Network } from '@arbitrum/sdk'
-import { FxPortalClient } from '@fxportal/maticjs-fxportal'
-import { L1BridgeProps, L2BridgeProps, PolygonBridgeProps, addresses as allAddresses } from '@hop-protocol/core/addresses'
+import { L1BridgeProps, L2BridgeProps, addresses as allAddresses } from '@hop-protocol/core/addresses'
 import { Logger } from 'src/logger'
-import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { chainSlugToId } from 'src/utils/chainSlugToId'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
@@ -24,7 +22,6 @@ import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofDataForCli } from 'src/cli/shared'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
 import { parseEther, parseUnits } from 'ethers/lib/utils'
-import { use } from '@maticnetwork/maticjs'
 import { wait } from 'src/utils/wait'
 
 export type Options = {
@@ -632,9 +629,9 @@ export class ArbBot {
       return this.arbitruml1CanonicalBridgeSendToL2()
     }
 
-    if (this.l2ChainSlug === Chain.Polygon.slug) {
-      return this.polygonl1CanonicalBridgeSendToL2()
-    }
+    // if (this.l2ChainSlug === Chain.Polygon.slug) {
+    //   return this.polygonl1CanonicalBridgeSendToL2()
+    // }
 
     throw new Error('l1CanonicalBridgeSendToL2 not implemented')
   }
@@ -884,107 +881,107 @@ export class ArbBot {
     return tx
   }
 
-  async polygonl1CanonicalBridgeSendToL2 () {
-    let amount = this.amount
-    const recipient = await this.ammSigner.getAddress()
+  // async polygonl1CanonicalBridgeSendToL2 () {
+  //   let amount = this.amount
+  //   const recipient = await this.ammSigner.getAddress()
 
-    if (this.tokenSymbol === 'ETH') {
-      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
-      if (amount.lt(ethBalance)) {
-        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
-      }
+  //   if (this.tokenSymbol === 'ETH') {
+  //     const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+  //     if (amount.lt(ethBalance)) {
+  //       amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+  //     }
 
-      this.logger.log('amount:', this.bridge.formatUnits(amount))
+  //     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-      if (amount.lte(BigNumber.from(0))) {
-        this.logger.log('not enough eth to send')
-        return
-      }
+  //     if (amount.lte(BigNumber.from(0))) {
+  //       this.logger.log('not enough eth to send')
+  //       return
+  //     }
 
-      const data = `0x4faa8a26000000000000000000000000${recipient.replace('0x', '').toLowerCase()}`
-      const txOptions = await this.txOverrides(this.l2ChainSlug)
+  //     const data = `0x4faa8a26000000000000000000000000${recipient.replace('0x', '').toLowerCase()}`
+  //     const txOptions = await this.txOverrides(this.l2ChainSlug)
 
-      return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
-        ...txOptions,
-        value: amount,
-        to: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        data
-      })
-    }
+  //     return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
+  //       ...txOptions,
+  //       value: amount,
+  //       to: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
+  //       data
+  //     })
+  //   }
 
-    const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
-    if (amount.lt(tokenBalance)) {
-      amount = tokenBalance
-    }
+  //   const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+  //   if (amount.lt(tokenBalance)) {
+  //     amount = tokenBalance
+  //   }
 
-    this.logger.log('amount:', this.bridge.formatUnits(amount))
+  //   this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-    if (amount.lte(BigNumber.from(0))) {
-      this.logger.log('not enough tokens to send')
-      return
-    }
+  //   if (amount.lte(BigNumber.from(0))) {
+  //     this.logger.log('not enough tokens to send')
+  //     return
+  //   }
 
-    const spender = '0xdd6596f2029e6233deffaca316e6a95217d4dc34'
-    const token = this.bridge.connect(this.ammSigner.connect(this.l1ChainProvider)).getCanonicalToken(this.l1ChainSlug)
-    const allowance = await token.allowance(spender)
-    if (allowance.lt(amount)) {
-      if (this.dryMode) {
-        this.logger.log('polygonl1CanonicalBridgeSendToL2 approval tx, dryMode: true')
-      } else {
-        const tx = await token.approve(spender)
-        this.logger.log('polygonl1CanonicalBridgeSendToL2 approval tx:', tx.hash)
-        await tx.wait(this.reorgConfirmationBlocks)
-      }
-    }
+  //   const spender = '0xdd6596f2029e6233deffaca316e6a95217d4dc34'
+  //   const token = this.bridge.connect(this.ammSigner.connect(this.l1ChainProvider)).getCanonicalToken(this.l1ChainSlug)
+  //   const allowance = await token.allowance(spender)
+  //   if (allowance.lt(amount)) {
+  //     if (this.dryMode) {
+  //       this.logger.log('polygonl1CanonicalBridgeSendToL2 approval tx, dryMode: true')
+  //     } else {
+  //       const tx = await token.approve(spender)
+  //       this.logger.log('polygonl1CanonicalBridgeSendToL2 approval tx:', tx.hash)
+  //       await tx.wait(this.reorgConfirmationBlocks)
+  //     }
+  //   }
 
-    const addresses = this.getAddresses()
-    const l1TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
+  //   const addresses = this.getAddresses()
+  //   const l1TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
 
-    use(Web3ClientPlugin)
+  //   use(Web3ClientPlugin)
 
-    const maticClient = new FxPortalClient()
-    const rootTunnel = (addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as PolygonBridgeProps)?.l1FxBaseRootTunnel
+  //   const maticClient = new POSClient()
+  //   const rootTunnel = (addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as PolygonBridgeProps)?.l1FxBaseRootTunnel
 
-    const polygonSdkNetwork: Record<string, string> = {
-      mainnet: 'mainnet',
-      goerli: 'testnet'
-    }
+  //   const polygonSdkNetwork: Record<string, string> = {
+  //     mainnet: 'mainnet',
+  //     goerli: 'testnet'
+  //   }
 
-    const polygonSdkVersion: Record<string, string> = {
-      mainnet: 'v1',
-      goerli: 'mumbai'
-    }
+  //   const polygonSdkVersion: Record<string, string> = {
+  //     mainnet: 'v1',
+  //     goerli: 'mumbai'
+  //   }
 
-    const sdkNetwork = polygonSdkNetwork[this.network]
-    const sdkVersion = polygonSdkVersion[this.network]
+  //   const sdkNetwork = polygonSdkNetwork[this.network]
+  //   const sdkVersion = polygonSdkVersion[this.network]
 
-    await maticClient.init({
-      network: sdkNetwork,
-      version: sdkVersion,
-      parent: {
-        provider: this.ammSigner.connect(this.l1ChainProvider),
-        defaultConfig: {
-          from: recipient
-        }
-      },
-      child: {
-        provider: this.l2ChainProvider,
-        defaultConfig: {
-          from: recipient
-        }
-      },
-      erc20: {
-        rootTunnel
-      }
-    })
+  //   await maticClient.init({
+  //     network: sdkNetwork,
+  //     version: sdkVersion,
+  //     parent: {
+  //       provider: this.ammSigner.connect(this.l1ChainProvider),
+  //       defaultConfig: {
+  //         from: recipient
+  //       }
+  //     },
+  //     child: {
+  //       provider: this.l2ChainProvider,
+  //       defaultConfig: {
+  //         from: recipient
+  //       }
+  //     },
+  //     erc20: {
+  //       rootTunnel
+  //     }
+  //   })
 
-    const tx = await maticClient.erc20(l1TokenAddress, true).deposit(this.bridge.formatUnits(amount), recipient)
+  //   const tx = await maticClient.erc20(l1TokenAddress, true).deposit(this.bridge.formatUnits(amount), recipient)
 
-    return {
-      hash: await tx.getTransactionHash(),
-      wait: async () => tx.getReceipt()
-    }
-  }
+  //   return {
+  //     hash: await tx.getTransactionHash(),
+  //     wait: async () => tx.getReceipt()
+  //   }
+  // }
 
   async wrapEthToWethOnL2 () {
     this.logger.log('wrapEthToWethOnL2()')

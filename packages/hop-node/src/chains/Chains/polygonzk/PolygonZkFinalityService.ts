@@ -44,10 +44,10 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
     this.#init()
       .then(() => {
         this.#ready = true
-        this.logger.debug('zkEVM client initialized')
+        this.logger.debug('PolygonZk Finality Service initialized')
       })
       .catch((err: any) => {
-        this.logger.error('zkEVM client initialize error:', err)
+        this.logger.error('PolygonZk Finality Service initialize error:', err)
         process.exit(1)
       })
   }

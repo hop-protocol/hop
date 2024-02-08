@@ -10,7 +10,7 @@ See [docs.hop.exchange/hop-node](https://docs.hop.exchange/hop-node)
 
 ## Development
 
-Pull the `hop` monorepo and install dependencies using `pnpm`. 
+Pull the `hop` monorepo and install dependencies using `pnpm`.
 
 ```sh
 # Install the dependencies
@@ -35,6 +35,8 @@ Docker images are built and pushed to [Docker Hub](https://hub.docker.com/r/hopp
 | `mainnet-bonder`    | `hopprotocol/hop-node:mainnet` | Beta     | Mainnet pre-release environment             |
 | `develop-bonder`    | `hopprotocol/hop-node:develop` | Unstable | Unstable mainnet staging environment        |
 | `goerli-bonder`     | `hopprotocol/hop-node:goerli`  | Stable   | Goerli staging environment                  |
+
+### Github Actions
 
 Run github action build locally with [act](https://github.com/nektos/act):
 

@@ -16,4 +16,4 @@ FROM base
 COPY --from=build /prod/app /prod/app
 WORKDIR /prod/app
 
-ENTRYPOINT [ "/prod/app/bin/stats" ]
+ENTRYPOINT ["node", "/prod/app/dist/index.js"]

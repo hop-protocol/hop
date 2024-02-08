@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 import React from 'react'
-import Skeleton from '@mui/lab/Skeleton'
+import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import makeData from './makeData'
 import styled from 'styled-components'

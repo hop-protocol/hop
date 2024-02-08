@@ -52,7 +52,6 @@
   },
   "//": "Required for pnpm deploy command in Dockerfile",
   "files": [
-    "bin",
     "dist"
   ]
 }

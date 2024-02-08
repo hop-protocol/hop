@@ -702,12 +702,20 @@ export class HealthCheckWatcher {
     const l1Chains: string[] = [Chain.Ethereum]
     const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base, Chain.Linea]
     result = result.map((x: any) => {
-      const isBonderFeeTooLow =
+      let isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0005 && l1Chains.includes(x.destinationChain)) ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0001 && l2Chains.includes(x.destinationChain)) ||
       (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && l1Chains.includes(x.destinationChain)) ||
       (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && l2Chains.includes(x.destinationChain))
+
+      // DAI into Gnosis can be bonded for a cheaper fee
+      if (
+        x.destinationChain === Chain.Gnosis &&
+        x.token === 'DAI'
+      ) {
+        isBonderFeeTooLow = false
+      }
 
       const isUnbondable = (
         l1Chains.includes(x.destinationChain) &&
@@ -731,6 +739,13 @@ export class HealthCheckWatcher {
       }
       // spam transfers with very low bonder fee
       if (x.token === 'ETH' && (x.bonderFee === '1140000000000' || x.bonderFee === '140000000000')) {
+        return false
+      }
+      // DAI into Gnosis can be bonded for a cheaper fee
+      if (
+        x.destinationChain === Chain.Gnosis &&
+        x.token === 'DAI'
+      ) {
         return false
       }
       if (x.destinationChain === 'ethereum') {

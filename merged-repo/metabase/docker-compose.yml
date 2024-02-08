@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    hostname: metabase
+    restart: unless-stopped
+    network_mode: mynetwork
+    volumes:
+    - ./metabase-db:/metabase.db
+    ports:
+      - 3000:3000

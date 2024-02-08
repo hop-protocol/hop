@@ -35,7 +35,7 @@ jobs:
       - name: Build application Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./packages/explorer-backend
+          context: .
           file: ./packages/explorer-backend/Dockerfile
           build-args: GIT_REV=${{ github.sha }}
           tags: app

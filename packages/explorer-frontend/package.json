@@ -40,8 +40,8 @@
     "@types/lodash": "4.14.181",
     "@types/luxon": "2.3.1",
     "@types/node": "17.0.23",
-    "@types/react": "17.0.43",
-    "@types/react-dom": "17.0.14",
+    "@types/react": "18.2.55",
+    "@types/react-dom": "18.2.19",
     "eslint-config-next": "14.1.0"
   },
   "resolutions": {

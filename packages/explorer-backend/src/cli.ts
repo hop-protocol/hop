@@ -1,6 +1,7 @@
 import Worker from './worker'
+import minimist from 'minimist'
 
-const argv = require('minimist')(process.argv.slice(2))
+const argv = minimist(process.argv.slice(2))
 console.debug('flags:', argv)
 
 function main () {

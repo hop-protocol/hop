@@ -1,8 +1,8 @@
-import { padHex } from './utils/padHex'
 import fetch from 'isomorphic-fetch'
 import { chunk } from 'lodash'
-import { promiseTimeout } from './utils/promiseTimeout'
 import { getSubgraphUrl } from './utils/getSubgraphUrl'
+import { padHex } from './utils/padHex'
+import { promiseTimeout } from './utils/promiseTimeout'
 
 export async function queryFetch (url: string, query: string, variables?: any) {
   return promiseTimeout(_queryFetch(url, query, variables), 60 * 1000)

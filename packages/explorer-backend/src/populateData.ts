@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
-import { isGoerli, transferTimes } from './config'
-import { getColor } from './utils/getColor'
-import { truncateAddress } from './utils/truncateAddress'
-import { explorerLinkAddress } from './utils/explorerLinkAddress'
 import { chainSlugToId } from './utils/chainSlugToId'
-import { integrationPartnerName } from './utils/integrationPartnerName'
-import { integrationPartnerImage } from './utils/integrationPartnerImage'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+import { explorerLinkAddress } from './utils/explorerLinkAddress'
 import { formatUnits } from 'ethers/lib/utils'
+import { getColor } from './utils/getColor'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { integrationPartnerImage } from './utils/integrationPartnerImage'
+import { integrationPartnerName } from './utils/integrationPartnerName'
+import { isGoerli, transferTimes } from './config'
+import { truncateAddress } from './utils/truncateAddress'
 
 export function populateData (x: any, i: number) {
   x.i = i
@@ -112,7 +112,7 @@ export function populateData (x: any, i: number) {
   }
 
   if (!x.bonded && x.sourceChainSlug && x.destinationChainSlug) {
-    const minutes = transferTimes?.[x.sourceChainSlug]?.[x.destinationChainSlug]
+    const minutes = (transferTimes as any)?.[x.sourceChainSlug]?.[x.destinationChainSlug]
     if (minutes) {
       const bufferMinutes = 5 // to allow for enough time for indexer
       const transferTime = DateTime.fromSeconds(x.timestamp)

@@ -1,47 +1,47 @@
-import React, {useEffect, useState, useCallback } from 'react'
-import { useInterval } from 'react-use'
-import Clipboard from 'clipboard'
-import * as luxon from 'luxon'
-import type {NextPage} from 'next'
-import Head from 'next/head'
-import Script from 'next/script'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import CheckIcon from '@mui/icons-material/Check'
+import Checkbox from '@mui/material/Checkbox'
+import Clipboard from 'clipboard'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import FirstPageIcon from '@mui/icons-material/FirstPage'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import Head from 'next/head'
+import IconButton from '@mui/material/IconButton'
+import LightModeIcon from '@mui/icons-material/LightMode'
+import Link from '@mui/material/Link'
+import MenuItem from '@mui/material/MenuItem'
+import MuiTooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip'
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import Paper from '@mui/material/Paper'
+import React, {useCallback, useEffect, useState } from 'react'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import Script from 'next/script'
+import Select from '@mui/material/Select'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import Paper from '@mui/material/Paper'
-import Link from '@mui/material/Link'
-import Button from '@mui/material/Button'
-import Checkbox from '@mui/material/Checkbox'
-import MenuItem from '@mui/material/MenuItem'
-import IconButton from '@mui/material/IconButton'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
-import LightModeIcon from '@mui/icons-material/LightMode'
-import DarkModeIcon from '@mui/icons-material/DarkMode'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import RestartAltIcon from '@mui/icons-material/RestartAlt'
-import FirstPageIcon from '@mui/icons-material/FirstPage'
-import NavigateNextIcon from '@mui/icons-material/NavigateNext'
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
-import GitHubIcon from '@mui/icons-material/GitHub'
 import TwitterIcon from '@mui/icons-material/Twitter'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Typography from '@mui/material/Typography'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
 import { chains, tokens } from '@hop-protocol/core/metadata'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
-import MuiTooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip'
 import { styled } from '@mui/material/styles'
+import { useInterval } from 'react-use'
+import * as luxon from 'luxon'
+import type {NextPage} from 'next'
 
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
@@ -196,50 +196,50 @@ function updateQueryParams (params: any) {
 }
 
 const queryTransfers = async (params: any) => {
-  let filtered: any = {}
+  const filtered: any = {}
   for (const key in params) {
     if (params[key]) {
       filtered[key] = params[key]
     }
   }
-  if (!filtered['amount']) {
-    delete filtered['amountCmp']
+  if (!filtered.amount) {
+    delete filtered.amountCmp
   }
-  if (!filtered['amountUsd']) {
-    delete filtered['amountUsdCmp']
+  if (!filtered.amountUsd) {
+    delete filtered.amountUsdCmp
   }
-  if (!filtered['bonderFeeUsd']) {
-    delete filtered['bonderFeeUsdCmp']
+  if (!filtered.bonderFeeUsd) {
+    delete filtered.bonderFeeUsdCmp
   }
-  if (!filtered['bonderFeeUsd']) {
-    delete filtered['bonderFeeUsdCmp']
+  if (!filtered.bonderFeeUsd) {
+    delete filtered.bonderFeeUsdCmp
   }
-  if (filtered['endDate'] === currentDate) {
-    delete filtered['endDate']
+  if (filtered.endDate === currentDate) {
+    delete filtered.endDate
   }
-  if (filtered['sortBy'] === defaultSortBy) {
-    delete filtered['sortBy']
+  if (filtered.sortBy === defaultSortBy) {
+    delete filtered.sortBy
   }
-  if (filtered['sortBy'] === 'receivedHTokens') {
+  if (filtered.sortBy === 'receivedHTokens') {
     filtered.receivedHTokens = true
-    filtered['sortBy'] = 'timestamp'
+    filtered.sortBy = 'timestamp'
   }
-  if (filtered['sortDirection'] === defaultSortDirection) {
-    delete filtered['sortDirection']
+  if (filtered.sortDirection === defaultSortDirection) {
+    delete filtered.sortDirection
   }
-  if (filtered['startTimestamp'] && filtered['startDate']) {
-    delete filtered['startDate']
+  if (filtered.startTimestamp && filtered.startDate) {
+    delete filtered.startDate
   }
-  if (filtered['endTimestamp'] && filtered['endDate']) {
-    delete filtered['endDate']
+  if (filtered.endTimestamp && filtered.endDate) {
+    delete filtered.endDate
   }
-  if (!(filtered['startDate'] || filtered['startTimestamp'])) {
-    if (!(filtered['account'] || filtered['recipient'] || filtered['bonder'])) {
-      filtered['startDate'] = defaultStartDate
+  if (!(filtered.startDate || filtered.startTimestamp)) {
+    if (!(filtered.account || filtered.recipient || filtered.bonder)) {
+      filtered.startDate = defaultStartDate
     }
   }
   if (queryParams.refresh) {
-    filtered['refresh'] = true
+    filtered.refresh = true
   }
   const serializedParams = new URLSearchParams(filtered).toString()
   const url = `${apiBaseUrl}/v1/transfers?${serializedParams}`
@@ -314,7 +314,8 @@ function useData () {
         //console.error(err)
       }
 
-      new Clipboard('.clipboard')
+      const c = new Clipboard('.clipboard')
+      console.log(c)
     }
 
     update().catch(console.error)
@@ -1389,7 +1390,7 @@ const Index: NextPage = (props: any) => {
                       </TableCell>
                       <TableCell className="bondedDate" >
                         <Tooltip title={
-                          !!x.bondTimestamp ? (
+                          x.bondTimestamp ? (
                             <Box>UTC: {x.bondTimestampIso}<br />Local: {x.localBondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>
                           ) : <Box>Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>
                           }>

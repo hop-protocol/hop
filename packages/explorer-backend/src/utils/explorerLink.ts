@@ -1,5 +1,5 @@
 import { networks } from '../config'
 
 export function explorerLink (chain: string) {
-  return networks[chain]?.explorerUrls?.[0] ?? ''
+  return (networks as any)[chain]?.explorerUrls?.[0] ?? ''
 }

@@ -1,8 +1,9 @@
+import dotenv from 'dotenv'
+import { getDefaultRpcUrl } from './utils/getDefaultRpcUrl'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
-import { getDefaultRpcUrl } from './utils/getDefaultRpcUrl'
 
-require('dotenv').config()
+dotenv.config()
 
 export const network = process.env.NETWORK || 'mainnet'
 export const isGoerli = network === 'goerli'
@@ -20,8 +21,8 @@ export const postgresConfig = {
 export const regenesisEnabled = process.env.REGENESIS_ENABLED === 'true'
 export const CoingeckoApiKey = process.env.COINGECKO_API_KEY || ''
 
-const tokenSet = new Set([])
-const chainSet = new Set([])
+const tokenSet = new Set<string>([])
+const chainSet = new Set<string>([])
 
 const addresses = isGoerli ? goerliAddresses : mainnetAddresses
 for (const token in addresses.bridges) {

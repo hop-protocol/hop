@@ -1,5 +1,5 @@
 // TODO: move to config
-const names = {
+const names: any = {
   socket: 'Socket',
   lifi: 'LI.FI',
   metamask: 'MetaMask',

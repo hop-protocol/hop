@@ -1,13 +1,13 @@
 import Db, { getInstance } from './Db'
-import { DateTime } from 'luxon'
 import Worker from './worker'
-import { TransferStats } from './TransferStats'
-import { formatCurrency } from './utils/formatCurrency'
-import { timeToBridgeStats } from './utils/timeToBridgeStats'
+import { DateTime } from 'luxon'
 import { TimeToBridgeStats } from './models/TimeToBridgeStats'
-import { populateData } from './populateData'
+import { TransferStats } from './TransferStats'
 import { cache } from './cache'
+import { formatCurrency } from './utils/formatCurrency'
 import { isGoerli } from './config'
+import { populateData } from './populateData'
+import { timeToBridgeStats } from './utils/timeToBridgeStats'
 
 type Transfer = {
   accountAddress: string

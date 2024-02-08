@@ -1,5 +1,5 @@
-import pidusage from 'pidusage'
 import os from 'os'
+import pidusage from 'pidusage'
 import wait from 'wait'
 
 export class OsStats {

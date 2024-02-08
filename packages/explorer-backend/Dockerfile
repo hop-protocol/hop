@@ -1,16 +1,19 @@
-FROM node:14 AS build
-WORKDIR /usr/src/app
-COPY . /usr/src/app
-RUN npm install
-RUN npm run build
+FROM node:20.10.0-slim AS base
 
-FROM node:14
-WORKDIR /usr/src/app
-COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
-COPY --from=build /usr/src/app/dist /usr/src/app/dist
-COPY --from=build /usr/src/app/static /usr/src/app/static
-COPY --from=build /usr/src/app/public /usr/src/app/public
-COPY --from=build /usr/src/app/package.json /usr/src/app/package.json
-EXPOSE 3000
-ENTRYPOINT ["/usr/local/bin/npm", "run"]
-CMD ["start:dist"]
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+COPY . /app
+WORKDIR /app
+
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN pnpm --filter=@hop-protocol/core build
+RUN pnpm --filter=@hop-protocol/explorer-backend build
+RUN pnpm --filter=@hop-protocol/explorer-backend deploy --prod /prod/app
+
+FROM base
+COPY --from=build /prod/app /prod/app
+WORKDIR /prod/app
+
+ENTRYPOINT ["node", "/prod/app/dist/index.js"]

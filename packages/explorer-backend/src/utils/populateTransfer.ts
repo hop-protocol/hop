@@ -1,18 +1,18 @@
 import { DateTime } from 'luxon'
-import { formatUnits } from 'ethers/lib/utils'
-import { truncateAddress } from './truncateAddress'
-import { truncateHash } from './truncateHash'
-import { getTokenDecimals } from './getTokenDecimals'
+import { chainIdToSlug } from './chainIdToSlug'
+import { chainSlugToId } from './chainSlugToId'
+import { chainSlugToName } from './chainSlugToName'
 import { explorerLinkAddress } from './explorerLinkAddress'
 import { explorerLinkTx } from './explorerLinkTx'
-import { chainIdToSlug } from './chainIdToSlug'
-import { chainSlugToName } from './chainSlugToName'
-import { chainSlugToId } from './chainSlugToId'
-import { getChainLogo } from './getChainLogo'
-import { nearestDate } from './nearestDate'
-import { getTokenLogo } from './getTokenLogo'
 import { formatCurrency } from './formatCurrency'
+import { formatUnits } from 'ethers/lib/utils'
+import { getChainLogo } from './getChainLogo'
+import { getTokenDecimals } from './getTokenDecimals'
+import { getTokenLogo } from './getTokenLogo'
 import { isGoerli } from '../config'
+import { nearestDate } from './nearestDate'
+import { truncateAddress } from './truncateAddress'
+import { truncateHash } from './truncateHash'
 
 export function populateTransfer (x: any, prices?: any) {
   if (typeof x.timestamp !== 'number') {
@@ -152,9 +152,9 @@ export function populateTransfer (x: any, prices?: any) {
     const diff = bondedTime.diff(transferTime, ['days', 'hours', 'minutes'])
     const diffObj = diff.toObject()
     x.bondWithinTimestamp = (((diff.days * 24 * 60) + (diff.hours * 60) + (diff as any).values.minutes) * 60)
-    let hours = Number(diffObj.hours.toFixed(0))
-    let days = Number(diffObj.days.toFixed(0))
-    let minutes = Number(diffObj.minutes.toFixed(0))
+    let hours = Number(diffObj?.hours?.toFixed(0))
+    let days = Number(diffObj?.days?.toFixed(0))
+    let minutes = Number(diffObj?.minutes?.toFixed(0))
     if (hours < 0) {
       hours = 0
     }

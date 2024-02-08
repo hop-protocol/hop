@@ -1,7 +1,7 @@
 import 'react'
-import { createTheme, ThemeProvider, styled } from '@mui/material/styles'
-import { palette as paletteLight } from './_light'
+import { createTheme } from '@mui/material/styles'
 import { palette as paletteDark } from './_dark'
+import { palette as paletteLight } from './_light'
 
 export const darkTheme = createTheme({
   palette: {

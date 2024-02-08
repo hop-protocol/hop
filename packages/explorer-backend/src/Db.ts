@@ -1,10 +1,11 @@
+import minimist from 'minimist'
 import pgp from 'pg-promise'
-import { v4 as uuid } from 'uuid'
-import { postgresConfig } from './config'
-import { populateTransfer } from './utils/populateTransfer'
 import { DateTime } from 'luxon'
+import { populateTransfer } from './utils/populateTransfer'
+import { postgresConfig } from './config'
+import { v4 as uuid } from 'uuid'
 
-const argv = require('minimist')(process.argv.slice(2))
+const argv = minimist(process.argv.slice(2))
 
 type DbTransfer = {
   accountAddress: string
@@ -793,7 +794,7 @@ class Db {
     const timestamp = Number(DateTime.utc().minus({ days }).toSeconds())
     const queryParams = [sourceChainSlug, destinationChainSlug, timestamp]
 
-    return await this.db.any(sql, queryParams)
+    return this.db.any(sql, queryParams)
   }
 
   close () {

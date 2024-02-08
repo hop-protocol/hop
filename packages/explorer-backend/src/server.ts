@@ -1,9 +1,10 @@
-import path from 'path'
-import express from 'express'
-import { port } from './config'
-import { Controller } from './controller'
 import cors from 'cors'
+import express from 'express'
+import minimist from 'minimist'
+import path from 'path'
+import { Controller } from './controller'
 import { ipRateLimitMiddleware } from './rateLimit'
+import { port } from './config'
 import { responseCache } from './responseCache'
 
 const app = express()
@@ -213,7 +214,7 @@ app.get('/v1/transfers/timeStats', async (req, res) => {
   }
 })
 
-const argv = require('minimist')(process.argv.slice(2))
+const argv = minimist(process.argv.slice(2))
 console.debug('flags:', argv)
 
 if (argv.worker) {

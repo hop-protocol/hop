@@ -1,6 +1,6 @@
 import TransferStats from './TransferStats'
-import { OsStats } from './OsStats'
 import wait from 'wait'
+import { OsStats } from './OsStats'
 
 type Options = {
   days?: number

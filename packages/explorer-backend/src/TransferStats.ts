@@ -1,31 +1,31 @@
-import { ethers, providers, BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import { DateTime } from 'luxon'
 import Db, { getInstance } from './Db'
-import { chunk } from 'lodash'
 import wait from 'wait'
+import { BigNumber, ethers, providers } from 'ethers'
+import { DateTime } from 'luxon'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
-import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/core/abi'
-import { enabledChains, enabledTokens, network, rpcUrls, isGoerli, integrations } from './config'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+import { cache } from './cache'
 import { chainIdToSlug } from './utils/chainIdToSlug'
-import { chainSlugToName } from './utils/chainSlugToName'
 import { chainSlugToId } from './utils/chainSlugToId'
-import { populateTransfer } from './utils/populateTransfer'
-import { getProxyAddress } from './utils/getProxyAddress'
-import { getPriceHistory } from './price'
+import { chainSlugToName } from './utils/chainSlugToName'
+import { chunk } from 'lodash'
+import { enabledChains, enabledTokens, integrations, isGoerli, network, rpcUrls } from './config'
 import {
-  fetchTransfers,
-  fetchTransfersForTransferId,
   fetchBondTransferIdEvents,
   fetchTransferBonds,
-  fetchWithdrews,
+  fetchTransferEventsByTransferIds,
   fetchTransferFromL1Completeds,
-  fetchTransferEventsByTransferIds
+  fetchTransfers,
+  fetchTransfersForTransferId,
+  fetchWithdrews
 } from './theGraph'
+import { formatUnits } from 'ethers/lib/utils'
 import { getPreRegenesisBondEvent } from './preregenesis'
+import { getPriceHistory } from './price'
+import { getProxyAddress } from './utils/getProxyAddress'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/core/abi'
 import { populateData } from './populateData'
-import { cache } from './cache'
+import { populateTransfer } from './utils/populateTransfer'
 
 const cacheDurationMs = isGoerli ? 60 * 1000 : 6 * 60 * 60 * 1000
 
@@ -78,7 +78,7 @@ export class TransferStats {
     }
 
     await wait(100)
-    return await this.tilReady()
+    return this.tilReady()
   }
 
   cleanUp () {
@@ -584,8 +584,8 @@ export class TransferStats {
     }))
 
     const events :any = {}
-    for (const i in enabledChains) {
-      events[`${enabledChains[i]}Transfers`] = enabledChainTransfers[i]
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = enabledChainTransfers[i];
     }
 
     return events
@@ -739,8 +739,8 @@ export class TransferStats {
     }))
 
     const events :any = {}
-    for (const i in enabledChains) {
-      events[`${enabledChains[i]}Transfers`] = enabledChainTransfers[i]
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = enabledChainTransfers[i];
     }
 
     return events
@@ -752,8 +752,8 @@ export class TransferStats {
     }))
 
     const events :any = {}
-    for (const i in enabledChains) {
-      events[`${enabledChains[i]}Bonds`] = enabledChainBonds[i]
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Bonds`] = enabledChainBonds[i];
     }
 
     return events
@@ -843,8 +843,8 @@ export class TransferStats {
     }))
 
     const bondedWithdrawals :any = {}
-    for (const i in fetchBondedWithdrawalsChains) {
-      bondedWithdrawals[fetchBondedWithdrawalsChains[i]] = enabledChainBondedWithdrawals[i]
+    for (const [i, chain] of fetchBondedWithdrawalsChains.entries()) {
+      bondedWithdrawals[chain] = enabledChainBondedWithdrawals[i];
     }
 
     console.log('querying fetchWithdrews')
@@ -855,8 +855,8 @@ export class TransferStats {
     }))
 
     const withdrews :any = {}
-    for (const i in fetchWithdrewsChains) {
-      withdrews[fetchWithdrewsChains[i]] = enabledChainWithdrews[i]
+    for (const [i, chain] of fetchWithdrewsChains.entries()) {
+      withdrews[chain] = enabledChainWithdrews[i];
     }
 
     console.log('querying fetchTransferFromL1Completeds with startTime', startTime, 'endTime', endTime)
@@ -867,8 +867,8 @@ export class TransferStats {
     }))
 
     const fromL1CompletedsMap :any = {}
-    for (const i in fetchFromL1CompletedsChains) {
-      fromL1CompletedsMap[fetchFromL1CompletedsChains[i]] = enabledChainFromL1Completeds[i]
+    for (const [i, chain] of fetchFromL1CompletedsChains.entries()) {
+      fromL1CompletedsMap[chain] = enabledChainFromL1Completeds[i];
     }
 
     const bondsMap :any = {}
@@ -1123,8 +1123,8 @@ export class TransferStats {
     }))
 
     const events :any = {}
-    for (const i in enabledChains) {
-      events[`${enabledChains[i]}Transfers`] = enabledChainTransfers[i]
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = enabledChainTransfers[i];
     }
 
     const data = await this.normalizeTransferEvents(events)

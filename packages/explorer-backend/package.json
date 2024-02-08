@@ -25,6 +25,7 @@
     "@types/jest": "^29.5.3",
     "@types/lodash": "^4.14.191",
     "@types/luxon": "^3.2.0",
+    "@types/minimist": "1.2.5",
     "@types/uuid": "^9.0.0",
     "jest": "^29.6.2",
     "ts-jest": "^29.1.1",

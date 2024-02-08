@@ -1,4 +1,4 @@
-import { mainnet as mainnetAddresses, goerli as goerliAddresses } from '@hop-protocol/core/addresses'
+import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 const addresses: any = {
   mainnet: mainnetAddresses,

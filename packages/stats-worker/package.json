@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "ts-node src/index.ts",
     "start:yields": "ts-node src/index.ts --yields",
@@ -52,7 +52,6 @@
   },
   "//": "Required for pnpm deploy command in Dockerfile",
   "files": [
-    "bin",
     "dist"
   ]
 }

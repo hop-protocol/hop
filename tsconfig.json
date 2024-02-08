@@ -9,7 +9,8 @@
     "noImplicitOverride": true,
 
     // Modules
-    "module": "nodenext",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
 
     // Emit

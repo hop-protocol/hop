@@ -25,14 +25,14 @@ type StyleProps = {
 
 const useStyles = makeStyles<Theme, StyleProps>((theme: any) => {
   const label = {
-    width: '100%',
+    width: '100% !important',
     color: ({ highlighted, contrastText }) => {
       if (highlighted) {
-        return theme.palette.primary.main
+        return `${theme.palette.primary.main} !important`
       } else if (contrastText) {
-        return 'white'
+        return 'white !important'
       } else {
-        return theme.palette.text.secondary
+        return `${theme.palette.text.secondary} !important`
       }
     },
     fontWeight: ({ bold }) => (bold ? 800 : 700),

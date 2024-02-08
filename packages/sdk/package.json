@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.599",
+  "version": "0.0.1-beta.603",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -11,13 +11,13 @@
     "hop.js"
   ],
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js",
     "test": "jest",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",
-    "build:all": "pnpm build:ts && pnpm build:browser",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:all": "pnpm build:ts && pnpm build:cjs && pnpm build:browser",
     "build:browser": "esbuild dist/index.js --bundle --minify --platform=browser --outfile=hop.js",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
@@ -54,5 +54,12 @@
   },
   "peerDependencies": {
     "ethers": "^5"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js"
+    }
   }
 }

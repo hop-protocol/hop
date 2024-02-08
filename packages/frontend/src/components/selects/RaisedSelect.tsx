@@ -9,7 +9,7 @@ const useStyles = makeStyles(theme => ({
     height: '4.8rem',
     borderRadius: '2.3rem',
     paddingTop: '0.0rem',
-    paddingLeft: '1.8rem',
+    paddingLeft: '1.8rem !important',
     paddingBottom: '0.0rem',
     paddingRight: '2.8rem',
     '& .MuiSelect-select': {
@@ -33,9 +33,9 @@ const useStyles = makeStyles(theme => ({
     height: '4.6rem',
   },
   icon: ({ value }: any) => ({
-    top: 'calc(50% - 0.75rem)',
-    right: '0.8rem',
-    color: value === 'default' ? '#fff' : theme.palette.text.secondary,
+    top: 'calc(50% - 0.75rem) !important',
+    right: '0.8rem !important',
+    color: `${value === 'default' ? '#fff' : theme.palette.text.secondary} !important`,
   }),
 }))
 

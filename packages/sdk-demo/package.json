@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "start": "react-app-rewired start",
     "dev": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none pnpm start",

@@ -4,10 +4,10 @@ export const useAmountSelectorCardStyles = makeStyles((theme: any) => ({
   root: {
     maxWidth: '51.6rem',
     boxSizing: 'border-box',
+    boxShadow: `${theme.boxShadow?.inner} !important`,
     [theme.breakpoints.down('xs')]: {
       width: '100%',
     },
-    boxShadow: theme.boxShadow?.inner,
   },
   topRow: {
     marginBottom: '1.8rem',
@@ -59,9 +59,9 @@ export const useAmountSelectorCardStyles = makeStyles((theme: any) => ({
   mobileFlexColumn: {
     '@media (max-width: 420px)': {
       display: 'flex',
-      alignItems: 'flex-end',
+      alignItems: 'flex-end !important',
       flexDirection: 'column',
-      width: '100%',
+      width: '100% !important',
       marginBottom: '1rem'
     }
   }

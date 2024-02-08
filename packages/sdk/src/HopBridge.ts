@@ -116,6 +116,20 @@ type RemoveLiquidityImbalanceOptions = {
   deadline: BigNumberish
 }
 
+type SendDataAmountOutMins = {
+  amount: BigNumberish
+  amountOutMin: BigNumber
+  destinationAmountOutMin: BigNumber | null
+  deadline: number
+  destinationDeadline: number | null
+}
+
+type FeeAndAmountOutMinData = {
+  totalFee: BigNumber
+  amountOutMin: BigNumber
+  destinationAmountOutMin: BigNumber | null
+}
+
 /**
  * Class representing Hop bridge.
  * @namespace HopBridge
@@ -878,16 +892,17 @@ class HopBridge extends Base {
     }
   }
 
-  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number): any {
-    const { sourceChain, destinationChain, requiredLiquidity, amountIn, amountOut, totalFee } = getSendDataResponse
+  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number): SendDataAmountOutMins {
+    const { sourceChain, destinationChain, requiredLiquidity, estimatedReceived, amountIn } = getSendDataResponse
 
-    const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
+    const amountOutMinSrc = this.calcAmountOutMin(requiredLiquidity, slippageTolerance)
+    const amountOutMinDest = this.calcAmountOutMin(estimatedReceived, slippageTolerance)
 
     // l1->l2
     if (sourceChain.isL1) {
       return {
         amount: amountIn,
-        amountOutMin: amountOutMin.sub(totalFee),
+        amountOutMin: amountOutMinDest,
         destinationAmountOutMin: null,
         deadline: this.defaultDeadlineSeconds,
         destinationDeadline: null
@@ -898,7 +913,7 @@ class HopBridge extends Base {
     if (destinationChain.isL1) {
       return {
         amount: amountIn,
-        amountOutMin: amountOutMin.sub(totalFee),
+        amountOutMin: amountOutMinSrc,
         destinationAmountOutMin: BigNumber.from(0),
         deadline: this.defaultDeadlineSeconds,
         destinationDeadline: 0
@@ -908,10 +923,25 @@ class HopBridge extends Base {
     // l2->l2
     return {
       amount: amountIn,
-      amountOutMin: this.calcAmountOutMin(requiredLiquidity, slippageTolerance).sub(totalFee),
-      destinationAmountOutMin: amountOutMin.sub(totalFee),
+      amountOutMin: amountOutMinSrc,
+      destinationAmountOutMin: amountOutMinDest,
       deadline: this.defaultDeadlineSeconds,
       destinationDeadline: this.defaultDeadlineSeconds
+    }
+  }
+
+  public async getFeeAndAmountOutMinData (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    slippageTolerance: number
+  ) : Promise<FeeAndAmountOutMinData> {
+    const sendData = await this.getSendData(amountIn, sourceChain, destinationChain)
+    const amountOutMins = this.getSendDataAmountOutMins(sendData, slippageTolerance)
+    return {
+      totalFee: sendData.totalFee,
+      amountOutMin: amountOutMins.amountOutMin,
+      destinationAmountOutMin: amountOutMins.destinationAmountOutMin
     }
   }
 
@@ -1404,9 +1434,15 @@ class HopBridge extends Base {
           validChain = !!this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
         } catch (err) {}
         if (validChain) {
-          const bondableBridge = await this.getBridgeContract(bondableChain)
-          const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
-          pendingAmounts = pendingAmounts.add(pendingAmount)
+          // This requires RPCs for all bondable chains. If the consumer of this SDK does not pass
+          // in an RPC for all chains, this uses the default RPC provider. This is not ideal since
+          // the consumer may experience errors out of their control. If the endpoint errors out,
+          // assume 0 for HopV1.
+          try {
+            const bondableBridge = await this.getBridgeContract(bondableChain)
+            const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
+            pendingAmounts = pendingAmounts.add(pendingAmount)
+          } catch {}
         }
       }))
 
@@ -2538,7 +2574,7 @@ class HopBridge extends Base {
       chain = this.toChainModel(chain)
       const supported = this.getSupportedAssets()
       const token = this.toTokenModel(this.tokenSymbol)
-      return !!supported[chain?.slug]?.[token.canonicalSymbol] ?? false
+      return !!supported[chain?.slug]?.[token.canonicalSymbol]
     } catch (err: any) {
       console.error(err)
     }

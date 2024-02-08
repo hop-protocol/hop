@@ -1,5 +1,5 @@
 import { CanonicalToken, ChainSlug, Token } from '@hop-protocol/sdk'
-import { ChainName } from '@hop-protocol/sdk/dist/constants'
+import { ChainName } from '@hop-protocol/sdk'
 import { claimTokenAddress } from 'src/pages/Claim/config'
 import { networkIdToSlug, wait } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'

@@ -266,7 +266,7 @@ const Send: FC = () => {
         </ButtonsWrapper>
       : <ButtonsWrapper>
           <Box mb={3} width="100%">
-            <ConnectWalletButton fullWidth large mode={theme?.palette.type} />
+            <ConnectWalletButton fullWidth large mode={theme?.palette?.mode} />
           </Box>
         </ButtonsWrapper>
       }

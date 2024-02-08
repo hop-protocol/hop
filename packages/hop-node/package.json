@@ -10,7 +10,7 @@
     "pnpm": ">=8"
   },
   "scripts": {
-    "preinstall": "pnpm dlx only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf ./db_data",
     "test": "jest test",
@@ -19,7 +19,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint . --ext .ts --fix"
   },
-  "//": "@maticnetwork/matic-js ethers requires 3.5.0 of @maticnetwork/maticjs but 3.7.7 is needed for zkEVM compatibility",
+  "//": "@maticnetwork/maticjs-ethers requires 3.5.0 of @maticnetwork/maticjs but 3.7.7 is needed for zkEVM compatibility as well as general compatibility",
   "dependencies": {
     "@arbitrum/sdk": "2.0.18",
     "@aws-sdk/client-cloudwatch-logs": "3.338.0",
@@ -32,12 +32,11 @@
     "@ethereumjs/rlp": "5.0.1",
     "@ethereumjs/tx": "5.1.0",
     "@ethersproject/hdnode": "5.0.9",
-    "@fxportal/maticjs-fxportal": "1.1.1",
     "@hop-protocol/core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
     "@maticnetwork/maticjs": "3.5.0",
     "@maticnetwork/maticjs-ethers": "1.0.3",
-    "@maticnetwork/maticjs-zkevm": "npm:@maticnetwork/maticjs@3.7.7",
+    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.7.7",
     "@slack/web-api": "7.0.1",
     "@uniswap/sdk-core": "3.2.2",
     "@uniswap/v3-core": "1.0.1",

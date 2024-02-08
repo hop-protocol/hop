@@ -55,8 +55,9 @@ const useInputStyles = makeStyles(theme => ({
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: '0.8rem 0',
     marginLeft: '.7rem',
-    borderRadius: '1.5rem',
+    borderRadius: '1.5rem !important',
     width: '100%',
+    fontSize: '2.7rem !important',
     boxShadow: defaultShadow ? theme.boxShadow?.input.normal : 'none',
     '&:hover': {
       boxShadow: () => {
@@ -80,7 +81,7 @@ const useInputStyles = makeStyles(theme => ({
   }),
   input: ({ centerAlign, leftAlign, loadingValue, smallFontSize }: StyleProps) => ({
     textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
-    fontSize: smallFontSize ? '1.6rem' : theme.typography.h4.fontSize,
+    fontSize: smallFontSize ? '1.6rem !important' : theme.typography.h4.fontSize,
     fontWeight: smallFontSize ? 'normal' : theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
     textOverflow: 'clip',
@@ -90,7 +91,7 @@ const useInputStyles = makeStyles(theme => ({
       : 'none',
     [theme.breakpoints.down('xs')]: {
       fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
-      padding: '.5rem',
+      padding: '.5rem !important',
     },
   }),
   focused: {
@@ -132,7 +133,7 @@ export const LargeTextField: FC<LargeTextFieldProps> = props => {
             </Typography>
           </InputAdornment>
         ) : null,
-      } as any }
+      }}
       {...textFieldProps}
     />
   )

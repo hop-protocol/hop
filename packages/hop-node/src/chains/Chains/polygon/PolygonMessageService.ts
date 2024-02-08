@@ -2,10 +2,9 @@ import wait from 'src/utils/wait'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { BigNumber, providers, utils } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { FxPortalClient } from '@fxportal/maticjs-fxportal'
+import { POSClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
-import { setProofApi, use } from '@maticnetwork/maticjs'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string
@@ -57,7 +56,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
-    this.maticClient = new FxPortalClient()
+    this.maticClient = new POSClient()
 
     this.#_initClient(this.networkSlug)
       .then(() => {

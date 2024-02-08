@@ -112,7 +112,7 @@ export function populateData (x: any, i: number) {
   }
 
   if (!x.bonded && x.sourceChainSlug && x.destinationChainSlug) {
-    const minutes = transferTimes?.[x.sourceChainSlug]?.[x.destinationChainSlug]
+    const minutes = (transferTimes as any)?.[x.sourceChainSlug]?.[x.destinationChainSlug]
     if (minutes) {
       const bufferMinutes = 5 // to allow for enough time for indexer
       const transferTime = DateTime.fromSeconds(x.timestamp)

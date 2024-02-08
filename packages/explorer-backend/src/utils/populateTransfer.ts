@@ -152,9 +152,9 @@ export function populateTransfer (x: any, prices?: any) {
     const diff = bondedTime.diff(transferTime, ['days', 'hours', 'minutes'])
     const diffObj = diff.toObject()
     x.bondWithinTimestamp = (((diff.days * 24 * 60) + (diff.hours * 60) + (diff as any).values.minutes) * 60)
-    let hours = Number(diffObj.hours.toFixed(0))
-    let days = Number(diffObj.days.toFixed(0))
-    let minutes = Number(diffObj.minutes.toFixed(0))
+    let hours = Number(diffObj?.hours?.toFixed(0))
+    let days = Number(diffObj?.days?.toFixed(0))
+    let minutes = Number(diffObj?.minutes?.toFixed(0))
     if (hours < 0) {
       hours = 0
     }

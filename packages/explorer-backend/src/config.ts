@@ -20,8 +20,8 @@ export const postgresConfig = {
 export const regenesisEnabled = process.env.REGENESIS_ENABLED === 'true'
 export const CoingeckoApiKey = process.env.COINGECKO_API_KEY || ''
 
-const tokenSet = new Set([])
-const chainSet = new Set([])
+const tokenSet = new Set<string>([])
+const chainSet = new Set<string>([])
 
 const addresses = isGoerli ? goerliAddresses : mainnetAddresses
 for (const token in addresses.bridges) {

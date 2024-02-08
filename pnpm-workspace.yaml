@@ -7,3 +7,4 @@ packages:
   # - 'packages/sdk-demo'
   - 'packages/stats-worker'
   - 'packages/hop-node'
+  - 'packages/explorer-backend'

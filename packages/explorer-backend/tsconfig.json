@@ -1,16 +1,16 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "target": "es6",
+    "module": "CommonJS",
     "moduleResolution": "node",
-    "sourceMap": true,
-    "outDir": "dist"
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "src/*": ["./src/*"]
+    }
   },
-  "lib": ["es2015"],
-  "include":[
-    "src/**/*",
-    "src/**/*.json"
+  "include": [
+    "src",
+    "src/**/*.json" // Required to include JSON files specifically
   ]
 }

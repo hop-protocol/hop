@@ -7,7 +7,7 @@ const colorsMap: any = {
 }
 
 for (const chain in chains) {
-  colorsMap[chain] = chains[chain].primaryColor
+  colorsMap[chain] = (chains as any)[chain].primaryColor
 }
 
 export function getColor (chain: string) {

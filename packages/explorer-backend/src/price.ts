@@ -3,7 +3,7 @@ import { tokens } from '@hop-protocol/core/metadata'
 import { CoingeckoApiKey } from './config'
 
 function getCoinId (tokenSymbol: string) {
-  return tokens[tokenSymbol]?.coingeckoId
+  return (tokens as any)[tokenSymbol]?.coingeckoId
 }
 
 export async function getPriceHistory (tokenSymbol: string, days: number) {

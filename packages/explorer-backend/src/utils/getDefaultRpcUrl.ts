@@ -1,6 +1,6 @@
 import { mainnet as mainnetAddresses, goerli as goerliAddresses } from '@hop-protocol/core/networks'
 
-const networks = {
+const networks: any = {
   mainnet: mainnetAddresses,
   goerli: goerliAddresses
 }

@@ -8,3 +8,4 @@ packages:
   - 'packages/stats-worker'
   - 'packages/hop-node'
   - 'packages/explorer-backend'
+  - 'packages/explorer-frontend'

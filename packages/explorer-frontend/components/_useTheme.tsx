@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { lightTheme, darkTheme } from './_theme'
+import { darkTheme, lightTheme } from './_theme'
+import { useEffect, useState } from 'react'
 
 export function useTheme() {
   const [dark, setDark] = useState(() => {

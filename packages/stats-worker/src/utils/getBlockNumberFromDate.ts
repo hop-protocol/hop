@@ -10,13 +10,9 @@ export async function getBlockNumberFromDate (
 ): Promise<number> {
   try {
     const useEtherscan = etherscanApiKeys[chain]
-    if (useEtherscan) {
-      const blockNumber = await getBlockNumberFromDateUsingEtherscan(chain, timestamp)
-      // Polygon's Etherscan call returns -1
-      if (blockNumber !== -1) {
-        return blockNumber
-      }
-      console.log(`etherscan blocknumber call failed for chain ${chain} and timestamp ${timestamp}`)
+    // Polygon's Etherscan returns invalid and inconsistent data, so skip it
+    if (useEtherscan && chain !== 'polygon') {
+      return await getBlockNumberFromDateUsingEtherscan(chain, timestamp)
     }
 
     return await getBlockNumberFromDateUsingLib(provider, timestamp)
@@ -67,7 +63,7 @@ async function getBlockNumberFromDateUsingLib (
   let info
   while (true) {
     try {
-      info = blockDater.getDate(date)
+      info = await (blockDater.getDate(date) as any)
       if (!info) {
         throw new Error('could not retrieve block number')
       }

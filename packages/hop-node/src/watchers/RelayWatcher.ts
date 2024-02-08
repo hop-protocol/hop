@@ -413,7 +413,7 @@ class RelayWatcher extends BaseWatcher {
     // A messageIndex greater than 0 is very rare. It is also difficult to calculate since it requires
     // the context of the whole tx. Assuming 0 is reasonable for now.
     messageIndex = messageIndex ?? 0
-    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} relayL1ToL2MessageOpts ${messageIndex ?? 0} destinationChainId: ${destinationChainId}`)
+    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} messageIndex: ${messageIndex} destinationChainId: ${destinationChainId}`)
     return chainBridge.relayL1ToL2Message(txHash, messageIndex)
   }
 

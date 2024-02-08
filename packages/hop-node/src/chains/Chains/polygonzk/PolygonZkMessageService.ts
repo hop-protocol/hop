@@ -131,20 +131,28 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   }
 
   protected async isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): Promise<boolean> {
-    // A message is in flight if:
-    // 1. It is neither relayable nor relayed
-    // 2. The client does not know about it
+    /**
+     * A message is in flight if:
+     * 1. It is neither relayable nor relayed
+     * 2. The client does not know about it
+     */
 
     let isRelayable: boolean
     let isRelayed: boolean
     try {
+      console.log('debug000', messageStatus, messageDirection)
       isRelayable = await this.#isMessageRelayable(messageStatus, messageDirection)
+      console.log('debug111', messageStatus, messageDirection, isRelayable)
       isRelayed = await this.#isMessageRelayed(messageStatus, messageDirection)
+      console.log('debug222', messageStatus, messageDirection, isRelayed)
     } catch (err) {
+      console.log('debug333', messageStatus, messageDirection)
       return true
     }
 
+    console.log('debug444', messageStatus, messageDirection)
     if (isRelayable || isRelayed) {
+      console.log('debug555', messageStatus, messageDirection)
       return false
     }
     return true

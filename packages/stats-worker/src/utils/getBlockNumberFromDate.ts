@@ -10,6 +10,7 @@ export async function getBlockNumberFromDate (
 ): Promise<number> {
   try {
     const useEtherscan = etherscanApiKeys[chain]
+    // Polygon's Etherscan returns invalid and inconsistent data, so skip it
     if (useEtherscan || chain !== 'polygon') {
       return await getBlockNumberFromDateUsingEtherscan(chain, timestamp)
     }

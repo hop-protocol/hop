@@ -56,7 +56,7 @@ ENABLED_CHAINS=ethereum,gnosis,polygon,arbitrum,optimism,nova,base,linea
 Run github action build locally with [act](https://github.com/nektos/act):
 
 ```sh
-(cd ../ && act --job build-backend --workflows .github/workflows/backend.yml --secret-file=.secrets --verbose)
+(cd ../ && act --job build-explorer-backend --workflows .github/workflows/hop_explorer_backend.yml --secret-file=.secrets --verbose)
 ```
 
 `.secrets`

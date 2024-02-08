@@ -1,4 +1,4 @@
-name: Build and Push Explorer Backend Docker Image
+name: Build and Push Hop Explorer Backend Docker Image
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         id: extract_branch
         run: echo "::set-output name=branch::${GITHUB_REF##*/}"
 
-  _build-backend:
+  _build-explorer-backend:
     runs-on: ubuntu-latest
     environment: docker
     env:
@@ -35,8 +35,8 @@ jobs:
       - name: Build application Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./packages/explorer-backend
+          file: ./packages/explorer-backend/Dockerfile
           build-args: GIT_REV=${{ github.sha }}
           tags: app
           load: true
@@ -61,8 +61,8 @@ jobs:
             docker push $DOCKER_IMAGE:latest
           fi
 
-  build-backend:
-    needs: [prepare, _build-backend]
+  build-explorer-backend:
+    needs: [prepare, _build-explorer-backend]
     name: Send Backend Status Notification Webhook Request
     uses: ./.github/workflows/status_notify.yml
     with:

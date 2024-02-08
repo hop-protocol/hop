@@ -1,9 +1,0 @@
-/node_modules
-.env
-.netlify
-*.log
-1
-pgdata
-*.txt
-.secrets
-secrets.json

@@ -3,9 +3,9 @@ name: Build and Push Explorer Backend Docker Image
 on:
   push:
     branches:
-      - production-backend
-      - goerli-backend
-      - sepolia-backend
+      - explorer-backend-production
+      - explorer-backend-goerli
+      - explorer-backend-sepolia
 
 jobs:
   prepare:
@@ -51,7 +51,7 @@ jobs:
       - name: Push Explorer Backend Docker image to Docker Hub
         run: |
           BRANCH=${GITHUB_REF##*/}
-          BRANCH=$(echo $BRANCH | sed 's/\//-/g' | sed 's/-backend//g')
+          BRANCH=$(echo $BRANCH | sed 's/\//-/g' | sed 's/explorer-backend-//g')
           docker tag app $DOCKER_IMAGE:${{ github.sha }}
           docker tag app $DOCKER_IMAGE:$BRANCH
           docker push $DOCKER_IMAGE:${{ github.sha }}

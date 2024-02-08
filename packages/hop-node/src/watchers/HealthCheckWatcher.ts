@@ -712,7 +712,7 @@ export class HealthCheckWatcher {
       // DAI into Gnosis can be bonded for a cheaper fee
       if (
         x.destinationChain === Chain.Gnosis &&
-        x.token === 'DAI'
+        (x.token === 'DAI' || x.token === 'MATIC')
       ) {
         isBonderFeeTooLow = false
       }
@@ -744,7 +744,7 @@ export class HealthCheckWatcher {
       // DAI into Gnosis can be bonded for a cheaper fee
       if (
         x.destinationChain === Chain.Gnosis &&
-        x.token === 'DAI'
+        (x.token === 'DAI' || x.token === 'MATIC')
       ) {
         return false
       }

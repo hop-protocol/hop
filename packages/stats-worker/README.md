@@ -77,6 +77,8 @@ Run amm stats worker
 ts-node src/index.ts --amm --ammDays=2
 ```
 
+### Github Actions
+
 Run github action build locally with [act](https://github.com/nektos/act):
 
 ```sh

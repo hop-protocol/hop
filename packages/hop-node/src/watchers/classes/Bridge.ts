@@ -8,7 +8,8 @@ import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
-  SettlementGasLimitPerTx
+  SettlementGasLimitPerTx,
+  Token
 } from 'src/constants'
 import {
   CoingeckoApiKey,
@@ -826,6 +827,14 @@ export default class Bridge extends ContractBase {
     // relative fee will negate this value anyway
     const destinationChain = this.chainSlug
     if (destinationChain === Chain.Ethereum) {
+      return BigNumber.from(0)
+    }
+
+    // DAI into Gnosis can be bonded for a cheaper fee
+    if (
+      destinationChain === Chain.Gnosis &&
+      tokenSymbol === Token.DAI
+    ) {
       return BigNumber.from(0)
     }
 

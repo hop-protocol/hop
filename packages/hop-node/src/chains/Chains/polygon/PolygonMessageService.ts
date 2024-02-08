@@ -61,7 +61,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     this.#_initClient(this.networkSlug)
       .then(() => {
         this.ready = true
-        console.log('Matic client initialized')
+        this.logger.debug('Matic client initialized')
       })
       .catch((err: any) => {
         this.logger.error('Matic client initialize error:', err)

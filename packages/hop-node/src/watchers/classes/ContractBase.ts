@@ -2,14 +2,14 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import { BigNumberish, Contract, providers } from 'ethers'
+import { BigNumberish, Contract, TransactionReceipt, TransactionResponse } from 'ethers'
 import {
   Chain,
   MinGnosisGasPrice,
   MinPolygonGasPrice,
   SyncType
 } from 'src/constants'
-import { Event, PayableOverrides } from '@ethersproject/contracts'
+import { Event, PayableOverrides } from 'ethers'
 import { EventEmitter } from 'events'
 import { FinalityService } from 'src/finality/FinalityService'
 import { FinalityStrategyType } from 'src/finality/strategies/IFinalityStrategy'
@@ -80,7 +80,7 @@ export default class ContractBase extends EventEmitter {
     return this.contract.address
   }
 
-  getTransaction = async (txHash: string): Promise<providers.TransactionResponse> => {
+  getTransaction = async (txHash: string): Promise<TransactionResponse> => {
     if (!txHash) {
       throw new Error('tx hash is required')
     }
@@ -89,7 +89,7 @@ export default class ContractBase extends EventEmitter {
 
   getTransactionReceipt = async (
     txHash: string
-  ): Promise<providers.TransactionReceipt> => {
+  ): Promise<TransactionReceipt> => {
     return this.contract.provider.getTransactionReceipt(txHash)
   }
 

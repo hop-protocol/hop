@@ -1,5 +1,7 @@
-import { Signer, providers } from 'ethers'
 import {
+  Signer,
+  TransactionRequest,
+  Provider,
   getAddress as checksumAddress,
   defineReadOnly,
   hashMessage,
@@ -10,7 +12,7 @@ import {
   resolveProperties,
   serializeTransaction,
   splitSignature
-} from 'ethers/lib/utils'
+} from 'ethers'
 // @ts-expect-error asn1.js does not have a types file as of 20231227
 import * as asn1 from 'asn1.js'
 
@@ -45,9 +47,9 @@ export abstract class AwsSigner extends Signer {
   address: string
   abstract override getAddress (): Promise<string>
   abstract override signMessage (msg: Buffer | string): Promise<string>
-  abstract override signTransaction (transaction: providers.TransactionRequest): Promise<string>
+  abstract override signTransaction (transaction: TransactionRequest): Promise<string>
 
-  constructor (config: AwsSignerConfig, provider?: providers.Provider) {
+  constructor (config: AwsSignerConfig, provider?: Provider) {
     super()
     if (!config.keyId) {
       throw new Error('keyId is required')
@@ -66,7 +68,7 @@ export abstract class AwsSigner extends Signer {
     return recoverAddress(msgHash, { r, s, v })
   }
 
-  async recoverAddressFromTxSig (transaction: providers.TransactionRequest, signature: string): Promise<string> {
+  async recoverAddressFromTxSig (transaction: TransactionRequest, signature: string): Promise<string> {
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
     const hash = keccak256(serializedTx)
@@ -89,7 +91,7 @@ export abstract class AwsSigner extends Signer {
     return checksumAddress(address)
   }
 
-  normalizeTransaction (transaction: providers.TransactionRequest): providers.TransactionRequest {
+  normalizeTransaction (transaction: TransactionRequest): TransactionRequest {
     // Ethers will not serialize a transaction with a from address
     if (transaction?.from) {
       delete transaction.from

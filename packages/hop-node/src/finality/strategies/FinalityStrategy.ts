@@ -3,15 +3,15 @@ import { Chain } from 'src/constants'
 import { FinalityBlockTag, IChainBridge } from 'src/chains/IChainBridge'
 import { FinalityState } from '@hop-protocol/core/config'
 import { IFinalityStrategy } from './IFinalityStrategy'
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
 
 // Default values to be overridden by child classes if desired
 
 export abstract class FinalityStrategy implements IFinalityStrategy {
-  protected readonly provider: providers.Provider
+  protected readonly provider: Provider
   protected readonly chainSlug: Chain
 
-  constructor (provider: providers.Provider, chainSlug: Chain) {
+  constructor (provider: Provider, chainSlug: Chain) {
     this.provider = provider
     this.chainSlug = chainSlug
   }

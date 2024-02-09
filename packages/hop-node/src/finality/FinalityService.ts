@@ -7,14 +7,14 @@ import {
   Strategy
 } from './strategies/IFinalityStrategy'
 import { IFinalityService } from './IFinalityService'
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
 
 export class FinalityService implements IFinalityService {
   private readonly strategy: IFinalityStrategy
   static FinalityStrategyType = FinalityStrategyType
 
   constructor (
-    provider: providers.Provider,
+    provider: Provider,
     chainSlug: Chain,
     finalityStrategyType: FinalityStrategyType = FinalityStrategyType.Default
   ) {

@@ -7,8 +7,8 @@ import wait from 'src/utils/wait'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
-import { Signer, providers } from 'ethers'
-import { defineReadOnly } from 'ethers/lib/utils'
+import { Signer, Provider, TransactionRequest, TransactionResponse } from 'ethers'
+import { defineReadOnly } from 'ethers'
 import { hostname, setLatestNonceOnStart } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -67,7 +67,7 @@ class GasBoostSigner extends Signer {
       })
   }
 
-  connect (provider: providers.Provider) {
+  connect (provider: Provider) {
     const _signer = this.signer.connect(provider)
     return new GasBoostSigner(_signer, this.store, this.options)
   }
@@ -80,7 +80,7 @@ class GasBoostSigner extends Signer {
     return this.signer.signMessage(msg)
   }
 
-  async signTransaction (transaction: providers.TransactionRequest) {
+  async signTransaction (transaction: TransactionRequest) {
     return this.signer.signTransaction(transaction)
   }
 
@@ -119,9 +119,9 @@ class GasBoostSigner extends Signer {
   }
 
   // this is a required ethers Signer method
-  override async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
+  override async sendTransaction (tx: TransactionRequest): Promise<TransactionResponse> {
     await this.tilReady()
-    const txResponse: providers.TransactionResponse = await this.mutex.runExclusive(async () => {
+    const txResponse: TransactionResponse = await this.mutex.runExclusive(async () => {
       const id = uuidv4()
       const logger = this.logger.create({ id })
       logger.debug(`in-memory count: ${this._count}`)
@@ -135,7 +135,7 @@ class GasBoostSigner extends Signer {
     return txResponse
   }
 
-  private async _sendTransaction (tx: providers.TransactionRequest, id: string): Promise<providers.TransactionResponse> {
+  private async _sendTransaction (tx: TransactionRequest, id: string): Promise<TransactionResponse> {
     const _timeId = `GasBoostTransaction elapsed ${id} `
     console.time(_timeId)
     const logger = this.logger.create({ id })

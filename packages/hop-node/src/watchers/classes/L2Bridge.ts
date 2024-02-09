@@ -3,7 +3,7 @@ import L1Bridge from './L1Bridge'
 import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
 import Token from './Token'
-import { Contract, providers } from 'ethers'
+import { Contract, TransactionResponse } from 'ethers'
 import { Chain } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
@@ -146,7 +146,7 @@ export default class L2Bridge extends Bridge {
     destinationChainId: number,
     amount: bigint,
     recipient: string
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
       throw new Error(`chain ID "${destinationChainId}" is not supported`)
@@ -179,7 +179,7 @@ export default class L2Bridge extends Bridge {
     destinationChainId: number,
     amount: bigint,
     recipient: string
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     return this.ammWrapper.swapAndSend(
       destinationChainId,
       amount,
@@ -283,7 +283,7 @@ export default class L2Bridge extends Bridge {
   commitTransfers = async (
     destinationChainId: number,
     contractAddress?: string
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     let contract = this.l2BridgeContract
     if (contractAddress) {
       contract = contract.attach(contractAddress)
@@ -310,7 +310,7 @@ export default class L2Bridge extends Bridge {
     bonderFee: bigint,
     amountOutMin: bigint,
     deadline: bigint
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
     // Define a max gasLimit in order to avoid gas siphoning

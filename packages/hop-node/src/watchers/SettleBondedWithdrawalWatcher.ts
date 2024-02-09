@@ -3,7 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import wallets from 'src/wallets'
-import { Contract, providers } from 'ethers'
+import { Contract, TransactionREsponse } from 'ethers'
 import { Chain, Token } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
@@ -126,7 +126,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     })
     logger.debug('sending settle tx')
     try {
-      const txs: providers.TransactionResponse[] = await this.#executeSettlement(
+      const txs: TransactionResponse[] = await this.#executeSettlement(
         destBridge,
         transferRootHash,
         bonder!,
@@ -155,7 +155,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     bonder: string,
     transferIds: string[],
     totalAmount: bigint
-  ): Promise<providers.TransactionResponse[]> {
+  ): Promise<TransactionResponse[]> {
     // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
 
     // This is a temporary workaround for the Polygon zkSync bridge since the prover is limited by the
@@ -177,7 +177,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       destChainSlug !== Chain.PolygonZk ||
       transferIds.length <= maxNumTransferIds
     ) {
-      const tx: providers.TransactionResponse = await destBridge.settleBondedWithdrawals(
+      const tx: TransactionResponse = await destBridge.settleBondedWithdrawals(
         bonder,
         transferIds,
         totalAmount
@@ -198,7 +198,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       wallet
     )
 
-    const txs: providers.TransactionResponse[] = []
+    const txs: TransactionResponse[] = []
     for (const transferIdsChunk of transferIdsChunks) {
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(rootHash)
 
@@ -228,7 +228,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         numLeaves = numLeaves ?? withdrawalData.numLeaves
       }
 
-      const tx: providers.TransactionResponse = await settlementAggregatorContract.settleBondedWithdrawal(
+      const tx: TransactionResponse = await settlementAggregatorContract.settleBondedWithdrawal(
         bonder,
         transferIdsChunk,
         rootHash,

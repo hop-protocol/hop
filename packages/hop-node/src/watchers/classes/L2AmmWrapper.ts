@@ -1,11 +1,11 @@
 import ContractBase from './ContractBase'
 import getTokenMetadata from 'src/utils/getTokenMetadata'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import { providers } from 'ethers'
+import { TransactionResponse } from 'ethers'
 import { Chain } from 'src/constants'
 import { Hop } from '@hop-protocol/sdk'
-import { PayableOverrides } from '@ethersproject/contracts'
-import { formatUnits } from 'ethers/lib/utils'
+import { PayableOverrides } from 'ethers'
+import { formatUnits } from 'ethers'
 import { config as globalConfig } from 'src/config'
 import { isNativeToken } from 'src/utils/isNativeToken'
 
@@ -36,7 +36,7 @@ export default class L2AmmWrapper extends ContractBase {
     amount: bigint,
     token: string,
     recipient: string
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(token)
 

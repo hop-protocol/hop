@@ -5,7 +5,7 @@ import expectDefined from './utils/expectDefined'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
 import { Wallet } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
+import { parseUnits } from 'ethers'
 import { privateKey } from './config'
 
 describe.skip('GasBoostSigner', () => {

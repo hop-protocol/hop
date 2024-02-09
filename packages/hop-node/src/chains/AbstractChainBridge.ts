@@ -6,7 +6,7 @@ import {
 import { IFinalityService } from 'src/chains/Services/AbstractFinalityService'
 import { IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { getEnabledNetworks } from 'src/config'
-import { providers } from 'ethers'
+import { TransactionResponse } from 'ethers'
 
 type ChainBridgeParams = {
   chainSlug: string
@@ -33,11 +33,11 @@ export abstract class AbstractChainBridge implements IChainBridge {
     }
   }
 
-  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<TransactionResponse> {
     return this.#messageService.relayL1ToL2Message(l1TxHash, messageIndex)
   }
 
-  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<TransactionResponse> {
     return this.#messageService.relayL2ToL1Message(l2TxHash, messageIndex)
   }
 

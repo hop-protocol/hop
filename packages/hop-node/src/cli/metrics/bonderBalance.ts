@@ -1,7 +1,7 @@
 import getRpcProvider from 'src/utils/getRpcProvider'
 
 import { Chain } from 'src/constants'
-import { Interface, formatUnits } from 'ethers/lib/utils'
+import { Interface, formatUnits } from 'ethers'
 import { actionHandler, parseString, root } from '../shared'
 import {
   hopAccountAddresses,

@@ -4,7 +4,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { Contract, providers } from 'ethers'
+import { Contract, TransactionResponse } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
@@ -445,7 +445,7 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
-  stake = async (amount: bigint): Promise<providers.TransactionResponse> => {
+  stake = async (amount: bigint): Promise<TransactionResponse> => {
     const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
     if (
@@ -464,7 +464,7 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  unstake = async (amount: bigint): Promise<providers.TransactionResponse> => {
+  unstake = async (amount: bigint): Promise<TransactionResponse> => {
     const tx = await this.bridgeContract.unstake(
       amount,
       await this.txOverrides()
@@ -477,7 +477,7 @@ export default class Bridge extends ContractBase {
     amount: bigint,
     transferNonce: string,
     bonderFee: bigint
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
     // Define a max gasLimit in order to avoid gas siphoning
@@ -506,7 +506,7 @@ export default class Bridge extends ContractBase {
     bonder: string,
     transferIds: string[],
     amount: bigint
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const tx = await this.bridgeContract.settleBondedWithdrawals(
       bonder,
       transferIds,
@@ -529,7 +529,7 @@ export default class Bridge extends ContractBase {
     transferIdTreeIndex: number,
     siblings: string[],
     totalLeaves: number
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const tx = await this.bridgeContract.withdraw(
       recipient,
       amount,

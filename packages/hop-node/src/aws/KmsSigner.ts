@@ -1,14 +1,15 @@
 import { AwsSigner, AwsSignerConfig } from './AwsSigner'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
+import { awsAccessKeyId, awsSecretAccessKey } from '../config'
 import {
   arrayify,
   hashMessage,
   keccak256,
   resolveProperties,
-  serializeTransaction
-} from 'ethers/lib/utils'
-import { awsAccessKeyId, awsSecretAccessKey } from '../config'
-import { providers } from 'ethers'
+  serializeTransaction,
+  Provider,
+  TransactionRequest
+} from 'ethers'
 
 type KmsSignerConfig = AwsSignerConfig
 
@@ -17,7 +18,7 @@ export class KmsSigner extends AwsSigner {
   override address: string
   client: KMSClient
 
-  constructor (config: KmsSignerConfig, provider?: providers.Provider) {
+  constructor (config: KmsSignerConfig, provider?: Provider) {
     super(config, provider)
     let credentials
     if (awsAccessKeyId && awsSecretAccessKey) {
@@ -32,7 +33,7 @@ export class KmsSigner extends AwsSigner {
     })
   }
 
-  connect (provider: providers.Provider): KmsSigner {
+  connect (provider: Provider): KmsSigner {
     return new KmsSigner(this.config, provider)
   }
 
@@ -51,7 +52,7 @@ export class KmsSigner extends AwsSigner {
     return this._signDigest(hash)
   }
 
-  async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
+  async signTransaction (transaction: TransactionRequest): Promise<string> {
     const normalizedTransaction = this.normalizeTransaction(transaction)
     const unsignedTx: any = await resolveProperties(normalizedTransaction)
     const serializedTx = serializeTransaction(unsignedTx)

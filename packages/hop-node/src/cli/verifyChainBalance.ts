@@ -7,7 +7,7 @@ import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import { Contract, utils as ethersUtils, providers } from 'ethers'
+import { Contract, parseUnits, formatUnits, BlockTag, Provider } from 'ethers'
 import {
   Chain,
   ChainBalanceArchiveData,
@@ -23,7 +23,7 @@ import { main as getBondedUnconfirmedRoots } from './bondedUnconfirmedRoots'
 import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
 
 interface MetaBlockData {
-  blockTag: providers.BlockTag
+  blockTag: BlockTag
   blockTimestamp: number
   subgraphSyncTimestamp: number
 }
@@ -131,7 +131,7 @@ export async function main (source: any) {
     blockTimestamp: l1Block.timestamp,
     subgraphSyncTimestamp: l1SubgraphSyncTimestamp
   }
-  const l2Providers: Record<string, providers.Provider> = {}
+  const l2Providers: Record<string, Provider> = {}
   for (const l2ChainForToken of l2ChainsForToken) {
     const l2Provider = getRpcProvider(l2ChainForToken)
     l2Providers[l2ChainForToken] = l2Provider
@@ -474,7 +474,7 @@ async function getHTokenAdjustments (
   }
 }
 
-async function getAllBonderStakes (bridge: Contract, blockTag: providers.BlockTag): Promise<bigint> {
+async function getAllBonderStakes (bridge: Contract, blockTag: BlockTag): Promise<bigint> {
   let totalStake = 0n
   const allBonderAddresses: string[] = getAllBonderAddresses()
   for (const bonderAddress of allBonderAddresses) {
@@ -654,7 +654,7 @@ function logValues (
 
 async function getSubgraphSyncTimestamp (
   chain: string,
-  provider: providers.Provider
+  provider: Provider
 ): Promise<number> {
   if (
     chain === Chain.Nova ||

@@ -1,16 +1,16 @@
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { AbstractService } from 'src/chains/Services/AbstractService'
 import { Chain } from 'src/constants'
-import { providers } from 'ethers'
+import { TransactionReceipt, Provider } from 'ethers'
 
 export interface IInclusionService {
-  getL1InclusionTx?(l2TxHash: string): Promise<providers.TransactionReceipt | undefined>
-  getL2InclusionTx?(l1TxHash: string): Promise<providers.TransactionReceipt | undefined>
+  getL1InclusionTx?(l2TxHash: string): Promise<TransactionReceipt | undefined>
+  getL2InclusionTx?(l1TxHash: string): Promise<TransactionReceipt | undefined>
 }
 
 export abstract class AbstractInclusionService extends AbstractService {
-  protected l1Provider: providers.Provider
-  protected l2Provider: providers.Provider
+  protected l1Provider: Provider
+  protected l2Provider: Provider
 
   constructor (chainSlug: string) {
     super(chainSlug)

@@ -7,7 +7,7 @@ import wallets from 'src/wallets'
 import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
-import { formatEther, parseEther } from 'ethers/lib/utils'
+import { formatEther, parseEther } from 'ethers'
 
 root
   .command('send')

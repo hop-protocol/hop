@@ -2,12 +2,12 @@ import Metrics from 'src/watchers/classes/Metrics'
 import fs from 'fs'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumberish } from 'ethers'
-import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
-import { ConnectionInfo } from "@ethersproject/web"
-import { Deferrable } from '@ethersproject/properties'
-import { Network } from '@ethersproject/networks'
+import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from 'ethers'
+import { ConnectionInfo } from 'ethers'
+import { Deferrable } from 'ethers'
+import { Network } from 'ethers'
 import { monitorProviderCalls } from 'src/config'
-import { providers } from 'ethers'
+import { JsonRpcProvider } from 'ethers'
 
 const inMemoryMonitor = false
 const calls: Record<string, any> = {}
@@ -21,7 +21,7 @@ if (monitorProviderCalls) {
 }
 
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
-export class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
+export class Provider extends JsonRpcProvider implements EthersProvider {
   metrics: Metrics
 
   constructor (rpcUrlOrOptions: string | ConnectionInfo) {

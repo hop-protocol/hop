@@ -1,6 +1,7 @@
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
 
-type Provider = providers.Provider & {
+// TODO: fix this
+type Provider = Provider & {
   connection?: {
     url: string
   }

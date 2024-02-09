@@ -1,7 +1,7 @@
 import AlchemyInclusionService from 'src/chains/Chains/optimism/inclusion/AlchemyInclusionService'
 import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { providers } from 'ethers'
+import { Block } from 'ethers'
 
 export class OptimismFinalityService extends AbstractFinalityService implements IFinalityService {
   readonly #inclusionService: AlchemyInclusionService
@@ -50,7 +50,7 @@ export class OptimismFinalityService extends AbstractFinalityService implements 
     }
 
     // Get the latest checkpoint on L1
-    const l1SafeBlock: providers.Block = await this.l1Provider.getBlock('safe')
+    const l1SafeBlock: Block = await this.l1Provider.getBlock('safe')
     const l1InclusionTx = await this.#inclusionService.getLatestL1InclusionTxBeforeBlockNumber(l1SafeBlock.number)
     if (!l1InclusionTx) {
       this.logger.error(`getCustomSafeBlockNumber: no L1 inclusion tx found before block ${l1SafeBlock.number}`)

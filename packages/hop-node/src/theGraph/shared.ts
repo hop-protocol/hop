@@ -2,7 +2,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { ChainSlug } from '@hop-protocol/core/config'
 import { DateTime } from 'luxon'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers'
 
 export type Filters = {
   startDate: string

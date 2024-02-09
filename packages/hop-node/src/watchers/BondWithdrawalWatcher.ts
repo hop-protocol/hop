@@ -8,7 +8,7 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import { providers } from 'ethers'
+import { TransactionResponse } from 'ethers'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
@@ -370,7 +370,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async sendBondWithdrawalTx (params: SendBondWithdrawalTxParams): Promise<providers.TransactionResponse> {
+  async sendBondWithdrawalTx (params: SendBondWithdrawalTxParams): Promise<TransactionResponse> {
     const {
       transferId,
       destinationChainId,

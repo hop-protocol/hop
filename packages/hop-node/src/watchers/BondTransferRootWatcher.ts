@@ -6,7 +6,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { providers } from 'ethers'
+import { TransactionResponse } from 'ethers'
 import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
@@ -221,7 +221,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  async sendBondTransferRoot (params: SendBondTransferRootTxParams): Promise<providers.TransactionResponse> {
+  async sendBondTransferRoot (params: SendBondTransferRootTxParams): Promise<TransactionResponse> {
     const {
       transferRootId,
       transferRootHash,

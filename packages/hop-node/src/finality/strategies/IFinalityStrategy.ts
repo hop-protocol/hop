@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
 
 export enum FinalityStrategyType {
   Bonder = 'bonder',
@@ -15,7 +15,7 @@ export interface IFinalityStrategy {
   getCustomBlockNumber?(): Promise<number>
 }
 
-export type Strategy = new (provider: providers.Provider, chainSlug: Chain) => IFinalityStrategy
+export type Strategy = new (provider: Provider, chainSlug: Chain) => IFinalityStrategy
 
 export type Strategies = Partial<{
   [value in Chain]: Strategy

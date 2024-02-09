@@ -11,7 +11,7 @@ import {
 } from 'src/config'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
-import { computeAddress } from 'ethers/lib/utils'
+import { computeAddress } from 'ethers'
 import { printHopArt } from './shared/art'
 import { startArbBots } from 'src/arbBot'
 import {

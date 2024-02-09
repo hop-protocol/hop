@@ -2,7 +2,7 @@ import Bridge, { CanonicalTokenConvertOptions, EventCb, EventsBatchOptions } fro
 import Token from './Token'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import wallets from 'src/wallets'
-import { Contract, constants, providers } from 'ethers'
+import { Contract, constants, TransactionResponse } from 'ethers'
 import { Chain, GasCostTransactionType, Network, RelayableChains, Token as TokenEnum } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
@@ -170,7 +170,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     chainId: number,
     totalAmount: bigint
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
     // Hardcode a gasLimit for chains that have variable gas costs in their messengers
@@ -196,7 +196,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     totalAmount: bigint,
     destinationChainId: number
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const tx = await this.l1BridgeContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
@@ -211,7 +211,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     totalAmount: bigint,
     destinationChainId: number
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const tx = await this.l1BridgeContract.resolveChallenge(
       transferRootHash,
       totalAmount,
@@ -227,7 +227,7 @@ export default class L1Bridge extends Bridge {
     amount: bigint,
     recipient: string,
     options?: Partial<CanonicalTokenConvertOptions>
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
       throw new Error(`chain ID "${destinationChainId}" is not supported`)
@@ -278,7 +278,7 @@ export default class L1Bridge extends Bridge {
     amount: bigint,
     recipient: string,
     options?: Partial<CanonicalTokenConvertOptions>
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
       throw new Error(`chain ID "${destinationChainId}" is not supported`)

@@ -12,13 +12,13 @@ import {
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
-import { providers } from 'ethers'
+import { TransactionResponse, TransactionReceipt } from 'ethers'
 
 type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
 
 export class ArbitrumMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
-  protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
+  protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<TransactionResponse> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return (message as IL1ToL2MessageWriter).redeem()
     }
@@ -38,7 +38,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
   }
 
   async #getL1ToL2Message (txHash: string, messageIndex: number): Promise<Message> {
-    const txReceipt: providers.TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
+    const txReceipt: TransactionReceipt = await this.l1Wallet.provider!.getTransactionReceipt(txHash)
     if (!txReceipt) {
       throw new Error(`txReceipt not found for tx hash ${txHash}`)
     }
@@ -52,7 +52,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
   }
 
   async #getL2ToL1Message (txHash: string, messageIndex: number): Promise<Message> {
-    const txReceipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
+    const txReceipt: TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
     if (!txReceipt) {
       throw new Error(`txReceipt not found for tx hash ${txHash}`)
     }

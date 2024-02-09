@@ -1,10 +1,10 @@
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from 'src/chains/Chains/arbitrum/ArbitrumAddresses'
-import { Contract, providers } from 'ethers'
+import { Contract, TransactionReceipt } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 
-type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
+type ArbitrumTransactionReceipt = TransactionReceipt & {
   l1BlockNumber?: bigint
 }
 
@@ -46,7 +46,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     this.#sequencerInboxContract = new Contract(sequencerInboxAddress, sequencerInboxAbi, this.l1Provider)
   }
 
-  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+  async getL1InclusionTx (l2TxHash: string): Promise<TransactionReceipt | undefined> {
     // The l1BlockNumber is the L1 block with approximately the same timestamp as the L2 block. L2 txs
     // are usually checkpointed within a few minutes after the L2 transaction is made. We can use this information
     // to look a few blocks ahead of the L1 block number for the l1BatchNumber.

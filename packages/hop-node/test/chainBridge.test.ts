@@ -8,7 +8,7 @@ import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { providers } from 'ethers'
+import { Providers } from 'ethers'
 
 // Run this with
 // NETWORK=goerli npx ts-node test/chainBridge.test.ts
@@ -70,7 +70,7 @@ async function testGetL2InclusionTx (opts: any): Promise<void> {
   }
 }
 
-async function _getL2TxHashToTest (chain: string, l2Provider: providers.Provider): Promise<any> {
+async function _getL2TxHashToTest (chain: string, l2Provider: Provider): Promise<any> {
   // System txs on Optimism are not included in checkpoints, so we must get a tx that is not a system tx
 
   let blockBuffer: number

@@ -2,12 +2,12 @@ import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inc
 import { AvgBlockTimeSeconds, Chain } from 'src/constants'
 import { BlockWithTransactions } from 'ethers'
 import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
-import { providers } from 'ethers'
+import { TransactionReceipt, Block } from 'ethers'
 
 export class JsonRpcInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
-  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
-    const receipt: providers.TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
-    const safeL2Block: providers.Block = await this.l2Provider.getBlock('safe')
+  async getL1InclusionTx (l2TxHash: string): Promise<TransactionReceipt | undefined> {
+    const receipt: TransactionReceipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
+    const safeL2Block: Block = await this.l2Provider.getBlock('safe')
 
     // If the tx is not yet safe, it is not checkpointed
     if (receipt.blockNumber > safeL2Block.number) {
@@ -37,7 +37,7 @@ export class JsonRpcInclusionService extends AbstractOptimismInclusionService im
     return this.#getPreviousCheckpointBlock(l1InclusionTxForSafeBlock)
   }
 
-  async #getL1InclusionTxFromSafeL2Block (safeL2Block: providers.Block | BlockWithTransactions): Promise<providers.TransactionReceipt | undefined> {
+  async #getL1InclusionTxFromSafeL2Block (safeL2Block: Block | BlockWithTransactions): Promise<TransactionReceipt | undefined> {
     const [
       l1OriginBlockNum,
       l1OriginTimestamp
@@ -62,7 +62,7 @@ export class JsonRpcInclusionService extends AbstractOptimismInclusionService im
     }
   }
 
-  async #getPreviousCheckpointBlock (l1InclusionTx: providers.TransactionReceipt): Promise<providers.TransactionReceipt | undefined> {
+  async #getPreviousCheckpointBlock (l1InclusionTx: TransactionReceipt): Promise<TransactionReceipt | undefined> {
     const { numL1BlocksInChannel } = await this.getL2TxHashesInChannel(l1InclusionTx.transactionHash)
 
     // Some variance may exist so get multiple blocks
@@ -86,7 +86,7 @@ export class JsonRpcInclusionService extends AbstractOptimismInclusionService im
     ])
   }
 
-  async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+  async getL2InclusionTx (l1TxHash: string): Promise<TransactionReceipt | undefined> {
     const l1TxBlockNumber: number = (await this.l1Provider.getTransactionReceipt(l1TxHash)).blockNumber
     const l2InclusionBlockNumber = await this.#traverseL2BlocksForInclusion(l1TxBlockNumber)
 

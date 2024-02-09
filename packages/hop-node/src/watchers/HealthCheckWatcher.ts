@@ -15,13 +15,13 @@ import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { Routes } from '@hop-protocol/core/addresses'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { appTld, expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
-import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers'
 import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
 import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
@@ -540,7 +540,7 @@ export class HealthCheckWatcher {
 
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
     // TODO: Add Arbitrum and Optimism
-    const chainProviders: Record<string, providers.Provider> = {
+    const chainProviders: Record<string, Provider> = {
       [Chain.Ethereum]: getRpcProvider(Chain.Ethereum),
       [Chain.Gnosis]: getRpcProvider(Chain.Gnosis),
       [Chain.Polygon]: getRpcProvider(Chain.Polygon)

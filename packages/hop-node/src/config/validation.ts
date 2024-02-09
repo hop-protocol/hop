@@ -9,7 +9,7 @@ import {
   getEnabledTokens
 } from 'src/config'
 import { URL } from 'url'
-import { getAddress as checksumAddress } from 'ethers/lib/utils'
+import { getAddress as checksumAddress } from 'ethers'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()

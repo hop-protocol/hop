@@ -21,7 +21,7 @@ import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { isNativeToken } from 'src/utils/isNativeToken'
 import { promiseQueue } from 'src/utils/promiseQueue'
-import { providers } from 'ethers'
+import { TransactionResponse } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -380,7 +380,7 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async sendTransferRelayTx (params: any): Promise<providers.TransactionResponse> {
+  async sendTransferRelayTx (params: any): Promise<TransactionResponse> {
     const {
       transferId,
       destinationChainId,
@@ -395,7 +395,7 @@ class RelayWatcher extends BaseWatcher {
     return this.sendRelayTx(destinationChainId, transferSentTxHash)
   }
 
-  async sendTransferRootRelayTx (destinationChainId: number, transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
+  async sendTransferRootRelayTx (destinationChainId: number, transferRootId: string, txHash: string): Promise<TransactionResponse> {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug(
       `relay root destinationChainId with txHash ${txHash}`
@@ -403,7 +403,7 @@ class RelayWatcher extends BaseWatcher {
     return this.sendRelayTx(destinationChainId, txHash)
   }
 
-  async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+  async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<TransactionResponse> {
     const destinationChainSlug = chainIdToSlug(destinationChainId)
     const chainBridge: IChainBridge = getChainBridge(destinationChainSlug)
     if (!chainBridge) {

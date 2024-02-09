@@ -1,5 +1,5 @@
 
-import { solidityKeccak256 } from 'ethers/lib/utils'
+import { solidityKeccak256 } from 'ethers'
 
 const getTransferRootId = (rootHash: string, totalAmount: bigint) => {
   return solidityKeccak256(

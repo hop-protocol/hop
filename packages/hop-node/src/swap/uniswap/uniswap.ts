@@ -9,7 +9,7 @@ import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/i
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { SwapInput } from '../types'
 import { erc20Abi } from '@hop-protocol/core/abi'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers'
 
 const logger = new Logger({
   tag: 'Uniswap'

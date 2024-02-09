@@ -10,7 +10,7 @@ import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2Transfer
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { Contract, EventFilter, providers } from 'ethers'
+import { Contract, EventFilter, WebSocketProvider, TransactionResponse } from 'ethers'
 import {
   BondTransferRootChains,
   Chain,
@@ -85,7 +85,7 @@ class SyncWatcher extends BaseWatcher {
   hopSdk: Hop
   ready: boolean = false
   // Experimental: Websocket support
-  wsProvider: providers.WebSocketProvider
+  wsProvider: WebSocketProvider
   wsCache: Record<string, any> = {}
 
   constructor (config: Config) {
@@ -148,7 +148,7 @@ class SyncWatcher extends BaseWatcher {
       const rpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(wsProviderUrl)
       if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
         this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
-        this.wsProvider = new providers.WebSocketProvider(wsProviderUrl)
+        this.wsProvider = new WebSocketProvider(wsProviderUrl)
         this.initEventWebsockets()
       }
     }
@@ -1030,7 +1030,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const tx: providers.TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
+    const tx: TransactionResponse = await sourceBridge.provider!.getTransaction(transferSentTxHash)
     if (!tx) {
       logger.warn(`populateTransferSentTimestampAndIsBondable marking item not found: tx ${transferSentTxHash} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })

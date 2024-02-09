@@ -1,5 +1,5 @@
 import getTransferId from './getTransferId'
-import { defaultAbiCoder } from 'ethers/lib/utils'
+import { defaultAbiCoder } from 'ethers'
 
 const getTransferIdFromCalldata = (data: string, destinationChainId: number) => {
   if (!data || !destinationChainId) {

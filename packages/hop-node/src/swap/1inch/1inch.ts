@@ -11,7 +11,7 @@ import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { Chain, nativeChainTokens } from 'src/constants'
 import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { SwapInput } from '../types'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers'
 
 const logger = new Logger({
   tag: '1inch'

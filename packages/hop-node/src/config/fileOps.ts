@@ -29,7 +29,7 @@ import {
   setSignerConfig,
   setSyncConfig
 } from './config'
-import { getAddress } from 'ethers/lib/utils'
+import { getAddress } from 'ethers'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'

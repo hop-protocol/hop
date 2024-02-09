@@ -1,10 +1,9 @@
 import wait from 'src/utils/wait'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
-import { providers, utils } from 'ethers'
+import { TransactionResponse, TransactionReceipt, Interface, defaultAbiCoder } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { POSClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
-import { defaultAbiCoder } from 'ethers/lib/utils'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string
@@ -101,11 +100,11 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     }
   }
 
-  override async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  override async relayL1ToL2Message (l1TxHash: string): Promise<TransactionResponse> {
     throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
-  protected async sendRelayTx (message: PolygonMessage): Promise<providers.TransactionResponse> {
+  protected async sendRelayTx (message: PolygonMessage): Promise<TransactionResponse> {
     await this.#tilReady()
     const rootTunnelAddress = await this.#getRootTunnelAddressFromTxHash(message)
 
@@ -115,7 +114,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
 
     // Create tx data and send
     const abi = ['function receiveMessage(bytes)']
-    const iface = new utils.Interface(abi)
+    const iface = new Interface(abi)
     const data = iface.encodeFunctionData('receiveMessage', [payload])
     return this.l1Wallet.sendTransaction({
       to: rootTunnelAddress,
@@ -128,7 +127,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     // Get the bridge address from the logs
     // TransfersCommitted(uint256,bytes32,uint256,uint256)
     const logEvent = '0xf52ad20d3b4f50d1c40901dfb95a9ce5270b2fc32694e5c668354721cd87aa74'
-    const receipt: providers.TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
+    const receipt: TransactionReceipt = await this.l2Wallet.provider!.getTransactionReceipt(l2TxHash)
     if (!receipt.logs) {
       throw new Error(`no logs found for ${l2TxHash}`)
     }

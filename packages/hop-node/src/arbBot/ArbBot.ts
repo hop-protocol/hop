@@ -8,7 +8,7 @@ import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import lineaAbi from './lineaAbi'
 import lineaErc20Abi from './lineaErc20Abi'
 import wethAbi from './wethAbi'
-import { Contract, Wallet, constants, providers, parseEther, parseUnits } from 'ethers'
+import { Contract, Wallet, constants, Provider, parseEther, parseUnits, JsonRpcProvider } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
 import { ChainSlug } from '@hop-protocol/core/config'
 import { CrossChainMessenger } from '@eth-optimism/sdk'
@@ -166,7 +166,7 @@ export class ArbBot {
     }
     this.l2ChainWriteProvider = this.l2ChainProvider
     if (this.l2ChainSlug === 'linea') {
-      this.l2ChainWriteProvider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: 'https://rpc.goerli.linea.build' })
+      this.l2ChainWriteProvider = new JsonRpcProvider({ allowGzip: true, url: 'https://rpc.goerli.linea.build' })
     }
 
     this.ammSigner = new Wallet(privateKey)
@@ -1141,7 +1141,7 @@ export class ArbBot {
     return arrived
   }
 
-  async getBumpedGasPrice (provider: providers.Provider, percent: number): Promise<bigint> {
+  async getBumpedGasPrice (provider: Provider, percent: number): Promise<bigint> {
     const gasPrice: bigint = (await provider.getFeeData()).gasPrice
     return gasPrice * BigInt(percent * 100) / 100n
   }

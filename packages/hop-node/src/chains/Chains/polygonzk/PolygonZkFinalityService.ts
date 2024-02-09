@@ -3,7 +3,7 @@ import wait from 'src/utils/wait'
 import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
 import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { providers } from 'ethers'
+import { BlockTag, Block } from 'ethers'
 
 const finalityNameMap: Record<string, string> = {
   safe: 'virtual',
@@ -104,7 +104,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
     return customBlockNumber
   }
 
-  async #getCustomBlockNumber (blockTag: providers.BlockTag): Promise<number | undefined> {
+  async #getCustomBlockNumber (blockTag: BlockTag): Promise<number | undefined> {
     const finalityName = finalityNameMap[blockTag]
 
     // Get batch number
@@ -131,7 +131,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
 
     // Get latest block number from batch. The latest block number is the last block in the batch.
     const latestBlockHashInBatch = batch.blocks[batch.blocks.length - 1]
-    const latestBlockInBatch: providers.Block = await this.l2Provider.getBlock(latestBlockHashInBatch)
+    const latestBlockInBatch: Block = await this.l2Provider.getBlock(latestBlockHashInBatch)
     if (!latestBlockInBatch?.number) {
       this.logger.error('getCustomBlockNumber: no latestBlockInBatch found')
       return

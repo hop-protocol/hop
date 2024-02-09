@@ -1,12 +1,13 @@
-import { ConnectionInfo } from "@ethersproject/web"
+import { ConnectionInfo } from 'ethers'
 import { Provider } from '../provider'
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
+// TODO FIX THIS
 
 const cache: any = {}
 
 const getRpcProviderFromUrl = (
   rpcUrl: string
-): providers.Provider => {
+): Provider => {
   const cacheKey = rpcUrl
   if (cache[cacheKey]) {
     return cache[cacheKey]

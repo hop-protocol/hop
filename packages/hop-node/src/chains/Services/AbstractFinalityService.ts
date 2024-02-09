@@ -3,7 +3,7 @@ import { AbstractService } from 'src/chains/Services/AbstractService'
 import { CacheService } from 'src/chains/Services/CacheService'
 import { Chain } from 'src/constants'
 import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
 
 export interface IFinalityService {
   getCustomBlockNumber(blockTag: FinalityBlockTag): Promise<number | undefined>
@@ -11,8 +11,8 @@ export interface IFinalityService {
 
 export abstract class AbstractFinalityService extends AbstractService {
   protected cache: CacheService
-  protected l1Provider: providers.Provider
-  protected l2Provider: providers.Provider
+  protected l1Provider: Provider
+  protected l2Provider: Provider
 
   constructor (chainSlug: string) {
     super(chainSlug)

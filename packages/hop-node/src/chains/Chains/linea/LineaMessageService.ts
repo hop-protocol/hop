@@ -1,6 +1,6 @@
 import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
 import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
-import { BytesLike, CallOverrides, Contract, constants, providers } from 'ethers'
+import { BytesLike, CallOverrides, Contract, constants, TransactionResponse } from 'ethers'
 import {
   Message as LineaMessage,
   LineaSDK,
@@ -47,7 +47,7 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     this.#l2Contract = lineaSdk.getL2Contract()
   }
 
-  protected async sendRelayTx (message: LineaMessage, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
+  protected async sendRelayTx (message: LineaMessage, messageDirection: MessageDirection): Promise<TransactionResponse> {
     const { destBridge } = this.#getSourceAndDestBridge(messageDirection)
     // Gas estimation does not work sometimes, so manual limit is needed
     // https://lineascan.build/tx/0x8e3c6d7bd3b7d39154c9463535a576db1a1e4d1e99d3a6526feb5bde26a926c0#internal

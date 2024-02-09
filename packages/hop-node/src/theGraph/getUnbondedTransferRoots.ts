@@ -3,7 +3,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import makeRequest from './makeRequest'
 import { DateTime } from 'luxon'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers'
 
 export default async function getUnbondedTransferRoots (chain: string, token: string, destinationChain: string, startTime?: number, endTime?: number): Promise<any> {
   const destinationChainId: number = chainSlugToId(destinationChain)

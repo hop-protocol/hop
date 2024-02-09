@@ -1,14 +1,15 @@
 import { AwsSigner, AwsSignerConfig } from './AwsSigner'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { TextDecoder } from 'util'
+import { awsAccessKeyId, awsSecretAccessKey } from '../config'
 import {
   arrayify,
   keccak256,
   resolveProperties,
-  serializeTransaction
-} from 'ethers/lib/utils'
-import { awsAccessKeyId, awsSecretAccessKey } from '../config'
-import { providers } from 'ethers'
+  serializeTransaction,
+  Provider,
+  TransactionRequest
+} from 'ethers'
 
 type LambdaSignerConfig = AwsSignerConfig & {
   lambdaFunctionName: string
@@ -25,7 +26,7 @@ export class LambdaSigner extends AwsSigner {
   client: LambdaClient
   lambdaFunctionName: string
 
-  constructor (config: LambdaSignerConfig, provider?: providers.Provider) {
+  constructor (config: LambdaSignerConfig, provider?: Provider) {
     super(config, provider)
     let credentials
     if (awsAccessKeyId && awsSecretAccessKey) {
@@ -44,7 +45,7 @@ export class LambdaSigner extends AwsSigner {
     this.lambdaFunctionName = config.lambdaFunctionName
   }
 
-  connect (provider: providers.Provider): LambdaSigner {
+  connect (provider: Provider): LambdaSigner {
     return new LambdaSigner(this.config, provider)
   }
 
@@ -62,7 +63,7 @@ export class LambdaSigner extends AwsSigner {
     throw new Error('Signing arbitrary messages is not supported. LambdaSigner performs validation on transactions. Validation can be bypassed with arbitrary data.')
   }
 
-  async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
+  async signTransaction (transaction: TransactionRequest): Promise<string> {
     const normalizedTransaction = this.normalizeTransaction(transaction)
     const unsignedTx: any = await resolveProperties(normalizedTransaction)
     const serializedTx = serializeTransaction(unsignedTx)
@@ -71,7 +72,7 @@ export class LambdaSigner extends AwsSigner {
     return serializeTransaction(unsignedTx, txSig)
   }
 
-  private async _signDigest (digest: Buffer | string, transaction?: providers.TransactionRequest): Promise<string> {
+  private async _signDigest (digest: Buffer | string, transaction?: TransactionRequest): Promise<string> {
     const msg = Buffer.from(arrayify(digest))
     const signature: Buffer = await this._getSig(msg, transaction)
     if (signature.length === 0) {
@@ -96,7 +97,7 @@ export class LambdaSigner extends AwsSigner {
     return publicKey
   }
 
-  private async _getSig (msg: Buffer, transaction?: providers.TransactionRequest): Promise<Buffer> {
+  private async _getSig (msg: Buffer, transaction?: TransactionRequest): Promise<Buffer> {
     const transactionRequest = {
       keyId: this.keyId,
       transaction,

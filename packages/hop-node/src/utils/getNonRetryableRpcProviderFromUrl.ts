@@ -1,16 +1,16 @@
-import { providers } from 'ethers'
+import { Provider, JsonRpcProvider } from 'ethers'
 
 const cache: any = {}
 
 const getNonRetryableRpcProviderFromUrl = (
   rpcUrl: string
-): providers.Provider => {
+): Provider => {
   const cacheKey = rpcUrl
   if (cache[cacheKey]) {
     return cache[cacheKey]
   }
 
-  const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
+  const provider = new JsonRpcProvider({ allowGzip: true, url: rpcUrl })
   cache[cacheKey] = provider
   return provider
 }

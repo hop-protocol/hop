@@ -3,7 +3,7 @@ import { AbstractMessageService, IMessageService, MessageDirection } from 'src/c
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
-import { providers } from 'ethers'
+import { TransactionResponse } from 'ethers'
 
 /**
  * PolygonZk Implementation References
@@ -84,7 +84,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     }
   }
 
-  protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
+  protected async sendRelayTx (message: Message, messageDirection: MessageDirection): Promise<TransactionResponse> {
     await this.#tilReady()
 
     // The bridge to claim on will be on the opposite chain that the source tx is on

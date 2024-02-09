@@ -1,7 +1,7 @@
 import wallets from 'src/wallets'
 import { AbstractService } from 'src/chains/Services/AbstractService'
 import { Chain } from 'src/constants'
-import { Signer, providers } from 'ethers'
+import { Signer, TransactionResponse } from 'ethers'
 
 export class MessageUnknownError extends Error {}
 export class MessageInFlightError extends Error {}
@@ -14,8 +14,8 @@ export enum MessageDirection {
 }
 
 export interface IMessageService {
-  relayL1ToL2Message(l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
-  relayL2ToL1Message(l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse>
+  relayL1ToL2Message(l1TxHash: string, messageIndex?: number): Promise<TransactionResponse>
+  relayL2ToL1Message(l2TxHash: string, messageIndex?: number): Promise<TransactionResponse>
 }
 
 /**
@@ -31,7 +31,7 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
   protected readonly l1Wallet: Signer
   protected readonly l2Wallet: Signer
 
-  protected abstract sendRelayTx (message: Message, messageDirection?: MessageDirection): Promise<providers.TransactionResponse>
+  protected abstract sendRelayTx (message: Message, messageDirection?: MessageDirection): Promise<TransactionResponse>
 
   protected abstract getMessage (txHash: string, messageDirection?: MessageDirection, messageIndex?: number): Promise<Message>
   protected abstract getMessageStatus (message: Message, messageDirection: MessageDirection): Promise<MessageStatus>
@@ -53,12 +53,12 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
    *  @dev If a subclass does not implement relays for a certain direction, override this method and throw
    */
 
-  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+  async relayL1ToL2Message (l1TxHash: string, messageIndex?: number): Promise<TransactionResponse> {
     const messageDirection: MessageDirection = MessageDirection.L1_TO_L2
     return this.#relayMessage(l1TxHash, messageDirection, messageIndex)
   }
 
-  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
+  async relayL2ToL1Message (l2TxHash: string, messageIndex?: number): Promise<TransactionResponse> {
     const messageDirection: MessageDirection = MessageDirection.L2_TO_L1
     return this.#relayMessage(l2TxHash, messageDirection, messageIndex)
   }
@@ -67,7 +67,7 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
    * Internal Methods
    */
 
-  async #relayMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<providers.TransactionResponse> {
+  async #relayMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<TransactionResponse> {
     const message: Message = await this.getMessage(txHash, messageDirection, messageIndex)
     await this.#validateMessage(message, messageDirection)
     return this.sendRelayTx(message, messageDirection)

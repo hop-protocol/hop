@@ -9,7 +9,7 @@ import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
-import { Signer, providers } from 'ethers'
+import { Signer, TransactionRequest, TransactionResponse, TransactionReceipt, JsonRpcProvider} from 'ethers'
 import {
   Chain,
   InitialTxGasPriceMultiplier,
@@ -31,10 +31,10 @@ import {
   config as globalConfig,
   hostname
 } from 'src/config'
-import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, hexlify, parseUnits } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
-type TransactionRequestWithHash = providers.TransactionRequest & {
+type TransactionRequestWithHash = TransactionRequest & {
   hash: string
 }
 
@@ -102,7 +102,7 @@ type EventEmitterEvents = EventEmitter & {
 const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
 
-class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
+class GasBoostTransaction extends EventEmitter implements TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
@@ -127,13 +127,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   id: string
   createdAt: number
   txHash?: string
-  receipt?: providers.TransactionReceipt
+  receipt?: TransactionReceipt
   private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
   logId: string
 
   reorgConfirmationBlocks: number = 1
-  originalTxParams: providers.TransactionRequest
+  originalTxParams: TransactionRequest
   _events: any[] // implemented by EventEmitter
 
   type?: number
@@ -151,7 +151,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   chainId: number // type 0 and 2 tx required property
   confirmations: number = 0 // type 0 and 2 tx required property
 
-  constructor (tx: providers.TransactionRequest, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
+  constructor (tx: TransactionRequest, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
     super()
     this.signer = signer
     if (store != null) {
@@ -190,7 +190,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return uuidv4()
   }
 
-  private setOwnTxParams (tx: providers.TransactionRequest) {
+  private setOwnTxParams (tx: TransactionRequest) {
     this.from = tx.from!
     this.to = tx.to!
     if (tx.type != null) {
@@ -597,7 +597,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  async wait (): Promise<providers.TransactionReceipt> {
+  async wait (): Promise<TransactionReceipt> {
     this.logger.debug(`wait() called, tx: ${this.hash}`)
     this.logger.debug(`wait() called, txHash: ${this.txHash}`)
     this.logger.debug(`wait() called, inFlightItems: ${JSON.stringify(this.inflightItems)}`)
@@ -606,11 +606,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     for (const { hash } of this.inflightItems) {
       this.getReceipt(hash!)
-        .then(async (receipt: providers.TransactionReceipt) => this.handleConfirmation(hash!, receipt))
+        .then(async (receipt: TransactionReceipt) => this.handleConfirmation(hash!, receipt))
     }
     return new Promise((resolve, reject) => {
       this
-        .on(State.Confirmed, (tx: providers.TransactionReceipt) => {
+        .on(State.Confirmed, (tx: TransactionReceipt) => {
           this.logger.debug(`wait() confirmed, tx: ${this.hash} with status ${tx.status}`)
           if (tx.status === 0) {
             reject(new Error(`GAS_BOOST_TRANSACTION_CALL_EXCEPTION: ${JSON.stringify(tx)}`))
@@ -639,7 +639,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private async handleConfirmation (txHash: string, receipt: providers.TransactionReceipt) {
+  private async handleConfirmation (txHash: string, receipt: TransactionReceipt) {
     if (this.confirmations) {
       return
     }
@@ -788,7 +788,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
 
-        const payload: providers.TransactionRequest = {
+        const payload: TransactionRequest = {
           type: this.type,
           to: this.to,
           data: this.data,
@@ -870,7 +870,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private async checkHasEnoughFunds (payload: providers.TransactionRequest, gasFeeData: Partial<GasFeeData>) {
+  private async checkHasEnoughFunds (payload: TransactionRequest, gasFeeData: Partial<GasFeeData>) {
     let gasLimit
     let ethBalance
 
@@ -926,7 +926,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
-    this.signer.provider!.waitForTransaction(tx.hash).then((receipt: providers.TransactionReceipt) => {
+    this.signer.provider!.waitForTransaction(tx.hash).then((receipt: TransactionReceipt) => {
       this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
       this.handleConfirmation(tx.hash, receipt)
     })
@@ -1026,7 +1026,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async rebroadcastLatestTx (): Promise<TransactionRequestWithHash | undefined> {
     this.logger.debug(`attempting to rebroadcast latest transaction with index ${this.rebroadcastIndex}`)
-    const payload: providers.TransactionRequest = {
+    const payload: TransactionRequest = {
       type: this.type,
       to: this.to,
       data: this.data,
@@ -1076,10 +1076,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   // Use this to speed up transactions. Unchecked transactions mean that ethers will not wait for
   // the node to respond with the tx response, which might add ms or s to the transaction. This
   // function retains all the same validation properties as sendTransaction.
-  async sendUncheckedTransaction (transaction: providers.TransactionRequest): Promise<string> {
-    const tx: providers.TransactionRequest = await this.signer.populateTransaction(transaction)
+  async sendUncheckedTransaction (transaction: TransactionRequest): Promise<string> {
+    const tx: TransactionRequest = await this.signer.populateTransaction(transaction)
     const signedTx: string = await this.signer.signTransaction(tx)
-    const jsonRpcProvider: providers.JsonRpcProvider = this.signer.provider! as providers.JsonRpcProvider
+    const jsonRpcProvider: JsonRpcProvider = this.signer.provider! as JsonRpcProvider
     const txHash = await jsonRpcProvider.send('eth_sendRawTransaction', [signedTx])
 
     return txHash

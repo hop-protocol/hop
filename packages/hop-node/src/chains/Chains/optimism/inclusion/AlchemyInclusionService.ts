@@ -4,10 +4,10 @@ import wait from 'src/utils/wait'
 import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService'
 import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { RootProviderName } from 'src/constants'
-import { providers } from 'ethers'
+import { Provider, TransactionReceipt, Block } from 'ethers'
 
 interface GetInclusionTxHashes {
-  destChainProvider: providers.Provider
+  destChainProvider: Provider
   fromAddress: string
   toAddress: string
   startBlockNumber: number
@@ -66,7 +66,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
     }
   }
 
-  async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+  async getL1InclusionTx (l2TxHash: string): Promise<TransactionReceipt | undefined> {
     if (!(await this.#isReadyAndInitialized())) return
 
     const l2TxBlockNumber: number = (await this.l2Provider.getTransactionReceipt(l2TxHash)).blockNumber
@@ -81,11 +81,11 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
     }
   }
 
-  async getL2InclusionTx (l1TxHash: string): Promise<providers.TransactionReceipt | undefined> {
+  async getL2InclusionTx (l1TxHash: string): Promise<TransactionReceipt | undefined> {
     if (!(await this.#isReadyAndInitialized())) return
 
     const l1TxBlockNumber: number = (await this.l1Provider.getTransactionReceipt(l1TxHash)).blockNumber
-    const l1Block: providers.Block = await this.l1Provider.getBlock(l1TxBlockNumber)
+    const l1Block: Block = await this.l1Provider.getBlock(l1TxBlockNumber)
 
     const l2StartBlockNumber = await this.getApproximateL2BlockNumberAtL1Timestamp(l1Block.timestamp)
     const inclusionTxHashes: string[] = await this.#getL1lToL2InclusionTxHashes(l2StartBlockNumber)
@@ -100,7 +100,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
     }
   }
 
-  async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<providers.TransactionReceipt | undefined> {
+  async getLatestL1InclusionTxBeforeBlockNumber (l1BlockNumber: number): Promise<TransactionReceipt | undefined> {
     if (!(await this.#isReadyAndInitialized())) return
 
     const startBlockNumber = l1BlockNumber - this.#maxNumL1BlocksWithoutInclusion
@@ -108,7 +108,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
     return this.l1Provider.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
   }
 
-  async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
+  async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<TransactionReceipt | undefined> {
     if (!(await this.#isReadyAndInitialized())) return
 
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
@@ -187,7 +187,7 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
     return jsonRes.result.transfers.map((tx: any) => tx.hash)
   }
 
-  async #getEndBlockNumber (destChainProvider: providers.Provider, startBlockNumber: number): Promise<number> {
+  async #getEndBlockNumber (destChainProvider: Provider, startBlockNumber: number): Promise<number> {
     // Defined the from and to block numbers
     const destHeadBlockNumber = await destChainProvider.getBlockNumber()
 

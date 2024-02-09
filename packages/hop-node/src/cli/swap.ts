@@ -4,7 +4,7 @@ import contracts from 'src/contracts'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
 import wallets from 'src/wallets'
-import { utils as ethersUtils } from 'ethers'
+import { parseEther, Interface } from 'ethers'
 import { Chain, MinPolygonGasPrice, TokenIndex, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { swap as dexSwap } from 'src/swap'
@@ -62,7 +62,7 @@ async function main (source: any) {
         throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
       }
       logger.debug('wrapping token')
-      const parsedAmount = ethersUtils.parseEther(amount.toString())
+      const parsedAmount = parseEther(amount.toString())
       if (dryMode) {
         logger.warn(`dry: ${dryMode}, skipping wrap tx`)
       } else {
@@ -74,7 +74,7 @@ async function main (source: any) {
         throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
       }
       logger.debug('unwrapping token')
-      const parsedAmount = ethersUtils.parseEther(amount.toString())
+      const parsedAmount = parseEther(amount.toString())
       if (dryMode) {
         logger.warn(`dry: ${dryMode}, skipping unwrap tx`)
       } else {
@@ -97,7 +97,7 @@ async function main (source: any) {
 
     if (fromNative) {
       logger.debug(`wrapping ${fromToken}`)
-      const parsedAmount = ethersUtils.parseEther(amount.toString())
+      const parsedAmount = parseEther(amount.toString())
       if (dryMode) {
         logger.warn(`dry: ${dryMode}, skipping swap wrap tx`)
       } else {
@@ -224,7 +224,7 @@ async function wrapToken (chain: string, parsedAmount: bigint) {
   const wallet = wallets.get(chain)
   const wrappedTokenAddress = wrappedTokenAddresses[chain]
   const abi = ['function deposit()']
-  const ethersInterface = new ethersUtils.Interface(abi)
+  const ethersInterface = new Interface(abi)
   const data = ethersInterface.encodeFunctionData(
     'deposit', []
   )
@@ -243,7 +243,7 @@ async function unwrapToken (chain: string, parsedAmount: bigint) {
   const wallet = wallets.get(chain)
   const wrappedTokenAddress = wrappedTokenAddresses[chain]
   const abi = ['function withdraw(uint256)']
-  const ethersInterface = new ethersUtils.Interface(abi)
+  const ethersInterface = new Interface(abi)
   const data = ethersInterface.encodeFunctionData(
     'withdraw', [parsedAmount]
   )

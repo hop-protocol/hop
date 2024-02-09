@@ -1,7 +1,7 @@
 import getRpcUrlFromProvider from './getRpcUrlFromProvider'
 import { RootProviderName } from 'src/constants'
 import { promiseTimeout } from './promiseTimeout'
-import { providers } from 'ethers'
+import { Provider } from 'ethers'
 
 // Intentionally force a call to a method that is not supported by all providers
 const unsupportedCallMethod = 'eth_unsupportedCall'
@@ -18,7 +18,7 @@ enum rpcRootProviderErrorString {
 
 const cache: Record<string, RootProviderName> = {}
 
-async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
+async function getRpcRootProviderName (providerOrUrl: Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
   // Cache by top-level URL
   let url = getUrlFromProviderOrUrl(providerOrUrl)
   if (cache[url]) {
@@ -46,7 +46,7 @@ async function getRpcRootProviderName (providerOrUrl: providers.Provider | strin
   }
 }
 
-function getRootProviderNameFromUrl (providerOrUrl: providers.Provider | string): RootProviderName | undefined {
+function getRootProviderNameFromUrl (providerOrUrl: Provider | string): RootProviderName | undefined {
   const url = getUrlFromProviderOrUrl(providerOrUrl)
   const entries = Object.entries(RootProviderName)
   for (const [key, value] of entries) {
@@ -93,8 +93,8 @@ async function getRootProviderNameFromRpcCall (url: string): Promise<RootProvide
   }
 }
 
-function getUrlFromProviderOrUrl (providerOrUrl: providers.Provider | string): string {
-  if (providerOrUrl instanceof providers.Provider) {
+function getUrlFromProviderOrUrl (providerOrUrl: Provider | string): string {
+  if (providerOrUrl instanceof Provider) {
     return getRpcUrlFromProvider(providerOrUrl)
   }
 

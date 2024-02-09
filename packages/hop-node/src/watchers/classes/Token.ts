@@ -1,7 +1,7 @@
 import ContractBase from './ContractBase'
-import { constants, ethers, providers } from 'ethers'
+import { TransactionResponse, constants, ethers } from 'ethers'
 import { ERC20 } from '@hop-protocol/core/contracts'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers'
 
 export default class Token extends ContractBase {
   tokenContract: ERC20
@@ -50,7 +50,7 @@ export default class Token extends ContractBase {
   approve = async (
     spender: string,
     amount: bigint = ethers.constants.MaxUint256
-  ): Promise<providers.TransactionResponse | undefined> => {
+  ): Promise<TransactionResponse | undefined> => {
     if (this.isEth) {
       return
     }
@@ -67,7 +67,7 @@ export default class Token extends ContractBase {
   transfer = async (
     recipient: string,
     amount: bigint
-  ): Promise<providers.TransactionResponse> => {
+  ): Promise<TransactionResponse> => {
     if (this.isEth) {
       const tx = {
         to: recipient,

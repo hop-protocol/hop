@@ -7,7 +7,7 @@ import {
 } from '@eth-optimism/sdk'
 import { config as globalConfig } from 'src/config'
 import { networkSlugToId } from 'src/utils/networkSlugToId'
-import { providers } from 'ethers'
+import { TransactionResponse } from 'ethers'
 
 export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus> implements IMessageService {
   readonly #csm: CrossChainMessenger
@@ -24,7 +24,7 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
     })
   }
 
-  protected async sendRelayTx (message: CrossChainMessage, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
+  protected async sendRelayTx (message: CrossChainMessage, messageDirection: MessageDirection): Promise<TransactionResponse> {
     if (messageDirection === MessageDirection.L1_TO_L2) {
       return this.#csm.proveMessage(message)
     }

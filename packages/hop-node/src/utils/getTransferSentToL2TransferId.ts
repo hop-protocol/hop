@@ -1,5 +1,5 @@
 
-import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
+import { defaultAbiCoder, keccak256 } from 'ethers'
 
 const getTransferSentToL2TransferId = (
   chainId: number,

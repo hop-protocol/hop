@@ -2,7 +2,7 @@ import Derive, { Frame } from './Derive'
 import zlib from 'zlib'
 import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
-import { Contract, providers } from 'ethers'
+import { Contract, TransactionResponse } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 import { OptimismAddresses, OptimismCanonicalAddresses, OptimismSuperchainSlugs } from 'src/chains/Chains/optimism/OptimismAddresses'
 import { RLP } from '@ethereumjs/rlp'
@@ -139,7 +139,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     }
   }
 
-  protected isBatcherTx (tx: providers.TransactionResponse): boolean {
+  protected isBatcherTx (tx: TransactionResponse): boolean {
     if (
       tx.to &&
       tx.to.toLowerCase() === this.batchInboxAddress.toLowerCase() &&
@@ -150,7 +150,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     return false
   }
 
-  protected isL1BlockUpdateTx (tx: providers.TransactionResponse): boolean {
+  protected isL1BlockUpdateTx (tx: TransactionResponse): boolean {
     if (
       tx.to &&
       tx.to.toLowerCase() === this.l1BlockAddress.toLowerCase() &&

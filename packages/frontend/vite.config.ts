@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
 import { defineConfig } from 'vite'
 import { goerli, mainnet, sepolia } from '@hop-protocol/core/networks'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 dotenv.config()
 
@@ -179,7 +178,7 @@ export default defineConfig({
     port: 3000,
   },
 
-  plugins: [react(), nodePolyfills(), svgr({
+  plugins: [react(), svgr({
     svgrOptions: {
       icon: true,
     },

@@ -1,17 +1,16 @@
-import React, { useMemo, FC, ChangeEvent, useCallback } from 'react'
-import { BigNumber } from 'ethers'
-import { formatUnits, parseEther } from 'ethers/lib/utils'
-import Card from '@material-ui/core/Card'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
-import { Token } from '@hop-protocol/sdk'
-import clsx from 'clsx'
-import { LargeTextField } from 'src/components/LargeTextField'
-import { commafy } from 'src/utils'
-import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
 import Network from 'src/models/Network'
-import { Flex } from 'src/components/ui'
+import React, { ChangeEvent, FC, useCallback, useMemo } from 'react'
+import Skeleton from '@mui/material/Skeleton'
+import Typography from '@mui/material/Typography'
+import clsx from 'clsx'
+import { BigNumber } from 'ethers'
+import { LargeTextField } from 'src/components/LargeTextField'
+import { Token } from '@hop-protocol/sdk'
+import { commafy } from 'src/utils'
+import { formatUnits, parseEther } from 'ethers/lib/utils'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 
 type AmountSelectorProps = {
   value?: string
@@ -166,7 +165,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
 
   return (
     <Card className={clsx(styles.root, className)}>
-      <Flex justifyBetween alignCenter mb="1.8rem" fullWidth>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb="1.8rem" width="100%">
         {!!label && (
           <Typography variant="subtitle2" color="textSecondary">
             {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton> : label}
@@ -186,7 +185,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               </button>
             ) : null}
             <Typography variant="subtitle2" color="textSecondary" align="left">
-              {secondaryBalanceLabel || 'Balance:'} {secondaryBalanceDisplay}
+              {secondaryBalanceLabel ?? 'Balance:'} {secondaryBalanceDisplay}
             </Typography>
           </div>
         ) : null}
@@ -204,14 +203,14 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               </button>
             ) : null}
             <Typography variant="subtitle2" color="textSecondary" align="right">
-              {balanceLabel || 'Balance:'} {balanceDisplay}
+              {balanceLabel ?? 'Balance:'} {balanceDisplay}
             </Typography>
           </div>
         ) : null}
-      </Flex>
+      </Box>
 
-      <Flex fullWidth justifyBetween alignCenter>
-        <Flex width="50%">
+      <Box display="flex" width="100%" justifyContent="space-between" alignItems="center">
+        <Box display="flex" width="50%">
           <Box className={styles.networkSelectionBox}>
             {titleIconUrl ? (
               <Box className={styles.networkIconContainer}>
@@ -222,9 +221,9 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               {title}
             </Typography>
           </Box>
-        </Flex>
+        </Box>
 
-        <Flex>
+        <Box display="flex">
           <LargeTextField
             value={value}
             onChange={handleInputChange}
@@ -233,8 +232,8 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
             disabled={disableInput}
             loadingValue={loadingValue}
           />
-        </Flex>
-      </Flex>
+        </Box>
+      </Box>
     </Card>
   )
 }

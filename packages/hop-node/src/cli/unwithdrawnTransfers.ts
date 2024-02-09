@@ -1,4 +1,3 @@
-import bridgeAbi from '@hop-protocol/core/abi/generated/Bridge.json'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
@@ -11,6 +10,7 @@ import {
   parseString,
   root
 } from './shared'
+import { bridgeAbi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 
 interface TransferRootsToChain {

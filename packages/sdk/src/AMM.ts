@@ -4,7 +4,7 @@ import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { SecondsInDay, TokenIndex, TokenSymbol } from './constants'
-import { Swap__factory } from '@hop-protocol/core/contracts/factories/generated/Swap__factory'
+import { Swap__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain, TProvider } from './types'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { formatUnits } from 'ethers/lib/utils'
@@ -50,8 +50,8 @@ class AMM extends Base {
   ) {
     super(networkOrOptionsObject, signer, chainProviders)
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject as AmmConstructorOptions
-      if (tokenSymbol || chain || signer || chainProviders) {
+      const options = networkOrOptionsObject 
+      if (tokenSymbol ?? chain ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
       tokenSymbol = options.tokenSymbol
@@ -61,7 +61,7 @@ class AMM extends Base {
     if (!tokenSymbol) {
       throw new Error('token is required')
     }
-    chain = this.toChainModel(chain)
+    chain = this.toChainModel(chain!)
     if (chain) {
       this.chain = chain
     }
@@ -462,6 +462,9 @@ class AMM extends Base {
     }
 
     const provider = this.chain.provider
+    if (!provider) {
+      throw new Error('expected provider')
+    }
     const block = await provider.getBlock('latest')
     const endTimestamp = block.timestamp
 

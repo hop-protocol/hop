@@ -1,12 +1,10 @@
-import fetch from 'node-fetch'
 import wait from 'src/utils/wait'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { BigNumber, providers, utils } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
-import { FxPortalClient } from '@fxportal/maticjs-fxportal'
+import { POSClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils'
-import { setProofApi, use } from '@maticnetwork/maticjs'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string
@@ -58,12 +56,12 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
-    this.maticClient = new FxPortalClient()
+    this.maticClient = new POSClient()
 
     this.#_initClient(this.networkSlug)
       .then(() => {
         this.ready = true
-        console.log('Matic client initialized')
+        this.logger.debug('Matic client initialized')
       })
       .catch((err: any) => {
         this.logger.error('Matic client initialize error:', err)
@@ -103,7 +101,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     }
   }
 
-  async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
+  override async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {
     throw new Error('L1 to L2 message relay not supported. Messages are relayed with a system tx.')
   }
 
@@ -222,6 +220,6 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     const l2Block = await this.l2Wallet.provider!.getTransactionReceipt(messageStatus)
     const url = `${this.apiUrl}/${l2Block.blockNumber}`
     const res = await fetch(url)
-    return res.json()
+    return (await res.json() as PolygonApiRes)
   }
 }

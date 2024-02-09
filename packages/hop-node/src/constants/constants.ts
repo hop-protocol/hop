@@ -1,9 +1,9 @@
 import { AssetSymbol } from '@hop-protocol/core/config'
-import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks/enums'
-import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata/providers'
+import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/core/networks'
+import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata'
 import { chains } from '@hop-protocol/core/metadata'
 import { networks } from '@hop-protocol/core/networks'
-import { tokens } from '@hop-protocol/core/metadata/tokens'
+import { tokens } from '@hop-protocol/core/metadata'
 
 export { Network, Chain, Token, NativeChainToken }
 
@@ -215,7 +215,7 @@ export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
     [Chain.Arbitrum]: 15 * 60 * 1000, // L1 safe
     [Chain.Nova]: 15 * 60 * 1000, // L1 safe
     [Chain.Linea]: 25 * 60 * 1000, // L1 finalized
-    [Chain.PolygonZk]: 8 * 60 * 1000 // 32 L1 Blocks + buffer
+    [Chain.PolygonZk]: 15 * 60 * 1000 // 32 L1 Blocks + buffer
   },
   L2_TO_L1: {
     [Chain.Gnosis]: 1 * OneHourMs,

@@ -1,5 +1,5 @@
-import { ChainSlug, Slug } from '@hop-protocol/sdk'
 import logger from 'src/logger'
+import { ChainSlug, Slug } from '@hop-protocol/sdk'
 import { getBaseExplorerUrl } from './getBaseExplorerUrl'
 
 export function getExplorerTxUrl(networkName?: Slug | ChainSlug | string, txHash: string = '') {

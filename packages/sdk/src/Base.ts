@@ -1,31 +1,30 @@
 import Token from './models/Token'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { ArbERC20 } from '@hop-protocol/core/contracts/static/ArbERC20'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/static/ArbERC20__factory'
-import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/static/ArbitrumGlobalInbox'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
-import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
+import { ArbERC20 } from '@hop-protocol/core/contracts'
+import { ArbERC20__factory } from '@hop-protocol/core/contracts'
+import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts'
+import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts'
+import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { ChainSlug, Errors, NetworkSlug } from './constants'
-import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L1_OptimismTokenBridge'
-import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
-import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts/static/L1_PolygonPosRootChainManager'
-import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/static/L1_PolygonPosRootChainManager__factory'
-import { L1_xDaiForeignOmniBridge } from '@hop-protocol/core/contracts/static/L1_xDaiForeignOmniBridge'
-import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_xDaiForeignOmniBridge__factory'
-import { L2_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L2_OptimismTokenBridge'
-import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L2_OptimismTokenBridge__factory'
-import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts/static/L2_PolygonChildERC20'
-import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
-import { L2_xDaiToken } from '@hop-protocol/core/contracts/static/L2_xDaiToken'
-import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
+import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts'
+import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
+import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts'
+import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts'
+import { L1_xDaiForeignOmniBridge } from '@hop-protocol/core/contracts'
+import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts'
+import { L2_OptimismTokenBridge } from '@hop-protocol/core/contracts'
+import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
+import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts'
+import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts'
+import { L2_xDaiToken } from '@hop-protocol/core/contracts'
+import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts'
 import { Multicall, Balance as MulticallBalance } from './Multicall'
 import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMinGasLimit } from './utils/getMinGasLimit'
 import { getMinGasPrice } from './utils/getMinGasPrice'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
@@ -161,13 +160,13 @@ export class Base {
    */
   constructor (
     networkOrOptionsObject: NetworkSlug | string | BaseConstructorOptions,
-    signer: TProvider,
+    signer?: TProvider,
     chainProviders?: ChainProviders
   ) {
     let network: any
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject as BaseConstructorOptions
-      if (signer || chainProviders) {
+      const options = networkOrOptionsObject
+      if (signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
       network = options.network
@@ -206,7 +205,7 @@ export class Base {
         this.debugTimeLogsCache = options.debugTimeLogsCache
       }
     } else {
-      network = networkOrOptionsObject as string
+      network = networkOrOptionsObject
     }
 
     if (!network) {
@@ -386,6 +385,9 @@ export class Base {
    * @returns Chain model with connected provider.
    */
   public toChainModel (chain: TChain): Chain {
+    if (!chain) {
+      throw new Error('expected chain')
+    }
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
@@ -405,7 +407,7 @@ export class Base {
         )}`
       )
     }
-    chain.provider = this.getChainProvider(chain)
+    chain.provider = this.getChainProvider(chain)!
     chain.chainId = this.getChainId(chain)
     return chain
   }
@@ -494,7 +496,7 @@ export class Base {
     const obj : Record<string, string> = {}
     for (const chainSlug of this.configChains) {
       const provider = this.getChainProvider(chainSlug)
-      obj[chainSlug] = (provider as any)?.connection?.url
+      obj[chainSlug] = (provider)?.connection?.url
     }
 
     return obj
@@ -532,7 +534,7 @@ export class Base {
     // console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
     if (!signer) {
-      return chain.provider
+      return chain.provider!
     }
     if (Signer.isSigner(signer)) {
       if (signer.provider) {
@@ -542,20 +544,20 @@ export class Base {
         if (connectedChainId !== chain.chainId) {
           if (!signer.provider) {
             // console.log('connect provider')
-            return (signer as Signer).connect(chain.provider)
+            return (signer).connect(chain.provider!)
           }
           // console.log('return chain.provider')
-          return chain.provider
+          return chain.provider!
         }
         return signer
       } else {
-        return chain.provider
+        return chain.provider!
       }
     } else {
       // console.log('isSigner')
       const { chainId } = await signer.getNetwork()
       if (chainId !== chain.chainId) {
-        return chain.provider
+        return chain.provider!
       }
       return signer
     }
@@ -649,7 +651,7 @@ export class Base {
 
     const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
     if (minGasPrice) {
-      const currentGasPrice = await this.getGasPrice(sourceChain.provider)
+      const currentGasPrice = await this.getGasPrice(sourceChain.provider!)
       const minGasPriceBn = BigNumber.from(minGasPrice)
       if (currentGasPrice.lte(minGasPriceBn)) {
         txOptions.gasPrice = minGasPriceBn
@@ -765,7 +767,7 @@ export class Base {
       return BigNumber.from(customRelayerFee)
     }
     try {
-      return RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
+      return await RelayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
     } catch (err) {
       return BigNumber.from(0)
     }
@@ -947,9 +949,7 @@ export class Base {
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
-    const gasPrice = await this.getGasPrice(chain.provider)
-    const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
+    const gasPrice = await this.getGasPrice(chain.provider!)
     const serializedTx = serializeTransaction({
       value: parseEther('0'),
       gasPrice,
@@ -957,8 +957,12 @@ export class Base {
       to,
       data
     })
+
+    const gasPriceOracleAddress = '0x420000000000000000000000000000000000000F'
+    const gasPriceOracleAbi = ['function getL1Fee(bytes memory _data) external view returns (uint256)']
+    const GasPriceOracle: Contract = new Contract(gasPriceOracleAddress, gasPriceOracleAbi, chain.provider!)
     const timeStart = Date.now()
-    const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    const l1FeeInWei = await GasPriceOracle.getL1Fee(serializedTx)
     this.debugTimeLog('estimateOptimismL1FeeFromData', timeStart)
     return l1FeeInWei
   }
@@ -1060,6 +1064,9 @@ export class Base {
   }
 
   getGasPrice = rateLimitRetry(async (signerOrProvider: TProvider): Promise<BigNumber> => {
+    if (!signerOrProvider) {
+      throw new Error('expected signer or provider')
+    }
     const timeStart = Date.now()
     const gasPrice = await signerOrProvider.getGasPrice()
     this.debugTimeLog('getGasPrice', timeStart)

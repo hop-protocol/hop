@@ -1,26 +1,27 @@
+/// <reference types="vite-plugin-svgr/client" />
+import Box from '@mui/material/Box'
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
-import { gitRevision } from 'src/config/config'
-import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
-import { ReactComponent as github } from 'src/assets/logos/github.svg'
-import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
-import { ReactComponent as twitter } from 'src/assets/logos/twitter.svg'
+import Typography from '@mui/material/Typography'
+import discord from 'src/assets/logos/discord.svg?react'
+import github from 'src/assets/logos/github.svg?react'
+import medium from 'src/assets/logos/medium.svg?react'
+import twitter from 'src/assets/logos/twitter.svg?react'
+import { StyledLink } from 'src/components/Link/StyledLink'
+import { SvgImg } from 'src/components/ui/SvgImg'
 import {
   careersUrl,
+  discordUrl,
   docsUrl,
   faqUrl,
-  discordUrl,
+  forumUrl,
   githubUrl,
   mediumUrl,
   twitterUrl,
-  forumUrl,
 } from 'src/utils/constants'
-import { Flex, SvgImg } from 'src/components/ui'
-import { StyledLink } from 'src/components/ui/StyledLink'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import { gitRevision } from 'src/config/config'
+import { makeStyles } from '@mui/styles'
 import { useBlockNumber } from 'src/components/Footer/useBlockNumber'
-import { makeStyles } from '@material-ui/core/styles'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {
@@ -68,7 +69,7 @@ export const Footer = () => {
       justifyContent="space-between"
       className={styles.container}
     >
-      <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
+      <Box display="flex" alignItems="center" mx={[5]} justifyContent="space-around" width={['20%']}>
         {iconLinks.map((il, i) => (
           <Box mr={'1.6rem'} key={il.url}>
             <StyledLink
@@ -80,7 +81,7 @@ export const Footer = () => {
             </StyledLink>
           </Box>
         ))}
-      </Flex>
+      </Box>
 
       <Box display="flex" alignItems="center" style={{ opacity: 0.5 }}>
         {!!blockNumber && (
@@ -93,8 +94,7 @@ export const Footer = () => {
               minWidth: '8px',
               borderRadius: '50%',
               position: 'relative',
-              backgroundColor: 'rgb(118, 209, 145)',
-              transition: 'background-color 250ms ease 0s'
+              backgroundColor: 'rgb(118, 209, 145)'
             }}></Box>
             <a href={`https://etherscan.io/block/${blockNumber}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'inline-flex' }}>
               <Typography variant="body2" color="secondary">
@@ -114,7 +114,7 @@ export const Footer = () => {
         )}
       </Box>
 
-      <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
+      <Box display="flex" alignItems="center" mx={[5]} justifyContent="space-around" width={['20%']}>
         <Box ml={'1.6rem'}>
           <StyledLink href={faqUrl} opacity={0.6}>
             <Typography variant="subtitle2">FAQ</Typography>
@@ -135,7 +135,7 @@ export const Footer = () => {
             <Typography variant="subtitle2">Careers</Typography>
           </StyledLink>
         </Box>
-      </Flex>
+      </Box>
     </Box>
   )
 }

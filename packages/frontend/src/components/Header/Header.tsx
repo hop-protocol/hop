@@ -1,35 +1,36 @@
-import React, { FC, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Theme, makeStyles } from '@material-ui/core'
-import Box from '@material-ui/core/Box'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
-import { TxPill } from 'src/components/Header/TxPill'
+import Box from '@mui/material/Box'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
-import { isMainnet, showBannerMessage, reactAppNetwork } from 'src/config'
-import { Settings } from 'src/components/Header/Settings'
-import { WalletWarning } from 'src/components/Header/WalletWarning'
-import { useQuery } from 'react-query'
-import {
-  toTokenDisplay,
-  networkIdNativeTokenSymbol,
-  networkIdToSlug,
-  findNetworkBySlug,
-  fixedDecimals,
-} from 'src/utils'
-import Network from 'src/models/Network'
-import logger from 'src/logger'
-import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
-import IconButton from '@material-ui/core/IconButton'
-import SunIcon from 'src/assets/sun-icon.svg'
+import IconButton from '@mui/material/IconButton'
 import MoonIcon from 'src/assets/moon-icon.svg'
-import { Flex, Icon } from 'src/components/ui'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import Network from 'src/models/Network'
+import React, { FC, useState } from 'react'
+import SunIcon from 'src/assets/sun-icon.svg'
+import logger from 'src/logger'
 import { Banner } from 'src/components/Banner'
+import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
+import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
+import { Icon } from 'src/components/ui/Icon'
+import { Link } from 'react-router-dom'
+import { NetworkSelector } from 'src/components/NetworkSelector/NetworkSelector'
+import { Settings } from 'src/components/Header/Settings'
+import { TxPill } from 'src/components/Header/TxPill'
+import { WalletWarning } from 'src/components/Header/WalletWarning'
+import {
+findNetworkBySlug,
+fixedDecimals,
+networkIdNativeTokenSymbol,
+networkIdToSlug,
+toTokenDisplay,
+} from 'src/utils'
+import { isMainnet, reactAppNetwork, showBannerMessage } from 'src/config'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
+import { useQuery } from 'react-query'
+import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -43,8 +44,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       flexDirection: 'column',
       paddingTop: '2rem',
       marginBottom: '4rem',
-    },
-    transition: 'all 0.15s ease-out',
+    }
   },
   hopLogo: {
     display: 'flex',
@@ -73,16 +73,15 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: '1.2rem 2rem',
     boxShadow: ({ isDarkMode }: any) =>
       isDarkMode
-        ? theme.boxShadow.inner
+        ? theme?.boxShadow?.inner
         : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
-    color: theme.palette.text.secondary,
-    [theme.breakpoints.down('sm')]: {
+    color: theme?.palette.text.secondary,
+    [theme?.breakpoints.down('sm')]: {
       fontSize: '.8rem',
     },
-    [theme.breakpoints.down('xs')]: {
+    [theme?.breakpoints.down('xs')]: {
       display: 'none',
     },
-    transition: 'all 0.15s ease-out',
   },
   balance: {
     display: 'flex',
@@ -107,7 +106,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 export const Header: FC = () => {
   const { toggleMode, isDarkMode } = useThemeMode()
   const styles = useStyles({ isDarkMode })
-  const { address, provider, connectedNetworkId } = useWeb3Context()
+  const { address, provider, connectedNetworkId, checkConnectedNetworkId } = useWeb3Context()
   const { theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
@@ -144,14 +143,25 @@ export const Header: FC = () => {
 
   const showBalance = !!displayBalance && !!connectedNetwork
   const ThemeModeIcon: any = isDarkMode ? SunIcon : MoonIcon
+  const showNetworkSelector = false
+
+  async function handleNetworkSelect (network: any) {
+    try {
+      if (network) {
+        await checkConnectedNetworkId(network?.networkId)
+      }
+    } catch (err: any) {
+      console.error(err)
+    }
+  }
 
   return (
     <>
       {showBannerMessage && (
         <Banner>{showBannerMessage}</Banner>
       )}
-      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
-        <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
+      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center" justifyContent="flex-start">
+        <Box display="flex" flexDirection="row" flex={1}>
           <Link to="/" style={{ position: 'relative' }}>
             <img
               className={styles.hopLogo}
@@ -173,18 +183,19 @@ export const Header: FC = () => {
           justifyContent="flex-end"
           alignItems="center"
         >
-          <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
+          <Box display="flex" alignItems="center" p={1} mx={2}>
             <IconButton onClick={toggleMode}>
               <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
             </IconButton>
-          </Flex>
+          </Box>
 
           <Settings />
 
           {showBalance && (
-            <Flex
-              justifyCenter
-              alignCenter
+            <Box
+              className={styles.balancePill}
+              justifyContent="center"
+              alignItems="center"
               borderRadius={'3rem'}
               mx={1}
               p={'1.2rem 2rem'}
@@ -195,18 +206,24 @@ export const Header: FC = () => {
               }
               color="text.secondary"
               fontSize={['.8rem', '1rem']}
-              display={['none', 'flex']}
             >
               <div className={styles.balance}>
                 <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
                 {displayBalance}
               </div>
-            </Flex>
+            </Box>
           )}
 
-          <Flex alignCenter justifyCenter mx={1} fontSize={['.8rem', '1rem']}>
-            {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
-          </Flex>
+          {showNetworkSelector && !!address && (
+            <NetworkSelector
+              setNetwork={handleNetworkSelect}
+              network={connectedNetwork}
+            />
+          )}
+
+          <Box display="flex" alignItems="center" justifyContent="center" mx={1} fontSize={['.8rem', '1rem']}>
+            {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette?.mode} />}
+          </Box>
         </Box>
       </Box>
       <WalletWarning />

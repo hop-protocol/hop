@@ -1,11 +1,11 @@
-import React from 'react'
-import { Button } from 'src/components/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import { commafy, NetworkTokenEntity } from 'src/utils'
-import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
-import { Alert } from 'src/components/Alert'
 import Address from 'src/models/Address'
+import React from 'react'
+import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
+import { Button } from 'src/components/Button'
+import { NetworkTokenEntity, commafy } from 'src/utils'
+import { makeStyles } from '@mui/styles'
+import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {

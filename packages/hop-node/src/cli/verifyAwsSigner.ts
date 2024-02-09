@@ -27,13 +27,12 @@ async function main (source: any) {
     throw new Error('keyId and awsRegion are required')
   }
 
-  if (lambdaSigner && !lambdaFunctionName) {
-    throw new Error('lambdaFunctionName is required')
-  }
-
   let signer
   if (lambdaSigner) {
-    signer = new LambdaSigner({ keyId, region: awsRegion, lambdaFunctionName: lambdaFunctionName! })
+    if (!lambdaFunctionName) {
+      throw new Error('lambdaFunctionName is required')
+    }
+    signer = new LambdaSigner({ keyId, region: awsRegion, lambdaFunctionName })
   } else {
     signer = new KmsSigner({ keyId, region: awsRegion })
   }
@@ -64,7 +63,7 @@ async function main (source: any) {
         to: address,
         data: validFunctionSig
       }
-      const provider = getRpcProvider(chain)!
+      const provider = getRpcProvider(chain)
 
       // If the bonder does not have funds on the chain, skip
       const balance = await provider.getBalance(address)

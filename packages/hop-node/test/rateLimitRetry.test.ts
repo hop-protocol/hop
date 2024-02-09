@@ -2,7 +2,7 @@ import rateLimitRetry from 'src/utils/rateLimitRetry'
 
 class Example {
   counter = 0
-  triggerRateLimitError= rateLimitRetry(async () => {
+  triggerRateLimitError = rateLimitRetry(async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         this.counter++
@@ -26,7 +26,7 @@ class Example {
     })
   })
 
-  triggerCallRevertError= rateLimitRetry(async () => {
+  triggerCallRevertError = rateLimitRetry(async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         this.counter++
@@ -37,7 +37,7 @@ class Example {
     })
   })
 
-  triggerGatewayTimeoutError= rateLimitRetry(async () => {
+  triggerGatewayTimeoutError = rateLimitRetry(async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         this.counter++

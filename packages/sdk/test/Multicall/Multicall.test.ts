@@ -1,6 +1,6 @@
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import stakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 import { Multicall } from '../../src/Multicall'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 
 describe.skip('Multicall', () => {
   it('Should get token addresses for chain', async () => {

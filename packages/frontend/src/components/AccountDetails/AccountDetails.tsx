@@ -1,46 +1,52 @@
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import React from 'react'
-import { Theme, makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import Button from '@material-ui/core/Button'
-import { useApp } from 'src/contexts/AppContext'
-import { Modal } from 'src/components/Modal'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
+import Typography from '@mui/material/Typography'
 import { AccountTransferHistory } from 'src/components/AccountDetails/AccountTransferHistory'
-import { Div } from 'src/components/ui'
+import { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton'
+import { Modal } from 'src/components/Modal'
+import { Theme } from '@mui/material/styles'
+import { makeStyles } from '@mui/styles'
+import { useApp } from 'src/contexts/AppContext'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 const useStyles = makeStyles((theme: Theme) => ({
   box: {
     position: 'relative',
   },
   connectedWallet: {
-    border: '1px solid #fff',
-    padding: '2rem',
-    marginBottom: '3rem',
-    borderRadius: '1rem',
+    border: '1px solid #fff !important',
+    padding: '2rem !important',
+    marginBottom: '3rem !important',
+    borderRadius: '1rem !important',
   },
   changeButton: {
-    position: 'absolute',
-    top: '1rem',
-    right: '1rem',
-    borderRadius: '1.5rem',
-    boxShadow: 'none',
-  },
+    position: 'absolute !important',
+    top: '1rem !important',
+    right: '1rem !important',
+    borderRadius: '1.5rem !important',
+    boxShadow: 'none !important',
+    padding: '0 !important',
+    width: 'auto !important',
+    minWidth: '0 !important'
+  } as any,
   disconnectButton: {
-    position: 'absolute',
-    bottom: '1rem',
-    right: '1rem',
-    fontSize: '1.2rem',
-    marginBottom: 0,
-    borderRadius: '1.5rem',
-    boxShadow: 'none',
-  },
+    position: 'absolute !important',
+    bottom: '1rem !important',
+    right: '1rem !important',
+    fontSize: '1.2rem !important',
+    marginBottom: '0 !important',
+    borderRadius: '1.5rem !important',
+    boxShadow: 'none !important',
+    padding: '0 !important',
+    width: 'auto !important',
+    minWidth: '0 !important'
+  } as any,
   address: {
-    fontSize: '2rem',
+    fontSize: '2rem !important',
   },
   copyButton: {
-    marginLeft: '0.5rem',
+    marginLeft: '0.5rem !important',
   },
 }))
 
@@ -114,9 +120,9 @@ export const AccountDetails = () => {
           <ManageWallet onChange={handleChangeClick} onDisconnect={handleDisconnectClick} />
         )}
       </Box>
-      <Div position="relative">
+      <Box position="relative">
         <AccountTransferHistory address={address?.address} />
-      </Div>
+      </Box>
     </Modal>
   )
 }

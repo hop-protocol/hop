@@ -69,7 +69,7 @@ async function main (source: any) {
       `${root || ''}`.padEnd(68, ' ')
     ]
     const str = fields.join(' ')
-    let color: string | undefined
+    let color: typeof chalk.Color | undefined
     if (needsSettlement) {
       color = 'magenta'
     } else if (!bonded) {

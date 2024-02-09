@@ -1,6 +1,6 @@
-import { ChainSlug, Slug, CanonicalToken } from '@hop-protocol/sdk'
-import { capitalize } from 'src/utils/capitalize'
 import logger from 'src/logger'
+import { CanonicalToken, ChainSlug, Slug } from '@hop-protocol/sdk'
+import { capitalize } from 'src/utils/capitalize'
 import { discordUrl } from 'src/utils'
 
 const emptyRoute = {
@@ -45,7 +45,7 @@ const validTokenSymbols = new Set(Object.values(CanonicalToken))
 export function parseDisabledRoutes(
   serializedDisabledRoutes: string,
   serializedWarningRoutes: string,
-  disabledRoutesNoLiquidityWarningMessage: boolean
+  disabledRoutesNoLiquidityWarningMessage: boolean = false
 ): DisabledRoute[] {
   const disabledRoutes = serializedDisabledRoutes?.split(',').map(x => x?.trim())
   const warningRoutes = serializedWarningRoutes?.split(',').map(x => x?.trim())
@@ -53,7 +53,7 @@ export function parseDisabledRoutes(
   if (!disabledRoutes[0] || disabledRoutes[0] === 'false') return []
 
   if (disabledRoutes[0] !== '') {
-    return (disabledRoutes as string[]).map((disabledRoute: string, i: number) => {
+    return (disabledRoutes).map((disabledRoute: string, i: number) => {
       const [source, destination, tokenSymbol] = disabledRoute.split(':')
 
       if (
@@ -117,9 +117,9 @@ export function parseDisabledRoutes(
 }
 
 // ex: all:polygon,all:arbitrum,gnosis:ethereum
-const serializedDisabledRoutes = process.env.REACT_APP_DISABLED_ROUTES || ''
-const serializedWarningRoutes = process.env.REACT_APP_WARNING_ROUTES || ''
-const disabledRoutesNoLiquidityWarningMessage = !!(process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE || '')
+const serializedDisabledRoutes = process.env.REACT_APP_DISABLED_ROUTES ?? ''
+const serializedWarningRoutes = process.env.REACT_APP_WARNING_ROUTES ?? ''
+const disabledRoutesNoLiquidityWarningMessage = !!(process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE ?? '')
 // ex: '0,Warning: transfers to exchanges that do not support internal transactions may result in lost funds.,false'
 
 const disabledRoutes = parseDisabledRoutes(serializedDisabledRoutes, serializedWarningRoutes, disabledRoutesNoLiquidityWarningMessage)

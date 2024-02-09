@@ -77,6 +77,15 @@ Run amm stats worker
 ts-node src/index.ts --amm --ammDays=2
 ```
 
+### Github Actions
+
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../../ && act --job build-stats-worker --workflows .github/workflows/stats_worker.yml --secret-file=.secrets --verbose)
+```
+
 ### Metabase charts
 
 The metabase queries are in the directory [./metabase_queries](./metabase_queries) and can be copied into metabase
+

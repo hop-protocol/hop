@@ -6,8 +6,8 @@ import getChainBridge from 'src/chains/getChainBridge'
 import { EnforceRelayerFee, RelayTransactionBatchSize, config as globalConfig } from 'src/config'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { IChainBridge } from 'src/chains/IChainBridge'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import {
   MessageInFlightError,
   MessageInvalidError,
@@ -31,7 +31,7 @@ type Config = {
 }
 
 class RelayWatcher extends BaseWatcher {
-  siblingWatchers: { [chainId: string]: RelayWatcher }
+  override siblingWatchers: { [chainId: string]: RelayWatcher }
   private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {
@@ -48,7 +48,7 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async pollHandler () {
+  override async pollHandler () {
     await Promise.all([
       this.checkTransferSentToL2FromDb(),
       this.checkRelayableTransferRootsFromDb()
@@ -182,13 +182,11 @@ class RelayWatcher extends BaseWatcher {
         throw new RelayerFeeTooLowError(msg)
       }
 
-      const messageIndex: number = 0
       logger.debug('checkTransferSentToL2 sendRelayTx')
       const tx = await this.sendTransferRelayTx({
         transferId,
         destinationChainId,
-        transferSentTxHash,
-        messageIndex
+        transferSentTxHash
       })
 
       // This will not work as intended if the process restarts after the tx is sent but before this is executed.
@@ -202,7 +200,7 @@ class RelayWatcher extends BaseWatcher {
 
       const msg = `sent relay on ${destinationChainId} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err: any) {
       logger.debug('sendTransferRelayErr err:', err)
 
@@ -343,7 +341,7 @@ class RelayWatcher extends BaseWatcher {
       )
       const msg = `transferRootSet dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
-      this.notifier.info(msg)
+      await this.notifier.info(msg)
     } catch (err) {
       logger.error('transferRootSet error:', err.message)
 
@@ -386,16 +384,15 @@ class RelayWatcher extends BaseWatcher {
     const {
       transferId,
       destinationChainId,
-      transferSentTxHash,
-      messageIndex
+      transferSentTxHash
     } = params
     const logger = this.logger.create({ id: transferId })
 
     logger.debug(
-      `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex ?? 0} l1TxHash: ${transferSentTxHash}`
+      `relay transfer destinationChainId: ${destinationChainId} with l1TxHash: ${transferSentTxHash}`
     )
     logger.debug('checkTransferSentToL2 l2Bridge.distribute')
-    return await this.sendRelayTx(destinationChainId, transferSentTxHash, messageIndex)
+    return this.sendRelayTx(destinationChainId, transferSentTxHash)
   }
 
   async sendTransferRootRelayTx (destinationChainId: number, transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
@@ -403,7 +400,7 @@ class RelayWatcher extends BaseWatcher {
     logger.debug(
       `relay root destinationChainId with txHash ${txHash}`
     )
-    return await this.sendRelayTx(destinationChainId, txHash)
+    return this.sendRelayTx(destinationChainId, txHash)
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
@@ -413,7 +410,10 @@ class RelayWatcher extends BaseWatcher {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)
     }
 
-    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} relayL1ToL2MessageOpts ${messageIndex ?? 0} destinationChainId: ${destinationChainId}`)
+    // A messageIndex greater than 0 is very rare. It is also difficult to calculate since it requires
+    // the context of the whole tx. Assuming 0 is reasonable for now.
+    messageIndex = messageIndex ?? 0
+    this.logger.debug(`attempting relayWatcher relayL1ToL2Message() l1TxHash: ${txHash} messageIndex: ${messageIndex} destinationChainId: ${destinationChainId}`)
     return chainBridge.relayL1ToL2Message(txHash, messageIndex)
   }
 

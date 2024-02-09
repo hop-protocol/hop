@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta http-equiv="content-language" content="en-us" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="A protocol for sending tokens across rollups and their shared layer-1 network in a quick and trustless manner."
+    />
+    <meta
+      name="keywords"
+      content="hop exchange, hop protocol, defi, decentralized exchange, cross-domain exchange, ethereum l2 exchange, layer 2, arbitrum, optimism, ovm, rollups, optimistic rollups, zk rollups"
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="googlebot" content="index,follow" />
+    <meta name="application-name" content="Hop" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@HopProtocol" />
+    <meta name="twitter:creator" content="@HopProtocol" />
+    <meta property="og:url" content="/" />
+    <meta property="og:title" content="Hop Protocol" />
+    <meta
+      property="og:description"
+      content="A protocol for sending tokens across rollups and their shared layer-1 network in a quick and trustless manner."
+    />
+    <meta property="og:image" content="/images/hop_logo.png" />
+    <link rel="canonical" href="https://hop.exchange/" />
+    <link rel="apple-touch-icon" href="/images/hop_logo_192x192.png" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="/manifest.json" />
+    <!--
+      Fonts
+    -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Hop Protocol | Hop Exchange</title>
+    <script src="/js/static.js"></script>
+    <script src="/js/dinoGame.js"></script>
+    <link id="onboard-css" rel="stylesheet" href="/css/onboard.css">
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+    <script>
+      /* BlockNative OnboardJS style overrides */
+      const linkElem = document.createElement('link')
+      linkElem.setAttribute('rel', 'stylesheet')
+      linkElem.setAttribute('href', document.getElementById('onboard-css').getAttribute('href'))
+      var t = setInterval(() => {
+        try {
+          document.querySelector('onboard-v2').shadowRoot.appendChild(linkElem)
+          clearInterval(t)
+        } catch (err) {}
+      }, 100)
+</script>
+  </body>
+</html>

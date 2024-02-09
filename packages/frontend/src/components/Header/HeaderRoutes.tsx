@@ -1,19 +1,17 @@
-import React, { FC, ChangeEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import Tabs from '@material-ui/core/Tabs'
-import Tab from '@material-ui/core/Tab'
+import React, { ChangeEvent, FC } from 'react'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
 import { isMainnet, showRewards } from 'src/config'
+import { makeStyles, useTheme } from '@mui/styles'
 import { useClaim } from 'src/pages/Claim/useClaim'
-import { makeStyles } from '@material-ui/core/styles'
-import { useTheme } from '@material-ui/core'
-// import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
+import { useLocation, useNavigate } from 'react-router-dom'
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(theme => ({
   tabs: {
     "& .MuiTabs-flexContainer": {
       flexWrap: 'wrap',
-      justifyContent: 'center'
-    }
+      justifyContent: 'center',
+    },
   }
 }));
 
@@ -23,7 +21,7 @@ export const HeaderRoutes: FC = () => {
   const styles = useStyles()
   const theme = useTheme()
 
-  const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
+  const handleChange = (event: ChangeEvent<object>, newValue: string) => {
     event.preventDefault()
     navigate(`${newValue}${search}`)
   }
@@ -35,9 +33,6 @@ export const HeaderRoutes: FC = () => {
   const { canClaim } = useClaim()
 
   const hasRewards = false
-  if (showRewards) {
-    // ({ hasRewards } = useHasRewards()) // disabled to reduce polling and rpc calls
-  }
 
   return (
     <Tabs value={value || '/send'} onChange={handleChange} style={{ width: 'max-content' }} variant="scrollable"
@@ -45,14 +40,13 @@ export const HeaderRoutes: FC = () => {
       <Tab label="Send" value="/send" />
       <Tab label="Pool" value="/pools" />
       <Tab label="Convert" value="/convert" />
-      {/* isMainnet && <Tab label="Stake" value="/stake" /> */}
       {showRewards && (
         <Tab label={<span style={{
             display: 'inline-block',
             position: 'relative'
           }}>Rewards {hasRewards && <mark style={{
           background: 'none',
-          color: theme.palette.primary.main,
+          color: theme.palette?.primary?.main,
           display: 'inline-block',
           position: 'absolute',
           top: '-10px',
@@ -61,8 +55,7 @@ export const HeaderRoutes: FC = () => {
       )}
       {!isMainnet && <Tab label="Faucet" value="/faucet" />}
       {canClaim && (
-        <Tab label="Claim HOP" value="/claim" className="rainbow-animated" style={{
-          // background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
+        <Tab label="Claim HOP" value="/claim" style={{
           color: '#fff',
           padding: '1rem 3rem',
           margin: '1rem 0 1rem 1rem',

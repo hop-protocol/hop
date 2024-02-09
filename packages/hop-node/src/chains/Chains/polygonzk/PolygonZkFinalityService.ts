@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import wait from 'src/utils/wait'
 import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService'
@@ -45,10 +44,10 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
     this.#init()
       .then(() => {
         this.#ready = true
-        this.logger.debug('zkEVM client initialized')
+        this.logger.debug('PolygonZk Finality Service initialized')
       })
       .catch((err: any) => {
-        this.logger.error('zkEVM client initialize error:', err)
+        this.logger.error('PolygonZk Finality Service initialize error:', err)
         process.exit(1)
       })
   }
@@ -66,14 +65,15 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
   }
 
   async #tilReady (): Promise<boolean> {
-    if (this.#ready) {
-      return true
+    while (true) {
+      if (this.#ready) {
+        return true
+      }
+      await wait(100)
     }
-    await wait(100)
-    return await this.#tilReady()
   }
 
-  async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
+  override async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     await this.#tilReady()
 
     if (!this.#doesSupportZkEvmRpc) {
@@ -163,7 +163,7 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
   }
 
   async #fetchRpcCall (method: string, params: any[] = []): Promise<any> {
-    const res = await fetch(getRpcUrl(Chain.PolygonZk)!, {
+    const res = await fetch(getRpcUrl(Chain.PolygonZk), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

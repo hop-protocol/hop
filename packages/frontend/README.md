@@ -7,19 +7,13 @@
 Install dependencies:
 
 ```sh
-npm install
-```
-
-Lerna link, to link hop core and sdk packages:
-
-```sh
-npx lerna link
+pnpm install
 ```
 
 Start app (uses `mainnet` network by default):
 
 ```sh
-npm run dev
+pnpm dev
 ```
 
 Start app using a different network (e.g. `mainnet`, `goerli`)
@@ -49,8 +43,10 @@ REACT_APP_DISABLED_ROUTES=gnosis:all:all,optimism:arbitrum:USDC
 Build distribution build:
 
 ```sh
-npm run build
+pnpm build
 ```
+
+## Github Actions
 
 Run github action build locally with [act](https://github.com/nektos/act):
 

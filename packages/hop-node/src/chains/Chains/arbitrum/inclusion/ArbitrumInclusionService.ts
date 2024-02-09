@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from 'src/chains/Chains/arbitrum/ArbitrumAddresses'
@@ -85,7 +84,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     // correct l1BatchNumber is the correct event.
     for (const event of sequencerBatchDeliveredEvents) {
       if (event.args.batchSequenceNumber.eq(l1BatchNumber)) {
-        return await this.l1Provider.getTransactionReceipt(event.transactionHash)
+        return this.l1Provider.getTransactionReceipt(event.transactionHash)
       }
     }
 
@@ -94,7 +93,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
 
   // Needed to get Arbitrum-specific tx info from raw RPC call since ethers doesn't handle custom chain data
   async #getArbitrumTxReceipt (txHash: string): Promise<ArbitrumTransactionReceipt> {
-    const res = await fetch(getRpcUrl(this.chainSlug)!, {
+    const res = await fetch(getRpcUrl(this.chainSlug), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -106,7 +105,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
         id: 1
       })
     })
-    const receipt = await res.json()
+    const receipt: any = await res.json()
     if (!receipt.result) {
       throw new Error(`eth_getTransactionReceipt failed: ${JSON.stringify(receipt)}`)
     }
@@ -118,7 +117,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   }
 
   async #fetchSequencerBatchDeliveredEvents (startBlockNumber: number, endBlockNumber: number): Promise<any[]> {
-    return await this.#sequencerInboxContract.queryFilter(
+    return this.#sequencerInboxContract.queryFilter(
       this.#sequencerInboxContract.filters.SequencerBatchDelivered(),
       startBlockNumber,
       endBlockNumber

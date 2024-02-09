@@ -7,8 +7,6 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import getTransferSent from 'src/theGraph/getTransferSent'
 import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
-import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
-import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import wait from 'src/utils/wait'
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { BigNumber, Contract } from 'ethers'
@@ -17,6 +15,8 @@ import { DateTime } from 'luxon'
 import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { formatUnits } from 'ethers/lib/utils'
 import { getEnabledTokens } from 'src/config'
+import { l1BridgeAbi } from '@hop-protocol/core/abi'
+import { l2BridgeAbi } from '@hop-protocol/core/abi'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Options = {
@@ -97,12 +97,12 @@ class IncompleteSettlementsWatcher {
   }
 
   private async tilReady (): Promise<any> {
-    if (this.ready) {
-      return true
+    while (true) {
+      if (this.ready) {
+        return true
+      }
+      await wait(100)
     }
-
-    await wait(100)
-    return await this.tilReady()
   }
 
   private async sync () {
@@ -154,7 +154,7 @@ class IncompleteSettlementsWatcher {
         const timestamp = date.toSeconds()
         endBlockNumber = await getBlockNumberFromDate(chain, timestamp)
       } else {
-        endBlockNumber = await provider!.getBlockNumber()
+        endBlockNumber = await provider.getBlockNumber()
       }
       this.endBlockNumbers[chain] = endBlockNumber
       this.logger.debug(`${chain} - done getting block numbers`)
@@ -193,7 +193,7 @@ class IncompleteSettlementsWatcher {
       this.rootHashTotals[rootHash] = totalAmount
 
       const provider = getRpcProvider(chain)
-      const { timestamp } = await provider!.getBlock(log.blockNumber)
+      const { timestamp } = await provider.getBlock(log.blockNumber)
       this.rootHashTimestamps[rootHash] = timestamp
     }, { concurrency })
   }
@@ -248,7 +248,7 @@ class IncompleteSettlementsWatcher {
   private async setRootTransferIds (chain: string, token: string, log: any) {
     const provider = getRpcProvider(chain)
     const rootHash = log.args.rootHash
-    const { data } = await provider!.getTransaction(log.transactionHash)
+    const { data } = await provider.getTransaction(log.transactionHash)
     const contract = this.getContract(chain, token)
     const { transferIds } = contract.interface.decodeFunctionData(
       'settleBondedWithdrawals',
@@ -266,7 +266,7 @@ class IncompleteSettlementsWatcher {
     if (!config) {
       throw new Error(`Could not find bridge config for ${token} on ${chain}`)
     }
-    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? l1BridgeAbi : l2BridgeAbi, provider!)
+    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? l1BridgeAbi : l2BridgeAbi, provider)
     return contract
   }
 
@@ -301,7 +301,7 @@ class IncompleteSettlementsWatcher {
 
   async start () {
     const result = await this.getDiffResults()
-    this.logResult(result)
+    await this.logResult(result)
   }
 
   async getDiffResults (): Promise<any> {

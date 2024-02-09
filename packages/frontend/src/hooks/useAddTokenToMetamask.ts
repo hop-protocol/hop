@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react'
-import { Token, ChainSlug, CanonicalToken } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { networkIdToSlug, wait } from 'src/utils'
+import { CanonicalToken, ChainSlug, Token } from '@hop-protocol/sdk'
+import { ChainName } from '@hop-protocol/sdk'
 import { claimTokenAddress } from 'src/pages/Claim/config'
-import { ChainName } from '@hop-protocol/sdk/dist/src/constants'
+import { networkIdToSlug, wait } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
+import { useCallback, useState } from 'react'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 interface AddTokenToMetamask {
   addToken: (networkId: number) => void
@@ -64,7 +64,7 @@ export function useAddTokenToMetamask(
       }
 
       await wait(1500)
-      await addToken(destinationChain.chainId)
+      addToken(destinationChain.chainId)
     } else {
       setSuccess(false)
     }
@@ -79,7 +79,7 @@ export function useAddTokenToMetamask(
     }
     // const addr = sdk.getL2CanonicalTokenAddress('HOP', networkName)
     if (typeof (window as any)?.ethereum !== 'undefined') {
-      ;(window as any).ethereum
+      (window as any).ethereum
         .request({
           method: 'wallet_watchAsset',
           params: {

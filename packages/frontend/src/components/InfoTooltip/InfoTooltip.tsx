@@ -1,7 +1,7 @@
+import HelpIcon from '@mui/icons-material/Help'
 import React, { FC, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
-import HelpIcon from '@material-ui/icons/Help'
+import Tooltip, { TooltipProps } from '@mui/material/Tooltip'
+import { makeStyles } from '@mui/styles'
 
 type Props = {
   title: React.ReactNode
@@ -10,7 +10,7 @@ type Props = {
 
 const useStyles = makeStyles((theme: any) => ({
   tooltip: {
-    maxWidth: '100rem',
+    maxWidth: '100rem !important',
   },
   icon: {
     [theme.breakpoints.down('xs')]: {
@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: any) => ({
 }))
 
 export const InfoTooltip: FC<Props> = (props: any) => {
-  const [tooltipIsOpen, setTooltipIsOpen] = useState(false);
+  const [tooltipIsOpen, setTooltipIsOpen] = useState(false)
   const styles = useStyles()
   const children = props.children
 

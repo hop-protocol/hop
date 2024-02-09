@@ -1,11 +1,11 @@
+import Box from '@mui/material/Box'
 import React from 'react'
-import styled from 'styled-components'
-import { useTable, useSortBy } from 'react-table'
+import Skeleton from '@mui/material/Skeleton'
+import Typography from '@mui/material/Typography'
 import makeData from './makeData'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Alert from '@material-ui/lab/Alert'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
+import styled from 'styled-components'
+import { Alert } from 'src/components/Alert'
+import { useSortBy, useTable } from 'react-table'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -28,7 +28,6 @@ const Styles = styled.div`
     }
 
     tr {
-      transition: background 0.15s ease-out;
       :last-child {
         td {
           border-bottom: 0;
@@ -38,11 +37,12 @@ const Styles = styled.div`
 
     tbody {
       > tr {
-        :first-child {
+        &:first-child {
           background-color: transparent;
         }
-        :nth-child(odd) {
+        &:nth-child(odd) {
           background-color: ${({ theme }) => theme.colors.background.contrast};
+          border: 4px solid red;
         }
 
         &:hover {
@@ -54,7 +54,6 @@ const Styles = styled.div`
 
     th,
     td {
-      transition: background 0.15s ease-out;
       margin: 0;
       padding: 0.5rem 1rem;
       border-bottom: 1px solid #dbdbdb;
@@ -100,7 +99,7 @@ function Table({ columns, data, loading }) {
                     {
                       style: {
                         ...column.style,
-                        backgroundColor: (column as any).isSorted ? '#eed0ff' : 'transparent',
+                        backgroundColor: (column).isSorted ? '#eed0ff' : 'transparent',
                       },
                     },
                   ])}

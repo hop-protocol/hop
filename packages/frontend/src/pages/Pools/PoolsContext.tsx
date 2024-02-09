@@ -1,33 +1,33 @@
+import Address from 'src/models/Address'
+import Network from 'src/models/Network'
 import React, {
   FC,
   ReactNode,
   createContext,
   useContext,
   useEffect,
-  useState,
   useMemo,
-  ChangeEvent,
+  useState,
 } from 'react'
-import Address from 'src/models/Address'
-import Network from 'src/models/Network'
 import logger from 'src/logger'
-import { Signer, BigNumber, constants } from 'ethers'
+import { BigNumber, Signer, constants } from 'ethers'
+import { Multicall, Token } from '@hop-protocol/sdk'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { amountToBN, formatError } from 'src/utils/format'
-import { commafy, shiftBNDecimals, toTokenDisplay, toPercentDisplay, getTokenDecimals } from 'src/utils'
-import { stableCoins } from 'src/utils/constants'
+import { commafy, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
-import { hopStakingRewardsContracts, stakingRewardsContracts, stakingRewardTokens, reactAppNetwork } from 'src/config'
+import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { l2Networks } from 'src/config/networks'
+import { stableCoins } from 'src/utils/constants'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
+import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
 import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
-import { useQueryParams, useAsyncMemo, useBalance, useSelectedNetwork, useAssets } from 'src/hooks'
 import { useStaking } from 'src/pages/Pools/useStaking'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { Multicall, Token } from '@hop-protocol/sdk'
-import Erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import StakingRewardsAbi from '@hop-protocol/core/abi/static/StakingRewards.json'
 
 type PoolsContextProps = {
   addLiquidityAndStake: () => void
@@ -78,7 +78,7 @@ type PoolsContextProps = {
   reserve1Formatted: string
   reserveTotalsUsd?: number
   reserveTotalsUsdFormatted: string
-  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  selectBothNetworks: (event: SelectChangeEvent<unknown>) => void
   selectedNetwork?: Network
   sendButtonText: string
   setError: (error?: string | null) => void
@@ -159,7 +159,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
   const lpDecimals = 18
-  const accountAddress = (queryParams?.address as string) || address?.address
+  const accountAddress = (queryParams?.address as string) ?? address?.address
   const chainSlug = selectedNetwork?.slug ?? ''
   const tokenSymbol = selectedBridge?.getTokenSymbol() ?? ''
   const tokenDecimals = getTokenDecimals(tokenSymbol)
@@ -216,7 +216,8 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }
       const bridge = sdk.bridge(canonicalToken.symbol)
       const token = bridge.getL1Token()
-      return stableCoins.has(token.symbol) ? 1 : bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+      const price = stableCoins.has(token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+      return price
     } catch (err) {
       console.error(err)
     }
@@ -380,7 +381,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         const balancesOpts: any = []
         balancesOpts.push({
-          abi: Erc20Abi,
+          abi: erc20Abi,
           method: 'balanceOf',
           address: lpTokenAddress,
           tokenSymbol,
@@ -389,7 +390,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         if (stakingContractAddress) {
           const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
           balancesOpts.push({
-            abi: StakingRewardsAbi,
+            abi: stakingRewardsAbi,
             method: 'balanceOf',
             address: stakingContractAddress,
             tokenSymbol: stakingContractRewardToken
@@ -397,7 +398,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
         if (hopStakingContractAddress) {
           balancesOpts.push({
-            abi: StakingRewardsAbi,
+            abi: stakingRewardsAbi,
             method: 'balanceOf',
             address: hopStakingContractAddress,
             tokenSymbol: 'HOP'
@@ -795,7 +796,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
                 return bridge
                   .connect(signer as Signer)
-                  .removeLiquidity(liquidityTokenAmount, selectedNetwork!.slug, {
+                  .removeLiquidity(liquidityTokenAmount, selectedNetwork.slug, {
                     amount0Min,
                     amount1Min,
                     deadline: deadline(),
@@ -839,7 +840,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
                 return bridge
                   .connect(signer as Signer)
-                  .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
+                  .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork.slug, {
                     amountMin: amountMin,
                     deadline: deadline(),
                   })
@@ -923,7 +924,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const poolStats = getPoolStats(chainSlug, tokenSymbol)
   const tvlFormatted = poolStats ? poolStats?.tvlUsdFormatted ?? '' : '-'
-  const totalUserBalance = BigNumber.from(userPoolBalance || 0).add(stakedBalance || 0)
+  const totalUserBalance = BigNumber.from(userPoolBalance ?? 0).add(stakedBalance || 0)
   const hasBalance = totalUserBalance.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
@@ -954,7 +955,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const tokenSumDepositedFormatted = tokenSumDeposited
     ? commafy(Number(formatUnits(tokenSumDeposited, tokenDecimals)), 5)
     : ''
-  const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited || 0, tokenDecimals)) + Number(formatUnits(token1Deposited || 0, tokenDecimals))) : 0
+  const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited ?? 0, tokenDecimals)) + Number(formatUnits(token1Deposited ?? 0, tokenDecimals))) : 0
   const userPoolBalanceUsd = tokenUsdPrice ? userPoolBalanceSum * tokenUsdPrice : 0
   const userPoolBalanceUsdFormatted = userPoolBalanceUsd ? `$${commafy(userPoolBalanceUsd, 2)}` : commafy(userPoolBalanceSum, 4)
   const token0BalanceFormatted = commafy(token0Balance, 4)
@@ -1001,7 +1002,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 4)}` : commafy(overallUserPoolBalanceSum, 4)
-  const hasStakeContract = !!(stakingContract || hopStakingContract)
+  const hasStakeContract = !!(stakingContract ?? hopStakingContract)
 
   const token0BalanceBn = canonicalBalance ?? BigNumber.from(0)
   const token1BalanceBn = hopBalance ?? BigNumber.from(0)

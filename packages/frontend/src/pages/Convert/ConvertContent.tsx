@@ -1,25 +1,25 @@
-import React, { FC, useEffect, useState } from 'react'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import { Button } from 'src/components/Button'
-import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
-import { Alert } from 'src/components/Alert'
-import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
-import { useConvert } from 'src/pages/Convert/ConvertContext'
-import TokenWrapper from 'src/components/TokenWrapper'
-import { sanitizeNumericalString } from 'src/utils'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
-import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
-import { ButtonsWrapper } from 'src/components/Button/ButtonsWrapper'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
-import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
+import Box from '@mui/material/Box'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
+import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import IconButton from '@mui/material/IconButton'
+import React, { FC, useEffect, useState } from 'react'
+import TokenWrapper from 'src/components/TokenWrapper'
+import Typography from '@mui/material/Typography'
+import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
-import IconButton from '@material-ui/core/IconButton'
+import { Alert } from 'src/components/Alert'
+import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import { Button } from 'src/components/Button'
+import { ButtonsWrapper } from 'src/components/Button/ButtonsWrapper'
 import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
+import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
+import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
+import { makeStyles } from '@mui/styles'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { sanitizeNumericalString } from 'src/utils'
+import { useConvert } from 'src/pages/Convert/ConvertContext'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -32,8 +32,8 @@ const useStyles = makeStyles(theme => ({
   },
   downArrow: {
     margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem',
+    height: '2.4rem !important',
+    width: '2.4rem !important',
   },
   lastSelector: {
     marginBottom: '0'
@@ -209,7 +209,7 @@ const ConvertContent: FC = () => {
   const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
   const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
-  const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
+  const sendableWarning = !warning || (warning as string)?.startsWith('Warning:')
 
   const checkSendButtonActive = () => (validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true) && !specificRouteDeprecated)
   const [sendButtonActive, setSendButtonActive] = useState(checkSendButtonActive())
@@ -257,7 +257,7 @@ const ConvertContent: FC = () => {
                 <ArrowDownIcon color="primary" className={styles.downArrow} />
               </IconButton>
             </Box>
-            <Box style={{ position: 'absolute', left: '65px', top: '22px', width: '200px' }} onClick={switchDirection}>
+            <Box style={{ position: 'absolute', left: '65px', top: '20px', width: '200px' }} onClick={switchDirection}>
               <Typography variant="body2" style={{ opacity: '0.2' }}>click to switch direction</Typography>
             </Box>
           </Box>
@@ -303,7 +303,7 @@ const ConvertContent: FC = () => {
           { address
           ? <ButtonsWrapper>
               {!sendButtonActive && (
-                <Box mb={[3]} width={approvalButtonActive ? '100%' : 'auto'}>
+                <Box mb={3} width={approvalButtonActive ? '100%' : 'auto'}>
                   <Button
                     className={styles.button}
                     large
@@ -318,7 +318,7 @@ const ConvertContent: FC = () => {
                 </Box>
               )}
 
-              <Box mb={[3]} width={sendButtonActive ? '100%' : 'auto'}>
+              <Box mb={3} width={sendButtonActive ? '100%' : 'auto'}>
                 <Button
                   className={styles.button}
                   onClick={handleSend}
@@ -332,7 +332,7 @@ const ConvertContent: FC = () => {
               </Box>
             </ButtonsWrapper>
           : <ButtonsWrapper>
-              <Box mb={[3]} width="100%">
+              <Box mb={3} width="100%">
                 <ConnectWalletButton fullWidth large />
               </Box>
             </ButtonsWrapper>

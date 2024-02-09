@@ -1,23 +1,19 @@
-FROM node:14 AS build
+FROM node:20.10.0-slim AS base
 
-# Create the working directory and give node use permissions
-RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+COPY . /app
+WORKDIR /app
 
-WORKDIR /usr/src/app
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN pnpm --filter=@hop-protocol/core build && pnpm --filter=@hop-protocol/sdk build
+RUN pnpm --filter=@hop-protocol/stats-worker build
+RUN pnpm --filter=@hop-protocol/stats-worker deploy --prod /prod/app
 
-USER node
+FROM base
+COPY --from=build /prod/app /prod/app
+WORKDIR /prod/app
 
-COPY --chown=node:node package*.json ./
-COPY --chown=node:node . .
-
-RUN npm install
-RUN npm run build
-
-FROM node:16
-WORKDIR /usr/src/app
-COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
-COPY --from=build /usr/src/app/dist /usr/src/app/dist
-COPY --from=build /usr/src/app/bin /usr/src/app/bin
-COPY --from=build /usr/src/app/*.json /usr/src/app/
-ENTRYPOINT [ "/usr/src/app/bin/stats" ]
-CMD []
+ENTRYPOINT ["node", "/prod/app/dist/index.js"]

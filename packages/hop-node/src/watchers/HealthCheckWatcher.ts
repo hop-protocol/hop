@@ -5,7 +5,6 @@ import OsWatcher from 'src/watchers/OsWatcher'
 import S3Upload from 'src/aws/s3Upload'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
-import fetch from 'node-fetch'
 import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
@@ -542,9 +541,9 @@ export class HealthCheckWatcher {
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
     // TODO: Add Arbitrum and Optimism
     const chainProviders: Record<string, providers.Provider> = {
-      [Chain.Ethereum]: getRpcProvider(Chain.Ethereum)!,
-      [Chain.Gnosis]: getRpcProvider(Chain.Gnosis)!,
-      [Chain.Polygon]: getRpcProvider(Chain.Polygon)!
+      [Chain.Ethereum]: getRpcProvider(Chain.Ethereum),
+      [Chain.Gnosis]: getRpcProvider(Chain.Gnosis),
+      [Chain.Polygon]: getRpcProvider(Chain.Polygon)
     }
 
     const bonders = new Set<string>()
@@ -621,7 +620,7 @@ export class HealthCheckWatcher {
   private async getLowAvailableLiquidityBonders (): Promise<LowAvailableLiquidityBonder[]> {
     const url = 'https://assets.hop.exchange/mainnet/v1-available-liquidity.json'
     const res = await fetch(url)
-    const json = await res.json()
+    const json: any = await res.json()
     const result: any[] = []
 
     for (const token of this.tokens) {
@@ -634,7 +633,7 @@ export class HealthCheckWatcher {
       if (!totalLiquidity || totalLiquidity?.eq(0)) {
         throw new Error('Expected totalLiquidity to be defined and non-zero')
       }
-      const availableAmounts = tokenData.baseAvailableCreditIncludingVault
+      const availableAmounts = tokenData.baseAvailableCredit
       for (const source in availableAmounts) {
         for (const dest in availableAmounts[source]) {
           chainAmounts[dest] = BigNumber.from(availableAmounts[source][dest])
@@ -703,12 +702,20 @@ export class HealthCheckWatcher {
     const l1Chains: string[] = [Chain.Ethereum]
     const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova, Chain.Base, Chain.Linea]
     result = result.map((x: any) => {
-      const isBonderFeeTooLow =
+      let isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0005 && l1Chains.includes(x.destinationChain)) ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0001 && l2Chains.includes(x.destinationChain)) ||
       (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && l1Chains.includes(x.destinationChain)) ||
       (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && l2Chains.includes(x.destinationChain))
+
+      // DAI into Gnosis can be bonded for a cheaper fee
+      if (
+        x.destinationChain === Chain.Gnosis &&
+        x.token === 'DAI'
+      ) {
+        isBonderFeeTooLow = false
+      }
 
       const isUnbondable = (
         l1Chains.includes(x.destinationChain) &&
@@ -732,6 +739,13 @@ export class HealthCheckWatcher {
       }
       // spam transfers with very low bonder fee
       if (x.token === 'ETH' && (x.bonderFee === '1140000000000' || x.bonderFee === '140000000000')) {
+        return false
+      }
+      // DAI into Gnosis can be bonded for a cheaper fee
+      if (
+        x.destinationChain === Chain.Gnosis &&
+        x.token === 'DAI'
+      ) {
         return false
       }
       if (x.destinationChain === 'ethereum') {
@@ -839,7 +853,7 @@ export class HealthCheckWatcher {
 
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
     const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
-    const provider = getRpcProvider(Chain.Ethereum)!
+    const provider = getRpcProvider(Chain.Ethereum)
     const endBlockNumber = Number((await provider.getBlockNumber()).toString())
     const startBlockNumber = endBlockNumber - blocksInDay
 
@@ -888,7 +902,7 @@ export class HealthCheckWatcher {
     // Note: Nova, Base, and Linea are unsupported here since there is no index-node subgraph for these chains
     const result: any = []
     for (const chain of chains) {
-      const provider = getRpcProvider(chain)!
+      const provider = getRpcProvider(chain)
       const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
       const syncedBlock = await provider.getBlock(syncedBlockNumber)
       if (!syncedBlock) {

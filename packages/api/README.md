@@ -1,6 +1,6 @@
 ## Hop v1 API
 
-> A simple hop REST API for getting bonder fee estimates and transfer status.
+> A simple hop REST API for getting bonder fee estimates and transfer status. This is a wrapper around the hop JS sdk.
 
 ## Usage
 
@@ -138,6 +138,14 @@ PORT=8000
 IP_RATE_LIMIT_REQ_PER_SEC=100
 IP_RATE_LIMIT_WINDOW_MS=1000
 RESPONSE_CACHE_DURATION_MS=10000
+```
+
+### Github Actions
+
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../../ && act --job build-hop-api --workflows .github/workflows/hop_api.yml --secret-file=.secrets --verbose)
 ```
 
 ## License

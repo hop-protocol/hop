@@ -16,6 +16,7 @@ export * from './types'
 export { eventTopics } from './constants'
 export {
   ChainSlug,
+  ChainName,
   Slug,
   NetworkSlug,
   ChainId,
@@ -28,5 +29,5 @@ export * from './provider'
 export { Multicall, GetMulticallBalanceOptions } from './Multicall'
 
 if (typeof window !== 'undefined') {
-  ;(window as any).Hop = Hop
+  (window as any).Hop = Hop
 }

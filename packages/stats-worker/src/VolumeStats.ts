@@ -45,9 +45,17 @@ class VolumeStats {
       }
     `
     const url = getSubgraphUrl(chain)
-    const data = await queryFetch(url, query, {
-      startDate
-    })
+    let data
+    try {
+      data = await queryFetch(url, query, {
+        startDate
+      })
+    } catch (err) {
+      console.log('caught err', err.message, 'trying again')
+      data = await queryFetch(url, query, {
+        startDate
+      })
+    }
 
     if (!data) {
       return []

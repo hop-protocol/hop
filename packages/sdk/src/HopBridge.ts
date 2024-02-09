@@ -814,13 +814,13 @@ class HopBridge extends Base {
         adjustedDestinationTxFee = destinationTxFee
         ;([amountOutWithoutFee, bonderFeeAbsolute] = await Promise.all([
           this.calcFromHTokenAmount(hTokenAmount, destinationChain),
-          this.getBonderFeeAbsolute(sourceChain)
+          this.getBonderFeeAbsolute(sourceChain, destinationChain)
         ]))
       } else {
         // adjusted fee is the fee in the canonical token after adjusting for the hToken price
         ([[amountOutWithoutFee, adjustedBonderFee, adjustedDestinationTxFee], bonderFeeAbsolute] = await Promise.all([
           this.calcFromHTokenAmountMulticall(destinationChain, [hTokenAmount, bonderFeeRelative, destinationTxFee]),
-          this.getBonderFeeAbsolute(sourceChain)
+          this.getBonderFeeAbsolute(sourceChain, destinationChain)
         ]))
       }
 
@@ -2460,12 +2460,21 @@ class HopBridge extends Base {
     return bonderFeeRelative
   }
 
-  public async getBonderFeeAbsolute (sourceChain: TChain): Promise<BigNumber> {
+  public async getBonderFeeAbsolute (sourceChain: TChain, destinationChain?: TChain): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
+    destinationChain = destinationChain ? this.toChainModel(destinationChain) : undefined
     const token = this.toTokenModel(this.tokenSymbol)
 
+    // Bonder fees are not relevant on L2
     if (sourceChain.isL1) {
-      // Bonder fees are not relevant on L2
+      return BigNumber.from(0)
+    }
+
+    // DAI into Gnosis can be bonded for a cheaper fee
+    if (
+      destinationChain?.slug === Chain.Gnosis.slug &&
+      this.tokenSymbol === TokenModel.DAI
+    ) {
       return BigNumber.from(0)
     }
 

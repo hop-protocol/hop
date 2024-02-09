@@ -82,7 +82,7 @@ const useInputStyles = makeStyles(theme => ({
   input: ({ centerAlign, leftAlign, loadingValue, smallFontSize }: StyleProps) => ({
     textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
     fontSize: smallFontSize ? '1.6rem !important' : theme.typography.h4.fontSize,
-    fontWeight: smallFontSize ? 'normal' : theme.typography.h4.fontWeight,
+    fontWeight: smallFontSize ? 'normal !important' : theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
     textOverflow: 'clip',
     padding: `6px ${theme.padding?.extraLight} 7px ${theme.padding?.extraLight}`,
@@ -90,7 +90,7 @@ const useInputStyles = makeStyles(theme => ({
       ? `loadingEffect 1s ${theme.transitions?.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
-      fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
+      fontSize: smallFontSize ? '1.6rem !important' : theme.typography.subtitle2.fontSize,
       padding: '.5rem !important',
     },
   }),

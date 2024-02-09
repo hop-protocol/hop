@@ -55,6 +55,10 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script type="module">
+      import { Buffer } from "buffer";
+      window.Buffer = Buffer;
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
@@ -76,6 +80,6 @@
           clearInterval(t)
         } catch (err) {}
       }, 100)
-</script>
+    </script>
   </body>
 </html>

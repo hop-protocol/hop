@@ -1,6 +1,6 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
-import { BigNumber } from 'ethers'
+
 import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseNumber, parseString, root } from './shared'
 import {
@@ -31,7 +31,7 @@ async function main (source: any) {
     throw new Error(WatcherNotFoundError)
   }
   const bridge: L2Bridge | L1Bridge = watcher.bridge
-  const parsedAmount: BigNumber = bridge.parseUnits(amount)
+  const parsedAmount: bigint = bridge.parseUnits(amount)
   const isBonder = await bridge.isBonder()
   if (!isBonder) {
     throw new Error('Not a valid bonder on the stake chain')
@@ -42,7 +42,7 @@ async function main (source: any) {
 
 export async function unstake (
   bridge: L2Bridge | L1Bridge,
-  parsedAmount: BigNumber
+  parsedAmount: bigint
 ) {
   logger.debug('Unstaking')
   const [credit, debit] = await Promise.all([

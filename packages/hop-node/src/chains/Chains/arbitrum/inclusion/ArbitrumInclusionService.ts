@@ -1,11 +1,11 @@
 import getRpcUrl from 'src/utils/getRpcUrl'
 import { AbstractInclusionService, IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from 'src/chains/Chains/arbitrum/ArbitrumAddresses'
-import { BigNumber, Contract, providers } from 'ethers'
+import { Contract, providers } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
-  l1BlockNumber?: BigNumber
+  l1BlockNumber?: bigint
 }
 
 export class ArbitrumInclusionService extends AbstractInclusionService implements IInclusionService {
@@ -56,7 +56,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
       throw new Error(`l2TxReceipt l1BlockNumber or blockNumber not found for tx hash ${l2TxHash}. l2TxReceipt: ${JSON.stringify(l2TxReceipt)}`)
     }
 
-    let l1BatchNumber: BigNumber
+    let l1BatchNumber: bigint
     try {
       // If the batch does not yet exist, this will throw with 'requested block x is after latest on-chain block y published in batch z'
       // Note: this should throw a CALL_EXCEPTION error if the block is not yet posted, and the rateLimitRetry provider should not retry.
@@ -111,7 +111,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     }
 
     if (receipt.result?.l1BlockNumber) {
-      receipt.result.l1BlockNumber = BigNumber.from(receipt.result.l1BlockNumber)
+      receipt.result.l1BlockNumber = BigInt(receipt.result.l1BlockNumber)
     }
     return receipt.result
   }

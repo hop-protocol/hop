@@ -2,7 +2,7 @@ import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, constants } from 'ethers'
+import { Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
@@ -21,12 +21,12 @@ type Immutables = {
   token1: string
   fee: number
   tickSpacing: number
-  maxLiquidityPerTick: BigNumber
+  maxLiquidityPerTick: bigint
 }
 
 type State = {
-  liquidity: BigNumber
-  sqrtPriceX96: BigNumber
+  liquidity: bigint
+  sqrtPriceX96: bigint
   tick: number
   observationIndex: number
   observationCardinality: number
@@ -108,7 +108,7 @@ async function getPool (poolContract: Contract) {
       },
       {
         index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount as TickSpacing]),
-        liquidityNet: BigNumber.from(liquidity).mul(-1).toString(),
+        liquidityNet: (BigInt(liquidity) * BigInt(-1)).toString(),
         liquidityGross: liquidity
       }
     ]
@@ -263,7 +263,7 @@ export async function swap (config: SwapInput) {
   const balance = await sourceToken.balanceOf(sender)
   const decimals = Number((await sourceToken.decimals()).toString())
 
-  let parsedAmount: BigNumber
+  let parsedAmount: bigint
   if (max) {
     parsedAmount = balance
     amount = Number(formatUnits(parsedAmount, decimals))

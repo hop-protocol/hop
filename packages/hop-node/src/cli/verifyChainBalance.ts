@@ -7,7 +7,7 @@ import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
+import { Contract, utils as ethersUtils, providers } from 'ethers'
 import {
   Chain,
   ChainBalanceArchiveData,
@@ -29,28 +29,28 @@ interface MetaBlockData {
 }
 
 type TokenAdjustmentData = {
-  l1TokensInContract: BigNumber
-  l1Stake: BigNumber
-  l1TokensSentDirectlyToBridge: BigNumber
-  l1TransfersUnwithdrawn: BigNumber
-  l1RootsInvalid: BigNumber
+  l1TokensInContract: bigint
+  l1Stake: bigint
+  l1TokensSentDirectlyToBridge: bigint
+  l1TransfersUnwithdrawn: bigint
+  l1RootsInvalid: bigint
 }
 
 type ChainBalanceAdjustmentData = {
   chain: Chain
-  chainBalance: BigNumber
-  rootsBondedNotConfirmed: BigNumber
+  chainBalance: bigint
+  rootsBondedNotConfirmed: bigint
 }
 
 type HTokenAdjustmentData = {
   chain: Chain
-  hTokenTotalSupply: BigNumber
-  l2Stake: BigNumber
-  l2TransfersUnwithdrawn: BigNumber
-  l2TransfersPendingOutbound: BigNumber
-  l2TransfersInFlightFromL1ToL2: BigNumber
-  l2RootsInFlightOutbound: BigNumber
-  l2RootsInFlightInbound: BigNumber
+  hTokenTotalSupply: bigint
+  l2Stake: bigint
+  l2TransfersUnwithdrawn: bigint
+  l2TransfersPendingOutbound: bigint
+  l2TransfersInFlightFromL1ToL2: bigint
+  l2RootsInFlightOutbound: bigint
+  l2RootsInFlightInbound: bigint
 }
 
 const inactiveBonders = [
@@ -152,8 +152,8 @@ export async function main (source: any) {
     if (syncDiff > oneMinuteSeconds) {
       console.log(`Subgraphs unsynced. MetaBlockData: ${JSON.stringify(metaBlockData)}`)
       return {
-        tokenChainBalanceDiff: BigNumber.from(0),
-        chainBalanceHTokenDiff: BigNumber.from(0)
+        tokenChainBalanceDiff: 0n,
+        chainBalanceHTokenDiff: 0n
       }
     }
   }
@@ -168,11 +168,11 @@ export async function main (source: any) {
     metaBlockData
   )
 
-  const adjustedToken: BigNumber = getAdjustedToken(tokenAdjustments)
-  const adjustedChainBalances: Record<string, BigNumber> = {}
-  const adjustedHTokens: Record<string, BigNumber> = {}
-  let totalAdjustedChainBalance = BigNumber.from(0)
-  let totalAdjustedHToken = BigNumber.from(0)
+  const adjustedToken: bigint = getAdjustedToken(tokenAdjustments)
+  const adjustedChainBalances: Record<string, bigint> = {}
+  const adjustedHTokens: Record<string, bigint> = {}
+  let totalAdjustedChainBalance = 0n
+  let totalAdjustedHToken = 0n
   for (let i = 0; i < hTokenAdjustments.length; i++) {
     const chain: string = hTokenAdjustments[i].chain
     adjustedChainBalances[chain] = getAdjustedChainBalance(chainBalanceAdjustments[i])
@@ -189,7 +189,7 @@ export async function main (source: any) {
     const decimals: number = getTokenDecimals(token)
     const roundingError = ethersUtils.parseUnits('0.0001', decimals).mul(-1)
     if (chainBalanceHTokenDiff.isNegative() && chainBalanceHTokenDiff.gte(roundingError)) {
-      chainBalanceHTokenDiff = BigNumber.from(0)
+      chainBalanceHTokenDiff = 0n
     }
   }
 
@@ -306,7 +306,7 @@ async function getTokenAdjustments (
   } = metaBlockData[Chain.Ethereum]
 
   // Tokens in contract
-  let l1TokensInContract: BigNumber = BigNumber.from('0')
+  let l1TokensInContract: bigint = 0n
   if (token === Token.ETH) {
     l1TokensInContract = await l1Provider.getBalance(l1BridgeAddress, blockTag)
   } else {
@@ -314,7 +314,7 @@ async function getTokenAdjustments (
   }
 
   // L1 stake
-  const l1Stake: BigNumber = await getAllBonderStakes(l1Bridge, blockTag)
+  const l1Stake: bigint = await getAllBonderStakes(l1Bridge, blockTag)
 
   // Unwithdrawn transfers to L1
   // NOTE: The end timestamp in this function is meant to be for each individual L2. Since this function
@@ -330,11 +330,11 @@ async function getTokenAdjustments (
 
   // Invalid roots
   const l1RootsInvalidArchive = ChainBalanceArchiveData.L1InvalidRoot?.[token] ?? '0'
-  const l1RootsInvalid = BigNumber.from(l1RootsInvalidArchive)
+  const l1RootsInvalid = BigInt(l1RootsInvalidArchive)
 
   // Tokens sent directly to the L1 bridge address
   const l1TokensSentDirectlyToBridgeArchive = ChainBalanceArchiveData.L1TokensSentDirectlyToBridge?.[token] ?? '0'
-  const l1TokensSentDirectlyToBridge = BigNumber.from(l1TokensSentDirectlyToBridgeArchive)
+  const l1TokensSentDirectlyToBridge = BigInt(l1TokensSentDirectlyToBridgeArchive)
 
   return {
     l1TokensInContract,
@@ -360,7 +360,7 @@ async function getChainBalanceAdjustments (
 
   // Bonded but unconfirmed roots
   // NOTE: Roots that have been committed but neither bonded nor confirmed will be included in inFlightOutboundRoots
-  const rootsBondedNotConfirmed: BigNumber = await getBondedUnconfirmedRoots({
+  const rootsBondedNotConfirmed: bigint = await getBondedUnconfirmedRoots({
     token,
     chain
   })
@@ -390,7 +390,7 @@ async function getHTokenAdjustments (
   const hTokenTotalSupply = await l2HopBridgeToken.totalSupply({ blockTag })
 
   // L2 stake
-  const l2Stake: BigNumber = await getAllBonderStakes(l2Bridge, blockTag)
+  const l2Stake: bigint = await getAllBonderStakes(l2Bridge, blockTag)
 
   // Unwithdrawn transfers
   const l2UnwithdrawnTransfersNew = await getUnwithdrawnTransfers({
@@ -403,7 +403,7 @@ async function getHTokenAdjustments (
   const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive)
 
   // Pending outgoing tokens
-  let l2TransfersPendingOutbound: BigNumber = BigNumber.from('0')
+  let l2TransfersPendingOutbound: bigint = 0n
   const allSupportedChains = [Chain.Ethereum, ...l2ChainsForToken]
   for (const supportedChain of allSupportedChains) {
     if (supportedChain === chain) continue
@@ -417,7 +417,7 @@ async function getHTokenAdjustments (
   // NOTE: Because block times across chains vary, we need to get the timestamp of both L1 and L2
   // so that we remain consistent with the state of each chain
   const { blockTimestamp: l1BlockTimestamp } = metaBlockData[Chain.Ethereum]
-  const l2TransfersInFlightFromL1ToL2New: BigNumber = await getRecentUnrelayedL1ToL2Transfers(
+  const l2TransfersInFlightFromL1ToL2New: bigint = await getRecentUnrelayedL1ToL2Transfers(
     token,
     chain,
     l1BlockTimestamp,
@@ -438,7 +438,7 @@ async function getHTokenAdjustments (
   )
 
   // In flight outbound roots
-  let l2RootsInFlightOutbound: BigNumber = BigNumber.from('0')
+  let l2RootsInFlightOutbound: bigint = 0n
   for (const rootHash in allRootsCommitted) {
     const root = allRootsCommitted[rootHash]
 
@@ -451,7 +451,7 @@ async function getHTokenAdjustments (
   // In flight inbound roots
   // NOTE: When a root is set, the amount is converted from l2RootsInFlightInbound to l2TransfersUnwithdrawn. That
   // is why we check for set instead of settled.
-  let l2RootsInFlightInbound: BigNumber = BigNumber.from('0')
+  let l2RootsInFlightInbound: bigint = 0n
   for (const rootHash in allRootsCommitted) {
     const root = allRootsCommitted[rootHash]
 
@@ -474,8 +474,8 @@ async function getHTokenAdjustments (
   }
 }
 
-async function getAllBonderStakes (bridge: Contract, blockTag: providers.BlockTag): Promise<BigNumber> {
-  let totalStake = BigNumber.from('0')
+async function getAllBonderStakes (bridge: Contract, blockTag: providers.BlockTag): Promise<bigint> {
+  let totalStake = 0n
   const allBonderAddresses: string[] = getAllBonderAddresses()
   for (const bonderAddress of allBonderAddresses) {
     const [credit, rawDebit] = await Promise.all([
@@ -585,9 +585,9 @@ function logValues (
     }
   })
 
-  const totalAdjustedToken: BigNumber = getAdjustedToken(tokenAdjustments)
-  let totalAdjustedChainBalance: BigNumber = BigNumber.from(0)
-  let totalAdjustedHToken: BigNumber = BigNumber.from(0)
+  const totalAdjustedToken: bigint = getAdjustedToken(tokenAdjustments)
+  let totalAdjustedChainBalance: bigint = 0n
+  let totalAdjustedHToken: bigint = 0n
   for (let i = 0; i < chainBalanceAdjustments.length; i++) {
     const {
       chain,

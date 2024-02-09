@@ -2,7 +2,7 @@ import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, D
 // @ts-expect-error nearest-date does not have a types file as of 20231227
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
-import { BigNumber } from 'ethers'
+
 import { GasCostTransactionType, OneHourMs, OneHourSeconds } from 'src/constants'
 
 const varianceSeconds = 20 * 60
@@ -13,13 +13,13 @@ export type GasCost = {
   token: string
   timestamp: number // in seconds
   transactionType: GasCostTransactionType
-  gasCost: BigNumber
-  gasCostInToken: BigNumber
-  gasPrice: BigNumber
-  gasLimit: BigNumber
+  gasCost: bigint
+  gasCostInToken: bigint
+  gasPrice: bigint
+  gasLimit: bigint
   tokenPriceUsd: number
   nativeTokenPriceUsd: number
-  minBonderFeeAbsolute: BigNumber
+  minBonderFeeAbsolute: bigint
 }
 
 // structure:

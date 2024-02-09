@@ -4,11 +4,11 @@ import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSe
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import { BigNumber, utils } from 'ethers'
+import { utils } from 'ethers'
 import { actionHandler, parseString, root } from './shared'
 import { getSourceChains } from 'src/config'
 
-type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
+type SettledRootsPerBonder = Record<string, Record<string, bigint>>
 
 root
   .command('unsettled-roots')
@@ -44,13 +44,13 @@ async function main (source: any) {
     const commitsRes = await getTransfersCommitted(chain, token, settlementChainId, startTimestamp)
     const rootsCommitted: any = {}
     for (const res of commitsRes) {
-      rootsCommitted[res.rootHash] = BigNumber.from(res.totalAmount)
+      rootsCommitted[res.rootHash] = BigInt(res.totalAmount)
     }
 
     // Get all roots that are not fully settled
     const unsettledRoots: string[] = []
     for (const root in rootsCommitted) {
-      let diff: BigNumber = rootsCommitted[root]
+      let diff: bigint = rootsCommitted[root]
 
       for (const bonder in settledRootsPerBonder) {
         if (!settledRootsPerBonder[bonder][root]) continue
@@ -75,7 +75,7 @@ async function main (source: any) {
     }
 
     // Log which roots have unsettled transfers
-    let tempAmt = BigNumber.from('0')
+    let tempAmt = 0n
     for (const root of unsettledRoots) {
       const bondedAmountPerBonder: any = {}
 
@@ -88,14 +88,14 @@ async function main (source: any) {
         const bonder = bondData.from
 
         if (!bondedAmountPerBonder[bonder]) {
-          bondedAmountPerBonder[bonder] = BigNumber.from('0')
+          bondedAmountPerBonder[bonder] = 0n
         }
         bondedAmountPerBonder[bonder] = bondedAmountPerBonder[bonder].add(bondData.amount)
       }
 
       for (const bonder in bondedAmountPerBonder) {
         const amount = bondedAmountPerBonder[bonder]
-        let diff: BigNumber
+        let diff: bigint
         if (settledRootsPerBonder?.[bonder]?.[root]) {
           diff = amount.sub(settledRootsPerBonder[bonder][root])
         } else {
@@ -122,7 +122,7 @@ async function getSettledRoots (chain: string, token: string): Promise<SettledRo
       settledPerBonder[bonder] = {}
     }
     if (!settledPerBonder[bonder][rootHash]) {
-      settledPerBonder[bonder][rootHash] = BigNumber.from('0')
+      settledPerBonder[bonder][rootHash] = 0n
     }
 
     settledPerBonder[bonder][rootHash] = settledPerBonder[bonder][rootHash].add(res.totalBondsSettled)

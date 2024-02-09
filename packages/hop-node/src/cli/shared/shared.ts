@@ -1,7 +1,7 @@
 import Logger from 'src/logger'
 import fs from 'fs'
 import path from 'path'
-import { BigNumber } from 'ethers'
+
 import { Command } from 'commander'
 import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData'
 import {
@@ -91,7 +91,7 @@ export function getWithdrawalProofDataForCli (
   transferId: string,
   dbTransferRoot: any
 ): WithdrawalProofData {
-  const rootTotalAmount: BigNumber = dbTransferRoot.totalAmount
+  const rootTotalAmount: bigint = dbTransferRoot.totalAmount
   const transferIds: string[] = dbTransferRoot.transferIds?.map((x: any) => x.transferId)
   if (!transferIds?.length) {
     throw new Error('expected transfer ids for transfer root hash')

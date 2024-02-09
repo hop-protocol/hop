@@ -1,8 +1,8 @@
 import ContractBase from './ContractBase'
-import { BigNumber } from 'ethers'
+
 
 export default class L1MessengerWrapper extends ContractBase {
-  confirmRoots = async (rootHashes: string[], destinationChainIds: number[], totalAmounts: BigNumber[], rootCommittedAts: number[]): Promise<void> => {
+  confirmRoots = async (rootHashes: string[], destinationChainIds: number[], totalAmounts: bigint[], rootCommittedAts: number[]): Promise<void> => {
     // This function requires additional validation that is handled up a level where additional data is
     // available. It is expected that this function is only called from the ConfirmRootsWatcher.confirmRootsViaWrapper
     // function that has these data checks in place.
@@ -19,7 +19,7 @@ export default class L1MessengerWrapper extends ContractBase {
     )
   }
 
-  l2ChainId = async (): Promise<BigNumber> => {
+  l2ChainId = async (): Promise<bigint> => {
     return this.contract.l2ChainId()
   }
 

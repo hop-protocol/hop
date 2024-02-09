@@ -1,5 +1,5 @@
 import getRpcProvider from 'src/utils/getRpcProvider'
-import { BigNumber, Wallet } from 'ethers'
+import { Wallet } from 'ethers'
 import { actionHandler, logger, parseString, root } from './shared'
 import {
   config as globalConfig
@@ -33,13 +33,13 @@ async function main (source: any) {
   const recipient = await wallet.getAddress()
 
   const txOverrides: any = {
-    gasPrice: gasPriceWei ? BigNumber.from(gasPriceWei) : undefined,
-    nonce: nonce ? BigNumber.from(nonce) : undefined
+    gasPrice: gasPriceWei ? BigInt(gasPriceWei) : undefined,
+    nonce: nonce ? BigInt(nonce) : undefined
   }
 
   logger.info(`sending to self on ${fromChain} with gas price ${gasPriceWei} and nonce ${nonce}`)
   const tx = await wallet.sendTransaction({
-    value: BigNumber.from(0),
+    value: 0n,
     to: recipient,
     nonce: txOverrides.nonce,
     gasPrice: txOverrides.gasPrice

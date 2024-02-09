@@ -2,7 +2,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import S3Upload from 'src/aws/s3Upload'
-import { BigNumber } from 'ethers'
+
 import {
   BondTransferRootChains,
   Chain,
@@ -36,16 +36,16 @@ type S3JsonData = {
 }
 
 // These should be global since they apply to all instances
-const cache: Record<string, BigNumber> = {}
+const cache: Record<string, bigint> = {}
 
 // TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
 class AvailableLiquidityWatcher extends BaseWatcher {
-  private baseAvailableCredit: { [destinationChain: string]: BigNumber } = {}
-  private availableCredit: { [destinationChain: string]: BigNumber } = {}
-  private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
-  private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
+  private baseAvailableCredit: { [destinationChain: string]: bigint } = {}
+  private availableCredit: { [destinationChain: string]: bigint } = {}
+  private pendingAmounts: { [destinationChain: string]: bigint } = {}
+  private unbondedTransferRootAmounts: { [destinationChain: string]: bigint } = {}
   private lastCalculated: { [destinationChain: string]: number } = {}
   private pollCount: number = 0
   private readonly pollTimeSec: number = 15 * 60
@@ -117,17 +117,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       const shouldDisableRoute = this.shouldDisableRoute(modifiedLiquidityRoutes, destinationChain)
       this.logger.debug(`calculateAvailableCredit: modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
       if (shouldDisableRoute) {
-        availableCredit = BigNumber.from('0')
-        baseAvailableCredit = BigNumber.from('0')
+        availableCredit = 0n
+        baseAvailableCredit = 0n
       }
     }
 
     if (availableCredit.lt(0)) {
-      availableCredit = BigNumber.from(0)
+      availableCredit = 0n
     }
 
     if (baseAvailableCredit.lt(0)) {
-      baseAvailableCredit = BigNumber.from(0)
+      baseAvailableCredit = 0n
     }
 
     return { availableCredit, baseAvailableCredit }
@@ -155,7 +155,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     })
 
     this.logger.debug(`getUnbondedTransferRoots ${this.chainSlug}→${destinationChain}:`, JSON.stringify(transferRoots.map(({ transferRootHash, totalAmount }: TransferRoot) => ({ transferRootHash, totalAmount }))))
-    let totalAmount = BigNumber.from(0)
+    let totalAmount = 0n
     for (const transferRoot of transferRoots) {
       const { transferRootId } = transferRoot
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
@@ -236,7 +236,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         !this.hasSiblingWatcher(destinationChainId)
       )
       if (shouldSkip) {
-        this.unbondedTransferRootAmounts[destinationChain] = BigNumber.from(0)
+        this.unbondedTransferRootAmounts[destinationChain] = 0n
         this.logger.debug(`syncing unbonded transferRoot amounts: skipping ${destinationChainId}`)
         continue
       }
@@ -268,7 +268,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getOruToL1PendingAmount () {
-    let pendingAmounts = BigNumber.from(0)
+    let pendingAmounts = 0n
     const enabledNetworks = getEnabledNetworks()
     for (const chain of BondTransferRootChains) {
       if (!enabledNetworks.includes(chain)) {
@@ -288,7 +288,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getOruToAllUnbondedTransferRootAmounts () {
-    let totalAmount = BigNumber.from(0)
+    let totalAmount = 0n
     for (const destinationChain in this.unbondedTransferRootAmounts) {
       if (this.lastCalculated[destinationChain]) {
         const isStale = Date.now() - this.lastCalculated[destinationChain] > TenMinutesMs
@@ -302,7 +302,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return totalAmount
   }
 
-  async getOnchainBaseAvailableCredit (destinationWatcher: any, bonder?: string): Promise<BigNumber> {
+  async getOnchainBaseAvailableCredit (destinationWatcher: any, bonder?: string): Promise<bigint> {
     const cacheKey = this.getAvailableLiquidityCacheKey(destinationWatcher.chainSlug, bonder)
     const getNewData = this.shouldGetNewCacheData(cacheKey, this.cacheTimeSec)
     if (!getNewData) {
@@ -321,7 +321,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const baseAvailableCredit = this.baseAvailableCredit[destinationChain]
     if (!baseAvailableCredit) {
-      return BigNumber.from(0)
+      return 0n
     }
 
     return baseAvailableCredit
@@ -331,7 +331,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
     if (!availableCredit) {
-      return BigNumber.from(0)
+      return 0n
     }
 
     return availableCredit
@@ -341,7 +341,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const pendingAmounts = this.pendingAmounts[destinationChain]
     if (!pendingAmounts) {
-      return BigNumber.from(0)
+      return 0n
     }
 
     return pendingAmounts
@@ -351,7 +351,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const unbondedAmounts = this.unbondedTransferRootAmounts[destinationChain]
     if (!unbondedAmounts) {
-      return BigNumber.from(0)
+      return 0n
     }
 
     return unbondedAmounts
@@ -419,9 +419,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     return false
   }
 
-  private updateCache (cacheKey: string, value: BigNumber | number): void {
+  private updateCache (cacheKey: string, value: bigint | number): void {
     if (typeof value === 'number') {
-      value = BigNumber.from(value)
+      value = BigInt(value)
     }
     cache[cacheKey] = value
     this.lastCacheTimestampSec[cacheKey] = Math.floor(Date.now() / 1000)

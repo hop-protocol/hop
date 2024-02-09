@@ -1,5 +1,5 @@
 import Logger from 'src/logger'
-import { BigNumber } from 'ethers'
+
 import { Mutex } from 'async-mutex'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from '../config'
@@ -44,7 +44,7 @@ class S3Upload {
         data = JSON.parse(JSON.stringify(data)) // deep clone
         const uploadData = {
           timestamp: Date.now(),
-          data: this.bigNumbersToString(data)
+          data: this.bigintsToString(data)
         }
         this.logger.debug('uploading')
         const input = {
@@ -73,18 +73,16 @@ class S3Upload {
     return json
   }
 
-  bigNumbersToString (data: any) {
+  bigintsToString (data: any) {
     if (typeof data !== 'object') {
       return data
     }
 
     for (const key in data) {
-      if (data[key]?._isBigNumber) {
-        data[key] = data[key].toString()
-      } else if (data[key]?.type === 'BigNumber') {
-        data[key] = BigNumber.from(data[key].hex).toString()
+      if (typeof data[key] === 'bigint') {
+        return data[key].toString()
       } else if (typeof data[key] === 'object') {
-        data[key] = this.bigNumbersToString(data[key])
+        data[key] = this.bigintsToString(data[key])
       }
     }
 

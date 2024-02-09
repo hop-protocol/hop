@@ -1,6 +1,6 @@
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getRpcUrl from 'src/utils/getRpcUrl'
-import { BigNumber } from 'ethers'
+
 import { CoingeckoApiKey } from 'src/config'
 import { actionHandler, parseString, root } from '../shared'
 import {
@@ -11,7 +11,7 @@ import {
   tokenDataForYear,
   tokenDecimals
 } from 'src/cli/metrics/sharedMetrics'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers'
 import { nativeChainTokens } from 'src/constants'
 
 root
@@ -107,10 +107,10 @@ async function getGasCost (chain: string, txHash: string): Promise<number> {
 
   // Get bond gas data
   // Pre-bedrock Optimism had a fixed gasPrice of 0.001 Gwei
-  const gasPrice = receipt.effectiveGasPrice || parseUnits('0.001', 'gwei')
-  const gasUsed = receipt.gasUsed
-  const l1GasCost = await getL1GasCost(chain, txHash)
-  const gasCost = (BigNumber.from(gasUsed).mul(gasPrice)).add(l1GasCost)
+  const gasPrice: bigint = receipt.effectiveGasPrice || parseUnits('0.001', 'gwei')
+  const gasUsed: bigint = receipt.gasUsed
+  const l1GasCost: bigint = await getL1GasCost(chain, txHash)
+  const gasCost: bigint = gasUsed * gasPrice + l1GasCost
 
   const decimals = tokenDecimals[nativeToken]
   const gasCostFormatted: string = formatUnits(gasCost, decimals)
@@ -118,9 +118,9 @@ async function getGasCost (chain: string, txHash: string): Promise<number> {
   return Number(gasCostFormatted) * nativeTokenPriceUsd
 }
 
-async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> {
+async function getL1GasCost (chain: string, txHash: string): Promise<bigint> {
   if (chain !== 'optimism' && chain !== 'base') {
-    return BigNumber.from(0)
+    return 0n
   }
 
   const res: Response = await fetch(getRpcUrl(chain), {
@@ -139,10 +139,10 @@ async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> 
 
   // This might occur on system txs, like this: https://basescan.org/tx/0xdf9502ab0d2664449a4a80210574b3b644cd8b3604a8602156a6be26cecfc7a8
   if (!json?.result?.l1Fee) {
-    return BigNumber.from(0)
+    return 0n
   }
 
-  return BigNumber.from(json.result.l1Fee)
+  return BigInt(json.result.l1Fee)
 }
 
 async function getPriceByTimestamp (token: string, unixTimestamp: number): Promise<number> {

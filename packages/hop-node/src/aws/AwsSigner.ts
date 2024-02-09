@@ -1,4 +1,4 @@
-import { BigNumber, Signer, providers } from 'ethers'
+import { Signer, providers } from 'ethers'
 import {
   getAddress as checksumAddress,
   defineReadOnly,
@@ -120,18 +120,20 @@ export abstract class AwsSigner extends Signer {
 
   getSigRs (signature: Buffer) {
     const decoded = EcdsaSigAsnParse.decode(signature, 'der')
-    const rBn = BigNumber.from(`0x${decoded.r.toString(16)}`)
-    let sBn = BigNumber.from(`0x${decoded.s.toString(16)}`)
+    const r = BigInt(`0x${decoded.r.toString(16)}`)
+    let s = BigInt(`0x${decoded.s.toString(16)}`)
     // max value on the curve - https://www.secg.org/sec2-v2.pdf
     // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.8.3/contracts/utils/cryptography/ECDSA.sol#L138-L149
-    const secp256k1N = BigNumber.from('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141')
-    const secp256k1halfN = secp256k1N.div(BigNumber.from(2))
-    if (sBn.gt(secp256k1halfN)) {
-      sBn = secp256k1N.sub(sBn)
+    const secp256k1N = BigInt('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141')
+    const secp256k1halfN = secp256k1N / 2n
+    if (s > secp256k1halfN) {
+      s = secp256k1N - s
     }
-    const r = rBn.toHexString()
-    const s = sBn.toHexString()
-    return { r, s }
+
+    return {
+      r: r.toString(16),
+      s: s.toString(16)
+    }
   }
 
   addressEquals (address1: string, address2: string): boolean {

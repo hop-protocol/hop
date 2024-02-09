@@ -1,14 +1,14 @@
-import { BigNumber } from 'ethers'
+
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
 
 const getTransferSentToL2TransferId = (
   chainId: number,
   recipient: string,
-  amount: BigNumber,
-  amountOutMin: BigNumber,
-  deadline: BigNumber,
+  amount: bigint,
+  amountOutMin: bigint,
+  deadline: bigint,
   relayer: string,
-  relayerFee: BigNumber,
+  relayerFee: bigint,
   transferSentTxHash: string,
   logIndex: number
 ) => {

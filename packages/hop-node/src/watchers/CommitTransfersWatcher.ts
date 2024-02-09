@@ -2,7 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
-import { BigNumber } from 'ethers'
+
 import { Chain, ChainPollMultiplier } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
@@ -24,7 +24,7 @@ type Config = {
 
 class CommitTransfersWatcher extends BaseWatcher {
   override siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
-  minThresholdAmounts: {[chain: string]: BigNumber} = {}
+  minThresholdAmounts: {[chain: string]: bigint} = {}
   commitTxSentAt: { [chainId: number]: number } = {}
 
   constructor (config: Config) {
@@ -194,7 +194,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   getMinThresholdAmount (destinationChainId: number) {
-    return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
+    return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || 0n
   }
 
   private readonly shouldUsePendingCountCommitThreshold = (sourceChain: string, destinationChain: string): boolean => {

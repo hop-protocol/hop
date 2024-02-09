@@ -1,6 +1,6 @@
 import wait from 'src/utils/wait'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
-import { BigNumber, providers, utils } from 'ethers'
+import { providers, utils } from 'ethers'
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { POSClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
@@ -196,8 +196,8 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
 
     return (
       apiRes.message === 'success' &&
-      BigNumber.from(apiRes.start).lte(tx.blockNumber) &&
-      BigNumber.from(apiRes.end).gte(tx.blockNumber)
+      BigInt(apiRes.start) <= BigInt(tx.blockNumber) &&
+      BigInt(apiRes.end) >= BigInt(tx.blockNumber)
     )
   }
 
@@ -210,8 +210,8 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     return (
       apiRes.message === 'success' &&
       (
-        BigNumber.from(apiRes.start).gt(tx.blockNumber) ||
-        BigNumber.from(apiRes.end).lt(tx.blockNumber)
+        BigInt(apiRes.start) > BigInt(tx.blockNumber) ||
+        BigInt(apiRes.end) < BigInt(tx.blockNumber)
       )
     )
   }

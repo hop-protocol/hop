@@ -1,7 +1,7 @@
 import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
-import { BigNumber } from 'ethers'
+
 import {
   Chain,
   OneDayMs,
@@ -15,12 +15,12 @@ import { TxRetryDelayMs } from 'src/config'
 import { transfersMigrations } from './migrations'
 
 interface BaseTransfer {
-  amount?: BigNumber
-  amountOutMin?: BigNumber
-  bonderFee?: BigNumber
+  amount?: bigint
+  amountOutMin?: bigint
+  bonderFee?: bigint
   bondWithdrawalAttemptedAt?: number
   committed?: boolean
-  deadline?: BigNumber
+  deadline?: bigint
   destinationChainId?: number
   destinationChainSlug?: string
   isBondable?: boolean
@@ -34,7 +34,7 @@ interface BaseTransfer {
   relayBackoffIndex?: number
   relayTxError?: TxError
   relayer?: string
-  relayerFee?: BigNumber
+  relayerFee?: bigint
   sourceChainId?: number
   sourceChainSlug?: string
   transferFromL1Complete?: boolean
@@ -73,14 +73,14 @@ export type UnbondedSentTransfer = {
   isBondable: boolean
   isTransferSpent: boolean
   destinationChainId: number
-  amount: BigNumber
+  amount: bigint
   withdrawalBondTxError: TxError
   sourceChainId: number
   recipient: string
-  amountOutMin: BigNumber
-  bonderFee: BigNumber
+  amountOutMin: bigint
+  bonderFee: bigint
   transferNonce: string
-  deadline: BigNumber
+  deadline: bigint
   transferSentIndex: number
   transferSentBlockNumber: number
   isFinalized: boolean
@@ -91,9 +91,9 @@ export type UnrelayedSentTransfer = {
   sourceChainId: number
   destinationChainId: number
   recipient: string
-  amount: BigNumber
+  amount: bigint
   relayer: string
-  relayerFee: BigNumber
+  relayerFee: bigint
   transferSentTxHash: string
   transferSentTimestamp: number
   transferSentLogIndex: number
@@ -541,9 +541,9 @@ class TransfersDb extends BaseDb<Transfer> {
       item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
     }
     if (item.deadline !== undefined) {
-      // convert number to BigNumber for backward compatibility reasons
+      // convert number to bigint for backward compatibility reasons
       if (typeof item.deadline === 'number') {
-        item.deadline = BigNumber.from((item.deadline as number).toString())
+        item.deadline = BigInt((item.deadline as number).toString())
       }
     }
     return item

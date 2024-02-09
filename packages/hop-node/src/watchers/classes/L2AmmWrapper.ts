@@ -1,7 +1,7 @@
 import ContractBase from './ContractBase'
 import getTokenMetadata from 'src/utils/getTokenMetadata'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import { BigNumber, providers } from 'ethers'
+import { providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Hop } from '@hop-protocol/sdk'
 import { PayableOverrides } from '@ethersproject/contracts'
@@ -33,7 +33,7 @@ export default class L2AmmWrapper extends ContractBase {
 
   swapAndSend = async (
     destinationChainId: number,
-    amount: BigNumber,
+    amount: bigint,
     token: string,
     recipient: string
   ): Promise<providers.TransactionResponse> => {
@@ -46,14 +46,14 @@ export default class L2AmmWrapper extends ContractBase {
     const { amountOut, totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
-    const minBps = Math.ceil(10000 - slippageToleranceBps)
-    const amountOutMin = amountOut.mul(minBps).div(10000)
+    const minBps = BigInt(Math.ceil(10000 - slippageToleranceBps))
+    const amountOutMin = amountOut * minBps / 10000n
     let destinationAmountOutMin = amountOutMin
     const isNativeTokenSend = isNativeToken(this.chainSlug, token)
     const tokenDecimals = getTokenMetadata(token)?.decimals
     if (destinationChain === Chain.Ethereum) {
       destinationDeadline = 0
-      destinationAmountOutMin = BigNumber.from(0)
+      destinationAmountOutMin = 0n
     }
 
     if (totalFee.gt(amount)) {

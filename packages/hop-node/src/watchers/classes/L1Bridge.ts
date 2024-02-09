@@ -2,7 +2,7 @@ import Bridge, { CanonicalTokenConvertOptions, EventCb, EventsBatchOptions } fro
 import Token from './Token'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, constants, providers } from 'ethers'
+import { Contract, constants, providers } from 'ethers'
 import { Chain, GasCostTransactionType, Network, RelayableChains, Token as TokenEnum } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
@@ -169,7 +169,7 @@ export default class L1Bridge extends Bridge {
   bondTransferRoot = async (
     transferRootHash: string,
     chainId: number,
-    totalAmount: BigNumber
+    totalAmount: bigint
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -194,7 +194,7 @@ export default class L1Bridge extends Bridge {
 
   challengeTransferRootBond = async (
     transferRootHash: string,
-    totalAmount: BigNumber,
+    totalAmount: bigint,
     destinationChainId: number
   ): Promise<providers.TransactionResponse> => {
     const tx = await this.l1BridgeContract.challengeTransferBond(
@@ -209,7 +209,7 @@ export default class L1Bridge extends Bridge {
 
   resolveChallenge = async (
     transferRootHash: string,
-    totalAmount: BigNumber,
+    totalAmount: bigint,
     destinationChainId: number
   ): Promise<providers.TransactionResponse> => {
     const tx = await this.l1BridgeContract.resolveChallenge(
@@ -224,7 +224,7 @@ export default class L1Bridge extends Bridge {
 
   convertCanonicalTokenToHopToken = async (
     destinationChainId: number,
-    amount: BigNumber,
+    amount: bigint,
     recipient: string,
     options?: Partial<CanonicalTokenConvertOptions>
   ): Promise<providers.TransactionResponse> => {
@@ -245,7 +245,7 @@ export default class L1Bridge extends Bridge {
     }
 
     const relayer = await this.getBonderAddress()
-    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
+    const relayerFee: bigint = nearestItemToTransferSent?.gasCostInToken ?? 0n
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
@@ -275,7 +275,7 @@ export default class L1Bridge extends Bridge {
 
   sendCanonicalTokensToL2 = async (
     destinationChainId: number,
-    amount: BigNumber,
+    amount: bigint,
     recipient: string,
     options?: Partial<CanonicalTokenConvertOptions>
   ): Promise<providers.TransactionResponse> => {
@@ -298,13 +298,13 @@ export default class L1Bridge extends Bridge {
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
     const relayer = await this.getBonderAddress()
-    const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
+    const relayerFee: bigint = nearestItemToTransferSent?.gasCostInToken ?? 0n
     const deadline = bridge.defaultDeadlineSeconds
     const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
-    const minBps = Math.ceil(10000 - slippageToleranceBps)
-    const amountOutMin = amountOut.mul(minBps).div(10000)
+    const minBps = BigInt(Math.ceil(10000 - slippageToleranceBps))
+    const amountOutMin = amountOut * minBps / 10000n
 
     const txOverrides = await this.txOverrides()
     if (
@@ -336,7 +336,7 @@ export default class L1Bridge extends Bridge {
     return address !== constants.AddressZero
   }
 
-  getBondForTransferAmount = async (amount: BigNumber): Promise<BigNumber> => {
+  getBondForTransferAmount = async (amount: bigint): Promise<bigint> => {
     return this.l1BridgeContract.getBondForTransferAmount(amount)
   }
 
@@ -358,7 +358,7 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  private isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): boolean {
+  private isValidRelayerAndRelayerFee (relayer: string, relayerFee: bigint): boolean {
     return (
       relayer !== constants.AddressZero ||
       relayerFee.eq(0)

@@ -2,7 +2,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import { BigNumber, Contract } from 'ethers'
+import { Contract } from 'ethers'
 import { Chain, OneHourSeconds } from 'src/constants'
 import { DateTime } from 'luxon'
 import {
@@ -64,7 +64,7 @@ export async function main (source: any) {
 
   const provider = getRpcProvider(destinationChain)!
   const contract = new Contract(bridgeAddress, bridgeAbi, provider)
-  let amountUnwithdrawnTotal: BigNumber = BigNumber.from('0')
+  let amountUnwithdrawnTotal: bigint = 0n
   for (const transferRootToChain of transferRootsToChain) {
     const rootHash = transferRootToChain.rootHash
     const totalAmount = transferRootToChain.totalAmount

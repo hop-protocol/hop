@@ -4,7 +4,7 @@ import contracts from 'src/contracts'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
 import wallets from 'src/wallets'
-import { BigNumber, utils as ethersUtils } from 'ethers'
+import { utils as ethersUtils } from 'ethers'
 import { Chain, MinPolygonGasPrice, TokenIndex, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { swap as dexSwap } from 'src/swap'
@@ -53,7 +53,6 @@ async function main (source: any) {
   const fromTokenIsHToken = isHToken(fromToken)
   const toTokenIsHToken = isHToken(toToken)
   const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
-  const deadlineBn = deadline ? BigNumber.from(deadline) : undefined
   let tx: any
   const isWrapperSwap = (isWrapperDeposit || isWrapperWithdrawal) && !isAmmSwap
   if (isWrapperSwap) {
@@ -137,7 +136,7 @@ async function main (source: any) {
       amountIn = await token.getBalance()
     }
 
-    let amountOut: BigNumber
+    let amountOut: bigint
     if (fromTokenIsHToken) {
       amountOut = await amm.calculateFromHTokensAmount(amountIn)
     } else {
@@ -146,7 +145,7 @@ async function main (source: any) {
 
     const slippageToleranceBps = (slippage || 0.5) * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
-    const minAmountOut = amountOut.mul(minBps).div(10000)
+    const minAmountOut = amountOut * BigInt(minBps) / BigInt(10000)
 
     logger.debug('checking approval')
     const spender = amm.address
@@ -164,7 +163,8 @@ async function main (source: any) {
     if (dryMode) {
       logger.warn(`dry: ${dryMode}, skipping swap tx`)
     } else {
-      tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut, deadlineBn)
+      const deadlineBigint = deadline ? BigInt(deadline) : undefined
+      tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut, deadlineBigint)
     }
 
     logger.info(`swap tx: ${tx.hash}`)
@@ -220,7 +220,7 @@ async function main (source: any) {
   }
 }
 
-async function wrapToken (chain: string, parsedAmount: BigNumber) {
+async function wrapToken (chain: string, parsedAmount: bigint) {
   const wallet = wallets.get(chain)
   const wrappedTokenAddress = wrappedTokenAddresses[chain]
   const abi = ['function deposit()']
@@ -239,7 +239,7 @@ async function wrapToken (chain: string, parsedAmount: BigNumber) {
   return wallet.sendTransaction(tx)
 }
 
-async function unwrapToken (chain: string, parsedAmount: BigNumber) {
+async function unwrapToken (chain: string, parsedAmount: bigint) {
   const wallet = wallets.get(chain)
   const wrappedTokenAddress = wrappedTokenAddresses[chain]
   const abi = ['function withdraw(uint256)']

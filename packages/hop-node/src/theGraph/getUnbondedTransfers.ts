@@ -5,7 +5,7 @@ import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { chunk, uniqBy } from 'lodash'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers'
 import { padHex } from 'src/utils/padHex'
 
 export async function getUnbondedTransfers (days: number, offsetDays: number = 0) {

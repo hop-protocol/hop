@@ -4,7 +4,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, Contract, providers } from 'ethers'
+import { Contract, providers } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
@@ -25,7 +25,7 @@ import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSe
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
-import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseEther, parseUnits } from 'ethers'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -38,9 +38,9 @@ export type CanonicalTokenConvertOptions = {
 }
 
 export type GasCostEstimationRes = {
-  gasCost: BigNumber
-  gasCostInToken: BigNumber
-  gasLimit: BigNumber
+  gasCost: bigint
+  gasCostInToken: bigint
+  gasLimit: bigint
   tokenPriceUsd: number
   nativeTokenPriceUsd: number
 }
@@ -56,7 +56,7 @@ type BlockValues = {
 export type DecodedSettleBondedWithdrawalsDataRes = {
   bonder: string
   transferIds: string[]
-  totalAmount: BigNumber
+  totalAmount: bigint
 }
 
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
@@ -125,7 +125,7 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.getIsBonder(bonder)
   }
 
-  getCredit = async (bonder?: string): Promise<BigNumber> => {
+  getCredit = async (bonder?: string): Promise<bigint> => {
     if (!bonder) {
       bonder = await this.getBonderAddress()
     }
@@ -133,7 +133,7 @@ export default class Bridge extends ContractBase {
     return credit
   }
 
-  getDebit = async (bonder?: string): Promise<BigNumber> => {
+  getDebit = async (bonder?: string): Promise<bigint> => {
     if (!bonder) {
       bonder = await this.getBonderAddress()
     }
@@ -143,7 +143,7 @@ export default class Bridge extends ContractBase {
     return debit
   }
 
-  getRawDebit = async (bonder?: string): Promise<BigNumber> => {
+  getRawDebit = async (bonder?: string): Promise<bigint> => {
     if (!bonder) {
       bonder = await this.getBonderAddress()
     }
@@ -151,7 +151,7 @@ export default class Bridge extends ContractBase {
     return debit
   }
 
-  async getBaseAvailableCredit (bonder?: string): Promise<BigNumber> {
+  async getBaseAvailableCredit (bonder?: string): Promise<bigint> {
     const [credit, debit] = await Promise.all([
       this.getCredit(bonder),
       this.getDebit(bonder)
@@ -163,7 +163,7 @@ export default class Bridge extends ContractBase {
     return this.bridgeContract.address
   }
 
-  async getBondedWithdrawalAmount (transferId: string): Promise<BigNumber> {
+  async getBondedWithdrawalAmount (transferId: string): Promise<bigint> {
     const bonderAddress = await this.getBonderAddress()
     return this.getBondedWithdrawalAmountByBonder(bonderAddress, transferId)
   }
@@ -171,12 +171,12 @@ export default class Bridge extends ContractBase {
   getBondedWithdrawalAmountByBonder = async (
     bonder: string,
     transferId: string
-  ): Promise<BigNumber> => {
-    const bondedBn = await this.bridgeContract.getBondedWithdrawalAmount(
+  ): Promise<bigint> => {
+    const bondedBigint = await this.bridgeContract.getBondedWithdrawalAmount(
       bonder,
       transferId
     )
-    return bondedBn
+    return bondedBigint
   }
 
   async getBondedWithdrawalTimestamp (
@@ -417,7 +417,7 @@ export default class Bridge extends ContractBase {
 
   getTransferRootId = (
     transferRootHash: string,
-    totalAmount: BigNumber
+    totalAmount: bigint
   ): string => {
     return getTransferRootId(
       transferRootHash,
@@ -427,7 +427,7 @@ export default class Bridge extends ContractBase {
 
   getTransferRoot = async (
     transferRootHash: string,
-    totalAmount: BigNumber
+    totalAmount: bigint
   ) => {
     return this.bridgeContract.getTransferRoot(
       transferRootHash,
@@ -445,7 +445,7 @@ export default class Bridge extends ContractBase {
     return chainIds
   }
 
-  stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
+  stake = async (amount: bigint): Promise<providers.TransactionResponse> => {
     const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
     if (
@@ -464,7 +464,7 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  unstake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
+  unstake = async (amount: bigint): Promise<providers.TransactionResponse> => {
     const tx = await this.bridgeContract.unstake(
       amount,
       await this.txOverrides()
@@ -474,9 +474,9 @@ export default class Bridge extends ContractBase {
 
   bondWithdrawal = async (
     recipient: string,
-    amount: BigNumber,
+    amount: bigint,
     transferNonce: string,
-    bonderFee: BigNumber
+    bonderFee: bigint
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -505,7 +505,7 @@ export default class Bridge extends ContractBase {
   settleBondedWithdrawals = async (
     bonder: string,
     transferIds: string[],
-    amount: BigNumber
+    amount: bigint
   ): Promise<providers.TransactionResponse> => {
     const tx = await this.bridgeContract.settleBondedWithdrawals(
       bonder,
@@ -519,13 +519,13 @@ export default class Bridge extends ContractBase {
 
   withdraw = async (
     recipient: string,
-    amount: BigNumber,
+    amount: bigint,
     transferNonce: string,
-    bonderFee: BigNumber,
-    amountOutMin: BigNumber,
-    deadline: BigNumber,
+    bonderFee: bigint,
+    amountOutMin: bigint,
+    deadline: bigint,
     rootHash: string,
-    transferRootTotalAmount: BigNumber,
+    transferRootTotalAmount: bigint,
     transferIdTreeIndex: number,
     siblings: string[],
     totalLeaves: number
@@ -548,7 +548,7 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  async getEthBalance (): Promise<BigNumber> {
+  async getEthBalance (): Promise<bigint> {
     const bonder = await this.getBonderAddress()
     if (!bonder) {
       throw new Error('expected bonder address')
@@ -556,7 +556,7 @@ export default class Bridge extends ContractBase {
     return this.getBalance(bonder)
   }
 
-  formatUnits (value: BigNumber) {
+  formatUnits (value: bigint) {
     if (!value) {
       return 0
     }
@@ -567,7 +567,7 @@ export default class Bridge extends ContractBase {
     return parseUnits(value.toString(), this.tokenDecimals)
   }
 
-  formatEth (value: BigNumber) {
+  formatEth (value: bigint) {
     return Number(formatUnits(value.toString(), 18))
   }
 
@@ -788,7 +788,7 @@ export default class Bridge extends ContractBase {
     return !!getNetworkCustomSyncType(this.chainSlug)
   }
 
-  shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {
+  shouldAttemptSwapDuringBondWithdrawal (amountOutMin: bigint, deadline: bigint): boolean {
     // Do not check if the asset uses an AMM. This function only cares about the amountOutMin and deadline
     // so that it knows what function to call on-chain. This function is unconcerned with wether or not
     // an asset uses an AMM, since a non-AMM asset can still provide amountOutMin and deadline values.
@@ -827,7 +827,7 @@ export default class Bridge extends ContractBase {
     // relative fee will negate this value anyway
     const destinationChain = this.chainSlug
     if (destinationChain === Chain.Ethereum) {
-      return BigNumber.from(0)
+      return 0n
     }
 
     // DAI into Gnosis can be bonded for a cheaper fee
@@ -835,7 +835,7 @@ export default class Bridge extends ContractBase {
       destinationChain === Chain.Gnosis &&
       tokenSymbol === Token.DAI
     ) {
-      return BigNumber.from(0)
+      return 0n
     }
 
     let minBonderFeeUsd = 0.25
@@ -851,18 +851,18 @@ export default class Bridge extends ContractBase {
     // add 10% buffer for in the case that the token price materially
     // changes after the transaction send but before bond
     const tolerance = 0.10
-    minBonderFeeAbsolute = minBonderFeeAbsolute.sub(minBonderFeeAbsolute.mul(tolerance * 100).div(100))
+    minBonderFeeAbsolute = minBonderFeeAbsolute - minBonderFeeAbsolute * BigInt(tolerance * 100) / 100n
 
     return minBonderFeeAbsolute
   }
 
   async getBonderFeeBps (
     destinationChain: Chain,
-    amountIn: BigNumber,
-    minBonderFeeAbsolute: BigNumber
+    amountIn: bigint,
+    minBonderFeeAbsolute: bigint
   ) {
     if (amountIn.lte(0)) {
-      return BigNumber.from(0)
+      return 0n
     }
     const fees = globalConfig?.fees?.[this.tokenSymbol]
     if (!fees) {
@@ -873,29 +873,29 @@ export default class Bridge extends ContractBase {
     if (!bonderFeeBps) {
       throw new Error(`fee config not found for chain ${destinationChain}`)
     }
-    const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
-    let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
+    const minBonderFeeRelative = amountIn * bonderFeeBps / 10000n
+    let minBonderFee = minBonderFeeRelative > minBonderFeeAbsolute
       ? minBonderFeeRelative
       : minBonderFeeAbsolute
 
     // add 10% buffer for in the case amountIn is greater than originally
     // estimated in frontend due to user receiving more hTokens during swap
     const tolerance = 0.10
-    minBonderFee = minBonderFee.sub(minBonderFee.mul(tolerance * 100).div(100))
+    minBonderFee = minBonderFee - minBonderFee * BigInt(tolerance * 100) / 100n
     return minBonderFee
   }
 
   async getGasCostEstimation (
     chain: string,
     tokenSymbol: string,
-    gasPrice: BigNumber,
-    gasLimit: BigNumber,
+    gasPrice: bigint,
+    gasLimit: bigint,
     transactionType: GasCostTransactionType,
     data?: string,
     to?: string
   ): Promise<GasCostEstimationRes> {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
-    let gasCost: BigNumber = BigNumber.from('0')
+    let gasCost: bigint = 0n
     if (transactionType === GasCostTransactionType.Relay) {
       // Relay transactions use the gasLimit as the gasCost
       gasCost = gasLimit
@@ -941,11 +941,11 @@ export default class Bridge extends ContractBase {
     } = await this.getGasCostTokenValues(chainNativeTokenSymbol)
 
     const multiplier = parseEther('1')
-    const rate = (nativeTokenPriceUsdWei.mul(multiplier)).div(tokenPriceUsdWei)
-    const exponent = nativeTokenDecimals - tokenDecimals
+    const rate = (nativeTokenPriceUsdWei * multiplier) / tokenPriceUsdWei
+    const exponent = BigInt(nativeTokenDecimals - tokenDecimals)
 
-    const gasCostInTokenWei = gasCost.mul(rate).div(multiplier)
-    const gasCostInToken = gasCostInTokenWei.div(BigNumber.from(10).pow(exponent))
+    const gasCostInTokenWei = gasCost * rate / multiplier
+    const gasCostInToken = gasCostInTokenWei / (10n**exponent)
 
     return {
       gasCost,
@@ -985,7 +985,7 @@ export default class Bridge extends ContractBase {
     return 'ETH'
   }
 
-  async isTransferRootSet (transferRootHash: string, totalAmount: BigNumber): Promise<boolean> {
+  async isTransferRootSet (transferRootHash: string, totalAmount: bigint): Promise<boolean> {
     const transferRootStruct = await this.getTransferRoot(transferRootHash, totalAmount)
     if (!transferRootStruct) {
       throw new Error('transfer root struct not found')

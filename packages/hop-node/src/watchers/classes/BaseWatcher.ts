@@ -5,11 +5,11 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
-import bigNumberMin from 'src/utils/bigNumberMin'
+import bigintMin from 'src/utils/bigintMin'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { BigNumber, constants } from 'ethers'
+import { constants } from 'ethers'
 import {
   Chain,
   GasCostTransactionType,
@@ -296,14 +296,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     const now = Math.floor(Date.now() / 1000)
     const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, transferSentTimestamp)
     const nearestItemToNow = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
-    let gasCostInToken: BigNumber
-    let minBonderFeeAbsolute: BigNumber
+    let gasCostInToken: bigint
+    let minBonderFeeAbsolute: bigint
 
     if (nearestItemToTransferSent && nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
-      gasCostInToken = bigNumberMin(gasCostInToken, currentGasCostInToken)
-      minBonderFeeAbsolute = bigNumberMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+      gasCostInToken = bigintMin(gasCostInToken, currentGasCostInToken)
+      minBonderFeeAbsolute = bigintMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
       this.logger.debug('using nearestItemToTransferSent')
     } else if (nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
@@ -315,12 +315,12 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('transactionType:', transactionType)
 
-    const minTxFee = gasCostInToken.div(2)
+    const minTxFee = gasCostInToken / 2n
     if (transactionType === GasCostTransactionType.Relay) {
       if (!relayerFee) {
         throw new Error('expected relayerFee')
       }
-      const isRelayFeeOk = relayerFee.gte(minTxFee)
+      const isRelayFeeOk = relayerFee >= minTxFee
       logger.debug(`isRelayerFeeOk: relayerFee: ${relayerFee}, minTxFee: ${minTxFee}, isRelayFeeOk: ${isRelayFeeOk}`)
       return isRelayFeeOk
     }
@@ -344,22 +344,22 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   logAdditionalBonderFeeData (
-    bonderFee: BigNumber,
-    minBonderFeeTotal: BigNumber,
-    minBpsFee: BigNumber,
-    gasCostInToken: BigNumber,
+    bonderFee: bigint,
+    minBonderFeeTotal: bigint,
+    minBpsFee: bigint,
+    gasCostInToken: bigint,
     destinationChain: string,
     transferId: string,
     logger: Logger
   ) {
     // Log how much additional % is being paid
     const precision = this.bridge.parseEth('1')
-    const bonderFeeOverage = bonderFee.mul(precision).div(minBonderFeeTotal)
+    const bonderFeeOverage = bonderFee * precision / minBonderFeeTotal
     logger.debug(`dest: ${destinationChain}, bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}`)
 
     // Log how much additional % is being paid without destination tx fee buffer
-    const minBonderFeeWithoutBuffer = minBpsFee.add(gasCostInToken)
-    const bonderFeeOverageWithoutBuffer = bonderFee.mul(precision).div(minBonderFeeWithoutBuffer)
+    const minBonderFeeWithoutBuffer = minBpsFee + gasCostInToken
+    const bonderFeeOverageWithoutBuffer = bonderFee * precision / minBonderFeeWithoutBuffer
     logger.debug(`dest: ${destinationChain}, bonder fee overage (without buffer): ${this.bridge.formatEth(bonderFeeOverageWithoutBuffer)}`)
 
     const expectedMinBonderFeeOverage = precision

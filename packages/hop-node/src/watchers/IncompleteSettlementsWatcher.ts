@@ -9,7 +9,7 @@ import getTransferSent from 'src/theGraph/getTransferSent'
 import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
 import wait from 'src/utils/wait'
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { BigNumber, Contract } from 'ethers'
+import { Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
@@ -338,7 +338,7 @@ class IncompleteSettlementsWatcher {
 
     for (const rootHash in this.rootHashSettlements) {
       if (!this.rootHashSettledTotalAmounts[rootHash]) {
-        this.rootHashSettledTotalAmounts[rootHash] = BigNumber.from(0)
+        this.rootHashSettledTotalAmounts[rootHash] = 0n
       }
       for (const { amount } of this.rootHashSettlements[rootHash]) {
         this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
@@ -356,7 +356,7 @@ class IncompleteSettlementsWatcher {
       }
       this.rootHashWithdrews[rootHash].push(log)
       if (!this.rootHashSettledTotalAmounts[rootHash]) {
-        this.rootHashSettledTotalAmounts[rootHash] = BigNumber.from(0)
+        this.rootHashSettledTotalAmounts[rootHash] = 0n
       }
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
@@ -366,7 +366,7 @@ class IncompleteSettlementsWatcher {
     for (const transferId in this.transferIdWithdrawalBondSettled) {
       const log = this.transferIdWithdrawalBondSettled[transferId]
       // TODO: get transfer sent amount
-      const amount = BigNumber.from(0)
+      const amount = 0n
       const rootHash = this.transferIdRootHashes[transferId]
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
@@ -389,7 +389,7 @@ class IncompleteSettlementsWatcher {
       const isConfirmed = !!this.rootHashConfirmeds[rootHash]
       const isSet = !!this.rootHashSets[rootHash]
       const tokenDecimals = getTokenDecimals(token)
-      // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
+      // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? 0n
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
@@ -434,13 +434,13 @@ class IncompleteSettlementsWatcher {
     // Check to see if the only remaining unsettled amounts are withdrawn
     incompletes = incompletes.filter((item: any) => {
       if (item.unsettledTransfers?.length) {
-        let totalAmountUnbonded = BigNumber.from(0)
+        let totalAmountUnbonded = 0n
         for (const transfer of item.unsettledTransfers) {
           if (!transfer.bonded) {
-            totalAmountUnbonded = totalAmountUnbonded.add(BigNumber.from(transfer.amount))
+            totalAmountUnbonded = totalAmountUnbonded + BigInt(transfer.amount)
           }
         }
-        const isAllSettled = BigNumber.from(item.diff).eq(totalAmountUnbonded)
+        const isAllSettled = BigInt(item.diff) === totalAmountUnbonded
         if (isAllSettled) {
           return false
         }
@@ -520,7 +520,7 @@ class IncompleteSettlementsWatcher {
     return [unsettledTransfers, Array.from(unsettledTransferBonders), transferIds]
   }
 
-  private async getOnchainTotalAmountWithdrawn (destinationChain: string, token: string, transferRootHash: string, totalAmount: BigNumber) {
+  private async getOnchainTotalAmountWithdrawn (destinationChain: string, token: string, transferRootHash: string, totalAmount: bigint) {
     const contract = this.getContract(destinationChain, token)
     const { amountWithdrawn } = await contract.getTransferRoot(transferRootHash, totalAmount)
     return amountWithdrawn

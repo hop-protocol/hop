@@ -3,7 +3,7 @@ import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wait from 'src/utils/wait'
-import { BigNumber, constants } from 'ethers'
+import { constants } from 'ethers'
 import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain } from 'src/constants'
 import { WatcherNotFoundError } from './shared/utils'
@@ -32,7 +32,7 @@ async function main (source: any) {
   }
 
   const bridge: L2Bridge | L1Bridge = await getBridge(token, chain)
-  const parsedAmount: BigNumber = bridge.parseUnits(amount)
+  const parsedAmount: bigint = bridge.parseUnits(amount)
 
   const isBonder = await bridge.isBonder()
   if (!isBonder) {
@@ -54,7 +54,7 @@ async function main (source: any) {
 
 async function sendTokensToL2 (
   bridge: L1Bridge,
-  parsedAmount: BigNumber,
+  parsedAmount: bigint,
   chain: string
 ) {
   const recipient = await bridge.getBonderAddress()
@@ -84,12 +84,12 @@ async function sendTokensToL2 (
 
 async function stake (
   bridge: L2Bridge | L1Bridge,
-  parsedAmount: BigNumber
+  parsedAmount: bigint
 ) {
   logger.debug('Staking')
 
   const token: Token | void = await getToken(bridge)
-  const stakeTokenBalance: BigNumber = await getTokenBalance(bridge, token)
+  const stakeTokenBalance: bigint = await getTokenBalance(bridge, token)
   const formattedAmount = bridge.formatUnits(parsedAmount)
   if (stakeTokenBalance.lt(parsedAmount)) {
     throw new Error(
@@ -118,7 +118,7 @@ async function stake (
   }
 }
 
-async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber) {
+async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: bigint) {
   const l2Bridge = bridge
   const bonderAddress = await bridge.getBonderAddress()
   while (true) {
@@ -161,7 +161,7 @@ async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
   throw new Error('invalid bridge type')
 }
 
-async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> {
+async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<bigint> {
   if (!token) {
     return bridge.getEthBalance()
   }

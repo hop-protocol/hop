@@ -1,5 +1,5 @@
 import getRpcProvider from 'src/utils/getRpcProvider'
-import { BigNumber } from 'ethers'
+
 import { Chain } from 'src/constants'
 import { Interface, formatUnits } from 'ethers/lib/utils'
 import { actionHandler, parseString, root } from '../shared'
@@ -61,7 +61,7 @@ async function main (source: any) {
           const isLpToken = Number(index) === 2
           if (isLpToken && token === tokens.HOP) continue
 
-          const balance: BigNumber = await getBalance(chain, hopAccountAddress, tokenAddress, tokenData.blockNumbers[chain])
+          const balance: bigint = await getBalance(chain, hopAccountAddress, tokenAddress, tokenData.blockNumbers[chain])
           const decimals = isLpToken ? 18 : tokenDecimals[token]
           const fmtBalance: number = Number(formatUnits(balance, decimals))
 
@@ -90,7 +90,7 @@ async function main (source: any) {
         const tokenAddress = arbitraryTokenAddresses[chain][token]
 
         // Token balance logic
-        const balance: BigNumber = await getBalance(chain, hopAccountAddress, tokenAddress, tokenData.blockNumbers[chain])
+        const balance: bigint = await getBalance(chain, hopAccountAddress, tokenAddress, tokenData.blockNumbers[chain])
         const decimals = tokenDecimals[token]
         const fmtBalance: number = Number(formatUnits(balance, decimals))
 
@@ -145,7 +145,7 @@ function getTokenAddressesFromCore (chain: string, addresses: any): string[] {
   ]
 }
 
-async function getBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<BigNumber> {
+async function getBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<bigint> {
   if (tokenAddress === '0x0000000000000000000000000000000000000000') {
     return getEthBalance(chain, accountAddress, blockNumber)
   } 
@@ -153,12 +153,12 @@ async function getBalance (chain: string, accountAddress: string, tokenAddress: 
   
 }
 
-async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {
+async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<bigint> {
   const res = await getRpcProvider(chain).getBalance(accountAddress, blockNumber)
-  return BigNumber.from(res)
+  return BigInt(res)
 }
 
-async function getTokenBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<BigNumber> {
+async function getTokenBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<bigint> {
   const abi = ['function balanceOf(address) view returns (uint256)']
   const ethersInterface = new Interface(abi)
   const data = ethersInterface.encodeFunctionData(
@@ -171,9 +171,9 @@ async function getTokenBalance (chain: string, accountAddress: string, tokenAddr
   const res = await getRpcProvider(chain).call(tx, blockNumber)
   if (res === '0x') {
     // Will occur if the token does not exist at the block number
-    return BigNumber.from('0')
+    return 0n
   }
-  return BigNumber.from(res)
+  return BigInt(res)
 }
 
 const arbitraryTokenAddresses: Record<string, Record<string, string>> = {

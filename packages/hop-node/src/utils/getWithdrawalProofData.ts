@@ -1,8 +1,8 @@
 import MerkleTree from 'src/utils/MerkleTree'
-import { BigNumber } from 'ethers'
+
 
 export interface WithdrawalProofData {
-  rootTotalAmount: BigNumber
+  rootTotalAmount: bigint
   numLeaves: number
   proof: string[]
   transferIndex: number
@@ -11,7 +11,7 @@ export interface WithdrawalProofData {
 
 export function getWithdrawalProofData (
   transferId: string,
-  totalAmount: BigNumber,
+  totalAmount: bigint,
   transferIds: string[]
 ): WithdrawalProofData {
   if (!transferIds?.length) {

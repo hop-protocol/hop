@@ -1,4 +1,3 @@
-import { BigNumber } from 'ethers'
 import {
   Chain,
   ChainBalanceArchiveData,
@@ -94,14 +93,14 @@ async function getL2ArchiveData (token: Token, chain: Chain, timestamp: number):
   compare(ArchiveType.UnwithdrawnTransfers, chain, expected, l2UnwithdrawnTransfers)
 
   const endTimestamp = timestamp
-  const inFlightL1ToL2Transfers: BigNumber = await getHistoricalUnrelayedL1ToL2Transfers(token, chain, endTimestamp)
+  const inFlightL1ToL2Transfers: bigint = await getHistoricalUnrelayedL1ToL2Transfers(token, chain, endTimestamp)
   expected = ChainBalanceArchiveData.InFlightL1ToL2Transfers?.[token]?.[chain] ?? '0'
   compare(ArchiveType.InFlightL1ToL2Transfers, chain, expected, inFlightL1ToL2Transfers)
 }
 
-function compare (type: ArchiveType, chain: string, expected: string, actual: BigNumber): void {
-  const expectedBn: BigNumber = BigNumber.from(expected)
-  if (!expectedBn.eq(actual)) {
+function compare (type: ArchiveType, chain: string, expected: string, actual: bigint): void {
+  const expectedBigint: bigint = BigInt(expected)
+  if (expectedBigint !== actual) {
     console.log(`(${chain}) ${type}: Expected: ${expected}, Actual: ${actual}`)
   }
 }

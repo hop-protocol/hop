@@ -1,6 +1,6 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import makeRequest from './makeRequest'
-import { BigNumber } from 'ethers'
+
 import { Chain } from 'src/constants'
 
 type TransferCommitted = {
@@ -63,16 +63,16 @@ to that period. Queries here will appear incomplete for those items.
       console.warn('Transfer committed before regenesis. Skipping')
       continue
     }
-    const totalAmountBn: BigNumber = BigNumber.from(totalAmount)
+    const totalAmountBigint: bigint = BigInt(totalAmount)
 
     const multipleWithdrawalsSettled: MultipleWithdrawalsSettled[] = await getMultipleWithdrawalsSettled(
       destinationChain,
       rootHash
     )
-    let calcAmountBn: BigNumber = BigNumber.from(0)
+    let calcAmountBigint: bigint = 0n
     for (let j = 0; j < multipleWithdrawalsSettled.length; j++) {
       const amountSettled: string = multipleWithdrawalsSettled[j].totalBondsSettled
-      calcAmountBn = calcAmountBn.add(amountSettled)
+      calcAmountBigint += BigInt(amountSettled)
     }
 
     // There is an edge case where, if the earliest committed root contains an unbonded
@@ -116,7 +116,7 @@ to that period. Queries here will appear incomplete for those items.
         )
         if (withdrawnTransfer.length !== 0) {
           const amount = withdrawnTransfer[0].amount
-          calcAmountBn = calcAmountBn.add(amount)
+          calcAmountBigint += BigInt(amount)
           continue
         }
 
@@ -128,15 +128,15 @@ to that period. Queries here will appear incomplete for those items.
         if (bondedTransfer.length !== 0) {
           continue
         }
-        calcAmountBn = calcAmountBn.add(transferAmount)
+        calcAmountBigint += BigInt(transferAmount)
 
         // If a transfer was neither bonded nor withdrawn, log it
         console.log(`transfer ${transferId} was not bonded, not withdrawn, existed on optimism before regenesis, or bonded with incorrect parameters (which produced an incorrect transferId)`)
       }
     }
 
-    if (!totalAmountBn.eq(calcAmountBn)) {
-      const diff = (totalAmountBn.sub(calcAmountBn))
+    if (totalAmountBigint !== calcAmountBigint) {
+      const diff = totalAmountBigint - calcAmountBigint
       if (isEarliestCommit) {
         console.log(`
 WARNING: The first commit may be missing withdrawals or bonds because it does not know how far to look back.
@@ -144,7 +144,7 @@ If you are seeing this, there is a good chance that the root below is actually c
 `)
       }
       console.log(
-        `root: ${rootHash}, totalAmount: ${totalAmountBn}, calculatedAmount: ${calcAmountBn}. diff: ${diff}`
+        `root: ${rootHash}, totalAmount: ${totalAmountBigint}, calculatedAmount: ${calcAmountBigint}. diff: ${diff}`
       )
     }
   }

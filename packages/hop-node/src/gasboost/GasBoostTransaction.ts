@@ -1,15 +1,15 @@
 import Logger from 'src/logger'
 import Store from './Store'
-import bigNumberMax from 'src/utils/bigNumberMax'
-import bigNumberMin from 'src/utils/bigNumberMin'
+import bigintMax from 'src/utils/bigintMax'
+import bigintMin from 'src/utils/bigintMin'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import getBumpedBN from 'src/utils/getBumpedBN'
+import getBumpedBigint from 'src/utils/getBumpedBigint'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
-import { BigNumber, Signer, providers } from 'ethers'
+import { Signer, providers } from 'ethers'
 import {
   Chain,
   InitialTxGasPriceMultiplier,
@@ -81,12 +81,12 @@ export type Options = {
 }
 
 type Type0GasData = {
-  gasPrice: BigNumber
+  gasPrice: bigint
 }
 
 type Type2GasData = {
-  maxFeePerGas: BigNumber
-  maxPriorityFeePerGas: BigNumber
+  maxFeePerGas: bigint
+  maxPriorityFeePerGas: bigint
 }
 
 type GasFeeData = Type0GasData & Type2GasData
@@ -142,12 +142,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   from: string // type 0 and 2 tx required property
   to: string // type 0 and 2 tx required property
   data: string // type 0 and 2 tx required property
-  value: BigNumber // type 0 and 2 tx required property
+  value: bigint // type 0 and 2 tx required property
   nonce: number // type 0 and 2 tx required property
-  gasLimit: BigNumber // type 0 and 2 tx required property
-  gasPrice?: BigNumber // type 0 tx required property
-  maxFeePerGas?: BigNumber // type 2 tx required property
-  maxPriorityFeePerGas?: BigNumber // type 2 tx required property
+  gasLimit: bigint // type 0 and 2 tx required property
+  gasPrice?: bigint // type 0 tx required property
+  maxFeePerGas?: bigint // type 2 tx required property
+  maxPriorityFeePerGas?: bigint // type 2 tx required property
   chainId: number // type 0 and 2 tx required property
   confirmations: number = 0 // type 0 and 2 tx required property
 
@@ -200,23 +200,23 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.data = hexlify(tx.data)
     }
     if (tx.value) {
-      this.value = BigNumber.from(tx.value)
+      this.value = BigInt(tx.value)
     }
     if (tx.nonce) {
-      this.nonce = BigNumber.from(tx.nonce).toNumber()
+      this.nonce = Number(BigInt(tx.nonce))
     }
     if (tx.gasPrice) {
-      this.gasPrice = BigNumber.from(tx.gasPrice)
+      this.gasPrice = BigInt(tx.gasPrice)
     } else {
       if (tx.maxFeePerGas) {
-        this.maxFeePerGas = BigNumber.from(tx.maxFeePerGas)
+        this.maxFeePerGas = BigInt(tx.maxFeePerGas)
       }
       if (tx.maxPriorityFeePerGas) {
-        this.maxPriorityFeePerGas = BigNumber.from(tx.maxPriorityFeePerGas)
+        this.maxPriorityFeePerGas = BigInt(tx.maxPriorityFeePerGas)
       }
     }
     if (tx.gasLimit) {
-      this.gasLimit = BigNumber.from(tx.gasLimit)
+      this.gasLimit = BigInt(tx.gasLimit)
     }
   }
 
@@ -228,17 +228,17 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       !tx.gasPrice &&
       tx.maxFeePerGas &&
       tx.maxPriorityFeePerGas &&
-      (tx.maxFeePerGas as BigNumber).eq(tx.maxPriorityFeePerGas)
+      (tx.maxFeePerGas as bigint).eq(tx.maxPriorityFeePerGas)
     )
     if (shouldUseGasPrice) {
       this.type = undefined
-      this.gasPrice = (tx.maxFeePerGas as BigNumber)
+      this.gasPrice = (tx.maxFeePerGas as bigint)
       this.maxFeePerGas = undefined
       this.maxPriorityFeePerGas = undefined
     } else {
-      this.gasPrice = (tx.gasPrice! as BigNumber)
-      this.maxFeePerGas = (tx.maxFeePerGas! as BigNumber)
-      this.maxPriorityFeePerGas = (tx.maxPriorityFeePerGas! as BigNumber)
+      this.gasPrice = (tx.gasPrice! as bigint)
+      this.maxFeePerGas = (tx.maxFeePerGas! as bigint)
+      this.maxPriorityFeePerGas = (tx.maxPriorityFeePerGas! as bigint)
       if (tx.type != null) {
         this.type = tx.type
       }
@@ -384,8 +384,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.from = tx.from!
     this.to = tx.to!
     this.data = (tx.data as string)
-    this.value = (tx.value as BigNumber)
-    this.gasLimit = (tx.gasLimit as BigNumber)
+    this.value = (tx.value as bigint)
+    this.gasLimit = (tx.gasLimit as bigint)
     this.nonce = (tx.nonce as number)
     this.setGasProperties(tx)
 
@@ -401,18 +401,18 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.signer.provider!.getFeeData()
   }
 
-  async getMarketGasPrice (): Promise<BigNumber> {
+  async getMarketGasPrice (): Promise<bigint> {
     return this.signer.getGasPrice()
   }
 
-  async getMarketMaxFeePerGas (): Promise<BigNumber> {
+  async getMarketMaxFeePerGas (): Promise<bigint> {
     const { maxFeePerGas } = await this.getGasFeeData()
     return maxFeePerGas!
   }
 
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
   // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
-  async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
+  async getOruMaxFeePerGas (chainSlug: string): Promise<bigint> {
     const res = await fetch(getRpcUrl(chainSlug), {
       method: 'POST',
       headers: {
@@ -426,10 +426,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       })
     })
     const gasData: any = await res.json()
-    return BigNumber.from(gasData.result)
+    return BigInt(gasData.result)
   }
 
-  async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
+  async getMarketMaxPriorityFeePerGas (): Promise<bigint> {
     const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum && globalConfig.isMainnet
     if (isEthereumMainnet) {
       try {
@@ -480,25 +480,25 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.parseGwei(this.priorityFeePerGasCap)
   }
 
-  async getBumpedGasPrice (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
+  async getBumpedGasPrice (multiplier: number = this.gasPriceMultiplier): Promise<bigint> {
     const marketGasPrice = await this.getMarketGasPrice()
     const prevGasPrice = this.gasPrice ?? marketGasPrice
     const bumpedGasPrice = getBumpedGasPrice(prevGasPrice, multiplier)
     if (!this.compareMarketGasPrice) {
       return bumpedGasPrice
     }
-    return bigNumberMax(marketGasPrice, bumpedGasPrice)
+    return bigintMax(marketGasPrice, bumpedGasPrice)
   }
 
-  async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<BigNumber> {
+  async getBumpedMaxPriorityFeePerGas (multiplier: number = this.gasPriceMultiplier): Promise<bigint> {
     const marketMaxPriorityFeePerGas = await this.getMarketMaxPriorityFeePerGas()
     const prevMaxPriorityFeePerGas = this.maxPriorityFeePerGas ?? marketMaxPriorityFeePerGas
     this.logger.debug(`getting bumped maxPriorityFeePerGas. this.maxPriorityFeePerGas: ${this.maxPriorityFeePerGas?.toString()}, marketMaxPriorityFeePerGas: ${marketMaxPriorityFeePerGas.toString()}`)
-    const bumpedMaxPriorityFeePerGas = getBumpedBN(prevMaxPriorityFeePerGas, multiplier)
+    const bumpedMaxPriorityFeePerGas = getBumpedBigint(prevMaxPriorityFeePerGas, multiplier)
     if (!this.compareMarketGasPrice) {
       return bumpedMaxPriorityFeePerGas
     }
-    return bigNumberMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
+    return bigintMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
@@ -516,7 +516,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
         maxFeePerGas = currentBaseFeePerGas.mul(2)
       }
-      maxFeePerGas = bigNumberMin(maxFeePerGas, maxGasPrice)
+      maxFeePerGas = bigintMin(maxFeePerGas, maxGasPrice)
 
       return {
         gasPrice: undefined,
@@ -536,18 +536,18 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (gasFeeData.gasPrice != null) {
       const maxGasPrice = this.getMaxGasPrice()
       return {
-        gasPrice: bigNumberMin(gasFeeData.gasPrice, maxGasPrice)
+        gasPrice: bigintMin(gasFeeData.gasPrice, maxGasPrice)
       }
     }
 
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
     return {
-      maxFeePerGas: bigNumberMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
-      maxPriorityFeePerGas: bigNumberMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap)
+      maxFeePerGas: bigintMin(gasFeeData.maxFeePerGas!, this.getMaxGasPrice()),
+      maxPriorityFeePerGas: bigintMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap)
     }
   }
 
-  async getCurrentBaseFeePerGas (): Promise<BigNumber | null> {
+  async getCurrentBaseFeePerGas (): Promise<bigint | null> {
     const { baseFeePerGas } = await this.signer.provider!.getBlock('latest')
     return baseFeePerGas ?? null
   }
@@ -944,12 +944,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return parseUnits(value.toString(), 9)
   }
 
-  private formatGwei (value: BigNumber) {
+  private formatGwei (value: bigint) {
     return formatUnits(value.toString(), 9)
   }
 
   private getGasFeeDataAsString (gasFeeData: Partial<GasFeeData> = this) {
-    const format = (value?: BigNumber) => (value != null) ? this.formatGwei(value) : null
+    const format = (value?: bigint) => (value != null) ? this.formatGwei(value) : null
     const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = gasFeeData
     return `gasPrice: ${format(gasPrice)}, maxFeePerGas: ${format(maxFeePerGas)}, maxPriorityFeePerGas: ${format(maxPriorityFeePerGas)}`
   }

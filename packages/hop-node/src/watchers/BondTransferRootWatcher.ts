@@ -6,7 +6,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, providers } from 'ethers'
+import { providers } from 'ethers'
 import { BondTransferRootDelayBufferSeconds, Chain, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
@@ -28,7 +28,7 @@ export type SendBondTransferRootTxParams = {
   transferRootId: string
   transferRootHash: string
   destinationChainId: number
-  totalAmount: BigNumber
+  totalAmount: bigint
   transferIds: string[]
   rootCommittedAt: number
 }
@@ -102,7 +102,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   async checkTransfersCommitted (
     transferRootId: string,
     transferRootHash: string,
-    totalAmount: BigNumber,
+    totalAmount: bigint,
     destinationChainId: number,
     committedAt: number,
     sourceChainId: number,

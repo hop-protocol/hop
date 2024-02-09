@@ -8,7 +8,7 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import { BigNumber, providers } from 'ethers'
+import { providers } from 'ethers'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
@@ -35,7 +35,7 @@ import {
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers'
 import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
 import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
 import { isNativeToken } from 'src/utils/isNativeToken'
@@ -51,13 +51,13 @@ type Config = {
 export type SendBondWithdrawalTxParams = {
   transferId: string
   recipient: string
-  amount: BigNumber
+  amount: bigint
   transferNonce: string
-  bonderFee: BigNumber
+  bonderFee: bigint
   attemptSwap: boolean
   destinationChainId: number
-  amountOutMin: BigNumber
-  deadline: BigNumber
+  amountOutMin: bigint
+  deadline: bigint
   transferSentIndex: number
   transferSentTimestamp: number
   isFinalized?: boolean
@@ -444,9 +444,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const finalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
 
     const decimals = getTokenDecimals(this.tokenSymbol)
-    const inFlightAmount: BigNumber = await this.getInFlightAmount(dbTransfers)
-    const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
-    const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
+    const inFlightAmount: bigint = await this.getInFlightAmount(dbTransfers)
+    const bonderRiskAmount: bigint = this.getBonderRiskAmount()
+    const amountWithinThreshold: bigint = bonderRiskAmount.sub(inFlightAmount)
     if (amountWithinThreshold.lt(0)) {
       this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${formatUnits(inFlightAmount, decimals)})`)
       return finalizedTransfers
@@ -458,8 +458,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return finalizedTransfers
     }
 
-    const availableLiquidityPerChain: Record<string, BigNumber> = {}
-    let remainingAmountWithinThreshold: BigNumber = amountWithinThreshold
+    const availableLiquidityPerChain: Record<string, bigint> = {}
+    let remainingAmountWithinThreshold: bigint = amountWithinThreshold
     const transfersWithinThreshold: UnbondedSentTransfer[] = []
     for (const unfinalizedTransfer of unfinalizedTransfers) {
       const { transferId, destinationChainId, amount, withdrawalBondTxError } = unfinalizedTransfer
@@ -507,7 +507,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     ]
   }
 
-  private async getInFlightAmount (dbTransfers: UnbondedSentTransfer[]): Promise<BigNumber> {
+  private async getInFlightAmount (dbTransfers: UnbondedSentTransfer[]): Promise<bigint> {
     // Unbonded should not be in flight for more than 1 hour
     const inFlightCutoffTimestampSec = Math.floor(Date.now() / 1000) - OneHourSeconds
     const inFlightTransfers = dbTransfers.filter(dbTransfer => {
@@ -529,22 +529,22 @@ class BondWithdrawalWatcher extends BaseWatcher {
       )
     })
 
-    let inFlightAmount = BigNumber.from(0)
+    let inFlightAmount = 0n
     for (const inFlightTransfer of inFlightTransfers) {
       if (!inFlightTransfer.amount) continue
-      inFlightAmount = inFlightAmount.add(inFlightTransfer.amount)
+      inFlightAmount += BigInt(inFlightTransfer.amount)
     }
     return inFlightAmount
   }
 
-  private getBonderRiskAmount (): BigNumber {
+  private getBonderRiskAmount (): bigint {
     const bonderTotalStake: number | undefined = getBonderTotalStake(this.tokenSymbol)
     if (!bonderTotalStake) {
-      return BigNumber.from(0)
+      return 0n
     }
 
     const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
-    return bonderTotalStakeWei.mul(BondThreshold).div(100)
+    return bonderTotalStakeWei * BigInt(BondThreshold) / 100n
   }
 
   async preTransactionValidation (txParams: SendBondWithdrawalTxParams, isFinalized?: boolean): Promise<void> {

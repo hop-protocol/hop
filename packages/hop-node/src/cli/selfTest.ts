@@ -3,7 +3,7 @@ import contracts from 'src/contracts'
 import wallets from 'src/wallets'
 import { Chain, Token } from 'src/constants'
 import { actionHandler, logger, parseNumber, parseString, root } from './shared'
-import { formatEther, parseEther, parseUnits } from 'ethers/lib/utils'
+import { formatEther, parseEther, parseUnits } from 'ethers'
 
 root
   .command('self-test')
@@ -50,7 +50,7 @@ async function main (source: any) {
   }
 
   // Send ETH to self
-  const parsedEthSendAmount = parsedMinEthAmount.div(10)
+  const parsedEthSendAmount = parsedMinEthAmount / 10n
   logger.debug(`sendNativeToken: attempting to send ${formatEther(parsedEthSendAmount)} to self on Ethereum`)
 
   let tx = await wallet.sendTransaction({

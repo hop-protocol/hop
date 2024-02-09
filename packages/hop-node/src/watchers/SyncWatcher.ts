@@ -10,7 +10,7 @@ import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2Transfer
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, EventFilter, providers } from 'ethers'
+import { Contract, EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
   Chain,
@@ -31,7 +31,7 @@ import {
   SyncIntervalSec,
   getEnabledNetworks,
   config as globalConfig,
-  minEthBonderFeeBn,
+  minEthBonderFeeBigint,
   wsEnabledChains
 } from 'src/config'
 import { GasCost } from 'src/db/GasCostDb'
@@ -568,7 +568,7 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransferSentToL2Event (event: TransferSentToL2Event) {
     const {
-      chainId: destinationChainIdBn,
+      chainId: destinationChainIdBigint,
       recipient,
       amount,
       amountOutMin,
@@ -577,7 +577,7 @@ class SyncWatcher extends BaseWatcher {
       relayerFee
     } = event.args
     const { transactionHash, logIndex } = event
-    const destinationChainId: number = Number(destinationChainIdBn.toString())
+    const destinationChainId: number = Number(destinationChainIdBigint.toString())
     const transferId = getTransferSentToL2TransferId(
       destinationChainId,
       recipient,
@@ -645,7 +645,7 @@ class SyncWatcher extends BaseWatcher {
   async handleTransferSentEvent (event: TransferSentEvent, isCustomSync: boolean) {
     const {
       transferId,
-      chainId: destinationChainIdBn,
+      chainId: destinationChainIdBigint,
       recipient,
       amount,
       transferNonce,
@@ -661,7 +661,7 @@ class SyncWatcher extends BaseWatcher {
       const transferSentIndex: number = index.toNumber()
       const blockNumber: number = event.blockNumber
       const l2Bridge = this.bridge as L2Bridge
-      const destinationChainId = Number(destinationChainIdBn.toString())
+      const destinationChainId = Number(destinationChainIdBigint.toString())
       const sourceChainId = await l2Bridge.getChainId()
       // isFinalized must be undefined if isCustomSync is not explicitly false
       // This handles the edge cases where the unfinalized syncer runs after the finalized syncer, which
@@ -825,19 +825,19 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransfersCommittedEvent (event: TransfersCommittedEvent) {
     const {
-      destinationChainId: destinationChainIdBn,
+      destinationChainId: destinationChainIdBigint,
       rootHash: transferRootHash,
       totalAmount,
-      rootCommittedAt: committedAtBn
+      rootCommittedAt: committedAtBigint
     } = event.args
     const transferRootId = this.bridge.getTransferRootId(transferRootHash, totalAmount)
     const logger = this.logger.create({ root: transferRootId })
 
     try {
-      const committedAt = Number(committedAtBn.toString())
+      const committedAt = Number(committedAtBigint.toString())
       const { transactionHash, blockNumber, logIndex } = event
       const sourceChainId = await this.bridge.getChainId()
-      const destinationChainId = Number(destinationChainIdBn.toString())
+      const destinationChainId = Number(destinationChainIdBigint.toString())
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
       const shouldBondTransferRoot = BondTransferRootChains.includes(sourceChainSlug)
@@ -1047,7 +1047,7 @@ class SyncWatcher extends BaseWatcher {
       amountOutMin,
       deadline,
       destinationChainId,
-      BigNumber.from(fee),
+      BigInt(fee),
       from,
       recipient
     )
@@ -1630,10 +1630,10 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getIsBondable = (
-    amountOutMin: BigNumber,
-    deadline: BigNumber,
+    amountOutMin: bigint,
+    deadline: bigint,
     destinationChainId: number,
-    bonderFee: BigNumber,
+    bonderFee: bigint,
     from: string,
     recipient: string
   ): boolean => {
@@ -1655,7 +1655,7 @@ class SyncWatcher extends BaseWatcher {
     return true
   }
 
-  async getIsRelayable (relayerFee: BigNumber, relayer: string, destinationChainId: number): Promise<boolean> {
+  async getIsRelayable (relayerFee: bigint, relayer: string, destinationChainId: number): Promise<boolean> {
     if (!EnforceRelayerFee) {
       return true
     }
@@ -1672,9 +1672,9 @@ class SyncWatcher extends BaseWatcher {
     return isRelayableFee && isRelayableAddress
   }
 
-  async #getIsRelayableFee (relayerFee: BigNumber, destinationChainId: number): Promise<boolean> {
+  async #getIsRelayableFee (relayerFee: bigint, destinationChainId: number): Promise<boolean> {
     const destinationChainSlug = this.chainIdToSlug(destinationChainId)
-    let expectedFee: BigNumber = BigNumber.from(0)
+    let expectedFee: bigint = 0n
     try {
       expectedFee = await this.hopSdk.getRelayerFee(destinationChainSlug, this.tokenSymbol)
     } catch {}
@@ -1700,13 +1700,13 @@ class SyncWatcher extends BaseWatcher {
     return false
   }
 
-  isBonderFeeTooLow (bonderFee: BigNumber) {
-    if (bonderFee.eq(0)) {
+  isBonderFeeTooLow (bonderFee: bigint) {
+    if (bonderFee === 0n) {
       return true
     }
 
     if (this.tokenSymbol === 'ETH') {
-      if (bonderFee.lt(minEthBonderFeeBn)) {
+      if (bonderFee < minEthBonderFeeBigint) {
         return true
       }
     }
@@ -1720,9 +1720,9 @@ class SyncWatcher extends BaseWatcher {
     }
     this.logger.debug(`starting pollGasCost, chainSlug: ${this.chainSlug}`)
     const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)) as L1BridgeContract | L2BridgeContract
-    const amount = BigNumber.from(10)
-    const amountOutMin = BigNumber.from(0)
-    const bonderFee = BigNumber.from(1)
+    const amount = 2n
+    const amountOutMin = 0n
+    const bonderFee = 1n
     const bonder = await this.bridge.getBonderAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
@@ -1770,12 +1770,12 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.L1_TO_L2.includes(this.chainSlug as Chain)) {
-          let gasCost: BigNumber
+          let gasCost: bigint
           try {
             gasCost = await this.hopSdk.getRelayerFee(this.chainSlug, this.tokenSymbol)
           } catch (err) {
             logger.error(`pollGasCost error getting relayerFee: ${err.message}`)
-            gasCost = BigNumber.from('0')
+            gasCost = 0n
           }
           logger.debug('pollGasCost got relayGasCost')
           estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })

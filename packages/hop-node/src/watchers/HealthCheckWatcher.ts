@@ -15,7 +15,7 @@ import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
-import { BigNumber, providers } from 'ethers'
+import { providers } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { Routes } from '@hop-protocol/core/addresses'
@@ -164,8 +164,8 @@ type LowOsResource = {
 
 type InvalidChainBalance = {
   token: string
-  tokenChainBalanceDiff: BigNumber
-  chainBalanceHTokenDiff: BigNumber
+  tokenChainBalanceDiff: bigint
+  chainBalanceHTokenDiff: bigint
 }
 
 type Result = {
@@ -225,7 +225,7 @@ export class HealthCheckWatcher {
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day
-  lowBalanceThresholds: Record<string, BigNumber> = {
+  lowBalanceThresholds: Record<string, bigint> = {
     [NativeChainToken.ETH]: parseEther('0.5'),
     [NativeChainToken.XDAI]: parseEther('10'),
     [NativeChainToken.MATIC]: parseEther('10')
@@ -233,7 +233,7 @@ export class HealthCheckWatcher {
 
   cacheTimestamps: Record<string, any> = {}
 
-  bonderTotalLiquidity: Record<string, BigNumber> = {
+  bonderTotalLiquidity: Record<string, bigint> = {
     USDC: parseUnits('2951000', 6),
     USDT: parseUnits('699805', 6),
     DAI: parseUnits('1500000', 18),
@@ -630,22 +630,22 @@ export class HealthCheckWatcher {
       }
       const chainAmounts: any = {}
       const totalLiquidity = this.bonderTotalLiquidity?.[token]
-      if (!totalLiquidity || totalLiquidity?.eq(0)) {
+      if (!totalLiquidity || totalLiquidity === 0n) {
         throw new Error('Expected totalLiquidity to be defined and non-zero')
       }
       const availableAmounts = tokenData.baseAvailableCredit
       for (const source in availableAmounts) {
         for (const dest in availableAmounts[source]) {
-          chainAmounts[dest] = BigNumber.from(availableAmounts[source][dest])
+          chainAmounts[dest] = BigInt(availableAmounts[source][dest])
         }
       }
-      let availableLiquidity: BigNumber = BigNumber.from(0)
+      let availableLiquidity: bigint = 0n
       for (const amount in chainAmounts) {
-        availableLiquidity = availableLiquidity.add(chainAmounts[amount])
+        availableLiquidity = availableLiquidity + BigInt(chainAmounts[amount])
       }
 
-      if (availableLiquidity.lt(0)) {
-        availableLiquidity = BigNumber.from(0)
+      if (availableLiquidity < 0n) {
+        availableLiquidity = 0n
       }
 
       const tokenDecimals = getTokenDecimals(token)!
@@ -653,9 +653,9 @@ export class HealthCheckWatcher {
       const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
       const oneToken = parseUnits('1', tokenDecimals)
       const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
-      const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
+      const thresholdAmount = totalLiquidity * thresholdPercent / oneToken
       const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
-      if (availableLiquidity.lt(thresholdAmount) && availableLiquidity.gt(0)) {
+      if (availableLiquidity < thresholdAmount && availableLiquidity > 0n) {
         result.push({
           bridge: token,
           availableLiquidity: availableLiquidity.toString(),

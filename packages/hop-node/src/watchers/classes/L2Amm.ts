@@ -1,9 +1,9 @@
 import ContractBase from './ContractBase'
-import { BigNumber } from 'ethers'
+
 import { TokenIndex } from 'src/constants'
 
 export default class L2Amm extends ContractBase {
-  calculateToHTokensAmount = async (amountIn: BigNumber): Promise<BigNumber> => {
+  calculateToHTokensAmount = async (amountIn: bigint): Promise<bigint> => {
     const hTokenAmount = await this.contract.calculateSwap(
       TokenIndex.CanonicalToken,
       TokenIndex.HopBridgeToken,
@@ -12,7 +12,7 @@ export default class L2Amm extends ContractBase {
     return hTokenAmount
   }
 
-  calculateFromHTokensAmount = async (amountIn: BigNumber): Promise<BigNumber> => {
+  calculateFromHTokensAmount = async (amountIn: bigint): Promise<bigint> => {
     const amountOut = await this.contract.calculateSwap(
       TokenIndex.HopBridgeToken,
       TokenIndex.CanonicalToken,
@@ -21,7 +21,7 @@ export default class L2Amm extends ContractBase {
     return amountOut
   }
 
-  swap = async (fromTokenIndex: number, toTokenIndex: number, amountIn: BigNumber, minAmountOut: BigNumber = BigNumber.from(0), deadline: BigNumber = this.defaultDeadline()): Promise<BigNumber> => {
+  swap = async (fromTokenIndex: number, toTokenIndex: number, amountIn: bigint, minAmountOut: bigint = 0n, deadline: bigint = this.defaultDeadline()): Promise<bigint> => {
     const txOverrides = await this.txOverrides()
     return this.contract.swap(
       fromTokenIndex,
@@ -34,6 +34,6 @@ export default class L2Amm extends ContractBase {
   }
 
   defaultDeadline () {
-    return BigNumber.from(Math.floor((Date.now() / 1000) + 300))
+    return BigInt(Math.floor((Date.now() / 1000) + 300))
   }
 }

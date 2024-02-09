@@ -8,7 +8,7 @@ import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import lineaAbi from './lineaAbi'
 import lineaErc20Abi from './lineaErc20Abi'
 import wethAbi from './wethAbi'
-import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
+import { Contract, Wallet, constants, providers, parseEther, parseUnits } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
 import { ChainSlug } from '@hop-protocol/core/config'
 import { CrossChainMessenger } from '@eth-optimism/sdk'
@@ -54,7 +54,7 @@ export class ArbBot {
   slippageTolerance: number = 5 // 5%
   pollIntervalMs: number = 60 * 1000
   ammDepositThresholdAmount: number = 10
-  amount: BigNumber = parseUnits('100', 18)
+  amount: bigint = parseUnits('100', 18)
   reorgConfirmationBlocks: number = 1
   l1ChainProvider: any
   l2ChainProvider: any
@@ -306,10 +306,10 @@ export class ArbBot {
 
   async checkAmmShouldWithdraw () {
     this.logger.log('checkAmmShouldWithdraw()')
-    const [canonicalTokenBalanceBn, hTokenBalanceBn] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
+    const [canonicalTokenBalanceBigint, hTokenBalanceBigint] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
 
-    const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBn)
-    const hTokenBalance = this.bridge.formatUnits(hTokenBalanceBn)
+    const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBigint)
+    const hTokenBalance = this.bridge.formatUnits(hTokenBalanceBigint)
 
     this.logger.log('canonicalTokenBalance:', canonicalTokenBalance)
     this.logger.log('hTokenBalance:', hTokenBalance)
@@ -582,7 +582,7 @@ export class ArbBot {
       amountOutMin,
       deadline,
       transferRootHash,
-      BigNumber.from(rootTotalAmount),
+      BigInt(rootTotalAmount),
       transferIndex,
       proof,
       numLeaves
@@ -774,7 +774,7 @@ export class ArbBot {
         amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
 
-      if (amount.lte(BigNumber.from(0))) {
+      if (amount.lte(0n)) {
         this.logger.log('not enough eth to send')
         return
       }
@@ -790,7 +790,7 @@ export class ArbBot {
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-    if (amount.lte(BigNumber.from(0))) {
+    if (amount.lte(0n)) {
       this.logger.log('not enough tokens to send')
       return
     }
@@ -828,7 +828,7 @@ export class ArbBot {
 
       this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-      if (amount.lte(BigNumber.from(0))) {
+      if (amount.lte(0n)) {
         this.logger.log('not enough eth to send')
         return
       }
@@ -850,7 +850,7 @@ export class ArbBot {
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-    if (amount.lte(BigNumber.from(0))) {
+    if (amount.lte(0n)) {
       this.logger.log('not enough tokens to send')
       return
     }
@@ -893,7 +893,7 @@ export class ArbBot {
 
   //     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-  //     if (amount.lte(BigNumber.from(0))) {
+  //     if (amount.lte(0n)) {
   //       this.logger.log('not enough eth to send')
   //       return
   //     }
@@ -916,7 +916,7 @@ export class ArbBot {
 
   //   this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-  //   if (amount.lte(BigNumber.from(0))) {
+  //   if (amount.lte(0n)) {
   //     this.logger.log('not enough tokens to send')
   //     return
   //   }
@@ -990,7 +990,7 @@ export class ArbBot {
     const recipient = await this.ammSigner.getAddress()
     const ethBalance = await this.l2ChainProvider.getBalance(recipient)
     if (amount.lte(ethBalance)) {
-      amount = ethBalance.sub(BigNumber.from(parseEther('1')))
+      amount = ethBalance.sub(BigInt(parseEther('1')))
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
@@ -1016,10 +1016,10 @@ export class ArbBot {
 
   async checkAmmShouldDeposit () {
     this.logger.log('checkAmmShouldDeposit()')
-    const [canonicalTokenBalanceBn, hTokenBalanceBn] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
+    const [canonicalTokenBalanceBigint, hTokenBalanceBigint] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
 
-    const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBn)
-    const hTokenBalance = this.bridge.formatUnits(hTokenBalanceBn)
+    const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBigint)
+    const hTokenBalance = this.bridge.formatUnits(hTokenBalanceBigint)
 
     this.logger.log('canonicalTokenBalance:', canonicalTokenBalance)
     this.logger.log('hTokenBalance:', hTokenBalance)
@@ -1142,9 +1142,9 @@ export class ArbBot {
     return arrived
   }
 
-  async getBumpedGasPrice (provider: providers.Provider, percent: number): Promise<BigNumber> {
-    const gasPrice = await provider.getGasPrice()
-    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  async getBumpedGasPrice (provider: providers.Provider, percent: number): Promise<bigint> {
+    const gasPrice: bigint = (await provider.getFeeData()).gasPrice
+    return gasPrice * BigInt(percent * 100) / 100n
   }
 
   getDeadline () {

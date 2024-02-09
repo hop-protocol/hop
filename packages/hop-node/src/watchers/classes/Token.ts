@@ -1,5 +1,5 @@
 import ContractBase from './ContractBase'
-import { BigNumber, constants, ethers, providers } from 'ethers'
+import { constants, ethers, providers } from 'ethers'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
@@ -14,7 +14,7 @@ export default class Token extends ContractBase {
     this.isEth = (this.tokenContract.address === constants.AddressZero)
   }
 
-  override getBalance = async (): Promise<BigNumber> => {
+  override getBalance = async (): Promise<bigint> => {
     const address = await this.tokenContract.signer.getAddress()
     if (!address) {
       throw new Error('expected signer address')
@@ -38,7 +38,7 @@ export default class Token extends ContractBase {
     return this._decimals
   }
 
-  getAllowance = async (spender: string): Promise<BigNumber> => {
+  getAllowance = async (spender: string): Promise<bigint> => {
     if (this.isEth) {
       return constants.MaxUint256
     }
@@ -49,7 +49,7 @@ export default class Token extends ContractBase {
 
   approve = async (
     spender: string,
-    amount: BigNumber = ethers.constants.MaxUint256
+    amount: bigint = ethers.constants.MaxUint256
   ): Promise<providers.TransactionResponse | undefined> => {
     if (this.isEth) {
       return
@@ -66,7 +66,7 @@ export default class Token extends ContractBase {
 
   transfer = async (
     recipient: string,
-    amount: BigNumber
+    amount: bigint
   ): Promise<providers.TransactionResponse> => {
     if (this.isEth) {
       const tx = {
@@ -83,7 +83,7 @@ export default class Token extends ContractBase {
     )
   }
 
-  async formatUnits (value: BigNumber) {
+  async formatUnits (value: bigint) {
     return Number(formatUnits(value.toString(), await this.decimals()))
   }
 

@@ -1,7 +1,7 @@
 import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
-import { BigNumber } from 'ethers'
+
 import {
   BondTransferRootChains,
   Chain,
@@ -48,7 +48,7 @@ interface BaseTransferRoot {
   settled?: boolean
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
-  totalAmount?: BigNumber
+  totalAmount?: bigint
   transferIds?: string[]
   transferRootHash?: string
   withdrawalBondSettleTxSentAt?: number
@@ -71,7 +71,7 @@ type GetItemsFilter = Partial<TransferRoot> & {
 type UnsettledTransferRoot = {
   transferRootId: string
   transferRootHash: string
-  totalAmount: BigNumber
+  totalAmount: bigint
   transferIds: string[]
   destinationChainId: number
   rootSetTxHash: string
@@ -90,7 +90,7 @@ type UnbondedTransferRoot = {
   commitTxBlockNumber: number
   destinationChainId: number
   sourceChainId: number
-  totalAmount: BigNumber
+  totalAmount: bigint
   transferIds: string[]
 }
 
@@ -99,7 +99,7 @@ export type ExitableTransferRoot = {
   confirmed: boolean
   transferRootHash: string
   transferRootId: string
-  totalAmount: BigNumber
+  totalAmount: bigint
   destinationChainId: number
   committed: boolean
   committedAt: number
@@ -114,7 +114,7 @@ export type TransferRootRelayProps = {
 export type RelayableTransferRoot = {
   transferRootId: string
   transferRootHash: string
-  totalAmount: BigNumber
+  totalAmount: bigint
   destinationChainId: number
   confirmTxHash?: string
   bondTxHash?: string
@@ -124,7 +124,7 @@ export type ChallengeableTransferRoot = {
   transferRootId: string
   transferRootHash: string
   committed: boolean
-  totalAmount: BigNumber
+  totalAmount: bigint
   bonded: boolean
   challenged: boolean
 }

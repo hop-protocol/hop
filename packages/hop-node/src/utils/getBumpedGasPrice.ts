@@ -1,8 +1,5 @@
-import getBumpedBN from './getBumpedBN'
-import { BigNumber } from 'ethers'
+import getBumpedBigint from './getBumpedBigint'
 
-const getBumpedGasPrice = (gasPrice: BigNumber, multiplier: number) => {
-  return getBumpedBN(gasPrice, multiplier)
+export default function getBumpedGasPrice (gasPrice: bigint, multiplier: number) {
+  return getBumpedBigint(gasPrice, multiplier)
 }
-
-export default getBumpedGasPrice

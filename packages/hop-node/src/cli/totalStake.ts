@@ -1,7 +1,7 @@
 import getStake from 'src/theGraph/getStake'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getUnstake from 'src/theGraph/getUnstake'
-import { BigNumber, utils } from 'ethers'
+import { utils } from 'ethers'
 import { Chain } from 'src/constants'
 import { actionHandler, parseString, root } from './shared'
 
@@ -23,7 +23,7 @@ async function main (source: any) {
 
   const chains = [Chain.Ethereum, Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea, Chain.PolygonZk]
   for (const chain of chains) {
-    let totalStake = BigNumber.from('0')
+    let totalStake = 0n
 
     const stakeRes = await getStake(chain, token, bonder)
     for (const stake of stakeRes) {
@@ -47,8 +47,8 @@ function getAdditionalAmounts (
   chain: string,
   token: string,
   bonder: string,
-  totalAmount: BigNumber
-): BigNumber {
+  totalAmount: bigint
+): bigint {
   // Stakes/Unstakes on OVM1
   if (
     chain === Chain.Optimism &&

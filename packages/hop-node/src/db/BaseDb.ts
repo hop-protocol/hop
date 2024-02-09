@@ -10,7 +10,6 @@ import { Migration } from 'src/db/migrations'
 import { config as globalConfig } from 'src/config'
 import { isEqual } from 'lodash'
 import { mkdirp } from 'mkdirp'
-import { normalizeDbValue } from './utils'
 const dbMap: { [key: string]: any } = {}
 
 export enum DbOperations {
@@ -179,7 +178,7 @@ abstract class BaseDb<T> extends EventEmitter {
   protected async get (key: string): Promise<T| null> {
     try {
       const value = await this.db.get(key)
-      return this.#normalizeValue(value)
+      return value
     } catch (err) {
       return null
     }
@@ -188,7 +187,7 @@ abstract class BaseDb<T> extends EventEmitter {
   protected async getMany (keys: string[]): Promise<T[]> {
     try {
       const values = await this.db.getMany(keys)
-      return values.filter(this.#normalizeValue)
+      return values
     } catch (err) {
       return []
     }
@@ -299,7 +298,6 @@ abstract class BaseDb<T> extends EventEmitter {
           continue
         }
 
-        filteredValue = this.#normalizeValue(filteredValue)
         items.push({
           [key]: filteredValue
         })
@@ -375,10 +373,6 @@ abstract class BaseDb<T> extends EventEmitter {
 
   protected filterExisty = (x: any) => {
     return x
-  }
-
-  #normalizeValue = (value: T): T => {
-    return normalizeDbValue(value)
   }
 
   #getDateFilter (dateFilterWithKeyPrefix: DateFilterWithKeyPrefix): DbKeyFilter {

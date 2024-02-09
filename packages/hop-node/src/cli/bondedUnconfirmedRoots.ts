@@ -2,14 +2,14 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import { BigNumber } from 'ethers'
+
 import { Chain, PreRegenesisRootsCommitted } from 'src/constants'
 import { DateTime } from 'luxon'
 import { actionHandler, parseString, root } from './shared'
 
 type RootCommitted = {
   rootHash: string
-  totalAmount: BigNumber
+  totalAmount: bigint
   destinationChainId: string
   rootCommittedAt: string
 }
@@ -40,7 +40,7 @@ export async function main (source: any) {
   const rootHashesBonded = rootsBonded.map((rootBonded: any) => rootBonded.root)
 
   const rootsToLog: RootCommitted[] = []
-  let bondedUnconfirmedRootAmount: BigNumber = BigNumber.from(0)
+  let bondedUnconfirmedRootAmount: bigint = 0n
   for (const rootCommitted of rootsCommitted) {
     const rootHash = rootCommitted.rootHash
     if (rootHashesConfirmed.includes(rootHash)) continue
@@ -78,7 +78,7 @@ async function getRootsCommitted (
   for (const res of commitsRes) {
     rootsCommitted.push({
       rootHash: res.rootHash,
-      totalAmount: BigNumber.from(res.totalAmount),
+      totalAmount: BigInt(res.totalAmount),
       destinationChainId: res.destinationChainId,
       rootCommittedAt: res.rootCommittedAt
     })
@@ -90,7 +90,7 @@ async function getRootsCommitted (
 
     rootsCommitted.push({
       rootHash: preRegenesisRootCommitted.rootHash,
-      totalAmount: BigNumber.from(preRegenesisRootCommitted.totalAmount),
+      totalAmount: BigInt(preRegenesisRootCommitted.totalAmount),
       destinationChainId: preRegenesisRootCommitted.destinationChainId,
       rootCommittedAt: preRegenesisRootCommitted.rootCommittedAt
     })

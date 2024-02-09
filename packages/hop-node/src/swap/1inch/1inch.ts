@@ -7,7 +7,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import serializeQueryParams from 'src/utils/serializeQueryParams'
 import wallets from 'src/wallets'
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { BigNumber } from 'ethers'
+
 import { Chain, nativeChainTokens } from 'src/constants'
 import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { SwapInput } from '../types'
@@ -299,7 +299,7 @@ export async function swap (input: SwapInput) {
   const allowance = await oneInch.getAllowance({ tokenAddress, walletAddress })
   logger.debug('allowance:', formatUnits(allowance, fromDecimals))
 
-  if (BigNumber.from(allowance).lt(amount)) {
+  if (BigInt(allowance) < BigInt(amount)) {
     const approveTxData = await oneInch.getApproveTx({ tokenAddress, amount })
 
     // RPC providers do not return a high enough Polygon gasPrice

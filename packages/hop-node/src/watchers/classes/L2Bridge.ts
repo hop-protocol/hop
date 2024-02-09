@@ -3,7 +3,7 @@ import L1Bridge from './L1Bridge'
 import L2Amm from './L2Amm'
 import L2AmmWrapper from './L2AmmWrapper'
 import Token from './Token'
-import { BigNumber, Contract, providers } from 'ethers'
+import { Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
@@ -144,7 +144,7 @@ export default class L2Bridge extends Bridge {
 
   sendHTokens = async (
     destinationChainId: number,
-    amount: BigNumber,
+    amount: bigint,
     recipient: string
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
@@ -177,7 +177,7 @@ export default class L2Bridge extends Bridge {
 
   sendCanonicalTokens = async (
     destinationChainId: number,
-    amount: BigNumber,
+    amount: bigint,
     recipient: string
   ): Promise<providers.TransactionResponse> => {
     return this.ammWrapper.swapAndSend(
@@ -228,7 +228,7 @@ export default class L2Bridge extends Bridge {
     }
   }
 
-  getPendingAmountForChainId = async (chainId: number): Promise<BigNumber> => {
+  getPendingAmountForChainId = async (chainId: number): Promise<bigint> => {
     const pendingAmount = await this.l2BridgeContract.pendingAmountForChainId(
       chainId
     )
@@ -305,11 +305,11 @@ export default class L2Bridge extends Bridge {
 
   bondWithdrawalAndAttemptSwap = async (
     recipient: string,
-    amount: BigNumber,
+    amount: bigint,
     transferNonce: string,
-    bonderFee: BigNumber,
-    amountOutMin: BigNumber,
-    deadline: BigNumber
+    bonderFee: bigint,
+    amountOutMin: bigint,
+    deadline: bigint
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
 
@@ -343,7 +343,7 @@ export default class L2Bridge extends Bridge {
     )
   }
 
-  async getOnChainMinBonderFeeAbsolute (): Promise<BigNumber> {
+  async getOnChainMinBonderFeeAbsolute (): Promise<bigint> {
     return this.l2BridgeContract.minBonderFeeAbsolute()
   }
 }

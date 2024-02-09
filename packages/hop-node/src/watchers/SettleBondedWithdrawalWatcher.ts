@@ -3,7 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import wallets from 'src/wallets'
-import { BigNumber, Contract, providers } from 'ethers'
+import { Contract, providers } from 'ethers'
 import { Chain, Token } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
@@ -154,7 +154,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     rootHash: string,
     bonder: string,
     transferIds: string[],
-    totalAmount: BigNumber
+    totalAmount: bigint
   ): Promise<providers.TransactionResponse[]> {
     // Remove this once the Polygon zkSync bridge is updated to use the new settleBondedWithdrawals function
 
@@ -166,7 +166,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       settlementAggregatorAbi
     } = this.#getExecutionSettlementConfig()
 
-    const destChainId: BigNumber = await destBridge.getChainId()
+    const destChainId: bigint = await destBridge.getChainId()
     if (!destChainId) {
       throw new Error('destChainId not found')
     }

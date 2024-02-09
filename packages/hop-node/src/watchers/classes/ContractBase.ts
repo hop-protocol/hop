@@ -2,7 +2,7 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
+import { BigNumberish, Contract, providers } from 'ethers'
 import {
   Chain,
   MinGnosisGasPrice,
@@ -157,18 +157,18 @@ export default class ContractBase extends EventEmitter {
 
   getBalance = async (
     address: string
-  ): Promise<BigNumber> => {
+  ): Promise<bigint> => {
     if (!address) {
       throw new Error('expected address')
     }
     return this.contract.provider.getBalance(address)
   }
 
-  protected getGasPrice = async (): Promise<BigNumber> => {
+  protected getGasPrice = async (): Promise<bigint> => {
     return this.contract.provider.getGasPrice()
   }
 
-  protected async getBumpedGasPrice (multiplier: number): Promise<BigNumber> {
+  protected async getBumpedGasPrice (multiplier: number): Promise<bigint> {
     const gasPrice = await this.getGasPrice()
     return getBumpedGasPrice(gasPrice, multiplier)
   }
@@ -181,8 +181,8 @@ export default class ContractBase extends EventEmitter {
       if (this.chainSlug === Chain.Polygon) {
         txOptions.gasPrice = await this.getBumpedGasPrice(1)
 
-        const gasPriceBn = BigNumber.from(txOptions.gasPrice)
-        if (gasPriceBn.lt(MinPolygonGasPrice)) {
+        const gasPriceBigint = BigInt(txOptions.gasPrice)
+        if (gasPriceBigint.lt(MinPolygonGasPrice)) {
           txOptions.gasPrice = MinPolygonGasPrice
         }
       } else if (this.chainSlug === Chain.Gnosis) {
@@ -191,8 +191,8 @@ export default class ContractBase extends EventEmitter {
         const multiplier = 3
         txOptions.gasPrice = await this.getBumpedGasPrice(multiplier)
 
-        const gasPriceBn = BigNumber.from(txOptions.gasPrice)
-        if (gasPriceBn.lt(MinGnosisGasPrice)) {
+        const gasPriceBigint = BigInt(txOptions.gasPrice)
+        if (gasPriceBigint.lt(MinGnosisGasPrice)) {
           txOptions.gasPrice = MinGnosisGasPrice
         }
       }

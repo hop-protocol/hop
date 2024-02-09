@@ -1,7 +1,7 @@
 import Metrics from 'src/watchers/classes/Metrics'
 import fs from 'fs'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
+import { BigNumberish } from 'ethers'
 import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { ConnectionInfo } from "@ethersproject/web"
 import { Deferrable } from '@ethersproject/properties'
@@ -77,12 +77,12 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
     return super.getBlockNumber()
   })
 
-  override getGasPrice = rateLimitRetry(async (): Promise<BigNumber> => {
+  override getGasPrice = rateLimitRetry(async (): Promise<bigint> => {
     return super.getGasPrice()
   })
 
   // Account
-  override getBalance = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber> => {
+  override getBalance = rateLimitRetry(async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<bigint> => {
     return super.getBalance(addressOrName, blockTag)
   })
 
@@ -107,7 +107,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
     return super.call(transaction, blockTag)
   })
 
-  override estimateGas = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>): Promise<BigNumber> => {
+  override estimateGas = rateLimitRetry(async (transaction: Deferrable<TransactionRequest>): Promise<bigint> => {
     return super.estimateGas(transaction)
   })
 

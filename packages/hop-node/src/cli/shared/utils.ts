@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers'
+
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 
@@ -9,11 +9,11 @@ export async function getHistoricalUnrelayedL1ToL2Transfers (
   token: string,
   chain: string,
   endTimestamp: number
-): Promise<BigNumber> {
+): Promise<bigint> {
   // It is not possible to get Optimism pre-regenesis data from TheGraph. However, there are no unrelayed messages
   // from pre-regenesis, so we can return 0
   if (chain === Chain.Optimism) {
-    return BigNumber.from('0')
+    return 0n
   }
 
   const startTimestamp = 0
@@ -33,7 +33,7 @@ export async function getRecentUnrelayedL1ToL2Transfers (
   chain: string,
   l1EndTimestamp: number,
   l2EndTimestamp: number
-): Promise<BigNumber> {
+): Promise<bigint> {
   const now = DateTime.now().toUTC()
   const startTimestamp = now.minus({ minutes: 30 })
   const startTimestampSeconds = Math.floor(startTimestamp.toSeconds())
@@ -48,11 +48,11 @@ async function getUnrelayedL1ToL2Transfers (
   chain: string,
   l1ToL2TransfersSent: any,
   l1ToL2TransfersReceived: any
-): Promise<BigNumber> {
+): Promise<bigint> {
   // Track the index of transfers we've seen. There may be transfers that have identical fields, but different indexes
   // since the indexes are not relevant to on-chain data
   const seenIndexes: number[] = []
-  let inFlightL1ToL2Transfers: BigNumber = BigNumber.from('0')
+  let inFlightL1ToL2Transfers: bigint = 0n
   for (const l1ToL2TransferSent of l1ToL2TransfersSent) {
     if (l1ToL2TransferSent.destinationChain !== chain) continue
 

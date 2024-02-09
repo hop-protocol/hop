@@ -6,7 +6,7 @@ import contracts from 'src/contracts'
 import getChainBridge from 'src/chains/getChainBridge'
 import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber } from 'ethers'
+
 import { Chain, ChallengePeriodMs } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { IChainBridge } from 'src/chains/IChainBridge'
@@ -26,7 +26,7 @@ type Config = {
 export type ConfirmRootsData = {
   rootHashes: string[]
   destinationChainIds: number[]
-  totalAmounts: BigNumber[]
+  totalAmounts: bigint[]
   rootCommittedAts: number[]
 }
 

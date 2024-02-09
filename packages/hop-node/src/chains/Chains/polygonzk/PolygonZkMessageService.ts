@@ -146,7 +146,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
       isRelayed = await this.#isMessageRelayed(messageStatus, messageDirection)
       console.log('debug222', messageStatus, messageDirection, isRelayed)
     } catch (err) {
-      console.log('debug333', messageStatus, messageDirection)
+      console.log('debug333', messageStatus, messageDirection, err)
       return true
     }
 

@@ -833,7 +833,7 @@ export default class Bridge extends ContractBase {
     // DAI into Gnosis can be bonded for a cheaper fee
     if (
       destinationChain === Chain.Gnosis &&
-      (tokenSymbol === Token.DAI || tokenSymbol === Token.MATIC)
+      tokenSymbol === Token.DAI
     ) {
       return BigNumber.from(0)
     }

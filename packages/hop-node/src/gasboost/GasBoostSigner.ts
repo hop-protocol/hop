@@ -7,12 +7,12 @@ import wait from 'src/utils/wait'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
-import { Signer, Provider, TransactionRequest, TransactionResponse } from 'ethers'
+import { AbstractSigner, Provider, TransactionRequest, TransactionResponse } from 'ethers'
 import { defineReadOnly } from 'ethers'
 import { hostname, setLatestNonceOnStart } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
-class GasBoostSigner extends Signer {
+class GasBoostSigner extends AbstractSigner {
   store: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0

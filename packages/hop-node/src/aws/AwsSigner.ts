@@ -1,5 +1,5 @@
 import {
-  Signer,
+  AbstractSigner,
   TransactionRequest,
   Provider,
   getAddress as checksumAddress,
@@ -42,7 +42,7 @@ export type AwsSignerConfig = {
 // https://ethereum.stackexchange.com/a/73371/5093
 // https://luhenning.medium.com/the-dark-side-of-the-elliptic-curve-signing-ethereum-transactions-with-aws-kms-in-javascript-83610d9a6f81
 // https://github.com/lucashenning/aws-kms-ethereum-signing/blob/master/aws-kms-sign.ts
-export abstract class AwsSigner extends Signer {
+export abstract class AwsSigner extends AbstractSigner {
   config: AwsSignerConfig
   address: string
   abstract override getAddress (): Promise<string>

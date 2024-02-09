@@ -228,7 +228,7 @@ class GasBoostTransaction extends EventEmitter implements TransactionResponse {
       !tx.gasPrice &&
       tx.maxFeePerGas &&
       tx.maxPriorityFeePerGas &&
-      (tx.maxFeePerGas as bigint) === tx.maxPriorityFeePerGas)
+      (tx.maxFeePerGas as bigint) === tx.maxPriorityFeePerGas
     )
     if (shouldUseGasPrice) {
       this.type = undefined

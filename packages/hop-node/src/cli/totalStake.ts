@@ -68,7 +68,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('49', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   // 0x80bd71cc257e2c489253cbbf774278f8c3e244b2158dfdc16a6a64e314c2702b
@@ -79,7 +79,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('740', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   // 0xf587c7942fb63b324bd15e502bed151eebde7175c652e6c7f9e5817d31a14b13
@@ -90,7 +90,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('5020', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   // 0xd93d0740f2c065b245c2649476cc39360184b23abc7a4fc4ad91c1ed89e62b91
@@ -134,7 +134,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('0.000001', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   // 0xa12289b29351902458d8565386694ea645ba093dbde45ded9c3f3456b3c709e7
@@ -145,7 +145,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('1', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   // 0xac40d22c4f2e89fd7aca0bdae883f06bd28d618c6dfcfa6286243a37d2652a7d
@@ -156,7 +156,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('1.5', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   // 0xe324e70b078429f49a2ff2a7e9f9a5373e97ad8c41819c9eeac5c04f39d97b95
@@ -167,7 +167,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('1', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   // 0xb706d977d0aaacf0f6c9346816f757d56b43d8a2a3dce5058ba7c6746a7951e8
@@ -178,7 +178,7 @@ function getAdditionalAmounts (
   ) {
     const decimals = getTokenDecimals(token)
     const amount = utils.parseUnits('45', decimals)
-    totalAmount += 
+    totalAmount += amount
   }
 
   return totalAmount

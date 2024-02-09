@@ -83,7 +83,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
     // l1BatchNumbers uniqueness is enforced onchain, so we know that the first event with the
     // correct l1BatchNumber is the correct event.
     for (const event of sequencerBatchDeliveredEvents) {
-      if (event.args.batchSequenceNumber.eq(l1BatchNumber)) {
+      if (event.args.batchSequenceNumber === BigInt(l1BatchNumber)) {
         return this.l1Provider.getTransactionReceipt(event.transactionHash)
       }
     }

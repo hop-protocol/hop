@@ -70,8 +70,8 @@ export async function main (source: any) {
     const totalAmount = transferRootToChain.totalAmount
     const txOptions = blockTag ? { blockTag } : {}
     const transferRoot = await contract.getTransferRoot(rootHash, totalAmount, txOptions)
-    const amountUnwithdrawn = transferRoot.total.sub(transferRoot.amountWithdrawn)
-    amountUnwithdrawnTotal = amountUnwithdrawnTotal.add(amountUnwithdrawn)
+    const amountUnwithdrawn = transferRoot.total - transferRoot.amountWithdrawn
+    amountUnwithdrawnTotal = amountUnwithdrawnTotal + amountUnwithdrawn
   }
 
   return amountUnwithdrawnTotal

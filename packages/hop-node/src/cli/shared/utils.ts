@@ -77,7 +77,7 @@ async function getUnrelayedL1ToL2Transfers (
 
     if (isSeen) continue
 
-    inFlightL1ToL2Transfers = inFlightL1ToL2Transfers.add(l1ToL2TransferSent.amount)
+    inFlightL1ToL2Transfers = inFlightL1ToL2Transfers + l1ToL2TransferSent.amount
   }
 
   return inFlightL1ToL2Transfers

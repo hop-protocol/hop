@@ -46,7 +46,7 @@ export async function main (source: any) {
     if (rootHashesConfirmed.includes(rootHash)) continue
     if (!rootHashesBonded.includes(rootHash)) continue
 
-    bondedUnconfirmedRootAmount = bondedUnconfirmedRootAmount.add(rootCommitted.totalAmount)
+    bondedUnconfirmedRootAmount = bondedUnconfirmedRootAmount + rootCommitted.totalAmount
     rootsToLog.push(rootCommitted)
   }
 

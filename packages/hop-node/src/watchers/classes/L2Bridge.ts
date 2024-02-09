@@ -160,7 +160,7 @@ export default class L2Bridge extends Bridge {
     const isHTokenSend = true
     const { totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain, isHTokenSend)
 
-    if (totalFee.gt(amount)) {
+    if (totalFee > amount) {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
     }
 

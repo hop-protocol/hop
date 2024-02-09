@@ -328,15 +328,15 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     const sourceL2Bridge = this.getSiblingWatcherByChainSlug(sourceChain).bridge as L2Bridge
     const onChainBonderFeeAbsolute = await sourceL2Bridge.getOnChainMinBonderFeeAbsolute()
 
-    minBonderFeeAbsolute = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
+    minBonderFeeAbsolute = onChainBonderFeeAbsolute > minBonderFeeAbsolute ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
 
     const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount, minBonderFeeAbsolute)
-    const minBonderFeeTotal = minBpsFee.add(minTxFee)
+    const minBonderFeeTotal = minBpsFee + minTxFee
       if (!bonderFee) {
         throw new Error('expected relayerFee')
       }
-    const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
+    const isBonderFeeOk = bonderFee >= minBonderFeeTotal
     logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
     this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
@@ -363,7 +363,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     logger.debug(`dest: ${destinationChain}, bonder fee overage (without buffer): ${this.bridge.formatEth(bonderFeeOverageWithoutBuffer)}`)
 
     const expectedMinBonderFeeOverage = precision
-    if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
+    if (bonderFeeOverage < expectedMinBonderFeeOverage) {
       const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, token: ${this.bridge.tokenSymbol}, sourceChain: ${this.bridge.chainSlug}, destinationChain: ${destinationChain}, transferId: ${transferId}`
       logger.warn(msg)
     }

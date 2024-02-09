@@ -62,7 +62,7 @@ async function sendNativeToken (
   const wallet = wallets.get(chain)
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
-  if (balance.lt(parsedAmount)) {
+  if (balance < parsedAmount) {
     throw new Error('not enough token balance to send')
   }
 
@@ -133,7 +133,7 @@ async function transferTokens (
     parsedAmount = await instance.parseUnits(amount)
   }
 
-  if (balance.lt(parsedAmount)) {
+  if (balance < parsedAmount) {
     throw new Error('not enough token balance to send')
   }
 
@@ -199,7 +199,7 @@ async function sendTokens (
   } else {
     parsedAmount = bridge.parseUnits(amount)
   }
-  if (balance.lt(parsedAmount)) {
+  if (balance < parsedAmount) {
     throw new Error('not enough token balance to send')
   }
 

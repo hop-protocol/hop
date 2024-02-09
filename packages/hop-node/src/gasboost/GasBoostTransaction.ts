@@ -228,7 +228,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       !tx.gasPrice &&
       tx.maxFeePerGas &&
       tx.maxPriorityFeePerGas &&
-      (tx.maxFeePerGas as bigint).eq(tx.maxPriorityFeePerGas)
+      (tx.maxFeePerGas as bigint) === tx.maxPriorityFeePerGas)
     )
     if (shouldUseGasPrice) {
       this.type = undefined
@@ -510,11 +510,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         this.getBumpedMaxPriorityFeePerGas(multiplier),
         this.getCurrentBaseFeePerGas()
       ])
-      maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
+      maxFeePerGas = maxFeePerGas + maxPriorityFeePerGas
 
       const maxGasPrice = this.getMaxGasPrice()
-      if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
-        maxFeePerGas = currentBaseFeePerGas.mul(2)
+      if (currentBaseFeePerGas && maxFeePerGas <= currentBaseFeePerGas) {
+        maxFeePerGas = currentBaseFeePerGas * 2n
       }
       maxFeePerGas = bigintMin(maxFeePerGas, maxGasPrice)
 
@@ -736,9 +736,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
 
     // don't boost if suggested gas is over max
-    const isGasPriceMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice)
-    const isMaxFeePerGasReached = gasFeeData.maxFeePerGas?.gt(maxGasPrice)
-    const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
+    const isGasPriceMaxReached = gasFeeData.gasPrice ? gasFeeData.gasPrice > maxGasPrice : undefined
+    const isMaxFeePerGasReached = gasFeeData.maxFeePerGas ? gasFeeData.maxFeePerGas > maxGasPrice : undefined
+    const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas ? gasFeeData.maxPriorityFeePerGas > priorityFeePerGasCap : undefined
     let isMaxReached = isGasPriceMaxReached ?? isMaxFeePerGasReached
     this.logger.debug(`isGasPriceMaxReached: ${isGasPriceMaxReached}, isMaxFeePerGasReached: ${isMaxFeePerGasReached}, isMaxPriorityFeePerGasReached: ${isMaxPriorityFeePerGasReached}`)
 
@@ -751,7 +751,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
       // if last used maxPriorityFeePerGas already equals max allowed then
       // it cannot be boosted
-      if (gasFeeData.maxPriorityFeePerGas?.eq(this.maxPriorityFeePerGas)) {
+      if (
+        gasFeeData.maxPriorityFeePerGas &&
+        gasFeeData.maxPriorityFeePerGas === this.maxPriorityFeePerGas
+      ) {
         isMaxReached = true
       }
     }
@@ -890,17 +893,17 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     console.timeEnd(_timeId2)
 
     const gasPrice = gasFeeData.gasPrice ?? gasFeeData.maxFeePerGas
-    const gasCost = gasLimit.mul(gasPrice!)
+    const gasCost = gasLimit * gasPrice!
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
     const formattedGasCost = formatUnits(gasCost, 18)
     const formattedEthBalance = formatUnits(ethBalance, 18)
-    if (ethBalance.lt(gasCost)) {
+    if (ethBalance < gasCost) {
       const errMsg = `insufficient ETH funds to cover gas cost. Need ${formattedGasCost}, have ${formattedEthBalance}`
       this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
       this.logger.error(errMsg)
       throw new Error(errMsg)
     }
-    if (ethBalance.lt(warnEthBalance)) {
+    if (ethBalance < warnEthBalance) {
       const warnMsg = `ETH balance is running low. Have ${formattedEthBalance}`
       this.logger.warn(warnMsg)
       this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })

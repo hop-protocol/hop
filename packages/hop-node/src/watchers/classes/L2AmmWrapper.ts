@@ -56,7 +56,7 @@ export default class L2AmmWrapper extends ContractBase {
       destinationAmountOutMin = 0n
     }
 
-    if (totalFee.gt(amount)) {
+    if (totalFee > amount) {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(totalFee, tokenDecimals)}`)
     }
 

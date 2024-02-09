@@ -361,7 +361,7 @@ export default class L1Bridge extends Bridge {
   private isValidRelayerAndRelayerFee (relayer: string, relayerFee: bigint): boolean {
     return (
       relayer !== constants.AddressZero ||
-      relayerFee.eq(0)
+      relayerFee === 0n
     )
   }
 }

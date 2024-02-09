@@ -76,7 +76,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
       const bondChainId = chainSlugToId(Chain.Ethereum)
       const availableCredit = this.getAvailableCreditForBond(bondChainId)
-      const notEnoughCredit = availableCredit.lt(totalAmount)
+      const notEnoughCredit = availableCredit < totalAmount
       if (notEnoughCredit) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
@@ -156,7 +156,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const bondChainId = chainSlugToId(Chain.Ethereum)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     const availableCredit = this.getAvailableCreditForBond(bondChainId)
-    const notEnoughCredit = availableCredit.lt(bondAmount)
+    const notEnoughCredit = availableCredit < bondAmount
     if (notEnoughCredit) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
           availableCredit

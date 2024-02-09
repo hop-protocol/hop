@@ -105,11 +105,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const isToL1 = destinationChain === Chain.Ethereum
     if (isToL1) {
       const pendingAmount = await this.getOruToL1PendingAmount()
-      availableCredit = availableCredit.sub(pendingAmount)
+      availableCredit = availableCredit - pendingAmount
       this.logger.debug(`calculateAvailableCredit: availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, pendingAmount: ${pendingAmount.toString()}`)
 
       const unbondedTransferRootAmounts = await this.getOruToAllUnbondedTransferRootAmounts()
-      availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
+      availableCredit = availableCredit - unbondedTransferRootAmounts
       this.logger.debug(`calculateAvailableCredit: availableCredit; bonder: ${bonder}, chain: ${destinationChain}, l1Values pendingAmount: ${pendingAmount.toString()}, availableCredit: ${availableCredit.toString()}, unbondedTransferRootAmounts: ${unbondedTransferRootAmounts.toString()}`)
     }
 
@@ -122,11 +122,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       }
     }
 
-    if (availableCredit.lt(0)) {
+    if (availableCredit < 0n) {
       availableCredit = 0n
     }
 
-    if (baseAvailableCredit.lt(0)) {
+    if (baseAvailableCredit < 0n) {
       baseAvailableCredit = 0n
     }
 
@@ -166,7 +166,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         continue
       }
 
-      totalAmount = totalAmount.add(transferRoot.totalAmount)
+      totalAmount = totalAmount + transferRoot.totalAmount
     }
 
     return totalAmount
@@ -281,7 +281,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
       const destinationChainId = this.chainSlugToId(Chain.Ethereum)
       const pendingAmount = await watcher.calculatePendingAmount(destinationChainId)
-      pendingAmounts = pendingAmounts.add(pendingAmount)
+      pendingAmounts = pendingAmounts + pendingAmount
     }
 
     return pendingAmounts
@@ -297,7 +297,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         }
       }
       const amount = this.unbondedTransferRootAmounts[destinationChain]
-      totalAmount = totalAmount.add(amount)
+      totalAmount = totalAmount + amount
     }
     return totalAmount
   }

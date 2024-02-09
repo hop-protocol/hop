@@ -55,7 +55,7 @@ export default class Token extends ContractBase {
       return
     }
     const allowance = await this.getAllowance(spender)
-    if (allowance.lt(amount)) {
+    if (allowance < amount) {
       return this.tokenContract.approve(
         spender,
         amount,

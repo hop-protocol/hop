@@ -68,7 +68,7 @@ async function main (source: any) {
       // If the bonder does not have funds on the chain, skip
       const balance = await provider.getBalance(address)
       const minBalance = parseEther('0.003')
-      if (balance.lte(minBalance)) {
+      if (balance <= minBalance) {
         console.log(`Skipping ${chain} because ${address} has too few funds (${formatEther(balance)} ETH)`)
         continue
       }

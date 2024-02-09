@@ -578,7 +578,7 @@ export class HealthCheckWatcher {
       ])
 
       const excludedChains = this.chainsIgnoredByBonder[bonder]
-      if (ethBalance.lt(this.lowBalanceThresholds.ETH) && excludedChains && !excludedChains.includes(Chain.Ethereum)) {
+      if (ethBalance < this.lowBalanceThresholds.ETH && excludedChains && !excludedChains.includes(Chain.Ethereum)) {
         result.push({
           bonder,
           bridge,
@@ -589,7 +589,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI) && excludedChains && !excludedChains.includes(Chain.Gnosis)) {
+      if (xdaiBalance < this.lowBalanceThresholds.XDAI && excludedChains && !excludedChains.includes(Chain.Gnosis)) {
         result.push({
           bonder,
           bridge,
@@ -600,7 +600,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (maticBalance.lt(this.lowBalanceThresholds.MATIC) && excludedChains && !excludedChains.includes(Chain.Polygon)) {
+      if (maticBalance < this.lowBalanceThresholds.MATIC && excludedChains && !excludedChains.includes(Chain.Polygon)) {
         result.push({
           bonder,
           bridge,
@@ -1151,7 +1151,7 @@ export class HealthCheckWatcher {
     //     chainBalanceHTokenDiff
     //   } = await verifyChainBalance({ token, allowRoundingError: true })
 
-    //   if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
+    //   if (tokenChainBalanceDiff === 0n && chainBalanceHTokenDiff === 0n) {
     //     continue
     //   }
 

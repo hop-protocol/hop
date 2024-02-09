@@ -182,7 +182,7 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasPrice = await this.getBumpedGasPrice(1)
 
         const gasPriceBigint = BigInt(txOptions.gasPrice)
-        if (gasPriceBigint.lt(MinPolygonGasPrice)) {
+        if (gasPriceBigint < MinPolygonGasPrice) {
           txOptions.gasPrice = MinPolygonGasPrice
         }
       } else if (this.chainSlug === Chain.Gnosis) {
@@ -192,7 +192,7 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasPrice = await this.getBumpedGasPrice(multiplier)
 
         const gasPriceBigint = BigInt(txOptions.gasPrice)
-        if (gasPriceBigint.lt(MinGnosisGasPrice)) {
+        if (gasPriceBigint < MinGnosisGasPrice) {
           txOptions.gasPrice = MinGnosisGasPrice
         }
       }

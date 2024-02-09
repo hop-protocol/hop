@@ -124,7 +124,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-      const notEnoughCredit = availableCredit.lt(amount)
+      const notEnoughCredit = availableCredit < amount
       const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
       if (isUnbondable) {
         logger.warn(
@@ -203,7 +203,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-    const notEnoughCredit = availableCredit.lt(amount)
+    const notEnoughCredit = availableCredit < amount
     logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit.toString()}`)
     if (notEnoughCredit) {
       logger.warn(
@@ -406,7 +406,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     // Redundantly verify that both amountOutMin and deadline are 0
-    if (!(amountOutMin.eq(0) && deadline.eq(0))) {
+    if (
+      amountOutMin !== 0n ||
+      deadline !== 0n
+    ) {
       throw new Error('sendBondWithdrawalTx: amountOutMin and deadline must be 0 when calling bondWithdrawal')
     }
     logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
@@ -446,8 +449,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const decimals = getTokenDecimals(this.tokenSymbol)
     const inFlightAmount: bigint = await this.getInFlightAmount(dbTransfers)
     const bonderRiskAmount: bigint = this.getBonderRiskAmount()
-    const amountWithinThreshold: bigint = bonderRiskAmount.sub(inFlightAmount)
-    if (amountWithinThreshold.lt(0)) {
+    const amountWithinThreshold: bigint = bonderRiskAmount - inFlightAmount
+    if (amountWithinThreshold < 0n) {
       this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${formatUnits(inFlightAmount, decimals)})`)
       return finalizedTransfers
     }
@@ -475,7 +478,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       // Is there enough overall credit to bond
-      const enoughCredit = availableLiquidityPerChain[destinationChainId].gte(amount)
+      const enoughCredit = availableLiquidityPerChain[destinationChainId] >= amount
       if (!enoughCredit) {
         logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${formatUnits(amount, decimals)}`)
         continue
@@ -489,15 +492,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       // If the transfer has not been finalized, is it within the bond threshold
-      const isWithinBondThreshold = amount.lte(remainingAmountWithinThreshold)
+      const isWithinBondThreshold = amount <= remainingAmountWithinThreshold
       if (!isWithinBondThreshold) {
         logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${formatUnits(amount, decimals)}, remainingAmountWithinThreshold:, ${formatUnits(remainingAmountWithinThreshold, decimals)}`)
         continue
       } else {
-        remainingAmountWithinThreshold = remainingAmountWithinThreshold.sub(amount)
+        remainingAmountWithinThreshold = remainingAmountWithinThreshold - amount
       }
 
-      availableLiquidityPerChain[destinationChainId] = availableLiquidityPerChain[destinationChainId].sub(amount)
+      availableLiquidityPerChain[destinationChainId] = availableLiquidityPerChain[destinationChainId] - amount
       transfersWithinThreshold.push(unfinalizedTransfer)
     }
 

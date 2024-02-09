@@ -156,7 +156,7 @@ export default class Bridge extends ContractBase {
       this.getCredit(bonder),
       this.getDebit(bonder)
     ])
-    return credit.sub(debit)
+    return credit - debit
   }
 
   getAddress (): string {
@@ -792,7 +792,7 @@ export default class Bridge extends ContractBase {
     // Do not check if the asset uses an AMM. This function only cares about the amountOutMin and deadline
     // so that it knows what function to call on-chain. This function is unconcerned with wether or not
     // an asset uses an AMM, since a non-AMM asset can still provide amountOutMin and deadline values.
-    return amountOutMin?.gt(0) || deadline?.gt(0)
+    return amountOutMin > 0n || deadline > 0n
   }
 
   private readonly validateEventsBatchInput = (
@@ -861,7 +861,7 @@ export default class Bridge extends ContractBase {
     amountIn: bigint,
     minBonderFeeAbsolute: bigint
   ) {
-    if (amountIn.lte(0)) {
+    if (amountIn <= 0) {
       return 0n
     }
     const fees = globalConfig?.fees?.[this.tokenSymbol]
@@ -902,9 +902,9 @@ export default class Bridge extends ContractBase {
     } else {
       // Include the cost to settle an individual transfer
       const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
-      const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)
+      const gasLimitWithSettlement = gasLimit + BigInt(settlementGasLimitPerTx)
 
-      gasCost = gasLimitWithSettlement.mul(gasPrice)
+      gasCost = gasLimitWithSettlement * gasPrice
     }
 
     if (
@@ -923,7 +923,7 @@ export default class Bridge extends ContractBase {
           type: txType
         }
         const l1FeeInWei = await estimateL1GasCost(getRpcProvider(this.chainSlug), tx)
-        gasCost = gasCost.add(l1FeeInWei)
+        gasCost = gasCost + l1FeeInWei
       } catch (err) {
         console.error(err)
       }

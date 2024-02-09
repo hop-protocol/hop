@@ -1,6 +1,6 @@
 import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService'
 import { AvgBlockTimeSeconds, Chain } from 'src/constants'
-import { BlockWithTransactions } from '@ethersproject/abstract-provider'
+import { BlockWithTransactions } from 'ethers'
 import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { providers } from 'ethers'
 

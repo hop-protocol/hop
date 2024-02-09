@@ -341,7 +341,7 @@ class IncompleteSettlementsWatcher {
         this.rootHashSettledTotalAmounts[rootHash] = 0n
       }
       for (const { amount } of this.rootHashSettlements[rootHash]) {
-        this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
+        this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash] + amount
       }
     }
 
@@ -358,7 +358,7 @@ class IncompleteSettlementsWatcher {
       if (!this.rootHashSettledTotalAmounts[rootHash]) {
         this.rootHashSettledTotalAmounts[rootHash] = 0n
       }
-      this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
+      this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash] + amount
     }
 
     this.logger.debug('summing withdrawalBondSettled events')
@@ -368,7 +368,7 @@ class IncompleteSettlementsWatcher {
       // TODO: get transfer sent amount
       const amount = 0n
       const rootHash = this.transferIdRootHashes[transferId]
-      this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
+      this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash] + amount
     }
 
     let incompletes: any[] = []
@@ -394,9 +394,9 @@ class IncompleteSettlementsWatcher {
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
       const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
-      const diff = totalAmount.sub(settledTotalAmount).toString()
+      const diff = (totalAmount - settledTotalAmount).toString()
       const diffFormatted = Number(formatUnits(diff, tokenDecimals))
-      const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
+      const isIncomplete = diffFormatted > 0 && (settledTotalAmount === 0n || settledTotalAmount !== totalAmount)
       let unsettledTransfers: any[] = []
       let unsettledTransferBonders: string[] = []
       const rootId = getTransferRootId(rootHash, totalAmount)
@@ -503,7 +503,7 @@ class IncompleteSettlementsWatcher {
 
       const bonder = bondWithdrawalEvent.from
       const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
-      if (bondedWithdrawalAmount.gt(0)) {
+      if (bondedWithdrawalAmount > 0n) {
         const amount = bondedWithdrawalAmount.toString()
         const amountFormatted = Number(formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({

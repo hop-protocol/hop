@@ -91,7 +91,7 @@ async function stake (
   const token: Token | void = await getToken(bridge)
   const stakeTokenBalance: bigint = await getTokenBalance(bridge, token)
   const formattedAmount = bridge.formatUnits(parsedAmount)
-  if (stakeTokenBalance.lt(parsedAmount)) {
+  if (stakeTokenBalance < parsedAmount) {
     throw new Error(
       `not enough hToken balance to stake. Have ${bridge.formatUnits(
         stakeTokenBalance
@@ -134,7 +134,7 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: bigint) {
       if (recipient !== bonderAddress) {
         continue
       }
-      if (!amount.eq(convertAmount)) {
+      if (BigInt(amount.toString()) !== convertAmount) {
         continue
       }
       return true

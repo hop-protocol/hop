@@ -178,23 +178,23 @@ export async function main (source: any) {
     adjustedChainBalances[chain] = getAdjustedChainBalance(chainBalanceAdjustments[i])
     adjustedHTokens[chain] = getAdjustedHToken(hTokenAdjustments[i])
 
-    totalAdjustedChainBalance = totalAdjustedChainBalance.add(adjustedChainBalances[chain])
-    totalAdjustedHToken = totalAdjustedHToken.add(adjustedHTokens[chain])
+    totalAdjustedChainBalance = totalAdjustedChainBalance + adjustedChainBalances[chain]
+    totalAdjustedHToken = totalAdjustedHToken + adjustedHTokens[chain]
   }
 
-  const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
-  let chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  const tokenChainBalanceDiff = adjustedToken - totalAdjustedChainBalance
+  let chainBalanceHTokenDiff = totalAdjustedChainBalance - totalAdjustedHToken
 
   if (allowRoundingError) {
     const decimals: number = getTokenDecimals(token)
-    const roundingError = ethersUtils.parseUnits('0.0001', decimals).mul(-1)
-    if (chainBalanceHTokenDiff.isNegative() && chainBalanceHTokenDiff.gte(roundingError)) {
+    const roundingError = ethersUtils.parseUnits('0.0001', decimals) * -1n
+    if (chainBalanceHTokenDiff < 0n && chainBalanceHTokenDiff >= roundingError) {
       chainBalanceHTokenDiff = 0n
     }
   }
 
   // Log data if explicitly requested or if there is a discrepancy
-  const isOutputExpected = tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)
+  const isOutputExpected = tokenChainBalanceDiff === 0n && chainBalanceHTokenDiff === 0n
   if (!isOutputExpected || logOutput) {
     if (!isOutputExpected) {
       console.log(`Unexpected output for token ${token}`)
@@ -256,10 +256,10 @@ function getAdjustedToken (tokenAdjustments: TokenAdjustmentData) {
   } = tokenAdjustments
 
   return l1TokensInContract
-    .sub(l1Stake)
-    .sub(l1TokensSentDirectlyToBridge)
-    .sub(l1TransfersUnwithdrawn)
-    .add(l1RootsInvalid)
+    - l1Stake
+    - l1TokensSentDirectlyToBridge
+    - l1TransfersUnwithdrawn
+    + l1RootsInvalid
 }
 
 function getAdjustedChainBalance (chainBalanceAdjustments: ChainBalanceAdjustmentData) {
@@ -268,7 +268,7 @@ function getAdjustedChainBalance (chainBalanceAdjustments: ChainBalanceAdjustmen
     rootsBondedNotConfirmed
   } = chainBalanceAdjustments
 
-  return chainBalance.sub(rootsBondedNotConfirmed)
+  return chainBalance - rootsBondedNotConfirmed
 }
 
 function getAdjustedHToken (hTokenAdjustments: HTokenAdjustmentData) {
@@ -283,12 +283,12 @@ function getAdjustedHToken (hTokenAdjustments: HTokenAdjustmentData) {
   } = hTokenAdjustments
 
   return hTokenTotalSupply
-    .add(l2Stake)
-    .add(l2TransfersUnwithdrawn)
-    .add(l2TransfersPendingOutbound)
-    .add(l2TransfersInFlightFromL1ToL2)
-    .add(l2RootsInFlightOutbound)
-    .add(l2RootsInFlightInbound)
+    + l2Stake
+    + l2TransfersUnwithdrawn
+    + l2TransfersPendingOutbound
+    + l2TransfersInFlightFromL1ToL2
+    + l2RootsInFlightOutbound
+    + l2RootsInFlightInbound
 }
 
 async function getTokenAdjustments (
@@ -326,7 +326,7 @@ async function getTokenAdjustments (
     endTimestamp: blockTimestamp
   })
   const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token]?.[Chain.Ethereum] ?? '0'
-  const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive)
+  const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew + l1UnwithdrawnTransfersArchive
 
   // Invalid roots
   const l1RootsInvalidArchive = ChainBalanceArchiveData.L1InvalidRoot?.[token] ?? '0'
@@ -400,7 +400,7 @@ async function getHTokenAdjustments (
     blockTag
   })
   const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers?.[token]?.[chain] ?? '0'
-  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive)
+  const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew + l2UnwithdrawnTransfersArchive
 
   // Pending outgoing tokens
   let l2TransfersPendingOutbound: bigint = 0n
@@ -410,7 +410,7 @@ async function getHTokenAdjustments (
 
     const destinationChainId = chainSlugToId(supportedChain)
     const pendingAmountForL2ChainId = await l2Bridge.pendingAmountForChainId(destinationChainId, { blockTag })
-    l2TransfersPendingOutbound = l2TransfersPendingOutbound.add(pendingAmountForL2ChainId)
+    l2TransfersPendingOutbound = l2TransfersPendingOutbound + pendingAmountForL2ChainId
   }
 
   // L1 to L2 in flight inbound transfers
@@ -424,7 +424,7 @@ async function getHTokenAdjustments (
     l2BlockTimestamp
   )
   const l2TransfersInFlightFromL1ToL2Archive = ChainBalanceArchiveData.InFlightL1ToL2Transfers?.[token]?.[chain] ?? '0'
-  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New.add(l2TransfersInFlightFromL1ToL2Archive)
+  const l2TransfersInFlightFromL1ToL2 = l2TransfersInFlightFromL1ToL2New + l2TransfersInFlightFromL1ToL2Archive
 
   const {
     allRootsCommitted,
@@ -445,7 +445,7 @@ async function getHTokenAdjustments (
     if (root.sourceChainId !== chainId) continue
     if (rootHashesSeenOnL1.includes(rootHash)) continue
 
-    l2RootsInFlightOutbound = l2RootsInFlightOutbound.add(root.totalAmount)
+    l2RootsInFlightOutbound = l2RootsInFlightOutbound + root.totalAmount
   }
 
   // In flight inbound roots
@@ -459,7 +459,7 @@ async function getHTokenAdjustments (
     if (!rootHashesSeenOnL1.includes(rootHash)) continue
     if (rootHashesSetOnL2.includes(rootHash)) continue
 
-    l2RootsInFlightInbound = l2RootsInFlightInbound.add(root.totalAmount)
+    l2RootsInFlightInbound = l2RootsInFlightInbound + root.totalAmount
   }
 
   return {
@@ -482,8 +482,8 @@ async function getAllBonderStakes (bridge: Contract, blockTag: providers.BlockTa
       bridge.getCredit(bonderAddress, { blockTag }),
       bridge.getRawDebit(bonderAddress, { blockTag })
     ])
-    const stake = credit.sub(rawDebit)
-    totalStake = totalStake.add(stake)
+    const stake = credit - rawDebit
+    totalStake = totalStake + stake
   }
 
   return totalStake
@@ -630,10 +630,10 @@ function logValues (
     console.log('\n')
     console.log(chain, 'adjustedChainBalance', ethersUtils.formatUnits(adjustedChainBalance, decimals))
     console.log(chain, 'adjustedHToken', ethersUtils.formatUnits(adjustedHToken, decimals))
-    console.log(chain, 'diff', ethersUtils.formatUnits(adjustedChainBalance.sub(adjustedHToken), decimals))
+    console.log(chain, 'diff', ethersUtils.formatUnits(adjustedChainBalance -adjustedHToken, decimals))
 
-    totalAdjustedChainBalance = totalAdjustedChainBalance.add(adjustedChainBalance)
-    totalAdjustedHToken = totalAdjustedHToken.add(adjustedHToken)
+    totalAdjustedChainBalance = totalAdjustedChainBalance + adjustedChainBalance
+    totalAdjustedHToken = totalAdjustedHToken + adjustedHToken
   }
 
   console.log(`\n\nFinal Values for ${token}`)
@@ -641,13 +641,13 @@ function logValues (
   console.log('Adjusted ChainBalance:', ethersUtils.formatUnits(totalAdjustedChainBalance, decimals))
   console.log('Adjusted hToken:', ethersUtils.formatUnits(totalAdjustedHToken, decimals))
 
-  const tokenChainBalanceDiff = totalAdjustedToken.sub(totalAdjustedChainBalance)
-  const chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  const tokenChainBalanceDiff = totalAdjustedToken - totalAdjustedChainBalance
+  const chainBalanceHTokenDiff = totalAdjustedChainBalance - totalAdjustedHToken
   console.log('\nCanonical Token - ChainBalance:', ethersUtils.formatUnits(tokenChainBalanceDiff, decimals))
   console.log('ChainBalance - hToken:', ethersUtils.formatUnits(chainBalanceHTokenDiff, decimals))
 
   // Log possible reasons why values might be wrong
-  if (tokenChainBalanceDiff.isNegative()) {
+  if (tokenChainBalanceDiff < 0n) {
     console.log('Token - ChainBalance is negative. Did someone withdraw tokens that existed in the UnwithdrawnTransfers archive data')
   }
 }

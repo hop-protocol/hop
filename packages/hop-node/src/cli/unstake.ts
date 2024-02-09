@@ -50,8 +50,8 @@ export async function unstake (
     bridge.getDebit()
   ])
 
-  const availableCredit = credit.sub(debit)
-  if (parsedAmount.gt(availableCredit)) {
+  const availableCredit = credit - debit
+  if (parsedAmount > availableCredit) {
     throw new Error(
       `Cannot unstake more than the available credit ${bridge.formatUnits(
        availableCredit

@@ -54,10 +54,10 @@ async function main (source: any) {
 
       for (const bonder in settledRootsPerBonder) {
         if (!settledRootsPerBonder[bonder][root]) continue
-        diff = rootsCommitted[root].sub(settledRootsPerBonder[bonder][root])
+        diff = rootsCommitted[root] - settledRootsPerBonder[bonder][root]
       }
 
-      const isFullySettled = diff.eq('0')
+      const isFullySettled = diff === 0n
       if (isFullySettled) continue
       unsettledRoots.push(root)
     }
@@ -84,25 +84,25 @@ async function main (source: any) {
         const bondData = await getBondedWithdrawal(settlementChain, token, transferId)
         if (!bondData) continue
 
-        tempAmt = tempAmt.add(bondData.amount)
+        tempAmt += BigInt(bondData.amount)
         const bonder = bondData.from
 
         if (!bondedAmountPerBonder[bonder]) {
           bondedAmountPerBonder[bonder] = 0n
         }
-        bondedAmountPerBonder[bonder] = bondedAmountPerBonder[bonder].add(bondData.amount)
+        bondedAmountPerBonder[bonder] = bondedAmountPerBonder[bonder] + bondData.amount
       }
 
       for (const bonder in bondedAmountPerBonder) {
         const amount = bondedAmountPerBonder[bonder]
         let diff: bigint
         if (settledRootsPerBonder?.[bonder]?.[root]) {
-          diff = amount.sub(settledRootsPerBonder[bonder][root])
+          diff = amount - settledRootsPerBonder[bonder][root]
         } else {
           diff = amount
         }
 
-        const isFullySettled = diff.eq('0')
+        const isFullySettled = diff === 0n
         if (isFullySettled) continue
         console.log(`${root} ${bonder} ${utils.formatUnits(diff, decimals)} (${diff})`)
       }
@@ -125,7 +125,7 @@ async function getSettledRoots (chain: string, token: string): Promise<SettledRo
       settledPerBonder[bonder][rootHash] = 0n
     }
 
-    settledPerBonder[bonder][rootHash] = settledPerBonder[bonder][rootHash].add(res.totalBondsSettled)
+    settledPerBonder[bonder][rootHash] = settledPerBonder[bonder][rootHash] + res.totalBondsSettled
   }
 
   return settledPerBonder

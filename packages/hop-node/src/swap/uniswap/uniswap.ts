@@ -302,7 +302,7 @@ export async function swap (config: SwapInput) {
     deadline
   })
 
-  if (balance.lt(parsedAmount)) {
+  if (balance < parsedAmount) {
     throw new Error(`not enough ${fromToken} balance`)
   }
 
@@ -314,7 +314,7 @@ export async function swap (config: SwapInput) {
   }
 
   const allowance = await sourceToken.allowance(sender, swapRouter)
-  if (allowance.lt(parsedAmount)) {
+  if (allowance < parsedAmount) {
     const tx = await sourceToken.approve(swapRouter, constants.MaxUint256)
     logger.info(`approval tx: ${tx.hash}`)
     logger.debug('waiting for receipt')

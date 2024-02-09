@@ -1664,7 +1664,7 @@ class SyncWatcher extends BaseWatcher {
     // want to transact but don't recognize that they need to set a fee, as it allows them
     // to still transact successfully on a chain that does not require a fee.
     const isRelayableFee: boolean = await this.#getIsRelayableFee(relayerFee, destinationChainId)
-    if (isRelayableFee && relayerFee.eq(0)) {
+    if (isRelayableFee && relayerFee === 0n) {
       return true
     }
 
@@ -1679,7 +1679,7 @@ class SyncWatcher extends BaseWatcher {
       expectedFee = await this.hopSdk.getRelayerFee(destinationChainSlug, this.tokenSymbol)
     } catch {}
 
-    if (relayerFee.gte(expectedFee)) {
+    if (relayerFee >= expectedFee) {
       return true
     }
     return false

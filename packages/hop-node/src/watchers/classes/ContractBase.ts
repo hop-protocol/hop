@@ -10,7 +10,7 @@ import {
   SyncType
 } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { FinalityService } from 'src/finality/FinalityService'
 import { FinalityStrategyType } from 'src/finality/strategies/IFinalityStrategy'
 import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import dotenv from 'dotenv'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 const argv = require('minimist')(process.argv.slice(2))
 
 const opts: any = {}

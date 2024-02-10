@@ -1,7 +1,7 @@
 import Logger from 'src/logger'
 import Metrics from 'src/watchers/classes/Metrics'
 import checkDiskSpace from 'check-disk-space'
-import os from 'os'
+import os from 'node:os'
 import pidusage from 'pidusage'
 import wait from 'src/utils/wait'
 

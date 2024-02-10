@@ -1,5 +1,5 @@
 import Metrics from 'src/watchers/classes/Metrics'
-import fs from 'fs'
+import fs from 'node:fs'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'

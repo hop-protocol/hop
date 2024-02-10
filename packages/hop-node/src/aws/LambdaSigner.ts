@@ -1,6 +1,6 @@
 import { AwsSigner, AwsSignerConfig } from './AwsSigner'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
-import { TextDecoder } from 'util'
+import { TextDecoder } from 'node:util'
 import {
   arrayify,
   keccak256,

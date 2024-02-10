@@ -12,7 +12,7 @@ import {
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
-import { providers } from 'ethers'
+import { Overrides, providers } from 'ethers'
 
 type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
@@ -23,7 +23,7 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       return (message as IL1ToL2MessageWriter).redeem()
     }
 
-    const overrides: any = {
+    const overrides: Overrides = {
       gasLimit: CanonicalMessengerRootConfirmationGasLimit
     }
     return (message as IL2ToL1MessageWriter).execute(this.l2Wallet.provider!, overrides)

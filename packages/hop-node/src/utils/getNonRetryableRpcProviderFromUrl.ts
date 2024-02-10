@@ -1,6 +1,6 @@
 import { providers } from 'ethers'
 
-const cache: any = {}
+const cache: Record<string, providers.Provider> = {}
 
 const getNonRetryableRpcProviderFromUrl = (
   rpcUrl: string

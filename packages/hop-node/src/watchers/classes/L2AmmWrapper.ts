@@ -4,7 +4,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Hop } from '@hop-protocol/sdk'
-import { PayableOverrides } from '@ethersproject/contracts'
+import { TxOverrides } from 'src/types'
 import { formatUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 import { isNativeToken } from 'src/utils/isNativeToken'
@@ -60,7 +60,7 @@ export default class L2AmmWrapper extends ContractBase {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(totalFee, tokenDecimals)}`)
     }
 
-    const overrides: PayableOverrides = {
+    const overrides: TxOverrides = {
       ...(await this.txOverrides()),
       value: isNativeTokenSend ? amount : undefined
     }

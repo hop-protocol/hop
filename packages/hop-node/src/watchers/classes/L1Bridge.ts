@@ -11,6 +11,7 @@ import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/con
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 import { l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
+import { TxOverrides } from 'src/types'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
@@ -171,7 +172,7 @@ export default class L1Bridge extends Bridge {
     chainId: number,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
 
     // Hardcode a gasLimit for chains that have variable gas costs in their messengers
     if (
@@ -249,7 +250,7 @@ export default class L1Bridge extends Bridge {
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (
       this.chainSlug === Chain.Ethereum &&
       this.tokenSymbol === 'ETH'
@@ -306,7 +307,7 @@ export default class L1Bridge extends Bridge {
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const amountOutMin = amountOut.mul(minBps).div(10000)
 
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (
       this.chainSlug === Chain.Ethereum &&
       this.tokenSymbol === 'ETH'

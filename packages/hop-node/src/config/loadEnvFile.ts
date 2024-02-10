@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import dotenv from 'dotenv'
+import dotenv, { type DotenvConfigOptions } from 'dotenv'
 import fs from 'node:fs'
 import path from 'node:path'
 const argv = require('minimist')(process.argv.slice(2))
 
-const opts: any = {}
+const opts: DotenvConfigOptions = {}
 if (typeof argv.env === 'string') {
   const envFile = path.resolve(argv.env)
   if (!fs.existsSync(envFile)) {

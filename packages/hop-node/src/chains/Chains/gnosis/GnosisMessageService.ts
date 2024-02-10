@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
 import { CanonicalMessengerRootConfirmationGasLimit, Chain } from 'src/constants'
-import { Contract, providers } from 'ethers'
+import { Contract, Overrides, providers } from 'ethers'
 import { GnosisAddresses, GnosisCanonicalAddresses } from 'src/chains/Chains/gnosis/GnosisAddresses'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts'
@@ -109,7 +109,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
     }
     const packedSigs = this.#packSignatures(sigs)
 
-    const overrides: any = {
+    const overrides: Overrides = {
       gasLimit: CanonicalMessengerRootConfirmationGasLimit
     }
     return this.#l1Amb.executeSignatures(message, packedSigs, overrides)

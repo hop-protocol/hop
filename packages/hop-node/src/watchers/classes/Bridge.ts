@@ -24,6 +24,7 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
+import { TxOverrides } from 'src/types'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 
@@ -446,8 +447,8 @@ export default class Bridge extends ContractBase {
   }
 
   stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
-    const bonder = await this.getBonderAddress()
-    const txOverrides = await this.txOverrides()
+    const bonder: string = await this.getBonderAddress()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (
       this.chainSlug === Chain.Ethereum &&
       this.tokenSymbol === 'ETH'
@@ -478,7 +479,7 @@ export default class Bridge extends ContractBase {
     transferNonce: string,
     bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000

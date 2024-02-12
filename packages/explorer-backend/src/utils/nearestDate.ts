@@ -1,4 +1,4 @@
-export function nearestDate (dates: any[], target: any) {
+export function nearestDate (dates: Date[] | number[], target: number | Date) {
   if (!target) {
     target = Date.now()
   } else if (target instanceof Date) {
@@ -10,7 +10,7 @@ export function nearestDate (dates: any[], target: any) {
 
   dates.forEach(function (date, index) {
     if (date instanceof Date) date = date.getTime()
-    const distance = Math.abs(date - target)
+    const distance = Math.abs(date - Number(target))
     if (distance < nearest) {
       nearest = distance
       winner = index

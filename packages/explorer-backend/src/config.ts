@@ -37,16 +37,16 @@ let enabledTokens = Array.from(tokenSet)
 let enabledChains = Array.from(chainSet)
 
 if (process.env.ENABLED_TOKENS) {
-  enabledTokens = process.env.ENABLED_TOKENS.split(',').map((token: any) => token.trim()).filter(Boolean)
+  enabledTokens = process.env.ENABLED_TOKENS.split(',').map((token: string) => token.trim()).filter(Boolean)
 }
 
 if (process.env.ENABLED_CHAINS) {
-  enabledChains = process.env.ENABLED_CHAINS.split(',').map((chain: any) => chain.trim()).filter(Boolean)
+  enabledChains = process.env.ENABLED_CHAINS.split(',').map((chain: string) => chain.trim()).filter(Boolean)
 }
 
 export { enabledTokens, enabledChains }
 
-export const rpcUrls : any = {}
+export const rpcUrls : Record<string, string> = {}
 
 for (const chain of enabledChains) {
   rpcUrls[chain] = process.env[`${chain.toUpperCase()}_RPC`] || getDefaultRpcUrl(network, chain)
@@ -187,6 +187,22 @@ for (const addr in _integrationsMap) {
 }
 
 export { integrations }
+
+export const integrationPartnerNames: Record<string, string> = {
+  socket: 'Socket',
+  lifi: 'LI.FI',
+  metamask: 'MetaMask',
+  chainhop: 'ChainHop',
+  viaprotocol: 'ViaProtocol'
+}
+
+export const integrationPartnerImageUrls: Record<string, string> = {
+  socket: 'https://assets.hop.exchange/logos/socket.jpg',
+  lifi: 'https://assets.hop.exchange/logos/lifi.webp',
+  metamask: 'https://assets.hop.exchange/logos/metamask.svg',
+  chainhop: 'https://assets.hop.exchange/logos/chainhop.png',
+  viaprotocol: 'https://assets.hop.exchange/logos/viaprotocol.jpg'
+}
 
 console.log('network:', network)
 console.log('enabledTokens:', enabledTokens)

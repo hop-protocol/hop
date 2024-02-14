@@ -68,7 +68,6 @@ export function populateData (x: any, i: number) {
     x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
   }
 
-  // TODO: rerun worker
   if (!x.recipientAddressExplorerUrl || x.recipientAddressExplorerUrl?.includes('undefined')) {
     x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
   }

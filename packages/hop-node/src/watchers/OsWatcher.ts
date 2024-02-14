@@ -1,7 +1,7 @@
 import Logger from 'src/logger'
 import Metrics from 'src/watchers/classes/Metrics'
-import checkDiskSpace from 'check-disk-space'
-import os from 'os'
+import checkDiskSpace, { type DiskSpace } from 'check-disk-space'
+import os from 'node:os'
 import pidusage from 'pidusage'
 import wait from 'src/utils/wait'
 
@@ -65,7 +65,7 @@ class OsWatcher {
 
   static async getDiskUsage (): Promise<any> {
     return new Promise((resolve) => {
-      checkDiskSpace('/').then((diskSpace: any) => {
+      checkDiskSpace('/').then((diskSpace: DiskSpace) => {
         const totalSize = diskSpace?.size
         const freeSize = diskSpace?.free
         const freeSizeGb = freeSize / 1024 / 1024 / 1024

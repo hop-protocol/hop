@@ -1,5 +1,5 @@
 import Derive, { Frame } from './Derive'
-import zlib from 'zlib'
+import zlib from 'node:zlib'
 import { AbstractInclusionService } from 'src/chains/Services/AbstractInclusionService'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from 'src/constants'
 import { Contract, providers } from 'ethers'

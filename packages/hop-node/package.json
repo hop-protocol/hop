@@ -36,7 +36,7 @@
     "@hop-protocol/sdk": "workspace:*",
     "@maticnetwork/maticjs": "3.5.0",
     "@maticnetwork/maticjs-ethers": "1.0.3",
-    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.7.7",
+    "@maticnetwork/maticjs-pos-zkevm": "npm:@maticnetwork/maticjs@3.7.9",
     "@slack/web-api": "7.0.1",
     "@uniswap/sdk-core": "3.2.2",
     "@uniswap/v3-core": "1.0.1",

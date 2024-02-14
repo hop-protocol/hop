@@ -1,5 +1,6 @@
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber, Wallet } from 'ethers'
+import { TxOverrides } from 'src/types'
 import { actionHandler, logger, parseString, root } from './shared'
 import {
   config as globalConfig
@@ -11,10 +12,11 @@ root
   .option('--from-chain <slug>', 'From chain', parseString)
   .option('--gas-price-wei <string>', 'Gas price in wei', parseString)
   .option('--nonce <string>', 'Nonce', parseString)
+  .option('--nonce-end <string>', 'Last nonce', parseString)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { fromChain, gasPriceWei, nonce } = source
+  const { fromChain, gasPriceWei, nonce, nonceEnd } = source
 
   if (!fromChain) {
     throw new Error('from-chain is required. E.g. arbitrum')
@@ -32,12 +34,25 @@ async function main (source: any) {
   const wallet = new Wallet(globalConfig.bonderPrivateKey, provider)
   const recipient = await wallet.getAddress()
 
-  const txOverrides: any = {
+  const txOverrides: TxOverrides = {
     gasPrice: gasPriceWei ? BigNumber.from(gasPriceWei) : undefined,
-    nonce: nonce ? BigNumber.from(nonce) : undefined
+    nonce: BigNumber.from(nonce)
   }
 
   logger.info(`sending to self on ${fromChain} with gas price ${gasPriceWei} and nonce ${nonce}`)
+  
+  if (nonceEnd) {
+    const nonceStart = nonce
+    for (let i = Number(nonceStart); i <= Number(nonceEnd); i++) {
+      await sendToSelf(wallet, recipient, txOverrides)
+      txOverrides.nonce = BigNumber.from(txOverrides.nonce).add(1)
+    }
+  }  else {
+    await sendToSelf(wallet, recipient, txOverrides)
+  }
+}
+
+async function sendToSelf (wallet: Wallet, recipient: string, txOverrides: TxOverrides): Promise<void> {
   const tx = await wallet.sendTransaction({
     value: BigNumber.from(0),
     to: recipient,

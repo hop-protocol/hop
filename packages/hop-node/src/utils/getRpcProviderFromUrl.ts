@@ -2,7 +2,7 @@ import { ConnectionInfo } from "@ethersproject/web"
 import { Provider } from '../provider'
 import { providers } from 'ethers'
 
-const cache: any = {}
+const cache: Record<string, providers.Provider> = {}
 
 const getRpcProviderFromUrl = (
   rpcUrl: string

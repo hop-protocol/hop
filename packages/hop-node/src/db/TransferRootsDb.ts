@@ -163,7 +163,7 @@ class SubDbTimestamps extends BaseDb<TransferRoot> {
     }
   }
 
-  protected readonly filterTransferRootId = (x: any): string => {
+  protected readonly filterTransferRootId = (x: TransferRoot): string => {
     return x?.transferRootId
   }
 }
@@ -211,7 +211,7 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
     )
   }
 
-  protected readonly filterTransferRootId = (x: any): string => {
+  protected readonly filterTransferRootId = (x: TransferRoot): string => {
     return x?.transferRootId
   }
 }

@@ -5,3 +5,4 @@ dist
 *.db
 *.db-journal
 pgdata
+docker_compose/

@@ -8,7 +8,7 @@ import {
   getAllTokens,
   getEnabledTokens
 } from 'src/config'
-import { URL } from 'url'
+import { URL } from 'node:url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 
 export function isValidToken (token: string) {

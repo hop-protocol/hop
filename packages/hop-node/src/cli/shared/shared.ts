@@ -1,6 +1,6 @@
 import Logger from 'src/logger'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { BigNumber } from 'ethers'
 import { Command } from 'commander'
 import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData'

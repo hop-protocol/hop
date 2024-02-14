@@ -1,6 +1,6 @@
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
-const addresses: any = {
+const addresses: Record<string, any> = {
   mainnet: mainnetAddresses,
   goerli: goerliAddresses
 }

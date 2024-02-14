@@ -6,10 +6,10 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "tsc -w",
-    "start": "PORT=8000 ts-node src/index.ts",
+    "start": "ts-node src/index.ts",
     "start:worker": "ts-node src/cli.ts --transfers",
     "start:dist": "node --max_old_space_size=4096 dist/index.js",
-    "start:local": "PORT=8000 npx ts-node src/index.ts --worker --transfers --days=1",
+    "start:local": "npx ts-node src/index.ts --worker --transfers --days=1",
     "dev:local": "npm run start:local",
     "lint": "eslint . --ext .ts --fix",
     "build": "tsc",

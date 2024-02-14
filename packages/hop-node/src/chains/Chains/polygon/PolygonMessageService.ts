@@ -45,7 +45,7 @@ const polygonSdkVersion: Record<string, string> = {
 export class PolygonMessageService extends AbstractMessageService<PolygonMessage, PolygonMessageStatus> implements IMessageService {
   ready: boolean = false
   apiUrl: string
-  maticClient: any
+  maticClient: POSClient
 
   constructor (chainSlug: string) {
     super(chainSlug)

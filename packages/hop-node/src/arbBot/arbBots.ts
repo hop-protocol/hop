@@ -1,6 +1,6 @@
 import arbBotsConfig from 'src/arbBot/example/arbBotsConfig.json'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { ArbBot } from './ArbBot'
 
 export type Options = {

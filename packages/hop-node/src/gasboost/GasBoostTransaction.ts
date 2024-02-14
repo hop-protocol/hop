@@ -22,7 +22,7 @@ import {
   KmsSignerError,
   NonceTooLowError
 } from 'src/types/error'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { Notifier } from 'src/notifier'
 import {
   blocknativeApiKey,

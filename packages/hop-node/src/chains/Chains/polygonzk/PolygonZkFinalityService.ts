@@ -104,6 +104,10 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
   }
 
   async #getCustomBlockNumber (blockTag: providers.BlockTag): Promise<number | undefined> {
+    // Temp: remove after chain is stable
+    const blockNumber = await this.l2Provider.getBlockNumber()
+    return blockNumber - 250
+
     const finalityName = finalityNameMap[blockTag]
 
     // Get batch number

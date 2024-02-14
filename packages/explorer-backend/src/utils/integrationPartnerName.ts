@@ -1,12 +1,5 @@
-// TODO: move to config
-const names: any = {
-  socket: 'Socket',
-  lifi: 'LI.FI',
-  metamask: 'MetaMask',
-  chainhop: 'ChainHop',
-  viaprotocol: 'ViaProtocol'
-}
+import { integrationPartnerNames } from '../config'
 
 export function integrationPartnerName (slug: string) {
-  return names[slug]
+  return integrationPartnerNames[slug]
 }

@@ -108,39 +108,39 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
     const blockNumber = await this.l2Provider.getBlockNumber()
     return blockNumber - 250
 
-    const finalityName = finalityNameMap[blockTag]
+    // const finalityName = finalityNameMap[blockTag]
 
-    // Get batch number
-    const batchNumber: number | undefined = await this.#getBatchNumber(finalityName)
-    if (!batchNumber) {
-      this.logger.error('getCustomBlockNumber: no batchNumber found')
-      return
-    }
+    // // Get batch number
+    // const batchNumber: number | undefined = await this.#getBatchNumber(finalityName)
+    // if (!batchNumber) {
+    //   this.logger.error('getCustomBlockNumber: no batchNumber found')
+    //   return
+    // }
 
-    // Arbitrarily wait for L1 safe by looking back 6 minutes after the batch was posted.
-    // As of Dec 2023, it is not trivial to associate L1 blocks with L2 batch data. If Polygon zkEVM
-    // ever exposes this ability, update this logic to be exact.
-    const appxBatchesPerMin = 3
-    const appxL1SafetyMin = 6
-    const appxBatches = appxBatchesPerMin * appxL1SafetyMin
-    const safeBatchNumber = batchNumber - appxBatches
+    // // Arbitrarily wait for L1 safe by looking back 6 minutes after the batch was posted.
+    // // As of Dec 2023, it is not trivial to associate L1 blocks with L2 batch data. If Polygon zkEVM
+    // // ever exposes this ability, update this logic to be exact.
+    // const appxBatchesPerMin = 3
+    // const appxL1SafetyMin = 6
+    // const appxBatches = appxBatchesPerMin * appxL1SafetyMin
+    // const safeBatchNumber = batchNumber - appxBatches
 
-    // Get batch info
-    const batch: Batch | undefined = await this.#getBatch(safeBatchNumber)
-    if (!batch?.blocks?.length) {
-      this.logger.error('getCustomBlockNumber: no blocks found in batch')
-      return
-    }
+    // // Get batch info
+    // const batch: Batch | undefined = await this.#getBatch(safeBatchNumber)
+    // if (!batch?.blocks?.length) {
+    //   this.logger.error('getCustomBlockNumber: no blocks found in batch')
+    //   return
+    // }
 
-    // Get latest block number from batch. The latest block number is the last block in the batch.
-    const latestBlockHashInBatch = batch.blocks[batch.blocks.length - 1]
-    const latestBlockInBatch: providers.Block = await this.l2Provider.getBlock(latestBlockHashInBatch)
-    if (!latestBlockInBatch?.number) {
-      this.logger.error('getCustomBlockNumber: no latestBlockInBatch found')
-      return
-    }
+    // // Get latest block number from batch. The latest block number is the last block in the batch.
+    // const latestBlockHashInBatch = batch.blocks[batch.blocks.length - 1]
+    // const latestBlockInBatch: providers.Block = await this.l2Provider.getBlock(latestBlockHashInBatch)
+    // if (!latestBlockInBatch?.number) {
+    //   this.logger.error('getCustomBlockNumber: no latestBlockInBatch found')
+    //   return
+    // }
 
-    return latestBlockInBatch.number
+    // return latestBlockInBatch.number
   }
 
   async #getBatchNumber (finalityName: string): Promise<number | undefined> {

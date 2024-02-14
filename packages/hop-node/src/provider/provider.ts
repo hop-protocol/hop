@@ -30,11 +30,11 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
   }
 
   override async perform (method: string, params: any): Promise<any> {
-    this._monitorRequest(method, params)
+    this.#monitorRequest(method, params)
     return super.perform(method, params)
   }
 
-  private _monitorRequest (method: string, params: any) {
+  #monitorRequest (method: string, params: any) {
     if (!monitorProviderCalls) {
       return
     }
@@ -54,13 +54,13 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
     this.metrics.setRpcProviderMethod(host, method, params)
   }
 
-  private _trackStackTrace (label: string, stackTrace: string | undefined) {
-    const trace = this._parseStackTrace(stackTrace)
+  #trackStackTrace (label: string, stackTrace: string | undefined) {
+    const trace = this.#parseStackTrace(stackTrace)
     const filtered = trace.filter(x => x.includes('watchers'))[0]
     console.log('TRACE', label, filtered)
   }
 
-  private _parseStackTrace (stackTrace: string | undefined): string[] {
+  #parseStackTrace (stackTrace: string | undefined): string[] {
     if (!stackTrace) {
       return []
     }
@@ -130,7 +130,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
 
   // Bloom-filter Queries
   override getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
-    // this._trackStackTrace('getLogs', new Error().stack)
+    // this.#trackStackTrace('getLogs', new Error().stack)
     return super.getLogs(filter)
   })
 

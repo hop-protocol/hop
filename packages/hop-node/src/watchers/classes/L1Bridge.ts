@@ -258,7 +258,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+    if (!this.#isValidRelayerAndRelayerFee(relayer, relayerFee)) {
       throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
     }
 
@@ -315,7 +315,7 @@ export default class L1Bridge extends Bridge {
       txOverrides.value = amount
     }
 
-    if (!this.isValidRelayerAndRelayerFee(relayer, relayerFee)) {
+    if (!this.#isValidRelayerAndRelayerFee(relayer, relayerFee)) {
       throw new Error(`relayer "${relayer}" and relayerFee "${relayerFee}" are invalid`)
     }
     return this.l1BridgeContract.sendToL2(
@@ -359,7 +359,7 @@ export default class L1Bridge extends Bridge {
     }
   }
 
-  private isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): boolean {
+  #isValidRelayerAndRelayerFee (relayer: string, relayerFee: BigNumber): boolean {
     return (
       relayer !== constants.AddressZero ||
       relayerFee.eq(0)

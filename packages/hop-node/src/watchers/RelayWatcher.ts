@@ -236,7 +236,7 @@ class RelayWatcher extends BaseWatcher {
           relayTxError,
           relayBackoffIndex: backoffIndex,
           isRelayable
-        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
+        } = await this.#handleMessageStatusError(err, relayBackoffIndex, logger)
         await this.db.transfers.update(transferId, {
           relayTxError,
           relayBackoffIndex: backoffIndex,
@@ -373,7 +373,7 @@ class RelayWatcher extends BaseWatcher {
           relayTxError,
           relayBackoffIndex: backoffIndex,
           isRelayable
-        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
+        } = await this.#handleMessageStatusError(err, relayBackoffIndex, logger)
         await this.db.transferRoots.update(transferRootId, {
           relayTxError,
           relayBackoffIndex: backoffIndex,
@@ -423,7 +423,7 @@ class RelayWatcher extends BaseWatcher {
     return chainBridge.relayL1ToL2Message(txHash, messageIndex)
   }
 
-  private async handleMessageStatusError (
+  async #handleMessageStatusError (
     err: Error,
     relayBackoffIndex: number,
     logger: Logger

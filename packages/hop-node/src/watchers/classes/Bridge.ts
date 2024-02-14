@@ -599,7 +599,7 @@ export default class Bridge extends ContractBase {
     cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     options: Partial<EventsBatchOptions> = {}
   ) {
-    this.validateEventsBatchInput(options)
+    this.#validateEventsBatchInput(options)
 
     // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
     let syncCacheKey = ''
@@ -635,7 +635,7 @@ export default class Bridge extends ContractBase {
       }
     }
 
-    const blockValues: BlockValues = await this.getBlockValues(options, state)
+    const blockValues: BlockValues = await this.#getBlockValues(options, state)
     const {
       start,
       end,
@@ -655,7 +655,7 @@ export default class Bridge extends ContractBase {
 
     let traversalStart = start
     if (!isAtHead) {
-      traversalStart = await this.traverseBlockRange(cb, blockValues)
+      traversalStart = await this.#traverseBlockRange(cb, blockValues)
     }
 
     // Only store latest block if a sync is successful. Sync is complete when the start block is reached since
@@ -671,7 +671,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  private readonly traverseBlockRange = async (
+  readonly #traverseBlockRange = async (
     cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     blockValues: BlockValues
   ): Promise<number> => {
@@ -700,7 +700,7 @@ export default class Bridge extends ContractBase {
     return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
+  readonly #getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
     const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number
@@ -796,7 +796,7 @@ export default class Bridge extends ContractBase {
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
-  private readonly validateEventsBatchInput = (
+  readonly #validateEventsBatchInput = (
     options: Partial<EventsBatchOptions> = {}
   ) => {
     const { syncCacheKey, startBlockNumber, endBlockNumber } = options

@@ -97,11 +97,16 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
 
     // Temp: remove this once the SDK is fixed
     // @maticnetwork/maticjs-pos-zkevm@3.7.9 has a known issue with types. This is required to claim.
+    console.log('aaa')
     let index: any
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      index = (BigNumber.from(claimPayload.index).add(BigNumber.from(2 ** 64))).toString()
+      console.log('bbb')
+      index = (BigNumber.from(claimPayload.index.toString()).mul(BigNumber.from(2).pow(64))).toString()
+      console.log('ccc')
     } else {
+      console.log('ddd')
       index = claimPayload.index
+      console.log('eee')
     }
 
     // Execute the claim tx

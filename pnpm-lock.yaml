@@ -354,9 +354,6 @@ importers:
       react:
         specifier: 18.2.0
         version: 18.2.0
-      react-copy-to-clipboard:
-        specifier: 5.1.0
-        version: 5.1.0(react@18.2.0)
       react-dom:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
@@ -433,9 +430,6 @@ importers:
       '@types/react':
         specifier: 18.2.43
         version: 18.2.43
-      '@types/react-copy-to-clipboard':
-        specifier: 5.0.7
-        version: 5.0.7
       '@types/react-dom':
         specifier: 18.2.17
         version: 18.2.17
@@ -8300,7 +8294,7 @@ packages:
       '@types/webpack': 4.x
       react-refresh: '>=0.8.3 <0.10.0'
       sockjs-client: ^1.4.0
-      type-fest: 4.9.0
+      type-fest: ^0.13.1
       webpack: '>=4.43.0 <6.0.0'
       webpack-dev-server: 3.x
       webpack-hot-middleware: 2.x
@@ -9640,12 +9634,6 @@ packages:
 
   /@types/range-parser@1.2.7:
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
-    dev: true
-
-  /@types/react-copy-to-clipboard@5.0.7:
-    resolution: {integrity: sha512-Gft19D+as4M+9Whq1oglhmK49vqPhcLzk8WfvfLvaYMIPYanyfLy0+CwFucMJfdKoSFyySPmkkWn8/E6voQXjQ==}
-    dependencies:
-      '@types/react': 18.2.55
     dev: true
 
   /@types/react-dom@18.2.17:
@@ -23425,16 +23413,6 @@ packages:
       react: '>=16.4.1'
     dependencies:
       hoist-non-react-statics: 3.3.2
-      prop-types: 15.8.1
-      react: 18.2.0
-    dev: false
-
-  /react-copy-to-clipboard@5.1.0(react@18.2.0):
-    resolution: {integrity: sha512-k61RsNgAayIJNoy9yDsYzDe/yAZAzEbEgcz3DZMhF686LEyukcE1hzurxe85JandPUG+yTfGVFzuEw3xt8WP/A==}
-    peerDependencies:
-      react: ^15.3.0 || 16 || 17 || 18
-    dependencies:
-      copy-to-clipboard: 3.3.2
       prop-types: 15.8.1
       react: 18.2.0
     dev: false

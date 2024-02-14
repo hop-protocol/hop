@@ -2,20 +2,19 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
-import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
+import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   MinGnosisGasPrice,
   MinPolygonGasPrice,
   SyncType
 } from 'src/constants'
-import { Event, PayableOverrides } from '@ethersproject/contracts'
-import { EventEmitter } from 'events'
+import { Event } from '@ethersproject/contracts'
+import { EventEmitter } from 'node:events'
 import { FinalityService } from 'src/finality/FinalityService'
 import { FinalityStrategyType } from 'src/finality/strategies/IFinalityStrategy'
+import { TxOverrides } from 'src/types'
 import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'
-
-export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 
 export default class ContractBase extends EventEmitter {
   contract: Contract

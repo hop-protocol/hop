@@ -1,5 +1,5 @@
 import keythereum from 'keythereum'
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 
 function generateKeystore (
   privateKey?: Buffer | string | null,

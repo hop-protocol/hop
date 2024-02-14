@@ -1,4 +1,8 @@
-import { TimeToBridgeStats } from '../models/TimeToBridgeStats'
+export interface TimeToBridgeStats {
+  avg: number | null
+  median: number | null
+  percentile90: number | null
+}
 
 export function timeToBridgeStats(times: number[]): TimeToBridgeStats {
   const n = times.length

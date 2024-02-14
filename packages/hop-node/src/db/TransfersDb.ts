@@ -147,7 +147,7 @@ class SubDbTimestamps extends BaseDb<Transfer> {
     }
   }
 
-  protected readonly filterTransferId = (x: any): string => {
+  protected readonly filterTransferId = (x: Transfer): string => {
     return x?.transferId
   }
 }
@@ -195,7 +195,7 @@ class SubDbIncompletes extends BaseDb<Transfer> {
     )
   }
 
-  protected readonly filterTransferId = (x: any): string => {
+  protected readonly filterTransferId = (x: Transfer): string => {
     return x?.transferId
   }
 }

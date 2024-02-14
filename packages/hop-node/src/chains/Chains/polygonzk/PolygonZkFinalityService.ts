@@ -60,7 +60,6 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
     } catch (err) {
       this.logger.warn('RPC endpoint does not support zkEVM_* methods')
       this.#doesSupportZkEvmRpc = false
-      throw err
     }
   }
 

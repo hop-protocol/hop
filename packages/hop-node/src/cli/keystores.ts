@@ -1,8 +1,8 @@
 // @ts-expect-error clear-console does not have a types file as of 20231227
 import clearConsole from 'console-clear'
 import entropyToMnemonic from 'src/keystore/entropyToMnemonic'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { HDNode } from '@ethersproject/hdnode'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import {
@@ -11,7 +11,7 @@ import {
 import { generateKeystore, recoverKeystore } from 'src/keystore'
 import { hopArt } from './shared/art'
 import { prompt, promptPassphrase } from 'src/prompt'
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 
 enum Actions {
   Generate = 'generate',

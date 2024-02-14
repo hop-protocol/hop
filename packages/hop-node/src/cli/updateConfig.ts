@@ -1,7 +1,7 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import normalizeEnvVarArray from 'src/config/utils/normalizeEnvVarArray'
 import objectDepth from 'src/utils/objectDepth'
-import path from 'path'
+import path from 'node:path'
 import {
   FileConfig,
   getEnabledNetworks,

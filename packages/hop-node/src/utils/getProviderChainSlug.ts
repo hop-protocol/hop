@@ -1,5 +1,5 @@
 import { Chain } from 'src/constants'
-import { URL } from 'url'
+import { URL } from 'node:url'
 import { config as globalConfig } from 'src/config'
 
 const cache: Record<string, any> = {}

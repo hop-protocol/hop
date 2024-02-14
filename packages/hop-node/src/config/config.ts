@@ -1,7 +1,7 @@
 import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
 import { BonderConfig } from 'src/config/types'
@@ -16,7 +16,7 @@ import {
 } from 'src/constants'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
 import { parseEther } from 'ethers/lib/utils'
 
 require('./loadEnvFile')

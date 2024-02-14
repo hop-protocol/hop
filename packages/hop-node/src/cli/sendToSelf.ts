@@ -1,5 +1,6 @@
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber, Wallet } from 'ethers'
+import { TxOverrides } from 'src/types'
 import { actionHandler, logger, parseString, root } from './shared'
 import {
   config as globalConfig
@@ -32,7 +33,7 @@ async function main (source: any) {
   const wallet = new Wallet(globalConfig.bonderPrivateKey, provider)
   const recipient = await wallet.getAddress()
 
-  const txOverrides: any = {
+  const txOverrides: TxOverrides = {
     gasPrice: gasPriceWei ? BigNumber.from(gasPriceWei) : undefined,
     nonce: nonce ? BigNumber.from(nonce) : undefined
   }

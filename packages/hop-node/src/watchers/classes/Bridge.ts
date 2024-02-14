@@ -24,6 +24,7 @@ import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
+import { TxOverrides } from 'src/types'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 
@@ -446,8 +447,8 @@ export default class Bridge extends ContractBase {
   }
 
   stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
-    const bonder = await this.getBonderAddress()
-    const txOverrides = await this.txOverrides()
+    const bonder: string = await this.getBonderAddress()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (
       this.chainSlug === Chain.Ethereum &&
       this.tokenSymbol === 'ETH'
@@ -478,7 +479,7 @@ export default class Bridge extends ContractBase {
     transferNonce: string,
     bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000
@@ -598,7 +599,7 @@ export default class Bridge extends ContractBase {
     cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     options: Partial<EventsBatchOptions> = {}
   ) {
-    this.validateEventsBatchInput(options)
+    this.#validateEventsBatchInput(options)
 
     // A syncCacheKey should only be defined when syncing, not when calling this function outside of a sync
     let syncCacheKey = ''
@@ -634,7 +635,7 @@ export default class Bridge extends ContractBase {
       }
     }
 
-    const blockValues: BlockValues = await this.getBlockValues(options, state)
+    const blockValues: BlockValues = await this.#getBlockValues(options, state)
     const {
       start,
       end,
@@ -654,7 +655,7 @@ export default class Bridge extends ContractBase {
 
     let traversalStart = start
     if (!isAtHead) {
-      traversalStart = await this.traverseBlockRange(cb, blockValues)
+      traversalStart = await this.#traverseBlockRange(cb, blockValues)
     }
 
     // Only store latest block if a sync is successful. Sync is complete when the start block is reached since
@@ -670,7 +671,7 @@ export default class Bridge extends ContractBase {
     }
   }
 
-  private readonly traverseBlockRange = async (
+  readonly #traverseBlockRange = async (
     cb: (start: number, end: number, i?: number) => Promise<boolean | undefined> | Promise<void>,
     blockValues: BlockValues
   ): Promise<number> => {
@@ -699,7 +700,7 @@ export default class Bridge extends ContractBase {
     return start
   }
 
-  private readonly getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
+  readonly #getBlockValues = async (options: Partial<EventsBatchOptions>, state: State | null): Promise<BlockValues> => {
     const { startBlockNumber, endBlockNumber, syncCacheKey } = options
 
     let end: number
@@ -795,7 +796,7 @@ export default class Bridge extends ContractBase {
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
-  private readonly validateEventsBatchInput = (
+  readonly #validateEventsBatchInput = (
     options: Partial<EventsBatchOptions> = {}
   ) => {
     const { syncCacheKey, startBlockNumber, endBlockNumber } = options

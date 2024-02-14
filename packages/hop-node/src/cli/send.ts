@@ -6,6 +6,7 @@ import contracts from 'src/contracts'
 import wallets from 'src/wallets'
 import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
 import { Chain, nativeChainTokens } from 'src/constants'
+import { TxOverrides } from 'src/types'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 
@@ -66,14 +67,13 @@ async function sendNativeToken (
     throw new Error('not enough token balance to send')
   }
 
-  let bridge: any
-  let txOverrides: any = {}
+  let txOverrides: TxOverrides = {}
   if (chain === Chain.Polygon) {
     const tokenContracts = contracts.get('ETH', Chain.Polygon)
     if (!tokenContracts) {
       throw new Error('token contracts not found')
     }
-    bridge = new L2Bridge(tokenContracts.l2Bridge)
+    const bridge = new L2Bridge(tokenContracts.l2Bridge)
     txOverrides = await bridge.txOverrides()
   }
   logger.debug(`sendNativeToken: attempting to send ${amount} to ${recipient} on ${chain}`)

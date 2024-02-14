@@ -5,7 +5,7 @@ export async function getPreRegenesisBondEvent (transferId: string, token: strin
   const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
 
   // these were the bridge addresses before the regenesis
-  const bridgeAddresses: any = {
+  const bridgeAddresses: Record<string, string> = {
     USDC: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
     USDT: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
     DAI: '0x7191061D5d4C60f598214cC6913502184BAddf18',

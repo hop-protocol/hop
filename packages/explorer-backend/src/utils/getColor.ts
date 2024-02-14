@@ -1,6 +1,6 @@
 import { chains } from '@hop-protocol/core/metadata'
 
-const colorsMap: any = {
+const colorsMap: Record<string, string> = {
   bonded: '#81ff81',
   pending: '#ffc55a',
   fallback: '#9f9fa3'

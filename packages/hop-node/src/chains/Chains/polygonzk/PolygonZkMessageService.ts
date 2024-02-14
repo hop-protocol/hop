@@ -95,10 +95,14 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     const networkId: number = await sourceBridge.networkID()
     const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(message, isL1ToL2, networkId)
 
+    // @maticnetwork/maticjs-pos-zkevm@3.7.9 has a known issue with types. This is required to claim.
+
+    const index = (BigInt(claimPayload.index) + BigInt(2 ** 64)).toString()
     // Execute the claim tx
-    const claimMessageTx = await destBridge.claimMessage(
+    const claimMessageTx = await destBridge.claimMessageNew(
       claimPayload.smtProof,
-      claimPayload.index,
+      claimPayload.smtProofRollup!,
+      index,
       claimPayload.mainnetExitRoot,
       claimPayload.rollupExitRoot,
       claimPayload.originNetwork,

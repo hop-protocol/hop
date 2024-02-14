@@ -75,32 +75,36 @@ export class PolygonZkFinalityService extends AbstractFinalityService implements
   override async getCustomBlockNumber (blockTag: FinalityBlockTag): Promise<number | undefined> {
     await this.#tilReady()
 
-    if (!this.#doesSupportZkEvmRpc) {
-      this.logger.error('getCustomBlockNumber: RPC endpoint does not support zkEVM_* methods')
-      return
-    }
+    // Temp: remove after chain is stable
+    const blockNumber = await this.l2Provider.getBlockNumber()
+    return blockNumber - 250
 
-    if (!this.#isCustomBlockNumberSupported(blockTag)) {
-      this.logger.error(`getCustomBlockNumber: blockTag ${blockTag} not supported`)
-      return
-    }
+    // if (!this.#doesSupportZkEvmRpc) {
+    //   this.logger.error('getCustomBlockNumber: RPC endpoint does not support zkEVM_* methods')
+    //   return
+    // }
 
-    // Use a cache since the granularity of finality updates on l1 is on the order of minutes
-    const customBlockNumberCacheKey = `${this.chainSlug}-${blockTag}`
-    const cacheValue = this.cache.get(customBlockNumberCacheKey)
-    if (cacheValue) {
-      this.logger.debug('getCustomBlockNumber: using cached value')
-      return cacheValue
-    }
+    // if (!this.#isCustomBlockNumberSupported(blockTag)) {
+    //   this.logger.error(`getCustomBlockNumber: blockTag ${blockTag} not supported`)
+    //   return
+    // }
 
-    const customBlockNumber = await this.#getCustomBlockNumber(blockTag)
-    if (!customBlockNumber) {
-      this.logger.error('getCustomBlockNumber: no customBlockNumber found')
-      return
-    }
+    // // Use a cache since the granularity of finality updates on l1 is on the order of minutes
+    // const customBlockNumberCacheKey = `${this.chainSlug}-${blockTag}`
+    // const cacheValue = this.cache.get(customBlockNumberCacheKey)
+    // if (cacheValue) {
+    //   this.logger.debug('getCustomBlockNumber: using cached value')
+    //   return cacheValue
+    // }
 
-    this.cache.set(customBlockNumberCacheKey, customBlockNumber)
-    return customBlockNumber
+    // const customBlockNumber = await this.#getCustomBlockNumber(blockTag)
+    // if (!customBlockNumber) {
+    //   this.logger.error('getCustomBlockNumber: no customBlockNumber found')
+    //   return
+    // }
+
+    // this.cache.set(customBlockNumberCacheKey, customBlockNumber)
+    // return customBlockNumber
   }
 
   async #getCustomBlockNumber (blockTag: providers.BlockTag): Promise<number | undefined> {

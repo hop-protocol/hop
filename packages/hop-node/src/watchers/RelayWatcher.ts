@@ -30,6 +30,12 @@ type Config = {
   dryMode?: boolean
 }
 
+type SendTransferRelayTxParams = {
+  transferId: string
+  destinationChainId: number
+  transferSentTxHash: string
+}
+
 class RelayWatcher extends BaseWatcher {
   override siblingWatchers: { [chainId: string]: RelayWatcher }
   private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
@@ -230,7 +236,7 @@ class RelayWatcher extends BaseWatcher {
           relayTxError,
           relayBackoffIndex: backoffIndex,
           isRelayable
-        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
+        } = await this.#handleMessageStatusError(err, relayBackoffIndex, logger)
         await this.db.transfers.update(transferId, {
           relayTxError,
           relayBackoffIndex: backoffIndex,
@@ -367,7 +373,7 @@ class RelayWatcher extends BaseWatcher {
           relayTxError,
           relayBackoffIndex: backoffIndex,
           isRelayable
-        } = await this.handleMessageStatusError(err, relayBackoffIndex, logger)
+        } = await this.#handleMessageStatusError(err, relayBackoffIndex, logger)
         await this.db.transferRoots.update(transferRootId, {
           relayTxError,
           relayBackoffIndex: backoffIndex,
@@ -380,7 +386,7 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async sendTransferRelayTx (params: any): Promise<providers.TransactionResponse> {
+  async sendTransferRelayTx (params: SendTransferRelayTxParams): Promise<providers.TransactionResponse> {
     const {
       transferId,
       destinationChainId,
@@ -417,7 +423,7 @@ class RelayWatcher extends BaseWatcher {
     return chainBridge.relayL1ToL2Message(txHash, messageIndex)
   }
 
-  private async handleMessageStatusError (
+  async #handleMessageStatusError (
     err: Error,
     relayBackoffIndex: number,
     logger: Logger

@@ -8,6 +8,7 @@ import { Chain } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L2_Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { TxOverrides } from 'src/types'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from 'src/config'
 import { l2AmmWrapperAbi } from '@hop-protocol/core/abi'
@@ -289,7 +290,7 @@ export default class L2Bridge extends Bridge {
       contract = contract.attach(contractAddress)
     }
 
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
     if (this.chainSlug === Chain.Polygon) {
       const gasLimit = 15_000_000
       txOverrides.gasLimit = gasLimit
@@ -311,7 +312,7 @@ export default class L2Bridge extends Bridge {
     amountOutMin: BigNumber,
     deadline: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    const txOverrides = await this.txOverrides()
+    const txOverrides: TxOverrides = await this.txOverrides()
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000

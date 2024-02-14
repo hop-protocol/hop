@@ -16,7 +16,7 @@ import {
   MaxReorgCheckBackoffIndex
 } from 'src/constants'
 import { DbSet, getDbSet, isDbSetReady } from 'src/db'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'

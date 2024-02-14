@@ -3,7 +3,7 @@ import { AbstractMessageService, IMessageService, MessageDirection } from 'src/c
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
-import { providers } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 
 /**
  * PolygonZk Implementation References
@@ -95,10 +95,21 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     const networkId: number = await sourceBridge.networkID()
     const claimPayload = await this.zkEvmClient.bridgeUtil.buildPayloadForClaim(message, isL1ToL2, networkId)
 
+    // Temp: remove this once the SDK is fixed
+    // @maticnetwork/maticjs-pos-zkevm@3.7.9 has a known issue with types. This is required to claim.
+    let index: any
+    if (messageDirection === MessageDirection.L1_TO_L2) {
+      const indexBn = BigNumber.from(claimPayload.index.toString())
+      index = (indexBn.add(BigNumber.from(2).pow(64))).toString()
+    } else {
+      index = claimPayload.index
+    }
+
     // Execute the claim tx
-    const claimMessageTx = await destBridge.claimMessage(
+    const claimMessageTx = await destBridge.claimMessageNew(
       claimPayload.smtProof,
-      claimPayload.index,
+      claimPayload.smtProofRollup!,
+      index,
       claimPayload.mainnetExitRoot,
       claimPayload.rollupExitRoot,
       claimPayload.originNetwork,

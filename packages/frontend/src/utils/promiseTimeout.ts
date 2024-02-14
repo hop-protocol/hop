@@ -1,4 +1,4 @@
-const promiseTimeout = async (promise: Promise<T>, timeout: number): Promise<T> => {
+export async function promiseTimeout<T>(promise: Promise<T>, timeout: number): Promise<T> {
   return new Promise((resolve, reject) => {
     let timedout = false
     const t = setTimeout(() => {

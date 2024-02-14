@@ -101,7 +101,8 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     let index: any
     if (messageDirection === MessageDirection.L1_TO_L2) {
       console.log('bbb')
-      index = (BigNumber.from(claimPayload.index.toString()).mul(BigNumber.from(2).pow(64))).toString()
+      const indexBn = BigNumber.from(claimPayload.index.toString())
+      index = (indexBn.add(BigNumber.from(2).pow(64))).toString()
       console.log('ccc')
     } else {
       console.log('ddd')

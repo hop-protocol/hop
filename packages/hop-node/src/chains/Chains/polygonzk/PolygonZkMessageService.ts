@@ -3,7 +3,7 @@ import { AbstractMessageService, IMessageService, MessageDirection } from 'src/c
 import { CanonicalMessengerRootConfirmationGasLimit } from 'src/constants'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
-import { providers } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 
 /**
  * PolygonZk Implementation References
@@ -99,7 +99,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     // @maticnetwork/maticjs-pos-zkevm@3.7.9 has a known issue with types. This is required to claim.
     let index: any
     if (messageDirection === MessageDirection.L1_TO_L2) {
-      index = (BigInt(claimPayload.index) + BigInt(2 ** 64)).toString()
+      index = (BigNumber.from(claimPayload.index).add(BigNumber.from(2 ** 64))).toString()
     } else {
       index = claimPayload.index
     }

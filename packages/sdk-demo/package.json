@@ -8,24 +8,11 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
-    "start": "react-app-rewired start",
-    "dev": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none pnpm start",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true react-app-rewired build",
+    "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
+    "dev": "pnpm start",
+    "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
     "lint": "eslint . --ext .ts,.tsx --fix",
-    "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "11.9.0",
@@ -33,29 +20,25 @@
     "@mui/lab": "5.0.0-alpha.84",
     "@hop-protocol/sdk": "workspace:*",
     "@mui/material": "5.7.0",
-    "@testing-library/jest-dom": "5.16.4",
-    "@testing-library/react": "14.1.2",
-    "@types/react": "18.2.48",
-    "@types/react-dom": "18.0.4",
-    "assert": "2.1.0",
-    "crypto-browserify": "3.12.0",
     "dotenv": "16.4.1",
     "ethers": "5.7.2",
-    "https-browserify": "1.0.0",
-    "os-browserify": "0.3.0",
     "react": "18.1.0",
     "react-dom": "18.1.0",
     "react-syntax-highlighter": "15.5.0",
-    "stream-browserify": "3.0.0",
-    "stream-http": "3.2.0",
-    "url": "0.11.3",
     "usehooks-ts": "2.9.1",
     "web-vitals": "2.1.4"
   },
   "devDependencies": {
+    "@types/react": "18.2.48",
+    "@types/react-dom": "18.0.4",
     "@types/react-syntax-highlighter": "15.5.4",
-    "react-app-rewired": "2.2.1",
+    "@types/styled-components": "5.1.34",
+    "@types/styled-system": "5.1.22",
     "eslint-plugin-react": "7.21.5",
-    "eslint-plugin-react-hooks": "4.2.0"
+    "eslint-plugin-react-hooks": "4.2.0",
+    "@testing-library/jest-dom": "5.16.4",
+    "@vitejs/plugin-react": "4.2.1",
+    "buffer": "6.0.3",
+    "vite": "5.0.8"
   }
 }

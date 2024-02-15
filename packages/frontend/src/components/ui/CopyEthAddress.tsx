@@ -1,7 +1,6 @@
 import Box from '@mui/material/Box'
 import MuiTooltip from '@mui/material/Tooltip'
-import React, { useState } from 'react'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
+import React, { SyntheticEvent, useState } from 'react'
 import { EthAddress, EthAddressProps } from 'src/components/ui/EthAddress'
 import { withStyles } from '@mui/styles'
 
@@ -21,7 +20,13 @@ export function CopyEthAddress(props: Props & EthAddressProps) {
   const { value, ...rest } = props
   const [text, setText] = useState<string>('')
 
-  function handleClick() {
+  function handleClick(event: SyntheticEvent<any>) {
+    try {
+      const { text } = event.currentTarget.dataset
+      navigator.clipboard.writeText(text)
+    } catch (err: any) {
+      console.error(err)
+    }
     if (!value) {
       return
     }
@@ -33,11 +38,11 @@ export function CopyEthAddress(props: Props & EthAddressProps) {
 
   return (
     <Tooltip title={text} open={!!text} placement="top-start">
-      <CopyToClipboard text={value} onCopy={handleClick}>
+      <Box data-text={value} onClick={handleClick}>
         <Box style={{ cursor: "pointer" }}>
           <EthAddress {...rest} value={value} />
         </Box>
-      </CopyToClipboard>
+      </Box>
     </Tooltip>
   )
 }

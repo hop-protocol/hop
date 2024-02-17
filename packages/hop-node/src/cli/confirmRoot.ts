@@ -5,6 +5,7 @@ import { IChainBridge } from '../chains/IChainBridge'
 import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
+import { getEnabledNetworks } from 'src/config'
 
 root
   .command('confirm-root')
@@ -95,6 +96,10 @@ async function main (source: any) {
     console.log('rootDatas', rootDatas)
     await watcher.confirmRootsViaWrapper(rootDatas)
   } else {
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(chain)) {
+      throw new Error(`Chain ${chain} is not enabled`)
+    }
     const chainBridge: IChainBridge = getChainBridge(chain)
     for (const dbTransferRoot of dbTransferRoots) {
       const commitTxHash = dbTransferRoot.commitTxHash

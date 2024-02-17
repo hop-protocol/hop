@@ -13,7 +13,7 @@ import { IChainBridge } from 'src/chains/IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { config as globalConfig } from 'src/config'
+import { getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -109,6 +109,11 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(this.chainSlug)) {
+      logger.warn(`chain ${this.chainSlug} is not enabled`)
+      return
+    }
     const chainBridge: IChainBridge = getChainBridge(this.chainSlug as Chain)
     if (!chainBridge) {
       logger.warn(`chainBridge for ${this.chainSlug} is not implemented yet`)

@@ -3,7 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getChainBridge from 'src/chains/getChainBridge'
-import { EnforceRelayerFee, RelayTransactionBatchSize, config as globalConfig } from 'src/config'
+import { EnforceRelayerFee, RelayTransactionBatchSize, getEnabledNetworks, config as globalConfig } from 'src/config'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { IChainBridge } from 'src/chains/IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
@@ -411,6 +411,10 @@ class RelayWatcher extends BaseWatcher {
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const destinationChainSlug = chainIdToSlug(destinationChainId)
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(destinationChainSlug)) {
+      throw new Error(`RelayWatcher: sendRelayTx: destination chain id "${destinationChainId}" not enabled`)
+    }
     const chainBridge: IChainBridge = getChainBridge(destinationChainSlug)
     if (!chainBridge) {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)

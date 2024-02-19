@@ -6,13 +6,14 @@ const outputDir = 'src/contracts'
 
 const generateClassFile = (filename) => `
 import { Contract, providers, Signer } from 'ethers'
-import { Abi, TypedContract } from './ethers-abitype'
+import { Abi } from 'abitype'
+import { getContract, GetContractResult as TypedContract } from '@wagmi/core'
 import abi from './${filename}_abi'
 
 export class ${filename}__factory extends Contract {
   static connect(address: string, provider: providers.Provider | Signer): TypedContract<typeof abi> {
-    const contract = new this(address, abi, provider)
-    return (contract.connect(provider) as unknown as TypedContract<typeof abi>)
+    const contract = getContract({ address, abi })
+    return contract.connect(provider) as unknown as TypedContract<typeof abi>
   }
 }
 

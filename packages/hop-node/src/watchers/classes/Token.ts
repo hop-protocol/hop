@@ -9,7 +9,7 @@ export default class Token extends ContractBase {
   _decimals: number
 
   constructor (tokenContract: ERC20) {
-    super(tokenContract)
+    super(tokenContract as any)
     this.tokenContract = tokenContract
     this.isEth = (this.tokenContract.address === constants.AddressZero)
   }

@@ -1,6 +1,6 @@
 import { Contract } from 'ethers'
 // import { parseAbi } from 'abitype'
-import { TypedContract } from './ethers-abitype'
+import { TypedContract, typedContract } from './ethers-abitype'
 
 const address = '0x0000000000000000000000000000000000000000'
 // const abi = parseAbi([
@@ -35,3 +35,7 @@ const abi = [
 
 const contract = new Contract(address, abi) as unknown as TypedContract<typeof abi>
 console.log(contract)
+
+const provider:any = null
+const c1 = typedContract(address, abi, provider)
+c1.decimals

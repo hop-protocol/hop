@@ -16,6 +16,8 @@ import {
   EventFilter,
   Overrides,
   PayableOverrides,
+  providers,
+  Signer
 } from 'ethers'
 import {
   EventFragment,
@@ -96,6 +98,38 @@ export interface TypedContractEvent<
 export type TypedContract<TAbi extends Abi> = Omit<Contract, 'getFunction' | 'getEvent'> & {
   [Method in ExtractAbiFunctionNames<TAbi>]: TypedContractFunction<TAbi, Method>
 } & {
+  address: any,
+  interface: any,
+  signer: any,
+  provider: any,
+  functions: any,
+  callStatic: any
+  estimateGas: any
+  populateTransaction: any
+  resolvedAddress: any
+  deployTransaction: any
+  _deployedPromise: any
+  _runningEvents: any
+  _wrappedEmits: any
+  deployed: any
+  _deployed: any
+  fallback: any
+  connect: any
+  attach: any
+  _normalizeRunningEvent: any
+  _getRunningEvent: any
+  _checkRunningEvents: any
+  _wrapEvent: any
+  _addEventListener: any
+  queryFilter: any
+  on: any
+  once: any
+  emit: any
+  listenerCount: any
+  listeners: any
+  removeAllListeners: any
+  off: any
+  removeListener: any
   getFunction<T extends ExtractAbiFunctionNames<TAbi>>(key: T | TypedFragment<TAbi, T>): TypedContractFunction<TAbi, T>
   getEvent<T extends ExtractAbiEventNames<TAbi>>(key: T | EventFragment): TypedContractEvent<TAbi, T>
   filters: {
@@ -103,10 +137,10 @@ export type TypedContract<TAbi extends Abi> = Omit<Contract, 'getFunction' | 'ge
   }
 }
 
-// export const typedContract = <TAbi extends Abi>(
-//   address: string,
-//   abi: TAbi,
-//   signerOrProvider: ethers.Signer | ethers.providers.Provider
-// ): TypedContract<TAbi> => {
-//   return new Contract(address, abi, signerOrProvider) as TypedContract<TAbi>
-// }
+export const typedContract = <TAbi extends Abi>(
+  address: string,
+  abi: TAbi,
+  signerOrProvider: Signer | providers.Provider
+): TypedContract<TAbi> => {
+  return new Contract(address, abi as any, signerOrProvider) as unknown as TypedContract<TAbi>
+}

@@ -85,6 +85,7 @@
   },
   "directories": {},
   "dependencies": {
+    "@wagmi/core": "0.7.9",
     "abitype": "1.0.0",
     "ethers": "5.7.2"
   },

@@ -33,4 +33,8 @@ export class TEST__factory extends Contract {
   }
 }
 
+const provider:any = null
+const address : string = ''
+const c1 = TEST__factory.connect(address, provider)
+
 export type TEST = TypedContract<typeof abi>

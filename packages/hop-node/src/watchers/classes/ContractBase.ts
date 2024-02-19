@@ -1,19 +1,21 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
-import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
+import getBumpedGasPrice from '@hop-protocol/hop-node-core/src/utils/getBumpedGasPrice'
+import getProviderChainSlug from '@hop-protocol/hop-node-core/src/utils/getProviderChainSlug'
 import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   MinGnosisGasPrice,
   MinPolygonGasPrice,
-  SyncType
-} from 'src/constants'
+} from '@hop-protocol/hop-node-core/src/constants'
 import { Event } from '@ethersproject/contracts'
 import { EventEmitter } from 'node:events'
-import { FinalityService } from 'src/finality/FinalityService'
-import { FinalityStrategyType } from 'src/finality/strategies/IFinalityStrategy'
-import { TxOverrides } from 'src/types'
+import { FinalityService } from '@hop-protocol/hop-node-core/src/finality/FinalityService'
+import { FinalityStrategyType } from '@hop-protocol/hop-node-core/src/finality/strategies/IFinalityStrategy'
+import {
+  SyncType
+} from 'src/constants'
+import { TxOverrides } from '@hop-protocol/hop-node-core/src/types'
 import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'
 
 export default class ContractBase extends EventEmitter {

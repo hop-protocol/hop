@@ -1,5 +1,5 @@
 import makeRequest from './makeRequest'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferSents (chain: string, token: string) {

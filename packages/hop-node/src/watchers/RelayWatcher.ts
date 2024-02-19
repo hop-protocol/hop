@@ -1,11 +1,11 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
-import Logger from 'src/logger'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getChainBridge from 'src/chains/getChainBridge'
+import Logger from '@hop-protocol/hop-node-core/src/logger'
+import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
+import getChainBridge from '@hop-protocol/hop-node-core/src/chains/getChainBridge'
 import { EnforceRelayerFee, RelayTransactionBatchSize, getEnabledNetworks, config as globalConfig } from 'src/config'
 import { GasCostTransactionType, TxError } from 'src/constants'
-import { IChainBridge } from 'src/chains/IChainBridge'
+import { IChainBridge } from '@hop-protocol/hop-node-core/src/chains/IChainBridge'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import {
@@ -13,14 +13,15 @@ import {
   MessageInvalidError,
   MessageRelayedError,
   MessageUnknownError
-} from 'src/chains/Services/AbstractMessageService'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
+} from '@hop-protocol/hop-node-core/src/chains/Services/AbstractMessageService'
+import { NonceTooLowError } from '@hop-protocol/hop-node-core/src/types/error'
 import { RelayableTransferRoot, TransferRootRelayProps } from 'src/db/TransferRootsDb'
+import { RelayerFeeTooLowError } from 'src/types/error'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
-import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
-import { isNativeToken } from 'src/utils/isNativeToken'
-import { promiseQueue } from 'src/utils/promiseQueue'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core/src/utils/isFetchExecutionError'
+import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/src/utils/isFetchRpcServerError'
+import { isNativeToken } from '@hop-protocol/hop-node-core/src/utils/isNativeToken'
+import { promiseQueue } from '@hop-protocol/hop-node-core/src/utils/promiseQueue'
 import { providers } from 'ethers'
 
 type Config = {

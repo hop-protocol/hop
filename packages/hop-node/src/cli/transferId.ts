@@ -1,5 +1,5 @@
 import getTransferId from 'src/theGraph/getTransfer'
-import isL1 from 'src/utils/isL1'
+import isL1 from '@hop-protocol/hop-node-core/src/utils/isL1'
 import { actionHandler, logger, parseString, root } from './shared'
 import {
   getEnabledNetworks

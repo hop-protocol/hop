@@ -1,4 +1,4 @@
-import { Chain, Token } from 'src/constants'
+import { Chain, Token } from '@hop-protocol/hop-node-core/src/constants'
 import { config as globalConfig } from 'src/config'
 
 const isTokenSupportedForChain = (token: string, chainSlug: string): boolean => {

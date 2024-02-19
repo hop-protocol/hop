@@ -1,12 +1,14 @@
 import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
+import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
+import getExponentialBackoffDelayMs from '@hop-protocol/hop-node-core/src/utils/getExponentialBackoffDelayMs'
 import { BigNumber } from 'ethers'
 import {
   Chain,
   OneDayMs,
   OneHourMs,
-  OneWeekMs,
+  OneWeekMs
+} from '@hop-protocol/hop-node-core/src/constants'
+import {
   RelayWaitTimeMs,
   RelayableChains,
   TxError

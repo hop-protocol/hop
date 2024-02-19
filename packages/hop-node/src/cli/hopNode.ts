@@ -3,17 +3,18 @@ import { AssetSymbol } from '@hop-protocol/core/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
-  gitRev,
-  config as globalConfig,
-  slackAuthToken,
-  slackChannel,
-  slackUsername
+  config as globalConfig
 } from 'src/config'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { computeAddress } from 'ethers/lib/utils'
+import {
+  gitRev,
+  slackAuthToken,
+  slackChannel,
+  slackUsername
+} from '@hop-protocol/hop-node-core/src/config'
 import { printHopArt } from './shared/art'
-import { startArbBots } from 'src/arbBot'
 import {
   startWatchers
 } from 'src/watchers/watchers'
@@ -51,7 +52,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -198,13 +199,6 @@ async function main (source: any) {
         cacheFile: healthCheckCacheFile,
         enabledChecks: enabledChecksObj
       }).start()
-      resolve()
-    }))
-  }
-
-  if (runArbBot) {
-    promises.push(new Promise((resolve) => {
-      startArbBots({ dryMode, configFilePath: arbBotConfig })
       resolve()
     }))
   }

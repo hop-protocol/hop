@@ -40,8 +40,8 @@ export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
 const envNetwork = process.env.NETWORK ?? Network.Mainnet
-const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
+export const isTestMode = !!process.env.TEST_MODE
 
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
@@ -74,12 +74,12 @@ export const etherscanApiUrls: Record<string, string> = {
   [Chain.PolygonZk]: 'https://api-zkevm.polygonscan.com'
 }
 
-type MetricsConfig = {
+export type MetricsConfig = {
   enabled: boolean
   port?: number
 }
 
-type Tokens = Record<string, boolean>
+export type Tokens = Record<string, boolean>
 
 export type SignerType = 'keystore' | 'kms' | 'lambda'
 

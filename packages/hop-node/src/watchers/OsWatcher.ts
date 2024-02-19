@@ -1,9 +1,9 @@
-import Logger from 'src/logger'
+import Logger from '@hop-protocol/hop-node-core/src/logger'
 import Metrics from 'src/watchers/classes/Metrics'
 import checkDiskSpace, { type DiskSpace } from 'check-disk-space'
 import os from 'node:os'
 import pidusage from 'pidusage'
-import wait from 'src/utils/wait'
+import wait from '@hop-protocol/hop-node-core/src/utils/wait'
 
 type Config = {
   heapdump: boolean

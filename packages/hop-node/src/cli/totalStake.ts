@@ -1,8 +1,8 @@
 import getStake from 'src/theGraph/getStake'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
 import getUnstake from 'src/theGraph/getUnstake'
 import { BigNumber, utils } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { actionHandler, parseString, root } from './shared'
 
 root

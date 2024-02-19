@@ -1,4 +1,4 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
 import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import { getCommitTransfersWatcher } from 'src/watchers/watchers'

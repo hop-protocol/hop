@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import normalizeEnvVarArray from 'src/config/utils/normalizeEnvVarArray'
+import normalizeEnvVarArray from '@hop-protocol/hop-node-core/src/config/utils/normalizeEnvVarArray'
 import objectDepth from 'src/utils/objectDepth'
 import path from 'node:path'
 import {
@@ -17,7 +17,7 @@ root
   .option('--chain <slug>', 'Chain', parseString)
   .option('--destination-chain <slug>', 'Destination chain', parseString)
   .option('--token <symbol>', 'Token symbol', parseString)
-  .option('--tokens <symbols>', 'Specifiy multiple token symbol', parseString)
+  .option('--tokens <symbols>', 'Specify multiple token symbol', parseString)
   .option('--set-enabled [boolean]', 'Token to set enabled/disabled', parseBool)
   .option('--commit-transfers-min-threshold [amount]', 'Min threshold amount for committing transfers', parseString)
   .option('--from-file <path>', 'Update config with input from file', parseString)

@@ -1,8 +1,10 @@
 import { BigNumber } from 'ethers'
 import {
   Chain,
-  ChainBalanceArchiveData,
   Token
+} from '@hop-protocol/hop-node-core/src/constants'
+import {
+  ChainBalanceArchiveData
 } from 'src/constants'
 import { actionHandler, parseString, root } from './shared'
 import { getHistoricalUnrelayedL1ToL2Transfers } from './shared/utils'

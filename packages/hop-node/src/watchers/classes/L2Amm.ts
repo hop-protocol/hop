@@ -1,7 +1,7 @@
 import ContractBase from './ContractBase'
 import { BigNumber } from 'ethers'
 import { TokenIndex } from 'src/constants'
-import { TxOverrides } from 'src/types'
+import { TxOverrides } from '@hop-protocol/hop-node-core/src/types'
 
 export default class L2Amm extends ContractBase {
   calculateToHTokensAmount = async (amountIn: BigNumber): Promise<BigNumber> => {

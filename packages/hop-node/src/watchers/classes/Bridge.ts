@@ -1,32 +1,36 @@
 import ContractBase from './ContractBase'
-import Logger from 'src/logger'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
+import Logger from '@hop-protocol/hop-node-core/src/logger'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
+import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
-  GasCostTransactionType,
-  SettlementGasLimitPerTx,
   Token
-} from 'src/constants'
+} from '@hop-protocol/hop-node-core/src/constants'
 import {
-  CoingeckoApiKey,
-  getNetworkCustomSyncType,
-  config as globalConfig
-} from 'src/config'
+  CoingeckoApiKey
+} from '@hop-protocol/hop-node-core/src/config'
 import { DbSet, getDbSet } from 'src/db'
-import { Event } from 'src/types'
+import { Event } from '@hop-protocol/hop-node-core/src/types'
+import {
+  GasCostTransactionType,
+  SettlementGasLimitPerTx
+} from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
-import { TxOverrides } from 'src/types'
+import { TxOverrides } from '@hop-protocol/hop-node-core/src/types'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import {
+  getNetworkCustomSyncType,
+  config as globalConfig
+} from 'src/config'
 
 export type EventsBatchOptions = {
   syncCacheKey: string

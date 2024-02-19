@@ -1,4 +1,4 @@
-import { Chain, Token } from 'src/constants'
+import { Chain, Token } from '@hop-protocol/hop-node-core/src/constants'
 
 /**
  * This data needed to calculate chain balances for a given timestamp. Retrieving this data can take

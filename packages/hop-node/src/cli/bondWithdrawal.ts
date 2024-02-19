@@ -1,4 +1,4 @@
-import isL1ChainId from 'src/utils/isL1ChainId'
+import isL1ChainId from '@hop-protocol/hop-node-core/src/utils/isL1ChainId'
 import { SendBondWithdrawalTxParams } from 'src/watchers/BondWithdrawalWatcher'
 import { Transfer } from 'src/db/TransfersDb'
 import { WatcherNotFoundError } from './shared/utils'

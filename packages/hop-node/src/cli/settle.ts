@@ -1,4 +1,4 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
+import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, parseBool, parseString, root } from './shared'

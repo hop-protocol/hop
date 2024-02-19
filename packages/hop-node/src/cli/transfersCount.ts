@@ -1,5 +1,5 @@
 import getTransfersCount from 'src/theGraph/getTransfersCount'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { actionHandler, root } from './shared'
 import {
   getEnabledNetworks,

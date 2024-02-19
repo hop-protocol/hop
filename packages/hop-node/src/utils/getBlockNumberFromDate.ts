@@ -1,7 +1,7 @@
 import BlockDater from 'ethereum-block-by-date'
-import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
 import { DateTime } from 'luxon'
-import { etherscanApiKeys, etherscanApiUrls } from 'src/config'
+import { etherscanApiKeys, etherscanApiUrls } from '@hop-protocol/hop-node-core/src/config'
 
 export async function getBlockNumberFromDate (chain: string, timestamp: number): Promise<number> {
   const useEtherscan = etherscanApiKeys[chain]

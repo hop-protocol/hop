@@ -1,4 +1,4 @@
-import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
 import { ChainSlug } from '@hop-protocol/core/config'
 import { DateTime } from 'luxon'
 import { NetworkSlug, networks } from '@hop-protocol/core/networks'

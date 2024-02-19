@@ -1,5 +1,5 @@
 import DatabaseMigrator from './DatabaseMigrator'
-import Logger from 'src/logger'
+import Logger from '@hop-protocol/hop-node-core/src/logger'
 // @ts-expect-error level-party does not have a types file as of 20231227
 import level from 'level-party'
 import os from 'node:os'

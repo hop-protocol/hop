@@ -4,8 +4,8 @@ import L1Bridge from './classes/L1Bridge'
 import { ChallengeableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { Notifier } from 'src/notifier'
-import { hostname } from 'src/config'
+import { Notifier } from '@hop-protocol/hop-node-core/src/notifier'
+import { hostname } from '@hop-protocol/hop-node-core/src/config'
 
 type Config = {
   chainSlug: string

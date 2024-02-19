@@ -1,8 +1,8 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
+import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
@@ -10,8 +10,10 @@ import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import {
   Chain,
-  ChainBalanceArchiveData,
   Token
+} from '@hop-protocol/hop-node-core/src/constants'
+import {
+  ChainBalanceArchiveData
 } from 'src/constants'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'

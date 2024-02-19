@@ -2,36 +2,40 @@ import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
 import Bridge from './Bridge'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
-import Logger from 'src/logger'
+import Logger from '@hop-protocol/hop-node-core/src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
-import bigNumberMin from 'src/utils/bigNumberMin'
-import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
-import wait from 'src/utils/wait'
-import wallets from 'src/wallets'
+import bigNumberMin from '@hop-protocol/hop-node-core/src/utils/bigNumberMin'
+import getRpcProviderFromUrl from '@hop-protocol/hop-node-core/src/utils/getRpcProviderFromUrl'
+import wait from '@hop-protocol/hop-node-core/src/utils/wait'
+import wallets from '@hop-protocol/hop-node-core/src/wallets'
 import { BigNumber, constants } from 'ethers'
 import {
-  Chain,
+  Chain
+} from '@hop-protocol/hop-node-core/src/constants'
+import { DbSet, getDbSet, isDbSetReady } from 'src/db'
+import { EventEmitter } from 'node:events'
+import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
 } from 'src/constants'
-import { DbSet, getDbSet, isDbSetReady } from 'src/db'
-import { EventEmitter } from 'node:events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { Mutex } from 'async-mutex'
-import { Notifier } from 'src/notifier'
+import { Notifier } from '@hop-protocol/hop-node-core/src/notifier'
 import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
-} from 'src/types/error'
+} from '@hop-protocol/hop-node-core/src/types/error'
 import {
   TxRetryDelayMs,
-  config as globalConfig,
-  hostname
+  config as globalConfig
 } from 'src/config'
-import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
+import {
+  hostname
+} from '@hop-protocol/hop-node-core/src/config'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core/src/utils/isFetchExecutionError'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract

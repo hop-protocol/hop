@@ -1,9 +1,10 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
+import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ChainPollMultiplier } from 'src/constants'
+import { ChainPollMultiplier } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import {

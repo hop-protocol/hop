@@ -1,7 +1,7 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseString, root } from './shared'
 import { constants } from 'ethers'

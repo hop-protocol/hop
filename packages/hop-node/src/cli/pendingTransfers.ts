@@ -1,5 +1,5 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
-import chainSlugToId from 'src/utils/chainSlugToId'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
 import { WatcherNotFoundError } from './shared/utils'
 import { actionHandler, logger, parseString, root } from './shared'
 import {

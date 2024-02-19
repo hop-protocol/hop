@@ -1,7 +1,7 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import contracts from 'src/contracts'
-import wallets from 'src/wallets'
-import { Chain, Token } from 'src/constants'
+import wallets from '@hop-protocol/hop-node-core/src/wallets'
+import { Chain, Token } from '@hop-protocol/hop-node-core/src/constants'
 import { actionHandler, logger, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther, parseUnits } from 'ethers/lib/utils'
 

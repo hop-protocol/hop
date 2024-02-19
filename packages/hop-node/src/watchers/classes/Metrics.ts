@@ -1,5 +1,6 @@
-import { config as globalConfig, hostname } from 'src/config'
-import { metrics } from 'src/metrics'
+import { config as globalConfig } from 'src/config'
+import { hostname } from '@hop-protocol/hop-node-core/src/config'
+import { metrics } from '@hop-protocol/hop-node-core/src/metrics'
 
 class Metrics {
   metrics = metrics

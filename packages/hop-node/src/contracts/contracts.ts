@@ -1,9 +1,9 @@
 import '../moduleAlias'
 import memoize from 'fast-memoize'
-import { Chain, Network, Token } from 'src/constants'
+import { Chain, Network, Token } from '@hop-protocol/hop-node-core/src/constants'
 import { Signer, providers } from 'ethers'
 
-import wallets from 'src/wallets'
+import wallets from '@hop-protocol/hop-node-core/src/wallets'
 import {
   ERC20__factory,
   L1_ERC20_Bridge_Legacy__factory,

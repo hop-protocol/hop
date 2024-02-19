@@ -1,13 +1,15 @@
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
-import S3Upload from 'src/aws/s3Upload'
+import S3Upload from '@hop-protocol/hop-node-core/src/aws/s3Upload'
 import { BigNumber } from 'ethers'
 import {
-  BondTransferRootChains,
+  BondTransferRootChains
+} from 'src/constants'
+import {
   Chain,
   TenMinutesMs
-} from 'src/constants'
+} from '@hop-protocol/hop-node-core/src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { TransferRoot } from 'src/db/TransferRootsDb'

@@ -1,4 +1,4 @@
-import rateLimitRetry from 'src/utils/rateLimitRetry'
+import rateLimitRetry from '@hop-protocol/hop-node-core/src/utils/rateLimitRetry'
 
 class Example {
   counter = 0

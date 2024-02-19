@@ -1,4 +1,4 @@
-import Logger from 'src/logger'
+import Logger from '@hop-protocol/hop-node-core/src/logger'
 import fs from 'node:fs'
 import path from 'node:path'
 import { BigNumber } from 'ethers'

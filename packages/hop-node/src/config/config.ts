@@ -1,23 +1,33 @@
-import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
-import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
+import normalizeEnvVarArray from '@hop-protocol/hop-node-core/src/config/utils/normalizeEnvVarArray'
+import normalizeEnvVarNumber from '@hop-protocol/hop-node-core/src/config/utils/normalizeEnvVarNumber'
 import os from 'node:os'
+import path from 'node:path'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
 import { BonderConfig } from 'src/config/types'
-import path from 'node:path'
 import {
   Chain,
   DefaultBatchBlocks,
-  DefaultBondThreshold,
   Network,
   OneHourMs,
-  SyncType,
   TotalBlocks
+} from '@hop-protocol/hop-node-core/src/constants'
+import {
+  DefaultBondThreshold,
+  SyncType
 } from 'src/constants'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
+import {
+  config as hopNodeCoreConfig,
+  isTestMode,
+  type Config as HopNodeCoreConfig,
+  type Tokens,
+  type MetricsConfig,
+  type SignerConfig,
+  type BlocklistConfig
+} from '@hop-protocol/hop-node-core/src/config'
 import { parseEther } from 'ethers/lib/utils'
-import { config as coreConfig, type Config as CoreConfig } from '@hop-protocol/hop-node-core'
 
 require('./loadEnvFile')
 
@@ -64,7 +74,7 @@ export type CommitTransfersConfig = {
   minThresholdAmount: Record<string, Record<string, Record<string, any>>>
 }
 
-export type Config && CoreConfig = {
+export type Config = HopNodeCoreConfig & {
   addresses: Partial<Bridges> & {[network: string]: any}
   bonders: Bonders
   bonderConfig: BonderConfig
@@ -121,11 +131,8 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
   }
 }
 
-// get default config
-const { addresses, bonders, bonderConfig, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
-
 // defaults
-export const config: Config && coreConfig = {
+export const config: Config = {
   tokens: {},
   fees: {},
   routes: {},

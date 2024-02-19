@@ -1,7 +1,7 @@
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { getAllChains } from 'src/config'
 
 export default async function getUnsetTransferRoots (startDate: number, endDate: number, token: string = '') {

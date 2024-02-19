@@ -1,7 +1,7 @@
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getRpcUrl from 'src/utils/getRpcUrl'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
+import getRpcUrl from '@hop-protocol/hop-node-core/src/utils/getRpcUrl'
 import { BigNumber } from 'ethers'
-import { CoingeckoApiKey } from 'src/config'
+import { CoingeckoApiKey } from '@hop-protocol/hop-node-core/src/config'
 import { actionHandler, parseString, root } from '../shared'
 import {
   coingeckoCoinIds,
@@ -12,7 +12,7 @@ import {
   tokenDecimals
 } from 'src/cli/metrics/sharedMetrics'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { nativeChainTokens } from 'src/constants'
+import { nativeChainTokens } from '@hop-protocol/hop-node-core/src/constants'
 
 root
   .command('bonder-tx-cost')

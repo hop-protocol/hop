@@ -1,9 +1,8 @@
 import '../moduleAlias'
-import Logger from 'src/logger'
+import Logger from '@hop-protocol/hop-node-core/src/logger'
 import { execSync } from 'node:child_process'
 import { program } from './shared'
 
-import './arbBot'
 import './bondFirstRootOfRoute'
 import './bondTransferRoot'
 import './bondWithdrawal'

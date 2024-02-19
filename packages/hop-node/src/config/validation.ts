@@ -1,5 +1,5 @@
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { Chain, SyncType } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import {
   Config,
   FileConfig,
@@ -8,6 +8,7 @@ import {
   getAllTokens,
   getEnabledTokens
 } from 'src/config'
+import { SyncType } from 'src/constants'
 import { URL } from 'node:url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 

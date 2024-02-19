@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { DateTime } from 'luxon'
 
 import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'

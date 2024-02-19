@@ -1,8 +1,8 @@
 import '../src/moduleAlias'
-import getChainBridge from 'src/chains/getChainBridge'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import { Chain } from 'src/constants'
-import { FinalityBlockTag, IChainBridge } from 'src/chains/IChainBridge'
+import getChainBridge from '@hop-protocol/hop-node-core/src/chains/getChainBridge'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
+import { FinalityBlockTag, IChainBridge } from '@hop-protocol/hop-node-core/src/chains/IChainBridge'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 import {
   parseConfigFile,

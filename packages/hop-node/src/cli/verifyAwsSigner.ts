@@ -1,12 +1,12 @@
-import { KmsSigner } from 'src/aws/KmsSigner'
-import { LambdaSigner } from 'src/aws/LambdaSigner'
+import { KmsSigner } from '@hop-protocol/hop-node-core/src/aws/KmsSigner'
+import { LambdaSigner } from '@hop-protocol/hop-node-core/src/aws/LambdaSigner'
 import { actionHandler, parseBool, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import {
   getEnabledNetworks,
   config as globalConfig
 } from 'src/config'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
 
 root
   .command('verify-aws-signer')

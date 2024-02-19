@@ -1,13 +1,13 @@
 import ContractBase from './ContractBase'
-import getTokenMetadata from 'src/utils/getTokenMetadata'
-import isL1ChainId from 'src/utils/isL1ChainId'
+import getTokenMetadata from '@hop-protocol/hop-node-core/src/utils/getTokenMetadata'
+import isL1ChainId from '@hop-protocol/hop-node-core/src/utils/isL1ChainId'
 import { BigNumber, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { Hop } from '@hop-protocol/sdk'
-import { TxOverrides } from 'src/types'
+import { TxOverrides } from '@hop-protocol/hop-node-core/src/types'
 import { formatUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
-import { isNativeToken } from 'src/utils/isNativeToken'
+import { isNativeToken } from '@hop-protocol/hop-node-core/src/utils/isNativeToken'
 
 export default class L2AmmWrapper extends ContractBase {
   decodeSwapAndSendData (data: string): any {

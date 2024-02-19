@@ -3,26 +3,28 @@ import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
-import getRpcUrl from 'src/utils/getRpcUrl'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
+import getRpcRootProviderName from '@hop-protocol/hop-node-core/src/utils/getRpcRootProviderName'
+import getRpcUrl from '@hop-protocol/hop-node-core/src/utils/getRpcUrl'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
-import isL1ChainId from 'src/utils/isL1ChainId'
-import wait from 'src/utils/wait'
-import wallets from 'src/wallets'
+import isL1ChainId from '@hop-protocol/hop-node-core/src/utils/isL1ChainId'
+import wait from '@hop-protocol/hop-node-core/src/utils/wait'
+import wallets from '@hop-protocol/hop-node-core/src/wallets'
 import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
-  Chain,
   ChainPollMultiplier,
   DoesRootProviderSupportWs,
-  FiveMinutesMs,
   GasCostTransactionType,
-  OneWeekMs,
   RelayableChains,
   RootProviderName,
-  TenMinutesMs
 } from 'src/constants'
+import {
+  Chain,
+  FiveMinutesMs,
+  OneWeekMs,
+  TenMinutesMs
+} from '@hop-protocol/hop-node-core/src/constants'
 import { DateTime } from 'luxon'
 import {
   EnforceRelayerFee,
@@ -58,8 +60,8 @@ import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { isDbSetReady } from 'src/db'
-import { promiseQueue } from 'src/utils/promiseQueue'
-import { promiseTimeout } from 'src/utils/promiseTimeout'
+import { promiseQueue } from '@hop-protocol/hop-node-core/src/utils/promiseQueue'
+import { promiseTimeout } from '@hop-protocol/hop-node-core/src/utils/promiseTimeout'
 
 type Config = {
   chainSlug: string

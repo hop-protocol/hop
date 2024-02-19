@@ -1,7 +1,7 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
 import makeRequest from './makeRequest'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 
 type TransferCommitted = {
   blockNumber: string

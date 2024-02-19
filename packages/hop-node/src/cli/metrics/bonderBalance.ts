@@ -1,6 +1,6 @@
-import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/src/constants'
 import { Interface, formatUnits } from 'ethers/lib/utils'
 import { actionHandler, parseString, root } from '../shared'
 import {

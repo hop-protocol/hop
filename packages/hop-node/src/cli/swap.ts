@@ -1,13 +1,14 @@
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import contracts from 'src/contracts'
-import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
+import getCanonicalTokenSymbol from '@hop-protocol/hop-node-core/src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
-import wallets from 'src/wallets'
+import wallets from '@hop-protocol/hop-node-core/src/wallets'
 import { BigNumber, utils as ethersUtils } from 'ethers'
-import { Chain, MinPolygonGasPrice, TokenIndex, nativeChainTokens } from 'src/constants'
+import { Chain, MinPolygonGasPrice, nativeChainTokens } from '@hop-protocol/hop-node-core/src/constants'
+import { TokenIndex } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
-import { swap as dexSwap } from 'src/swap'
+import { swap as dexSwap } from '@hop-protocol/hop-node-core/src/swap'
 
 root
   .command('swap')

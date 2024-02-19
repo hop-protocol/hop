@@ -1,5 +1,5 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
+import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import makeRequest from './makeRequest'
 import { DateTime } from 'luxon'

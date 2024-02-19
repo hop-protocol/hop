@@ -1,5 +1,5 @@
 import getBondedWithdrawal from './getBondedWithdrawal'
-import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
 import getTransferRootForTransferId from './getTransferRootForTransferId'
 import makeRequest from './makeRequest'
 import { chainIdToSlug, normalizeEntity } from './shared'

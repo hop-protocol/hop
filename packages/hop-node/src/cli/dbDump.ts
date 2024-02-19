@@ -1,5 +1,5 @@
 import MerkleTree from 'src/utils/MerkleTree'
-import chainSlugToId from 'src/utils/chainSlugToId'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
 import { GasCostTransactionType } from 'src/constants'
 import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
 import { getDbSet } from 'src/db'

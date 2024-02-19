@@ -1,9 +1,9 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getRpcProvider from 'src/utils/getRpcProvider'
+import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, Contract } from 'ethers'
-import { Chain, OneHourSeconds } from 'src/constants'
+import { Chain, OneHourSeconds } from '@hop-protocol/hop-node-core/src/constants'
 import { DateTime } from 'luxon'
 import {
   actionHandler,

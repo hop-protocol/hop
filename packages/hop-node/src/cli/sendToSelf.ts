@@ -1,6 +1,6 @@
-import getRpcProvider from 'src/utils/getRpcProvider'
+import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
 import { BigNumber, Wallet } from 'ethers'
-import { TxOverrides } from 'src/types'
+import { TxOverrides } from '@hop-protocol/hop-node-core/src/types'
 import { actionHandler, logger, parseString, root } from './shared'
 import {
   config as globalConfig

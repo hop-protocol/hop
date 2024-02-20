@@ -1,5 +1,5 @@
-import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
-import { actionHandler, parseString, root } from './shared'
+import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots.js'
+import { actionHandler, parseString, root } from './shared/index.js'
 
 root
   .command('unbonded-transfer-roots')

@@ -1,15 +1,15 @@
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
-import L2Bridge from './classes/L2Bridge'
-import MerkleTree from 'src/utils/MerkleTree'
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
-import getRpcRootProviderName from '@hop-protocol/hop-node-core/src/utils/getRpcRootProviderName'
-import getRpcUrl from '@hop-protocol/hop-node-core/src/utils/getRpcUrl'
-import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
-import isL1ChainId from '@hop-protocol/hop-node-core/src/utils/isL1ChainId'
-import wait from '@hop-protocol/hop-node-core/src/utils/wait'
-import wallets from '@hop-protocol/hop-node-core/src/wallets'
+import BaseWatcher from './classes/BaseWatcher.js'
+import L1Bridge from './classes/L1Bridge.js'
+import L2Bridge from './classes/L2Bridge.js'
+import MerkleTree from 'src/utils/MerkleTree.js'
+import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcRootProviderName } from '@hop-protocol/hop-node-core/utils'
+import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
+import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId.js'
+import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core/utils'
+import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber, Contract, EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
@@ -18,13 +18,13 @@ import {
   GasCostTransactionType,
   RelayableChains,
   RootProviderName,
-} from 'src/constants'
+} from 'src/constants/index.js'
 import {
   Chain,
   FiveMinutesMs,
   OneWeekMs,
   TenMinutesMs
-} from '@hop-protocol/hop-node-core/src/constants'
+} from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import {
   EnforceRelayerFee,
@@ -35,9 +35,9 @@ import {
   config as globalConfig,
   minEthBonderFeeBn,
   wsEnabledChains
-} from 'src/config'
-import { GasCost } from 'src/db/GasCostDb'
-import { GasCostEstimationRes } from './classes/Bridge'
+} from 'src/config/index.js'
+import { GasCost } from 'src/db/GasCostDb.js'
+import { GasCostEstimationRes } from './classes/Bridge.js'
 import { Hop } from '@hop-protocol/sdk'
 import {
   L1_Bridge as L1BridgeContract,
@@ -56,12 +56,12 @@ import {
   TransferSentEvent,
   TransfersCommittedEvent
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Transfer } from 'src/db/TransfersDb'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { isDbSetReady } from 'src/db'
-import { promiseQueue } from '@hop-protocol/hop-node-core/src/utils/promiseQueue'
-import { promiseTimeout } from '@hop-protocol/hop-node-core/src/utils/promiseTimeout'
+import { Transfer } from 'src/db/TransfersDb.js'
+import { TransferRoot } from 'src/db/TransferRootsDb.js'
+import { getSortedTransferIds } from 'src/utils/getSortedTransferIds.js'
+import { isDbSetReady } from 'src/db/index.js'
+import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+import { promiseTimeout } from '@hop-protocol/hop-node-core/utils'
 
 type Config = {
   chainSlug: string

@@ -1,12 +1,12 @@
-import MerkleTree from 'src/utils/MerkleTree'
-import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
-import { GasCostTransactionType } from 'src/constants'
-import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
-import { getDbSet } from 'src/db'
+import MerkleTree from 'src/utils/MerkleTree.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { GasCostTransactionType } from 'src/constants/index.js'
+import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared/index.js'
+import { getDbSet } from 'src/db/index.js'
 import {
   config as globalConfig,
   setDbPath
-} from 'src/config'
+} from 'src/config/index.js'
 
 root
   .command('db-dump')

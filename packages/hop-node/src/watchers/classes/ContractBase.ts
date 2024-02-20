@@ -1,22 +1,21 @@
-import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
-import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
-import getBumpedGasPrice from '@hop-protocol/hop-node-core/src/utils/getBumpedGasPrice'
-import getProviderChainSlug from '@hop-protocol/hop-node-core/src/utils/getProviderChainSlug'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { getBumpedGasPrice } from '@hop-protocol/hop-node-core/utils'
+import { getProviderChainSlug } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
   MinGnosisGasPrice,
   MinPolygonGasPrice,
-} from '@hop-protocol/hop-node-core/src/constants'
+} from '@hop-protocol/hop-node-core/constants'
 import { Event } from '@ethersproject/contracts'
 import { EventEmitter } from 'node:events'
-import { FinalityService } from '@hop-protocol/hop-node-core/src/finality/FinalityService'
-import { FinalityStrategyType } from '@hop-protocol/hop-node-core/src/finality/strategies/IFinalityStrategy'
+import { FinalityService } from '@hop-protocol/hop-node-core/finality'
 import {
   SyncType
-} from 'src/constants'
-import { TxOverrides } from '@hop-protocol/hop-node-core/src/types'
-import { getNetworkCustomSyncType, config as globalConfig } from 'src/config'
+} from 'src/constants/index.js'
+import { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import { getNetworkCustomSyncType, config as globalConfig } from 'src/config/index.js'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
@@ -41,7 +40,7 @@ export default class ContractBase extends EventEmitter {
     this.finalityService = new FinalityService(
       this.contract.provider,
       this.chainSlug,
-      syncType as FinalityStrategyType
+      syncType as any
     )
 
     if (syncType !== SyncType.Bonder) {

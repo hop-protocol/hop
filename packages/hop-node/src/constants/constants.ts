@@ -1,7 +1,7 @@
 import { ChainSlug as Chain } from '@hop-protocol/core/networks'
 // TODO: MIGRATION: Handle this
 // i think get this from hnc package
-import { OneHourMs } from '@hop-protocol/hop-node-core/src/constants'
+import { OneHourMs } from '@hop-protocol/hop-node-core/constants'
 import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata'
 
 export const SettlementGasLimitPerTx: Record<string, number> = {

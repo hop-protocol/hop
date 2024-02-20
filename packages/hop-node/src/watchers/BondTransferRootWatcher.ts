@@ -1,22 +1,21 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
-import MerkleTree from 'src/utils/MerkleTree'
-import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
-import contracts from 'src/contracts'
-import getRedundantRpcUrls from '@hop-protocol/hop-node-core/src/utils/getRedundantRpcUrls'
-import getTransferRootId from 'src/utils/getTransferRootId'
+import BaseWatcher from './classes/BaseWatcher.js'
+import L1Bridge from './classes/L1Bridge.js'
+import MerkleTree from 'src/utils/MerkleTree.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import contracts from 'src/contracts/index.js'
+import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
+import getTransferRootId from 'src/utils/getTransferRootId.js'
 import { BigNumber, providers } from 'ethers'
-import { BondTransferRootDelayBufferSeconds, TxError } from 'src/constants'
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
+import { BondTransferRootDelayBufferSeconds, TxError } from 'src/constants/index.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { PossibleReorgDetected, RedundantProviderOutOfSync } from '@hop-protocol/hop-node-core/src/types/error'
-import { TransferRoot } from 'src/db/TransferRootsDb'
+import { PossibleReorgDetected, RedundantProviderOutOfSync } from '@hop-protocol/hop-node-core/types'
+import { TransferRoot } from 'src/db/TransferRootsDb.js'
 import {
   enableEmergencyMode,
   config as globalConfig
-} from 'src/config'
+} from 'src/config/index.js'
 
 type Config = {
   chainSlug: string

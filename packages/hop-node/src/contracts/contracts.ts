@@ -1,9 +1,7 @@
-import '../moduleAlias'
-import memoize from 'fast-memoize'
-import { Chain, Network, Token } from '@hop-protocol/hop-node-core/src/constants'
+import { Chain, Network, Token } from '@hop-protocol/hop-node-core/constants'
 import { Signer, providers } from 'ethers'
 
-import wallets from '@hop-protocol/hop-node-core/src/wallets'
+import wallets from '@hop-protocol/hop-node-core/wallets'
 import {
   ERC20__factory,
   L1_ERC20_Bridge_Legacy__factory,
@@ -13,7 +11,7 @@ import {
   MessengerWrapper__factory,
   SaddleLpToken__factory
 } from '@hop-protocol/core/contracts'
-import { config as globalConfig } from 'src/config'
+import { config as globalConfig } from 'src/config/index.js'
 
 const getL1BridgeContract = (token: string) => {
   if (token === Token.USDC && globalConfig.network === Network.Mainnet) {
@@ -93,7 +91,9 @@ const getL1MessengerWrapperContract = (
   )
 }
 
-const constructContractsObject = memoize((token: string) => {
+// TODO: MIGRATION: Handle this
+const constructContractsObject = (token: string) => {
+// const constructContractsObject = memoize((token: string) => {
   if (!globalConfig.addresses[token]) {
     return null
   }
@@ -120,7 +120,7 @@ const constructContractsObject = memoize((token: string) => {
     }
     return obj
   }, {})
-})
+}
 
 export default {
   has (token: string, network: string) {

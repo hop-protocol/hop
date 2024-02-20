@@ -1,15 +1,15 @@
-import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
-import { Interface, formatUnits } from 'ethers/lib/utils'
-import { actionHandler, parseString, root } from '../shared'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { Interface, formatUnits } from 'ethers/lib/utils.js'
+import { actionHandler, parseString, root } from '../shared/index.js'
 import {
   hopAccountAddresses,
   possibleYears,
   tokenDataForYear,
   tokenDecimals,
   tokens
-} from 'src/cli/metrics/sharedMetrics'
+} from 'src/cli/metrics/sharedMetrics.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 root

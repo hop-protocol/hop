@@ -1,6 +1,6 @@
-import makeRequest from './makeRequest'
-import { MaxInt32 } from 'src/constants'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { MaxInt32 } from 'src/constants/index.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getTransferRootConfirmed (
   chain: string,

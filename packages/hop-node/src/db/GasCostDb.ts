@@ -1,10 +1,10 @@
-import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, DbOperations } from './BaseDb'
+import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, DbOperations } from './BaseDb.js'
 // @ts-expect-error nearest-date does not have a types file as of 20231227
 import nearest from 'nearest-date'
-import wait from '@hop-protocol/hop-node-core/src/utils/wait'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
-import { GasCostTransactionType } from 'src/constants'
-import { OneHourMs, OneHourSeconds } from '@hop-protocol/hop-node-core/src/constants'
+import { GasCostTransactionType } from 'src/constants/index.js'
+import { OneHourMs, OneHourSeconds } from '@hop-protocol/hop-node-core/constants'
 
 const varianceSeconds = 20 * 60
 

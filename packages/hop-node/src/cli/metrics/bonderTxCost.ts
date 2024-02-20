@@ -1,8 +1,8 @@
-import getRpcProvider from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
-import getRpcUrl from '@hop-protocol/hop-node-core/src/utils/getRpcUrl'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
-import { CoingeckoApiKey } from '@hop-protocol/hop-node-core/src/config'
-import { actionHandler, parseString, root } from '../shared'
+import { CoingeckoApiKey } from '@hop-protocol/hop-node-core/config'
+import { actionHandler, parseString, root } from '../shared/index.js'
 import {
   coingeckoCoinIds,
   hopAccountAddresses,
@@ -10,9 +10,9 @@ import {
   possibleYears,
   tokenDataForYear,
   tokenDecimals
-} from 'src/cli/metrics/sharedMetrics'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { nativeChainTokens } from '@hop-protocol/hop-node-core/src/constants'
+} from 'src/cli/metrics/sharedMetrics.js'
+import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
+import { nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
 
 root
   .command('bonder-tx-cost')

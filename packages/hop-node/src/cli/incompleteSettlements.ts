@@ -1,5 +1,5 @@
-import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher'
-import { actionHandler, parseNumber, parseString, root } from './shared'
+import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher.js'
+import { actionHandler, parseNumber, parseString, root } from './shared/index.js'
 
 root
   .command('incomplete-settlements')

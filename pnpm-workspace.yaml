@@ -5,7 +5,7 @@ packages:
   # - 'packages/frontend'
   # - 'packages/sdk-demo'
   # - 'packages/stats-worker'
-  # - 'packages/hop-node'
   - 'packages/hop-node-core'
+  - 'packages/hop-node'
   # - 'packages/explorer-backend'
   # - 'packages/explorer-frontend'

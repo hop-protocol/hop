@@ -1,8 +1,8 @@
-import { actionHandler, parseBool, root } from './shared'
+import { actionHandler, parseBool, root } from './shared/index.js'
 
 import {
   startChallengeWatchers
-} from 'src/watchers/watchers'
+} from 'src/watchers/watchers.js'
 
 root
   .command('challenger')

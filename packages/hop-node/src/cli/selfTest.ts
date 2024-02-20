@@ -1,9 +1,9 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import contracts from 'src/contracts'
-import wallets from '@hop-protocol/hop-node-core/src/wallets'
-import { Chain, Token } from '@hop-protocol/hop-node-core/src/constants'
-import { actionHandler, logger, parseNumber, parseString, root } from './shared'
-import { formatEther, parseEther, parseUnits } from 'ethers/lib/utils'
+import L1Bridge from 'src/watchers/classes/L1Bridge.js'
+import contracts from 'src/contracts/index.js'
+import wallets from '@hop-protocol/hop-node-core/wallets'
+import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
+import { actionHandler, logger, parseNumber, parseString, root } from './shared/index.js'
+import { formatEther, parseEther, parseUnits } from 'ethers/lib/utils.js'
 
 root
   .command('self-test')

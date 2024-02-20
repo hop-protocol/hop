@@ -1,9 +1,9 @@
-import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
-import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import makeRequest from './makeRequest'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import getTransferRootId from 'src/utils/getTransferRootId.js'
+import makeRequest from './makeRequest.js'
 import { DateTime } from 'luxon'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers/lib/utils.js'
 
 export default async function getUnbondedTransferRoots (chain: string, token: string, destinationChain: string, startTime?: number, endTime?: number): Promise<any> {
   const destinationChainId: number = chainSlugToId(destinationChain)

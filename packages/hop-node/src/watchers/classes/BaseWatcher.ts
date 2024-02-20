@@ -1,41 +1,41 @@
-import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
-import Bridge from './Bridge'
-import L1Bridge from './L1Bridge'
-import L2Bridge from './L2Bridge'
-import Logger from '@hop-protocol/hop-node-core/src/logger'
-import Metrics from './Metrics'
-import SyncWatcher from 'src/watchers/SyncWatcher'
-import bigNumberMin from '@hop-protocol/hop-node-core/src/utils/bigNumberMin'
-import getRpcProviderFromUrl from '@hop-protocol/hop-node-core/src/utils/getRpcProviderFromUrl'
-import wait from '@hop-protocol/hop-node-core/src/utils/wait'
-import wallets from '@hop-protocol/hop-node-core/src/wallets'
+import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher.js'
+import Bridge from './Bridge.js'
+import L1Bridge from './L1Bridge.js'
+import L2Bridge from './L2Bridge.js'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
+import Metrics from './Metrics.js'
+import SyncWatcher from 'src/watchers/SyncWatcher.js'
+import { bigNumberMin } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProviderFromUrl } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core/utils'
+import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber, constants } from 'ethers'
 import {
   Chain
-} from '@hop-protocol/hop-node-core/src/constants'
-import { DbSet, getDbSet, isDbSetReady } from 'src/db'
+} from '@hop-protocol/hop-node-core/constants'
+import { DbSet, getDbSet, isDbSetReady } from 'src/db/index.js'
 import { EventEmitter } from 'node:events'
 import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
-} from 'src/constants'
-import { IBaseWatcher } from './IBaseWatcher'
+} from 'src/constants/index.js'
+import { IBaseWatcher } from './IBaseWatcher.js'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { Mutex } from 'async-mutex'
-import { Notifier } from '@hop-protocol/hop-node-core/src/notifier'
+import { Notifier } from '@hop-protocol/hop-node-core/notifier'
 import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
-} from '@hop-protocol/hop-node-core/src/types/error'
+} from '@hop-protocol/hop-node-core/types'
 import {
   TxRetryDelayMs,
   config as globalConfig
-} from 'src/config'
+} from 'src/config/index.js'
 import {
   hostname
-} from '@hop-protocol/hop-node-core/src/config'
-import { isFetchExecutionError } from '@hop-protocol/hop-node-core/src/utils/isFetchExecutionError'
+} from '@hop-protocol/hop-node-core/config'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract

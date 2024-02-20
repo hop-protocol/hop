@@ -1,7 +1,7 @@
-import getTransfer from 'src/theGraph/getTransfer'
-import getTransferIds from 'src/theGraph/getTransferIds'
-import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
-import { actionHandler, parseBool, parseString, root } from './shared'
+import getTransfer from 'src/theGraph/getTransfer.js'
+import getTransferIds from 'src/theGraph/getTransferIds.js'
+import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot.js'
+import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 
 root
   .command('transfer-ids')

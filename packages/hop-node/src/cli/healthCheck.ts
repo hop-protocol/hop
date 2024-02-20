@@ -1,5 +1,5 @@
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
-import { actionHandler, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher.js'
+import { actionHandler, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('health-check')

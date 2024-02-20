@@ -1,6 +1,6 @@
-import getTransferId from 'src/theGraph/getTransfer'
-import getTransferRoot from 'src/theGraph/getTransferRoot'
-import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared'
+import getTransferId from 'src/theGraph/getTransfer.js'
+import getTransferRoot from 'src/theGraph/getTransferRoot.js'
+import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared/index.js'
 
 root
   .command('withdrawal-proof')

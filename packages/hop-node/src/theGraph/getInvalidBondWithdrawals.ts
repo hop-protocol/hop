@@ -1,4 +1,4 @@
-import makeRequest from './makeRequest'
+import makeRequest from './makeRequest.js'
 import { chunk } from 'lodash'
 
 async function getBonds (chain: string, startDate: number, endDate: number, lastId: string = '0') {

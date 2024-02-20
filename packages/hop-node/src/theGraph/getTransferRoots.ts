@@ -1,5 +1,5 @@
-import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getTransferRoots (
   chain: string,

@@ -1,12 +1,12 @@
-import chainSlugToId from '@hop-protocol/hop-node-core/src/utils/chainSlugToId'
-import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
-import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
-import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
-import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal.js'
+import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled.js'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot.js'
+import getTransfersCommitted from 'src/theGraph/getTransfersCommitted.js'
 import { BigNumber, utils } from 'ethers'
-import { actionHandler, parseString, root } from './shared'
-import { getSourceChains } from 'src/config'
+import { actionHandler, parseString, root } from './shared/index.js'
+import { getSourceChains } from 'src/config/index.js'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 

@@ -1,4 +1,4 @@
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 
 export const tokens: Record<string, string> = {
   USDC: 'USDC',

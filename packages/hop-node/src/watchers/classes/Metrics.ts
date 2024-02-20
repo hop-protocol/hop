@@ -1,9 +1,9 @@
-import { config as globalConfig } from 'src/config'
-import { hostname } from '@hop-protocol/hop-node-core/src/config'
-import { metrics } from '@hop-protocol/hop-node-core/src/metrics'
+import { config as globalConfig } from 'src/config/index.js'
+import { hostname } from '@hop-protocol/hop-node-core/config'
+import { metrics } from '@hop-protocol/hop-node-core/metrics'
 
 class Metrics {
-  metrics = metrics
+  metrics: any = metrics
   enabled: boolean = globalConfig?.metrics?.enabled
 
   setBonderBalance (chain: string, token: string, balance: number) {

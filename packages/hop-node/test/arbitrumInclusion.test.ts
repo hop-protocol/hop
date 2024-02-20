@@ -1,4 +1,3 @@
-import '../src/moduleAlias'
 import { ArbitrumInclusionService } from '../src/chains/Chains/arbitrum/Inclusion'
 
 describe.skip('getL1InclusionTx', () => {

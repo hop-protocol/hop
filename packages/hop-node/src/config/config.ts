@@ -1,33 +1,34 @@
-import normalizeEnvVarArray from '@hop-protocol/hop-node-core/src/config/utils/normalizeEnvVarArray'
-import normalizeEnvVarNumber from '@hop-protocol/hop-node-core/src/config/utils/normalizeEnvVarNumber'
+import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
+import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
 import os from 'node:os'
 import path from 'node:path'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
-import { BonderConfig } from 'src/config/types'
+import { BonderConfig } from 'src/config/types.js'
 import {
   Chain,
   DefaultBatchBlocks,
   Network,
   OneHourMs,
   TotalBlocks
-} from '@hop-protocol/hop-node-core/src/constants'
+} from '@hop-protocol/hop-node-core/constants'
 import {
   DefaultBondThreshold,
   SyncType
-} from 'src/constants'
+} from 'src/constants/index.js'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import {
   config as hopNodeCoreConfig,
+  envNetwork,
   isTestMode,
   type Config as HopNodeCoreConfig,
   type Tokens,
   type MetricsConfig,
   type SignerConfig,
   type BlocklistConfig
-} from '@hop-protocol/hop-node-core/src/config'
-import { parseEther } from 'ethers/lib/utils'
+} from '@hop-protocol/hop-node-core/config'
+import { parseEther } from 'ethers/lib/utils.js'
 
 require('./loadEnvFile')
 
@@ -131,8 +132,14 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
   }
 }
 
+const { addresses, bonders, bonderConfig, isMainnet } = getConfigByNetwork(envNetwork)
+
 // defaults
 export const config: Config = {
+  ...hopNodeCoreConfig,
+  addresses,
+  bonders,
+  bonderConfig,
   tokens: {},
   fees: {},
   routes: {},
@@ -368,5 +375,5 @@ export const getConfigBonderForRoute = (token: string, sourceChain: string, dest
 }
 
 export { Bonders }
-export * from './validation'
-export * from './fileOps'
+export * from './validation.js'
+export * from './fileOps.js'

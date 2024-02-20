@@ -1,13 +1,13 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import Token from 'src/watchers/classes/Token'
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
-import { WatcherNotFoundError } from './shared/utils'
-import { actionHandler, logger, parseString, root } from './shared'
+import L1Bridge from 'src/watchers/classes/L1Bridge.js'
+import L2Bridge from 'src/watchers/classes/L2Bridge.js'
+import Token from 'src/watchers/classes/Token.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { WatcherNotFoundError } from './shared/utils.js'
+import { actionHandler, logger, parseString, root } from './shared/index.js'
 import { constants } from 'ethers'
 import {
   getBondWithdrawalWatcher
-} from 'src/watchers/watchers'
+} from 'src/watchers/watchers.js'
 
 root
   .command('stake-status')

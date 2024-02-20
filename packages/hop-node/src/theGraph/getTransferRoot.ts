@@ -1,7 +1,7 @@
-import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot'
-import makeRequest from './makeRequest'
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
-import { chainIdToSlug, normalizeEntity } from './shared'
+import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot.js'
+import makeRequest from './makeRequest.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { chainIdToSlug, normalizeEntity } from './shared.js'
 
 async function queryTransferRoot (chain: string, token: string, transferRootHash: string) {
   const query = `

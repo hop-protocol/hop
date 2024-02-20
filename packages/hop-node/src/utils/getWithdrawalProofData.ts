@@ -1,4 +1,4 @@
-import MerkleTree from 'src/utils/MerkleTree'
+import MerkleTree from 'src/utils/MerkleTree.js'
 import { BigNumber } from 'ethers'
 
 export interface WithdrawalProofData {

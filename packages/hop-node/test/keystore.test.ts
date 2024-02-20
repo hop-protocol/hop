@@ -1,5 +1,5 @@
-import entropyToMnemonic from '@hop-protocol/hop-node-core/src/keystore/entropyToMnemonic'
-import { generateKeystore, recoverKeystore } from '@hop-protocol/hop-node-core/src/keystore'
+import { entropyToMnemonic } from '@hop-protocol/hop-node-core/keystore'
+import { generateKeystore, recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
 
 describe('keystore', () => {
   it('generateKeystore - random', async () => {

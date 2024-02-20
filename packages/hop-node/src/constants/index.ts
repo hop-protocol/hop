@@ -1,3 +1,3 @@
-export * from './constants'
-export * from './preRegenesisRootsCommitted'
-export * from './chainBalanceArchiveData'
+export * from './constants.js'
+export * from './preRegenesisRootsCommitted.js'
+export * from './chainBalanceArchiveData.js'

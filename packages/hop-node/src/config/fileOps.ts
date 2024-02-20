@@ -1,11 +1,11 @@
-import Logger, { setLogLevel } from '@hop-protocol/hop-node-core/src/logger'
+import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
   BlocklistConfig,
   SignerConfig,
-} from '@hop-protocol/hop-node-core/src/config'
+} from '@hop-protocol/hop-node-core/config'
 import {
   Bonders,
   CommitTransfersConfig,
@@ -30,11 +30,11 @@ import {
   setRoutesConfig,
   setSignerConfig,
   setSyncConfig
-} from './config'
-import { getAddress } from 'ethers/lib/utils'
-import { getParameter } from '@hop-protocol/hop-node-core/src/aws/parameterStore'
-import { promptPassphrase } from '@hop-protocol/hop-node-core/src/prompt'
-import { recoverKeystore } from '@hop-protocol/hop-node-core/src/keystore'
+} from './config.js'
+import { getAddress } from 'ethers/lib/utils.js'
+import { getParameter } from '@hop-protocol/hop-node-core/aws'
+import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
+import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
 
 const logger = new Logger('config')
 

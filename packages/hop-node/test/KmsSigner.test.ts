@@ -1,6 +1,6 @@
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
-import { KmsSigner } from '@hop-protocol/hop-node-core/src/aws/KmsSigner'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/src/utils/getRpcProvider'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { KmsSigner } from '@hop-protocol/hop-node-core/aws'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 
 describe.skip('KmsSigner', () => {
   const keyId = process.env.TEST_KMS_KEY_ID!

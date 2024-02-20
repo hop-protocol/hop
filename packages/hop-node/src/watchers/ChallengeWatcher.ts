@@ -1,11 +1,10 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
-import { ChallengeableTransferRoot } from 'src/db/TransferRootsDb'
+import BaseWatcher from './classes/BaseWatcher.js'
+import L1Bridge from './classes/L1Bridge.js'
+import { ChallengeableTransferRoot } from 'src/db/TransferRootsDb.js'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { Notifier } from '@hop-protocol/hop-node-core/src/notifier'
-import { hostname } from '@hop-protocol/hop-node-core/src/config'
+import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { hostname } from '@hop-protocol/hop-node-core/config'
 
 type Config = {
   chainSlug: string

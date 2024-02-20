@@ -1,9 +1,10 @@
 {
-  "name": "@hop-protocol/v1-hop-node",
+  "name": "@hop-protocol/hop-node",
   "version": "0.0.1",
   "description": "The V1 Hop Node for Hop Protocol",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
+  "type": "module",
   "engines": {
     "node": ">=20.10.0",
     "pnpm": ">=8"
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "@ethersproject/hdnode": "5.0.9",
+    "@eth-optimism/sdk": "3.1.4",
     "@hop-protocol/core": "workspace:*",
     "@hop-protocol/hop-node-core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",

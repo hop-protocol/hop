@@ -1,5 +1,5 @@
-import getTransferRoots from 'src/theGraph/getTransferRoots'
-import { actionHandler, parseBool, parseString, root } from './shared'
+import getTransferRoots from 'src/theGraph/getTransferRoots.js'
+import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 
 root
   .command('transfer-roots')

@@ -1,13 +1,12 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import L2Bridge from './classes/L2Bridge'
-import Logger from '@hop-protocol/hop-node-core/src/logger'
-import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
-import contracts from 'src/contracts'
-import getRedundantRpcUrls from '@hop-protocol/hop-node-core/src/utils/getRedundantRpcUrls'
-import getTokenDecimals from '@hop-protocol/hop-node-core/src/utils/getTokenDecimals'
-import getTransferId from 'src/utils/getTransferId'
-import isL1ChainId from '@hop-protocol/hop-node-core/src/utils/isL1ChainId'
+import BaseWatcher from './classes/BaseWatcher.js'
+import L2Bridge from './classes/L2Bridge.js'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import contracts from 'src/contracts/index.js'
+import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import getTransferId from 'src/utils/getTransferId.js'
+import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber, providers } from 'ethers'
 import {
   BondThreshold,
@@ -16,34 +15,34 @@ import {
   getBonderTotalStake,
   getNetworkCustomSyncType,
   config as globalConfig
-} from 'src/config'
+} from 'src/config/index.js'
 import {
   BonderFeeTooLowError,
   BonderTooEarlyError,
   UnfinalizedTransferBondError
-} from 'src/types/error'
+} from 'src/types/error.js'
 import {
   Chain,
   OneHourSeconds,
-} from '@hop-protocol/hop-node-core/src/constants'
+} from '@hop-protocol/hop-node-core/constants'
 import {
   GasCostTransactionType,
   SyncType,
   TxError
-} from 'src/constants'
+} from 'src/constants/index.js'
 import {
   NonceTooLowError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync,
-} from '@hop-protocol/hop-node-core/src/types/error'
+} from '@hop-protocol/hop-node-core/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { isFetchExecutionError } from '@hop-protocol/hop-node-core/src/utils/isFetchExecutionError'
-import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/src/utils/isFetchRpcServerError'
-import { isNativeToken } from '@hop-protocol/hop-node-core/src/utils/isNativeToken'
-import { promiseQueue } from '@hop-protocol/hop-node-core/src/utils/promiseQueue'
+import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb.js'
+import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
+import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/utils'
+import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
+import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
 
 type Config = {
   chainSlug: string

@@ -1,20 +1,20 @@
-import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
-import chainIdToSlug from '@hop-protocol/hop-node-core/src/utils/chainIdToSlug'
-import getExponentialBackoffDelayMs from '@hop-protocol/hop-node-core/src/utils/getExponentialBackoffDelayMs'
+import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
 import {
   Chain,
   OneDayMs,
   OneHourMs,
   OneWeekMs
-} from '@hop-protocol/hop-node-core/src/constants'
+} from '@hop-protocol/hop-node-core/constants'
 import {
   RelayWaitTimeMs,
   RelayableChains,
   TxError
-} from 'src/constants'
-import { TxRetryDelayMs } from 'src/config'
-import { transfersMigrations } from './migrations'
+} from 'src/constants/index.js'
+import { TxRetryDelayMs } from 'src/config/index.js'
+import { transfersMigrations } from './migrations.js'
 
 interface BaseTransfer {
   amount?: BigNumber

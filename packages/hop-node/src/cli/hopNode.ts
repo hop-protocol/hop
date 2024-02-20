@@ -1,23 +1,23 @@
-import OsWatcher from 'src/watchers/OsWatcher'
+import OsWatcher from 'src/watchers/OsWatcher.js'
 import { AssetSymbol } from '@hop-protocol/core/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
   config as globalConfig
-} from 'src/config'
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
-import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
-import { computeAddress } from 'ethers/lib/utils'
+} from 'src/config/index.js'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher.js'
+import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
+import { computeAddress } from 'ethers/lib/utils.js'
 import {
   gitRev,
   slackAuthToken,
   slackChannel,
   slackUsername
-} from '@hop-protocol/hop-node-core/src/config'
-import { printHopArt } from './shared/art'
+} from '@hop-protocol/hop-node-core/config'
+import { printHopArt } from './shared/art.js'
 import {
   startWatchers
-} from 'src/watchers/watchers'
+} from 'src/watchers/watchers.js'
 
 root
   .description('Start Hop node')

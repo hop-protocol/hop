@@ -53,6 +53,8 @@ const constructSigner = (network: string, privateKey: string): Signer => {
   return signer
 }
 
+// TODO: MIGRATION: Handle this
+// possibly don't use default???
 // lazy instantiate
 export default {
   has (network: string) {

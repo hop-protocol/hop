@@ -1,4 +1,4 @@
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 
 export async function getSubgraphLastBlockSynced (chain: string) {
   const url = 'https://api.thegraph.com/index-node/graphql'

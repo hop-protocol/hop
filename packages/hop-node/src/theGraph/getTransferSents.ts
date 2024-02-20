@@ -1,6 +1,6 @@
-import makeRequest from './makeRequest'
-import { Chain } from '@hop-protocol/hop-node-core/src/constants'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { normalizeEntity } from './shared.js'
 
 export default async function getTransferSents (chain: string, token: string) {
   const queryL1 = `

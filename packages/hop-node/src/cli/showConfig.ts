@@ -1,4 +1,4 @@
-import { actionHandler, root } from './shared'
+import { actionHandler, root } from './shared/index.js'
 
 root
   .command('show-config')

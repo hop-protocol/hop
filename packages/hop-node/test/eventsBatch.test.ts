@@ -1,7 +1,7 @@
 import Bridge from 'src/watchers/classes/Bridge'
-import contracts from 'src/contracts'
+import contracts from 'src/contracts/index.js'
 import expectDefined from './utils/expectDefined'
-import { Chain, Token } from '@hop-protocol/hop-node-core/src/constants'
+import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
 import { config as globalConfig } from 'src/config'
 
 describe.skip('eventsBatch', () => {

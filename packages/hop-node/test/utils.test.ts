@@ -1,5 +1,5 @@
 import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
-import { Chain, Token } from '@hop-protocol/hop-node-core/src/constants'
+import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
 import { getAllChains } from 'src/config'
 
 describe('isTokenSupportedForChain', () => {

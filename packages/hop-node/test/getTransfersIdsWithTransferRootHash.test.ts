@@ -1,7 +1,6 @@
 
-import '../src/moduleAlias'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import contracts from 'src/contracts'
+import L2Bridge from 'src/watchers/classes/L2Bridge.js'
+import contracts from 'src/contracts/index.js'
 import { OneDayMs } from 'src/constants'
 import {
   parseConfigFile,
@@ -10,7 +9,6 @@ import {
 
 // Run this with
 // npx ts-node test/getTransfersIdsWithTransferRootHash.test.ts
-// NOTE: import moduleAlias first to avoid errors
 
 // NOTE: These tests assume an updated DB and chain, token, transferId, and rootHash values.
 

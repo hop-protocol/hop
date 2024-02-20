@@ -8,3 +8,5 @@ packages:
   - 'packages/hop-node'
   - 'packages/explorer-backend'
   - 'packages/explorer-frontend'
+  - 'packages/v2-explorer-frontend'
+  - 'packages/v2-explorer-backend'

@@ -1,10 +1,10 @@
-import wait from 'src/utils/wait'
-import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService'
+import wait from 'src/utils/wait.js'
+import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService.js'
 import { BigNumber, providers, utils } from 'ethers'
-import { DefaultL1RelayGasLimit } from 'src/chains/Services/AbstractMessageService'
+import { DefaultL1RelayGasLimit } from 'src/chains/Services/AbstractMessageService.js'
 import { POSClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
-import { defaultAbiCoder } from 'ethers/lib/utils'
+import { defaultAbiCoder } from 'ethers/lib/utils.js'
 
 type PolygonMessage = string
 type PolygonMessageStatus = string

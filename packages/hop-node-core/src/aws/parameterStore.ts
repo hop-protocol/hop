@@ -1,5 +1,5 @@
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm'
-import { awsRegion } from 'src/config'
+import { awsRegion } from 'src/config/index.js'
 
 export async function getParameter (name: string, region?: string): Promise<string> {
   const ssm = new SSMClient({

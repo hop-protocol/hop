@@ -1,9 +1,9 @@
-import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
-import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
-import wait from 'src/utils/wait'
-import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService'
-import { IInclusionService } from 'src/chains/Services/AbstractInclusionService'
-import { RootProviderName } from 'src/constants'
+import getRpcRootProviderName from 'src/utils/getRpcRootProviderName.js'
+import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider.js'
+import wait from 'src/utils/wait.js'
+import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
+import { IInclusionService } from 'src/chains/Services/AbstractInclusionService.js'
+import { RootProviderName } from 'src/constants/index.js'
 import { providers } from 'ethers'
 
 interface GetInclusionTxHashes {

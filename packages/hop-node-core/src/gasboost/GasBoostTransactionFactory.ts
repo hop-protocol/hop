@@ -1,5 +1,5 @@
-import GasBoostTransaction, { Options } from './GasBoostTransaction'
-import Store from './Store'
+import GasBoostTransaction, { Options } from './GasBoostTransaction.js'
+import Store from './Store.js'
 import { Signer, providers } from 'ethers'
 
 export { Options }

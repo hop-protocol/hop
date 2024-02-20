@@ -2,9 +2,9 @@ import {
   ChainServices,
   FinalityBlockTag,
   IChainBridge
-} from 'src/chains/IChainBridge'
-import { IFinalityService } from 'src/chains/Services/AbstractFinalityService'
-import { IMessageService } from 'src/chains/Services/AbstractMessageService'
+} from 'src/chains/IChainBridge.js'
+import { IFinalityService } from 'src/chains/Services/AbstractFinalityService.js'
+import { IMessageService } from 'src/chains/Services/AbstractMessageService.js'
 import { providers } from 'ethers'
 
 type ChainBridgeParams = {

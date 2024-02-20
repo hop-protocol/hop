@@ -1,6 +1,6 @@
-import { AbstractChainBridge } from 'src/chains/AbstractChainBridge'
-import { ZkSyncFinalityService } from 'src/chains/Chains/zksync/ZkSyncFinalityService'
-import { ZkSyncMessageService } from 'src/chains/Chains/zksync/ZkSyncMessageService'
+import { AbstractChainBridge } from 'src/chains/AbstractChainBridge.js'
+import { ZkSyncFinalityService } from 'src/chains/Chains/zksync/ZkSyncFinalityService.js'
+import { ZkSyncMessageService } from 'src/chains/Chains/zksync/ZkSyncMessageService.js'
 
 export class ZkSyncBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

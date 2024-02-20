@@ -1,6 +1,6 @@
-import getRpcUrlFromProvider from './getRpcUrlFromProvider'
-import { RootProviderName } from 'src/constants'
-import { promiseTimeout } from './promiseTimeout'
+import getRpcUrlFromProvider from './getRpcUrlFromProvider.js'
+import { RootProviderName } from 'src/constants/index.js'
+import { promiseTimeout } from './promiseTimeout.js'
 import { providers } from 'ethers'
 
 // Intentionally force a call to a method that is not supported by all providers

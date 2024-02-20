@@ -1,4 +1,4 @@
-import { AwsSigner, AwsSignerConfig } from './AwsSigner'
+import { AwsSigner, AwsSignerConfig } from './AwsSigner.js'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { TextDecoder } from 'node:util'
 import {
@@ -6,8 +6,8 @@ import {
   keccak256,
   resolveProperties,
   serializeTransaction
-} from 'ethers/lib/utils'
-import { awsAccessKeyId, awsSecretAccessKey } from '../config'
+} from 'ethers/lib/utils.js'
+import { awsAccessKeyId, awsSecretAccessKey } from 'src/config/index.js'
 import { providers } from 'ethers'
 
 type LambdaSignerConfig = AwsSignerConfig & {

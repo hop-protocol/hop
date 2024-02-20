@@ -1,4 +1,4 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
+import chainSlugToId from 'src/utils/chainSlugToId.js'
 import { ChainSlug, NetworkSlug, networks } from '@hop-protocol/core/networks'
 
 export function getNetworkSlugByChainId (chainId: number): string | undefined {

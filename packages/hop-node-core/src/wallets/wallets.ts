@@ -1,8 +1,7 @@
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import memoize from 'fast-memoize'
-import { KmsSigner } from 'src/aws/KmsSigner'
-import { LambdaSigner } from 'src/aws/LambdaSigner'
+import GasBoostSigner from 'src/gasboost/GasBoostSigner.js'
+import getRpcProvider from 'src/utils/getRpcProvider.js'
+import { KmsSigner } from 'src/aws/KmsSigner.js'
+import { LambdaSigner } from 'src/aws/LambdaSigner.js'
 import { Signer, Wallet } from 'ethers'
 import {
   gasPriceMultiplier,
@@ -11,9 +10,10 @@ import {
   maxPriorityFeeConfidenceLevel,
   priorityFeePerGasCap,
   timeTilBoostMs
-} from 'src/config'
+} from 'src/config/index.js'
 
-export const constructSigner = memoize((network: string, privateKey: string): Signer => {
+export const constructSigner = (network: string, privateKey: string): Signer => {
+// export const constructSigner = memoize((network: string, privateKey: string): Signer => {
   const provider = getRpcProvider(network)
   if (!provider) {
     throw new Error('expected provider')
@@ -51,7 +51,7 @@ export const constructSigner = memoize((network: string, privateKey: string): Si
     maxPriorityFeeConfidenceLevel
   })
   return signer
-})
+}
 
 // lazy instantiate
 export default {

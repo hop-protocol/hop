@@ -1,5 +1,5 @@
-import getRpcProviderFromUrl from './getRpcProviderFromUrl'
-import getRpcUrl from './getRpcUrl'
+import getRpcProviderFromUrl from './getRpcProviderFromUrl.js'
+import getRpcUrl from './getRpcUrl.js'
 import { providers } from 'ethers'
 
 export const getRpcProvider = (network: string): providers.Provider => {

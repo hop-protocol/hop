@@ -1,5 +1,5 @@
-import { FinalityStrategy } from '../FinalityStrategy'
-import { IFinalityStrategy } from '../IFinalityStrategy'
+import { FinalityStrategy } from '../FinalityStrategy.js'
+import { IFinalityStrategy } from '../IFinalityStrategy.js'
 
 export class LineaStrategy extends FinalityStrategy implements IFinalityStrategy {
   override getSafeBlockNumber = async (): Promise<number> => {

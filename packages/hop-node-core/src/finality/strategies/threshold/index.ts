@@ -1,13 +1,13 @@
-import { ArbitrumStrategy } from './ArbitrumStrategy'
-import { EthereumStrategy } from './EthereumStrategy'
-import { GnosisStrategy } from './GnosisStrategy'
-import { LineaStrategy } from './LineaStrategy'
-import { OptimismStrategy } from './OptimismStrategy'
-import { PolygonStrategy } from './PolygonStrategy'
-import { PolygonZkStrategy } from './PolygonZkStrategy'
+import { ArbitrumStrategy } from './ArbitrumStrategy.js'
+import { EthereumStrategy } from './EthereumStrategy.js'
+import { GnosisStrategy } from './GnosisStrategy.js'
+import { LineaStrategy } from './LineaStrategy.js'
+import { OptimismStrategy } from './OptimismStrategy.js'
+import { PolygonStrategy } from './PolygonStrategy.js'
+import { PolygonZkStrategy } from './PolygonZkStrategy.js'
 
-import { Chain } from 'src/constants'
-import { Strategies } from '../IFinalityStrategy'
+import { Chain } from 'src/constants/index.js'
+import { Strategies } from '../IFinalityStrategy.js'
 
 const ThresholdStrategiesMap: Strategies = {
   [Chain.Ethereum]: EthereumStrategy,

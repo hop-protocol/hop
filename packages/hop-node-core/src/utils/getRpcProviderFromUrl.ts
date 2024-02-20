@@ -1,5 +1,5 @@
-import { ConnectionInfo } from "@ethersproject/web"
-import { Provider } from '../provider'
+import { ConnectionInfo } from '@ethersproject/web'
+import { Provider } from '../provider/index.js'
 import { providers } from 'ethers'
 
 const cache: Record<string, providers.Provider> = {}

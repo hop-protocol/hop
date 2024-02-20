@@ -1,5 +1,5 @@
-import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider'
-import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
+import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider.js'
+import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService.js'
 import { BytesLike, CallOverrides, Contract, constants, providers } from 'ethers'
 import {
   Message as LineaMessage,

@@ -1,7 +1,7 @@
-import Logger from 'src/logger'
+import Logger from 'src/logger/index.js'
 import express, { Express } from 'express'
 import { Metric, Registry, collectDefaultMetrics } from 'prom-client'
-import { metrics } from './metrics'
+import { metrics } from './metrics.js'
 
 export class MetricsServer {
   private readonly app: Express

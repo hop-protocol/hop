@@ -1,1 +1,1 @@
-export { default, constructSigner } from './wallets'
+export { default, constructSigner } from './wallets.js'

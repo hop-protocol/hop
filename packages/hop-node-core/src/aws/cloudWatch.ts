@@ -1,11 +1,11 @@
-import Logger from 'src/logger'
+import Logger from 'src/logger/index.js'
 import {
   CloudWatchLogsClient,
   DescribeLogGroupsCommand,
   DescribeLogStreamsCommand,
   FilterLogEventsCommand
 } from '@aws-sdk/client-cloudwatch-logs'
-import { awsRegion } from 'src/config'
+import { awsRegion } from 'src/config/index.js'
 
 const logger = new Logger('CloudWatch')
 

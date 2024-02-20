@@ -1,4 +1,4 @@
-import { AwsSigner, AwsSignerConfig } from './AwsSigner'
+import { AwsSigner, AwsSignerConfig } from './AwsSigner.js'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
 import {
   arrayify,
@@ -6,8 +6,8 @@ import {
   keccak256,
   resolveProperties,
   serializeTransaction
-} from 'ethers/lib/utils'
-import { awsAccessKeyId, awsSecretAccessKey } from '../config'
+} from 'ethers/lib/utils.js'
+import { awsAccessKeyId, awsSecretAccessKey } from 'src/config/index.js'
 import { providers } from 'ethers'
 
 type KmsSignerConfig = AwsSignerConfig

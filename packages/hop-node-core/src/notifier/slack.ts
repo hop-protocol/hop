@@ -1,6 +1,6 @@
-import { Notifier } from './interfaces'
+import { Notifier } from './interfaces.js'
 import { WebClient } from '@slack/web-api'
-import { slackAuthToken, slackChannel, slackErrorChannel, slackInfoChannel, slackLogChannel, slackSuccessChannel, slackUsername, slackWarnChannel } from 'src/config'
+import { slackAuthToken, slackChannel, slackErrorChannel, slackInfoChannel, slackLogChannel, slackSuccessChannel, slackUsername, slackWarnChannel } from 'src/config/index.js'
 
 type MessageOptions = {
   channel: string

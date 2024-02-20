@@ -1,4 +1,4 @@
-import getBumpedBN from './getBumpedBN'
+import getBumpedBN from './getBumpedBN.js'
 import { BigNumber } from 'ethers'
 
 const getBumpedGasPrice = (gasPrice: BigNumber, multiplier: number) => {

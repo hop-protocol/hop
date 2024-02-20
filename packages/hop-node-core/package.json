@@ -3,7 +3,18 @@
   "version": "0.0.1",
   "description": "The Hop Node Core pakcage for Hop Protocol",
   "author": "Authereum Labs, Inc.",
+  "type": "module",
   "license": "MIT",
+  "exports": {
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js",
+      "default": "./dist/config/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=20.10.0",
     "pnpm": ">=8"
@@ -49,8 +60,7 @@
     "lodash": "4.17.21",
     "luxon": "3.4.4",
     "minimist": "1.2.8",
-    "module-alias": "2.2.3",
-    "p-queue": "6.6.2",
+    "p-queue": "8.0.1",
     "pidusage": "3.0.2",
     "prom-client": "15.1.0",
     "prompt": "1.3.0",
@@ -67,8 +77,5 @@
     "jest": "29.7.0",
     "ts-jest": "29.1.2",
     "ts-node": "10.9.2"
-  },
-  "_moduleAliases": {
-    "src": "src"
   }
 }

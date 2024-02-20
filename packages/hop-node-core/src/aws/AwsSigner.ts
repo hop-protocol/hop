@@ -10,7 +10,7 @@ import {
   resolveProperties,
   serializeTransaction,
   splitSignature
-} from 'ethers/lib/utils'
+} from 'ethers/lib/utils.js'
 // @ts-expect-error asn1.js does not have a types file as of 20231227
 import * as asn1 from 'asn1.js'
 

@@ -1,6 +1,6 @@
-import { FinalityBlockTag } from 'src/chains/IChainBridge'
-import { FinalityStrategy } from '../FinalityStrategy'
-import { IFinalityStrategy } from '../IFinalityStrategy'
+import { FinalityBlockTag } from 'src/chains/IChainBridge.js'
+import { FinalityStrategy } from '../FinalityStrategy.js'
+import { IFinalityStrategy } from '../IFinalityStrategy.js'
 
 export class PolygonZkStrategy extends FinalityStrategy implements IFinalityStrategy {
   override getSafeBlockNumber = async (): Promise<number> => {

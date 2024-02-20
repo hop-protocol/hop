@@ -1,5 +1,5 @@
-import getNonRetryableRpcProviderFromUrl from './getNonRetryableRpcProviderFromUrl'
-import getRpcUrl from './getRpcUrl'
+import getNonRetryableRpcProviderFromUrl from './getNonRetryableRpcProviderFromUrl.js'
+import getRpcUrl from './getRpcUrl.js'
 import { providers } from 'ethers'
 
 export const getNonRetryableRpcProvider = (network: string): providers.Provider => {

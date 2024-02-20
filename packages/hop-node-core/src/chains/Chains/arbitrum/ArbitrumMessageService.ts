@@ -2,8 +2,8 @@ import {
   AbstractMessageService,
   IMessageService,
   MessageDirection
-} from 'src/chains/Services/AbstractMessageService'
-import { DefaultL1RelayGasLimit } from 'src/chains/Services/AbstractMessageService'
+} from 'src/chains/Services/AbstractMessageService.js'
+import { DefaultL1RelayGasLimit } from 'src/chains/Services/AbstractMessageService.js'
 import {
   IL1ToL2MessageWriter,
   IL2ToL1MessageWriter,

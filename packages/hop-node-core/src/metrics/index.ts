@@ -1,2 +1,2 @@
-export * from './MetricsServer'
-export * from './metrics'
+export * from './MetricsServer.js'
+export * from './metrics.js'

@@ -1,4 +1,4 @@
-import { config as globalConfig } from 'src/config'
+import { config as globalConfig } from 'src/config/index.js'
 
 export const chainSlugToId = (network: string): number => {
   const chainId = globalConfig.networks[network]?.networkId ?? globalConfig.networks[network]?.chainId

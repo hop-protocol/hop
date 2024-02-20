@@ -1,10 +1,10 @@
-import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
+import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber.js'
 import os from 'node:os'
 import {
   Chain,
   Network,
   OneHourMs
-} from 'src/constants'
+} from 'src/constants/index.js'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { execSync } from 'node:child_process'

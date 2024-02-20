@@ -1,4 +1,4 @@
-import { config as globalConfig } from 'src/config'
+import { config as globalConfig } from 'src/config/index.js'
 
 const getRpcUrl = (network: string): string => {
   const url = globalConfig.networks[network]?.rpcUrl

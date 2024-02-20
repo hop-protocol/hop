@@ -1,6 +1,6 @@
-import { Chain } from 'src/constants'
-import { IChainBridge } from 'src/chains/IChainBridge'
-import { createChainBridgeInstance } from 'src/chains/Factories/ChainBridgeFactory'
+import { Chain } from 'src/constants/index.js'
+import { IChainBridge } from 'src/chains/IChainBridge.js'
+import { createChainBridgeInstance } from 'src/chains/Factories/ChainBridgeFactory.js'
 
 const chainBridgeInstances: Record<string, IChainBridge> = {}
 

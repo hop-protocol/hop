@@ -1,7 +1,7 @@
-import wait from 'src/utils/wait'
-import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService'
+import wait from 'src/utils/wait.js'
+import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService.js'
 import { BigNumber, providers } from 'ethers'
-import { DefaultL1RelayGasLimit } from 'src/chains/Services/AbstractMessageService'
+import { DefaultL1RelayGasLimit } from 'src/chains/Services/AbstractMessageService.js'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
 

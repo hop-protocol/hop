@@ -1,8 +1,8 @@
-import Logger from 'src/logger'
+import Logger from 'src/logger/index.js'
 import { BigNumber } from 'ethers'
 import { Mutex } from 'async-mutex'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from '../config'
+import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from 'src/config/index.js'
 
 const mutex = new Mutex()
 

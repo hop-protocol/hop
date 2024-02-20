@@ -1,1 +1,3 @@
-export { default, constructSigner } from './wallets.js'
+import wallets  from './wallets.js'
+
+export default wallets

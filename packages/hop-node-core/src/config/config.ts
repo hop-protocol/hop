@@ -1,10 +1,10 @@
-import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber.js'
+import { normalizeEnvVarNumber } from './utils/normalizeEnvVarNumber.js'
 import os from 'node:os'
 import {
   Chain,
   Network,
   OneHourMs
-} from 'src/constants/index.js'
+} from '#src/constants/index.js'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { execSync } from 'node:child_process'
@@ -39,7 +39,7 @@ export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
-const envNetwork = process.env.NETWORK ?? Network.Mainnet
+export const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const isTestMode = !!process.env.TEST_MODE
 
@@ -150,7 +150,7 @@ export type Config = {
   networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
   metadata: Metadata & {[network: string]: any}
-  // metrics: MetricsConfig -------- keep
+  metrics: MetricsConfig
   signerConfig: SignerConfig
   blocklist: BlocklistConfig
   emergencyDryMode: boolean
@@ -163,9 +163,9 @@ export const config: Config = {
   tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
-  // metrics: {
-  //   enabled: false
-  // },
+  metrics: {
+    enabled: false
+  },
   signerConfig: {
     type: 'keystore'
   },

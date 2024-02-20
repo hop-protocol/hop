@@ -1,4 +1,4 @@
-export default class MemoryStore {
+export class MemoryStore {
   items: any = {}
   async update (key: string, value: any): Promise<void> {
     this.items[key] = Object.assign({}, this.items[key], value)

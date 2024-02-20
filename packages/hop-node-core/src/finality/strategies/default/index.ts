@@ -6,10 +6,10 @@ import { OptimismStrategy } from './OptimismStrategy.js'
 import { PolygonStrategy } from './PolygonStrategy.js'
 import { PolygonZkStrategy } from './PolygonZkStrategy.js'
 
-import { Chain } from 'src/constants/index.js'
+import { Chain } from '#src/constants/index.js'
 import { Strategies } from '../IFinalityStrategy.js'
 
-const DefaultStrategiesMap: Strategies = {
+export const DefaultStrategiesMap: Strategies = {
   [Chain.Ethereum]: EthereumStrategy,
   [Chain.Polygon]: PolygonStrategy,
   [Chain.Gnosis]: GnosisStrategy,
@@ -20,5 +20,3 @@ const DefaultStrategiesMap: Strategies = {
   [Chain.Linea]: LineaStrategy,
   [Chain.PolygonZk]: PolygonZkStrategy
 }
-
-export default DefaultStrategiesMap

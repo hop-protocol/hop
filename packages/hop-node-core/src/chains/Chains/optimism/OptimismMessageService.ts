@@ -1,12 +1,12 @@
-import chainSlugToId from 'src/utils/chainSlugToId.js'
-import { AbstractMessageService, IMessageService, MessageDirection } from 'src/chains/Services/AbstractMessageService.js'
+import { chainSlugToId } from '#src/utils/chainSlugToId.js'
+import { AbstractMessageService, IMessageService, MessageDirection } from '#src/chains/Services/AbstractMessageService.js'
 import {
   CrossChainMessage,
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
-import { config as globalConfig } from 'src/config/index.js'
-import { networkSlugToId } from 'src/utils/networkSlugToId.js'
+import { config as globalConfig } from '#src/config/index.js'
+import { networkSlugToId } from '#src/utils/networkSlugToId.js'
 import { providers } from 'ethers'
 
 export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus> implements IMessageService {

@@ -1,2 +1,1 @@
-export { default, Logger } from './Logger.js'
-export { setLogLevel } from './Logger.js'
+export { Logger, setLogLevel } from './Logger.js'

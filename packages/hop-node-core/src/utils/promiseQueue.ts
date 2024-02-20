@@ -1,7 +1,7 @@
 import PQueue from 'p-queue'
 import { chunk } from 'lodash'
 
-export type Options = {
+type Options = {
   concurrency: number
   timeoutMs?: number
 }

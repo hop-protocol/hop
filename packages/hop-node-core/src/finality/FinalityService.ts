@@ -1,5 +1,5 @@
-import FinalityStrategies from './strategies/index.js'
-import { Chain } from 'src/constants/index.js'
+import { FinalityStrategies } from './strategies/index.js'
+import { Chain } from '#src/constants/index.js'
 import {
   FinalityStrategyType,
   IFinalityStrategy,

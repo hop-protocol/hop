@@ -1,4 +1,4 @@
-import { AbstractMessageService, IMessageService } from 'src/chains/Services/AbstractMessageService.js'
+import { AbstractMessageService, IMessageService } from '#src/chains/Services/AbstractMessageService.js'
 import { providers } from 'ethers'
 
 type Message = string

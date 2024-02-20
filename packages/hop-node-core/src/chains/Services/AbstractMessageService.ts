@@ -1,6 +1,6 @@
-import wallets from 'src/wallets/index.js'
-import { AbstractService } from 'src/chains/Services/AbstractService.js'
-import { Chain } from 'src/constants/index.js'
+import wallets from '#src/wallets/index.js'
+import { AbstractService } from '#src/chains/Services/AbstractService.js'
+import { Chain } from '#src/constants/index.js'
 import { Signer, providers } from 'ethers'
 
 export class MessageUnknownError extends Error {}

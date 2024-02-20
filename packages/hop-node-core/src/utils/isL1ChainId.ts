@@ -5,8 +5,6 @@ const l1Chains: Record<string, boolean> = {
   11155111: true
 }
 
-const isL1ChainId = (chainId: number | string) => {
+export const isL1ChainId = (chainId: number | string) => {
   return l1Chains[chainId.toString()] ?? false
 }
-
-export default isL1ChainId

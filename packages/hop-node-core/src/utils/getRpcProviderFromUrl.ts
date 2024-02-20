@@ -4,7 +4,7 @@ import { providers } from 'ethers'
 
 const cache: Record<string, providers.Provider> = {}
 
-const getRpcProviderFromUrl = (
+export const getRpcProviderFromUrl = (
   rpcUrl: string
 ): providers.Provider => {
   const cacheKey = rpcUrl
@@ -21,5 +21,3 @@ const getRpcProviderFromUrl = (
   cache[cacheKey] = provider
   return provider
 }
-
-export default getRpcProviderFromUrl

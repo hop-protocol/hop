@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 
-function bigNumberMin (a: BigNumber, b: BigNumber) {
+export function bigNumberMin (a: BigNumber, b: BigNumber) {
   if (!a) {
     return b
   }
@@ -9,5 +9,3 @@ function bigNumberMin (a: BigNumber, b: BigNumber) {
   }
   return a?.lt(b) ? a : b
 }
-
-export default bigNumberMin

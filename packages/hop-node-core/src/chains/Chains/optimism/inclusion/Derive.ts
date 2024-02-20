@@ -10,7 +10,7 @@ interface UnmarshalBinaryRes {
   offset: number
 }
 
-class Derive {
+export class Derive {
   readonly #DerivationVersion0: number = 0
   readonly #MaxFrameLen: number = 1_000_000
   readonly #DataLengths: Record<string, number>
@@ -120,5 +120,3 @@ class Derive {
     }
   }
 }
-
-export default Derive

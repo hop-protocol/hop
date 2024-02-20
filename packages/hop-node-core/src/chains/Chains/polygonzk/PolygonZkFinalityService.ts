@@ -1,8 +1,8 @@
-import getRpcUrl from 'src/utils/getRpcUrl.js'
-import wait from 'src/utils/wait.js'
-import { AbstractFinalityService, IFinalityService } from 'src/chains/Services/AbstractFinalityService.js'
-import { Chain } from 'src/constants/index.js'
-import { FinalityBlockTag } from 'src/chains/IChainBridge.js'
+import { getRpcUrl } from '#src/utils/getRpcUrl.js'
+import { wait } from '#src/utils/wait.js'
+import { AbstractFinalityService, IFinalityService } from '#src/chains/Services/AbstractFinalityService.js'
+import { Chain } from '#src/constants/index.js'
+import { FinalityBlockTag } from '#src/chains/IChainBridge.js'
 import { providers } from 'ethers'
 
 const finalityNameMap: Record<string, string> = {

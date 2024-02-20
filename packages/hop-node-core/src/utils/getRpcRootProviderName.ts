@@ -1,5 +1,5 @@
-import getRpcUrlFromProvider from './getRpcUrlFromProvider.js'
-import { RootProviderName } from 'src/constants/index.js'
+import { getRpcUrlFromProvider } from './getRpcUrlFromProvider.js'
+import { RootProviderName } from '#src/constants/index.js'
 import { promiseTimeout } from './promiseTimeout.js'
 import { providers } from 'ethers'
 
@@ -18,7 +18,7 @@ enum rpcRootProviderErrorString {
 
 const cache: Record<string, RootProviderName> = {}
 
-async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
+export async function getRpcRootProviderName (providerOrUrl: providers.Provider | string, onlyAttemptUrl?: boolean): Promise<RootProviderName | undefined> {
   // Cache by top-level URL
   let url = getUrlFromProviderOrUrl(providerOrUrl)
   if (cache[url]) {
@@ -100,5 +100,3 @@ function getUrlFromProviderOrUrl (providerOrUrl: providers.Provider | string): s
 
   return providerOrUrl
 }
-
-export default getRpcRootProviderName

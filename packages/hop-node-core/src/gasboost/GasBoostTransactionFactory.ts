@@ -1,10 +1,10 @@
-import GasBoostTransaction, { Options } from './GasBoostTransaction.js'
-import Store from './Store.js'
+import { GasBoostTransaction, Options } from './GasBoostTransaction.js'
+import { Store } from './Store.js'
 import { Signer, providers } from 'ethers'
 
 export { Options }
 
-class GasBoostTransactionFactory {
+export class GasBoostTransactionFactory {
   signer: Signer
   store: Store
   options: Partial<Options> = {}
@@ -31,5 +31,3 @@ class GasBoostTransactionFactory {
     this.options = options
   }
 }
-
-export default GasBoostTransactionFactory

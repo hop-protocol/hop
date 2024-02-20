@@ -1,4 +1,4 @@
-import { FinalityBlockTag } from 'src/chains/IChainBridge.js'
+import { FinalityBlockTag } from '#src/chains/IChainBridge.js'
 import { FinalityStrategy } from '../FinalityStrategy.js'
 import { IFinalityStrategy } from '../IFinalityStrategy.js'
 

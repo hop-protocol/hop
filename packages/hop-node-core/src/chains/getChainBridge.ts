@@ -1,10 +1,10 @@
-import { Chain } from 'src/constants/index.js'
-import { IChainBridge } from 'src/chains/IChainBridge.js'
-import { createChainBridgeInstance } from 'src/chains/Factories/ChainBridgeFactory.js'
+import { Chain } from '#src/constants/index.js'
+import { IChainBridge } from '#src/chains/IChainBridge.js'
+import { createChainBridgeInstance } from '#src/chains/Factories/ChainBridgeFactory.js'
 
 const chainBridgeInstances: Record<string, IChainBridge> = {}
 
-export default function getChainBridge (chainSlug: Chain): IChainBridge {
+export function getChainBridge (chainSlug: Chain): IChainBridge {
   if (chainBridgeInstances?.[chainSlug]) {
     return chainBridgeInstances[chainSlug]
   }

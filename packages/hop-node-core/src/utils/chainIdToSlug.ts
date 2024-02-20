@@ -1,9 +1,9 @@
-import { Chain } from 'src/constants/index.js'
-import { config as globalConfig } from 'src/config/index.js'
+import { Chain } from '#src/constants/index.js'
+import { config as globalConfig } from '#src/config/index.js'
 
 const cache: Record<string, Chain> = {}
 
-const chainIdToSlug = (chainId: string | number): Chain => {
+export const chainIdToSlug = (chainId: string | number): Chain => {
   const cacheKey = chainId?.toString()
   if (cache[cacheKey]) {
     return cache[cacheKey]
@@ -27,5 +27,3 @@ const chainIdToSlug = (chainId: string | number): Chain => {
   }
   throw new Error(`chain ID ${chainId} not found`)
 }
-
-export default chainIdToSlug

@@ -169,5 +169,3 @@ export class Logger {
     console.warn(...this.headers(LogLevels.Debug), ...input)
   }
 }
-
-export default Logger

@@ -1,17 +1,17 @@
-import Logger from 'src/logger/index.js'
-import wait from 'src/utils/wait.js'
-import { Notifier } from 'src/notifier/index.js'
-import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config/index.js'
+import { Logger } from '#src/logger/index.js'
+import { wait } from '#src/utils/wait.js'
+import { Notifier } from '#src/notifier/index.js'
+import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from '#src/config/index.js'
 import { isFetchBadResponseError } from './isFetchBadResponseError.js'
 import { isFetchConnectionError } from './isFetchConnectionError.js'
 import { isFetchRateLimitError } from './isFetchRateLimitError.js'
 import { isFetchTimeoutError } from './isFetchTimeoutError.js'
-import { promiseTimeout } from 'src/utils/promiseTimeout.js'
+import { promiseTimeout } from '#src/utils/promiseTimeout.js'
 
 const _logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
-export default function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
+export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
   const id = `${process.hrtime.bigint()}`
   const logger = _logger.create({ id })
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {

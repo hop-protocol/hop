@@ -1,10 +1,10 @@
-import { Chain } from 'src/constants/index.js'
+import { Chain } from '#src/constants/index.js'
 import { URL } from 'node:url'
-import { config as globalConfig } from 'src/config/index.js'
+import { config as globalConfig } from '#src/config/index.js'
 
 const cache: Record<string, any> = {}
 
-const getProviderChainSlug = (provider: any): Chain | undefined => {
+export const getProviderChainSlug = (provider: any): Chain | undefined => {
   const providerUrl = provider?.connection?.url || provider?.providerConfigs?.[0]?.provider?.connection?.url
   if (!providerUrl) {
     return
@@ -22,5 +22,3 @@ const getProviderChainSlug = (provider: any): Chain | undefined => {
     }
   }
 }
-
-export default getProviderChainSlug

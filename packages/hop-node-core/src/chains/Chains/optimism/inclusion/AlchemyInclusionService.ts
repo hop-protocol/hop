@@ -1,9 +1,9 @@
-import getRpcRootProviderName from 'src/utils/getRpcRootProviderName.js'
-import getRpcUrlFromProvider from 'src/utils/getRpcUrlFromProvider.js'
-import wait from 'src/utils/wait.js'
-import { AbstractOptimismInclusionService } from 'src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
-import { IInclusionService } from 'src/chains/Services/AbstractInclusionService.js'
-import { RootProviderName } from 'src/constants/index.js'
+import { getRpcRootProviderName } from '#src/utils/getRpcRootProviderName.js'
+import { getRpcUrlFromProvider } from '#src/utils/getRpcUrlFromProvider.js'
+import { wait } from '#src/utils/wait.js'
+import { AbstractOptimismInclusionService } from '#src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
+import { IInclusionService } from '#src/chains/Services/AbstractInclusionService.js'
+import { RootProviderName } from '#src/constants/index.js'
 import { providers } from 'ethers'
 
 interface GetInclusionTxHashes {
@@ -14,7 +14,7 @@ interface GetInclusionTxHashes {
   endBlockNumber?: number
 }
 
-class AlchemyInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
+export class AlchemyInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
   readonly #maxNumL1BlocksWithoutInclusion: number = 50
   #isInitialized: boolean
   #ready: boolean
@@ -204,5 +204,3 @@ class AlchemyInclusionService extends AbstractOptimismInclusionService implement
     return endBlockNumber
   }
 }
-
-export default AlchemyInclusionService

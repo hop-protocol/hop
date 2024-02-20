@@ -1,13 +1,13 @@
-import Logger from 'src/logger/index.js'
-import Store from './Store.js'
-import bigNumberMax from 'src/utils/bigNumberMax.js'
-import bigNumberMin from 'src/utils/bigNumberMin.js'
-import chainSlugToId from 'src/utils/chainSlugToId.js'
-import getBumpedBN from 'src/utils/getBumpedBN.js'
-import getBumpedGasPrice from 'src/utils/getBumpedGasPrice.js'
-import getProviderChainSlug from 'src/utils/getProviderChainSlug.js'
-import getRpcUrl from 'src/utils/getRpcUrl.js'
-import wait from 'src/utils/wait.js'
+import { Logger } from '#src/logger/index.js'
+import { Store } from './Store.js'
+import { bigNumberMax } from '#src/utils/bigNumberMax.js'
+import { bigNumberMin } from '#src/utils/bigNumberMin.js'
+import { chainSlugToId } from '#src/utils/chainSlugToId.js'
+import { getBumpedBN } from '#src/utils/getBumpedBN.js'
+import { getBumpedGasPrice } from '#src/utils/getBumpedGasPrice.js'
+import { getProviderChainSlug } from '#src/utils/getProviderChainSlug.js'
+import { getRpcUrl } from '#src/utils/getRpcUrl.js'
+import { wait } from '#src/utils/wait.js'
 import { BigNumber, Signer, providers } from 'ethers'
 import {
   Chain,
@@ -15,21 +15,21 @@ import {
   MaxGasPriceMultiplier,
   MaxPriorityFeeConfidenceLevel,
   PriorityFeePerGasCap
-} from 'src/constants/index.js'
+} from '#src/constants/index.js'
 import {
   EstimateGasError,
   KmsSignerError,
   NonceTooLowError
-} from 'src/types/error.js'
+} from '#src/types/error.js'
 import { EventEmitter } from 'node:events'
-import { Notifier } from 'src/notifier/index.js'
+import { Notifier } from '#src/notifier/index.js'
 import {
   blocknativeApiKey,
   gasBoostErrorSlackChannel,
   gasBoostWarnSlackChannel,
   config as globalConfig,
   hostname
-} from 'src/config/index.js'
+} from '#src/config/index.js'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils.js'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -101,7 +101,7 @@ type EventEmitterEvents = EventEmitter & {
 const cacheTimeMs = 5 * 60 * 1000
 const enoughFundsCheckCache: Record<string, number> = {}
 
-class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
+export class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
@@ -1062,5 +1062,3 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return txHash
   }
 }
-
-export default GasBoostTransaction

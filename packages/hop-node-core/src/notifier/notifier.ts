@@ -1,1 +1,1 @@
-export { default as Notifier } from './slack.js'
+export { SlackClient as Notifier } from './slack.js'

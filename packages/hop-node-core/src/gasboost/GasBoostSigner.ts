@@ -1,18 +1,18 @@
-import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory.js'
-import Logger from 'src/logger/index.js'
-import MemoryStore from './MemoryStore.js'
-import Store from './Store.js'
-import getProviderChainSlug from 'src/utils/getProviderChainSlug.js'
-import wait from 'src/utils/wait.js'
+import { GasBoostTransactionFactory, Options } from './GasBoostTransactionFactory.js'
+import { Logger } from '#src/logger/index.js'
+import { MemoryStore } from './MemoryStore.js'
+import { Store } from './Store.js'
+import { getProviderChainSlug } from '#src/utils/getProviderChainSlug.js'
+import { wait } from '#src/utils/wait.js'
 import { Mutex } from 'async-mutex'
-import { NonceTooLowError } from 'src/types/error.js'
-import { Notifier } from 'src/notifier/index.js'
+import { NonceTooLowError } from '#src/types/error.js'
+import { Notifier } from '#src/notifier/index.js'
 import { Signer, providers } from 'ethers'
 import { defineReadOnly } from 'ethers/lib/utils.js'
-import { hostname, setLatestNonceOnStart } from 'src/config/index.js'
+import { hostname, setLatestNonceOnStart } from '#src/config/index.js'
 import { v4 as uuidv4 } from 'uuid'
 
-class GasBoostSigner extends Signer {
+export class GasBoostSigner extends Signer {
   store: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0
@@ -238,5 +238,3 @@ class GasBoostSigner extends Signer {
     this.options = options
   }
 }
-
-export default GasBoostSigner

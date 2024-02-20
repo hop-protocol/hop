@@ -7,7 +7,7 @@ import {
   resolveProperties,
   serializeTransaction
 } from 'ethers/lib/utils.js'
-import { awsAccessKeyId, awsSecretAccessKey } from 'src/config/index.js'
+import { awsAccessKeyId, awsSecretAccessKey } from '#src/config/index.js'
 import { providers } from 'ethers'
 
 type KmsSignerConfig = AwsSignerConfig

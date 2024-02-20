@@ -1,4 +1,4 @@
-function normalizeEnvVarBool (value?: string): boolean | undefined {
+export function normalizeEnvVarBool (value?: string): boolean | undefined {
   if (!value) return
 
   if (typeof value === 'boolean') return value
@@ -7,5 +7,3 @@ function normalizeEnvVarBool (value?: string): boolean | undefined {
 
   throw new Error(`Invalid boolean value: ${value}`)
 }
-
-export default normalizeEnvVarBool

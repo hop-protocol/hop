@@ -1,12 +1,12 @@
 import { Notifier } from './interfaces.js'
 import { WebClient } from '@slack/web-api'
-import { slackAuthToken, slackChannel, slackErrorChannel, slackInfoChannel, slackLogChannel, slackSuccessChannel, slackUsername, slackWarnChannel } from 'src/config/index.js'
+import { slackAuthToken, slackChannel, slackErrorChannel, slackInfoChannel, slackLogChannel, slackSuccessChannel, slackUsername, slackWarnChannel } from '#src/config/index.js'
 
 type MessageOptions = {
   channel: string
 }
 
-class SlackClient implements Notifier {
+export class SlackClient implements Notifier {
   private static readonly instance: SlackClient
   client: WebClient
   channel: string
@@ -75,5 +75,3 @@ class SlackClient implements Notifier {
     })
   }
 }
-
-export default SlackClient

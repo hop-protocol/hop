@@ -1,6 +1,6 @@
 # Build docker target
 docker-build:
-	docker build --build-arg=GIT_REV=$$(git rev-parse --short HEAD) -f Dockerfile -t hopprotocol/v2-explorer-backend .
+	(cd ../../ && docker build --build-arg=GIT_REV=$$(git rev-parse --short HEAD) -f ./packages/v2-explorer-backend/Dockerfile -t hopprotocol/v2-explorer-backend .)
 
 # Tag docker image with latest
 docker-image-tag-latest:

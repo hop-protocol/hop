@@ -1,11 +1,11 @@
 import cors from 'cors'
-import express from 'express'
+import express, { Express } from 'express'
 import { Controller } from '../controller'
 import { ipRateLimitMiddleware } from './rateLimit'
 import { port } from '../config'
 import { responseCache } from './responseCache'
 
-export const app = express()
+export const app : Express = express()
 
 app.enable('trust proxy')
 app.use(cors())

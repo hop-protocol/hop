@@ -1,6 +1,7 @@
 packages:
   - 'packages/core'
   - 'packages/sdk'
+  - 'packages/sdk-core'
   - 'packages/api'
   - 'packages/frontend'
   - 'packages/sdk-demo'

@@ -1,8 +1,7 @@
 import Base, { ChainProviders } from '../Base'
 import EventEmitter from 'eventemitter3'
 import HopBridge from '../HopBridge'
-import wait from '../utils/wait'
-import { Chain, Token } from '../models'
+import { models, utils } from '@hop-protocol/sdk-core'
 import { TChain, TProvider, TToken } from '../types'
 
 /**
@@ -35,9 +34,9 @@ class BaseWatcher extends Base {
   sourceTx: any
   sourceBlock: any
   sourceReceipt: any
-  token: Token
-  sourceChain: Chain
-  destinationChain: Chain
+  token: models.Token
+  sourceChain: models.Chain
+  destinationChain: models.Chain
   pollDelayMs = 10 * 1000
   bridge: HopBridge
   options: any = {}
@@ -88,7 +87,7 @@ class BaseWatcher extends Base {
       let res = false
       while (!res) {
         res = await pollFn()
-        await wait(this.pollDelayMs)
+        await utils.wait(this.pollDelayMs)
       }
     } catch (err) {
       this.ee.emit('error', err)

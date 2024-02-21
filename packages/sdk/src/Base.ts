@@ -1,4 +1,3 @@
-import Token from './models/Token'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { ArbERC20 } from '@hop-protocol/core/contracts'
@@ -6,7 +5,7 @@ import { ArbERC20__factory } from '@hop-protocol/core/contracts'
 import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts'
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
-import { Chain, Token as TokenModel } from './models'
+import { models, utils, Multicall, MulticallBalance } from '@hop-protocol/sdk-core'
 import { ChainSlug, Errors, NetworkSlug } from './constants'
 import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts'
 import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
@@ -20,18 +19,10 @@ import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts'
 import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts'
 import { L2_xDaiToken } from '@hop-protocol/core/contracts'
 import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts'
-import { Multicall, Balance as MulticallBalance } from './Multicall'
 import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
-import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
-import { getMinGasLimit } from './utils/getMinGasLimit'
-import { getMinGasPrice } from './utils/getMinGasPrice'
-import { getProviderFromUrl } from './utils/getProviderFromUrl'
-import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
-import { promiseTimeout } from './utils/promiseTimeout'
-import { rateLimitRetry } from './utils/rateLimitRetry'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -60,7 +51,7 @@ const getProvider = memoize((network: string, chain: string) => {
   const fallbackRpcUrls = config[network].chains[chain].fallbackRpcUrls ?? []
   const rpcUrls = [rpcUrl, ...fallbackRpcUrls]
 
-  const provider = getProviderFromUrl(rpcUrls)
+  const provider = utils.getProviderFromUrl(rpcUrls)
   return provider
 })
 
@@ -93,7 +84,7 @@ const getContract = async (
   const chainId = p?.provider?._network?.chainId ?? ''
   await p?._networkPromise
   const fallbackProviderChainId = p?._network?.chainId ?? p?.providers?.[0]?._network?.chainId ?? ''
-  const rpcUrl = getUrlFromProvider(p)
+  const rpcUrl = utils.getUrlFromProvider(p)
   const cacheKey = `${signerAddress}${chainId}${fallbackProviderChainId}${rpcUrl}`
   return getContractMemo(factory, address, cacheKey)(provider)
 }
@@ -342,7 +333,7 @@ export class Base {
         )
       }
       if (chainProviders[chainSlug]) {
-        this.chainProviders[chain.slug] = getProviderFromUrl(chainProviders[chainSlug])
+        this.chainProviders[chain.slug] = utils.getProviderFromUrl(chainProviders[chainSlug])
       }
     }
   }
@@ -384,19 +375,19 @@ export class Base {
    * @param chain - Chain name or model.
    * @returns Chain model with connected provider.
    */
-  public toChainModel (chain: TChain): Chain {
+  public toChainModel (chain: TChain): models.Chain {
     if (!chain) {
       throw new Error('expected chain')
     }
     if (typeof chain === 'string') {
-      chain = Chain.fromSlug(chain)
+      chain = models.Chain.fromSlug(chain)
     }
     if (!chain) {
       throw new Error(`invalid chain "${chain}"`)
     }
     if (chain.slug === 'xdai') {
       console.warn(Errors.xDaiRebrand)
-      chain = Chain.fromSlug('gnosis')
+      chain = models.Chain.fromSlug('gnosis')
     }
     if (!this.isValidChain(chain.slug)) {
       throw new Error(
@@ -417,11 +408,11 @@ export class Base {
    * @param token - Token name or model.
    * @returns Token model.
    */
-  public toTokenModel (token: TToken): TokenModel {
+  public toTokenModel (token: TToken): models.Token {
     if (typeof token === 'string') {
-      const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
+      const canonicalSymbol = models.Token.getCanonicalSymbol(token)
       const { name, decimals } = metadata.tokens[canonicalSymbol]
-      return new TokenModel(0, '', decimals, token, name)
+      return new models.Token(0, '', decimals, token, name)
     }
 
     return token
@@ -451,7 +442,7 @@ export class Base {
    * @param chain - Chain model.
    * @returns - Chain ID.
    */
-  public getChainId (chain: Chain): number {
+  public getChainId (chain: models.Chain): number {
     const { chainId } = this.chains[chain.slug]
     return Number(chainId)
   }
@@ -461,9 +452,9 @@ export class Base {
    * @param chain - Chain model.
    * @returns Ethers provider.
    */
-  public getChainProvider (chain: Chain | string): any {
+  public getChainProvider (chain: models.Chain | string): any {
     let chainSlug: string
-    if (chain instanceof Chain && chain?.slug) {
+    if (chain instanceof models.Chain && chain?.slug) {
       chainSlug = chain?.slug
     } else if (typeof chain === 'string') {
       chainSlug = chain
@@ -649,7 +640,7 @@ export class Base {
       )
     }
 
-    const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
+    const minGasPrice = utils.getMinGasPrice(this.network, sourceChain.slug)
     if (minGasPrice) {
       const currentGasPrice = await this.getGasPrice(sourceChain.provider!)
       const minGasPriceBn = BigNumber.from(minGasPrice)
@@ -660,7 +651,7 @@ export class Base {
       }
     }
 
-    const minGasLimit = getMinGasLimit(this.network, sourceChain.slug)
+    const minGasLimit = utils.getMinGasLimit(this.network, sourceChain.slug)
     if (minGasLimit) {
       txOptions.gasLimit = BigNumber.from(minGasLimit)
     }
@@ -669,18 +660,18 @@ export class Base {
     // RPC endpoints to incorrectly estimate gas.
     // TODO: Remove this when estimation is fixed
     if (
-      sourceChain.equals(Chain.Ethereum) &&
+      sourceChain.equals(models.Chain.Ethereum) &&
       destinationChain && (
-        (destinationChain as Chain)?.equals(Chain.Optimism) ||
-        (destinationChain as Chain)?.equals(Chain.Base)
+        (destinationChain as models.Chain)?.equals(models.Chain.Optimism) ||
+        (destinationChain as models.Chain)?.equals(models.Chain.Base)
       )) {
       txOptions.gasLimit = BigNumber.from(200_000)
     }
     if (
-      sourceChain.equals(Chain.Ethereum) &&
+      sourceChain.equals(models.Chain.Ethereum) &&
       destinationChain && (
-        (destinationChain as Chain)?.equals(Chain.Arbitrum) ||
-        (destinationChain as Chain)?.equals(Chain.Nova)
+        (destinationChain as models.Chain)?.equals(models.Chain.Arbitrum) ||
+        (destinationChain as models.Chain)?.equals(models.Chain.Nova)
       )) {
       txOptions.gasLimit = BigNumber.from(500_000)
     }
@@ -758,7 +749,7 @@ export class Base {
     await this.fetchConfigFromS3()
     destinationChain = this.toChainModel(destinationChain)
     const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
-    if (!isFeeEnabled || tokenSymbol !== Token.ETH) {
+    if (!isFeeEnabled || tokenSymbol !== models.Token.ETH) {
       return BigNumber.from(0)
     }
 
@@ -792,7 +783,7 @@ export class Base {
     const cacheBust = Date.now()
     const url = `${this.coreConfigJsonUrl}?cb=${cacheBust}`
     try {
-      return await fetchJsonOrThrow(url)
+      return await utils.fetchJsonOrThrow(url)
     } catch (err: any) {
       throw new Error(`fetchCoreConfigData error: ${err.message}, url: ${url}`)
     }
@@ -838,7 +829,7 @@ export class Base {
     const cacheBust = Date.now()
     const url = `${this.availableLiqudityJsonUrl}?cb=${cacheBust}`
     try {
-      const json = await fetchJsonOrThrow(url)
+      const json = await utils.fetchJsonOrThrow(url)
       const { timestamp, data } = json
       const tenMinutes = 10 * 60 * 1000
       const isOutdated = Date.now() - timestamp > tenMinutes
@@ -945,7 +936,7 @@ export class Base {
     gasLimit : BigNumberish,
     data: string = '0x',
     to: string = constants.AddressZero,
-    destChain: Chain | string = Chain.Optimism
+    destChain: models.Chain | string = models.Chain.Optimism
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
@@ -986,19 +977,19 @@ export class Base {
   async getTransferStatus (transferIdOrTxHash: string):Promise<any> {
     const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
-    const json = await fetchJsonOrThrow(url)
+    const json = await utils.fetchJsonOrThrow(url)
     return json.data ?? null
   }
 
   async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string):Promise<any> {
     const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
-    const json = await fetchJsonOrThrow(url, (9 * 1000))
+    const json = await utils.fetchJsonOrThrow(url, (9 * 1000))
     return json.data ?? null
   }
 
   getProviderRpcUrl (provider: any): string {
-    return getUrlFromProvider(provider)
+    return utils.getUrlFromProvider(provider)
   }
 
   async resolveDnslink (dnslinkDomain: string): Promise<string|null> {
@@ -1012,7 +1003,7 @@ export class Base {
 
     try {
       const timeoutMs = 5 * 10000
-      const ipfsHash = await promiseTimeout(new Promise((resolve, reject) => {
+      const ipfsHash = await utils.promiseTimeout(new Promise((resolve, reject) => {
         dns.resolveTxt(dnslinkDomain, (err: any, records: any) => {
           if (err) {
             reject(err)
@@ -1042,7 +1033,7 @@ export class Base {
       return null
     }
     const url = `${this.getIpfsBaseConfigUrl(ipfsHash)}/v1-core-config.json`
-    const json = await fetchJsonOrThrow(url)
+    const json = await utils.fetchJsonOrThrow(url)
     return json
   }
 
@@ -1053,7 +1044,7 @@ export class Base {
       return null
     }
     const url = `${this.getIpfsBaseConfigUrl(ipfsHash)}/v1-available-liquidity.json`
-    const json = await fetchJsonOrThrow(url)
+    const json = await utils.fetchJsonOrThrow(url)
     const { timestamp, data } = json
     const tenMinutes = 10 * 60 * 1000
     const isOutdated = Date.now() - timestamp > tenMinutes
@@ -1063,7 +1054,7 @@ export class Base {
     return data
   }
 
-  getGasPrice = rateLimitRetry(async (signerOrProvider: TProvider): Promise<BigNumber> => {
+  getGasPrice = utils.rateLimitRetry(async (signerOrProvider: TProvider): Promise<BigNumber> => {
     if (!signerOrProvider) {
       throw new Error('expected signer or provider')
     }

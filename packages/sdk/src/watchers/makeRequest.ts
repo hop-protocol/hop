@@ -1,7 +1,7 @@
-import { getSubgraphUrl } from '../utils/getSubgraphUrl'
+import { utils } from '@hop-protocol/sdk-core'
 
 export async function makeRequest (network: string, chain: string, query: string, variables?: any) {
-  const url = getSubgraphUrl(network, chain)
+  const url = utils.getSubgraphUrl(network, chain)
   const res = await fetch(url, {
     method: 'POST',
     headers: {

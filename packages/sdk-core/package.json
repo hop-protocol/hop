@@ -1,6 +1,6 @@
 {
-  "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.605",
+  "name": "@hop-protocol/sdk-core",
+  "version": "0.0.1",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -17,8 +17,7 @@
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",
     "build:cjs": "tsc -p tsconfig.cjs.json",
-    "build:all": "pnpm build:ts && pnpm build:cjs && pnpm build:browser",
-    "build:browser": "esbuild dist/index.js --bundle --minify --platform=browser --outfile=hop.js",
+    "build:all": "pnpm build:ts && pnpm build:cjs",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --ext .ts --fix",
@@ -34,7 +33,6 @@
   },
   "dependencies": {
     "@hop-protocol/core": "workspace:*",
-    "@hop-protocol/sdk-core": "workspace:*",
     "dotenv": "16.4.1",
     "esbuild": "0.20.0",
     "ethereum-block-by-date": "1.4.9",

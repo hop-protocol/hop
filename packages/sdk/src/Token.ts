@@ -1,6 +1,5 @@
 import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import Chain from './models/Chain'
-import TokenModel from './models/Token'
+import { models } from '@hop-protocol/sdk-core'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
 import { ERC20__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain } from './types'
@@ -26,7 +25,7 @@ class Token extends Base {
   public readonly decimals: number
   public readonly name: string
   public readonly image: string
-  public readonly chain: Chain
+  public readonly chain: models.Chain
   public readonly contract: Contract
   _symbol: TokenSymbol
 
@@ -56,7 +55,7 @@ class Token extends Base {
     super(networkOrOptionsObject, signer, chainProviders)
 
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject 
+      const options = networkOrOptionsObject
       if (chain ?? address ?? decimals ?? symbol ?? name ?? image ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -85,7 +84,7 @@ class Token extends Base {
   }
 
   get symbol () {
-    if (this._symbol === TokenModel.ETH && !this.isNativeToken) {
+    if (this._symbol === models.Token.ETH && !this.isNativeToken) {
       return WrappedToken.WETH
     }
     return this._symbol
@@ -268,7 +267,7 @@ class Token extends Base {
     let isNative = nativeTokenSymbol === this._symbol
 
     // check for both XDAI and DAI on Gnosis Chain
-    if (!isNative && this.chain.equals(Chain.Gnosis) && TokenModel.DAI === this._symbol) {
+    if (!isNative && this.chain.equals(models.Chain.Gnosis) && models.Token.DAI === this._symbol) {
       isNative = true
     }
 
@@ -370,7 +369,7 @@ class Token extends Base {
   private async getGasEstimateFromAddress (): Promise<string> {
     let address = await this.getSignerAddress()
     if (!address) {
-      address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
+      address = await this._getBonderAddress(this._symbol, this.chain, models.Chain.Ethereum)
     }
     return address
   }

@@ -1,12 +1,12 @@
 import { BigNumberish, Signer, providers } from 'ethers'
-import { Chain, Token } from './models'
+import { models } from '@hop-protocol/sdk-core'
 import { ChainSlug, TokenSymbol } from './constants'
 
 /** Chain-ish type */
-export type TChain = Chain | ChainSlug | string
+export type TChain = models.Chain | ChainSlug | string
 
 /** Token-ish type */
-export type TToken = Token | TokenSymbol  
+export type TToken = models.Token | TokenSymbol
 
 /** Amount-ish type alias */
 export type TAmount = BigNumberish

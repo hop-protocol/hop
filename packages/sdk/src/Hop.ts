@@ -3,8 +3,7 @@ import EventEmitter from 'eventemitter3'
 import HopBridge from './HopBridge'
 import Watcher from './watchers/Watcher'
 import _version from './version'
-import { ApiKeys } from './priceFeed'
-import { Chain, Token } from './models'
+import { models, priceFeed } from '@hop-protocol/sdk-core'
 import { Event } from './watchers/BaseWatcher'
 import { TChain, TProvider, TToken } from './types'
 
@@ -24,21 +23,21 @@ class Hop extends Base {
   static Event = Event
 
   /** Chain class */
-  static Chain = Chain
+  static Chain = models.Chain
 
   /** Token class */
-  static Token = Token
+  static Token = models.Token
 
   /** Event enum */
   Event = Event
 
   /** Chain class */
-  Chain = Chain
+  Chain = models.Chain
 
   /** Token class */
-  Token = Token
+  Token = models.Token
 
-  priceFeedApiKeys: ApiKeys | null = null
+  priceFeedApiKeys: priceFeed.ApiKeys | null = null
 
   /**
    * @desc Instantiates Hop SDK.
@@ -203,7 +202,7 @@ class Hop extends Base {
     }).watch()
   }
 
-  setPriceFeedApiKeys (apiKeys: ApiKeys = {}) {
+  setPriceFeedApiKeys (apiKeys: priceFeed.ApiKeys = {}) {
     this.priceFeedApiKeys = apiKeys
   }
 }

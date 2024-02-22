@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { actionHandler, parseBool, parseNumber, root } from './shared/index.js'
-import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals.js'
+import { getInvalidBondWithdrawals } from '#src/theGraph/getInvalidBondWithdrawals.js'
 
 root
   .command('invalid-bond-withdrawals')

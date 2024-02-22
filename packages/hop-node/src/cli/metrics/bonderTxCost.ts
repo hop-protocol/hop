@@ -10,7 +10,7 @@ import {
   possibleYears,
   tokenDataForYear,
   tokenDecimals
-} from 'src/cli/metrics/sharedMetrics.js'
+} from '#src/cli/metrics/sharedMetrics.js'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
 

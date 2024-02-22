@@ -8,8 +8,7 @@
     "node": ">=20.10.0",
     "pnpm": ">=8"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "commonjs",
   "files": [
     "dist",
     "abi",
@@ -22,49 +21,49 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/cjs/index.js"
+      "types": "./dist/cjs/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
     },
     "./abi": {
-      "types": "./dist/abi/index.d.ts",
-      "import": "./dist/abi/index.js",
-      "require": "./dist/cjs/abi/index.js"
+      "types": "./dist/cjs/abi/index.d.ts",
+      "require": "./dist/cjs/abi/index.js",
+      "default": "./dist/cjs/abi/index.js"
     },
     "./addresses": {
-      "types": "./dist/addresses/index.d.ts",
-      "import": "./dist/addresses/index.js",
-      "require": "./dist/cjs/addresses/index.js"
+      "types": "./dist/cjs/addresses/index.d.ts",
+      "require": "./dist/cjs/addresses/index.js",
+      "default": "./dist/cjs/addresses/index.js"
     },
     "./config": {
-      "types": "./dist/config/index.d.ts",
-      "import": "./dist/config/index.js",
-      "require": "./dist/cjs/config/index.js"
+      "types": "./dist/cjs/config/index.d.ts",
+      "require": "./dist/cjs/config/index.js",
+      "default": "./dist/cjs/config/index.js"
     },
     "./contracts": {
-      "types": "./dist/contracts/index.d.ts",
-      "import": "./dist/contracts/index.js",
-      "require": "./dist/cjs/contracts/index.js"
+      "types": "./dist/cjs/contracts/index.d.ts",
+      "require": "./dist/cjs/contracts/index.js",
+      "default": "./dist/cjs/contracts/index.js"
     },
     "./contracts/*": {
-      "types": "./dist/contracts/*.d.ts",
-      "import": "./dist/contracts/*.js",
-      "require": "./dist/cjs/contracts/*.js"
+      "types": "./dist/cjs/contracts/*.d.ts",
+      "require": "./dist/cjs/contracts/*.js",
+      "default": "./dist/cjs/contracts/*.js"
     },
     "./metadata": {
-      "types": "./dist/metadata/index.d.ts",
-      "import": "./dist/metadata/index.js",
-      "require": "./dist/cjs/metadata/index.js"
+      "types": "./dist/cjs/metadata/index.d.ts",
+      "require": "./dist/cjs/metadata/index.js",
+      "default": "./dist/cjs/metadata/index.js"
     },
     "./metadata/tokens": {
-      "types": "./dist/metadata/tokens.d.ts",
-      "import": "./dist/metadata/tokens.js",
-      "require": "./dist/cjs/metadata/tokens.js"
+      "types": "./dist/cjs/metadata/index.d.ts",
+      "require": "./dist/cjs/metadata/tokens.js",
+      "default": "./dist/cjs/metadata/tokens.js"
     },
     "./networks": {
-      "types": "./dist/networks/index.d.ts",
-      "import": "./dist/networks/index.js",
-      "require": "./dist/cjs/networks/index.js"
+      "types": "./dist/cjs/networks/index.d.ts",
+      "require": "./dist/cjs/networks/index.js",
+      "default": "./dist/cjs/networks/index.js"
     }
   },
   "scripts": {

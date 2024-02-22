@@ -1,5 +1,5 @@
 import PQueue from 'p-queue'
-import { chunk } from 'lodash'
+import _ from 'lodash'
 
 type Options = {
   concurrency: number
@@ -12,7 +12,7 @@ export async function promiseQueue (items: any[], cb: any, options: Options) {
 
 async function promiseQueueChunk (items: any[], cb: any, options: Options) {
   const { concurrency } = options
-  const allChunks = chunk(items, concurrency)
+  const allChunks = _.chunk(items, concurrency)
   let i = 0
   for (const chunks of allChunks) {
     await Promise.all(chunks.map(async (item) => {

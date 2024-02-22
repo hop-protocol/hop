@@ -11,7 +11,7 @@ import {
   MessengerWrapper__factory,
   SaddleLpToken__factory
 } from '@hop-protocol/core/contracts'
-import { config as globalConfig } from 'src/config/index.js'
+import { config as globalConfig } from '#src/config/index.js'
 
 const getL1BridgeContract = (token: string) => {
   if (token === Token.USDC && globalConfig.network === Network.Mainnet) {

@@ -6,7 +6,7 @@ import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { Hop } from '@hop-protocol/sdk'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { formatUnits } from 'ethers/lib/utils.js'
-import { config as globalConfig } from 'src/config/index.js'
+import { config as globalConfig } from '#src/config/index.js'
 import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
 
 export default class L2AmmWrapper extends ContractBase {

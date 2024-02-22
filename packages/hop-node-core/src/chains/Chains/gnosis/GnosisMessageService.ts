@@ -6,10 +6,11 @@ import { GnosisAddresses, GnosisCanonicalAddresses } from '#src/chains/Chains/gn
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts'
 import { NetworkSlug } from '@hop-protocol/core/networks'
-import { l1xDaiAmbAbi } from '@hop-protocol/core/abi'
-import { l2xDaiAmbAbi } from '@hop-protocol/core/abi'
+import hopCoreAbi from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils.js'
 import { Chain } from '#src/constants/index.js'
+
+const { l1xDaiAmbAbi, l2xDaiAmbAbi } =hopCoreAbi 
 
 type Message = string
 type MessageStatus = string

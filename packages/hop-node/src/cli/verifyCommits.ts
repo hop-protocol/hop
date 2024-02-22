@@ -1,6 +1,6 @@
-import getTransferRootBonded from 'src/theGraph/getTransferRootBonded.js'
-import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed.js'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted.js'
+import getTransferRootBonded from '#src/theGraph/getTransferRootBonded.js'
+import getTransferRootConfirmed from '#src/theGraph/getTransferRootConfirmed.js'
+import getTransfersCommitted from '#src/theGraph/getTransfersCommitted.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { actionHandler, parseString, parseStringArray, root } from './shared/index.js'
 

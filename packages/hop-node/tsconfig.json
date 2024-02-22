@@ -4,13 +4,9 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "rootDir": "./src",
-    "outDir": "./dist",
-    "paths": {
-      "src/*": ["./src/*"]
-    }
+    "outDir": "./dist"
   },
   "include": [
-    "src",
-    "src/**/*.json" // Required to include JSON files specifically
+    "src"
   ]
 }

@@ -20,13 +20,13 @@ const enum ActionTypes {
 }
 
 export class LambdaSigner extends AwsSigner {
-  override config: LambdaSignerConfig
-  override address: string
+  config: LambdaSignerConfig
+  address: string
   client: LambdaClient
   lambdaFunctionName: string
 
   constructor (config: LambdaSignerConfig, provider?: providers.Provider) {
-    super(config, provider)
+    super(config.keyId, provider)
     let credentials
     if (awsAccessKeyId && awsSecretAccessKey) {
       credentials = {

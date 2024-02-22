@@ -4,7 +4,7 @@ import { TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { actionHandler, logger, parseString, root } from './shared/index.js'
 import {
   config as globalConfig
-} from 'src/config/index.js'
+} from '#src/config/index.js'
 
 root
   .command('send-to-self')

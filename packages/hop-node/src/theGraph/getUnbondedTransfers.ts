@@ -1,12 +1,12 @@
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId.js'
+import getTransferSentToL2TransferId from '#src/utils/getTransferSentToL2TransferId.js'
 import makeRequest from './makeRequest.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
-import { chunk, uniqBy } from 'lodash'
+import _ from 'lodash'
 import { formatUnits } from 'ethers/lib/utils.js'
-import { padHex } from 'src/utils/padHex.js'
+import { padHex } from '#src/utils/padHex.js'
 
 export async function getUnbondedTransfers (days: number, offsetDays: number = 0) {
   const endDate = DateTime.now().toUTC()
@@ -468,7 +468,7 @@ export async function fetchTransfers (chain: Chain, startTime: number, endTime: 
     }
   }
 
-  return uniqBy(result, (x: any) => x.id).filter((x: any) => x)
+  return _.uniqBy(result, (x: any) => x.id).filter((x: any) => x)
 }
 
 export async function _fetchTransfers (chain: Chain, startTime: number, endTime: number, lastId: string = '0') {
@@ -568,7 +568,7 @@ async function fetchBonds (chain: Chain, transferIds: string[]) {
 
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   const chunkSize = 1000
-  const allChunks = chunk(transferIds, chunkSize)
+  const allChunks = _.chunk(transferIds, chunkSize)
   let bonds: any = []
   for (const _transferIds of allChunks) {
     const data = await makeRequest(chain, query, {
@@ -603,7 +603,7 @@ async function fetchWithdrews (chain: Chain, transferIds: string[]) {
 
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   const chunkSize = 1000
-  const allChunks = chunk(transferIds, chunkSize)
+  const allChunks = _.chunk(transferIds, chunkSize)
   let withdrawals: any = []
   for (const _transferIds of allChunks) {
     const data = await makeRequest(chain, query, {

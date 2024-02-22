@@ -7,8 +7,8 @@ import {
   getAllChains,
   getAllTokens,
   getEnabledTokens
-} from 'src/config/index.js'
-import { SyncType } from 'src/constants/index.js'
+} from '#src/config/index.js'
+import { SyncType } from '#src/constants/index.js'
 import { URL } from 'node:url'
 import { getAddress as checksumAddress } from 'ethers/lib/utils.js'
 

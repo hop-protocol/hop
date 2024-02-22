@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
-import objectDepth from 'src/utils/objectDepth.js'
+import objectDepth from '#src/utils/objectDepth.js'
 import path from 'node:path'
 import {
   FileConfig,
@@ -8,7 +8,7 @@ import {
   isValidChain,
   isValidToken,
   writeConfigFile
-} from 'src/config/index.js'
+} from '#src/config/index.js'
 import { actionHandler, logger, parseBool, parseString, root } from './shared/index.js'
 
 root

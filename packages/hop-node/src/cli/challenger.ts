@@ -2,7 +2,7 @@ import { actionHandler, parseBool, root } from './shared/index.js'
 
 import {
   startChallengeWatchers
-} from 'src/watchers/watchers.js'
+} from '#src/watchers/watchers.js'
 
 root
   .command('challenger')

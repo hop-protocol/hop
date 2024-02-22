@@ -1,13 +1,13 @@
 import BaseWatcher from './classes/BaseWatcher.js'
-import MerkleTree from 'src/utils/MerkleTree.js'
+import MerkleTree from '#src/utils/MerkleTree.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData.js'
-import { config as globalConfig } from 'src/config/index.js'
+import { WithdrawalProofData, getWithdrawalProofData } from '#src/utils/getWithdrawalProofData.js'
+import { config as globalConfig } from '#src/config/index.js'
 
 export class BatchExecuteError extends Error {}
 

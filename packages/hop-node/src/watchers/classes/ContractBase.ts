@@ -13,9 +13,9 @@ import { EventEmitter } from 'node:events'
 import { FinalityService } from '@hop-protocol/hop-node-core/finality'
 import {
   SyncType
-} from 'src/constants/index.js'
+} from '#src/constants/index.js'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'
-import { getNetworkCustomSyncType, config as globalConfig } from 'src/config/index.js'
+import { getNetworkCustomSyncType, config as globalConfig } from '#src/config/index.js'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract

@@ -1,4 +1,4 @@
-import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher.js'
+import IncompleteSettlementsWatcher from '#src/watchers/IncompleteSettlementsWatcher.js'
 import { actionHandler, parseNumber, parseString, root } from './shared/index.js'
 
 root

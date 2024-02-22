@@ -1,4 +1,4 @@
-import { config as globalConfig } from 'src/config/index.js'
+import { config as globalConfig } from '#src/config/index.js'
 import { hostname } from '@hop-protocol/hop-node-core/config'
 import { metrics } from '@hop-protocol/hop-node-core/metrics'
 

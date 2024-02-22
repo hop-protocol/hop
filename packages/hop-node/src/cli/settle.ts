@@ -1,10 +1,10 @@
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import getTransferRoot from 'src/theGraph/getTransferRoot.js'
+import getTransferRoot from '#src/theGraph/getTransferRoot.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 import {
   getSettleBondedWithdrawalsWatcher
-} from 'src/watchers/watchers.js'
+} from '#src/watchers/watchers.js'
 
 root
   .command('settle')

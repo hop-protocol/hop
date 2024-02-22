@@ -4,7 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
-import { BonderConfig } from 'src/config/types.js'
+import { BonderConfig } from '#src/config/types.js'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -15,7 +15,7 @@ import {
 import {
   DefaultBondThreshold,
   SyncType
-} from 'src/constants/index.js'
+} from '#src/constants/index.js'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import {
@@ -29,11 +29,15 @@ import {
   type BlocklistConfig
 } from '@hop-protocol/hop-node-core/config'
 import { parseEther } from 'ethers/lib/utils.js'
+import url from 'node:url'
+import fs from 'node:fs'
+import { loadEnv } from './loadEnvFile.js'
 
-require('./loadEnvFile')
+loadEnv()
 
-
-const defaultDbPath = path.resolve(__dirname, '../../db_data')
+const dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const defaultDbPath = path.resolve(dirname, '../../db_data')
+// const defaultDbPath = path.resolve(__dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
 

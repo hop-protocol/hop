@@ -1,12 +1,12 @@
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate.js'
-import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal.js'
+import getBlockNumberFromDate from '#src/utils/getBlockNumberFromDate.js'
+import getBondedWithdrawal from '#src/theGraph/getBondedWithdrawal.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import getTransferRootId from 'src/utils/getTransferRootId.js'
-import getTransferSent from 'src/theGraph/getTransferSent.js'
-import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain.js'
+import getTransferRootId from '#src/utils/getTransferRootId.js'
+import getTransferSent from '#src/theGraph/getTransferSent.js'
+import isTokenSupportedForChain from '#src/utils/isTokenSupportedForChain.js'
 import { wait } from '@hop-protocol/hop-node-core/utils'
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { BigNumber, Contract } from 'ethers'
@@ -14,10 +14,11 @@ import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { formatUnits } from 'ethers/lib/utils.js'
-import { getEnabledTokens } from 'src/config/index.js'
-import { l1BridgeAbi } from '@hop-protocol/core/abi'
-import { l2BridgeAbi } from '@hop-protocol/core/abi'
+import { getEnabledTokens } from '#src/config/index.js'
+import hopCoreAbi from '@hop-protocol/core/abi'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+
+const { l1BridgeAbi, l2BridgeAbi } = hopCoreAbi
 
 type Options = {
   token?: string

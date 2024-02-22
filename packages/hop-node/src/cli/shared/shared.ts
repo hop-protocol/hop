@@ -3,14 +3,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { BigNumber } from 'ethers'
 import { Command } from 'commander'
-import { WithdrawalProofData, getWithdrawalProofData } from 'src/utils/getWithdrawalProofData.js'
+import { WithdrawalProofData, getWithdrawalProofData } from '#src/utils/getWithdrawalProofData.js'
 import {
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
   validateConfigFileStructure,
   validateConfigValues
-} from 'src/config/index.js'
+} from '#src/config/index.js'
 
 export const logger = new Logger('config')
 export const program = new Command()

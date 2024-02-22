@@ -2,8 +2,14 @@ import { wait } from '#src/utils/wait.js'
 import { AbstractMessageService, IMessageService, MessageDirection } from '#src/chains/Services/AbstractMessageService.js'
 import { BigNumber, providers } from 'ethers'
 import { DefaultL1RelayGasLimit } from '#src/chains/Services/AbstractMessageService.js'
-import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
-import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
+import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
+import * as MaticJs from '@maticnetwork/maticjs-pos-zkevm'
+
+const { ZkEvmClient, setProofApi, use } = MaticJs
+const { Web3ClientPlugin } = MaticJsEthers
+
+type ZkEvmBridgeType = MaticJs.ZkEvmBridge
+type ZkEvmClientType = MaticJs.ZkEvmClient
 
 /**
  * PolygonZk Implementation References
@@ -13,8 +19,8 @@ import { ZkEvmBridge, ZkEvmClient, setProofApi, use } from '@maticnetwork/maticj
  */
 
 interface ZkEvmBridges {
-  sourceBridge: ZkEvmBridge
-  destBridge: ZkEvmBridge
+  sourceBridge: ZkEvmBridgeType
+  destBridge: ZkEvmBridgeType
 }
 
 const polygonSdkNetwork: Record<string, string> = {
@@ -33,7 +39,7 @@ type MessageStatus = string
 
 export class PolygonZkMessageService extends AbstractMessageService<Message, MessageStatus> implements IMessageService {
   ready: boolean = false
-  zkEvmClient: ZkEvmClient
+  zkEvmClient: ZkEvmClientType
 
   constructor (chainSlug: string) {
     super(chainSlug)

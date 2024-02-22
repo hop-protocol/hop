@@ -1,4 +1,4 @@
-import getTransferRoot from 'src/theGraph/getTransferRoot.js'
+import getTransferRoot from '#src/theGraph/getTransferRoot.js'
 import { actionHandler, parseString, root } from './shared/index.js'
 
 root

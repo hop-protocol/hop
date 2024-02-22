@@ -13,12 +13,12 @@ import { providers } from 'ethers'
 type KmsSignerConfig = AwsSignerConfig
 
 export class KmsSigner extends AwsSigner {
-  override config: KmsSignerConfig
-  override address: string
+  config: KmsSignerConfig
+  address: string
   client: KMSClient
 
   constructor (config: KmsSignerConfig, provider?: providers.Provider) {
-    super(config, provider)
+    super(config.keyId, provider)
     let credentials
     if (awsAccessKeyId && awsSecretAccessKey) {
       credentials = {

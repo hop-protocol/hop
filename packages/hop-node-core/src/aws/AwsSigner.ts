@@ -12,7 +12,7 @@ import {
   splitSignature
 } from 'ethers/lib/utils.js'
 // @ts-expect-error asn1.js does not have a types file as of 20231227
-import * as asn1 from 'asn1.js'
+import asn1 from 'asn1.js'
 
 const EcdsaPubKey = asn1.define('EcdsaPubKey', function (this: any) {
   this.seq().obj(
@@ -41,23 +41,22 @@ export type AwsSignerConfig = {
 // https://luhenning.medium.com/the-dark-side-of-the-elliptic-curve-signing-ethereum-transactions-with-aws-kms-in-javascript-83610d9a6f81
 // https://github.com/lucashenning/aws-kms-ethereum-signing/blob/master/aws-kms-sign.ts
 export abstract class AwsSigner extends Signer {
-  config: AwsSignerConfig
-  address: string
+  awsKeyId: string
   abstract override getAddress (): Promise<string>
   abstract override signMessage (msg: Buffer | string): Promise<string>
   abstract override signTransaction (transaction: providers.TransactionRequest): Promise<string>
 
-  constructor (config: AwsSignerConfig, provider?: providers.Provider) {
+  constructor (awsKeyId: string, provider?: providers.Provider) {
     super()
-    if (!config.keyId) {
-      throw new Error('keyId is required')
+    if (!awsKeyId) {
+      throw new Error('awsKeyId is required')
     }
-    this.config = config
+    this.awsKeyId = awsKeyId
     defineReadOnly(this, 'provider', provider)
   }
 
   get keyId () {
-    return this.config.keyId
+    return this.awsKeyId
   }
 
   recoverAddressFromSig (msg: Buffer | string, signature: string): string {

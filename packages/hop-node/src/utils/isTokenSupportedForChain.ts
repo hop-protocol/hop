@@ -1,5 +1,5 @@
 import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
-import { config as globalConfig } from 'src/config/index.js'
+import { config as globalConfig } from '#src/config/index.js'
 
 const isTokenSupportedForChain = (token: string, chainSlug: string): boolean => {
   if (!Object.values(Token).includes(token as Token)) {

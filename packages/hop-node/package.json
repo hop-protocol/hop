@@ -5,6 +5,18 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "type": "module",
+  "imports": {
+    "#src/*": "./dist/*"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/cli/cli.js",
+      "default": "./dist/cli/cli.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=20.10.0",
     "pnpm": ">=8"
@@ -14,7 +26,7 @@
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf ./db_data",
     "test": "jest test",
-    "start": "ts-node ./src/cli/cli.ts",
+    "start": "node ./dist/cli/cli.js",
     "dev": "pnpm start",
     "build": "tsc -p tsconfig.json",
     "lint": "eslint . --ext .ts --fix"
@@ -41,7 +53,6 @@
     "merkletreejs": "0.3.11",
     "minimist": "1.2.8",
     "mkdirp": "3.0.1",
-    "module-alias": "2.2.3",
     "nearest-date": "1.0.1",
     "p-queue": "6.6.2",
     "pidusage": "3.0.2",
@@ -52,17 +63,10 @@
     "@types/ethereum-block-by-date": "1.4.1",
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.4.2",
+    "@types/minimist": "1.2.5",
     "@types/pidusage": "2.0.5",
     "@types/subleveldown": "4.1.4",
     "jest": "29.7.0",
-    "ts-jest": "29.1.2",
-    "ts-node": "10.9.2"
-  },
-  "_moduleAliases": {
-    "src": "src"
-  },
-  "//": "Required for pnpm deploy command in Dockerfile",
-  "files": [
-    "dist"
-  ]
+    "ts-jest": "29.1.2"
+  }
 }

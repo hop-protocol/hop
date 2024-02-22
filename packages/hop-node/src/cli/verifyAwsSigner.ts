@@ -5,7 +5,7 @@ import { formatEther, parseEther } from 'ethers/lib/utils.js'
 import {
   getEnabledNetworks,
   config as globalConfig
-} from 'src/config/index.js'
+} from '#src/config/index.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 
 root

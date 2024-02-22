@@ -5,20 +5,20 @@ import { S3Upload } from '@hop-protocol/hop-node-core/aws'
 import { BigNumber } from 'ethers'
 import {
   BondTransferRootChains
-} from 'src/constants/index.js'
+} from '#src/constants/index.js'
 import {
   Chain,
   TenMinutesMs
 } from '@hop-protocol/hop-node-core/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { TransferRoot } from 'src/db/TransferRootsDb.js'
+import { TransferRoot } from '#src/db/TransferRootsDb.js'
 import {
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityRoutes
-} from 'src/config/index.js'
+} from '#src/config/index.js'
 
 type Config = {
   chainSlug: string

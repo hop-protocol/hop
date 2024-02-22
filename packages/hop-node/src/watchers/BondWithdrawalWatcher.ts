@@ -2,10 +2,10 @@ import BaseWatcher from './classes/BaseWatcher.js'
 import L2Bridge from './classes/L2Bridge.js'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import contracts from 'src/contracts/index.js'
+import contracts from '#src/contracts/index.js'
 import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import getTransferId from 'src/utils/getTransferId.js'
+import getTransferId from '#src/utils/getTransferId.js'
 import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber, providers } from 'ethers'
 import {
@@ -15,12 +15,12 @@ import {
   getBonderTotalStake,
   getNetworkCustomSyncType,
   config as globalConfig
-} from 'src/config/index.js'
+} from '#src/config/index.js'
 import {
   BonderFeeTooLowError,
   BonderTooEarlyError,
   UnfinalizedTransferBondError
-} from 'src/types/error.js'
+} from '#src/types/error.js'
 import {
   Chain,
   OneHourSeconds,
@@ -29,7 +29,7 @@ import {
   GasCostTransactionType,
   SyncType,
   TxError
-} from 'src/constants/index.js'
+} from '#src/constants/index.js'
 import {
   NonceTooLowError,
   PossibleReorgDetected,
@@ -37,7 +37,7 @@ import {
 } from '@hop-protocol/hop-node-core/types'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb.js'
+import { Transfer, UnbondedSentTransfer } from '#src/db/TransfersDb.js'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
 import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/utils'

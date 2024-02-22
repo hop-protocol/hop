@@ -6,9 +6,9 @@ import os from 'node:os'
 import path from 'node:path'
 import sub from 'subleveldown'
 import { EventEmitter } from 'node:events'
-import { Migration } from 'src/db/migrations.js'
-import { config as globalConfig } from 'src/config/index.js'
-import { isEqual } from 'lodash'
+import { Migration } from '#src/db/migrations.js'
+import { config as globalConfig } from '#src/config/index.js'
+import _ from 'lodash'
 import { mkdirp } from 'mkdirp'
 import { normalizeDbValue } from './utils.js'
 const dbMap: { [key: string]: any } = {}
@@ -211,7 +211,7 @@ abstract class BaseDb<T> extends EventEmitter {
 
   protected async upsert (key: string, value: T): Promise<void> {
     const dbValue = await this.get(key) ?? {} as T
-    if (isEqual(dbValue, value)) {
+    if (_.isEqual(dbValue, value)) {
       const logMsg = 'New value is the same as existing value. Skipping write.'
       this.#logDbOperation(DbOperations.Upsert, { key, value, logMsg })
       return

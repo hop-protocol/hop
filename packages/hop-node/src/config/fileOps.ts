@@ -206,7 +206,15 @@ export async function setGlobalConfigFromConfigFile (
     if (!fs.existsSync(location)) {
       throw new Error(`no config file found at ${location}`)
     }
-    const addresses = require(location) // eslint-disable-line @typescript-eslint/no-var-requires
+
+    let addresses
+    try {
+      addresses = JSON.parse(
+        fs.readFileSync(path.resolve(location), 'utf8')
+      )
+    } catch (err) {
+      throw new Error(`config does not exist at ${location}`)
+    }
     setConfigAddresses(addresses)
   }
   if (config?.metrics) {
@@ -316,7 +324,13 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    config = require(configPath)
+    try {
+      config = JSON.parse(
+        fs.readFileSync(path.resolve(configPath), 'utf8')
+      )
+    } catch (err) {
+      throw new Error(`config does not exist at ${configPath}`)
+    }
   }
   if (config != null) {
     logger.info('config file:', configPath)

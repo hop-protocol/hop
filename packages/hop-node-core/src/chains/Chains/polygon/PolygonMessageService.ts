@@ -2,9 +2,14 @@ import { wait } from '#src/utils/wait.js'
 import { AbstractMessageService, IMessageService } from '#src/chains/Services/AbstractMessageService.js'
 import { BigNumber, providers, utils } from 'ethers'
 import { DefaultL1RelayGasLimit } from '#src/chains/Services/AbstractMessageService.js'
-import { POSClient, setProofApi, use } from '@maticnetwork/maticjs-pos-zkevm'
-import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { defaultAbiCoder } from 'ethers/lib/utils.js'
+import * as MaticJs from '@maticnetwork/maticjs-pos-zkevm'
+import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
+
+const { POSClient, setProofApi, use } = MaticJs
+const { Web3ClientPlugin } = MaticJsEthers
+
+type POSClientType = MaticJs.POSClient
 
 type PolygonMessage = string
 type PolygonMessageStatus = string
@@ -45,7 +50,7 @@ const polygonSdkVersion: Record<string, string> = {
 export class PolygonMessageService extends AbstractMessageService<PolygonMessage, PolygonMessageStatus> implements IMessageService {
   ready: boolean = false
   apiUrl: string
-  maticClient: POSClient
+  maticClient: POSClientType
 
   constructor (chainSlug: string) {
     super(chainSlug)

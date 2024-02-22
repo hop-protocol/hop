@@ -3,7 +3,7 @@ import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, D
 import nearest from 'nearest-date'
 import { wait } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
-import { GasCostTransactionType } from '#src/constants/index.js'
+import { GasCostTransactionType } from '#constants/index.js'
 import { OneHourMs, OneHourSeconds } from '@hop-protocol/hop-node-core/constants'
 
 const varianceSeconds = 20 * 60

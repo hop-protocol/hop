@@ -1,12 +1,12 @@
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import contracts from '#src/contracts/index.js'
-import getBlockNumberFromDate from '#src/utils/getBlockNumberFromDate.js'
+import contracts from '#contracts/index.js'
+import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import getTransferRootBonded from '#src/theGraph/getTransferRootBonded.js'
-import getTransferRootConfirmed from '#src/theGraph/getTransferRootConfirmed.js'
-import getTransferRootSet from '#src/theGraph/getTransferRootSet.js'
-import getTransfersCommitted from '#src/theGraph/getTransfersCommitted.js'
+import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
+import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
+import getTransferRootSet from '#theGraph/getTransferRootSet.js'
+import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import {
   Chain,
@@ -14,10 +14,10 @@ import {
 } from '@hop-protocol/hop-node-core/constants'
 import {
   ChainBalanceArchiveData
-} from '#src/constants/index.js'
+} from '#constants/index.js'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
-import { getSubgraphLastBlockSynced } from '#src/theGraph/getSubgraphLastBlockSynced.js'
-import { config as globalConfig } from '#src/config/index.js'
+import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
+import { config as globalConfig } from '#config/index.js'
 
 import { getRecentUnrelayedL1ToL2Transfers } from './shared/utils.js'
 

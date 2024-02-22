@@ -1,12 +1,12 @@
-import { Logger } from '#src/logger/index.js'
-import { wait } from '#src/utils/wait.js'
-import { Notifier } from '#src/notifier/index.js'
-import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from '#src/config/index.js'
+import { Logger } from '#logger/index.js'
+import { wait } from '#utils/wait.js'
+import { Notifier } from '#notifier/index.js'
+import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from '#config/index.js'
 import { isFetchBadResponseError } from './isFetchBadResponseError.js'
 import { isFetchConnectionError } from './isFetchConnectionError.js'
 import { isFetchRateLimitError } from './isFetchRateLimitError.js'
 import { isFetchTimeoutError } from './isFetchTimeoutError.js'
-import { promiseTimeout } from '#src/utils/promiseTimeout.js'
+import { promiseTimeout } from '#utils/promiseTimeout.js'
 
 const _logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)

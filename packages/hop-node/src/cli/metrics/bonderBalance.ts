@@ -9,7 +9,7 @@ import {
   tokenDataForYear,
   tokenDecimals,
   tokens
-} from '#src/cli/metrics/sharedMetrics.js'
+} from '#cli/metrics/sharedMetrics.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 root

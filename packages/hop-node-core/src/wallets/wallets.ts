@@ -1,7 +1,7 @@
-import { GasBoostSigner } from '#src/gasboost/GasBoostSigner.js'
-import { getRpcProvider } from '#src/utils/getRpcProvider.js'
-import { KmsSigner } from '#src/aws/KmsSigner.js'
-import { LambdaSigner } from '#src/aws/LambdaSigner.js'
+import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { KmsSigner } from '#aws/KmsSigner.js'
+import { LambdaSigner } from '#aws/LambdaSigner.js'
 import { Signer, Wallet } from 'ethers'
 import {
   gasPriceMultiplier,
@@ -10,7 +10,7 @@ import {
   maxPriorityFeeConfidenceLevel,
   priorityFeePerGasCap,
   timeTilBoostMs
-} from '#src/config/index.js'
+} from '#config/index.js'
 
 const constructSigner = (network: string, privateKey: string): Signer => {
 // export const constructSigner = memoize((network: string, privateKey: string): Signer => {

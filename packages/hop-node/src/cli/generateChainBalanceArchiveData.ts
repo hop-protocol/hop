@@ -5,11 +5,11 @@ import {
 } from '@hop-protocol/hop-node-core/constants'
 import {
   ChainBalanceArchiveData
-} from '#src/constants/index.js'
+} from '#constants/index.js'
 import { actionHandler, parseString, root } from './shared/index.js'
 import { getHistoricalUnrelayedL1ToL2Transfers } from './shared/utils.js'
 import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers.js'
-import { config as globalConfig } from '#src/config/index.js'
+import { config as globalConfig } from '#config/index.js'
 
 root
   .command('generate-chain-balance-archive-data')

@@ -1,4 +1,4 @@
-import { Chain } from '#src/constants/index.js'
+import { Chain } from '#constants/index.js'
 import { providers } from 'ethers'
 
 export enum FinalityStrategyType {

@@ -1,5 +1,5 @@
 import { SwapInput } from './types.js'
-import { swap as uniswapSwap } from '#src/swap/uniswap/index.js'
+import { swap as uniswapSwap } from '#swap/uniswap/index.js'
 
 export async function swap (dex: string, input: SwapInput) {
   if (!dex) {

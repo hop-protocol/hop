@@ -1,13 +1,13 @@
-import { ArbitrumBridge } from '#src/chains/Chains/arbitrum/ArbitrumBridge.js'
-import { Chain } from '#src/constants/index.js'
-import { GnosisBridge } from '#src/chains/Chains/gnosis/GnosisBridge.js'
-import { IChainBridge } from '#src/chains/IChainBridge.js'
-import { LineaBridge } from '#src/chains/Chains/linea/LineaBridge.js'
-import { OptimismBridge } from '#src/chains/Chains/optimism/OptimismBridge.js'
-import { PolygonBridge } from '#src/chains/Chains/polygon/PolygonBridge.js'
-import { PolygonZkBridge } from '#src/chains/Chains/polygonzk/PolygonZkBridge.js'
-import { ScrollZkBridge } from '#src/chains/Chains/scroll/ScrollBridge.js'
-import { ZkSyncBridge } from '#src/chains/Chains/zksync/ZkSyncBridge.js'
+import { ArbitrumBridge } from '#chains/Chains/arbitrum/ArbitrumBridge.js'
+import { Chain } from '#constants/index.js'
+import { GnosisBridge } from '#chains/Chains/gnosis/GnosisBridge.js'
+import { IChainBridge } from '#chains/IChainBridge.js'
+import { LineaBridge } from '#chains/Chains/linea/LineaBridge.js'
+import { OptimismBridge } from '#chains/Chains/optimism/OptimismBridge.js'
+import { PolygonBridge } from '#chains/Chains/polygon/PolygonBridge.js'
+import { PolygonZkBridge } from '#chains/Chains/polygonzk/PolygonZkBridge.js'
+import { ScrollZkBridge } from '#chains/Chains/scroll/ScrollBridge.js'
+import { ZkSyncBridge } from '#chains/Chains/zksync/ZkSyncBridge.js'
 
 // Maps chainSlugs to their respective superchain classes
 const chainBridgeMap: Record<string, new (chainSlug: string) => IChainBridge> = {

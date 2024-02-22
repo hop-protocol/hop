@@ -1,21 +1,21 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import L1Bridge from './classes/L1Bridge.js'
-import MerkleTree from '#src/utils/MerkleTree.js'
+import MerkleTree from '#utils/MerkleTree.js'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import contracts from '#src/contracts/index.js'
+import contracts from '#contracts/index.js'
 import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
-import getTransferRootId from '#src/utils/getTransferRootId.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
 import { BigNumber, providers } from 'ethers'
-import { BondTransferRootDelayBufferSeconds, TxError } from '#src/constants/index.js'
+import { BondTransferRootDelayBufferSeconds, TxError } from '#constants/index.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from '@hop-protocol/hop-node-core/types'
-import { TransferRoot } from '#src/db/TransferRootsDb.js'
+import { TransferRoot } from '#db/TransferRootsDb.js'
 import {
   enableEmergencyMode,
   config as globalConfig
-} from '#src/config/index.js'
+} from '#config/index.js'
 
 type Config = {
   chainSlug: string

@@ -1,12 +1,12 @@
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import getTransferSentToL2TransferId from '#src/utils/getTransferSentToL2TransferId.js'
+import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
 import makeRequest from './makeRequest.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import _ from 'lodash'
 import { formatUnits } from 'ethers/lib/utils.js'
-import { padHex } from '#src/utils/padHex.js'
+import { padHex } from '#utils/padHex.js'
 
 export async function getUnbondedTransfers (days: number, offsetDays: number = 0) {
   const endDate = DateTime.now().toUTC()

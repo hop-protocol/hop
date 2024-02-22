@@ -1,12 +1,12 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import L1Bridge from './classes/L1Bridge.js'
 import L2Bridge from './classes/L2Bridge.js'
-import MerkleTree from '#src/utils/MerkleTree.js'
-import getBlockNumberFromDate from '#src/utils/getBlockNumberFromDate.js'
+import MerkleTree from '#utils/MerkleTree.js'
+import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getRpcRootProviderName } from '@hop-protocol/hop-node-core/utils'
 import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
-import getTransferSentToL2TransferId from '#src/utils/getTransferSentToL2TransferId.js'
+import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
 import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
 import { wait } from '@hop-protocol/hop-node-core/utils'
 import wallets from '@hop-protocol/hop-node-core/wallets'
@@ -18,7 +18,7 @@ import {
   GasCostTransactionType,
   RelayableChains,
   RootProviderName,
-} from '#src/constants/index.js'
+} from '#constants/index.js'
 import {
   Chain,
   FiveMinutesMs,
@@ -35,8 +35,8 @@ import {
   config as globalConfig,
   minEthBonderFeeBn,
   wsEnabledChains
-} from '#src/config/index.js'
-import { GasCost } from '#src/db/GasCostDb.js'
+} from '#config/index.js'
+import { GasCost } from '#db/GasCostDb.js'
 import { GasCostEstimationRes } from './classes/Bridge.js'
 import { Hop } from '@hop-protocol/sdk'
 import {
@@ -56,10 +56,10 @@ import {
   TransferSentEvent,
   TransfersCommittedEvent
 } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Transfer } from '#src/db/TransfersDb.js'
-import { TransferRoot } from '#src/db/TransferRootsDb.js'
-import { getSortedTransferIds } from '#src/utils/getSortedTransferIds.js'
-import { isDbSetReady } from '#src/db/index.js'
+import { Transfer } from '#db/TransfersDb.js'
+import { TransferRoot } from '#db/TransferRootsDb.js'
+import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
+import { isDbSetReady } from '#db/index.js'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
 import { promiseTimeout } from '@hop-protocol/hop-node-core/utils'
 

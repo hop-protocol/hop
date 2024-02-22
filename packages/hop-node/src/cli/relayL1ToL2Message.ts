@@ -2,7 +2,7 @@ import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getL1ToL2RelayWatcher
-} from '#src/watchers/watchers.js'
+} from '#watchers/watchers.js'
 
 import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
 

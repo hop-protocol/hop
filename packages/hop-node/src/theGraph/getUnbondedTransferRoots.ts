@@ -1,6 +1,6 @@
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import getTransferRootId from '#src/utils/getTransferRootId.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
 import makeRequest from './makeRequest.js'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils.js'

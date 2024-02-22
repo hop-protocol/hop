@@ -4,7 +4,7 @@ import {
   Chain,
   Network,
   OneHourMs
-} from '#src/constants/index.js'
+} from '#constants/index.js'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { execSync } from 'node:child_process'

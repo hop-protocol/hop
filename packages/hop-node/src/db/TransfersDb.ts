@@ -12,8 +12,8 @@ import {
   RelayWaitTimeMs,
   RelayableChains,
   TxError
-} from '#src/constants/index.js'
-import { TxRetryDelayMs } from '#src/config/index.js'
+} from '#constants/index.js'
+import { TxRetryDelayMs } from '#config/index.js'
 import { transfersMigrations } from './migrations.js'
 
 interface BaseTransfer {

@@ -1,6 +1,6 @@
-import { AbstractChainBridge } from '#src/chains/AbstractChainBridge.js'
-import { ScrollFinalityService } from '#src/chains/Chains/scroll/ScrollFinalityService.js'
-import { ScrollMessageService } from '#src/chains/Chains/scroll/ScrollMessageService.js'
+import { AbstractChainBridge } from '#chains/AbstractChainBridge.js'
+import { ScrollFinalityService } from '#chains/Chains/scroll/ScrollFinalityService.js'
+import { ScrollMessageService } from '#chains/Chains/scroll/ScrollMessageService.js'
 
 export class ScrollZkBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

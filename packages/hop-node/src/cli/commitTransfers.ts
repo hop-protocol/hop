@@ -1,7 +1,7 @@
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
-import { getCommitTransfersWatcher } from '#src/watchers/watchers.js'
+import { getCommitTransfersWatcher } from '#watchers/watchers.js'
 
 root
   .command('commit-transfers')

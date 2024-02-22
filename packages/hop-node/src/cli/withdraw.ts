@@ -1,11 +1,11 @@
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import getTransferId from '#src/theGraph/getTransfer.js'
-import getTransferRoot from '#src/theGraph/getTransferRoot.js'
+import getTransferId from '#theGraph/getTransfer.js'
+import getTransferRoot from '#theGraph/getTransferRoot.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared/index.js'
 import {
   getBondWithdrawalWatcher
-} from '#src/watchers/watchers.js'
+} from '#watchers/watchers.js'
 
 root
   .command('withdraw')

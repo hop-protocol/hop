@@ -1,6 +1,6 @@
 import ContractBase from './ContractBase.js'
 import { BigNumber } from 'ethers'
-import { TokenIndex } from '#src/constants/index.js'
+import { TokenIndex } from '#constants/index.js'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'
 
 export default class L2Amm extends ContractBase {

@@ -1,5 +1,5 @@
 import { Logger } from '@hop-protocol/hop-node-core/logger'
-import Metrics from '#src/watchers/classes/Metrics.js'
+import Metrics from '#watchers/classes/Metrics.js'
 // import checkDiskSpace, { type DiskSpace } from 'check-disk-space'
 import os from 'node:os'
 import pidusage from 'pidusage'

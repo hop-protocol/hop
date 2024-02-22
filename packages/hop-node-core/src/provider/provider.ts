@@ -1,11 +1,11 @@
 import fs from 'node:fs'
-import { rateLimitRetry } from '#src/utils/rateLimitRetry.js'
+import { rateLimitRetry } from '#utils/rateLimitRetry.js'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { ConnectionInfo } from '@ethersproject/web'
 import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
-import { monitorProviderCalls } from '#src/config/index.js'
+import { monitorProviderCalls } from '#config/index.js'
 import { providers } from 'ethers'
 
 const inMemoryMonitor = false

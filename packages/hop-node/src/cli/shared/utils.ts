@@ -2,8 +2,8 @@ import { BigNumber } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 
-import getTransferFromL1Completed from '#src/theGraph/getTransferFromL1Completed.js'
-import getTransferSentToL2 from '#src/theGraph/getTransferSentToL2.js'
+import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
+import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
 
 export async function getHistoricalUnrelayedL1ToL2Transfers (
   token: string,

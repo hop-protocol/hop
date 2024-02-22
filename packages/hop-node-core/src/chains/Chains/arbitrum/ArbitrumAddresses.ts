@@ -1,4 +1,4 @@
-import { Chain } from '#src/constants/index.js'
+import { Chain } from '#constants/index.js'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 
 export type ArbitrumSuperchainSlugs = Chain.Arbitrum | Chain.Nova

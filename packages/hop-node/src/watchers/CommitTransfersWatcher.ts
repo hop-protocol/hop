@@ -2,7 +2,7 @@ import BaseWatcher from './classes/BaseWatcher.js'
 import L2Bridge from './classes/L2Bridge.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
-import { ChainPollMultiplier } from '#src/constants/index.js'
+import { ChainPollMultiplier } from '#constants/index.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
@@ -11,7 +11,7 @@ import {
   getEnabledNetworks,
   config as globalConfig,
   pendingCountCommitThreshold
-} from '#src/config/index.js'
+} from '#config/index.js'
 
 type Config = {
   chainSlug: string

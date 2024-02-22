@@ -1,13 +1,13 @@
-import L2Bridge from '#src/watchers/classes/L2Bridge.js'
-import getTransferSent from '#src/theGraph/getTransferSent.js'
+import L2Bridge from '#watchers/classes/L2Bridge.js'
+import getTransferSent from '#theGraph/getTransferSent.js'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
 import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher
-} from '#src/watchers/watchers.js'
+} from '#watchers/watchers.js'
 
-import getTransferCommitted from '#src/theGraph/getTransferCommitted.js'
-import getTransferRootId from '#src/utils/getTransferRootId.js'
+import getTransferCommitted from '#theGraph/getTransferCommitted.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared/index.js'
 
 root

@@ -1,5 +1,5 @@
-import getTransferId from '#src/theGraph/getTransfer.js'
-import getTransferRoot from '#src/theGraph/getTransferRoot.js'
+import getTransferId from '#theGraph/getTransfer.js'
+import getTransferRoot from '#theGraph/getTransferRoot.js'
 import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared/index.js'
 
 root

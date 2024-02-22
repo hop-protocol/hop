@@ -1,7 +1,7 @@
-import { wait } from '#src/utils/wait.js'
-import { AbstractMessageService, IMessageService, MessageDirection } from '#src/chains/Services/AbstractMessageService.js'
+import { wait } from '#utils/wait.js'
+import { AbstractMessageService, IMessageService, MessageDirection } from '#chains/Services/AbstractMessageService.js'
 import { BigNumber, providers } from 'ethers'
-import { DefaultL1RelayGasLimit } from '#src/chains/Services/AbstractMessageService.js'
+import { DefaultL1RelayGasLimit } from '#chains/Services/AbstractMessageService.js'
 import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
 import * as MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 

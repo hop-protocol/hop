@@ -1,4 +1,4 @@
-import getUnbondedTransferRoots from '#src/theGraph/getUnbondedTransferRoots.js'
+import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
 import { actionHandler, parseString, root } from './shared/index.js'
 
 root

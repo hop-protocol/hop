@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "imports": {
-    "#src/*": "./dist/*"
+    "#*": "./dist/*"
   },
   "exports": {
     ".": {

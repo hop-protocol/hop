@@ -1,5 +1,5 @@
 import makeRequest from './makeRequest.js'
-import { MaxInt32 } from '#src/constants/index.js'
+import { MaxInt32 } from '#constants/index.js'
 import { normalizeEntity } from './shared.js'
 
 export default async function getTransferFromL1Completed (

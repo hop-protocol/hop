@@ -7,7 +7,7 @@ import { HDNode } from '@ethersproject/hdnode'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 import {
   defaultKeystoreFilePath
-} from '#src/config/index.js'
+} from '#config/index.js'
 import { generateKeystore, recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
 import { hopArt } from './shared/art.js'
 import { prompt, promptPassphrase } from '@hop-protocol/hop-node-core/prompt'

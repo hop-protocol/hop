@@ -1,11 +1,11 @@
-import OsWatcher from '#src/watchers/OsWatcher.js'
+import OsWatcher from '#watchers/OsWatcher.js'
 import { AssetSymbol } from '@hop-protocol/core/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
   config as globalConfig
-} from '#src/config/index.js'
-import { HealthCheckWatcher } from '#src/watchers/HealthCheckWatcher.js'
+} from '#config/index.js'
+import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
 import { computeAddress } from 'ethers/lib/utils.js'
 import {
@@ -17,7 +17,7 @@ import {
 import { printHopArt } from './shared/art.js'
 import {
   startWatchers
-} from '#src/watchers/watchers.js'
+} from '#watchers/watchers.js'
 
 root
   .description('Start Hop node')

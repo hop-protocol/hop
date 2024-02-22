@@ -1,6 +1,6 @@
-import { getRpcProvider } from '#src/utils/getRpcProvider.js'
-import { AbstractService } from '#src/chains/Services/AbstractService.js'
-import { Chain } from '#src/constants/index.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
+import { AbstractService } from '#chains/Services/AbstractService.js'
+import { Chain } from '#constants/index.js'
 import { providers } from 'ethers'
 
 export interface IInclusionService {

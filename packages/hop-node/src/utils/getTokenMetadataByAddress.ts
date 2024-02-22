@@ -1,4 +1,4 @@
-import { config as globalConfig } from '#src/config/index.js'
+import { config as globalConfig } from '#config/index.js'
 
 const cache: Record<string, any> = {}
 

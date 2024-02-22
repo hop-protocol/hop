@@ -9,13 +9,13 @@ import {
   RelayableChains,
   RootSetSettleDelayMs,
   TxError
-} from '#src/constants/index.js'
+} from '#constants/index.js'
 import {
   Chain,
   OneWeekMs,
   TenMinutesMs
 } from '@hop-protocol/hop-node-core/constants'
-import { TxRetryDelayMs } from '#src/config/index.js'
+import { TxRetryDelayMs } from '#config/index.js'
 import { transferRootsMigrations } from './migrations.js'
 
 interface BaseTransferRoot {

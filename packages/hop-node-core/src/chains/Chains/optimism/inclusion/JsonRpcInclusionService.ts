@@ -1,7 +1,7 @@
-import { AbstractOptimismInclusionService } from '#src/chains/Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
-import { AvgBlockTimeSeconds, Chain } from '#src/constants/index.js'
+import { AbstractOptimismInclusionService } from '#chains/Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
+import { AvgBlockTimeSeconds, Chain } from '#constants/index.js'
 import { BlockWithTransactions } from '@ethersproject/abstract-provider'
-import { IInclusionService } from '#src/chains/Services/AbstractInclusionService.js'
+import { IInclusionService } from '#chains/Services/AbstractInclusionService.js'
 import { providers } from 'ethers'
 
 export class JsonRpcInclusionService extends AbstractOptimismInclusionService implements IInclusionService {

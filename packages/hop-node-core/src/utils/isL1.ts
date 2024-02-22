@@ -1,4 +1,4 @@
-import { Chain } from '#src/constants/index.js'
+import { Chain } from '#constants/index.js'
 
 export const isL1 = (network: string) => {
   return network === Chain.Ethereum

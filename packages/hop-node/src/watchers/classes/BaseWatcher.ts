@@ -1,10 +1,10 @@
-import AvailableLiquidityWatcher from '#src/watchers/AvailableLiquidityWatcher.js'
+import AvailableLiquidityWatcher from '#watchers/AvailableLiquidityWatcher.js'
 import Bridge from './Bridge.js'
 import L1Bridge from './L1Bridge.js'
 import L2Bridge from './L2Bridge.js'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import Metrics from './Metrics.js'
-import SyncWatcher from '#src/watchers/SyncWatcher.js'
+import SyncWatcher from '#watchers/SyncWatcher.js'
 import { bigNumberMin } from '@hop-protocol/hop-node-core/utils'
 import { getRpcProviderFromUrl } from '@hop-protocol/hop-node-core/utils'
 import { wait } from '@hop-protocol/hop-node-core/utils'
@@ -13,12 +13,12 @@ import { BigNumber, constants } from 'ethers'
 import {
   Chain
 } from '@hop-protocol/hop-node-core/constants'
-import { DbSet, getDbSet, isDbSetReady } from '#src/db/index.js'
+import { DbSet, getDbSet, isDbSetReady } from '#db/index.js'
 import { EventEmitter } from 'node:events'
 import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
-} from '#src/constants/index.js'
+} from '#constants/index.js'
 import { IBaseWatcher } from './IBaseWatcher.js'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
@@ -31,7 +31,7 @@ import {
 import {
   TxRetryDelayMs,
   config as globalConfig
-} from '#src/config/index.js'
+} from '#config/index.js'
 import {
   hostname
 } from '@hop-protocol/hop-node-core/config'

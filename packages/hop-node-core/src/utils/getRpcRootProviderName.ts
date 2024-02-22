@@ -1,5 +1,5 @@
 import { getRpcUrlFromProvider } from './getRpcUrlFromProvider.js'
-import { RootProviderName } from '#src/constants/index.js'
+import { RootProviderName } from '#constants/index.js'
 import { promiseTimeout } from './promiseTimeout.js'
 import { providers } from 'ethers'
 

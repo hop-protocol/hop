@@ -11,82 +11,66 @@
   "exports": {
     "./aws": {
       "types": "./dist/aws/index.d.ts",
-      "import": "./dist/aws/index.js",
       "default": "./dist/aws/index.js"
     },
     "./chains": {
       "types": "./dist/chains/index.d.ts",
-      "import": "./dist/chains/index.js",
       "default": "./dist/chains/index.js"
     },
     "./config": {
       "types": "./dist/config/index.d.ts",
-      "import": "./dist/config/index.js",
       "default": "./dist/config/index.js"
     },
     "./constants": {
       "types": "./dist/constants/index.d.ts",
-      "import": "./dist/constants/index.js",
       "default": "./dist/constants/index.js"
     },
     "./finality": {
       "types": "./dist/finality/index.d.ts",
-      "import": "./dist/finality/index.js",
       "default": "./dist/finality/index.js"
     },
     "./gasboost": {
       "types": "./dist/gasboost/index.d.ts",
-      "import": "./dist/gasboost/index.js",
       "default": "./dist/gasboost/index.js"
     },
     "./keystore": {
       "types": "./dist/keystore/index.d.ts",
-      "import": "./dist/keystore/index.js",
       "default": "./dist/keystore/index.js"
     },
     "./logger": {
       "types": "./dist/logger/index.d.ts",
-      "import": "./dist/logger/index.js",
       "default": "./dist/logger/index.js"
     },
     "./metrics": {
       "types": "./dist/metrics/index.d.ts",
-      "import": "./dist/metrics/index.js",
       "default": "./dist/metrics/index.js"
     },
     "./notifier": {
       "types": "./dist/notifier/index.d.ts",
-      "import": "./dist/notifier/index.js",
       "default": "./dist/notifier/index.js"
     },
     "./prompt": {
       "types": "./dist/prompt/index.d.ts",
-      "import": "./dist/prompt/index.js",
       "default": "./dist/prompt/index.js"
     },
     "./provider": {
       "types": "./dist/provider/index.d.ts",
-      "import": "./dist/provider/index.js",
       "default": "./dist/provider/index.js"
     },
     "./swap": {
       "types": "./dist/swap/index.d.ts",
-      "import": "./dist/swap/index.js",
       "default": "./dist/swap/index.js"
     },
     "./types": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
       "default": "./dist/types/index.js"
     },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.js",
       "default": "./dist/utils/index.js"
     },
     "./wallets": {
       "types": "./dist/wallets/index.d.ts",
-      "import": "./dist/wallets/index.js",
       "default": "./dist/wallets/index.js"
     }
   },

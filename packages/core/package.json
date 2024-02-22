@@ -22,47 +22,38 @@
   "exports": {
     ".": {
       "types": "./dist/cjs/index.d.ts",
-      "require": "./dist/cjs/index.js",
       "default": "./dist/cjs/index.js"
     },
     "./abi": {
       "types": "./dist/cjs/abi/index.d.ts",
-      "require": "./dist/cjs/abi/index.js",
       "default": "./dist/cjs/abi/index.js"
     },
     "./addresses": {
       "types": "./dist/cjs/addresses/index.d.ts",
-      "require": "./dist/cjs/addresses/index.js",
       "default": "./dist/cjs/addresses/index.js"
     },
     "./config": {
       "types": "./dist/cjs/config/index.d.ts",
-      "require": "./dist/cjs/config/index.js",
       "default": "./dist/cjs/config/index.js"
     },
     "./contracts": {
       "types": "./dist/cjs/contracts/index.d.ts",
-      "require": "./dist/cjs/contracts/index.js",
       "default": "./dist/cjs/contracts/index.js"
     },
     "./contracts/*": {
       "types": "./dist/cjs/contracts/*.d.ts",
-      "require": "./dist/cjs/contracts/*.js",
       "default": "./dist/cjs/contracts/*.js"
     },
     "./metadata": {
       "types": "./dist/cjs/metadata/index.d.ts",
-      "require": "./dist/cjs/metadata/index.js",
       "default": "./dist/cjs/metadata/index.js"
     },
     "./metadata/tokens": {
       "types": "./dist/cjs/metadata/index.d.ts",
-      "require": "./dist/cjs/metadata/tokens.js",
       "default": "./dist/cjs/metadata/tokens.js"
     },
     "./networks": {
       "types": "./dist/cjs/networks/index.d.ts",
-      "require": "./dist/cjs/networks/index.js",
       "default": "./dist/cjs/networks/index.js"
     }
   },

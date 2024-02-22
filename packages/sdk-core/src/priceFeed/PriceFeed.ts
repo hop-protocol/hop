@@ -1,7 +1,7 @@
-import { CoinCodex } from './CoinCodex'
-import { CoinGecko } from './CoinGecko'
-import { Coinbase } from './Coinbase'
-import { Coinpaprika } from './Coinpaprika'
+import { CoinCodexPriceFeed } from './CoinCodex'
+import { CoinGeckoPriceFeed } from './CoinGecko'
+import { CoinbasePriceFeed } from './Coinbase'
+import { CoinpaprikaPriceFeed } from './Coinpaprika'
 import { promiseTimeout } from '../utils/promiseTimeout'
 
 const cache: {
@@ -12,7 +12,7 @@ const cacheTimestamps: {
   [tokenSymbol: string]: number | null
 } = {}
 
-export type ApiKeys = {
+export type PriceFeedApiKeys = {
   coingecko?: string
 }
 
@@ -22,7 +22,7 @@ interface Service {
 
 export class PriceFeed {
   cacheTimeMs = 5 * 60 * 1000
-  apiKeys: ApiKeys = {}
+  apiKeys: PriceFeedApiKeys = {}
   services: Service[] = []
   timeoutMs: number = 5 * 1000
 
@@ -33,20 +33,20 @@ export class PriceFeed {
     XDAI: 'DAI'
   }
 
-  constructor (apiKeysMap: ApiKeys = {}) {
+  constructor (apiKeysMap: PriceFeedApiKeys = {}) {
     if (apiKeysMap) {
       this.apiKeys = apiKeysMap
     }
     this.setServices()
   }
 
-  setApiKeys (apiKeysMap: ApiKeys = {}) {
+  setApiKeys (apiKeysMap: PriceFeedApiKeys = {}) {
     this.apiKeys = apiKeysMap
     this.setServices()
   }
 
   private setServices () {
-    this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase(), new Coinpaprika(), new CoinCodex()]
+    this.services = [new CoinGeckoPriceFeed(this.apiKeys?.coingecko), new CoinbasePriceFeed(), new CoinpaprikaPriceFeed(), new CoinCodexPriceFeed()]
   }
 
   prependService (service: Service) {
@@ -107,5 +107,3 @@ export class PriceFeed {
     return price
   }
 }
-
-export default PriceFeed

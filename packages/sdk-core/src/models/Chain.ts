@@ -73,5 +73,3 @@ function newChain (chain: NetworkSlug | ChainSlug | string, chainId?: number) {
   }
   return new Chain(metadata.networks[chain].name, chainId)
 }
-
-export default Chain

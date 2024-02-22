@@ -1,4 +1,4 @@
-import wait from './wait'
+import wait from 'wait'
 import { promiseTimeout } from './promiseTimeout'
 import { rateLimitMaxRetries, rpcTimeoutSeconds } from '../config'
 

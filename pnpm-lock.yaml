@@ -683,6 +683,9 @@ importers:
       p-queue:
         specifier: 6.6.2
         version: 6.6.2
+      wait:
+        specifier: 0.4.2
+        version: 0.4.2
     devDependencies:
       '@types/luxon':
         specifier: 3.4.2
@@ -735,6 +738,9 @@ importers:
       p-queue:
         specifier: 6.6.2
         version: 6.6.2
+      wait:
+        specifier: 0.4.2
+        version: 0.4.2
     devDependencies:
       '@types/luxon':
         specifier: 3.4.2

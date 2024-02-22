@@ -1,15 +1,11 @@
 import {
-  metadata,
   bondableChains,
-  rateLimitMaxRetries,
-  rpcTimeoutSeconds,
-  config
+  config,
+  metadata
 } from '@hop-protocol/sdk-core'
 
 export {
   metadata,
   bondableChains,
-  rateLimitMaxRetries,
-  rpcTimeoutSeconds,
   config
 }

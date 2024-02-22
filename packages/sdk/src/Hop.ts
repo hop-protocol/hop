@@ -1,11 +1,11 @@
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import EventEmitter from 'eventemitter3'
-import HopBridge from './HopBridge'
-import Watcher from './watchers/Watcher'
 import _version from './version'
-import { models, priceFeed } from '@hop-protocol/sdk-core'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base'
+import { Chain, PriceFeedApiKeys, TokenModel } from '@hop-protocol/sdk-core'
 import { Event } from './watchers/BaseWatcher'
+import { HopBridge } from './HopBridge'
 import { TChain, TProvider, TToken } from './types'
+import { Watcher } from './watchers/Watcher'
 
 /**
  * @desc Event watcher options
@@ -18,26 +18,26 @@ type WatchOptions = {
  * Class reprensenting Hop
  * @namespace Hop
  */
-class Hop extends Base {
+export class Hop extends Base {
   /** Event enum */
   static Event = Event
 
   /** Chain class */
-  static Chain = models.Chain
+  static Chain = Chain
 
   /** Token class */
-  static Token = models.Token
+  static Token = TokenModel
 
   /** Event enum */
   Event = Event
 
   /** Chain class */
-  Chain = models.Chain
+  Chain = Chain
 
   /** Token class */
-  Token = models.Token
+  Token = TokenModel
 
-  priceFeedApiKeys: priceFeed.ApiKeys | null = null
+  priceFeedApiKeys: PriceFeedApiKeys | null = null
 
   /**
    * @desc Instantiates Hop SDK.
@@ -202,9 +202,7 @@ class Hop extends Base {
     }).watch()
   }
 
-  setPriceFeedApiKeys (apiKeys: priceFeed.ApiKeys = {}) {
+  setPriceFeedApiKeys (apiKeys: PriceFeedApiKeys = {}) {
     this.priceFeedApiKeys = apiKeys
   }
 }
-
-export default Hop

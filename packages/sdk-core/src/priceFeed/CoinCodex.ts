@@ -1,6 +1,6 @@
 import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 
-export class CoinCodex {
+export class CoinCodexPriceFeed {
   private readonly _baseUrl: string = 'https://coincodex.com/api/coincodex'
   public getPriceByTokenSymbol = async (symbol: string, base: string = 'USD'): Promise<number> => {
     symbol = symbol.toUpperCase()
@@ -39,5 +39,3 @@ export class CoinCodex {
     return price
   }
 }
-
-export default CoinCodex

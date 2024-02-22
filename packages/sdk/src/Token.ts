@@ -1,11 +1,12 @@
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import { models } from '@hop-protocol/sdk-core'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { Chain, TokenModel } from '@hop-protocol/sdk-core'
 import { ERC20__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
 import { WETH9__factory } from '@hop-protocol/core/contracts'
 import { chains as chainMetadata } from '@hop-protocol/core/metadata'
+import { getAddress } from 'ethers/lib/utils'
 
 export type TokenConstructorOptions = {
   chain: TChain,
@@ -20,12 +21,12 @@ export type TokenConstructorOptions = {
  * Class reprensenting ERC20 Token
  * @namespace Token
  */
-class Token extends Base {
+export class Token extends Base {
   public readonly address: string
   public readonly decimals: number
   public readonly name: string
   public readonly image: string
-  public readonly chain: models.Chain
+  public readonly chain: Chain
   public readonly contract: Contract
   _symbol: TokenSymbol
 
@@ -75,7 +76,7 @@ class Token extends Base {
       throw new Error('address is required')
     }
 
-    this.address = ethers.utils.getAddress(address)
+    this.address = getAddress(address)
     this.decimals = decimals!
     this._symbol = symbol!
     this.name = name!
@@ -84,7 +85,7 @@ class Token extends Base {
   }
 
   get symbol () {
-    if (this._symbol === models.Token.ETH && !this.isNativeToken) {
+    if (this._symbol === TokenModel.ETH && !this.isNativeToken) {
       return WrappedToken.WETH
     }
     return this._symbol
@@ -267,7 +268,7 @@ class Token extends Base {
     let isNative = nativeTokenSymbol === this._symbol
 
     // check for both XDAI and DAI on Gnosis Chain
-    if (!isNative && this.chain.equals(models.Chain.Gnosis) && models.Token.DAI === this._symbol) {
+    if (!isNative && this.chain.equals(Chain.Gnosis) && TokenModel.DAI === this._symbol) {
       isNative = true
     }
 
@@ -369,7 +370,7 @@ class Token extends Base {
   private async getGasEstimateFromAddress (): Promise<string> {
     let address = await this.getSignerAddress()
     if (!address) {
-      address = await this._getBonderAddress(this._symbol, this.chain, models.Chain.Ethereum)
+      address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
     }
     return address
   }
@@ -413,5 +414,3 @@ class Token extends Base {
     return this.imageUrl
   }
 }
-
-export default Token

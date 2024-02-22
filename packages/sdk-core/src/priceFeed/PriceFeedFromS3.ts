@@ -1,15 +1,15 @@
-import { ApiKeys, PriceFeed } from './PriceFeed'
-import { S3 } from './S3'
+import { PriceFeed, PriceFeedApiKeys } from './PriceFeed'
+import { S3PriceFeed } from './S3'
 
 export class PriceFeedFromS3 {
   priceFeed: PriceFeed
 
-  constructor (apiKeysMap: ApiKeys = {}) {
+  constructor (apiKeysMap: PriceFeedApiKeys = {}) {
     this.priceFeed = new PriceFeed(apiKeysMap)
-    this.priceFeed.prependService(new S3())
+    this.priceFeed.prependService(new S3PriceFeed())
   }
 
-  setApiKeys (apiKeysMap: ApiKeys = {}) {
+  setApiKeys (apiKeysMap: PriceFeedApiKeys = {}) {
     this.priceFeed.setApiKeys(apiKeysMap)
   }
 

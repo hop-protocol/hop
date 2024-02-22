@@ -1,14 +1,14 @@
-import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
+import { MerkleTree as MerkleTreeJS } from 'merkletreejs'
 import { chainIdToSlug } from './chainIdToSlug'
-import { utils as ethersUtils } from 'ethers'
 import { getSubgraphChains } from './getSubgraphChains'
 import { getSubgraphUrl } from './getSubgraphUrl'
 import { getTokenDecimals } from './getTokenDecimals'
+import { keccak256 } from 'ethers/lib/utils'
 
-class MerkleTree extends MerkleTreeLib {
+class MerkleTree extends MerkleTreeJS {
   constructor (leaves: string[]) {
-    super(leaves, ethersUtils.keccak256, {
-      fillDefaultHash: () => ethersUtils.keccak256(Buffer.alloc(32))
+    super(leaves, keccak256, {
+      fillDefaultHash: () => keccak256(Buffer.alloc(32))
     })
   }
 }

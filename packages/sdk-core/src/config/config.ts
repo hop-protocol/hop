@@ -1,7 +1,7 @@
 import { addresses as chainAddresses } from '@hop-protocol/core/addresses'
 import { networks as chainNetworks } from '@hop-protocol/core/networks'
-import { config as coreConfig } from '@hop-protocol/core/config'
 import { chains as chainsMetadata, tokens as tokensMetadata } from '@hop-protocol/core/metadata'
+import { config as coreConfig } from '@hop-protocol/core/config'
 
 interface Chain {
   name: string

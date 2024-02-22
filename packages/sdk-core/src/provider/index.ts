@@ -1,1 +1,1 @@
-export * from './Provider'
+export { FallbackProvider, RetryProvider } from './Provider'

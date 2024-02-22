@@ -1,7 +1,7 @@
-import { Contract, constants, ethers, providers } from 'ethers'
+import { Contract, constants, providers } from 'ethers'
+import { Interface, defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
 import { Multicall3 } from '@hop-protocol/core/abi'
 import { PriceFeedFromS3 } from '../priceFeed'
-import { defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { getTokenDecimals } from '../utils/getTokenDecimals'
 import { config as sdkConfig } from '../config'
@@ -11,7 +11,7 @@ export type Config = {
   accountAddress?: string
 }
 
-export type Balance = {
+export type MulticallBalance = {
   tokenSymbol: string
   address: string
   chainSlug: string
@@ -104,7 +104,7 @@ export class Multicall {
     return addresses
   }
 
-  async getBalances ():Promise<Balance[]> {
+  async getBalances ():Promise<MulticallBalance[]> {
     const chains = this.getChains()
     const promises: Promise<any>[] = []
     for (const chain of chains) {
@@ -118,7 +118,7 @@ export class Multicall {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const calls = options.map(({ address, abi, method, args }: any) => {
-      const contractInterface = new ethers.utils.Interface(abi)
+      const contractInterface = new Interface(abi)
       const calldata = contractInterface.encodeFunctionData(method, args)
       return {
         target: address,
@@ -143,7 +143,7 @@ export class Multicall {
         returnData = data.returnData
       }
       const { abi, method } = options[index]
-      const contractInterface = new ethers.utils.Interface(abi)
+      const contractInterface = new Interface(abi)
       for (const key in contractInterface.functions) {
         const _method = key.split('(')[0]
         if (_method === method) {
@@ -159,7 +159,7 @@ export class Multicall {
     return parsed
   }
 
-  async getBalancesForChain (chainSlug: string, opts?: GetMulticallBalanceOptions[]): Promise<Balance[]> {
+  async getBalancesForChain (chainSlug: string, opts?: GetMulticallBalanceOptions[]): Promise<MulticallBalance[]> {
     if (!this.accountAddress) {
       throw new Error('config.accountAddress is required')
     }

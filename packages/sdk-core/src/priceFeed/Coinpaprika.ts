@@ -1,6 +1,6 @@
 import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 
-export class Coinpaprika {
+export class CoinpaprikaPriceFeed {
   private readonly _baseUrl: string = 'https://api.coinpaprika.com/v1'
   idMap:any = {
     BTC: 'btc-bitcoin',
@@ -58,5 +58,3 @@ export class Coinpaprika {
     return price
   }
 }
-
-export default Coinpaprika

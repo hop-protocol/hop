@@ -1,8 +1,8 @@
 import { CanonicalToken, TokenSymbol } from '../constants'
-import { ethers } from 'ethers'
+import { getAddress } from 'ethers/lib/utils'
 import { metadata } from '../config'
 
-export class Token {
+export class TokenModel {
   public readonly chainId: number
   public readonly address: string
   public readonly decimals: number
@@ -40,7 +40,7 @@ export class Token {
       this.chainId = Number(chainId)
     }
     if (address) {
-      this.address = ethers.utils.getAddress(address)
+      this.address = getAddress(address)
     }
     if (symbol) {
       this.symbol = symbol
@@ -59,11 +59,11 @@ export class Token {
   }
 
   get canonicalSymbol () {
-    return Token.getCanonicalSymbol(this.symbol)
+    return TokenModel.getCanonicalSymbol(this.symbol)
   }
 
   static getCanonicalSymbol (tokenSymbol: TokenSymbol) {
-    const isWrappedToken = [Token.WETH, Token.WMATIC, Token.WXDAI].includes(tokenSymbol)
+    const isWrappedToken = [TokenModel.WETH, TokenModel.WMATIC, TokenModel.WXDAI].includes(tokenSymbol)
     if (isWrappedToken) {
       tokenSymbol = tokenSymbol.replace(/^W/, '') as CanonicalToken
     }
@@ -73,5 +73,3 @@ export class Token {
     return tokenSymbol
   }
 }
-
-export default Token

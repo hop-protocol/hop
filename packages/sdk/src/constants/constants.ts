@@ -1,4 +1,4 @@
-import { Errors, TokenSymbol, CanonicalToken, ChainId, ChainName, ChainSlug, HToken, NetworkSlug, Slug, WrappedToken } from '@hop-protocol/sdk-core'
+import { CanonicalToken, ChainId, ChainName, ChainSlug, Errors, HToken, NetworkSlug, Slug, TokenSymbol, WrappedToken } from '@hop-protocol/sdk-core'
 
 export { Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
 

@@ -1,6 +1,6 @@
 import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 
-export class S3 {
+export class S3PriceFeed {
   private readonly url: string = 'https://assets.hop.exchange/token-prices.json'
   stalenessLimitMs: number = 10 * 60 * 1000
 

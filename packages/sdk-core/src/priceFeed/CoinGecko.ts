@@ -1,5 +1,5 @@
 import serializeQueryParams from '../utils/serializeQueryParams'
-import wait from '../utils/wait'
+import wait from 'wait'
 import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 import { tokens } from '@hop-protocol/core/metadata'
 
@@ -15,7 +15,7 @@ interface IResult {
   priceUsd: number
 }
 
-export class CoinGecko {
+export class CoinGeckoPriceFeed {
   apiKey: string
   private _baseUrl: string = 'https://api.coingecko.com/api/v3'
   private _maxPerPage: number = 100
@@ -255,5 +255,3 @@ export class CoinGecko {
     return price
   }
 }
-
-export default CoinGecko

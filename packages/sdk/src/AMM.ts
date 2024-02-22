@@ -1,6 +1,11 @@
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base'
 import { BigNumber, BigNumberish, constants } from 'ethers'
-import { models, utils } from '@hop-protocol/sdk-core'
+import {
+  Chain,
+  getBlockNumberFromDate,
+  rateLimitRetry,
+  shiftBNDecimals
+} from '@hop-protocol/sdk-core'
 import { SecondsInDay, TokenIndex, TokenSymbol } from './constants'
 import { Swap__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain, TProvider } from './types'
@@ -16,9 +21,9 @@ export type AmmConstructorOptions = {
  * Class representing AMM contract
  * @namespace AMM
  */
-class AMM extends Base {
+export class AMM extends Base {
   /** Chain model */
-  public chain: models.Chain
+  public chain: Chain
 
   /** Token class instance */
   public tokenSymbol: TokenSymbol
@@ -370,7 +375,7 @@ class AMM extends Base {
     const saddleSwap = await this.getSaddleSwap()
 
     const endTimestamp = unixTimestamp
-    let endBlockNumber = await utils.getBlockNumberFromDate(this.chain, endTimestamp)
+    let endBlockNumber = await getBlockNumberFromDate(this.chain, endTimestamp)
     endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
@@ -384,7 +389,7 @@ class AMM extends Base {
     ])
 
     const startTimestamp = endTimestamp - (days * SecondsInDay)
-    let startBlockNumber = await utils.getBlockNumberFromDate(this.chain, startTimestamp)
+    let startBlockNumber = await getBlockNumberFromDate(this.chain, startTimestamp)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 2000
@@ -507,7 +512,7 @@ class AMM extends Base {
     )
 
     // convert to 18 decimals
-    tokenInputSum = utils.shiftBNDecimals(tokenInputSum, 18 - decimals)
+    tokenInputSum = shiftBNDecimals(tokenInputSum, 18 - decimals)
 
     const isWithdraw = false
     const priceImpact = this.calculatePriceImpact(
@@ -532,7 +537,7 @@ class AMM extends Base {
     )
 
     // convert to 18 decimals
-    tokenInputSum = utils.shiftBNDecimals(tokenInputSum, 18 - decimals)
+    tokenInputSum = shiftBNDecimals(tokenInputSum, 18 - decimals)
 
     const isWithdraw = true
     const priceImpact = this.calculatePriceImpact(
@@ -545,7 +550,7 @@ class AMM extends Base {
     return priceImpact
   }
 
-  calculateSwap = utils.rateLimitRetry(async (
+  calculateSwap = rateLimitRetry(async (
     fromIndex: TokenIndex,
     toIndex: TokenIndex,
     amount: BigNumberish
@@ -640,5 +645,3 @@ class AMM extends Base {
     return amounts[0].add(amounts[1])
   }
 }
-
-export default AMM

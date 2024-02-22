@@ -63,5 +63,3 @@ export async function getBlockNumberFromDateUsingLib (provider: any, timestamp: 
   }
   return info.block
 }
-
-export default getBlockNumberFromDate

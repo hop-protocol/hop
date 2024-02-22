@@ -1,6 +1,6 @@
 import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 
-export class Coinbase {
+export class CoinbasePriceFeed {
   private readonly _baseUrl: string = 'https://api.pro.coinbase.com'
 
   public getPriceByTokenSymbol = async (symbol: string, base: string = 'USD'): Promise<number> => {
@@ -23,5 +23,3 @@ export class Coinbase {
     return price
   }
 }
-
-export default Coinbase

@@ -1,6 +1,14 @@
-import { FallbackProvider } from '../../src/provider'
+import { FallbackProvider } from '@hop-protocol/sdk-core'
 import { Hop } from '../../src/index'
-import { IProvider } from '../../src/provider/IProvider'
+import { Network } from '@ethersproject/networks'
+import { providers } from 'ethers'
+
+export interface IProvider extends providers.Provider {
+  getAvatar?: (nameOrAddress: string) => Promise<string>
+  getResolver?: (nameOrAddress: string) => Promise<string>
+  detectNetwork?: () => Promise<Network>
+  connection?: any
+}
 
 describe('fallback provider', () => {
   it('Should test methods', async () => {

@@ -1,7 +1,7 @@
-import Token from '../../src/models/Token'
+import { TokenModel } from '../../src/models/Token'
 
 test.skip('token', () => {
-  const token = new Token(
+  const token = new TokenModel(
     42,
     '0x7d669A64deb8a4A51eEa755bb0E19FD39CE25Ae9',
     18,

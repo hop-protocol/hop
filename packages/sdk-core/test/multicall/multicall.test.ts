@@ -1,4 +1,4 @@
-import { Multicall } from '../../src/Multicall'
+import { Multicall } from '#multicall/index.js'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 

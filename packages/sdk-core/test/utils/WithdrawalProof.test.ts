@@ -1,4 +1,4 @@
-import { WithdrawalProof } from '../../src/utils/WithdrawalProof'
+import { WithdrawalProof } from '#utils/index.js'
 
 describe.skip('WithdrawalProof', () => {
   it('proof payload', async () => {

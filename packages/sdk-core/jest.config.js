@@ -3,6 +3,8 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest'
   },
+  testEnvironment: 'node',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1'
   },
@@ -10,3 +12,4 @@ module.exports = {
   bail: 1,
   verbose: true
 }
+

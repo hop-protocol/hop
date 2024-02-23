@@ -4,8 +4,8 @@
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
   "files": [
     "dist",
     "hop.js"
@@ -15,9 +15,9 @@
     "test": "jest",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
-    "build:ts": "tsc",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
-    "build:all": "pnpm build:ts && pnpm build:cjs",
+    "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "build:all": "pnpm build:cjs && pnpm build:esm",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --ext .ts --fix",
@@ -55,11 +55,13 @@
   "peerDependencies": {
     "ethers": "^5"
   },
+  "imports": {
+    "#*": "./dist/esm/*"
+  },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/cjs/index.js"
+      "import": "./dist/esm/index.js",
+      "default": "./dist/cjs/index.js"
     }
   }
 }

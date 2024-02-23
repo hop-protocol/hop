@@ -207,14 +207,9 @@ export async function setGlobalConfigFromConfigFile (
       throw new Error(`no config file found at ${location}`)
     }
 
-    let addresses
-    try {
-      addresses = JSON.parse(
-        fs.readFileSync(path.resolve(location), 'utf8')
-      )
-    } catch (err) {
-      throw new Error(`config does not exist at ${location}`)
-    }
+    const addresses = await import(location, {
+      with: { type: "json" }
+    })
     setConfigAddresses(addresses)
   }
   if (config?.metrics) {
@@ -324,13 +319,9 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    try {
-      config = JSON.parse(
-        fs.readFileSync(path.resolve(configPath), 'utf8')
-      )
-    } catch (err) {
-      throw new Error(`config does not exist at ${configPath}`)
-    }
+    config = await import(configPath, {
+      with: { type: "json" }
+    })
   }
   if (config != null) {
     logger.info('config file:', configPath)

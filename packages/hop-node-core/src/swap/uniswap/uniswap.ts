@@ -11,9 +11,9 @@ import hopCoreAbi from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import path from 'node:path'
 import fs from 'node:fs'
+import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
 
 const { erc20Abi } = hopCoreAbi
-const uniswapAbiPath = '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 
 const logger = new Logger({
   tag: 'Uniswap'
@@ -214,17 +214,9 @@ export async function swap (config: SwapInput) {
 
   logger.debug('fetching pool information')
 
-  let IUniswapV3PoolABI
-  try {
-    IUniswapV3PoolABI = JSON.parse(
-      fs.readFileSync(path.resolve(uniswapAbiPath), 'utf8')
-    )
-  } catch (err) {
-    throw new Error(`abi path does not exist at ${uniswapAbiPath}`)
-  }
   const poolContract = new Contract(
     poolAddress,
-    IUniswapV3PoolABI,
+    IUniswapV3PoolABI.abi,
     wallet.provider
   )
 

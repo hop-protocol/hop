@@ -1,10 +1,10 @@
 import { Contract, constants, providers } from 'ethers'
 import { Interface, defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
 import { Multicall3 } from '@hop-protocol/core/abi'
-import { PriceFeedFromS3 } from '../priceFeed'
+import { PriceFeedFromS3 } from '#priceFeed/index.js'
 import { erc20Abi } from '@hop-protocol/core/abi'
-import { getTokenDecimals } from '../utils/getTokenDecimals'
-import { config as sdkConfig } from '../config'
+import { getTokenDecimals } from '#utils/index.js'
+import { config as sdkConfig } from '#config/index.js'
 
 export type Config = {
   network: string

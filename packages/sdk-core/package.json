@@ -62,6 +62,34 @@
     ".": {
       "import": "./dist/esm/index.js",
       "default": "./dist/cjs/index.js"
+    },
+    "./config": {
+      "import": "./dist/esm/config/index.js",
+      "default": "./dist/cjs/config/index.js"
+    },
+    "./constants": {
+      "import": "./dist/esm/constants/index.js",
+      "default": "./dist/cjs/constants/index.js"
+    },
+    "./models": {
+      "import": "./dist/esm/models/index.js",
+      "default": "./dist/cjs/models/index.js"
+    },
+    "./multicall": {
+      "import": "./dist/esm/multicall/index.js",
+      "default": "./dist/cjs/multicall/index.js"
+    },
+    "./priceFeed": {
+      "import": "./dist/esm/priceFeed/index.js",
+      "default": "./dist/cjs/priceFeed/index.js"
+    },
+    "./provider": {
+      "import": "./dist/esm/provider/index.js",
+      "default": "./dist/cjs/provider/index.js"
+    },
+    "./utils": {
+      "import": "./dist/esm/utils/index.js",
+      "default": "./dist/cjs/utils/index.js"
     }
   }
 }

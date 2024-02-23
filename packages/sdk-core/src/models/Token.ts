@@ -1,6 +1,6 @@
 import { CanonicalToken, TokenSymbol } from '../constants'
 import { getAddress } from 'ethers/lib/utils'
-import { metadata } from '../config'
+import { metadata } from '#config/index.js'
 
 export class TokenModel {
   public readonly chainId: number

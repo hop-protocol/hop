@@ -1,6 +1,6 @@
 // @ts-expect-error No types as of 20240128
 import BlockDater from 'ethereum-block-by-date'
-import { Chain } from '../models/Chain'
+import { Chain } from '#models/index.js'
 import { DateTime } from 'luxon'
 import { fetchJsonOrThrow } from './fetchJsonOrThrow'
 import { getEtherscanApiKey } from './getEtherscanApiKey'

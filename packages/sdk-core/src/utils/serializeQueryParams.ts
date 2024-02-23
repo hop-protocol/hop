@@ -26,5 +26,3 @@ export const serializeQueryParams = (
 
   return query.join('&')
 }
-
-export default serializeQueryParams

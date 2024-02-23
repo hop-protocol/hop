@@ -1,7 +1,7 @@
 import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants'
 import { getChainSlugFromName } from '../utils/getChainSlugFromName'
 import { goerli, mainnet } from '@hop-protocol/core/networks'
-import { metadata } from '../config'
+import { metadata } from '#config/index.js'
 import { providers } from 'ethers'
 
 export class Chain {

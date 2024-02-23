@@ -1,4 +1,4 @@
-import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
+import { fetchJsonOrThrow } from '#utils/index.js'
 
 export class CoinbasePriceFeed {
   private readonly _baseUrl: string = 'https://api.pro.coinbase.com'

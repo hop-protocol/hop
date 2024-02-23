@@ -1,4 +1,4 @@
-import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
+import { fetchJsonOrThrow } from '#utils/index.js'
 
 export class CoinCodexPriceFeed {
   private readonly _baseUrl: string = 'https://coincodex.com/api/coincodex'

@@ -1,4 +1,4 @@
-import { config } from '../config'
+import { config } from '#config/index.js'
 
 export function getSubgraphUrl (network: string, chain: string): string {
   if (!config[network]) {

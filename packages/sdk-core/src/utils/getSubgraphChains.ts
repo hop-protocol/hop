@@ -1,4 +1,4 @@
-import { config } from '../config'
+import { config } from '#config/index.js'
 
 export function getSubgraphChains (network: string): string[] {
   const networks = config[network]?.chains

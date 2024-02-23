@@ -1,4 +1,4 @@
-import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
+import { fetchJsonOrThrow } from '#utils/index.js'
 
 export class S3PriceFeed {
   private readonly url: string = 'https://assets.hop.exchange/token-prices.json'

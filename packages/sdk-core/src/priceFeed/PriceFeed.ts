@@ -2,7 +2,7 @@ import { CoinCodexPriceFeed } from './CoinCodex'
 import { CoinGeckoPriceFeed } from './CoinGecko'
 import { CoinbasePriceFeed } from './Coinbase'
 import { CoinpaprikaPriceFeed } from './Coinpaprika'
-import { promiseTimeout } from '../utils/promiseTimeout'
+import { promiseTimeout } from '#utils/index.js'
 
 const cache: {
   [tokenSymbol: string]: Promise<any> | null

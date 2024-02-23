@@ -1,4 +1,4 @@
-import { config } from '../config'
+import { config } from '#config/index.js'
 
 export function getEtherscanApiUrl (network: string, chain: string): string {
   const url = config[network]?.chains?.[chain]?.etherscanApiUrl

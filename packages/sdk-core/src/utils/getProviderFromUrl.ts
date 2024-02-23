@@ -1,6 +1,6 @@
-import { FallbackProvider, RetryProvider } from '../provider'
+import { FallbackProvider, RetryProvider } from '#provider/index.js'
 import { providers } from 'ethers'
-import { rpcTimeoutSeconds } from '../config'
+import { rpcTimeoutSeconds } from '#config/index.js'
 
 export function getProviderWithFallbacks (rpcUrls: string[]) : any {
   const timeout = rpcTimeoutSeconds * 1000

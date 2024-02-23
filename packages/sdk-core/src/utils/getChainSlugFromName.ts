@@ -1,4 +1,4 @@
-import { ChainSlug, NetworkSlug } from '../constants'
+import { ChainSlug, NetworkSlug } from '#constants/index.js'
 
 export function getChainSlugFromName (name: string) {
   let slug = (name || '').trim().toLowerCase().split(' ')[0]

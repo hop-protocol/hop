@@ -2,9 +2,9 @@ import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { Block, BlockTag, BlockWithTransactions, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
-import { getProviderWithFallbacks } from '../utils/getProviderFromUrl'
+import { getProviderWithFallbacks } from '#utils/index.js'
 import { providers } from 'ethers'
-import { rateLimitRetry } from '../utils/rateLimitRetry'
+import { rateLimitRetry } from '#utils/index.js'
 
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
 

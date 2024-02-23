@@ -30,7 +30,6 @@ import {
 } from '@hop-protocol/hop-node-core/config'
 import { parseEther } from 'ethers/lib/utils.js'
 import url from 'node:url'
-import fs from 'node:fs'
 import { loadEnv } from './loadEnvFile.js'
 
 loadEnv()

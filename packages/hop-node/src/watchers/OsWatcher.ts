@@ -147,6 +147,7 @@ class OsWatcher {
 
   async logHeapdump () {
     // TODO: Fix node incompatibility
+    // TODO: MIGRATION: Handle this
     // const heapdump = await import('heapdump')
     // this.heapIndex++
     // const location = `/root/heapdump_${Date.now()}.heapsnapshot`

@@ -5,7 +5,6 @@ import path from 'node:path'
 import minimist from 'minimist'
 
 export function loadEnv (): void {
-
   const argv = minimist(process.argv.slice(2))
   const opts: DotenvConfigOptions = {}
   if (typeof argv.env === 'string') {

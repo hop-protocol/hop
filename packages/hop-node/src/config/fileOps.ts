@@ -207,7 +207,7 @@ export async function setGlobalConfigFromConfigFile (
       throw new Error(`no config file found at ${location}`)
     }
 
-    const addresses = await import(location, {
+    const { default: addresses } = await import(location, {
       with: { type: "json" }
     })
     setConfigAddresses(addresses)
@@ -319,9 +319,10 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    config = await import(configPath, {
+    const { default: importedConfig } = await import(configPath, {
       with: { type: "json" }
     })
+    config = importedConfig
   }
   if (config != null) {
     logger.info('config file:', configPath)

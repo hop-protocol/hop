@@ -1,5 +1,5 @@
 import wallets from '#wallets/index.js'
-import { AbstractService } from '#chains/Services/AbstractService.js'
+import { AbstractService } from '../Services/AbstractService.js'
 import { Chain } from '#constants/index.js'
 import { Signer, providers } from 'ethers'
 

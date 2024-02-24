@@ -1,6 +1,6 @@
-import { AbstractChainBridge } from '#chains/AbstractChainBridge.js'
-import { PolygonZkFinalityService } from '#chains/Chains/polygonzk/PolygonZkFinalityService.js'
-import { PolygonZkMessageService } from '#chains/Chains/polygonzk/PolygonZkMessageService.js'
+import { AbstractChainBridge } from '../../AbstractChainBridge.js'
+import { PolygonZkFinalityService } from '../../Chains/polygonzk/PolygonZkFinalityService.js'
+import { PolygonZkMessageService } from '../../Chains/polygonzk/PolygonZkMessageService.js'
 
 export class PolygonZkBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

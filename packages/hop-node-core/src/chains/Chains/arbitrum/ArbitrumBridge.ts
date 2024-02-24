@@ -1,6 +1,6 @@
-import { AbstractChainBridge } from '#chains/AbstractChainBridge.js'
-import { ArbitrumFinalityService } from '#chains/Chains/arbitrum/ArbitrumFinalityService.js'
-import { ArbitrumMessageService } from '#chains/Chains/arbitrum/ArbitrumMessageService.js'
+import { AbstractChainBridge } from '../../AbstractChainBridge.js'
+import { ArbitrumFinalityService } from '../../Chains/arbitrum/ArbitrumFinalityService.js'
+import { ArbitrumMessageService } from '../../Chains/arbitrum/ArbitrumMessageService.js'
 
 export class ArbitrumBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

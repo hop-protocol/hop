@@ -1,6 +1,6 @@
-import { AbstractChainBridge } from '#chains/AbstractChainBridge.js'
-import { GnosisFinalityService } from '#chains/Chains/gnosis/GnosisFinalityService.js'
-import { GnosisMessageService } from '#chains/Chains/gnosis/GnosisMessageService.js'
+import { AbstractChainBridge } from '../../AbstractChainBridge.js'
+import { GnosisFinalityService } from '../../Chains/gnosis/GnosisFinalityService.js'
+import { GnosisMessageService } from '../../Chains/gnosis/GnosisMessageService.js'
 
 export class GnosisBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

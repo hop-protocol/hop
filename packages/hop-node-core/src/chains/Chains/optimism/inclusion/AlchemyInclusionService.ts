@@ -1,8 +1,8 @@
 import { getRpcRootProviderName } from '#utils/getRpcRootProviderName.js'
 import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
 import { wait } from '#utils/wait.js'
-import { AbstractOptimismInclusionService } from '#chains/Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
-import { IInclusionService } from '#chains/Services/AbstractInclusionService.js'
+import { AbstractOptimismInclusionService } from '../../../Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
+import { IInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { RootProviderName } from '#constants/index.js'
 import { providers } from 'ethers'
 

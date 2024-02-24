@@ -4,7 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
-import { BonderConfig } from '#config/types.js'
+import { BonderConfig } from './types.js'
 import {
   Chain,
   DefaultBatchBlocks,

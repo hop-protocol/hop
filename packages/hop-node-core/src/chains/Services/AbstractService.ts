@@ -1,5 +1,5 @@
 import { Logger } from '#logger/index.js'
-import { getNetworkSlugByChainSlug } from '#chains/utils.js'
+import { getNetworkSlugByChainSlug } from '../utils.js'
 
 export abstract class AbstractService {
   protected readonly chainSlug: string

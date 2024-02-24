@@ -1,6 +1,6 @@
-import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
-import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
-import getTransferRootSet from '#theGraph/getTransferRootSet.js'
+import getTransferRootBonded from './getTransferRootBonded.js'
+import getTransferRootConfirmed from './getTransferRootConfirmed.js'
+import getTransferRootSet from './getTransferRootSet.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { getAllChains } from '#config/index.js'
 

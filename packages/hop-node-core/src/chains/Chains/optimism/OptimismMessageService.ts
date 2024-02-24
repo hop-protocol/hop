@@ -1,5 +1,5 @@
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { AbstractMessageService, IMessageService, MessageDirection } from '#chains/Services/AbstractMessageService.js'
+import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
 import {
   CrossChainMessage,
   CrossChainMessenger,

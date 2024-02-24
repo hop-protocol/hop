@@ -1,10 +1,10 @@
 import { Derive, Frame } from './Derive.js'
 import zlib from 'node:zlib'
-import { AbstractInclusionService } from '#chains/Services/AbstractInclusionService.js'
+import { AbstractInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from '#constants/index.js'
 import { Contract, providers } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
-import { OptimismAddresses, OptimismCanonicalAddresses, OptimismSuperchainSlugs } from '#chains/Chains/optimism/OptimismAddresses.js'
+import { OptimismAddresses, OptimismCanonicalAddresses, OptimismSuperchainSlugs } from '../../../Chains/optimism/OptimismAddresses.js'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 

@@ -1,6 +1,6 @@
-import { AbstractChainBridge } from '#chains/AbstractChainBridge.js'
-import { OptimismFinalityService } from '#chains/Chains/optimism/OptimismFinalityService.js'
-import { OptimismMessageService } from '#chains/Chains/optimism/OptimismMessageService.js'
+import { AbstractChainBridge } from '../../AbstractChainBridge.js'
+import { OptimismFinalityService } from '../../Chains/optimism/OptimismFinalityService.js'
+import { OptimismMessageService } from '../../Chains/optimism/OptimismMessageService.js'
 
 export class OptimismBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

@@ -1,5 +1,5 @@
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { AbstractService } from '#chains/Services/AbstractService.js'
+import { AbstractService } from '../Services/AbstractService.js'
 import { Chain } from '#constants/index.js'
 import { providers } from 'ethers'
 

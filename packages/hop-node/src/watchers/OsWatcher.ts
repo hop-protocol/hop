@@ -1,5 +1,5 @@
 import { Logger } from '@hop-protocol/hop-node-core/logger'
-import Metrics from '#watchers/classes/Metrics.js'
+import Metrics from './classes/Metrics.js'
 import os from 'node:os'
 import pidusage from 'pidusage'
 import { wait } from '@hop-protocol/hop-node-core/utils'

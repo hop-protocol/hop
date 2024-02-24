@@ -1,8 +1,8 @@
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { AbstractService } from '#chains/Services/AbstractService.js'
-import { CacheService } from '#chains/Services/CacheService.js'
+import { AbstractService } from '../Services/AbstractService.js'
+import { CacheService } from '../Services/CacheService.js'
 import { Chain } from '#constants/index.js'
-import { FinalityBlockTag } from '#chains/IChainBridge.js'
+import { FinalityBlockTag } from '../IChainBridge.js'
 import { providers } from 'ethers'
 
 export interface IFinalityService {

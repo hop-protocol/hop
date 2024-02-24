@@ -1,4 +1,4 @@
-import { findMissingIndexes } from '#utils/findMissingIndexes.js'
+import { findMissingIndexes } from './findMissingIndexes.js'
 
 type Transfer = {
   transferId: string

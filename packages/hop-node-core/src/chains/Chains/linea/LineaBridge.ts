@@ -1,6 +1,6 @@
-import { AbstractChainBridge } from '#chains/AbstractChainBridge.js'
-import { LineaFinalityService } from '#chains/Chains/linea/LineaFinalityService.js'
-import { LineaMessageService } from '#chains/Chains/linea/LineaMessageService.js'
+import { AbstractChainBridge } from '../../AbstractChainBridge.js'
+import { LineaFinalityService } from '../../Chains/linea/LineaFinalityService.js'
+import { LineaMessageService } from '../../Chains/linea/LineaMessageService.js'
 
 export class LineaBridge extends AbstractChainBridge {
   constructor (chainSlug: string) {

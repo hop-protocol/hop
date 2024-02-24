@@ -1,6 +1,6 @@
 import { getRpcUrl } from '#utils/getRpcUrl.js'
-import { AbstractInclusionService, IInclusionService } from '#chains/Services/AbstractInclusionService.js'
-import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from '#chains/Chains/arbitrum/ArbitrumAddresses.js'
+import { AbstractInclusionService, IInclusionService } from '../../../Services/AbstractInclusionService.js'
+import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from '../../../Chains/arbitrum/ArbitrumAddresses.js'
 import { BigNumber, Contract, providers } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
 

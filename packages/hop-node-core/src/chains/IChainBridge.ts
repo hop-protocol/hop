@@ -1,5 +1,5 @@
-import { IFinalityService } from '#chains/Services/AbstractFinalityService.js'
-import { IMessageService } from '#chains/Services/AbstractMessageService.js'
+import { IFinalityService } from './Services/AbstractFinalityService.js'
+import { IMessageService } from './Services/AbstractMessageService.js'
 
 export enum FinalityBlockTag {
   Safe = 'safe',

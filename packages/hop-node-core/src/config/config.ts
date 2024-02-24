@@ -41,7 +41,6 @@ export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
 export const envNetwork = process.env.NETWORK ?? Network.Mainnet
-const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const isTestMode = !!process.env.TEST_MODE
 
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
@@ -122,57 +121,20 @@ for (const network in coreNetworks) {
   networkConfigs[network] = networkInfo
 }
 
-
 // TODO: MIGRATION: Handle this
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const networkConfig = isTestMode ? networkConfigs.test : networkConfigs?.[network]
-  if (!networkConfig) {
-    throw new Error(`Network config not found for network: ${network}`)
-  }
-
-  const { networks, metadata } = networkConfig
-  const isMainnet = network === Network.Mainnet
-
-  return {
-    network,
-    networks,
-    metadata,
-    isMainnet
-  }
-}
-
-// get default config
-const { network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
-
+// better config handling
 export type Config = {
-  isMainnet: boolean
   tokens: Tokens
-  network: string
-  networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
-  metadata: Metadata & {[network: string]: any}
   metrics: MetricsConfig
   signerConfig: SignerConfig
   blocklist: BlocklistConfig
   emergencyDryMode: boolean
 }
 
-export const config: Config = {
-  isMainnet,
-  network,
-  networks,
-  tokens: {},
-  bonderPrivateKey: bonderPrivateKey ?? '',
-  metadata,
-  metrics: {
-    enabled: false
-  },
-  signerConfig: {
-    type: 'keystore'
-  },
-  blocklist: {
-    path: '',
-    addresses: {}
-  },
-  emergencyDryMode: false
+
+// TODO: MIGRATION: Handle this
+export let config: any = {}
+export const setConfig = (hopNodeCoreConfig: any) => {
+  config = hopNodeCoreConfig
 }

@@ -35,6 +35,7 @@ import { getAddress } from 'ethers/lib/utils.js'
 import { getParameter } from '@hop-protocol/hop-node-core/aws'
 import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
 import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
+import { setConfig } from '@hop-protocol/hop-node-core/config'
 
 const logger = new Logger('config')
 
@@ -288,6 +289,10 @@ export async function setGlobalConfigFromConfigFile (
     }
     setBlocklistConfig(config.blocklist)
   }
+
+  // TODO: MIGRATION: Handle this
+  // Don't have global config in HNC
+  setConfig(config)
 }
 
 export async function writeConfigFile (

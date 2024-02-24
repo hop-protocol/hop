@@ -3,10 +3,12 @@ import { AbstractMessageService, IMessageService } from '#chains/Services/Abstra
 import { BigNumber, providers, utils } from 'ethers'
 import { DefaultL1RelayGasLimit } from '#chains/Services/AbstractMessageService.js'
 import { defaultAbiCoder } from 'ethers/lib/utils.js'
-import * as MaticJs from '@maticnetwork/maticjs-pos-zkevm'
-import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
+import MaticJsEthers from '@maticnetwork/maticjs-ethers'
+import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
+import MaticJsDefaults  from '@maticnetwork/maticjs-pos-zkevm'
 
-const { POSClient, setProofApi, use } = MaticJs
+const { POSClient, setProofApi } = MaticJs
+const { default: maticJsDefault } = MaticJsDefaults
 const { Web3ClientPlugin } = MaticJsEthers
 
 type POSClientType = MaticJs.POSClient
@@ -58,7 +60,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     const polygonNetwork: string = polygonChainSlugs[this.networkSlug]
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
-    use(Web3ClientPlugin)
+    maticJsDefault.use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.maticClient = new POSClient()

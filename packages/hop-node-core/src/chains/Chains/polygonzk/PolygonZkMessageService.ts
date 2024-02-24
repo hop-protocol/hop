@@ -2,10 +2,12 @@ import { wait } from '#utils/wait.js'
 import { AbstractMessageService, IMessageService, MessageDirection } from '#chains/Services/AbstractMessageService.js'
 import { BigNumber, providers } from 'ethers'
 import { DefaultL1RelayGasLimit } from '#chains/Services/AbstractMessageService.js'
-import * as MaticJsEthers from '@maticnetwork/maticjs-ethers'
-import * as MaticJs from '@maticnetwork/maticjs-pos-zkevm'
+import MaticJsEthers from '@maticnetwork/maticjs-ethers'
+import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
+import * as MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
 
-const { ZkEvmClient, setProofApi, use } = MaticJs
+const { ZkEvmClient, setProofApi } = MaticJs
+const { default: maticJsDefault } = MaticJsDefaults
 const { Web3ClientPlugin } = MaticJsEthers
 
 type ZkEvmBridgeType = MaticJs.ZkEvmBridge
@@ -44,7 +46,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    use(Web3ClientPlugin)
+    maticJsDefault.use(Web3ClientPlugin)
     setProofApi('https://proof-generator.polygon.technology/')
 
     this.zkEvmClient = new ZkEvmClient()

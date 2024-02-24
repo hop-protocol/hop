@@ -22,6 +22,7 @@ import {
   config as hopNodeCoreConfig,
   envNetwork,
   isTestMode,
+  setConfig,
   type Config as HopNodeCoreConfig,
   type Tokens,
   type MetricsConfig,
@@ -39,6 +40,7 @@ const defaultDbPath = path.resolve(dirname, '../../db_data')
 // const defaultDbPath = path.resolve(__dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
+const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
@@ -79,6 +81,10 @@ export type CommitTransfersConfig = {
 }
 
 export type Config = HopNodeCoreConfig & {
+  isMainnet: boolean
+  network: string
+  networks: Networks & {[network: string]: any}
+  metadata: Metadata & {[network: string]: any}
   addresses: Partial<Bridges> & {[network: string]: any}
   bonders: Bonders
   bonderConfig: BonderConfig
@@ -135,15 +141,33 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
   }
 }
 
-const { addresses, bonders, bonderConfig, isMainnet } = getConfigByNetwork(envNetwork)
 
+const { network, networks, metadata, addresses, bonders, bonderConfig, isMainnet } = getConfigByNetwork(envNetwork)
+
+// TODO: MIGRATION: Handle this
+// redo config. core shouldn't need it
 // defaults
 export const config: Config = {
-  ...hopNodeCoreConfig,
+  tokens: {},
+  bonderPrivateKey: bonderPrivateKey ?? '',
+  metrics: {
+    enabled: false
+  },
+  signerConfig: {
+    type: 'keystore'
+  },
+  blocklist: {
+    path: '',
+    addresses: {}
+  },
+  emergencyDryMode: false,
+  isMainnet,
+  network,
+  networks,
+  metadata,
   addresses,
   bonders,
   bonderConfig,
-  tokens: {},
   fees: {},
   routes: {},
   db: {
@@ -199,6 +223,9 @@ export const config: Config = {
     minThresholdAmount: {}
   },
 }
+
+// TODO: MIGRATION: Handle this
+setConfig(config)
 
 export const setConfigByNetwork = (network: string) => {
   const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)

@@ -12,8 +12,14 @@ import {
   timeTilBoostMs
 } from '#config/index.js'
 
+const cache: Record<string, any> = {}
+
 const constructSigner = (network: string, privateKey: string): Signer => {
-// export const constructSigner = memoize((network: string, privateKey: string): Signer => {
+  const cacheKey = `${network}`
+  if (cache[cacheKey]) {
+    return cache[cacheKey]
+  }
+
   const provider = getRpcProvider(network)
   if (!provider) {
     throw new Error('expected provider')
@@ -50,6 +56,8 @@ const constructSigner = (network: string, privateKey: string): Signer => {
     timeTilBoostMs,
     maxPriorityFeeConfidenceLevel
   })
+
+  cache[cacheKey] = signer
   return signer
 }
 

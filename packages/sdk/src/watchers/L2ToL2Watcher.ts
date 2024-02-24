@@ -1,7 +1,7 @@
-import EventEmitter from 'eventemitter3'
-import { BaseWatcher } from './BaseWatcher'
-import { makeRequest } from './makeRequest'
-import { transferSentTopic } from '../constants/eventTopics'
+import { EventEmitter } from 'eventemitter3'
+import { BaseWatcher } from './BaseWatcher.js'
+import { makeRequest } from './makeRequest.js'
+import { transferSentTopic } from '../constants/eventTopics.js'
 
 export class L2ToL2Watcher extends BaseWatcher {
   public watch (): EventEmitter {

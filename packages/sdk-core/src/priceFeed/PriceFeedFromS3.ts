@@ -1,5 +1,5 @@
-import { PriceFeed, PriceFeedApiKeys } from './PriceFeed'
-import { S3PriceFeed } from './S3'
+import { PriceFeed, PriceFeedApiKeys } from './PriceFeed.js'
+import { S3PriceFeed } from './S3.js'
 
 export class PriceFeedFromS3 {
   priceFeed: PriceFeed

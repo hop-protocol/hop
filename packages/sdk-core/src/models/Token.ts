@@ -1,5 +1,5 @@
-import { CanonicalToken, TokenSymbol } from '../constants'
-import { getAddress } from 'ethers/lib/utils'
+import { CanonicalToken, TokenSymbol } from '#constants/index.js'
+import { getAddress } from 'ethers/lib/utils.js'
 import { metadata } from '#config/index.js'
 
 export class TokenModel {

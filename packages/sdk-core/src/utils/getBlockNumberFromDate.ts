@@ -2,9 +2,9 @@
 import BlockDater from 'ethereum-block-by-date'
 import { Chain } from '#models/index.js'
 import { DateTime } from 'luxon'
-import { fetchJsonOrThrow } from './fetchJsonOrThrow'
-import { getEtherscanApiKey } from './getEtherscanApiKey'
-import { getEtherscanApiUrl } from './getEtherscanApiUrl'
+import { fetchJsonOrThrow } from './fetchJsonOrThrow.js'
+import { getEtherscanApiKey } from './getEtherscanApiKey.js'
+import { getEtherscanApiUrl } from './getEtherscanApiUrl.js'
 
 export async function getBlockNumberFromDate (chain: Chain, timestamp: number): Promise<number> {
   const chainSlug = chain.slug

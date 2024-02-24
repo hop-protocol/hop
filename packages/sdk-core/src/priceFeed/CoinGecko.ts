@@ -1,6 +1,4 @@
-import { serializeQueryParams } from '#utils/index.js'
-import wait from 'wait'
-import { fetchJsonOrThrow } from '#utils/index.js'
+import { wait, serializeQueryParams, fetchJsonOrThrow } from '#utils/index.js'
 import { tokens } from '@hop-protocol/core/metadata'
 
 function getCoinId (tokenSymbol: string) {

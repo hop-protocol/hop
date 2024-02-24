@@ -1,38 +1,32 @@
-import { Hop } from './Hop.js'
-export { Hop }
-export { HopBridge } from './HopBridge.js'
-export { AMM } from './AMM.js'
-export { Token } from './Token.js'
-export { Base } from './Base.js'
-export { RelayerFee } from './relayerFee/index.js'
+export { PriceFeed, PriceFeedFromS3, PriceFeedApiKeys } from './priceFeed/index.js'
+export { Chain, TokenModel } from './models/index.js'
+export { RetryProvider, FallbackProvider } from './provider/index.js'
 export {
-  TChain,
-  TToken,
-  TAmount,
-  TTime,
-  TTimeSlot,
-  TProvider
-} from './types.js'
+  Chains,
+  metadata,
+  bondableChains,
+  rateLimitMaxRetries,
+  rpcTimeoutSeconds,
+  config
+} from './config/index.js'
 export {
-  ChainSlug,
-  ChainName,
-  Slug,
+  Errors,
+  TokenSymbol,
   NetworkSlug,
   ChainId,
-  TokenSymbol,
+  ChainName,
+  ChainSlug,
+  Slug,
   CanonicalToken,
   WrappedToken,
-  HToken,
-  eventTopics
+  HToken
 } from './constants/index.js'
 export {
-  Chain,
-  TokenModel,
   Multicall,
   GetMulticallBalanceOptions,
-  PriceFeed,
-  RetryProvider,
-  FallbackProvider,
+  MulticallBalance
+} from './multicall/index.js'
+export {
   chainIdToSlug,
   fetchJsonOrThrow,
   getBlockNumberFromDate,
@@ -54,8 +48,4 @@ export {
   serializeQueryParams,
   shiftBNDecimals,
   WithdrawalProof
-} from '@hop-protocol/sdk-core'
-
-if (typeof window !== 'undefined') {
-  (window as any).Hop = Hop
-}
+} from './utils/index.js'

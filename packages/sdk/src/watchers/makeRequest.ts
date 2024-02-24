@@ -1,4 +1,4 @@
-import { getSubgraphUrl } from '@hop-protocol/sdk-core'
+import { getSubgraphUrl } from '@hop-protocol/sdk-core/utils'
 
 export async function makeRequest (network: string, chain: string, query: string, variables?: any) {
   const url = getSubgraphUrl(network, chain)

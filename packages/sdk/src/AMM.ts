@@ -1,16 +1,18 @@
-import { Base, BaseConstructorOptions, ChainProviders } from './Base'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import {
-  Chain,
   getBlockNumberFromDate,
   rateLimitRetry,
   shiftBNDecimals
 } from '@hop-protocol/sdk-core'
-import { SecondsInDay, TokenIndex, TokenSymbol } from './constants'
+import {
+  Chain
+} from '@hop-protocol/sdk-core'
+import { SecondsInDay, TokenIndex, TokenSymbol } from './constants/index.js'
 import { Swap__factory } from '@hop-protocol/core/contracts'
-import { TAmount, TChain, TProvider } from './types'
+import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits } from 'ethers/lib/utils.js'
 
 export type AmmConstructorOptions = {
   tokenSymbol?: TokenSymbol,

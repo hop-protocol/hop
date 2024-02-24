@@ -2,9 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist/cjs",
-    "module": "CommonJS"
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": [
-    "src"
+    "src",
+    "src/**/*.json" // Required to include JSON files specifically
   ]
 }

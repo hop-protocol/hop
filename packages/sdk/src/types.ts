@@ -1,6 +1,6 @@
 import { BigNumberish, Signer, providers } from 'ethers'
 import { Chain, TokenModel } from '@hop-protocol/sdk-core'
-import { ChainSlug, TokenSymbol } from './constants'
+import { ChainSlug, TokenSymbol } from './constants/index.js'
 
 /** Chain-ish type */
 export type TChain = Chain | ChainSlug | string

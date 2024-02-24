@@ -1,5 +1,5 @@
-import { AMM } from './AMM'
-import { Base, BaseConstructorOptions, ChainProviders } from './Base'
+import { AMM } from './AMM.js'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import {
   BigNumber,
   BigNumberish,
@@ -20,17 +20,17 @@ import {
   SettlementGasLimitPerTx,
   TokenIndex,
   TokenSymbol
-} from './constants'
+} from './constants/index.js'
 import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, WithdrawalProof } from '@hop-protocol/sdk-core'
 import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts'
 import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts'
 import { L2_Bridge } from '@hop-protocol/core/contracts'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
-import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
-import { Token } from './Token'
-import { bondableChains, metadata } from './config'
-import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
+import { Token } from './Token.js'
+import { bondableChains, metadata } from './config/index.js'
+import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils.js'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0

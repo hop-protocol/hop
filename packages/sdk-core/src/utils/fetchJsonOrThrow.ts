@@ -1,5 +1,5 @@
-import { isValidUrl } from './isValidUrl'
-import { promiseTimeout } from './promiseTimeout'
+import { isValidUrl } from './isValidUrl.js'
+import { promiseTimeout } from './promiseTimeout.js'
 
 export async function fetchJsonOrThrow (url: string, timeoutMs: number = 5 * 1000) {
   try {

@@ -1,7 +1,7 @@
-import { CoinCodexPriceFeed } from './CoinCodex'
-import { CoinGeckoPriceFeed } from './CoinGecko'
-import { CoinbasePriceFeed } from './Coinbase'
-import { CoinpaprikaPriceFeed } from './Coinpaprika'
+import { CoinCodexPriceFeed } from './CoinCodex.js'
+import { CoinGeckoPriceFeed } from './CoinGecko.js'
+import { CoinbasePriceFeed } from './Coinbase.js'
+import { CoinpaprikaPriceFeed } from './Coinpaprika.js'
 import { promiseTimeout } from '#utils/index.js'
 
 const cache: {

@@ -1,11 +1,12 @@
-import EventEmitter from 'eventemitter3'
-import _version from './version'
-import { Base, BaseConstructorOptions, ChainProviders } from './Base'
-import { Chain, PriceFeedApiKeys, TokenModel } from '@hop-protocol/sdk-core'
-import { Event } from './watchers/BaseWatcher'
-import { HopBridge } from './HopBridge'
-import { TChain, TProvider, TToken } from './types'
-import { Watcher } from './watchers/Watcher'
+import { EventEmitter } from 'eventemitter3'
+import _version from './version.js'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
+import { Chain, TokenModel } from '@hop-protocol/sdk-core'
+import { PriceFeedApiKeys } from '@hop-protocol/sdk-core'
+import { Event } from './watchers/BaseWatcher.js'
+import { HopBridge } from './HopBridge.js'
+import { TChain, TProvider, TToken } from './types.js'
+import { Watcher } from './watchers/Watcher.js'
 
 /**
  * @desc Event watcher options

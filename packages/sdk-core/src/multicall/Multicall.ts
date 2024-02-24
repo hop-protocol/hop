@@ -1,5 +1,5 @@
 import { Contract, constants, providers } from 'ethers'
-import { Interface, defaultAbiCoder, formatUnits } from 'ethers/lib/utils'
+import { Interface, defaultAbiCoder, formatUnits } from 'ethers/lib/utils.js'
 import { Multicall3 } from '@hop-protocol/core/abi'
 import { PriceFeedFromS3 } from '#priceFeed/index.js'
 import { erc20Abi } from '@hop-protocol/core/abi'

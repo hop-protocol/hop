@@ -4,8 +4,7 @@
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
+  "type": "module",
   "files": [
     "dist",
     "hop.js"
@@ -15,8 +14,8 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
-    "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
-    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:all": "pnpm build:cjs && pnpm build:esm",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
@@ -42,8 +41,7 @@
     "fast-memoize": "2.5.2",
     "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
-    "p-queue": "6.6.2",
-    "wait": "0.4.2"
+    "p-queue": "8.0.1"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",
@@ -72,6 +70,7 @@
       "default": "./dist/cjs/constants/index.js"
     },
     "./models": {
+      "types": "./dist/esm/models/index.d.ts",
       "import": "./dist/esm/models/index.js",
       "default": "./dist/cjs/models/index.js"
     },

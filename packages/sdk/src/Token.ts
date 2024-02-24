@@ -1,12 +1,12 @@
-import { Base, BaseConstructorOptions, ChainProviders } from './Base'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
 import { Chain, TokenModel } from '@hop-protocol/sdk-core'
 import { ERC20__factory } from '@hop-protocol/core/contracts'
-import { TAmount, TChain } from './types'
-import { TokenSymbol, WrappedToken } from './constants'
+import { TAmount, TChain } from './types.js'
+import { TokenSymbol, WrappedToken } from './constants/index.js'
 import { WETH9__factory } from '@hop-protocol/core/contracts'
 import { chains as chainMetadata } from '@hop-protocol/core/metadata'
-import { getAddress } from 'ethers/lib/utils'
+import { getAddress } from 'ethers/lib/utils.js'
 
 export type TokenConstructorOptions = {
   chain: TChain,

@@ -1,9 +1,9 @@
-import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
+import { ArbitrumRelayerFee } from './ArbitrumRelayerFee.js'
 import { BigNumber } from 'ethers'
 import { Chain } from '@hop-protocol/sdk-core'
-import { IRelayerFee } from './IRelayerFee'
-import { LineaRelayerFee } from './LineaRelayerFee'
-import { PolygonZkRelayerFee } from './PolygonZkRelayerFee'
+import { IRelayerFee } from './IRelayerFee.js'
+import { LineaRelayerFee } from './LineaRelayerFee.js'
+import { PolygonZkRelayerFee } from './PolygonZkRelayerFee.js'
 
 type RelayerFeeClass = new (network: string, chain: string, token: string) => IRelayerFee
 

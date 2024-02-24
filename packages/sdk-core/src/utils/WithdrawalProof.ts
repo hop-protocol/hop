@@ -1,9 +1,9 @@
 import { MerkleTree as MerkleTreeJS } from 'merkletreejs'
-import { chainIdToSlug } from './chainIdToSlug'
-import { getSubgraphChains } from './getSubgraphChains'
-import { getSubgraphUrl } from './getSubgraphUrl'
-import { getTokenDecimals } from './getTokenDecimals'
-import { keccak256 } from 'ethers/lib/utils'
+import { chainIdToSlug } from './chainIdToSlug.js'
+import { getSubgraphChains } from './getSubgraphChains.js'
+import { getSubgraphUrl } from './getSubgraphUrl.js'
+import { getTokenDecimals } from './getTokenDecimals.js'
+import { keccak256 } from 'ethers/lib/utils.js'
 
 class MerkleTree extends MerkleTreeJS {
   constructor (leaves: string[]) {

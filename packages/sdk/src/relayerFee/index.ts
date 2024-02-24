@@ -1,1 +1,1 @@
-export { RelayerFee } from './RelayerFee'
+export { RelayerFee } from './RelayerFee.js'

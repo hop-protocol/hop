@@ -4,13 +4,13 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "paths": {
-      "#config*": ["./src/config/*"],
-      "#constants*": ["./src/constants/*"],
-      "#models*": ["./src/models/*"],
-      "#multicall*": ["./src/multicall/*"],
-      "#provider*": ["./src/provider/*"],
-      "#priceFeed*": ["./src/priceFeed/*"],
-      "#utils*": ["./src/utils/*"]
+      "#config/*": ["./src/config/*"],
+      "#constants/*": ["./src/constants/*"],
+      "#models/*": ["./src/models/*"],
+      "#multicall/*": ["./src/multicall/*"],
+      "#provider/*": ["./src/provider/*"],
+      "#priceFeed/*": ["./src/priceFeed/*"],
+      "#utils/*": ["./src/utils/*"]
     }
   },
   "include": [

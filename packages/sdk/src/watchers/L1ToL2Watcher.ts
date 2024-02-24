@@ -1,12 +1,12 @@
-import EventEmitter from 'eventemitter3'
-import { BaseWatcher } from './BaseWatcher'
+import { EventEmitter } from 'eventemitter3'
+import { BaseWatcher } from './BaseWatcher.js'
 import { BigNumber } from 'ethers'
 import { DateTime } from 'luxon'
-import { EventNames } from '../constants'
-import { makeRequest } from './makeRequest'
+import { EventNames } from '../constants/index.js'
+import { makeRequest } from './makeRequest.js'
 import {
   transferSentToL2Topic
-} from '../constants/eventTopics'
+} from '../constants/eventTopics.js'
 
 export class L1ToL2Watcher extends BaseWatcher {
   public watch (): EventEmitter {

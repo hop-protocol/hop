@@ -1,6 +1,6 @@
-import { BaseWatcher } from './BaseWatcher'
-import { makeRequest } from './makeRequest'
-import { transferSentTopic } from '../constants/eventTopics'
+import { BaseWatcher } from './BaseWatcher.js'
+import { makeRequest } from './makeRequest.js'
+import { transferSentTopic } from '../constants/eventTopics.js'
 
 export class L2ToL1Watcher extends BaseWatcher {
   public watch () {

@@ -1099,20 +1099,21 @@ export class HealthCheckWatcher {
 
   async getLowOsResources (): Promise<LowOsResource[]> {
     const lowOsResources: LowOsResource[] = []
-    const {
-      usedSizeGb: diskUsed,
-      totalSizeGb: diskTotal,
-      usedPercent: diskPercent
-    } = await OsWatcher.getDiskUsage()
+    // TODO: check-disk-space package was giving problems so this is temp removed
+    // const {
+    //   usedSizeGb: diskUsed,
+    //   totalSizeGb: diskTotal,
+    //   usedPercent: diskPercent
+    // } = await OsWatcher.getDiskUsage()
 
-    if (diskPercent > 95) {
-      lowOsResources.push({
-        kind: 'disk',
-        used: diskUsed,
-        total: diskTotal,
-        percent: diskPercent
-      })
-    }
+    // if (diskPercent > 95) {
+    //   lowOsResources.push({
+    //     kind: 'disk',
+    //     used: diskUsed,
+    //     total: diskTotal,
+    //     percent: diskPercent
+    //   })
+    // }
 
     const {
       cpuPercent,

@@ -273,10 +273,6 @@ export const setNetworkCustomSyncType = (network: string, customSyncType: SyncTy
   }
 }
 
-export const getNetworkMaxGasPrice = (network: string) => {
-  return config.networks[network].maxGasPrice
-}
-
 export const getNetworkCustomSyncType = (network: string): SyncType | undefined => {
   return config.networks[network]?.customSyncType
 }

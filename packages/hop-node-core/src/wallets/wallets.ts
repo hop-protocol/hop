@@ -12,7 +12,7 @@ import {
   timeTilBoostMs
 } from '#config/index.js'
 
-const cache: Record<string, any> = {}
+const cache: Record<string, Signer> = {}
 
 const constructSigner = (network: string, privateKey: string): Signer => {
   const cacheKey = `${network}`
@@ -45,9 +45,7 @@ const constructSigner = (network: string, privateKey: string): Signer => {
   }
 
   const signer = new GasBoostSigner(wallet)
-  // TODO: MIGRATION: Handle this
-  // const maxGasPriceGwei = getNetworkMaxGasPrice(network)
-  const maxGasPriceGwei = 1000
+  const maxGasPriceGwei = globalConfig.networks[network].maxGasPrice
   signer.setOptions({
     gasPriceMultiplier,
     initialTxGasPriceMultiplier,
@@ -61,8 +59,6 @@ const constructSigner = (network: string, privateKey: string): Signer => {
   return signer
 }
 
-// TODO: MIGRATION: Handle this
-// possibly don't use default???
 // lazy instantiate
 export default {
   has (network: string) {

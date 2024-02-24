@@ -91,14 +91,19 @@ const getL1MessengerWrapperContract = (
   )
 }
 
-// TODO: MIGRATION: Handle this
+const cache: Record<string, any> = {}
+
 const constructContractsObject = (token: string) => {
-// const constructContractsObject = memoize((token: string) => {
   if (!globalConfig.addresses[token]) {
     return null
   }
 
-  return Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
+  const cacheKey = `${token}`
+  if (cache[cacheKey]) {
+    return cache[cacheKey]
+  }
+
+  const contractObj = Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
     const wallet = wallets.get(network)
     if (!wallet) {
       return obj
@@ -120,6 +125,10 @@ const constructContractsObject = (token: string) => {
     }
     return obj
   }, {})
+
+  cache[cacheKey] = contractObj
+  return contractObj
+
 }
 
 export default {

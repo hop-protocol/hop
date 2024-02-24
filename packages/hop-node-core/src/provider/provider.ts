@@ -22,8 +22,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
 
   constructor (rpcUrlOrOptions: string | ConnectionInfo) {
     super(rpcUrlOrOptions)
-    // TODO: MIGRATION: Handle this
-    // Reintroduce metrics
+    // TODO: Reintroduce metrics
   }
 
   override async perform (method: string, params: any): Promise<any> {

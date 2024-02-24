@@ -12,8 +12,6 @@ import { loadEnv } from './loadEnvFile.js'
 
 loadEnv()
 
-// TODO: MIGRATION: Handle this
-// Get rid of setLatestNonceOnStart
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const hostname = process.env.HOSTNAME ?? os.hostname()
 export const slackChannel = process.env.SLACK_CHANNEL

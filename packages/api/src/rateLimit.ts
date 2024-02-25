@@ -1,4 +1,4 @@
-import { ipRateLimitReqPerSec, ipRateLimitWindowMs } from './config'
+import { ipRateLimitReqPerSec, ipRateLimitWindowMs } from './config.js'
 import { rateLimit } from 'express-rate-limit'
 
 export const ipRateLimitMiddleware = rateLimit({

@@ -38,8 +38,7 @@ import { RelayerFee } from './relayerFee/index.js'
 import { TChain, TProvider, TToken } from './types.js'
 import { config, metadata } from './config/index.js'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils.js'
-
-const memoize = require('fast-memoize')
+import memoize from 'fast-memoize'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge

@@ -1,5 +1,5 @@
 import { PriceFeed as PriceFeedSdk } from '@hop-protocol/sdk'
-import { coingeckoApiKey } from './config'
+import { coingeckoApiKey } from './config.js'
 import { tokens } from '@hop-protocol/core/metadata'
 
 function getCoinId (tokenSymbol: string) {

@@ -1,6 +1,6 @@
-import S3Upload from './S3Upload'
-import * as addresses from '../addresses'
-import * as config from '../config'
+import S3Upload from './S3Upload.js'
+import * as addresses from '../addresses/index.js'
+import * as config from '../config/index.js'
 
 async function main () {
   const s3Upload = new S3Upload()

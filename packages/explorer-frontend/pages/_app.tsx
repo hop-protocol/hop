@@ -1,3 +1,4 @@
+import React from 'react'
 import '../styles/globals.css'
 import { ThemeProvider } from '@mui/material/styles'
 import { useTheme } from '../components/_useTheme'

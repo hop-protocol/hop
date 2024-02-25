@@ -1,4 +1,4 @@
-import { AssetSymbol, ChainSlug } from '../config/types'
+import { AssetSymbol, ChainSlug } from '../config/types.js'
 
 export interface Token {
   symbol: string

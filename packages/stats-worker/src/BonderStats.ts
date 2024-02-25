@@ -1,29 +1,29 @@
 import fs from 'fs'
-import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
 import path from 'path'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { DateTime } from 'luxon'
-import { PriceFeed } from './PriceFeed'
+import { PriceFeed } from './PriceFeed.js'
 import {
   archiveRpcUrls,
   enabledChains,
   enabledTokens,
   etherscanApiKeys,
   rpcUrls
-} from './config'
+} from './config.js'
 import { chunk } from 'lodash'
 import { createObjectCsvWriter } from 'csv-writer'
-import { db } from './Db'
+import { db } from './Db.js'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import {
   formatEther,
   formatUnits,
   parseEther,
   parseUnits
-} from 'ethers/lib/utils'
-import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl'
-import { getSubgraphUrl } from './utils/getSubgraphUrl'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+} from 'ethers/lib/utils.js'
+import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl.js'
+import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
+import { getTokenDecimals } from './utils/getTokenDecimals.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { parse } from 'comment-json'
 
@@ -33,11 +33,9 @@ const jsonData = parse(
     .toString()
 ) as any
 
-import { arbitrumAliases, oldArbitrumAliases } from './data/arbitrum_alises.json'
-import { wethAddresses } from './data/weth_addresses.json'
-
-const wait = (t: number) =>
-  new Promise(resolve => setTimeout(() => resolve(null), t))
+import { arbitrumAliases, oldArbitrumAliases } from './data/arbitrum_alises.json' with { type: "json" }
+import { wethAddresses } from './data/weth_addresses.json' with { type: "json" }
+import { wait } from './utils/wait.js'
 
 type Options = {
   days?: number

@@ -1,6 +1,6 @@
-import { metadata as goerli } from './goerli'
-import { metadata as mainnet } from './mainnet'
-import { metadata as sepolia } from './sepolia'
+import { metadata as goerli } from './goerli.js'
+import { metadata as mainnet } from './mainnet.js'
+import { metadata as sepolia } from './sepolia.js'
 
 const metadata = { goerli, sepolia, mainnet }
 export { goerli, sepolia, mainnet, metadata }

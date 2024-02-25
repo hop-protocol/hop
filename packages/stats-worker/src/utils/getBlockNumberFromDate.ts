@@ -1,7 +1,7 @@
 import BlockDater from 'ethereum-block-by-date'
 import { DateTime } from 'luxon'
-import { etherscanApiKeys } from '../config'
-import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl'
+import { etherscanApiKeys } from '../config.js'
+import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl.js'
 
 export async function getBlockNumberFromDate (
   chain: string,

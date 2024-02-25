@@ -1,4 +1,4 @@
-import { Chains } from './types'
+import { Chains } from './types.js'
 import {
   arbitrumImage,
   baseImage,

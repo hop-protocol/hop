@@ -1,4 +1,4 @@
-import { PriceFeed } from './PriceFeed'
+import { PriceFeed } from './PriceFeed.js'
 import { tokens } from '@hop-protocol/core/metadata'
 
 export class PriceStats {

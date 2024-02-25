@@ -1,0 +1,94 @@
+{
+  "name": "@hop-protocol/sdk-core",
+  "version": "0.0.1",
+  "description": "The Hop Protocol JavaScript SDK",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist",
+    "hop.js"
+  ],
+  "scripts": {
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "dev": "pnpm version && tsc --watch",
+    "build": "pnpm version && pnpm build:all",
+    "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
+    "build:all": "pnpm build:cjs && pnpm build:esm",
+    "clean:docs": "rm -rf docs",
+    "clean:docs-ui": "rm -rf docs-ui",
+    "lint": "eslint . --ext .ts --fix",
+    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
+    "bump": "pnpm version prerelease --preid=beta",
+    "release": "pnpm build && pnpm lint && pnpm test && pnpm bump",
+    "bump-release": "pnpm bump && pnpm release",
+    "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
+    "docs:concat": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && pnpm dlx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
+    "docs:ui": "typedoc --out docs-ui src/index.ts",
+    "docs": "pnpm docs:ui && pnpm docs:markdown",
+    "docs:update-gitbook": "./scripts/update_gitbook.sh"
+  },
+  "dependencies": {
+    "@hop-protocol/core": "workspace:*",
+    "buffer": "6.0.3",
+    "dotenv": "16.4.1",
+    "esbuild": "0.20.0",
+    "ethereum-block-by-date": "1.4.9",
+    "ethers": "5.7.2",
+    "eventemitter3": "5.0.1",
+    "fast-memoize": "2.5.2",
+    "luxon": "3.4.4",
+    "merkletreejs": "0.3.11",
+    "p-queue": "8.0.1"
+  },
+  "devDependencies": {
+    "@types/luxon": "3.4.2",
+    "jest": "29.7.0",
+    "ts-jest": "29.1.2",
+    "typedoc": "0.25.7",
+    "typedoc-plugin-markdown": "3.17.1"
+  },
+  "peerDependencies": {
+    "ethers": "^5"
+  },
+  "imports": {
+    "#*": "./dist/esm/*"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "default": "./dist/cjs/index.js"
+    },
+    "./config": {
+      "import": "./dist/esm/config/index.js",
+      "default": "./dist/cjs/config/index.js"
+    },
+    "./constants": {
+      "import": "./dist/esm/constants/index.js",
+      "default": "./dist/cjs/constants/index.js"
+    },
+    "./models": {
+      "types": "./dist/esm/models/index.d.ts",
+      "import": "./dist/esm/models/index.js",
+      "default": "./dist/cjs/models/index.js"
+    },
+    "./multicall": {
+      "import": "./dist/esm/multicall/index.js",
+      "default": "./dist/cjs/multicall/index.js"
+    },
+    "./priceFeed": {
+      "import": "./dist/esm/priceFeed/index.js",
+      "default": "./dist/cjs/priceFeed/index.js"
+    },
+    "./provider": {
+      "import": "./dist/esm/provider/index.js",
+      "default": "./dist/cjs/provider/index.js"
+    },
+    "./utils": {
+      "import": "./dist/esm/utils/index.js",
+      "default": "./dist/cjs/utils/index.js"
+    }
+  }
+}

@@ -4,8 +4,6 @@
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "dist/cjs/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "hop.js"
@@ -16,9 +14,10 @@
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
-    "build:all": "pnpm build:ts && pnpm build:cjs && pnpm build:browser",
-    "build:browser": "esbuild dist/index.js --bundle --minify --platform=browser --outfile=hop.js",
+    "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "build:all": "pnpm build:esm && pnpm build:cjs && pnpm build:browser",
+    "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --ext .ts --fix",
@@ -34,6 +33,8 @@
   },
   "dependencies": {
     "@hop-protocol/core": "workspace:*",
+    "@hop-protocol/sdk-core": "workspace:*",
+    "buffer": "6.0.3",
     "dotenv": "16.4.1",
     "esbuild": "0.20.0",
     "ethereum-block-by-date": "1.4.9",
@@ -41,9 +42,7 @@
     "eventemitter3": "5.0.1",
     "fast-memoize": "2.5.2",
     "luxon": "3.4.4",
-    "merkletreejs": "0.3.11",
-    "p-queue": "6.6.2",
-    "buffer": "6.0.3"
+    "merkletreejs": "0.3.11"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",
@@ -54,5 +53,11 @@
   },
   "peerDependencies": {
     "ethers": "^5"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "default": "./dist/cjs/index.js"
+    }
   }
 }

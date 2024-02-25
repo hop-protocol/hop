@@ -1,7 +1,7 @@
 import logger from 'src/logger'
 import { BigNumberish } from 'ethers'
 import { reactAppNetwork } from 'src/config'
-import { utils } from '@hop-protocol/sdk'
+import { getSubgraphUrl } from '@hop-protocol/sdk'
 
 async function queryFetch(url: string, query: string, variables?: any) {
   try {
@@ -80,7 +80,7 @@ export async function fetchTransferSents(
     }
   `
 
-  const url = utils.getSubgraphUrl(reactAppNetwork, chain)
+  const url = getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferSents
@@ -111,7 +111,7 @@ export async function fetchTransferFromL1Completeds(
     }
   `
 
-  const url = utils.getSubgraphUrl(reactAppNetwork, chain)
+  const url = getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
 
   return data?.transferFromL1Completeds
@@ -133,7 +133,7 @@ export async function fetchWithdrawalBondedsByTransferId(chain: string, transfer
         }
       }
     `
-  const url = utils.getSubgraphUrl(reactAppNetwork, chain)
+  const url = getSubgraphUrl(reactAppNetwork, chain)
   const data = await queryFetch(url, query)
   return data?.withdrawalBondeds
 }

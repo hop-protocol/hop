@@ -1,9 +1,9 @@
-import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
+import { ArbitrumRelayerFee } from './ArbitrumRelayerFee.js'
 import { BigNumber } from 'ethers'
-import { Chain } from '../models'
-import { IRelayerFee } from './IRelayerFee'
-import { LineaRelayerFee } from './LineaRelayerFee'
-import { PolygonZkRelayerFee } from './PolygonZkRelayerFee'
+import { Chain } from '@hop-protocol/sdk-core'
+import { IRelayerFee } from './IRelayerFee.js'
+import { LineaRelayerFee } from './LineaRelayerFee.js'
+import { PolygonZkRelayerFee } from './PolygonZkRelayerFee.js'
 
 type RelayerFeeClass = new (network: string, chain: string, token: string) => IRelayerFee
 
@@ -14,7 +14,7 @@ const RelayerFees: Record<string, RelayerFeeClass> = {
   [Chain.PolygonZk.slug]: PolygonZkRelayerFee
 }
 
-class RelayerFee {
+export class RelayerFee {
   /**
    * @returns {BigNumber} The cost of in Wei
    */
@@ -27,5 +27,3 @@ class RelayerFee {
     return relayerFee.getRelayCost()
   }
 }
-
-export default RelayerFee

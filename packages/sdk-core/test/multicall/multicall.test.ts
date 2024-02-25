@@ -1,0 +1,71 @@
+import { Multicall } from '#multicall/index.js'
+import { erc20Abi } from '@hop-protocol/core/abi'
+import { stakingRewardsAbi } from '@hop-protocol/core/abi'
+
+describe.skip('Multicall', () => {
+  it('Should get token addresses for chain', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const multicall = new Multicall({ network: 'mainnet', accountAddress })
+    const tokenAddresses = multicall.getTokenAddressesForChain('optimism')
+    console.log(tokenAddresses)
+    expect(tokenAddresses.length > 0).toBeTruthy()
+  })
+  it('Should get chains', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const multicall = new Multicall({ network: 'mainnet', accountAddress })
+    const chains = multicall.getChains()
+    console.log(chains)
+    expect(chains.length > 0).toBeTruthy()
+  })
+  it('Should get multicall address for chain', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const multicall = new Multicall({ network: 'mainnet', accountAddress })
+    const address = multicall.getMulticallAddressForChain('optimism')
+    console.log(address)
+    expect(address).toBeDefined()
+  })
+  it('Should get balances for chain', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const multicall = new Multicall({ network: 'mainnet', accountAddress })
+    const balances = await multicall.getBalancesForChain('optimism')
+    console.log(balances)
+    expect(balances.length > 0).toBeTruthy()
+  }, 60 * 1000)
+  it('Should get balances', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const multicall = new Multicall({ network: 'mainnet', accountAddress })
+    const balances = await multicall.getBalances()
+    console.log(balances)
+    expect(balances.length > 0).toBeTruthy()
+  }, 60 * 1000)
+  it('Should get balance from custom getter', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const multicall = new Multicall({ network: 'mainnet', accountAddress })
+    const balances = await multicall.getBalancesForChain('polygon', [{
+      abi: erc20Abi,
+      method: 'balanceOf',
+      address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
+      tokenSymbol: 'DAI'
+    }, {
+      abi: stakingRewardsAbi,
+      method: 'earned',
+      address: '0xd6dC6F69f81537Fe9DEcc18152b7005B45Dc2eE7',
+      tokenSymbol: 'DAI'
+    }])
+    console.log(balances)
+    expect(balances.length > 0).toBeTruthy()
+  }, 60 * 1000)
+  it('Should get result using multicall calldata', async () => {
+    const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
+    const multicall = new Multicall({ network: 'mainnet', accountAddress })
+    const result = await multicall.multicall('polygon', [{
+      address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
+      abi: erc20Abi,
+      method: 'balanceOf',
+      args: [accountAddress]
+    }])
+    console.log(result)
+    expect(result).toBeTruthy()
+    expect(result[0][0].toString()).toBeTruthy()
+  }, 60 * 1000)
+})

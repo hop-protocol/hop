@@ -1,4 +1,3 @@
-import Token from '../src/models/Token'
 import fs from 'fs'
 import { BigNumber, Wallet, constants, providers } from 'ethers'
 import {
@@ -9,12 +8,9 @@ import { Swap__factory } from '@hop-protocol/core/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'
+import { TokenModel, FallbackProvider, promiseQueue, getChainSlugFromName, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
 // @ts-ignore
 import pkg from '../package.json'
-import { FallbackProvider } from '../src/provider'
-import { fetchJsonOrThrow } from '../src/utils/fetchJsonOrThrow'
-import { getChainSlugFromName } from '../src/utils'
-import { promiseQueue } from '../src/utils/promiseQueue'
 
 describe.skip('sdk setup', () => {
   const hop = new Hop('goerli')
@@ -33,7 +29,7 @@ describe.skip('hop bridge token transfers', () => {
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await hop
         .connect(signer)
-        .bridge(Token.USDC)
+        .bridge(TokenModel.USDC)
         .send(tokenAmount, Chain.Ethereum, Chain.Optimism)
 
       console.log('tx hash:', tx?.hash)
@@ -48,7 +44,7 @@ describe.skip('hop bridge token transfers', () => {
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await hop
         .connect(signer)
-        .bridge(Token.USDC)
+        .bridge(TokenModel.USDC)
         .send(tokenAmount, Chain.Optimism, Chain.Gnosis)
 
       console.log('tx hash:', tx?.hash)
@@ -63,7 +59,7 @@ describe.skip('hop bridge token transfers', () => {
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await hop
         .connect(signer)
-        .bridge(Token.USDC)
+        .bridge(TokenModel.USDC)
         .send(tokenAmount, Chain.Gnosis, Chain.Ethereum)
 
       console.log('tx hash:', tx?.hash)
@@ -89,7 +85,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.Ethereum, Chain.Polygon)
+          .watch(txHash, TokenModel.USDC, Chain.Ethereum, Chain.Polygon)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Ethereum)) {
@@ -128,7 +124,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
+          .watch(txHash, TokenModel.USDC, Chain.Ethereum, Chain.Gnosis)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Ethereum)) {
@@ -164,7 +160,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Optimism, false, {
+          .watch(txHash, TokenModel.USDC, Chain.Gnosis, Chain.Optimism, false, {
             // destinationHeadBlockNumber: 5661102
           })
           .on('receipt', (data: any) => {
@@ -208,7 +204,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.ETH, Chain.Optimism, Chain.Arbitrum, false, {
+          .watch(txHash, TokenModel.ETH, Chain.Optimism, Chain.Arbitrum, false, {
             // destinationHeadBlockNumber: 5661102
           })
           .on('receipt', (data: any) => {
@@ -252,7 +248,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Polygon, false, {
+          .watch(txHash, TokenModel.USDC, Chain.Gnosis, Chain.Polygon, false, {
             // destinationHeadBlockNumber: 14779300 // estimate
           })
           .on('receipt', (data: any) => {
@@ -302,7 +298,7 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Ethereum)
+          .watch(txHash, TokenModel.USDC, Chain.Gnosis, Chain.Ethereum)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Gnosis)) {
@@ -333,7 +329,7 @@ describe.skip('liqudity provider', () => {
   const hop = new Hop('goerli')
   const signer = new Wallet(privateKey!)
   it('should add liqudity on Gnosis', async () => {
-    const bridge = hop.bridge(Token.USDC)
+    const bridge = hop.bridge(TokenModel.USDC)
     const tokenAmount = parseUnits('0.1', 18)
     const amount0Desired = tokenAmount
     const amount1Desired = tokenAmount
@@ -344,7 +340,7 @@ describe.skip('liqudity provider', () => {
     expect(tx.hash).toBeTruthy()
   })
   it('should remove liqudity on Gnosis', async () => {
-    const bridge = hop.bridge(Token.USDC)
+    const bridge = hop.bridge(TokenModel.USDC)
     const liqudityTokenAmount = parseUnits('0.1', 18)
     const tx = await bridge
       .connect(signer)
@@ -495,7 +491,7 @@ describe.skip('getSendData', () => {
       const tokenAmount = parseUnits('1', 18)
       const amountOut = await hop
         .connect(signer)
-        .bridge(Token.USDC)
+        .bridge(TokenModel.USDC)
         .getAmountOut(tokenAmount, Chain.Gnosis, Chain.Optimism)
 
       expect(Number(formatUnits(amountOut.toString(), 18))).toBeGreaterThan(0)
@@ -1288,5 +1284,43 @@ describe.skip('calcFromHTokenAmountMulticall', () => {
     expect(amountOuts[0].toString()).toBeTruthy()
     expect(amountOuts[1].toString()).toBeTruthy()
     expect(amountOuts[2].toString()).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe.skip('priceFeed', () => {
+  it('should return USDC price', async () => {
+    const hop = new Hop('mainnet')
+    hop.setPriceFeedApiKeys({
+      // coingecko: 'CG-123'
+    })
+    const bridge = hop.bridge('USDC')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('USDC')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(2)
+  }, 60 * 1000)
+  it('should return ETH price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('ETH')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(10000)
+  }, 60 * 1000)
+  it('should return HOP price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('HOP')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('HOP')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(50)
+  }, 60 * 1000)
+  it('should return SNX price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('SNX')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('SNX')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(50)
   }, 60 * 1000)
 })

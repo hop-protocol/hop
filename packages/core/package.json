@@ -70,7 +70,7 @@
     "test": "jest test",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
-    "build:all": "pnpm build:typechain && pnpm build:esm && pnpm build:cjs && pnpm build:toplevel",
+    "build:all": "pnpm build:typechain && pnpm build:esm && pnpm build:toplevel",
     "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
     "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
     "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",

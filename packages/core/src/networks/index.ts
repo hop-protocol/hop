@@ -5,5 +5,5 @@ import { networks as sepolia } from './sepolia.js'
 const networks = { goerli, sepolia, mainnet }
 export { goerli, sepolia, mainnet, networks }
 
-export * from './types'
-export * from './enums'
+export * from './types.js'
+export * from './enums.js'

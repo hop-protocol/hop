@@ -7,7 +7,11 @@
     // node16 and nodenext are the only correct module options for all apps and libraries that are intended to run in Node.js v12 or later, whether they use ES modules or not.
     // https://www.typescriptlang.org/docs/handbook/modules/reference.html#summary
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+
+    // "This setting is particularly recommended for Node.js projects that use mostly ESM, but have a select few CJS files. It is not recommended for projects that currently target CJS, but may want to target ESM in the future."
+    // https://www.typescriptlang.org/docs/handbook/modules/theory.html#input-module-syntax
+    "verbatimModuleSyntax": false
   },
   "include": [
     "src"

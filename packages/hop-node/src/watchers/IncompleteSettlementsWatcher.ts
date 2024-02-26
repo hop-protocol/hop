@@ -15,10 +15,8 @@ import { DateTime } from 'luxon'
 import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { formatUnits } from 'ethers/lib/utils.js'
 import { getEnabledTokens } from '#config/index.js'
-import hopCoreAbi from '@hop-protocol/core/abi'
+import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/core/abi'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
-
-const { l1BridgeAbi, l2BridgeAbi } = hopCoreAbi
 
 type Options = {
   token?: string

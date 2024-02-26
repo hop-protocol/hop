@@ -1,5 +1,6 @@
 import fs from 'fs'
 import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
+import { fileURLToPath } from 'url'
 import path from 'path'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { DateTime } from 'luxon'
@@ -11,7 +12,7 @@ import {
   etherscanApiKeys,
   rpcUrls
 } from './config.js'
-import { chunk } from 'lodash'
+import _ from 'lodash'
 import { createObjectCsvWriter } from 'csv-writer'
 import { db } from './Db.js'
 import { erc20Abi } from '@hop-protocol/core/abi'
@@ -27,15 +28,21 @@ import { getTokenDecimals } from './utils/getTokenDecimals.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { parse } from 'comment-json'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const jsonData = parse(
   fs
     .readFileSync(path.resolve(__dirname, 'data/bonder_profits.json'))
     .toString()
 ) as any
 
-import { arbitrumAliases, oldArbitrumAliases } from './data/arbitrum_alises.json' with { type: "json" }
-import { wethAddresses } from './data/weth_addresses.json' with { type: "json" }
+import arbData from './data/arbitrum_alises.json' with { type: "json" }
+import wethData from './data/weth_addresses.json' with { type: "json" }
 import { wait } from './utils/wait.js'
+
+const { arbitrumAliases, oldArbitrumAliases } = arbData
+const { wethAddresses } = wethData
 
 type Options = {
   days?: number
@@ -127,7 +134,7 @@ class BonderStats {
         .fill(0)
         .map((n, i) => n + i)
       const chunkSize = 10
-      const allChunks = chunk(days, chunkSize)
+      const allChunks = _.chunk(days, chunkSize)
       const csv: any[] = []
       for (const chunks of allChunks) {
         csv.push(
@@ -697,7 +704,7 @@ class BonderStats {
         .fill(0)
         .map((n, i) => n + i)
       const chunkSize = 10
-      const allChunks = chunk(days, chunkSize)
+      const allChunks = _.chunk(days, chunkSize)
       let csv: any[] = []
       for (const chunks of allChunks) {
         csv.push(

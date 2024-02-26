@@ -7,13 +7,11 @@ import { Chain } from '#constants/index.js'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { SwapInput } from '../types.js'
-import hopCoreAbi from '@hop-protocol/core/abi'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import path from 'node:path'
 import fs from 'node:fs'
 import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
-
-const { erc20Abi } = hopCoreAbi
 
 const logger = new Logger({
   tag: 'Uniswap'

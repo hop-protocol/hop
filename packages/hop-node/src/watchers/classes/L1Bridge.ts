@@ -11,9 +11,7 @@ import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRoo
 import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { config as globalConfig } from '#config/index.js'
-import hopCoreAbi from '@hop-protocol/core/abi'
-
-const { erc20Abi, l1Erc20BridgeAbi } = hopCoreAbi 
+import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'

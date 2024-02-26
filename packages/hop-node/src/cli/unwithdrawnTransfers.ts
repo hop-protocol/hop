@@ -10,10 +10,8 @@ import {
   parseString,
   root
 } from './shared/index.js'
-import hopCoreAbi from '@hop-protocol/core/abi'
+import { bridgeAbi } from '@hop-protocol/core/abi'
 import { config as globalConfig } from '#config/index.js'
-
-const { bridgeAbi } = hopCoreAbi
 
 interface TransferRootsToChain {
   rootHash: string

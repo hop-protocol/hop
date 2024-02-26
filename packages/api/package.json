@@ -5,6 +5,7 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
+  "type": "module",
   "main": "dist/src/index.js",
   "scripts": {
     "preinstall": "npx only-allow pnpm",

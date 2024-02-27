@@ -1,13 +1,13 @@
-import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
-import getBondedWithdrawals from 'src/theGraph/getBondedWithdrawals'
-import getTransfer from 'src/theGraph/getTransfer'
-import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
-import getTransferRoot from 'src/theGraph/getTransferRoot'
-import getTransferRoots from 'src/theGraph/getTransferRoots'
+import getBondedWithdrawal from '#theGraph/getBondedWithdrawal.js'
+import getBondedWithdrawals from '#theGraph/getBondedWithdrawals.js'
+import getTransfer from '#theGraph/getTransfer.js'
+import getTransferIdsForTransferRoot from '#theGraph/getTransferIdsForTransferRoot.js'
+import getTransferRoot from '#theGraph/getTransferRoot.js'
+import getTransferRoots from '#theGraph/getTransferRoots.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { fetchTransfers } from 'src/theGraph/getUnbondedTransfers'
-import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
-import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
+import { fetchTransfers } from '#theGraph/getUnbondedTransfers.js'
+import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
+import { getUnwithdrawnTransfers } from '#theGraph/getUnwithdrawnTransfers.js'
 
 describe.skip('getTransferIdsForTransferRoot', () => {
   it('gnosis - 1', async () => {

@@ -1,4 +1,4 @@
-import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
+import getTransferIdFromCalldata from '#utils/getTransferIdFromCalldata.js'
 
 describe('getTransferIdFromCalldata', () => {
   it('getTransferIdFromCalldata - bondWithdrawalAndDistribute', () => {

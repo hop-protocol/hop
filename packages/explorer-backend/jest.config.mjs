@@ -1,8 +1,9 @@
-module.exports = {
+export default {
   roots: ['test', 'src'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.tsx?$': ['ts-jest', { useESM: true }]
   },
+  testEnvironment: 'node',
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1'
   },

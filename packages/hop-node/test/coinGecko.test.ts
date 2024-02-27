@@ -1,4 +1,4 @@
-import CoinGecko from 'src/priceFeed/CoinGecko'
+import CoinGecko from '#priceFeed/CoinGecko.js'
 
 describe('coinGecko', () => {
   const coinGecko = new CoinGecko()

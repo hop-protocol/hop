@@ -18,6 +18,9 @@
     "networks",
     "s3upload"
   ],
+  "imports": {
+    "#*": "./dist/esm/*"
+  },
   "exports": {
     ".": {
       "types": "./dist/cjs/index.d.ts",
@@ -67,7 +70,7 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./abi ./addresses ./config ./contracts ./metadata ./networks",
-    "test": "jest test",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:all": "pnpm build:typechain && pnpm build:cjs && pnpm build:esm && pnpm build:toplevel",

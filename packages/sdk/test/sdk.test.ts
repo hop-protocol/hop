@@ -1,16 +1,20 @@
 import fs from 'fs'
+import dotenv from 'dotenv'
 import { BigNumber, Wallet, constants, providers } from 'ethers'
 import {
   Chain,
   Hop
-} from '../src/index'
+} from '#index.js'
 import { Swap__factory } from '@hop-protocol/core/contracts'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { privateKey } from './config'
+import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import * as addresses from '@hop-protocol/core/addresses'
 import { TokenModel, FallbackProvider, promiseQueue, getChainSlugFromName, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
 // @ts-ignore
 import pkg from '../package.json'
+
+dotenv.config()
+
+export const privateKey = process.env.PRIVATE_KEY
 
 describe.skip('sdk setup', () => {
   const hop = new Hop('goerli')

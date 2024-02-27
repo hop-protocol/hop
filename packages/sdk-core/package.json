@@ -5,6 +5,7 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "type": "module",
+  "types": "./dist/esm/index.d.ts",
   "files": [
     "dist",
     "hop.js"
@@ -70,7 +71,6 @@
       "default": "./dist/cjs/constants/index.js"
     },
     "./models": {
-      "types": "./dist/esm/models/index.d.ts",
       "import": "./dist/esm/models/index.js",
       "default": "./dist/cjs/models/index.js"
     },

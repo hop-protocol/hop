@@ -20,7 +20,7 @@
     "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "eslint . --ext .ts --fix",
-    "test": "jest test"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.338.0",

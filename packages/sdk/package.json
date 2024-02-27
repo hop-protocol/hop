@@ -10,12 +10,12 @@
   ],
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",
-    "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
-    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:all": "pnpm build:esm && pnpm build:cjs && pnpm build:browser",
     "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
     "clean:docs": "rm -rf docs",
@@ -53,6 +53,9 @@
   },
   "peerDependencies": {
     "ethers": "^5"
+  },
+  "imports": {
+    "#*": "./dist/esm/*"
   },
   "exports": {
     ".": {

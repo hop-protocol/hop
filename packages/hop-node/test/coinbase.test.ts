@@ -1,4 +1,4 @@
-import Coinbase from 'src/priceFeed/Coinbase'
+import Coinbase from '#priceFeed/Coinbase.js'
 
 describe('coinbase', () => {
   const coinbase = new Coinbase()

@@ -1,6 +1,6 @@
-import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
+import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
 import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
-import { getAllChains } from 'src/config'
+import { getAllChains } from '#config/index.js'
 
 describe('isTokenSupportedForChain', () => {
   test('Happy path', () => {

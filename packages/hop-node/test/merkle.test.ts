@@ -1,4 +1,4 @@
-import MerkleTree from 'src/utils/MerkleTree'
+import MerkleTree from '#utils/MerkleTree.js'
 
 test('merkle', () => {
   const transferHashes = [

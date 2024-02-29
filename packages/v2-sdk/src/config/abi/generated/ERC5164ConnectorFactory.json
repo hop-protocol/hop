@@ -1,0 +1,196 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_messageDispatcher",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_messageExecutor",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "connector",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "target",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "counterpartChainId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "counterpartConnector",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "counterpartTarget",
+        "type": "address"
+      }
+    ],
+    "name": "ConnectorDeployed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "chainId1",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "target1",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "chainId2",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "target2",
+        "type": "address"
+      }
+    ],
+    "name": "calculateAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "target",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "counterpartChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "counterpartConnector",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "counterpartTarget",
+        "type": "address"
+      }
+    ],
+    "name": "deployConnector",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getChainId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "target1",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "chainId1",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "target2",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "chainId2",
+        "type": "uint256"
+      }
+    ],
+    "name": "getSalt",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "messageDispatcher",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "messageExecutor",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

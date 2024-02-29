@@ -1,4 +1,3 @@
-import '../src/moduleAlias'
 import { ArbitrumMessageService } from '../src/chains/Chains/arbitrum/Message'
 import { MessageDirection } from '../src/chains/Services/MessageService'
 

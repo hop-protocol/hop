@@ -1,4 +1,4 @@
-import getTransferRoots from './getTransferRoots'
+import getTransferRoots from './getTransferRoots.js'
 
 async function getTransferRootsCount (
   chain: string,

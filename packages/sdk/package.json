@@ -4,7 +4,7 @@
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "dist/cjs/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
@@ -54,12 +54,5 @@
   },
   "peerDependencies": {
     "ethers": "^5"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/cjs/index.js"
-    }
   }
 }

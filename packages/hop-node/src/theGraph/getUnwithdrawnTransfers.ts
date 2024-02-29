@@ -1,5 +1,5 @@
-import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
+import makeRequest from './makeRequest.js'
+import { normalizeEntity } from './shared.js'
 
 async function getTransfers (chain: string, token: string, filters: any) {
   const { account } = filters

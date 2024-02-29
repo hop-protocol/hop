@@ -1,5 +1,5 @@
-import BaseDb, { DbMigrationFilters } from './BaseDb'
-import { Migration } from './migrations'
+import BaseDb, { DbMigrationFilters } from './BaseDb.js'
+import { Migration } from './migrations.js'
 
 type DatabaseMigratorParams<T> = {
   db: BaseDb<T>

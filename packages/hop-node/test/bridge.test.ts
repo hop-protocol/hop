@@ -1,5 +1,5 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
-import contracts from 'src/contracts'
+import contracts from 'src/contracts/index.js'
 import expectDefined from './utils/expectDefined'
 import { config as globalConfig } from 'src/config'
 import dotenv from 'dotenv'

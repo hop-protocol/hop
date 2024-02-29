@@ -125,6 +125,9 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
   })
 
   override getTransactionReceipt = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionReceipt> => {
+    if (process.env.TX_RECEIPT_TRACE) {
+      console.trace(`getTransactionReceipt ${transactionHash}`)
+    }
     return super.getTransactionReceipt(transactionHash)
   })
 

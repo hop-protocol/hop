@@ -1,4 +1,4 @@
-import wait from 'src/utils/wait'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 import { Mutex } from 'async-mutex'
 
 const DELAY_SECONDS = 1

@@ -1,4 +1,4 @@
-import * as metadata from '../src/metadata'
+import * as metadata from '#metadata/index.js'
 
 test('tokens', () => {
   expect(metadata.mainnet.tokens.USDC.decimals).toBe(6)

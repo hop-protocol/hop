@@ -21,3 +21,4 @@ docs
 /version.d.ts
 /contracts
 src/contracts/
+cjs

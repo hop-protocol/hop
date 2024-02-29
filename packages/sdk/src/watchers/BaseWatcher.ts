@@ -1,9 +1,9 @@
-import Base, { ChainProviders } from '../Base'
-import EventEmitter from 'eventemitter3'
-import HopBridge from '../HopBridge'
-import wait from '../utils/wait'
-import { Chain, Token } from '../models'
-import { TChain, TProvider, TToken } from '../types'
+import { EventEmitter } from 'eventemitter3'
+import { wait } from '../utils/index.js'
+import { Base, ChainProviders } from '../Base.js'
+import { Chain, TokenModel } from '@hop-protocol/sdk-core'
+import { HopBridge } from '../HopBridge.js'
+import { TChain, TProvider, TToken } from '../types.js'
 
 /**
  * @desc Event types for transaction watcher.
@@ -29,13 +29,13 @@ export type Config = {
   chainProviders?: ChainProviders
 }
 
-class BaseWatcher extends Base {
+export class BaseWatcher extends Base {
   ee: EventEmitter
   sourceTxHash: string
   sourceTx: any
   sourceBlock: any
   sourceReceipt: any
-  token: Token
+  token: TokenModel
   sourceChain: Chain
   destinationChain: Chain
   pollDelayMs = 10 * 1000
@@ -130,5 +130,3 @@ class BaseWatcher extends Base {
     return true
   }
 }
-
-export default BaseWatcher

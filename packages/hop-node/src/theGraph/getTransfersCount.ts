@@ -1,4 +1,4 @@
-import getTransferIds from './getTransferIds'
+import getTransferIds from './getTransferIds.js'
 
 async function getTransfersCount (
   chain: string,

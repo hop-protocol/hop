@@ -1,5 +1,5 @@
-import isNativeToken from 'src/utils/isNativeToken'
-import { Chain } from 'src/constants'
+import isNativeToken from '@hop-protocol/hop-node-core'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 
 describe('isNativeToken', () => {
   it('isNativeToken', () => {

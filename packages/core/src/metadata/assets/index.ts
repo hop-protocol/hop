@@ -1,2 +1,2 @@
-export * from './chains'
-export * from './tokens'
+export * from './chains/index.js'
+export * from './tokens/index.js'

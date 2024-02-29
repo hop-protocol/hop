@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import pinataSDK from '@pinata/sdk'
-import { pinataApiKey, pinataSecretApiKey } from './config'
+import { pinataApiKey, pinataSecretApiKey } from './config.js'
+
+const pinataSDK: any = (await import('@pinata/sdk')).default
 
 class IpfsUpload {
   pinata: any

@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  bonder:
+    image: hopprotocol/v2-explorer-backend:latest
+    env_file:
+      - docker.env
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: Hopv2ExplorerBackend
+        awslogs-create-group: 'true'

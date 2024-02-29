@@ -1,18 +1,16 @@
-import '../src/moduleAlias'
-import getChainBridge from 'src/chains/getChainBridge'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import { Chain } from 'src/constants'
-import { FinalityBlockTag, IChainBridge } from 'src/chains/IChainBridge'
-import { getConfirmRootsWatcher } from 'src/watchers/watchers'
+import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { FinalityBlockTag, IChainBridge } from '@hop-protocol/hop-node-core'
+import { getConfirmRootsWatcher } from '#watchers/watchers/index.js'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from 'src/config'
+} from '#config/index.js'
 import { providers } from 'ethers'
 
 // Run this with
 // NETWORK=goerli npx ts-node test/chainBridge.test.ts
-// NOTE: import moduleAlias first to avoid errors
 
 async function main () {
   const chain = Chain.PolygonZk

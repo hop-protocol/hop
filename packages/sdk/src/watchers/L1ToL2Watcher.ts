@@ -1,14 +1,14 @@
-import EventEmitter from 'eventemitter3'
-import { default as BaseWatcher } from './BaseWatcher'
+import { EventEmitter } from 'eventemitter3'
+import { BaseWatcher } from './BaseWatcher.js'
 import { BigNumber } from 'ethers'
 import { DateTime } from 'luxon'
-import { EventNames } from '../constants'
-import { makeRequest } from './makeRequest'
+import { EventNames } from '../constants/index.js'
+import { makeRequest } from './makeRequest.js'
 import {
   transferSentToL2Topic
-} from '../constants/eventTopics'
+} from '../constants/eventTopics.js'
 
-class L1ToL2Watcher extends BaseWatcher {
+export class L1ToL2Watcher extends BaseWatcher {
   public watch (): EventEmitter {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
@@ -106,5 +106,3 @@ async function getTransferFromL1CompletedEvents (network: string, chain: string,
 
   return data.events || []
 }
-
-export default L1ToL2Watcher

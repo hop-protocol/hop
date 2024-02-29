@@ -39,6 +39,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
 
       - name: Push Hop Node Docker image to Docker Hub
+        if: false
         run: |
           BRANCH=${GITHUB_REF##*/}
           BRANCH=$(echo $BRANCH | sed 's/\//-/g' | sed 's/-bonder//g')

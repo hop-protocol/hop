@@ -1,4 +1,4 @@
-import BaseDb from './BaseDb'
+import BaseDb from './BaseDb.js'
 
 export type State = {
   latestBlockSynced: number

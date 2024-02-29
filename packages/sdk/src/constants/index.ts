@@ -1,2 +1,2 @@
-export * from './constants'
-export * as eventTopics from './eventTopics'
+export * from './constants.js'
+export * as eventTopics from './eventTopics.js'

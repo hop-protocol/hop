@@ -1,11 +1,11 @@
-import BonderStats from './BonderStats'
-import S3Upload from './S3Upload'
-import TvlStats from './TvlStats'
-import VolumeStats from './VolumeStats'
-import YieldStats from './YieldStats'
-import wait from 'wait'
-import { AmmStats } from './AmmStats'
-import { PriceStats } from './PriceStats'
+import BonderStats from './BonderStats.js'
+import S3Upload from './S3Upload.js'
+import TvlStats from './TvlStats.js'
+import VolumeStats from './VolumeStats.js'
+import YieldStats from './YieldStats.js'
+import { wait } from './utils/wait.js'
+import { AmmStats } from './AmmStats.js'
+import { PriceStats } from './PriceStats.js'
 
 type Options = {
   yields?: boolean

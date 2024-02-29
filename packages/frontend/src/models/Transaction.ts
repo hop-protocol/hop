@@ -1,5 +1,5 @@
 import logger from 'src/logger'
-import { ChainSlug, Hop, Token, utils as sdkUtils } from '@hop-protocol/sdk'
+import { ChainSlug, Hop, Token, getChainSlugFromName } from '@hop-protocol/sdk'
 import { EventEmitter } from 'events'
 import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
 import {
@@ -143,7 +143,7 @@ export class Transaction extends EventEmitter {
   get explorerLink(): string {
     if (!(this.networkName)) return ''
 
-    const chainSlug = sdkUtils.getChainSlugFromName(this.networkName)
+    const chainSlug = getChainSlugFromName(this.networkName)
     let url = getBaseExplorerUrl(chainSlug)
     if (this.hash) {
       url = `${url}/tx/${this.hash}`
@@ -154,7 +154,7 @@ export class Transaction extends EventEmitter {
   get destExplorerLink(): string {
     if (!(this.destTxHash && this.destNetworkName)) return ''
 
-    const chainSlug = sdkUtils.getChainSlugFromName(this.destNetworkName)
+    const chainSlug = getChainSlugFromName(this.destNetworkName)
     const url = `${getBaseExplorerUrl(chainSlug)}/tx/${this.destTxHash}`
     return url
   }

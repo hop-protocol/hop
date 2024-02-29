@@ -9,8 +9,8 @@ import {
   StakingRewards__factory
 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { coingeckoApiKey, rpcUrls } from './config'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { coingeckoApiKey, rpcUrls } from './config.js'
+import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365

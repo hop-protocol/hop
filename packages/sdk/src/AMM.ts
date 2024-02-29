@@ -1,14 +1,18 @@
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
-import shiftBNDecimals from './utils/shiftBNDecimals'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import { BigNumber, BigNumberish, constants } from 'ethers'
-import { Chain } from './models'
-import { SecondsInDay, TokenIndex, TokenSymbol } from './constants'
+import {
+  getBlockNumberFromDate,
+  rateLimitRetry,
+  shiftBNDecimals
+} from '@hop-protocol/sdk-core'
+import {
+  Chain
+} from '@hop-protocol/sdk-core'
+import { SecondsInDay, TokenIndex, TokenSymbol } from './constants/index.js'
 import { Swap__factory } from '@hop-protocol/core/contracts'
-import { TAmount, TChain, TProvider } from './types'
+import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
-import { formatUnits } from 'ethers/lib/utils'
-import { rateLimitRetry } from './utils/rateLimitRetry'
+import { formatUnits } from 'ethers/lib/utils.js'
 
 export type AmmConstructorOptions = {
   tokenSymbol?: TokenSymbol,
@@ -19,7 +23,7 @@ export type AmmConstructorOptions = {
  * Class representing AMM contract
  * @namespace AMM
  */
-class AMM extends Base {
+export class AMM extends Base {
   /** Chain model */
   public chain: Chain
 
@@ -50,7 +54,7 @@ class AMM extends Base {
   ) {
     super(networkOrOptionsObject, signer, chainProviders)
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject 
+      const options = networkOrOptionsObject
       if (tokenSymbol ?? chain ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -643,5 +647,3 @@ class AMM extends Base {
     return amounts[0].add(amounts[1])
   }
 }
-
-export default AMM

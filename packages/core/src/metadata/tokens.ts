@@ -19,8 +19,8 @@ import {
   // FraxImage,
   // sBTCImage,
   // sETHImage,
-} from './assets'
-import { Tokens } from './types'
+} from './assets/index.js'
+import { Tokens } from './types.js'
 
 export const tokens: Tokens = {
   ETH: {

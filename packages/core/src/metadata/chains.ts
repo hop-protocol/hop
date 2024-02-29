@@ -1,4 +1,4 @@
-import { Chains } from './types'
+import { Chains } from './types.js'
 import {
   arbitrumImage,
   baseImage,
@@ -11,7 +11,7 @@ import {
   polygonzkImage,
   scrollzkImage,
   zksyncImage
-} from './assets'
+} from './assets/index.js'
 
 export const chains: Chains = {
   ethereum: {

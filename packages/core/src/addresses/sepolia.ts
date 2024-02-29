@@ -1,4 +1,4 @@
-import { Addresses } from './types'
+import { Addresses } from './types.js'
 
 export const addresses: Addresses = {
   bonders: {

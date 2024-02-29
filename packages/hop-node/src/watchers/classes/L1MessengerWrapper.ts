@@ -1,4 +1,4 @@
-import ContractBase from './ContractBase'
+import ContractBase from './ContractBase.js'
 import { BigNumber } from 'ethers'
 
 export default class L1MessengerWrapper extends ContractBase {

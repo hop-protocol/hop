@@ -1,5 +1,4 @@
-import '../src/moduleAlias'
-import { ArbitrumInclusionService } from '../src/chains/Chains/arbitrum/Inclusion'
+import { ArbitrumInclusionService } from '#chains/Chains/arbitrum/Inclusion.js'
 
 describe.skip('getL1InclusionTx', () => {
   it('should not retry if tx hash not included in batch', async () => {

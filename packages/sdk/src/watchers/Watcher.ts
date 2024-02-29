@@ -1,11 +1,11 @@
-import Base from '../Base'
-import EventEmitter from 'eventemitter3'
-import L1ToL2Watcher from './L1ToL2Watcher'
-import L2ToL1Watcher from './L2ToL1Watcher'
-import L2ToL2Watcher from './L2ToL2Watcher'
-import { Config } from './BaseWatcher'
+import { EventEmitter } from 'eventemitter3'
+import { Base } from '../Base.js'
+import { Config } from './BaseWatcher.js'
+import { L1ToL2Watcher } from './L1ToL2Watcher.js'
+import { L2ToL1Watcher } from './L2ToL1Watcher.js'
+import { L2ToL2Watcher } from './L2ToL2Watcher.js'
 
-class Watcher extends Base {
+export class Watcher extends Base {
   watcher: L1ToL2Watcher | L2ToL1Watcher | L2ToL2Watcher
 
   constructor (config: Config) {
@@ -38,5 +38,3 @@ class Watcher extends Base {
     return this.watcher.watch()
   }
 }
-
-export default Watcher

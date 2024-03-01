@@ -1,7 +1,7 @@
 import SpokeMessageBridgeAbi from '../../config/abi/generated/SpokeMessageBridge.json' assert { type: "json" }
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
-import { SpokeMessageBridge__factory } from '../../config/contracts/factories/generated/SpokeMessageBridge__factory'
+import { SpokeMessageBridge__factory } from '../../config/contracts/factories/generated/SpokeMessageBridge__factory.js'
 import { ethers } from 'ethers'
 
 // event from SpokeMessageBridge (MessageExecutor.sol)

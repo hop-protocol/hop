@@ -1,4 +1,4 @@
-import wait from 'wait'
+import { wait } from '../utils/wait.js'
 import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
 import { Signer, providers } from 'ethers'
 

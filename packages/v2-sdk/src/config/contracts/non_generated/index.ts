@@ -4,4 +4,6 @@
 /* eslint-disable */
 export type { ERC20 } from "./ERC20";
 export type { ERC20Mintable } from "./ERC20Mintable";
+export type { L1_xDaiAMB } from "./L1_xDaiAMB";
+export type { L2_xDaiAMB } from "./L2_xDaiAMB";
 export type { WETH9 } from "./WETH9";

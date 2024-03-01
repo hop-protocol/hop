@@ -19,3 +19,5 @@ export { default as TransporterAbi } from './generated/Transporter.json' assert 
 export { default as ERC20 } from './non_generated/ERC20.json' assert { type: "json" }
 export { default as ERC20Mintable } from './non_generated/ERC20Mintable.json' assert { type: "json" }
 export { default as WETH9 } from './non_generated/WETH9.json' assert { type: "json" }
+export { default as L1_xDaiAMB } from './non_generated/L1_xDaiAMB.json' assert { type: "json" }
+export { default as L2_xDaiAMB } from './non_generated/L2_xDaiAMB.json' assert { type: "json" }

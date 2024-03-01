@@ -1,7 +1,7 @@
 import ERC721BridgeAbi from '../../config/abi/generated/ERC721Bridge.json' assert { type: "json" }
-import { ERC721Bridge__factory } from '../../config/contracts/factories/generated/ERC721Bridge__factory'
-import { Event } from '../Event'
-import { EventBase } from '../types'
+import { ERC721Bridge__factory } from '../../config/contracts/factories/generated/ERC721Bridge__factory.js'
+import { Event } from '../Event.js'
+import { EventBase } from '../types.js'
 import { ethers } from 'ethers'
 
 // event from ERC721Bridge

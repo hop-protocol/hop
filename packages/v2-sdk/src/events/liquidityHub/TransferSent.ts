@@ -2,7 +2,7 @@ import LiquidityHubAbi from '../../config/abi/generated/LiquidityHub.json' asser
 import { BigNumber, ethers } from 'ethers'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
-import { LiquidityHub__factory } from '../../config/contracts/factories/generated/LiquidityHub__factory'
+import { LiquidityHub__factory } from '../../config/contracts/factories/generated/LiquidityHub__factory.js'
 
 // event from LiquidityHub
 export interface TransferSent extends EventBase {

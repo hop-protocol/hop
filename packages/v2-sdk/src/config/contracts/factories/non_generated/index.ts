@@ -4,4 +4,6 @@
 /* eslint-disable */
 export { ERC20__factory } from "./ERC20__factory";
 export { ERC20Mintable__factory } from "./ERC20Mintable__factory";
+export { L1_xDaiAMB__factory } from "./L1_xDaiAMB__factory";
+export { L2_xDaiAMB__factory } from "./L2_xDaiAMB__factory";
 export { WETH9__factory } from "./WETH9__factory";

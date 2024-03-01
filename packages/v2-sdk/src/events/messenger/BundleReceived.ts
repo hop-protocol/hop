@@ -2,7 +2,7 @@ import HubMessageBridgeAbi from '../../config/abi/generated/HubMessageBridge.jso
 import { BigNumber, ethers } from 'ethers'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
-import { HubMessageBridge__factory } from '../../config/contracts/factories/generated/HubMessageBridge__factory'
+import { HubMessageBridge__factory } from '../../config/contracts/factories/generated/HubMessageBridge__factory.js'
 
 // event from HubMessageBridge
 export interface BundleReceived extends EventBase {

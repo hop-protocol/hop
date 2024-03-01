@@ -1,7 +1,7 @@
-import { EventContext } from './types'
-import { EventFetcher, InputFilter } from '../eventFetcher'
-import { chainSlugMap } from '../utils/chainSlugMap'
-import { promiseQueue } from '../promiseQueue'
+import { EventContext } from './types.js'
+import { EventFetcher, InputFilter } from '../eventFetcher.js'
+import { chainSlugMap } from '../utils/chainSlugMap.js'
+import { promiseQueue } from '../promiseQueue.js'
 import { providers } from 'ethers'
 
 export class Event {

@@ -1,7 +1,6 @@
-import l1xDaiAmbAbi from '@hop-protocol/core/abi/non_generated/L1_xDaiAMB.json'
-import l2xDaiAmbAbi from '@hop-protocol/core/abi/non_generated/L2_xDaiAMB.json'
-import { Contract, providers } from 'ethers'
-import { L1_xDaiAMB, L2_xDaiAMB } from '@hop-protocol/core/contracts'
+import { providers } from 'ethers'
+import { L1_xDaiAMB__factory } from '../config/contracts/factories/non_generated/L1_xDaiAMB__factory.js'
+import { L2_xDaiAMB__factory } from '../config/contracts/factories/non_generated/L2_xDaiAMB__factory.js'
 import { solidityKeccak256 } from 'ethers/lib/utils.js'
 
 // reference:
@@ -28,11 +27,11 @@ export class GnosisChainRelayer {
   }
 
   getL1Amb () {
-    return new Contract(this.l1AmbAddress, l1xDaiAmbAbi, this.l1Provider) as L1_xDaiAMB
+    return L1_xDaiAMB__factory.connect(this.l1AmbAddress, this.l1Provider)
   }
 
   getL2Amb () {
-    return new Contract(this.l2AmbAddress, l2xDaiAmbAbi, this.l2Provider) as L2_xDaiAMB
+    return L2_xDaiAMB__factory.connect(this.l2AmbAddress, this.l1Provider)
   }
 
   async getExitPopulatedTx (l2TxHash: string): Promise<any> {

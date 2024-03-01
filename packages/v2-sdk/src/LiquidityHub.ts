@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, Contract, Signer, providers } from 'ethers'
-import { ERC20__factory } from './config/contracts/factories/non_generated/ERC20__factory'
-import { LiquidityHub__factory } from './config/contracts/factories/generated/LiquidityHub__factory'
+import { ERC20__factory } from './config/contracts/factories/non_generated/ERC20__factory.js'
+import { LiquidityHub__factory } from './config/contracts/factories/generated/LiquidityHub__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 
 // Constructor input type
@@ -163,7 +163,7 @@ export class LiquidityHub extends StakingRegistry {
     const tokenBusTokenAddress = tokenBus.token
     const tokenContract = ERC20__factory.connect(tokenBusTokenAddress, this.signer)
     const signerAddress = await this.getSignerAddress()
-    const balance = await tokenContract.balanceOf(signerAddress)
+    const balance = await tokenContract.balanceOf(signerAddress as string)
     if (balance.lt(amount)) {
       const approvalTx = await tokenContract.approve(this.address, amount)
       await approvalTx.wait()
@@ -187,7 +187,7 @@ export class LiquidityHub extends StakingRegistry {
     const tokenBusTokenAddress = tokenBus.token
     const tokenContract = ERC20__factory.connect(tokenBusTokenAddress, this.signer)
     const signerAddress = await this.getSignerAddress()
-    const balance = await tokenContract.balanceOf(signerAddress)
+    const balance = await tokenContract.balanceOf(signerAddress as string)
     if (balance.lt(amount)) {
       const approvalTx = await tokenContract.approve(this.address, amount)
       await approvalTx.wait()

@@ -2,7 +2,7 @@ import SpokeMessageBridgeAbi from '../../config/abi/generated/SpokeMessageBridge
 import { BigNumber, ethers } from 'ethers'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
-import { SpokeMessageBridge__factory } from '../../config/contracts/factories/generated/SpokeMessageBridge__factory'
+import { SpokeMessageBridge__factory } from '../../config/contracts/factories/generated/SpokeMessageBridge__factory.js'
 
 // event from SpokeMessageBridge
 export interface FeesSentToHub extends EventBase {

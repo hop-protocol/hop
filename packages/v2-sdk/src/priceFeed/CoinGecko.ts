@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch'
-import wait from 'wait'
+import { wait } from '../utils/wait.js'
 import { serializeQueryParams } from '../utils/serializeQueryParams.js'
 
 interface IResult {

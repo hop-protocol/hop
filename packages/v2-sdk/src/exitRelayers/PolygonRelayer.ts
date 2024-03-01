@@ -1,4 +1,4 @@
-import wait from 'wait'
+import { wait } from '../utils/wait.js'
 import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { constants, providers } from 'ethers'

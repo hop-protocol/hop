@@ -1,5 +1,5 @@
 import { Contract, Signer, ethers, providers } from 'ethers'
-import { StakingRegistry__factory } from './config/contracts/factories/generated/StakingRegistry__factory'
+import { StakingRegistry__factory } from './config/contracts/factories/generated/StakingRegistry__factory.js'
 
 interface StakingRegistryConstructorInput {
   provider?: providers.Provider

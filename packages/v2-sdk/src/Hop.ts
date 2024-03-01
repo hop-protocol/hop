@@ -5,18 +5,18 @@ import { BundleReceived, BundleReceivedEventFetcher } from './events/messenger/B
 import { BundleSet, BundleSetEventFetcher } from './events/messenger/BundleSet.js'
 import { ConfirmationSent, ConfirmationSentEventFetcher } from './events/nft/ConfirmationSent.js'
 import { DateTime } from 'luxon'
-import { ERC721Bridge__factory } from '@hop-protocol/v2-core/contracts/factories/generated/ERC721Bridge__factory'
+import { ERC721Bridge__factory } from './config/contracts/factories/generated/ERC721Bridge__factory.js'
 import { EventFetcher } from './eventFetcher.js'
 import { ExitRelayer } from './exitRelayers/ExitRelayer.js'
 import { FeesSentToHub, FeesSentToHubEventFetcher } from './events/messenger/FeesSentToHub.js'
 import { GasPriceOracle } from './GasPriceOracle.js'
-import { HubERC5164ConnectorFactory__factory } from './config/contracts/factories/generated/HubERC5164ConnectorFactory__factory'
-import { HubMessageBridge__factory } from './contracts/factories/generated/HubMessageBridge__factory'
+import { HubERC5164ConnectorFactory__factory } from './config/contracts/factories/generated/HubERC5164ConnectorFactory__factory.js'
+import { HubMessageBridge__factory } from './config/contracts/factories/generated/HubMessageBridge__factory.js'
 import { MerkleTree } from './utils/MerkleTree.js'
 import { MessageBundled, MessageBundledEventFetcher } from './events/messenger/MessageBundled.js'
 import { MessageExecuted, MessageExecutedEventFetcher } from './events/messenger/MessageExecuted.js'
 import { MessageSent, MessageSentEventFetcher } from './events/messenger/MessageSent.js'
-import { SpokeMessageBridge__factory } from './config/contracts/factories/generated/SpokeMessageBridge__factory'
+import { SpokeMessageBridge__factory } from './config/contracts/factories/generated/SpokeMessageBridge__factory.js'
 import { TokenConfirmed, TokenConfirmedEventFetcher } from './events/nft/TokenConfirmed.js'
 import { TokenSent, TokenSentEventFetcher } from './events/nft/TokenSent.js'
 import { TransferBondedEventFetcher } from './events/liquidityHub/TransferBonded.js'
@@ -631,13 +631,13 @@ export class Hop {
         const _eventFetcher = new TransferSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
-        map[filter.topics[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TransferBonded') { // LiquidityHub
         const address = this.getLiquidityHubContractAddress(chainId)
         const _eventFetcher = new TransferBondedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
-        map[filter.topics[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = _eventFetcher
       }
     }
     const options = {

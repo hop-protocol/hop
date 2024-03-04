@@ -21,3 +21,4 @@ export { default as ERC20Mintable } from './non_generated/ERC20Mintable.json' as
 export { default as WETH9 } from './non_generated/WETH9.json' assert { type: "json" }
 export { default as L1_xDaiAMB } from './non_generated/L1_xDaiAMB.json' assert { type: "json" }
 export { default as L2_xDaiAMB } from './non_generated/L2_xDaiAMB.json' assert { type: "json" }
+export { default as RailsHub } from './generated/RailsHub.json' assert { type: "json" }

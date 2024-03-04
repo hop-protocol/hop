@@ -35,6 +35,8 @@ export type { MessageBridge } from "./generated/MessageBridge";
 export { MessageBridge__factory } from "./factories/generated/MessageBridge__factory";
 export type { MessageExecutor } from "./generated/MessageExecutor";
 export { MessageExecutor__factory } from "./factories/generated/MessageExecutor__factory";
+export type { RailsHub } from "./generated/RailsHub";
+export { RailsHub__factory } from "./factories/generated/RailsHub__factory";
 export type { SpokeMessageBridge } from "./generated/SpokeMessageBridge";
 export { SpokeMessageBridge__factory } from "./factories/generated/SpokeMessageBridge__factory";
 export type { SpokeTransporter } from "./generated/SpokeTransporter";

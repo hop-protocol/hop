@@ -16,6 +16,7 @@ export type { HubTransporter } from "./HubTransporter";
 export type { LiquidityHub } from "./LiquidityHub";
 export type { MessageBridge } from "./MessageBridge";
 export type { MessageExecutor } from "./MessageExecutor";
+export type { RailsHub } from "./RailsHub";
 export type { SpokeMessageBridge } from "./SpokeMessageBridge";
 export type { SpokeTransporter } from "./SpokeTransporter";
 export type { StakingRegistry } from "./StakingRegistry";

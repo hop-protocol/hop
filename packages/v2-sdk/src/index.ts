@@ -1,5 +1,6 @@
 export { Hop } from './Hop.js'
 export { LiquidityHub } from './LiquidityHub.js'
+export { RailsHub } from './RailsHub.js'
 export { StakingRegistry } from './StakingRegistry.js'
 export { Nft } from './Nft.js'
 export { EventFetcher } from './eventFetcher.js'

@@ -16,6 +16,7 @@ export { HubTransporter__factory } from "./HubTransporter__factory";
 export { LiquidityHub__factory } from "./LiquidityHub__factory";
 export { MessageBridge__factory } from "./MessageBridge__factory";
 export { MessageExecutor__factory } from "./MessageExecutor__factory";
+export { RailsHub__factory } from "./RailsHub__factory";
 export { SpokeMessageBridge__factory } from "./SpokeMessageBridge__factory";
 export { SpokeTransporter__factory } from "./SpokeTransporter__factory";
 export { StakingRegistry__factory } from "./StakingRegistry__factory";

@@ -12,5 +12,5 @@ packages:
   - 'packages/v2-sdk'
   - 'packages/v2-sdk-demo'
   - 'packages/stats-worker'
-  # - 'packages/v2-explorer-backend'
-  # - 'packages/v2-explorer-frontend'
+  - 'packages/v2-explorer-backend'
+  - 'packages/v2-explorer-frontend'

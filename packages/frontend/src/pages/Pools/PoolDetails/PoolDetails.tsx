@@ -242,6 +242,7 @@ export function PoolDetails () {
                       goToTab={goToTab}
                       hasBalance={hasBalance}
                       isWithdrawing={isWithdrawing}
+                      isTokenDeprecated={isPoolDeprecated}
                       removeLiquidity={unstakeAndRemoveLiquidity}
                       setToken0Amount={setToken0Amount}
                       setToken1Amount={setToken1Amount}

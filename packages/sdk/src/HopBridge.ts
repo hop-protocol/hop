@@ -2818,7 +2818,7 @@ class HopBridge extends Base {
   }
 
   getNonAmmAssets (): Set<string> {
-    const list = new Set([CanonicalToken.HOP])
+    const list = new Set([CanonicalToken.HOP, CanonicalToken.USDC])
     if (this.network === NetworkSlug.Goerli) {
       list.add(CanonicalToken.USDT)
       list.add(CanonicalToken.DAI)

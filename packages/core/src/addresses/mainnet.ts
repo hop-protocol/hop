@@ -438,6 +438,7 @@ export const addresses: Addresses = {
       ethereum: {
         l1CanonicalToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
+        cctp: '', // TODO
         bridgeDeployedBlockNumber: 12650032
       },
       gnosis: {
@@ -452,6 +453,7 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x9D373d22FD091d7f9A6649EB067557cc12Fb1A0A', // USDC LP Token
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
+        cctp: '', // TODO
         bridgeDeployedBlockNumber: 16617211
       },
       polygon: {
@@ -468,6 +470,7 @@ export const addresses: Addresses = {
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         l2MessengerProxy: '0xf8024972590cad31C47C41371ff5c98956311747',
+        cctp: '', // TODO
         bridgeDeployedBlockNumber: 15810014
       },
       optimism: {
@@ -480,6 +483,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
         l2SaddleSwap: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',
         l2SaddleLpToken: '0x2e17b8193566345a2Dd467183526dEdc42d2d5A8',
+        cctp: '', // TODO
         bridgeDeployedBlockNumber: 1
       },
       arbitrum: {
@@ -492,6 +496,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xe22D2beDb3Eca35E6397e0C6D62857094aA26F52',
         l2SaddleSwap: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
         l2SaddleLpToken: '0xB67c014FA700E69681a673876eb8BAFAA36BFf71',
+        cctp: '', // TODO
         bridgeDeployedBlockNumber: 440027
       },
       base: {
@@ -504,6 +509,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F',
         l2SaddleSwap: '0x022C5cE6F1Add7423268D41e08Df521D5527C2A0',
         l2SaddleLpToken: '0x3b507422EBe64440f03BCbE5EEe4bdF76517f320',
+        cctp: '', // TODO
         bridgeDeployedBlockNumber: 2077758
       }
     },

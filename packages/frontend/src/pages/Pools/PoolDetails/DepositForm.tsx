@@ -21,7 +21,7 @@ type Props = {
   depositAmountTotalDisplayFormatted: string
   enoughBalance: boolean
   isDepositing: boolean
-  isTokenDeprecated: boolean
+  isPoolDeprecated: boolean
   priceImpactFormatted: string
   selectedNetwork: any
   setToken0Amount: any

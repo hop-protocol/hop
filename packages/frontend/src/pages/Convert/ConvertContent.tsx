@@ -7,7 +7,6 @@ import IconButton from '@mui/material/IconButton'
 import React, { FC, useEffect, useState } from 'react'
 import TokenWrapper from 'src/components/TokenWrapper'
 import Typography from '@mui/material/Typography'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { Alert } from 'src/components/Alert'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
@@ -17,8 +16,8 @@ import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
 import { makeStyles } from '@mui/styles'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { sanitizeNumericalString } from 'src/utils'
+import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 
 const useStyles = makeStyles(theme => ({
@@ -206,7 +205,7 @@ const ConvertContent: FC = () => {
     setCustomRecipient(value)
   }
 
-  const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
+  const isTokenDeprecated = useCheckPoolDeprecated(sourceToken?._symbol)
   const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
   const sendableWarning = !warning || (warning as string)?.startsWith('Warning:')

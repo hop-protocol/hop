@@ -39,6 +39,7 @@ if (enabledTokens) {
 const chainsWithConfig = new Set(Object.values(addresses.tokens).map((x: any) => Object.keys(x)).flat())
 
 const deprecatedTokens = (process.env.REACT_APP_DEPRECATED_TOKENS ?? '').split(',')
+const deprecatedPools = (process.env.REACT_APP_DEPRECATED_POOLS ?? '').split(',')
 
 let enabledChains: string | string[] | undefined = process.env.REACT_APP_ENABLED_CHAINS
 if (enabledChains) {
@@ -76,6 +77,7 @@ if (process.env.NODE_ENV !== 'test') {
   console.debug('config chains (networks):', networks)
   console.debug('config addresses:', addresses.tokens)
   console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
+  console.debug('deprecated pools:', process.env.REACT_APP_DEPRECATED_POOLS)
 }
 
 const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID
@@ -209,5 +211,6 @@ export {
   blocknativeDappid,
   stakingRewardsContracts,
   hopStakingRewardsContracts,
-  deprecatedTokens
+  deprecatedTokens,
+  deprecatedPools,
 }

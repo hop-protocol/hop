@@ -17,6 +17,7 @@ export interface L2BridgeProps {
   l2SaddleSwap: string
   l2SaddleLpToken: string
   bridgeDeployedBlockNumber: number
+  cctp?: string
 }
 
 export interface PolygonBridgeProps extends L2BridgeProps {

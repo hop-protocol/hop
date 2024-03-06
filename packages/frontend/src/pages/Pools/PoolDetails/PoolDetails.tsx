@@ -5,7 +5,6 @@ import Skeleton from '@mui/material/Skeleton'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { AccountPosition } from 'src/pages/Pools/PoolDetails/AccountPosition'
 import { Alert } from 'src/components/Alert'
 import { BigNumber } from 'ethers'
@@ -19,7 +18,6 @@ import { WithdrawForm } from 'src/pages/Pools/PoolDetails/WithdrawForm'
 import { bigNumberMin } from 'src/utils/bigNumberMin'
 import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { useParams } from 'react-router'
 import { usePool } from '../PoolsContext'
 import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
@@ -81,6 +79,7 @@ export function PoolDetails () {
     volumeUsdFormatted,
     walletConnected,
     warning,
+    isPoolDeprecated
   } = usePool()
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -128,11 +127,10 @@ export function PoolDetails () {
     })
   }
 
-  const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(tokenSymbol)) ?? false
   const stakingEnabled = stakingRewards.length > 0
   const selectedStakingContractAddress = stakingRewards[selectedStaking] ? stakingRewards[selectedStaking].stakingContractAddress : null
 
-  const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract && hasBalance
+  const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract && hasBalance && !isPoolDeprecated
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -224,7 +222,7 @@ export function PoolDetails () {
                       depositAmountTotalDisplayFormatted={depositAmountTotalDisplayFormatted}
                       enoughBalance={enoughBalance}
                       isDepositing={isDepositing}
-                      isTokenDeprecated={isTokenDeprecated}
+                      isTokenDeprecated={isPoolDeprecated}
                       priceImpactFormatted={priceImpactFormatted}
                       selectedNetwork={selectedNetwork}
                       setToken0Amount={setToken0Amount}
@@ -264,7 +262,7 @@ export function PoolDetails () {
                   {selectedTab === 'stake' && <StakeForm
                       chainSlug={chainSlug}
                       handleStakingChange={handleStakingChange}
-                      isTokenDeprecated={isTokenDeprecated}
+                      isTokenDeprecated={isPoolDeprecated}
                       selectedStaking={selectedStaking}
                       stakingContractAddress={selectedStakingContractAddress}
                       stakingEnabled={stakingEnabled}

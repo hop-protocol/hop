@@ -10,6 +10,7 @@ import { providers } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { SendMessage } from '../components/SendMessage'
+import { RailsHubSend } from '../components/RailsHubSend'
 import { RelayMessage } from '../components/RelayMessage'
 import { ExitBundle } from '../components/ExitBundle'
 import { GetBundleProof } from '../components/GetBundleProof'
@@ -70,6 +71,7 @@ export function Main () {
   const showAccountInfo = false
 
   const components = [
+    <RailsHubSend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <SendMessage signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <GetBundleProof sdk={sdk} />,
     <RelayMessage signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,

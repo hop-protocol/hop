@@ -809,8 +809,8 @@ export class ArbBot {
     }
 
     const addresses = this.getAddresses()
-    const l1TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
-    const l2TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as L2BridgeProps)?.l2CanonicalToken
+    const l1TokenAddress = ((addresses?.bridges as any)?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
+    const l2TokenAddress = ((addresses?.bridges as any)?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as L2BridgeProps)?.l2CanonicalToken
     const tx = await csm.depositERC20(l1TokenAddress, l2TokenAddress, amount)
     return tx
   }
@@ -869,7 +869,7 @@ export class ArbBot {
     }
 
     const addresses = this.getAddresses()
-    const l1TokenAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
+    const l1TokenAddress = ((addresses?.bridges as any)?.[this.tokenSymbol]?.[this.l1ChainSlug as ChainSlug] as L1BridgeProps)?.l1CanonicalToken
     const erc20Bridger = new Erc20Bridger(l2Network)
     const tx = await erc20Bridger.deposit({
       erc20L1Address: l1TokenAddress,
@@ -1034,7 +1034,7 @@ export class ArbBot {
 
   async getL2WethContract () {
     const addresses = this.getAddresses()
-    const l2WethAddress = (addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as L2BridgeProps)?.l2CanonicalToken
+    const l2WethAddress = ((addresses?.bridges as any)?.[this.tokenSymbol]?.[this.l2ChainSlug as ChainSlug] as L2BridgeProps)?.l2CanonicalToken
     const weth = new Contract(l2WethAddress, wethAbi, this.ammSigner.connect(this.l2ChainProvider))
     return weth
   }

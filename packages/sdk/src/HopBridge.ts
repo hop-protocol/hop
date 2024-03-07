@@ -758,7 +758,123 @@ class HopBridge extends Base {
     return token.balanceOf(address)
   }
 
+  getIsCctp () {
+    return this.tokenSymbol === 'USDC.e'
+  }
+
   public async getSendData (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
+  ) : Promise<any> {
+    if (this.getIsCctp()) {
+      return this.getSendDataCctp(amountIn, sourceChain, destinationChain)
+    }
+
+    return this._getSendData(amountIn, sourceChain, destinationChain, isHTokenSend)
+  }
+
+  async getSendDataCctp (
+    amountIn: BigNumberish,
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) : Promise<any> {
+    amountIn = BigNumber.from(amountIn)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const isHTokenSend = false
+    const amountOutWithoutFee = amountIn
+    const bonderFeeRelative = BigNumber.from(0)
+
+    const [
+      destinationTxFeeData,
+      feeBps
+    ] = await Promise.all([
+      this.getDestinationTransactionFeeData(sourceChain, destinationChain),
+      this.getFeeBps(this.tokenSymbol, destinationChain)
+    ])
+
+    const {
+      destinationTxFee,
+      rate: tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice
+    } = destinationTxFeeData
+
+    let adjustedBonderFee = BigNumber.from(0)
+    let adjustedDestinationTxFee = BigNumber.from(0)
+    let totalFee = BigNumber.from(0)
+    if (sourceChain.isL1) {
+      if (this.relayerFeeEnabled[destinationChain.slug]) {
+        adjustedBonderFee = BigNumber.from(0)
+        adjustedDestinationTxFee = destinationTxFee
+        totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+      }
+    } else {
+      const bonderFeeAbsolute = await this.getBonderFeeAbsolute(sourceChain, destinationChain)
+
+      // enforce bonderFeeAbsolute after adjustment
+      adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute) ? adjustedBonderFee : bonderFeeAbsolute
+      totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+    }
+
+    const sourceToken = this.getCanonicalToken(sourceChain)
+    const destToken = this.getCanonicalToken(destinationChain)
+
+    const rate = this.getRate(
+      amountIn,
+      amountOutWithoutFee,
+      sourceToken,
+      destToken
+    )
+
+    const priceImpact = 0
+    const relayFeeEth = BigNumber.from(0)
+    let estimatedReceived = amountOutWithoutFee
+    if (totalFee.gt(0)) {
+      estimatedReceived = estimatedReceived.sub(totalFee)
+    }
+
+    if (estimatedReceived.lt(0)) {
+      estimatedReceived = BigNumber.from(0)
+    }
+
+    const isLiquidityAvailable = true
+    const lpFeeBps = BigNumber.from(0)
+    const requiredLiquidity = amountIn
+    const lpFees = BigNumber.from(0)
+
+    return {
+      amountIn,
+      sourceChain,
+      destinationChain,
+      isHTokenSend,
+      amountOut: amountOutWithoutFee,
+      rate,
+      priceImpact,
+      requiredLiquidity,
+      lpFees,
+      bonderFeeRelative,
+      adjustedBonderFee,
+      destinationTxFee,
+      adjustedDestinationTxFee,
+      totalFee,
+      estimatedReceived,
+      feeBps,
+      lpFeeBps,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice,
+      relayFeeEth,
+      isLiquidityAvailable
+    }
+  }
+
+  async _getSendData (
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain,

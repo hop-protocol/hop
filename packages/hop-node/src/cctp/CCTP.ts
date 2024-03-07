@@ -19,13 +19,7 @@ type AttestationResponse = AttestationResponseSuccess | AttestationResponseError
 export default abstract class CCTP {
   readonly #baseAttestationUrl: string
 
-  readonly #provider: providers.JsonRpcProvider
-
   constructor (chainId: number) {
-
-    // TODO: How do we get providers?
-    this.#provider = new providers.JsonRpcProvider('TODO')
-
     // TODO: isMainnet, not 1
     const attestationUrlSubdomain = chainId === 1 ? 'iris-api' : 'iris-api-sandbox'
     this.#baseAttestationUrl = `https://${attestationUrlSubdomain}.circle.com/v1/attestations`

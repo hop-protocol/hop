@@ -140,7 +140,6 @@ export class HopCCTP extends CCTP {
     await this.#cache.delete(cacheKey)
   }
 
-
   #getCacheKey (depositTransactionHash: string, message: string): string {
     // Use both since a message can change without the tx hash changing
     return utils.keccak256(depositTransactionHash + message)

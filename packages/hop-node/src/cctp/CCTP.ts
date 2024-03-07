@@ -1,4 +1,5 @@
-import { providers, utils } from 'ethers'
+import { NetworkSlug } from '@hop-protocol/core/networks'
+import { utils } from 'ethers'
 
 enum AttestationStatus {
   PendingConfirmation = 'pending_confirmation',
@@ -19,9 +20,8 @@ type AttestationResponse = AttestationResponseSuccess | AttestationResponseError
 export default abstract class CCTP {
   readonly #baseAttestationUrl: string
 
-  constructor (chainId: number) {
-    // TODO: isMainnet, not 1
-    const attestationUrlSubdomain = chainId === 1 ? 'iris-api' : 'iris-api-sandbox'
+  constructor (network: string) {
+    const attestationUrlSubdomain = network === NetworkSlug.Mainnet ? 'iris-api' : 'iris-api-sandbox'
     this.#baseAttestationUrl = `https://${attestationUrlSubdomain}.circle.com/v1/attestations`
   }
 
@@ -29,37 +29,17 @@ export default abstract class CCTP {
     const attestationResponse: AttestationResponse = await this.#getAttestationResponse(message)
 
     if ('error' in attestationResponse) {
-      // TODO: Hanldle case where attestationResponse.error is not defined. Could be:
-      // * too early
-      // * message doesn't exist (reorg?)
-
-      // Probably throw custom err?
+      await this.#handleAttestationError()
+      // TODO: throw?
       return
     }
 
     if (attestationResponse.status !== AttestationStatus.Complete) {
-      // TODO: Hanle case...
+      // TODO: Handle case...
       return
     }
 
     return attestationResponse.attestation
-  }
-
-  protected async isMessageRelayedInTx (message: string, tx: providers.TransactionReceipt): Promise<boolean> {
-    // Ideally we check onchain state, but that requires custom message parsing or additional
-    // cache values, so we just check the entire message from the logs instead
-    const { logs } = tx
-    for (const log of logs) {
-      const messageReceivedEventSignature = utils.keccak256('MessageReceived(address,uint32,uint64,bytes32,bytes)')
-      if (log.topics[0] !== messageReceivedEventSignature) continue
-    
-      const messageStartLocation = 192
-      const logMessage = '0x' + log.data.slice(messageStartLocation, message.length)
-      if (logMessage !== message) continue
-
-      return true
-    }
-    return false
   }
 
   async #getAttestationResponse (message: string): Promise<AttestationResponse> {
@@ -67,5 +47,10 @@ export default abstract class CCTP {
     const url = `${this.#baseAttestationUrl}/${messageHash}`
     const response = await fetch(url)
     return response.json()
+  }
+
+  async #handleAttestationError (): Promise<void> {
+    // * too early
+    // * message doesn't exist (reorg?)
   }
 }

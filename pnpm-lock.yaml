@@ -650,6 +650,15 @@ importers:
       '@hop-protocol/core':
         specifier: workspace:*
         version: link:../core
+      '@uniswap/sdk-core':
+        specifier: 3.2.2
+        version: 3.2.2
+      '@uniswap/v3-core':
+        specifier: 1.0.1
+        version: 1.0.1
+      '@uniswap/v3-sdk':
+        specifier: 3.9.0
+        version: 3.9.0(hardhat@2.20.1)
       buffer:
         specifier: 6.0.3
         version: 6.0.3

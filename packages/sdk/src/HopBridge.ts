@@ -5,12 +5,13 @@ import Token from './Token'
 import TokenModel from './models/Token'
 import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts'
+import { L1_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts'
 import { L2_Bridge } from '@hop-protocol/core/contracts'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
-import { L1_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { L2_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { Multicall } from './Multicall'
+import { getSwapParams } from './utils/uniswap'
 
 import { ApiKeys, PriceFeedFromS3 } from './priceFeed'
 import {
@@ -2339,7 +2340,14 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const swapParams = '0x' // TODO generate this
+      const swapParams = await getSwapParams({
+        network: this.network,
+        chainId: sourceChain.chainId,
+        amountIn: amount,
+        provider: sourceChain.provider!,
+        recipient: l2Bridge.address
+      })
+
       const txOptions = [
         destinationChainId,
         recipient,
@@ -2457,7 +2465,14 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const swapParams = '0x' // TODO generate this
+      const swapParams = await getSwapParams({
+        network: this.network,
+        chainId: sourceChain.chainId,
+        amountIn: amount,
+        provider: sourceChain.provider!,
+        recipient: l2Bridge.address
+      })
+
       const txOptions = [
         destinationChainId,
         recipient,

@@ -436,34 +436,28 @@ export const addresses: Addresses = {
   bridges: {
     USDC: {
       ethereum: {
-        l1CanonicalToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        cctp: '' // TODO
-      },
-      gnosis: {
-        l2CanonicalToken: '',
-        l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
-        l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        cctp: '', // TODO
+        l1CanonicalToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        l1Bridge: '' // TODO cctp address
       },
       polygon: {
-        l2CanonicalToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        l2CanonicalToken: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
         l1FxBaseRootTunnel: '0x1e1607db33D38715544E595A5D8f94557C487DfA',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         l2MessengerProxy: '0xf8024972590cad31C47C41371ff5c98956311747',
-        cctp: '' // TODO
+        l2Bridge: '' // TODO cctp address
       },
       optimism: {
-        l2CanonicalToken: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
-        cctp: '' // TODO
+        l2CanonicalToken: '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
+        l2Bridge: '' // TODO cctp address
       },
       arbitrum: {
-        l2CanonicalToken: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
-        cctp: '' // TODO
+        l2CanonicalToken: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+        l2Bridge: '' // TODO cctp address
       },
       base: {
-        l2CanonicalToken: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
-        cctp: '' // TODO
+        l2CanonicalToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        l2Bridge: '' // TODO cctp address
       }
     },
     'USDC.e': {

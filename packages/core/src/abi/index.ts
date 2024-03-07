@@ -87,6 +87,8 @@ export { default as swapAbi } from './generated/Swap.json'
 export { default as swapUtilsAbi } from './generated/SwapUtils.json'
 export { default as timelockAbi } from './generated/Timelock.json'
 export { default as xDaiMessengerWrapperAbi } from './generated/xDaiMessengerWrapper.json'
+export { default as l1HopCCTPImplementation } from './generated/L1_HopCCTPImplementation.json'
+export { default as l2HopCCTPImplementation } from './generated/L2_HopCCTPImplementation.json'
 
 // Custom ABIs
 export { default as l1Erc20BridgeLegacyAbi } from './static/L1_ERC20_Bridge_Legacy.json'

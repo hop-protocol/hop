@@ -4,8 +4,6 @@ import Poller from './Poller'
 import { Event, providers, utils } from 'ethers'
 import { Hop } from '@hop-protocol/sdk'
 
-const { keccak256 } = utils
-
 // To solve:
 // * What happens on server restart
 // * is there anything to do to run this on every chain?
@@ -145,6 +143,6 @@ export class HopCCTP extends CCTP {
 
   #getCacheKey (depositTransactionHash: string, message: string): string {
     // Use both since a message can change without the tx hash changing
-    return keccak256(depositTransactionHash + message)
+    return utils.keccak256(depositTransactionHash + message)
   }
 }

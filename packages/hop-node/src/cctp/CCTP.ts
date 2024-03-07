@@ -1,7 +1,5 @@
 import { providers, utils } from 'ethers'
 
-const { keccak256 } = utils
-
 enum AttestationStatus {
   PendingConfirmation = 'pending_confirmation',
   Complete = 'complete'
@@ -58,7 +56,7 @@ export default abstract class CCTP {
     // cache values, so we just check the entire message from the logs instead
     const { logs } = tx
     for (const log of logs) {
-      const messageReceivedEventSignature = keccak256('MessageReceived(address,uint32,uint64,bytes32,bytes)')
+      const messageReceivedEventSignature = utils.keccak256('MessageReceived(address,uint32,uint64,bytes32,bytes)')
       if (log.topics[0] !== messageReceivedEventSignature) continue
     
       const messageStartLocation = 192
@@ -71,7 +69,7 @@ export default abstract class CCTP {
   }
 
   async #getAttestationResponse (message: string): Promise<AttestationResponse> {
-    const messageHash = keccak256(message)
+    const messageHash = utils.keccak256(message)
     const url = `${this.#baseAttestationUrl}/${messageHash}`
     const response = await fetch(url)
     return response.json()

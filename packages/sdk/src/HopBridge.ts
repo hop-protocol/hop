@@ -2340,7 +2340,7 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const swapParams = await getSwapParams({
+      const { swapParams } = await getSwapParams({
         network: this.network,
         chainId: sourceChain.chainId,
         amountIn: amount,
@@ -2465,7 +2465,7 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const swapParams = await getSwapParams({
+      const { swapParams } = await getSwapParams({
         network: this.network,
         chainId: sourceChain.chainId,
         amountIn: amount,

@@ -437,7 +437,7 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a' // TODO cctp address
+        l1Bridge: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5' // TODO cctp address
       },
       polygon: {
         l2CanonicalToken: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
@@ -445,19 +445,19 @@ export const addresses: Addresses = {
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         l2MessengerProxy: '0xf8024972590cad31C47C41371ff5c98956311747',
-        l2Bridge: '0x25D8039bB044dC227f741a9e381CA4cEAE2E6aE8' // TODO cctp address
+        l2Bridge: '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE' // TODO cctp address
       },
       optimism: {
         l2CanonicalToken: '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
-        l2Bridge: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC' // TODO cctp address
+        l2Bridge: '0x2B4069517957735bE00ceE0fadAE88a26365528f' // TODO cctp address
       },
       arbitrum: {
         l2CanonicalToken: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-        l2Bridge: '0x0e0E3d2C5c292161999474247956EF542caBF8dd' // TODO cctp address
+        l2Bridge: '0x19330d10D9Cc8751218eaf51E8885D058642E08A' // TODO cctp address
       },
       base: {
         l2CanonicalToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-        l2Bridge: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61' // TODO cctp address
+        l2Bridge: '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962' // TODO cctp address
       }
     },
     'USDC.e': {

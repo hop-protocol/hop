@@ -1,11 +1,11 @@
-import { getSwapParams } from '../../src/utils/uniswap'
+import { getUSDCSwapParams } from '../../src/utils/uniswap'
 import { providers, constants } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 
-describe.only('uniswap', () => {
-  it('getSwapParams', async () => {
+describe('uniswap', () => {
+  it('getUSDCSwapParams', async () => {
     const provider = new providers.JsonRpcProvider('https://mainnet.optimism.io/')
-    const { swapParams, quotedAmountOutFormatted } = await getSwapParams({
+    const { swapParams, quotedAmountOutFormatted } = await getUSDCSwapParams({
       network: 'mainnet',
       chainId: 420,
       amountIn: parseUnits('10', 6),

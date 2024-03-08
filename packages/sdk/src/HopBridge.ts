@@ -11,7 +11,7 @@ import { L2_Bridge } from '@hop-protocol/core/contracts'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L2_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { Multicall } from './Multicall'
-import { getSwapParams } from './utils/uniswap'
+import { getUSDCSwapParams } from './utils/uniswap'
 
 import { ApiKeys, PriceFeedFromS3 } from './priceFeed'
 import {
@@ -2340,7 +2340,7 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const { swapParams } = await getSwapParams({
+      const { swapParams } = await getUSDCSwapParams({
         network: this.network,
         chainId: sourceChain.chainId,
         amountIn: amount,
@@ -2465,7 +2465,7 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const { swapParams } = await getSwapParams({
+      const { swapParams } = await getUSDCSwapParams({
         network: this.network,
         chainId: sourceChain.chainId,
         amountIn: amount,

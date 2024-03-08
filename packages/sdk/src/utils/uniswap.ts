@@ -1,10 +1,10 @@
 import { BigNumber, Contract } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
-import { Pool, Route, TICK_SPACINGS, TickMath, Trade, nearestUsableTick, encodeRouteToPath } from '@uniswap/v3-sdk'
+import { Pool, Route, TICK_SPACINGS, TickMath, Trade, encodeRouteToPath, nearestUsableTick } from '@uniswap/v3-sdk'
 import { UniswapQuoterV2Abi } from '@hop-protocol/core/abi'
 import { chainIdToSlug } from './chainIdToSlug'
+import { formatUnits } from 'ethers/lib/utils'
 
 type TickSpacing = 100 | 500 | 3000 | 10000
 
@@ -50,10 +50,42 @@ const addresses: any = {
       quoter: '0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a',
       tokens: ['0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA', '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913']
     }
-  }
+  },
+  sepolia: {
+    optimism: {
+      swapRouter: '0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4',
+      pools: {
+        USDC: {
+          'USDC.e': '', // TODO
+        }
+      },
+      quoter: '0xC5290058841028F1614F3A6F0F5816cAd0df5E27',
+      tokens: ['', '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'] // USDC.e, USDC // TODO
+    },
+    arbitrum: {
+      swapRouter: '0x101F443B4d1b059569D643917553c771E1b9663E',
+      pools: {
+        USDC: {
+          'USDC.e': '', // TODO
+        }
+      },
+      quoter: '0x2779a0CC1c3e0E44D2542EC3e79e3864Ae93Ef0B',
+      tokens: ['', '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d'] // TODO
+    },
+    base: {
+      swapRouter: '0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4',
+      pools: {
+        USDC: {
+          'USDC.e': '', // TODO
+        }
+      },
+      quoter: '0xC5290058841028F1614F3A6F0F5816cAd0df5E27',
+      tokens: ['', '0x036CbD53842c5426634e7929541eC2318f3dCF7e']  // TODO
+    },
+  },
 }
 
-export async function getSwapParams(options: any) {
+export async function getUSDCSwapParams(options: any) {
   const { network, chainId, provider, amountIn, recipient, getQuote = false } = options
   const chain = chainIdToSlug(network, chainId)
   const decimals = 6

@@ -1,8 +1,8 @@
 import { BigNumber, Contract } from 'ethers'
-import { parseUnits, formatUnits, getAddress } from 'ethers/lib/utils'
-import { CurrencyAmount, Percent, Token, TradeType } from '@uniswap/sdk-core'
+import { formatUnits } from 'ethers/lib/utils'
+import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
-import { Pool, Route, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
+import { Pool, Route, TICK_SPACINGS, TickMath, Trade, nearestUsableTick, encodeRouteToPath } from '@uniswap/v3-sdk'
 import { UniswapQuoterV2Abi } from '@hop-protocol/core/abi'
 import { chainIdToSlug } from './chainIdToSlug'
 
@@ -18,7 +18,7 @@ const addresses: any = {
         }
       },
       quoter: '0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6',
-      tokens: [getAddress('0x7F5c764cBc14f9669B88837ca1490cCa17c31607'), getAddress('0x0b2c639c533813f4aa9d7837caf62653d097ff85')] // USDC.e, USDC
+      tokens: ['0x7F5c764cBc14f9669B88837ca1490cCa17c31607', '0x0b2c639c533813f4aa9d7837caf62653d097ff85'] // USDC.e, USDC
     },
     arbitrum: {
       swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
@@ -116,15 +116,15 @@ export async function getSwapParams(options: any) {
 
   // Create a trade for a given input amount
   const amountInTokenA = CurrencyAmount.fromRawAmount(tokenA, amountIn.toString())
-  // const trade = await Trade.fromRoute(route, amountInTokenA, TradeType.EXACT_INPUT)
   const trade = await Trade.exactIn(route, amountInTokenA)
 
   // Calculate slippage tolerance and set deadline
   const slippageTolerance = new Percent('50', '10000') // 0.5%
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes from now
 
+  const exactOutput = false
   const swapParams = {
-      path: tokens.join('-'),
+      path: encodeRouteToPath(route, exactOutput),
       recipient: recipient,
       deadline: deadline.toString(),
       amountIn: trade.inputAmount.toExact(),

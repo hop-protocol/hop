@@ -764,7 +764,7 @@ class HopBridge extends Base {
   }
 
   getIsCctpBridge () {
-    return this.tokenSymbol === 'USDC'
+    return ['USDC', 'USDC.e'].includes(this.tokenSymbol)
   }
 
   public async getSendData (
@@ -2340,29 +2340,48 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const { swapParams } = await getUSDCSwapParams({
-        network: this.network,
-        chainId: sourceChain.chainId,
-        amountIn: amount,
-        provider: sourceChain.provider!,
-        recipient: l2Bridge.address
-      })
+      if (this.tokenSymbol === 'USDC.e') {
+        const { swapParams } = await getUSDCSwapParams({
+          network: this.network,
+          chainId: sourceChain.chainId,
+          amountIn: amount,
+          provider: sourceChain.provider!,
+          recipient: l2Bridge.address
+        })
 
-      const txOptions = [
-        destinationChainId,
-        recipient,
-        amount,
-        bonderFee,
-        swapParams,
-        {
-          ...(await this.txOverrides(sourceChain)),
-          value,
-        }
-      ] as const
+        const txOptions = [
+          destinationChainId,
+          recipient,
+          amount,
+          bonderFee,
+          swapParams,
+          {
+            ...(await this.txOverrides(sourceChain)),
+            value,
+          }
+        ] as const
 
-      return l2Bridge.populateTransaction.swapAndSend(
-        ...txOptions,
-      )
+        return l2Bridge.populateTransaction.swapAndSend(
+          ...txOptions,
+        )
+      } else {
+        const txOptions = [
+          destinationChainId,
+          recipient,
+          amount || 0,
+          bonderFee,
+          {
+            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+            value
+          }
+        ] as const
+
+        const tx = await l2Bridge.populateTransaction.send(
+          ...txOptions
+        )
+
+        return tx
+      }
     } else {
       const txOptions = [
         destinationChainId,
@@ -2465,29 +2484,48 @@ class HopBridge extends Base {
     const value = isNativeToken ? amount : undefined
 
     if (this.getIsCctpBridge()) {
-      const { swapParams } = await getUSDCSwapParams({
-        network: this.network,
-        chainId: sourceChain.chainId,
-        amountIn: amount,
-        provider: sourceChain.provider!,
-        recipient: l2Bridge.address
-      })
+      if (this.tokenSymbol === 'USDC.e') {
+        const { swapParams } = await getUSDCSwapParams({
+          network: this.network,
+          chainId: sourceChain.chainId,
+          amountIn: amount,
+          provider: sourceChain.provider!,
+          recipient: l2Bridge.address
+        })
 
-      const txOptions = [
-        destinationChainId,
-        recipient,
-        amount,
-        bonderFee,
-        swapParams,
-        {
-          ...(await this.txOverrides(sourceChain)),
-          value,
-        }
-      ] as const
+        const txOptions = [
+          destinationChainId,
+          recipient,
+          amount,
+          bonderFee,
+          swapParams,
+          {
+            ...(await this.txOverrides(sourceChain)),
+            value,
+          }
+        ] as const
 
-      return l2Bridge.populateTransaction.swapAndSend(
-        ...txOptions,
-      )
+        return l2Bridge.populateTransaction.swapAndSend(
+          ...txOptions,
+        )
+      } else {
+        const txOptions = [
+          destinationChainId,
+          recipient,
+          amount || 0,
+          bonderFee,
+          {
+            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+            value
+          }
+        ] as const
+
+        const tx = await l2Bridge.populateTransaction.send(
+          ...txOptions
+        )
+
+        return tx
+      }
     } else {
       const txOptions = [
         destinationChainId,

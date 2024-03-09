@@ -114,6 +114,20 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xb5E87a0Cd0dcB09308f4DB0ea56884a8005097B3',
         bridgeDeployedBlockNumber: 3615908
       }
-    }
+    },
+    USDC: {
+      ethereum: {
+        l1CanonicalToken: '0x07865c6e87b9f70255377e024ace6630c1eaa37f',
+        l1Bridge: '0x93fa781d2b639804005e48122208b000a868db37' // TODO cctp address
+      },
+      optimism: {
+        l2CanonicalToken: '0xe05606174bac4a6364b31bd0eca4bf4dd368f8c6',
+        l2Bridge: '' // TODO cctp address
+      },
+      arbitrum: {
+        l2CanonicalToken: '0xfd064a18f3bf249cf1f87fc203e90d8f650f2d63',
+        l2Bridge: '' // TODO cctp address
+      },
+    },
   }
 }

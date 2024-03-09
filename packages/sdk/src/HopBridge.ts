@@ -2189,9 +2189,9 @@ class HopBridge extends Base {
       // ToDo: Don't pass in sourceChain since it will always be L1
       throw new Error('sourceChain must be L1')
     }
-    if (await this.getIsBridgeDeprecated(this.tokenSymbol)) {
-      throw new Error('This bridge is deprecated')
-    }
+    // if (await this.getIsBridgeDeprecated(this.tokenSymbol)) {
+    //   throw new Error('This bridge is deprecated')
+    // }
 
     const destinationChainId = destinationChain.chainId
     deadline = deadline ?? this.defaultDeadlineSeconds
@@ -2236,22 +2236,53 @@ class HopBridge extends Base {
     }
 
     if (this.getIsCctpBridge()) {
-      const txOptions = [
-        destinationChainId,
-        recipient,
-        amount || 0,
-        relayerFee,
-        {
-          ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
-          value
-        }
-      ] as const
+      const testUsdce = this.network === 'sepolia' && this.tokenSymbol === 'USDC.e'
+      if (testUsdce) {
+        const provider = await this.getSignerOrProvider(Chain.Ethereum)
+        const _l1Bridge = L2_HopCCTPImplementation__factory.connect(l1Bridge.address, provider)
 
-      const tx = await l1Bridge.populateTransaction.send(
-        ...txOptions
-      )
+        const { swapParams } = await getUSDCSwapParams({
+          network: this.network,
+          chainId: sourceChain.chainId,
+          amountIn: amount,
+          provider: sourceChain.provider!,
+          recipient: l1Bridge.address
+        })
 
-      return tx
+        const txOptions = [
+          destinationChainId,
+          recipient,
+          amount,
+          0,
+          swapParams,
+          {
+            ...(await this.txOverrides(sourceChain)),
+            gasLimit: 5_000_000,
+            value
+          }
+        ] as const
+
+        return _l1Bridge.populateTransaction.swapAndSend(
+          ...txOptions,
+        )
+      } else {
+        const txOptions = [
+          destinationChainId,
+          recipient,
+          amount || 0,
+          relayerFee,
+          {
+            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+            value
+          }
+        ] as const
+
+        const tx = await l1Bridge.populateTransaction.send(
+          ...txOptions
+        )
+
+        return tx
+      }
     } else {
       const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
       if (isPaused) {

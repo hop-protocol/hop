@@ -13,6 +13,10 @@ export const allNetworks = Object.keys(networks).map(key => {
     // meta = metadata.networks[reactAppNetwork]
   }
 
+  if (!(net && meta && net?.rpcUrl)) {
+    return
+  }
+
   return new Network({
     name: meta.name,
     slug: key,
@@ -26,6 +30,7 @@ export const allNetworks = Object.keys(networks).map(key => {
     explorerUrl: net.explorerUrl
   })
 })
+.filter(item => item)
 
 export const l1Network = find(allNetworks, ['isLayer1', true])!
 export const l2Networks = filter(allNetworks, ['isLayer1', false])

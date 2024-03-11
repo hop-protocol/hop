@@ -579,8 +579,16 @@ export class Base {
     return this.getConfigAddresses(token, chain)?.l1Bridge
   }
 
+  public getCctpL1BridgeAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpL1Bridge
+  }
+
   public getL2BridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2Bridge
+  }
+
+  public getCctpL2BridgeAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpL2Bridge
   }
 
   public getL1CanonicalBridgeAddress (token: TToken, chain: TChain): string {

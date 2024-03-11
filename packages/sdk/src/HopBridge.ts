@@ -7,7 +7,7 @@ import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts'
 import { L1_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts'
-import { L2_Bridge } from '@hop-protocol/core/contracts'
+import { L1_Bridge, L2_Bridge, L1_HopCCTPImplementation, L2_HopCCTPImplementation } from '@hop-protocol/core/contracts'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L2_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { Multicall } from './Multicall'
@@ -401,7 +401,7 @@ class HopBridge extends Base {
 
     await this.checkConnectedChain(this.signer, sourceChain)
 
-    if (!this.getIsCctpBridge()) {
+    if (!this.getShouldUseCctpBridge()) {
       const recipient = options?.recipient ?? await this.getSignerAddress()
       const willFail = await this.willTransferFail(sourceChain, destinationChain, recipient!)
       if (willFail) {
@@ -550,13 +550,24 @@ class HopBridge extends Base {
 
   public getSendApprovalAddress (
     sourceChain: TChain,
-    isHTokenTransfer: boolean = false,
+    isHTokenSend: boolean = false,
     destinationChain?: TChain // this param was later added hence it's after the boolean param for backward compatibility
   ) : string {
     sourceChain = this.toChainModel(sourceChain)
 
     if (sourceChain.equals(Chain.Ethereum)) {
-      return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
+      if (this.getShouldUseCctpBridge({ isHTokenSend })) {
+        return this.getCctpL1BridgeAddress(this.tokenSymbol, sourceChain)
+      } else {
+        return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
+      }
+    }
+
+    if (this.getShouldUseCctpBridge({ isHTokenSend })) {
+      return this.getCctpL2BridgeAddress(
+        this.tokenSymbol,
+        sourceChain
+      )
     }
 
     const ammWrapperAddress = this.getL2AmmWrapperAddress(
@@ -569,7 +580,7 @@ class HopBridge extends Base {
     )
 
     let approvalAddress: string
-    if (isHTokenTransfer || !this.doesUseAmm) {
+    if (isHTokenSend || !this.doesUseAmm) {
       approvalAddress = l2BridgeAddress
     } else {
       approvalAddress = ammWrapperAddress
@@ -580,11 +591,11 @@ class HopBridge extends Base {
   public async populateSendApprovalTx (
     tokenAmount: TAmount,
     sourceChain: TChain,
-    isHTokenTransfer: boolean = false,
+    isHTokenSend: boolean = false,
     destinationChain?: TChain // this param was later added hence it's after the boolean param for backward compatibility
   ):Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
-    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer, destinationChain)
+    const spender = this.getSendApprovalAddress(sourceChain, isHTokenSend, destinationChain)
     const isNativeToken = this.isNativeToken(sourceChain)
     if (isNativeToken) {
       return null
@@ -592,7 +603,7 @@ class HopBridge extends Base {
     let token
     if (sourceChain.isL1) {
       token = this.getL1Token()
-    } else if (isHTokenTransfer) {
+    } else if (isHTokenSend) {
       token = this.getL2HopToken(sourceChain)
     } else {
       token = this.getCanonicalToken(sourceChain)
@@ -605,10 +616,10 @@ class HopBridge extends Base {
     tokenAmount: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,
-    isHTokenTransfer: boolean = false
+    isHTokenSend: boolean = false
   ) : Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
-    const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer, destinationChain)
+    const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenSend, destinationChain)
     if (populatedTx) {
       await this.checkConnectedChain(this.signer, sourceChain)
       return this.sendTransaction(populatedTx, sourceChain)
@@ -704,7 +715,7 @@ class HopBridge extends Base {
       }
 
       const isNativeToken = this.isNativeToken(sourceChain)
-      const value = isNativeToken ? tokenAmount : undefined
+      const value = isNativeToken ? tokenAmount : 0
 
       if (!this.isValidRelayerAndRelayerFee(relayer, bonderFee)) {
         throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
@@ -763,8 +774,12 @@ class HopBridge extends Base {
     return token.balanceOf(address)
   }
 
-  getIsCctpBridge () {
-    return ['USDC', 'USDC.e'].includes(this.tokenSymbol)
+  getShouldUseCctpBridge (options: { isHTokenSend: boolean } = { isHTokenSend: false }) {
+    if (this.tokenSymbol === 'USDC') {
+      return true
+    }
+
+    return this.tokenSymbol === 'USDC.e' && !options.isHTokenSend
   }
 
   public async getSendData (
@@ -773,7 +788,7 @@ class HopBridge extends Base {
     destinationChain: TChain,
     isHTokenSend: boolean = false
   ) : Promise<any> {
-    if (this.getIsCctpBridge()) {
+    if (this.getShouldUseCctpBridge({ isHTokenSend })) {
       return this.#getSendDataCctp(amountIn, sourceChain, destinationChain)
     }
 
@@ -819,7 +834,7 @@ class HopBridge extends Base {
         totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
       }
     } else {
-      const bonderFeeAbsolute = await this.getBonderFeeAbsolute(sourceChain, destinationChain)
+      const bonderFeeAbsolute = BigNumber.from(0) // TODO
 
       // enforce bonderFeeAbsolute after adjustment
       adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute) ? adjustedBonderFee : bonderFeeAbsolute
@@ -1174,6 +1189,17 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
+    // TODO
+    if (this.getShouldUseCctpBridge()) {
+      return {
+        destinationTxFee: BigNumber.from(0),
+        rate: null,
+        chainNativeTokenPrice: null,
+        tokenPrice: null,
+        destinationChainGasPrice: null
+      }
+    }
+
     if (sourceChain.isL1 && !this.relayerFeeEnabled[destinationChain.slug]) {
       return {
         destinationTxFee: BigNumber.from(0),
@@ -1522,7 +1548,7 @@ class HopBridge extends Base {
       return BigNumber.from(0)
     }
 
-    if (this.getIsCctpBridge()) {
+    if (this.getShouldUseCctpBridge()) {
       return constants.MaxUint256
     }
 
@@ -1775,13 +1801,22 @@ class HopBridge extends Base {
       Chain.Ethereum
     )
     if (!bridgeAddress) {
-      throw new Error(`token "${this.tokenSymbol}" is unsupported`)
+      throw new Error(`token "${this.tokenSymbol}" on chain ethereum bridge does not have l1Bridge`)
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
-    if (this.getIsCctpBridge()) {
-      return L1_HopCCTPImplementation__factory.connect(bridgeAddress, provider)
-    }
     return L1_ERC20_Bridge__factory.connect(bridgeAddress, provider)
+  }
+
+  public async getCctpL1Bridge (signer: TProvider = this.signer): Promise<any> {
+    const bridgeAddress = this.getCctpL1BridgeAddress(
+      this.tokenSymbol,
+      Chain.Ethereum
+    )
+    if (!bridgeAddress) {
+      throw new Error(`token "${this.tokenSymbol}" bridge on chain ethereum does not have cctpL1Bridge`)
+    }
+    const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
+    return L1_HopCCTPImplementation__factory.connect(bridgeAddress, provider)
   }
 
   /**
@@ -1795,14 +1830,23 @@ class HopBridge extends Base {
     const bridgeAddress = this.getL2BridgeAddress(this.tokenSymbol, chain)
     if (!bridgeAddress) {
       throw new Error(
-        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+        `token "${this.tokenSymbol}" on chain "${chain.slug}" does not have l2Bridge`
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    if (this.getIsCctpBridge()) {
-      return L2_HopCCTPImplementation__factory.connect(bridgeAddress, provider)
-    }
     return L2_Bridge__factory.connect(bridgeAddress, provider)
+  }
+
+  public async getCctpL2Bridge (chain: TChain, signer: TProvider = this.signer): Promise<any> {
+    chain = this.toChainModel(chain)
+    const bridgeAddress = this.getCctpL2BridgeAddress(this.tokenSymbol, chain)
+    if (!bridgeAddress) {
+      throw new Error(
+        `token "${this.tokenSymbol}" on chain "${chain.slug}" does not have cctpL2Bridge`
+      )
+    }
+    const provider = await this.getSignerOrProvider(chain, signer)
+    return L2_HopCCTPImplementation__factory.connect(bridgeAddress, provider)
   }
 
   public getAmm (chain: TChain) {
@@ -2186,12 +2230,11 @@ class HopBridge extends Base {
       checkAllowance
     } = input
     if (!sourceChain.isL1) {
-      // ToDo: Don't pass in sourceChain since it will always be L1
       throw new Error('sourceChain must be L1')
     }
-    // if (await this.getIsBridgeDeprecated(this.tokenSymbol)) {
-    //   throw new Error('This bridge is deprecated')
-    // }
+    if (await this.getIsBridgeDeprecated(this.tokenSymbol)) {
+      throw new Error('This bridge is deprecated')
+    }
 
     const destinationChainId = destinationChain.chainId
     deadline = deadline ?? this.defaultDeadlineSeconds
@@ -2203,11 +2246,15 @@ class HopBridge extends Base {
     recipient = checksumAddress(recipient)
 
     const isNativeToken = this.isNativeToken(sourceChain)
-    let l1Bridge = await this.getL1Bridge(sourceChain.provider!)
+    let l1Bridge : L1_Bridge | L1_HopCCTPImplementation
+    if (this.getShouldUseCctpBridge()) {
+      l1Bridge = await this.getCctpL1Bridge(sourceChain.provider!)
+    } else {
+      l1Bridge = await this.getL1Bridge(sourceChain.provider!)
+    }
 
     if (checkAllowance) {
       await this.checkConnectedChain(this.signer, sourceChain)
-      l1Bridge = await this.getL1Bridge(this.signer)
       const spender = l1Bridge.address
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
@@ -2222,10 +2269,10 @@ class HopBridge extends Base {
       amountOutMin = BigNumber.from(0)
     }
 
-    const value = isNativeToken ? amount : undefined
+    const value = isNativeToken ? amount : 0
     relayerFee = BigNumber.from(relayerFee ?? 0)
 
-    if (!this.getIsCctpBridge()) {
+    if (!this.getShouldUseCctpBridge()) {
       if (!relayer) {
         throw new Error('relayer is required')
       }
@@ -2235,11 +2282,10 @@ class HopBridge extends Base {
       }
     }
 
-    if (this.getIsCctpBridge()) {
+    if (this.getShouldUseCctpBridge()) {
       const testUsdce = this.network === 'sepolia' && this.tokenSymbol === 'USDC.e'
       if (testUsdce) {
-        const provider = await this.getSignerOrProvider(Chain.Ethereum)
-        const _l1Bridge = L2_HopCCTPImplementation__factory.connect(l1Bridge.address, provider)
+        l1Bridge = await this.getCctpL1Bridge()
 
         const { swapParams } = await getUSDCSwapParams({
           network: this.network,
@@ -2262,10 +2308,14 @@ class HopBridge extends Base {
           }
         ] as const
 
-        return _l1Bridge.populateTransaction.swapAndSend(
+        return (l1Bridge as L2_HopCCTPImplementation).populateTransaction.swapAndSend(
           ...txOptions,
         )
       } else {
+        if (this.tokenSymbol === 'USDC.e') {
+          throw new Error('USDC.e is no longer supported for L1->L2 transfers')
+        }
+
         const txOptions = [
           destinationChainId,
           recipient,
@@ -2277,14 +2327,14 @@ class HopBridge extends Base {
           }
         ] as const
 
-        const tx = await l1Bridge.populateTransaction.send(
+        const tx = await (l1Bridge as L1_HopCCTPImplementation).populateTransaction.send(
           ...txOptions
         )
 
         return tx
       }
     } else {
-      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+      const isPaused = await (l1Bridge as L1_Bridge).isChainIdPaused(destinationChain.chainId)
       if (isPaused) {
         throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
       }
@@ -2295,7 +2345,7 @@ class HopBridge extends Base {
         amount || 0,
         amountOutMin,
         deadline,
-        relayer,
+        relayer || constants.AddressZero,
         relayerFee,
         {
           ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
@@ -2303,7 +2353,7 @@ class HopBridge extends Base {
         }
       ] as const
 
-      const tx = await l1Bridge.populateTransaction.sendToL2(
+      const tx = await (l1Bridge as L1_Bridge).populateTransaction.sendToL2(
         ...txOptions
       )
 
@@ -2343,9 +2393,14 @@ class HopBridge extends Base {
     recipient = checksumAddress(recipient)
 
     const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
-    const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
+    let l2Bridge : L2_Bridge | L2_HopCCTPImplementation
+    if (this.getShouldUseCctpBridge()) {
+      l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChain.provider!)
+    } else {
+      l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
+    }
     const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
-    const spender = attemptSwapAtSource && !this.getIsCctpBridge() ? ammWrapper.address : l2Bridge.address
+    const spender = attemptSwapAtSource && !this.getShouldUseCctpBridge() ? ammWrapper.address : l2Bridge.address
 
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error(`amount must be greater than bonder fee. amount: ${amount.toString()}, bonderFee: ${bonderFee?.toString()}`)
@@ -2368,9 +2423,9 @@ class HopBridge extends Base {
       amountOutMin = BigNumber.from(0)
     }
 
-    const value = isNativeToken ? amount : undefined
+    const value = isNativeToken ? amount : 0
 
-    if (this.getIsCctpBridge()) {
+    if (this.getShouldUseCctpBridge()) {
       if (this.tokenSymbol === 'USDC.e') {
         const { swapParams } = await getUSDCSwapParams({
           network: this.network,
@@ -2384,7 +2439,7 @@ class HopBridge extends Base {
           destinationChainId,
           recipient,
           amount,
-          bonderFee,
+          bonderFee || 0,
           swapParams,
           {
             ...(await this.txOverrides(sourceChain)),
@@ -2392,7 +2447,7 @@ class HopBridge extends Base {
           }
         ] as const
 
-        return l2Bridge.populateTransaction.swapAndSend(
+        return (l2Bridge as L2_HopCCTPImplementation).populateTransaction.swapAndSend(
           ...txOptions,
         )
       } else {
@@ -2400,14 +2455,14 @@ class HopBridge extends Base {
           destinationChainId,
           recipient,
           amount || 0,
-          bonderFee,
+          bonderFee || 0,
           {
             ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
             value
           }
         ] as const
 
-        const tx = await l2Bridge.populateTransaction.send(
+        const tx = await (l2Bridge as L2_HopCCTPImplementation).populateTransaction.send(
           ...txOptions
         )
 
@@ -2417,8 +2472,8 @@ class HopBridge extends Base {
       const txOptions = [
         destinationChainId,
         recipient,
-        amount,
-        bonderFee
+        amount || 0,
+        bonderFee || 0
       ] as const
 
       if (attemptSwapAtSource) {
@@ -2448,7 +2503,7 @@ class HopBridge extends Base {
         }
       ] as const
 
-      return l2Bridge.populateTransaction.send(
+      return (l2Bridge as L2_Bridge).populateTransaction.send(
         ...txOptions,
         ...additionalOptions
       )
@@ -2488,9 +2543,14 @@ class HopBridge extends Base {
     recipient = checksumAddress(recipient)
 
     const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
-    const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
+    let l2Bridge : L2_Bridge | L2_HopCCTPImplementation
+    if (this.getShouldUseCctpBridge()) {
+      l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChain.provider!)
+    } else {
+      l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
+    }
     const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
-    const spender = attemptSwapAtSource && !this.getIsCctpBridge() ? ammWrapper.address : l2Bridge.address
+    const spender = attemptSwapAtSource && !this.getShouldUseCctpBridge() ? ammWrapper.address : l2Bridge.address
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (checkAllowance) {
@@ -2512,9 +2572,9 @@ class HopBridge extends Base {
       destinationAmountOutMin = BigNumber.from(0)
     }
 
-    const value = isNativeToken ? amount : undefined
+    const value = isNativeToken ? amount : 0
 
-    if (this.getIsCctpBridge()) {
+    if (this.getShouldUseCctpBridge()) {
       if (this.tokenSymbol === 'USDC.e') {
         const { swapParams } = await getUSDCSwapParams({
           network: this.network,
@@ -2528,7 +2588,7 @@ class HopBridge extends Base {
           destinationChainId,
           recipient,
           amount,
-          bonderFee,
+          bonderFee || 0,
           swapParams,
           {
             ...(await this.txOverrides(sourceChain)),
@@ -2536,7 +2596,7 @@ class HopBridge extends Base {
           }
         ] as const
 
-        return l2Bridge.populateTransaction.swapAndSend(
+        return (l2Bridge as L2_HopCCTPImplementation).populateTransaction.swapAndSend(
           ...txOptions,
         )
       } else {
@@ -2544,14 +2604,14 @@ class HopBridge extends Base {
           destinationChainId,
           recipient,
           amount || 0,
-          bonderFee,
+          bonderFee || 0,
           {
             ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
             value
           }
         ] as const
 
-        const tx = await l2Bridge.populateTransaction.send(
+        const tx = await (l2Bridge as L2_HopCCTPImplementation).populateTransaction.send(
           ...txOptions
         )
 
@@ -2562,7 +2622,7 @@ class HopBridge extends Base {
         destinationChainId,
         recipient,
         amount,
-        bonderFee
+        bonderFee || 0
       ] as const
 
       if (attemptSwapAtSource) {
@@ -2592,7 +2652,7 @@ class HopBridge extends Base {
         }
       ] as const
 
-      return l2Bridge.populateTransaction.send(
+      return (l2Bridge as L2_Bridge).populateTransaction.send(
         ...txOptions,
         ...additionalOptions
       )
@@ -3019,8 +3079,8 @@ class HopBridge extends Base {
     destinationChain?: TChain // this param was later added hence it's after the address param for backward compatibility
   ): Promise<boolean> {
     const token = this.getCanonicalToken(sourceChain)
-    const isHTokenTransfer = false
-    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer, destinationChain)
+    const isHTokenSend = false
+    const spender = this.getSendApprovalAddress(sourceChain, isHTokenSend, destinationChain)
     return token.needsApproval(spender, amount, address)
   }
 
@@ -3031,8 +3091,8 @@ class HopBridge extends Base {
     destinationChain?: TChain // this param was later added hence it's after the address param for backward compatibility
   ): Promise<boolean> {
     const token = this.getCanonicalToken(sourceChain)
-    const isHTokenTransfer = true
-    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer, destinationChain)
+    const isHTokenSend = true
+    const spender = this.getSendApprovalAddress(sourceChain, isHTokenSend, destinationChain)
     return token.needsApproval(spender, amount, address)
   }
 

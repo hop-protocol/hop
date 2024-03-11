@@ -3,6 +3,7 @@ import { AssetSymbol, ChainSlug } from '../config/types'
 export interface L1BridgeProps {
   l1CanonicalToken: string
   l1Bridge: string
+  cctpL1Bridge?: string
   bridgeDeployedBlockNumber: number
 }
 
@@ -12,6 +13,7 @@ export interface L2BridgeProps {
   l2CanonicalBridge: string
   l2CanonicalToken: string
   l2Bridge: string
+  cctpL2Bridge?: string
   l2HopBridgeToken: string
   l2AmmWrapper: string
   l2SaddleSwap: string
@@ -50,12 +52,12 @@ export type BridgeChains = Partial<{
   }>
 
 type USDCL1BridgeBase = {
-  l1Bridge: string
+  cctpL1Bridge: string
   l1CanonicalToken: string
 }
 
 type USDCL2BridgeBase = {
-  l2Bridge: string
+  cctpL2Bridge: string
   l2CanonicalToken: string
 }
 

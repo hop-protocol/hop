@@ -834,7 +834,8 @@ class HopBridge extends Base {
         totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
       }
     } else {
-      const bonderFeeAbsolute = BigNumber.from(0) // TODO
+      const l2Bridge = await this.getCctpL2Bridge(sourceChain)
+      const bonderFeeAbsolute = await l2Bridge.minBonderFee()
 
       // enforce bonderFeeAbsolute after adjustment
       adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute) ? adjustedBonderFee : bonderFeeAbsolute
@@ -1508,6 +1509,10 @@ class HopBridge extends Base {
   ): Promise<BigNumber> {
     tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
     sourceChain = this.toChainModel(sourceChain)
+
+    if (this.getShouldUseCctpBridge()) {
+      return BigNumber.from(0) // TODO
+    }
 
     if (sourceChain.equals(Chain.Ethereum)) {
       return BigNumber.from(0)
@@ -2392,15 +2397,19 @@ class HopBridge extends Base {
     }
     recipient = checksumAddress(recipient)
 
-    const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
     let l2Bridge : L2_Bridge | L2_HopCCTPImplementation
     if (this.getShouldUseCctpBridge()) {
       l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChain.provider!)
     } else {
       l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
     }
+
+    let spender = l2Bridge.address
     const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
-    const spender = attemptSwapAtSource && !this.getShouldUseCctpBridge() ? ammWrapper.address : l2Bridge.address
+    if (attemptSwapAtSource && !this.getShouldUseCctpBridge()) {
+      const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
+      spender = ammWrapper.address
+    }
 
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error(`amount must be greater than bonder fee. amount: ${amount.toString()}, bonderFee: ${bonderFee?.toString()}`)
@@ -2488,6 +2497,7 @@ class HopBridge extends Base {
           }
         ] as const
 
+        const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
         return ammWrapper.populateTransaction.swapAndSend(
           ...txOptions,
           ...additionalOptions
@@ -2542,15 +2552,18 @@ class HopBridge extends Base {
     }
     recipient = checksumAddress(recipient)
 
-    const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
     let l2Bridge : L2_Bridge | L2_HopCCTPImplementation
     if (this.getShouldUseCctpBridge()) {
       l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChain.provider!)
     } else {
       l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
     }
+    let spender = l2Bridge.address
     const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
-    const spender = attemptSwapAtSource && !this.getShouldUseCctpBridge() ? ammWrapper.address : l2Bridge.address
+    if (attemptSwapAtSource && !this.getShouldUseCctpBridge()) {
+      const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
+      spender = ammWrapper.address
+    }
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (checkAllowance) {
@@ -2637,6 +2650,7 @@ class HopBridge extends Base {
           }
         ] as const
 
+        const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
         return ammWrapper.populateTransaction.swapAndSend(
           ...txOptions,
           ...additionalOptions

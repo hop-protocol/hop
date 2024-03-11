@@ -445,11 +445,11 @@ export const addresses: Addresses = {
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         l2MessengerProxy: '0xf8024972590cad31C47C41371ff5c98956311747',
-        cctpL2Bridge: '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE' // TODO cctp address
+        cctpL2Bridge: '0x8796860ca1677Bf5d54cE5A348Fe4b779a8212f3'
       },
       optimism: {
         l2CanonicalToken: '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
-        cctpL2Bridge: '0x2B4069517957735bE00ceE0fadAE88a26365528f' // TODO cctp address
+        cctpL2Bridge: '0x297f4585CD8d37226A536741e05af924fBE3EbAd'
       },
       arbitrum: {
         l2CanonicalToken: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
@@ -487,7 +487,7 @@ export const addresses: Addresses = {
         l2CanonicalBridge: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         l2CanonicalToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         l2Bridge: '0x25D8039bB044dC227f741a9e381CA4cEAE2E6aE8',
-        cctpL2Bridge: '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE', // TODO cctp address
+        cctpL2Bridge: '0x8796860ca1677Bf5d54cE5A348Fe4b779a8212f3',
         l2HopBridgeToken: '0x9ec9551d4A1a1593b0ee8124D98590CC71b3B09D',
         l2AmmWrapper: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',
         l2SaddleSwap: '0x5C32143C8B198F392d01f8446b754c181224ac26',
@@ -503,7 +503,8 @@ export const addresses: Addresses = {
         l1MessengerWrapper: '0x6587a6164B091a058aCba2e91f971454Ec172940',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
-        l2Bridge: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC', // TODO cctp address
+        l2Bridge: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
+        cctpL2Bridge: '0x297f4585CD8d37226A536741e05af924fBE3EbAd',
         l2HopBridgeToken: '0x25D8039bB044dC227f741a9e381CA4cEAE2E6aE8',
         l2AmmWrapper: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
         l2SaddleSwap: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',

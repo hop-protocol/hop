@@ -1435,7 +1435,7 @@ class HopBridge extends Base {
         } catch (err) {}
         if (validChain) {
           try {
-            const pendingAmount = this.getPendingAmount(bondableChain, Chain.Ethereum)
+            const pendingAmount = await this.getPendingAmount(bondableChain, Chain.Ethereum)
             if (!pendingAmount) {
               return
             }

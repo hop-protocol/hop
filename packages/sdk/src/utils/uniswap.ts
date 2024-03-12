@@ -4,7 +4,7 @@ import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/i
 import { Pool, Route, TICK_SPACINGS, TickMath, Trade, encodeRouteToPath, nearestUsableTick } from '@uniswap/v3-sdk'
 import { UniswapQuoterV2Abi, erc20Abi } from '@hop-protocol/core/abi'
 import { chainIdToSlug } from './chainIdToSlug'
-import { parseUnits, formatUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 type TickSpacing = 100 | 500 | 3000 | 10000
 
@@ -14,7 +14,7 @@ const addresses: any = {
       swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
       pools: {
         USDC: {
-          'USDC.e': '0x2ab22ac86b25bd448a4d9dc041bd2384655299c4',
+          'USDC.e': '0x2aB22ac86b25BD448A4D9dC041Bd2384655299c4',
         }
       },
       quoter: '0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6',

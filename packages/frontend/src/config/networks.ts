@@ -14,7 +14,7 @@ export const allNetworks = Object.keys(networks).map(key => {
   }
 
   if (!(net && meta && net?.rpcUrl)) {
-    return
+    return null
   }
 
   return new Network({
@@ -30,7 +30,7 @@ export const allNetworks = Object.keys(networks).map(key => {
     explorerUrl: net.explorerUrl
   })
 })
-.filter(item => item)
+.filter(Boolean)
 
 export const l1Network = find(allNetworks, ['isLayer1', true])!
 export const l2Networks = filter(allNetworks, ['isLayer1', false])

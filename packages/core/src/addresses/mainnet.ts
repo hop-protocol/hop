@@ -437,7 +437,7 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        cctpL1Bridge: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5' // TODO cctp address
+        // cctpL1Bridge: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5' // TODO cctp address
       },
       polygon: {
         l2CanonicalToken: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
@@ -451,20 +451,20 @@ export const addresses: Addresses = {
         l2CanonicalToken: '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
         cctpL2Bridge: '0x297f4585CD8d37226A536741e05af924fBE3EbAd'
       },
-      arbitrum: {
-        l2CanonicalToken: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-        cctpL2Bridge: '0x19330d10D9Cc8751218eaf51E8885D058642E08A' // TODO cctp address
-      },
-      base: {
-        l2CanonicalToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-        cctpL2Bridge: '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962' // TODO cctp address
-      }
+      // arbitrum: {
+      //   l2CanonicalToken: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+      //   cctpL2Bridge: '0x19330d10D9Cc8751218eaf51E8885D058642E08A' // TODO cctp address
+      // },
+      // base: {
+      //   l2CanonicalToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      //   cctpL2Bridge: '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962' // TODO cctp address
+      // }
     },
     'USDC.e': {
       ethereum: {
         l1CanonicalToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
-        cctpL1Bridge: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5', // TODO cctp address
+        // cctpL1Bridge: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5', // TODO cctp address
         bridgeDeployedBlockNumber: 12650032
       },
       gnosis: {
@@ -517,7 +517,7 @@ export const addresses: Addresses = {
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
         l2Bridge: '0x0e0E3d2C5c292161999474247956EF542caBF8dd',
-        cctpL2Bridge: '0x19330d10D9Cc8751218eaf51E8885D058642E08A', // TODO cctp address
+        // cctpL2Bridge: '0x19330d10D9Cc8751218eaf51E8885D058642E08A', // TODO cctp address
         l2HopBridgeToken: '0x0ce6c85cF43553DE10FC56cecA0aef6Ff0DD444d',
         l2AmmWrapper: '0xe22D2beDb3Eca35E6397e0C6D62857094aA26F52',
         l2SaddleSwap: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
@@ -530,7 +530,7 @@ export const addresses: Addresses = {
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
         l2Bridge: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
-        cctpL2Bridge: '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962', // TODO cctp address
+        // cctpL2Bridge: '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962', // TODO cctp address
         l2HopBridgeToken: '0x74fa978EaFFa312bC92e76dF40FcC1bFE7637Aeb',
         l2AmmWrapper: '0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F',
         l2SaddleSwap: '0x022C5cE6F1Add7423268D41e08Df521D5527C2A0',

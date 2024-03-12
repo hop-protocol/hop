@@ -52,13 +52,13 @@ export type BridgeChains = Partial<{
   }>
 
 type USDCL1BridgeBase = {
-  cctpL1Bridge: string
   l1CanonicalToken: string
+  cctpL1Bridge?: string
 }
 
 type USDCL2BridgeBase = {
-  cctpL2Bridge: string
   l2CanonicalToken: string
+  cctpL2Bridge?: string
 }
 
 type USDCBridge = Partial<{

@@ -156,6 +156,9 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } else if (assetWithoutAmm && convertOption instanceof AmmConvertOption) {
       const { chain, tokenSymbol } = assetWithoutAmm
       setError(`${tokenSymbol} does not use an AMM on ${chain}`)
+    } else if (assetWithoutAmm && convertOption instanceof HopConvertOption) {
+      const { chain, tokenSymbol } = assetWithoutAmm
+      setError(`${tokenSymbol} does not use hTokens on ${chain}`)
     } else if (isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isLayer1) {
       setError(`The ${sourceToken?._symbol} bridge is deprecated. Only transfers from L2 to L1 are supported.`)
     } else {

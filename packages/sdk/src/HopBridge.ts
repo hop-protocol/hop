@@ -3,11 +3,11 @@ import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
+import { L1_Bridge, L1_HopCCTPImplementation, L2_Bridge, L2_HopCCTPImplementation } from '@hop-protocol/core/contracts'
 import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts'
 import { L1_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts'
-import { L1_Bridge, L2_Bridge, L1_HopCCTPImplementation, L2_HopCCTPImplementation } from '@hop-protocol/core/contracts'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L2_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { Multicall } from './Multicall'
@@ -3178,6 +3178,30 @@ class HopBridge extends Base {
     }
 
     return list
+  }
+
+  getIsSupportedCctpRoute(fromChain: TChain, toChain: TChain): boolean {
+    if (!fromChain) {
+      return false
+    }
+    if (!toChain) {
+      return false
+    }
+    try {
+      fromChain = this.toChainModel(fromChain)
+      toChain = this.toChainModel(toChain)
+      if (this.tokenSymbol === 'USDC.e' && fromChain.isL1) {
+        return false
+      }
+      const fromBridgeAddress = this.getCctpBridgeAddress(this.tokenSymbol, fromChain)
+      const toBridgeAddress = this.getCctpBridgeAddress(this.tokenSymbol, toChain)
+      if (fromBridgeAddress && toBridgeAddress) {
+        return true
+      }
+    } catch (err: any) {
+      console.error(err)
+    }
+    return false
   }
 
   async getAccountLpBalance (chain: TChain, account?: string): Promise<BigNumber> {

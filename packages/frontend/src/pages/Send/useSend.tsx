@@ -794,7 +794,18 @@ export function useSend(): SendResponseProps {
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, fromToken?.symbol)
 
   const isTokenDeprecated = useCheckTokenDeprecated(fromToken?.symbol)
-  const isSpecificRouteDeprecated = !!(isTokenDeprecated && !toNetwork?.isL1)
+  const isSpecificRouteDeprecated = useMemo(() => {
+    if (isTokenDeprecated && !toNetwork?.isL1) {
+      return true
+    }
+
+    if (fromNetwork && toNetwork && selectedBridge && ['USDC', 'USDC.e'].includes(fromToken?.symbol) && !selectedBridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)) {
+      return true
+    }
+
+    return false
+  }, [fromNetwork, toNetwork, fromToken?.symbol, selectedBridge])
+
   const isApproveButtonActive = !!(!needsTokenForFee && !unsupportedAsset && needsApproval && !isSpecificRouteDeprecated)
 
   const isSendButtonActive = useMemo(() => {

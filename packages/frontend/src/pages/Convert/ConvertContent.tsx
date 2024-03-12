@@ -1,4 +1,3 @@
-import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
 import Box from '@mui/material/Box'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
@@ -228,7 +227,7 @@ const ConvertContent: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {(unsupportedAsset || (assetWithoutAmm && convertOption instanceof AmmConvertOption)) ? (
+      {(unsupportedAsset || assetWithoutAmm) ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
             {error}

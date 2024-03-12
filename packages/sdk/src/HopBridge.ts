@@ -1434,14 +1434,12 @@ class HopBridge extends Base {
           validChain = !!this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
         } catch (err) {}
         if (validChain) {
-          // This requires RPCs for all bondable chains. If the consumer of this SDK does not pass
-          // in an RPC for all chains, this uses the default RPC provider. This is not ideal since
-          // the consumer may experience errors out of their control. If the endpoint errors out,
-          // assume 0 for HopV1.
           try {
-            const bondableBridge = await this.getBridgeContract(bondableChain)
-            const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
-            pendingAmounts = pendingAmounts.add(pendingAmount)
+            const pendingAmount = this.getPendingAmount(bondableChain, Chain.Ethereum)
+            if (!pendingAmount) {
+              return
+            }
+            pendingAmounts = pendingAmounts.add(pendingAmount.toString())
           } catch {}
         }
       }))
@@ -1523,6 +1521,26 @@ class HopBridge extends Base {
         const _baseAvailableCredit = tokenData?.baseAvailableCredit?.[sourceChain.slug]?.[destinationChain.slug]
         if (_baseAvailableCredit) {
           return BigNumber.from(_baseAvailableCredit)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  private async getPendingAmount (
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) : Promise<BigNumber | undefined> {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const tokenData = data?.[this.tokenSymbol]
+        const _pendingAmounts = tokenData?.pendingAmounts?.[sourceChain.slug]?.[destinationChain.slug]
+        if (_pendingAmounts) {
+          return BigNumber.from(_pendingAmounts)
         }
       }
     } catch (err) {

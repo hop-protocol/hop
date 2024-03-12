@@ -493,7 +493,7 @@ class TransfersDb extends BaseDb<Transfer> {
     // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
     // up the root onchain.
     // As a rough reference, a third-party Optimism provider looks back appx 1 day per index.
-    const maxLookbackIndex = 50
+    const maxLookbackIndex = 150
     const transferIds: string[] = []
 
     const now = Date.now()

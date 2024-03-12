@@ -118,3 +118,5 @@ export { default as l1PolygonMessengerAbi } from './static/L1_PolygonMessenger.j
 export { default as wethAbi } from './static/WETH9.json'
 export { default as Multicall3 } from './static/Multicall3.json'
 export { default as UniswapQuoterV2Abi } from './static/UniswapQuoterV2.json'
+export { default as CCTPTokenMessenger } from './static/CCTPTokenMessenger.json'
+export { default as CCTPTokenMinter } from './static/CCTPTokenMinter.json'

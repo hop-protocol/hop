@@ -3,6 +3,8 @@ import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
+import { CCTPTokenMessenger__factory } from '@hop-protocol/core/contracts'
+import { CCTPTokenMinter__factory } from '@hop-protocol/core/contracts'
 import { L1_Bridge, L1_HopCCTPImplementation, L2_Bridge, L2_HopCCTPImplementation } from '@hop-protocol/core/contracts'
 import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts'
@@ -1539,6 +1541,22 @@ class HopBridge extends Base {
     return availableLiquidity
   }
 
+  public async getAvailableLiquidityCctp (
+    sourceChain: TChain
+  ): Promise<BigNumber> {
+    sourceChain = this.toChainModel(sourceChain)
+
+    const hopCctpBridge = await this.getCctpBridge(sourceChain)
+    const canonicalTokenAddress = await hopCctpBridge.nativeToken()
+    const cctpAddress = await hopCctpBridge.cctp()
+    const tokenMessenger = CCTPTokenMessenger__factory.connect(cctpAddress, sourceChain.provider!)
+    const localMinterAddress = await tokenMessenger.localMinter()
+    const tokenMinter = CCTPTokenMinter__factory.connect(localMinterAddress, sourceChain.provider!)
+    const availableLiquidity  = await tokenMinter.burnLimitsPerMessage(canonicalTokenAddress)
+
+    return availableLiquidity
+  }
+
   /**
    * @desc Returns available liquidity for Hop bridge at specified chain.
    * @param sourceChain - Source chain model.
@@ -1554,7 +1572,7 @@ class HopBridge extends Base {
     }
 
     if (this.getShouldUseCctpBridge()) {
-      return constants.MaxUint256
+      return this.getAvailableLiquidityCctp(sourceChain)
     }
 
     sourceChain = this.toChainModel(sourceChain)
@@ -1694,6 +1712,11 @@ class HopBridge extends Base {
   public async getBridgeContract (chain: TChain): Promise<ethers.Contract> {
     chain = this.toChainModel(chain)
     return chain.isL1 ? this.getL1Bridge() : this.getL2Bridge(chain)
+  }
+
+  public async getCctpBridge (chain: TChain): Promise<ethers.Contract> {
+    chain = this.toChainModel(chain)
+    return chain.isL1 ? this.getCctpL1Bridge() : this.getCctpL2Bridge(chain)
   }
 
   /**

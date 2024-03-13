@@ -3,6 +3,7 @@ import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
+import { CCTPMessageTransmitter__factory } from '@hop-protocol/core/contracts'
 import { CCTPTokenMessenger__factory } from '@hop-protocol/core/contracts'
 import { CCTPTokenMinter__factory } from '@hop-protocol/core/contracts'
 import { L1_Bridge, L1_HopCCTPImplementation, L2_Bridge, L2_HopCCTPImplementation } from '@hop-protocol/core/contracts'
@@ -40,7 +41,8 @@ import {
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { WithdrawalProof } from './utils/WithdrawalProof'
 import { bondableChains, metadata } from './config'
-import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { getAddress as checksumAddress, formatUnits, keccak256, parseEther, parseUnits } from 'ethers/lib/utils'
+import {fetchJsonOrThrow} from './utils/fetchJsonOrThrow'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -807,7 +809,11 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
 
     const isHTokenSend = false
-    const amountOutWithoutFee = amountIn
+    let amountOutWithoutFee = amountIn
+    if (!sourceChain.isL1) {
+      amountOutWithoutFee = await this.calcUniswapSwapAmountOut(sourceChain, amountIn)
+    }
+
     const bonderFeeRelative = BigNumber.from(0)
 
     const [
@@ -827,22 +833,14 @@ class HopBridge extends Base {
     } = destinationTxFeeData
 
     let adjustedBonderFee = BigNumber.from(0)
-    let adjustedDestinationTxFee = BigNumber.from(0)
-    let totalFee = BigNumber.from(0)
-    if (sourceChain.isL1) {
-      if (this.relayerFeeEnabled[destinationChain.slug]) {
-        adjustedBonderFee = BigNumber.from(0)
-        adjustedDestinationTxFee = destinationTxFee
-        totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
-      }
-    } else {
-      const l2Bridge = await this.getCctpL2Bridge(sourceChain)
-      const bonderFeeAbsolute = await l2Bridge.minBonderFee()
+    const adjustedDestinationTxFee = destinationTxFee
 
-      // enforce bonderFeeAbsolute after adjustment
-      adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute) ? adjustedBonderFee : bonderFeeAbsolute
-      totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
-    }
+    const cctpBridge = await this.getCctpBridge(sourceChain)
+    const bonderFeeAbsolute = await cctpBridge.minBonderFee()
+
+    // enforce bonderFeeAbsolute after adjustment
+    adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute) ? adjustedBonderFee : bonderFeeAbsolute
+    const totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
 
     const sourceToken = this.getCanonicalToken(sourceChain)
     const destToken = this.getCanonicalToken(destinationChain)
@@ -865,7 +863,8 @@ class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
-    const isLiquidityAvailable = true
+    const availableLiquidity = await this.getAvailableLiquidityCctp(sourceChain)
+    const isLiquidityAvailable = availableLiquidity.gte(amountIn)
     const lpFeeBps = BigNumber.from(0)
     const requiredLiquidity = amountIn
     const lpFees = BigNumber.from(0)
@@ -1194,12 +1193,58 @@ class HopBridge extends Base {
 
     // TODO
     if (this.getShouldUseCctpBridge()) {
+      const canonicalToken = this.toCanonicalToken('USDC', this.network, sourceChain)
+      const chainNativeToken = this.getChainNativeToken(destinationChain)
+      const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, destinationTxGasLimit, l1FeeInWei] = await Promise.all([
+        this.getPriceByTokenSymbol(
+          chainNativeToken.symbol
+        ),
+        this.getPriceByTokenSymbol(
+          canonicalToken.symbol
+        ),
+        this.getGasPrice(destinationChain.provider!),
+        this.getCctpReceiveMessageEstimateGasLimit(sourceChain, destinationChain),
+        (destinationChain.equals(Chain.Optimism) || destinationChain.equals(Chain.Base)) ? this.getOptimismL1Fee(sourceChain, destinationChain) : Promise.resolve(BigNumber.from(0))
+      ])
+
+      if (chainNativeTokenPrice == null) {
+        throw new Error(`chainNativeTokenPrice not found for chain "${destinationChain.slug}"`)
+      }
+
+      if (tokenPrice == null) {
+        throw new Error(`tokenPrice not found for chain "${destinationChain.slug}"`)
+      }
+
+      const rate = chainNativeTokenPrice / tokenPrice
+
+      const oneEth = parseEther('1')
+      const rateBN = parseUnits(
+        rate.toFixed(canonicalToken.decimals),
+        canonicalToken.decimals
+      )
+      const txFeeInWei = destinationChainGasPrice.mul(destinationTxGasLimit).add(l1FeeInWei)
+      let destinationTxFee = txFeeInWei.mul(rateBN).div(oneEth)
+
+      if (
+        destinationChain.equals(Chain.Ethereum) ||
+        destinationChain.equals(Chain.Optimism) ||
+        destinationChain.equals(Chain.Arbitrum) ||
+        destinationChain.equals(Chain.Nova) ||
+        destinationChain.equals(Chain.Linea) ||
+        destinationChain.equals(Chain.Base)
+      ) {
+        const multiplier = parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
+        if (multiplier.gt(0)) {
+          destinationTxFee = destinationTxFee.mul(multiplier).div(oneEth)
+        }
+      }
+
       return {
         destinationTxFee: BigNumber.from(0),
-        rate: null,
-        chainNativeTokenPrice: null,
-        tokenPrice: null,
-        destinationChainGasPrice: null
+        rate,
+        chainNativeTokenPrice,
+        tokenPrice,
+        destinationChainGasPrice
       }
     }
 
@@ -3289,6 +3334,70 @@ class HopBridge extends Base {
       return BigNumber.from(customFeeBps[chain.slug])
     }
     return BigNumber.from(defaultFeeBps)
+  }
+
+  getCctpMessageHash (message: string): string {
+    message = message.replace('0x', '')
+    return keccak256(`0x${message.slice(128, -16)}`).toString()
+  }
+
+  async getCctpReceiveMessageEstimateGasLimit (fromChain: TChain, toChain: TChain) {
+    fromChain = this.toChainModel(fromChain)
+    toChain = this.toChainModel(toChain)
+
+    const messageBodies: Record<string, string> = {
+      ethereum: '', // TODO
+      optimism: '0x00000000000000070000000200000000000098460000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe0000000000000000000000002b4069517957735be00cee0fadae88a26365528f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c33590000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d6900000000000000000000000000000000000000000000000000000000000026950000000000000000000000008796860ca1677bf5d54ce5a348fe4b779a8212f3',
+      polygon: '000000000000000200000007000000000001135a0000000000000000000000002b4069517957735be00cee0fadae88a26365528f0000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff850000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d690000000000000000000000000000000000000000000000000000000000002694000000000000000000000000297f4585cd8d37226a536741e05af924fbe3ebad',
+      arbitrum: '0x0000000000000000000000030000000000005A69000000000000000000000000BD3FA81B58BA92A82136038B25ADEC7066AF315500000000000000000000000019330D10D9CC8751218EAF51E8885D058642E08A000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000A0B86991C6218B36C1D19D4A2E9EB0CE3606EB480000000000000000000000002CE910FBBA65B454BBAF6A18C952A70F3BCD829900000000000000000000000000000000000000000000000000000023B0D256300000000000000000000000002CE910FBBA65B454BBAF6A18C952A70F3BCD8299',
+      base: '' // TODO
+    }
+
+    const messageTransmitters: Record<string, string> = {
+      ethereum: '0x0a992d191deec32afe36203ad87d7d289a738f81',
+      optimism: '0x4d41f22c5a0e5c74090899e5a8fb597a8842b3e8',
+      polygon: '0xF3be9355363857F3e001be68856A2f96b4C39Ba9',
+      base: '0xAD09780d193884d503182aD4588450C416D6F9D4',
+      arbitrum: '0xC30362313FBBA5cf9163F0bb16a0e01f01A896ca'
+    }
+
+    const message = messageBodies[toChain.slug]
+    if (!message) {
+      throw new Error(`message body not found for chain ${toChain.slug}`)
+    }
+
+    const messageHash = keccak256(message).toString()
+    const url = `https://iris-api.circle.com/v1/attestations/${messageHash}`
+    const json = await fetchJsonOrThrow(url)
+    const { attestation } = json
+
+    if (!attestation) {
+      throw new Error(`attestation not found for chain ${toChain.slug}`)
+    }
+
+    const transmitterAddress = messageTransmitters[toChain?.slug]
+    if (!transmitterAddress) {
+      throw new Error(`transmitter address not found for chain ${toChain.slug}`)
+    }
+
+    const transmitter = CCTPMessageTransmitter__factory.connect(transmitterAddress, toChain.provider!)
+    const populatedTx = await transmitter.populateTransaction.receiveMessage(message, attestation)
+    const provider = await this.getSignerOrProvider(toChain)
+    return this.estimateGas(provider, populatedTx)
+  }
+
+  async calcUniswapSwapAmountOut (sourceChain: TChain, amountIn: BigNumber): Promise<BigNumber> {
+    sourceChain = this.toChainModel(sourceChain)
+    const cctpBridge = await this.getCctpBridge(sourceChain)
+    const { quotedAmountOut } = await getUSDCSwapParams({
+      network: this.network,
+      chainId: sourceChain.chainId,
+      amountIn: amountIn,
+      provider: sourceChain.provider!,
+      recipient: cctpBridge.address,
+      getQuote: true
+    })
+    return quotedAmountOut
   }
 }
 

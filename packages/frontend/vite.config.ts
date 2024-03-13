@@ -101,7 +101,9 @@ const connectSrc = new Set([
   "https://hop.mypinata.cloud",
   "https://ipfs.io",
   "https://gateway.ipfs.io",
-  "https://media-exp1.licdn.com"
+  "https://media-exp1.licdn.com",
+  "https://iris-api.circle.com",
+  "https://iris-api-sandbox.circle.com"
 ])
 
 const networks: any[] = [mainnet, goerli, sepolia]

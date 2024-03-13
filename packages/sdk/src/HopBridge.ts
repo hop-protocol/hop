@@ -1195,7 +1195,7 @@ class HopBridge extends Base {
     if (this.getShouldUseCctpBridge()) {
       const canonicalToken = this.toCanonicalToken('USDC', this.network, sourceChain)
       const chainNativeToken = this.getChainNativeToken(destinationChain)
-      const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, destinationTxGasLimit, l1FeeInWei] = await Promise.all([
+      const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, destinationTxGasLimit] = await Promise.all([
         this.getPriceByTokenSymbol(
           chainNativeToken.symbol
         ),
@@ -1203,8 +1203,7 @@ class HopBridge extends Base {
           canonicalToken.symbol
         ),
         this.getGasPrice(destinationChain.provider!),
-        this.getCctpReceiveMessageEstimateGasLimit(sourceChain, destinationChain),
-        (destinationChain.equals(Chain.Optimism) || destinationChain.equals(Chain.Base)) ? this.getOptimismL1Fee(sourceChain, destinationChain) : Promise.resolve(BigNumber.from(0))
+        this.getCctpReceiveMessageEstimateGasLimit(sourceChain, destinationChain)
       ])
 
       if (chainNativeTokenPrice == null) {
@@ -1222,7 +1221,7 @@ class HopBridge extends Base {
         rate.toFixed(canonicalToken.decimals),
         canonicalToken.decimals
       )
-      const txFeeInWei = destinationChainGasPrice.mul(destinationTxGasLimit).add(l1FeeInWei)
+      const txFeeInWei = destinationChainGasPrice.mul(destinationTxGasLimit)
       let destinationTxFee = txFeeInWei.mul(rateBN).div(oneEth)
 
       if (
@@ -1240,7 +1239,7 @@ class HopBridge extends Base {
       }
 
       return {
-        destinationTxFee: BigNumber.from(0),
+        destinationTxFee,
         rate,
         chainNativeTokenPrice,
         tokenPrice,

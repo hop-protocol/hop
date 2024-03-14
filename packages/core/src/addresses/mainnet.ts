@@ -437,7 +437,7 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        // cctpL1Bridge: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5' // TODO cctp address
+        cctpL1Bridge: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5' // TODO cctp address
       },
       polygon: {
         l2CanonicalToken: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',

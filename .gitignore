@@ -31,3 +31,5 @@ secrets.json
 .env
 
 pgdata
+
+/*.txt

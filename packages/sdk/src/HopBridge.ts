@@ -1434,12 +1434,8 @@ class HopBridge extends Base {
           validChain = !!this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
         } catch (err) {}
         if (validChain) {
-          // This requires RPCs for all bondable chains. If the consumer of this SDK does not pass
-          // in an RPC for all chains, this uses the default RPC provider. This is not ideal since
-          // the consumer may experience errors out of their control. If the endpoint errors out,
-          // assume 0 for HopV1.
           try {
-            const pendingAmount = this.getPendingAmount(bondableChain, Chain.Ethereum)
+            const pendingAmount = await this.getPendingAmount(bondableChain, Chain.Ethereum)
             if (!pendingAmount) {
               return
             }

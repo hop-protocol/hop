@@ -500,14 +500,11 @@ importers:
         specifier: workspace:*
         version: link:../sdk
       '@maticnetwork/maticjs':
-        specifier: 3.5.0
-        version: 3.5.0
+        specifier: 3.8.1
+        version: 3.8.1
       '@maticnetwork/maticjs-ethers':
-        specifier: 1.0.3
-        version: 1.0.3(@maticnetwork/maticjs@3.5.0)
-      '@maticnetwork/maticjs-pos-zkevm':
-        specifier: npm:@maticnetwork/maticjs@3.8.0
-        version: /@maticnetwork/maticjs@3.8.0
+        specifier: 1.1.0
+        version: 1.1.0(@maticnetwork/maticjs@3.8.1)
       '@slack/web-api':
         specifier: 7.0.1
         version: 7.0.1
@@ -4887,32 +4884,20 @@ packages:
       '@lit-labs/ssr-dom-shim': 1.2.0
     dev: false
 
-  /@maticnetwork/maticjs-ethers@1.0.3(@maticnetwork/maticjs@3.5.0):
-    resolution: {integrity: sha512-paGulmLG62We/pyOVH3Q7mZd/E/SGFKa+rXtyvpoMB8v5oFn/yTtoKvLWyIoZ8zBi4JrjSegKL+/US5+OibYwQ==}
+  /@maticnetwork/maticjs-ethers@1.1.0(@maticnetwork/maticjs@3.8.1):
+    resolution: {integrity: sha512-+6+GewlsW/CXI7WkBq9iL2C8/v2WwsK/M2X8czRW9uQEv5r2auL+46nai195bmXSxiYWBabiMqD/r5R7FfolSw==}
     peerDependencies:
       '@maticnetwork/maticjs': ^3.2.5
     dependencies:
-      '@maticnetwork/maticjs': 3.5.0
+      '@maticnetwork/maticjs': 3.8.1
       ethers: 5.7.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
     dev: false
 
-  /@maticnetwork/maticjs@3.5.0:
-    resolution: {integrity: sha512-f7wZucF38Ii/nIBV9qqQzlEE33/IWCVaToSXIhGC3DaZZME9VlUf4cgt/n43hQouwYpmkpgEoTDDs3QzTr5UcQ==}
-    engines: {node: '>=8.0.0'}
-    dependencies:
-      '@ethereumjs/block': 3.6.3
-      ethereumjs-util: 7.1.5
-      merkle-patricia-tree: 4.2.4
-      node-fetch: 2.7.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@maticnetwork/maticjs@3.8.0:
-    resolution: {integrity: sha512-tJMGnUC7PKrNY6vndY61lCsm5ijpXA0MqtEnoJWQmKQOVsRj5fcywHumQRp9Mq/RQSwzdB7t+hP5Ha8Cwc79YQ==}
+  /@maticnetwork/maticjs@3.8.1:
+    resolution: {integrity: sha512-iGv+ZB0vMdvYvEhD6+0ROAvZV2/XFFC6MsLcW4mkXhf72/ONUX25nFqKzVmkeUPeBLOPQp03RGcIYL3/ayvcqw==}
     engines: {node: '>=8.0.0'}
     dependencies:
       '@ethereumjs/block': 3.6.3
@@ -8430,7 +8415,7 @@ packages:
     engines: {node: '>=6'}
     dependencies:
       buffer: 5.7.1
-      immediate: 3.2.3
+      immediate: 3.3.0
       level-concat-iterator: 2.0.1
       level-supports: 1.0.1
       xtend: 4.0.2

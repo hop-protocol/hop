@@ -1,5 +1,5 @@
-import { IAPIEventStoreRes, IDataStore } from './types.js'
-import { Message } from '../Message.js'
+import { IAPIEventStoreRes, IDataStore } from './types'
+import { Message } from '../Message'
 
 export class APIEventStore implements IDataStore {
   async getData (messageHash: string): Promise<IAPIEventStoreRes | undefined> {

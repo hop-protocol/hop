@@ -1,4 +1,4 @@
-import { DB, DBKeyEncodingOptions } from './DB.js'
+import { DB } from './DB'
 
 /**
  * DB Prefixes keys with the state to allow for efficient querying.
@@ -9,35 +9,34 @@ import { DB, DBKeyEncodingOptions } from './DB.js'
  * but the object itself is not deleted and can be queried by its key.
  */
 
-export class StateMachineDB extends DB {
+export class StateMachineDB<T extends string, U> extends DB<T, U> {
 
-  async updateState<T, U>(oldState: T, newState: T, key: string, value: U): Promise<void> {
+  async updateState(oldState: T, newState: T, key: string, value: U): Promise<void> {
     const oldStateKey = `${oldState}!${key}`
     const newStateKey = `${newState}!${key}`
 
-    const existingValue = this.get<string, U>(key, DBKeyEncodingOptions)
+    const existingValue = this.get(this.encodeKey(key))
     const updatedValue = Object.assign(existingValue, value)
     
     // TODO: Add ChainedBatch
-    const batch = this.batch().put(key, updatedValue, DBKeyEncodingOptions)
+    const batch = this.batch().put(this.encodeKey(key), updatedValue)
 
     // Only delete if this is the initial state
     if (oldState !== newState) {
-      batch.del(oldStateKey, DBKeyEncodingOptions)
+      batch.del(this.encodeKey(oldStateKey))
     }
 
     // Only write if the new state is not the terminal state
     if (newState) {
-      batch.put(newStateKey, updatedValue, DBKeyEncodingOptions)
+      batch.put(this.encodeKey(newStateKey), updatedValue)
     }
 
     return batch.write()
   }
 
-  async *getItemsInState<T, U>(state: T): AsyncIterable<[string, U]> {
+  async *getItemsInState(state: T): AsyncIterable<[string, U]> {
     // TODO: Possibly filter? Maybe not...
     const filter = {
-      ...DBKeyEncodingOptions,
       gte: `${state}!`,
       lt: `${state}!~`
     }

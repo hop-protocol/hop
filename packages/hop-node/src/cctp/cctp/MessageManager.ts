@@ -1,10 +1,9 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug.js'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { FSMPoller } from '../fsm/FSMPoller.js'
-import { Message } from './Message.js'
-import { Signer } from 'ethers'
-import { TransitionDataProvider } from './transitionData/TransitionDataProvider.js'
+import { FSMPoller } from '../fsm/FSMPoller'
+import { Message } from './Message'
+import { TransitionDataProvider } from './transitionData/TransitionDataProvider'
 
 interface IDepositedMessage {
   message: string
@@ -27,7 +26,7 @@ export type IMessage = IDepositedMessage | IAttestedMessage | IRelayedMessage
 export enum MessageState {
   Deposited = 'deposited',
   Attested = 'attested',
-  Relayed = 'relayed',
+  Relayed = 'relayed'
 }
 
 const StateTransitionMap: Record<MessageState, MessageState | null> = {
@@ -38,17 +37,12 @@ const StateTransitionMap: Record<MessageState, MessageState | null> = {
 
 // TODO: Handle inflight transactions on restart
 export class MessageManager extends FSMPoller<MessageState, IMessage> {
-  readonly #wallets: Record<Chain, Signer>
   readonly #inFlightTxCache: Set<string> = new Set()
   readonly #transitionDataProvider: TransitionDataProvider<MessageState, IMessage>
 
   constructor (chains: Chain[]) {
     super('MessageManager', StateTransitionMap)
-
     this.#transitionDataProvider = new TransitionDataProvider(chains)
-    for (const chain of chains) {
-      this.#wallets[chain] = wallets.get(chain)
-    }
   }
 
   async getTransitionEvent <T extends MessageState>(state: T, messageHash: string): Promise<IMessage | undefined> {
@@ -116,8 +110,6 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
         return this.#isAttestedStateActionPreconditionMet(messageHash, value as IAttestedMessage)
       case MessageState.Relayed:
         return this.#isRelayedStateActionPreconditionMet(messageHash, value as IRelayedMessage)
-      default:
-        return true
     }
   }
 
@@ -191,7 +183,8 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     // There is probably a better way to type this
     const { message, attestation, destinationChainId } = value as IDepositedMessage & IAttestedMessage
     const chainSlug = chainIdToSlug(destinationChainId)
-    await Message.relayMessage(this.#wallets[chainSlug], message, attestation)
+    const wallet = wallets.get(chainSlug)
+    await Message.relayMessage(wallet, message, attestation)
   }
 
   async #performRelayedStateAction (value: IMessage): Promise<void> {

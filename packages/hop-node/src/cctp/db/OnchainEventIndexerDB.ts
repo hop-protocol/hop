@@ -1,8 +1,9 @@
-import { type ChainedBatch } from 'classic-level'
-import { DB, DBKeyEncodingOptions } from './DB.js'
+import { ChainedBatch, DB } from './DB'
 import { providers } from 'ethers'
 
 export type LogWithChainId = providers.Log & { chainId: number }
+
+type DBValue = LogWithChainId | number
 
 /**
  * Future work:
@@ -13,12 +14,11 @@ export type LogWithChainId = providers.Log & { chainId: number }
  * Indexed by topic[0]!chainId!blockNumber!logIndex
  */
 
-export class OnchainEventIndexerDB extends DB {
+export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
   async *getLogsByTopic(topic: string): AsyncIterable<LogWithChainId> {
      // Tilde is intentional for lexicographical sorting
     const filter = {
-      ...DBKeyEncodingOptions,
       gte: `${topic}`,
       lt: `${topic}~`
     }
@@ -27,11 +27,11 @@ export class OnchainEventIndexerDB extends DB {
 
   async getLastBlockSynced(syncDbKey: string): Promise<number> {
     // TODO: Not 0, get start block num from config
-    return parseInt(await this.get(syncDbKey) ?? 0)
+    return (await this.get(this.encodeKey(syncDbKey)) ?? 0) as number
   }
 
   async updateSyncAndEvents(syncDbKey: string, syncedBlockNumber: number, logs: LogWithChainId[]): Promise<void> {
-    const batch: ChainedBatch<this, string, LogWithChainId | string> = this.batch()
+    const batch: ChainedBatch<this, string, DBValue> = this.batch()
 
     for (const log of logs) {
       const index = this.#getIndexKey(log)
@@ -39,7 +39,7 @@ export class OnchainEventIndexerDB extends DB {
     }
 
     //  These must be performed atomically to keep state in sync
-    batch.put(syncDbKey, syncedBlockNumber.toString())
+    batch.put(syncDbKey, syncedBlockNumber)
     return batch.write()
   }
 

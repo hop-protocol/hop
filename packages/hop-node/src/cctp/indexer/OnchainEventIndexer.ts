@@ -1,8 +1,8 @@
-import chainSlugToId from 'src/utils/chainSlugToId.js'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import { Chain } from 'src/constants'
 import { EventFilter, providers, utils } from 'ethers'
-import { IGetIndexedDataByKey } from './types.js'
-import { type LogWithChainId, OnchainEventIndexerDB } from 'src/cctp/db/OnchainEventIndexerDB.js'
+import { IGetIndexedDataByKey } from './types'
+import { type LogWithChainId, OnchainEventIndexerDB } from 'src/cctp/db/OnchainEventIndexerDB'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 
 export type RequiredEventFilter = Required<EventFilter>
@@ -28,7 +28,7 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
 
   // TODO: When the DB supports multiple indexes, remove the topic
   async getIndexedDataByKey(key: string, topic: string): Promise<LogWithChainId[] | undefined> {
-    // TODO: When the DB supports multiple indexes, replace this with a call to the DB and remvoe the topic
+    // TODO: When the DB supports multiple indexes, replace this with a call to the DB and remove the topic
     return this.#getLogsForSecondaryIndex(key, topic)
   }
 
@@ -86,6 +86,7 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
     await this.#db.updateSyncAndEvents(filterId, currentEnd, logsWithChainId)
   }
 
+  // TODO: Is this ok? Do I need to be able to query easier than with a hash?
   #getUniqueFilterId = (chain: Chain, eventFilter: RequiredEventFilter): string => {
     return utils.keccak256(chain + JSON.stringify(eventFilter))
   }

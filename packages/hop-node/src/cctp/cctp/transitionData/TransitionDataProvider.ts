@@ -1,19 +1,17 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug.js'
-import { APIEventStore } from './ApiEventStore.js'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
+import { APIEventStore } from './ApiEventStore'
 import { Chain } from 'src/constants'
-import { IAPIEventStoreRes, IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, ITransitionDataProvider } from './types.js'
-import { IMessage, MessageState } from '../MessageManager.js'
-import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB.js'
-import { Message } from '../Message.js'
-import { OnchainEventStore } from './OnchainEventStore.js'
-import { getRpcProvider } from 'src/utils/getRpcProvider.js'
+import { IAPIEventStoreRes, IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, ITransitionDataProvider } from './types'
+import { IMessage, MessageState } from '../MessageManager'
+import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB'
+import { Message } from '../Message'
+import { OnchainEventStore } from './OnchainEventStore'
+import { getRpcProvider } from 'src/utils/getRpcProvider'
 
 export class TransitionDataProvider<T extends MessageState, U extends IMessage> implements ITransitionDataProvider<T, U> {
   readonly #stores: Record<T, IDataStore>
 
-  constructor (
-    chains: Chain[]
-  ) {
+  constructor (chains: Chain[]) {
     const onchainEventSourceIndexer = new OnchainEventStore(chains)
     const apiFetchEventSourceIndexer = new APIEventStore()
 

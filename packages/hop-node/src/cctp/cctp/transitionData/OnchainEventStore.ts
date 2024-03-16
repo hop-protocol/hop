@@ -1,9 +1,9 @@
-import chainSlugToId from 'src/utils/chainSlugToId.js'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import { Chain } from 'src/constants'
-import { IDataStore, IOnchainEventStoreRes } from './types.js'
-import { type LogWithChainId } from '../../db/OnchainEventIndexerDB.js'
-import { Message } from '../Message.js'
-import { OnchainEventIndexer, RequiredEventFilter } from '../../indexer/OnchainEventIndexer.js'
+import { IDataStore, IOnchainEventStoreRes } from './types'
+import { type LogWithChainId } from '../../db/OnchainEventIndexerDB'
+import { Message } from '../Message'
+import { OnchainEventIndexer, RequiredEventFilter } from '../../indexer/OnchainEventIndexer'
 
 export class OnchainEventStore implements IDataStore {
   readonly #indexer: OnchainEventIndexer

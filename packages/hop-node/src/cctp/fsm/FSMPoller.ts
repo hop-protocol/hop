@@ -1,8 +1,12 @@
 import { StateMachineDB } from '../db/StateMachineDB'
 
+/**
+ * Expects the terminal state of stateTransitionMap to be null.
+ */
+
 export abstract class FSMPoller<T extends string, U>{
   readonly #pollIntervalMs: number = 60_000
-  readonly #db: StateMachineDB
+  readonly #db: StateMachineDB<T, U>
   readonly #stateTransitionMap: Record<T, T | null>
 
   // Preconditions
@@ -18,8 +22,8 @@ export abstract class FSMPoller<T extends string, U>{
   // Hooks
   protected abstract handleStateExitHook(state: T, key: string, value: U): void
 
-  constructor (dbName: string, stateTransitionMap: Record<T, T | null>) {
-    this.#db = new StateMachineDB(dbName)
+  constructor (stateMachineName: string, stateTransitionMap: Record<T, T | null>) {
+    this.#db = new StateMachineDB(stateMachineName)
     this.#stateTransitionMap = stateTransitionMap
 
     this.#poll()
@@ -69,12 +73,13 @@ export abstract class FSMPoller<T extends string, U>{
    */
 
   async transitionState(currentState: T, key: string, transitionValue: U): Promise<void> {
-    const newState: T | null = this.#stateTransitionMap[currentState]
+    // The terminal state may be null, so we cast it to T and the DB will handle it
+    const newState = this.#stateTransitionMap[currentState] as T
     return this.#db.updateState(currentState, newState, key, transitionValue)
   }
 
   async *#getItemsInState(state: T): AsyncIterable<[string, U]> {
-    for await (const [key, value] of this.#db.getItemsInState<T, U>(state)) {
+    for await (const [key, value] of this.#db.getItemsInState(state)) {
       yield [key, value]
     }
   }

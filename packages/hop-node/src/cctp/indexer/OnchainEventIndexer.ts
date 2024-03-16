@@ -88,6 +88,7 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
 
   // TODO: Is this ok? Do I need to be able to query easier than with a hash?
   #getUniqueFilterId = (chain: Chain, eventFilter: RequiredEventFilter): string => {
-    return utils.keccak256(chain + JSON.stringify(eventFilter))
+    const bytesId = utils.toUtf8Bytes(chain + JSON.stringify(eventFilter))
+    return utils.keccak256(bytesId)
   }
 }

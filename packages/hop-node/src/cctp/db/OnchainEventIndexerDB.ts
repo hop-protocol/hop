@@ -1,4 +1,5 @@
 import { ChainedBatch, DB } from './DB'
+import { getDefaultStartBlockNumber } from './utils'
 import { providers } from 'ethers'
 
 export type LogWithChainId = providers.Log & { chainId: number }
@@ -25,12 +26,12 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     yield* this.values(filter)
   }
 
-  async getLastBlockSynced(syncDbKey: string): Promise<number> {
-    // TODO: Not 0, get start block num from config
-    return (await this.get(this.encodeKey(syncDbKey)) ?? 0) as number
+  async getLastBlockSynced(chainId: number, syncDBKey: string): Promise<number> {
+    const defaultStartBlockNumber = getDefaultStartBlockNumber(chainId)
+    return (await this.get(this.encodeKey(syncDBKey)) ?? defaultStartBlockNumber) as number
   }
 
-  async updateSyncAndEvents(syncDbKey: string, syncedBlockNumber: number, logs: LogWithChainId[]): Promise<void> {
+  async updateSyncAndEvents(syncDBKey: string, syncedBlockNumber: number, logs: LogWithChainId[]): Promise<void> {
     const batch: ChainedBatch<this, string, DBValue> = this.batch()
 
     for (const log of logs) {
@@ -39,7 +40,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     }
 
     //  These must be performed atomically to keep state in sync
-    batch.put(syncDbKey, syncedBlockNumber)
+    batch.put(syncDBKey, syncedBlockNumber)
     return batch.write()
   }
 

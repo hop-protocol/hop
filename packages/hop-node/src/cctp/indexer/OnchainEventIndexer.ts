@@ -1,3 +1,4 @@
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { Chain } from 'src/constants'
 import { EventFilter, providers, utils } from 'ethers'
@@ -52,9 +53,9 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
   #syncEvents = async (chain: Chain): Promise<void> => {
     const chainId = chainSlugToId(chain)
     const provider = getRpcProvider(chain)
-    const filterId = this.#getUniqueFilterId(chain, this.#eventFilter)
+    const filterId = this.#getUniqueFilterId(chainId, this.#eventFilter)
 
-    const lastBlockSynced = await this.#db.getLastBlockSynced(filterId)
+    const lastBlockSynced = await this.#db.getLastBlockSynced(chainId, filterId)
     const headBlockNumber = await provider.getBlockNumber()
 
     // Avoid double counting the edges
@@ -86,9 +87,10 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
     await this.#db.updateSyncAndEvents(filterId, currentEnd, logsWithChainId)
   }
 
-  // TODO: Is this ok? Do I need to be able to query easier than with a hash?
-  #getUniqueFilterId = (chain: Chain, eventFilter: RequiredEventFilter): string => {
-    const bytesId = utils.toUtf8Bytes(chain + JSON.stringify(eventFilter))
+  // FilterID is unique per chain and event filter. The filter can technically match on multiple chains.
+  #getUniqueFilterId = (chainId: number, eventFilter: RequiredEventFilter): string => {
+    const chainSlug = chainIdToSlug(chainId)
+    const bytesId = utils.toUtf8Bytes(chainSlug + JSON.stringify(eventFilter))
     return utils.keccak256(bytesId)
   }
 }

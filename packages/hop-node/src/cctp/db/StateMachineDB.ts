@@ -1,4 +1,6 @@
-import { DB } from './DB'
+import { ChainedBatch, DB } from './DB'
+
+type DBValue<T> = T
 
 /**
  * DB Prefixes keys with the state to allow for efficient querying.
@@ -18,13 +20,14 @@ export class StateMachineDB<T extends string, U> extends DB<T, U> {
     const existingValue = this.get(this.encodeKey(key))
     const updatedValue = Object.assign(existingValue, value)
     
-    // TODO: Add ChainedBatch
-    const batch = this.batch().put(this.encodeKey(key), updatedValue)
+    const batch: ChainedBatch<this, string, DBValue<U>>  = this.batch()
+    
+    // Always update the value to the top level key
+    batch.put(this.encodeKey(key), updatedValue)
 
-    // Only delete if this is the initial state
-    if (oldState !== newState) {
-      batch.del(this.encodeKey(oldStateKey))
-    }
+    // Always Only delete state-specific key if this is the initial state
+    // If this is the initial state, the old state will not exist and this will not be executed
+    batch.del(this.encodeKey(oldStateKey))
 
     // Only write if the new state is not the terminal state
     if (newState) {

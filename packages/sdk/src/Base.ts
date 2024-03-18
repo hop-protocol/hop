@@ -597,6 +597,10 @@ export class Base {
     return chain.isL1 ? configAddresses?.cctpL1Bridge : configAddresses?.cctpL2Bridge
   }
 
+  public getCctpMessageTransmitterAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpMessageTransmitter
+  }
+
   public getL1CanonicalBridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l1CanonicalBridge
   }

@@ -3352,20 +3352,21 @@ class HopBridge extends Base {
       base: '' // TODO
     }
 
-    const messageTransmitters: Record<string, string> = {
-      ethereum: '0x0a992d191deec32afe36203ad87d7d289a738f81',
-      optimism: '0x4d41f22c5a0e5c74090899e5a8fb597a8842b3e8',
-      polygon: '0xF3be9355363857F3e001be68856A2f96b4C39Ba9',
-      base: '0xAD09780d193884d503182aD4588450C416D6F9D4',
-      arbitrum: '0xC30362313FBBA5cf9163F0bb16a0e01f01A896ca'
-    }
-
     const message = messageBodies[toChain.slug]
     if (!message) {
       throw new Error(`message body not found for chain ${toChain.slug}`)
     }
 
     const messageHash = keccak256(message).toString()
+    const attestation = await this.getCctpMessageAttestation(messageHash, toChain)
+
+    const populatedTx = await this.getCctpReceiveMessagePopulatedTx(message, attestation, toChain)
+    const provider = await this.getSignerOrProvider(toChain)
+    return this.estimateGas(provider, populatedTx)
+  }
+
+  async getCctpMessageAttestation (messageHash: string, toChain: TChain) {
+    toChain = this.toChainModel(toChain)
     const url = `https://iris-api.circle.com/v1/attestations/${messageHash}`
     const json = await fetchJsonOrThrow(url)
     const { attestation } = json
@@ -3374,7 +3375,13 @@ class HopBridge extends Base {
       throw new Error(`attestation not found for chain ${toChain.slug}`)
     }
 
-    const transmitterAddress = messageTransmitters[toChain?.slug]
+    return attestation
+  }
+
+  async getCctpReceiveMessagePopulatedTx(message: string, attestation: string, toChain: TChain) {
+    toChain = this.toChainModel(toChain)
+
+    const transmitterAddress = this.getCctpMessageTransmitterAddress(this.tokenSymbol, toChain)
     if (!transmitterAddress) {
       throw new Error(`transmitter address not found for chain ${toChain.slug}`)
     }

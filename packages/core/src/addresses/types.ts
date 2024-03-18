@@ -4,6 +4,7 @@ export interface L1BridgeProps {
   l1CanonicalToken: string
   l1Bridge: string
   cctpL1Bridge?: string
+  cctpMessageTransmitter?: string
   bridgeDeployedBlockNumber: number
 }
 
@@ -14,6 +15,7 @@ export interface L2BridgeProps {
   l2CanonicalToken: string
   l2Bridge: string
   cctpL2Bridge?: string
+  cctpMessageTransmitter?: string
   l2HopBridgeToken: string
   l2AmmWrapper: string
   l2SaddleSwap: string
@@ -54,11 +56,13 @@ export type BridgeChains = Partial<{
 type USDCL1BridgeBase = {
   l1CanonicalToken: string
   cctpL1Bridge?: string
+  cctpMessageTransmitter?: string
 }
 
 type USDCL2BridgeBase = {
   l2CanonicalToken: string
   cctpL2Bridge?: string
+  cctpMessageTransmitter?: string
 }
 
 type USDCBridge = Partial<{

@@ -9,6 +9,27 @@ export function getAttestationUrl (messageHash: string): string {
   return `${baseUrl}/${messageHash}`
 }
 
+// TODO: Use block numbers, not arbitrary time
+export const FinalityTimeForChainIdMs: Record<string, Partial<Record<Chain, number>>> = {
+  [Network.Mainnet]: {
+    [Chain.Ethereum]: 15 * 60 * 1000,
+    [Chain.Optimism]: 15 * 60 * 1000,
+    [Chain.Arbitrum]: 15 * 60 * 1000,
+    [Chain.Base]: 15 * 60 * 1000,
+    [Chain.Polygon]: 15 * 60 * 1000,
+  },
+  [Network.Sepolia]: {
+    [Chain.Ethereum]: 2 * 60 * 1000,
+    [Chain.Optimism]: 1 * 60 * 1000,
+    [Chain.Arbitrum]: 1 * 60 * 1000,
+    [Chain.Base]: 1 * 60 * 1000
+  }
+}
+
+export function getFinalityTimeFromChainIdMs (chainId: number): number {
+  const chainSlug = chainIdToSlug(chainId)
+  return FinalityTimeForChainIdMs[globalConfig.network][chainSlug]!
+}
 
 // Remove all this in favor of the contract instance from the SDK when available
 export const MessageTransmitterAddresses: Record<string, Partial<Record<Chain, string>>> = {

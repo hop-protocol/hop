@@ -4,9 +4,11 @@ import { Chain } from 'src/constants'
 import { FSMPoller } from '../fsm/FSMPoller'
 import { Message } from './Message'
 import { TransitionDataProvider } from './transitionData/TransitionDataProvider'
+import { getFinalityTimeFromChainIdMs } from './utils'
 
 interface IDepositedMessage {
   message: string
+  sourceChainId: number
   destinationChainId: number
   depositedTxHash: string
   depositedTimestampMs: number
@@ -65,9 +67,9 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
   }
 
   #isDepositedStateTransactionPreconditionMet (messageHash: string, value: IDepositedMessage): boolean {
-    // TODO: Real finality
-    const finalityMs = 10_000
-    const finalityTimestampOk = value.depositedTimestampMs + finalityMs < Date.now()
+    const { sourceChainId, depositedTimestampMs } = value
+    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
+    const finalityTimestampOk = depositedTimestampMs + chainFinalityTimeMs < Date.now()
 
     return (
       finalityTimestampOk
@@ -89,9 +91,11 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
   }
 
   #isRelayedStateTransactionPreconditionMet (messageHash: string, value: IRelayedMessage): boolean {
-    // TODO: Real finality
-    const finalityMs = 10_000
-    const finalityTimestampOk = value.relayTimestampMs + finalityMs < Date.now()
+    // isPrecondition methods need access to all data at given state, so we need to fetch the message data
+    // There is probably a better way to type this
+    const { relayTimestampMs, destinationChainId } = value as IDepositedMessage & IAttestedMessage & IRelayedMessage
+    const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
+    const finalityTimestampOk = relayTimestampMs + chainFinalityTimeMs < Date.now()
 
     return (
       finalityTimestampOk

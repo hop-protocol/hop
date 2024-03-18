@@ -5,6 +5,7 @@ import { EventFilter, providers, utils } from 'ethers'
 import { IGetIndexedDataByKey } from './types'
 import { type LogWithChainId, OnchainEventIndexerDB } from 'src/cctp/db/OnchainEventIndexerDB'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { wait } from 'src/utils/wait'
 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
@@ -14,14 +15,16 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
   readonly #eventFilter: RequiredEventFilter
 
   // TODO: config option
-  readonly #maxBlockRange: number = 1000
-  readonly #pollIntervalMs: number = 60_000
+  readonly #maxBlockRange: number = 2000
+  // TODO: Timing
+  readonly #pollIntervalMs: number = 10_000
 
   constructor (
+    db: OnchainEventIndexerDB,
     eventFilter: RequiredEventFilter,
     chain: Chain
   ) {
-    this.#db = new OnchainEventIndexerDB('OnchainEventIndexer')
+    this.#db = db
     this.#eventFilter = eventFilter
 
     this.#initPoller(chain)
@@ -47,7 +50,11 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
   }
 
   #initPoller = async (chain: Chain) => {
-    setTimeout(() => this.#syncEvents(chain), this.#pollIntervalMs)
+    while (true) {
+      await this.#syncEvents(chain)
+
+      await wait(this.#pollIntervalMs)
+    }
   }
 
   #syncEvents = async (chain: Chain): Promise<void> => {
@@ -80,8 +87,9 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
         const logWithChainId = { ...log, chainId }
         logsWithChainId.push(logWithChainId)
       }
+
+      currentStart = currentEnd
     }
-    currentStart = currentEnd
 
     // Atomically write new DB state and logs to avoid out of sync state
     await this.#db.updateSyncAndEvents(filterId, currentEnd, logsWithChainId)

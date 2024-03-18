@@ -2,6 +2,7 @@ import { BigNumber, providers, utils } from 'ethers'
 import {
   CCTP_DOMAIN_MAP,
   getAttestationUrl,
+  getHopCCTPContract,
   getMessageTransmitterContract,
   getTokenMessengerContract
 } from './utils'
@@ -48,6 +49,12 @@ export class Message {
   // TODO: Do this better and get from SDK
   static DEPOSIT_FOR_BURN_EVENT_SIG = '0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0'
   static MESSAGE_RECEIVED_EVENT_SIG = '0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d'
+
+  // TODO: Get from SDK
+  static getCCTPTransferSentEventFilter(chainId: number): RequiredEventFilter {
+    const contract = getHopCCTPContract(chainId)
+    return contract.filters.CCTPTransferSent() as RequiredEventFilter
+  }
   
   // TODO: Get from SDK
   static getDepositForBurnEventFilter(chainId: number): RequiredEventFilter {

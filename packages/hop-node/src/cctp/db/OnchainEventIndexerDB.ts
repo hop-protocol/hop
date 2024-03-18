@@ -27,8 +27,17 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
   }
 
   async getLastBlockSynced(chainId: number, syncDBKey: string): Promise<number> {
+    // TODO: Use decorator for creation
+    let dbValue = 0
+    try {
+      dbValue = await this.get(this.encodeKey(syncDBKey)) as number
+    } catch (e) {
+      // TODO: Better handling
+      // Noop
+    }
     const defaultStartBlockNumber = getDefaultStartBlockNumber(chainId)
-    return (await this.get(this.encodeKey(syncDBKey)) ?? defaultStartBlockNumber) as number
+    // Intentional or instead of nullish coalescing since dbValue can be 0
+    return (dbValue || defaultStartBlockNumber) as number
   }
 
   async updateSyncAndEvents(syncDBKey: string, syncedBlockNumber: number, logs: LogWithChainId[]): Promise<void> {

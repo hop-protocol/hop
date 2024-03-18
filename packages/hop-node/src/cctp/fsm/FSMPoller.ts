@@ -1,11 +1,13 @@
 import { StateMachineDB } from '../db/StateMachineDB'
+import { wait } from 'src/utils/wait'
 
 /**
  * Expects the terminal state of stateTransitionMap to be null.
  */
 
 export abstract class FSMPoller<T extends string, U>{
-  readonly #pollIntervalMs: number = 60_000
+  // TODO: Timing
+  readonly #pollIntervalMs: number = 10_000
   readonly #db: StateMachineDB<T, U>
   readonly #stateTransitionMap: Record<T, T | null>
 
@@ -26,12 +28,21 @@ export abstract class FSMPoller<T extends string, U>{
     this.#db = new StateMachineDB(stateMachineName)
     this.#stateTransitionMap = stateTransitionMap
 
-    this.#poll()
+    // TODO: Is running all states sequentially fine? Any issues with running them in parallel?
+    // TODO: On startup, does one need to complete first?
+    for (const state of Object.keys(stateTransitionMap)) {
+      this.#initPoller(state as T)
+    }
   }
 
-  async #poll(): Promise<void> {
-    setTimeout(this.#pollStateTransition, this.#pollIntervalMs)
-    setTimeout(this.#pollStateAction, this.#pollIntervalMs)
+  async #initPoller(state: T): Promise<void> {
+    while (true) {
+      // TODO: Don't block
+      await this.#pollStateTransition(state)
+      await this.#pollStateAction(state)
+
+      await wait(this.#pollIntervalMs)
+    }
   }
 
   #pollStateTransition = async (state: T): Promise<void> => {

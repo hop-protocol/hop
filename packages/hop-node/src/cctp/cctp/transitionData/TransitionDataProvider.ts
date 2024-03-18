@@ -84,6 +84,7 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
     const timestampMs = await this.#getLogTimestampMs(chainId, blockNumber)
     return {
       message,
+      sourceChainId: chainId,
       destinationChainId,
       depositedTxHash: transactionHash,
       depositedTimestampMs: timestampMs

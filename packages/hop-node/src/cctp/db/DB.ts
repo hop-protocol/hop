@@ -8,7 +8,8 @@ interface DatabaseOptions {
 }
 
 // TODO: Binary?
-const KEY_ENCODING_OPTIONS: DatabaseOptions = {
+// TODO: Not sure I should be exporting this
+export const KEY_ENCODING_OPTIONS: DatabaseOptions = {
   keyEncoding: 'utf8',
   valueEncoding: 'json'
 }

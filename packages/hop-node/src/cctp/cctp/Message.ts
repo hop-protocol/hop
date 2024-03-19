@@ -1,15 +1,16 @@
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber, providers, utils } from 'ethers'
 import {
   CCTP_DOMAIN_MAP,
   getAttestationUrl,
   getHopCCTPContract,
-  getMessageTransmitterContract,
-  getTokenMessengerContract
+  getMessageTransmitterContract
 } from './utils'
-import { Network } from 'src/constants'
+import { Chain, MinPolygonGasPrice, Network } from 'src/constants'
 import { RequiredEventFilter } from '../indexer/OnchainEventIndexer'
 import { Signer } from 'ethers'
 import { config as globalConfig } from 'src/config'
+import { getRpcProvider } from 'src/utils/getRpcProvider'
 
 enum AttestationStatus {
   PendingConfirmation = 'pending_confirmation',
@@ -28,26 +29,22 @@ interface IAttestationResponseSuccess {
 type IAttestationResponse = IAttestationResponseError | IAttestationResponseSuccess
 
 // TODO: Get from SDK
-export type DepositForBurnEventDecoded = {
+export type HopCCTPTransferSentDecoded = {
   amount: BigNumber
-  mintRecipient: string
-  destinationDomain: BigNumber
-  destinationTokenMessenger: string
-  destinationCaller: string
-
+  bonderFee: BigNumber
 }
-
-// TODO: Not global
-const MESSAGE_VERSION_CACHE: Record<number, number> = {}
 
 /**
  * CCTP Message utility class. This class exposes all required chain interactions with CCTP
  * contracts while being chain agnostic and stateless.
  */
 
+// TODO: Sigs are redundant with the filters
+
 export class Message {
   // TODO: Do this better and get from SDK
-  static DEPOSIT_FOR_BURN_EVENT_SIG = '0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0'
+  static HOP_CCTP_TRANSFER_SENT_SIG = '0x10bf4019e09db5876a05d237bfcc676cd84eee2c23f820284906dd7cfa70d2c4'
+  static MESSAGE_SENT_EVENT_SIG = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
   static MESSAGE_RECEIVED_EVENT_SIG = '0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d'
 
   // TODO: Get from SDK
@@ -57,9 +54,9 @@ export class Message {
   }
   
   // TODO: Get from SDK
-  static getDepositForBurnEventFilter(chainId: number): RequiredEventFilter {
-    const contract = getTokenMessengerContract(chainId)
-    return contract.filters.DepositForBurn() as RequiredEventFilter
+  static getMessageSentEventFilter(chainId: number): RequiredEventFilter {
+    const contract = getMessageTransmitterContract(chainId)
+    return contract.filters.MessageSent() as RequiredEventFilter
   }
 
   // TODO: Get from SDK
@@ -68,58 +65,24 @@ export class Message {
     return contract.filters.MessageReceived() as RequiredEventFilter
   }
 
+  static decodeMessageFromEvent (encodedMessage: string): string {
+    const decoded = utils.defaultAbiCoder.decode(['bytes'], encodedMessage)
+    return decoded[0]
+  }
+
   static getMessageHashFromMessage (message: string): string {
     return utils.keccak256(message)
   }
 
-  static async getMessageBodyVersion (chainId: number): Promise<number> {
-    // The value is immutable onchain. An updated value would result in a new address which we would
-    // need to change anyway
-    if (MESSAGE_VERSION_CACHE[chainId]) {
-      return MESSAGE_VERSION_CACHE[chainId]
-    }
-
-    const contract = getTokenMessengerContract(chainId)
-    const version = await contract.version()
-
-    MESSAGE_VERSION_CACHE[chainId] = version
-    return version
-  }
-
-  static getMessageFromDepositEvent (messageBodyVersion: number, token: string, recipient: string, amount: BigNumber): string {
-    return utils.defaultAbiCoder.encode(
-      [
-        'uint32',
-        'bytes32',
-        'bytes32',
-        'uint256',
-        'bytes32'
-      ],
-      [
-        messageBodyVersion,
-        utils.formatBytes32String(token),
-        recipient,
-        amount,
-        utils.formatBytes32String('0x')
-      ]
-    )
-  }
-
-  static decodeDepositForBurnEvent (data: string): DepositForBurnEventDecoded {
+  static decodeHopCCTPTransferSentFromEvent (data: string):  HopCCTPTransferSentDecoded {
     const res = utils.defaultAbiCoder.decode([
       'uint256',
-      'bytes32',
-      'uint32',
-      'bytes32',
-      'bytes32'
+      'uint256'
     ], data)
 
     return {
       amount: BigNumber.from(res[0]),
-      mintRecipient: utils.parseBytes32String(res[1]),
-      destinationDomain: BigNumber.from(res[2]),
-      destinationTokenMessenger: res[3],
-      destinationCaller: res[4]
+      bonderFee: BigNumber.from(res[1])
     }
   }
 
@@ -137,7 +100,9 @@ export class Message {
     const chainId = await signer.getChainId()
     // Remove this in favor of the contract instance from the SDK when available
     const MessageTransmitterContract = getMessageTransmitterContract(chainId)
-    return MessageTransmitterContract.connect(signer).receiveMessage(message, attestation)
+    // TODO: Config overrides
+    const txOverrides = await Message.getTxOverrides(chainId)
+    return MessageTransmitterContract.connect(signer).receiveMessage(message, attestation, txOverrides)
   }
 
   /**
@@ -160,9 +125,30 @@ export class Message {
     }
 
     if (json.status !== 'complete') {
-      throw new Error('Attestation not complete')
+      throw new Error(`Attestation not complete: ${JSON.stringify(json)} (messageHash: ${messageHash})`)
     }
 
     return json.attestation
+  }
+
+  // TODO: rm for config
+  static async getTxOverrides (chainId: number): Promise<any>{
+    const chainSlug = chainIdToSlug(chainId)
+    const provider = getRpcProvider(chainSlug)
+    const txOptions: any = {}
+
+    // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+    // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+    if (chainSlug === Chain.Polygon) {
+      txOptions.gasPrice = await provider.getGasPrice()
+
+      const minGasPrice = BigNumber.from(MinPolygonGasPrice).mul(2)
+      const gasPriceBn = BigNumber.from(txOptions.gasPrice)
+      if (gasPriceBn.lt(minGasPrice)) {
+        txOptions.gasPrice = minGasPrice
+      }
+    }
+
+    return txOptions
   }
 }

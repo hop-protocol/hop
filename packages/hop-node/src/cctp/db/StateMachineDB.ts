@@ -1,4 +1,4 @@
-import { ChainedBatch, DB } from './DB'
+import { ChainedBatch, DB, KEY_ENCODING_OPTIONS } from './DB'
 
 type DBValue<T> = T
 
@@ -17,13 +17,20 @@ type DBValue<T> = T
 
 export class StateMachineDB<T extends string, U> extends DB<T, U> {
 
-  async updateState(oldState: T, newState: T, key: string, value: U): Promise<void> {
-    // TODO: Handle this at the DB level
-    const oldStateDB = this.sublevel(oldState)
-    const newStateDB = this.sublevel(newState)
+  async createItem(state: T, key: string, value: U): Promise<void> {
+    // TODO -- better init state handlings
+    const uninitializedState = 'uninitializedState' as T
+    return this.updateState(uninitializedState, state, key, value)
+  }
 
-    const existingValue = this.get(this.encodeKey(key))
-    const updatedValue = Object.assign(existingValue, value)
+  async updateState(oldState: T, newState: T, key: string, value: U): Promise<void> {
+    let existingValue: U = {} as U
+    try {
+      // TODO: Handle better
+      existingValue = await this.get(this.encodeKey(key))
+    } catch {}
+    // TODO: Don't do this as
+    const updatedValue = Object.assign({} as object, value, existingValue)
 
     const batch: ChainedBatch<this, string, DBValue<U>>  = this.batch()
     
@@ -31,19 +38,28 @@ export class StateMachineDB<T extends string, U> extends DB<T, U> {
     batch.put(this.encodeKey(key), updatedValue)
 
     // If this is the initial state, the old state will not exist and this will not be executed
+    // TODO: Handle this at the DB level
+    const oldStateDB = this.sublevel(oldState, KEY_ENCODING_OPTIONS)
     batch.del(this.encodeKey(key), { sublevel: oldStateDB })
 
     // If the terminal state is reached, do not write
     if (newState) {
+      // TODO: Handle this at the DB level
+      const newStateDB = this.sublevel(newState, KEY_ENCODING_OPTIONS)
       batch.put(this.encodeKey(key), updatedValue, { sublevel: newStateDB })
+      console.log('writing to new state', newState, key, updatedValue)
     }
 
+    console.log('writing state', oldState, newState, key, updatedValue)
     return batch.write()
   }
 
   async *getItemsInState(state: T): AsyncIterable<[string, U]> {
     // TODO: Don't do <string, U> here, do it at the DB level
-    const sublevel = this.sublevel<string, U>(state, { valueEncoding: 'json' })
-    yield* sublevel.iterator()
+    const sublevel = this.sublevel(state, KEY_ENCODING_OPTIONS)
+    // TODO: Generic feels wrong
+    for await (const [key, value] of sublevel.iterator<string, U>(KEY_ENCODING_OPTIONS)) {
+      yield [key, value]
+    }
   }
 }

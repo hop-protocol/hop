@@ -1,12 +1,13 @@
 import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB'
 
 export type IAPIEventStoreRes = string
-export type IOnchainEventStoreRes = LogWithChainId[]
+export type IOnchainEventStoreRes = LogWithChainId
 export type IGetStoreDataRes = IAPIEventStoreRes | IOnchainEventStoreRes
 
 
 export interface ITransitionDataProvider<T, U> {
-  getTransitionData (state: T, key: string): Promise<U | undefined>
+  // TODO: value U is different than the response U
+  getTransitionData (state: T, value: U): Promise<U | undefined>
 }
 
 export interface IDataStore {

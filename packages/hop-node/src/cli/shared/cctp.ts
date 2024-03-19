@@ -23,6 +23,7 @@ export async function main () {
   const chains: Chain[] = CHAINS[globalConfig.network as Network]!
   try {
     const manager = new MessageManager(chains)
+    manager.start()
     console.log('CCTP Manager started')
 
     // TODO: Better way to run

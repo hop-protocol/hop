@@ -1,4 +1,6 @@
+import { BigNumber } from 'ethers'
 import { ChainedBatch, DB } from './DB'
+import { Message } from '../cctp/Message'
 import { getDefaultStartBlockNumber } from './utils'
 import { providers } from 'ethers'
 
@@ -17,12 +19,23 @@ type DBValue = LogWithChainId | number
 
 export class OnchainEventIndexerDB extends DB<string, DBValue> {
 
+  // TODO: Clean these up
   async *getLogsByTopic(topic: string): AsyncIterable<LogWithChainId> {
      // Tilde is intentional for lexicographical sorting
     const filter = {
       gte: `${topic}`,
       lt: `${topic}~`
     }
+    yield* this.values(filter)
+  }
+
+  async *getLogsByTopicAndSecondaryIndex(topic: string, secondaryIndex: string): AsyncIterable<LogWithChainId> {
+     // Tilde is intentional for lexicographical sorting
+    const filter = {
+      gte: `${topic}!${secondaryIndex}`,
+      lt: `${topic}!${secondaryIndex}~`
+    }
+    
     yield* this.values(filter)
   }
 
@@ -46,16 +59,30 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     for (const log of logs) {
       const index = this.#getIndexKey(log)
       batch.put(index, log)
+      console.log('putting log', syncDBKey, syncedBlockNumber, log)
+
+      // TODO: Temp second index, pass this in thru constructor
+      if (log.topics[0] === Message.MESSAGE_RECEIVED_EVENT_SIG) {
+        const secondIndex = this.#getIndexKey(log, BigNumber.from(log.topics[2]).toString())
+        batch.put(secondIndex, log)
+        console.log('putting secondary log', syncDBKey, syncedBlockNumber, log)
+      }
     }
 
     //  These must be performed atomically to keep state in sync
     batch.put(syncDBKey, syncedBlockNumber)
+    console.log('putting sync log', syncDBKey, syncedBlockNumber)
     return batch.write()
   }
 
-  #getIndexKey (log: LogWithChainId): string {
+  // TODO: Use sublevels
+  #getIndexKey (log: LogWithChainId, secondIndex?: string): string {
     // Use ! as separator since it is best choice for lexicographical ordering and follows best practices
     // https://github.com/Level/subleveldown
-    return log.topics[0] + '!' + log.chainId + '!' + log.blockNumber + '!' + log.logIndex
+    let index = log.topics[0]
+    if (secondIndex) {
+      index += '!' + secondIndex
+    }
+    return index + '!' + log.chainId + '!' + log.blockNumber + '!' + log.logIndex
   }
 }

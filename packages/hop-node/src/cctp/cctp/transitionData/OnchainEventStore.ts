@@ -24,26 +24,17 @@ export class OnchainEventStore implements IDataStore {
     const chainId = chainSlugToId(chain)
     return [
       Message.getCCTPTransferSentEventFilter(chainId),
-      Message.getDepositForBurnEventFilter(chainId),
       Message.getMessageReceivedEventFilter(chainId)
     ]
   }
 
-  async getData (messageHash: string): Promise<IOnchainEventStoreRes | undefined> {
-    // TODO: Remove this when the DB supports multiple indexes in favor of a single getIndexedDataByKey(messageHash) call
-    const topics: string[] = [
-      Message.DEPOSIT_FOR_BURN_EVENT_SIG,
-      Message.MESSAGE_RECEIVED_EVENT_SIG
-    ]
-    const logs: LogWithChainId[] = []
-    for (const topic of topics) {
-      const log = await this.#indexer.getIndexedDataByKey(messageHash, topic)
-      if (!log || log.length === 0) {
-        continue
-      }
-      logs.push(...log)
-    }
+  async getData (messageNonce: string): Promise<IOnchainEventStoreRes | undefined> {
+    // TODO: Not hard-coded topic
+    const topic: string = Message.MESSAGE_RECEIVED_EVENT_SIG
+    return this.#indexer.getIndexedDataBySecondIndex(topic, messageNonce)
+  }
 
-    return logs
+  async *getAllLogsForTopic (topic: string): AsyncIterable<LogWithChainId> {
+    yield *this.#indexer.getAllLogsForTopic(topic)
   }
 }

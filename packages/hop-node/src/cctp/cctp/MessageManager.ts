@@ -3,15 +3,16 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { FSMPoller } from '../fsm/FSMPoller'
 import { Message } from './Message'
-import { TransitionDataProvider } from './transitionData/TransitionDataProvider'
 import { getFinalityTimeFromChainIdMs } from './utils'
 
-interface IDepositedMessage {
+interface ISentMessage {
+  // TODO: should nonce be removed since it is already the key?
+  messageNonce: number
   message: string
   sourceChainId: number
   destinationChainId: number
-  depositedTxHash: string
-  depositedTimestampMs: number
+  sentTxHash: string
+  sentTimestampMs: number
 }
 
 interface IAttestedMessage {
@@ -23,61 +24,64 @@ interface IRelayedMessage {
   relayTimestampMs: number
 }
 
-export type IMessage = IDepositedMessage | IAttestedMessage | IRelayedMessage
+export type IMessage = ISentMessage | IAttestedMessage | IRelayedMessage
 
 export enum MessageState {
-  Deposited = 'deposited',
+  Sent = 'sent',
   Attested = 'attested',
   Relayed = 'relayed'
 }
 
 const StateTransitionMap: Record<MessageState, MessageState | null> = {
-  [MessageState.Deposited]: MessageState.Attested,
+  [MessageState.Sent]: MessageState.Attested,
   [MessageState.Attested]: MessageState.Relayed,
   [MessageState.Relayed]: null
 }
 
+// TODO: RM
+const RELAY_CACHE: Set<number> = new Set()
+
 // TODO: Handle inflight transactions on restart
 export class MessageManager extends FSMPoller<MessageState, IMessage> {
   readonly #inFlightTxCache: Set<string> = new Set()
-  readonly #transitionDataProvider: TransitionDataProvider<MessageState, IMessage>
 
   constructor (chains: Chain[]) {
-    super('MessageManager', StateTransitionMap)
-    this.#transitionDataProvider = new TransitionDataProvider(chains)
+    super('MessageManager', StateTransitionMap, chains)
   }
 
-  async getTransitionEvent <T extends MessageState>(state: T, messageHash: string): Promise<IMessage | undefined> {
-    return this.#transitionDataProvider.getTransitionData(state, messageHash)
+  // TODO: I don't love this
+  getStateCreationKey (value: IMessage): string {
+    const { messageNonce } = value as ISentMessage
+    return messageNonce.toString()
   }
 
   /**
    * Preconditions
    */
 
-  isStateTransitionPreconditionMet(state: MessageState, messageHash: string, value: IMessage): boolean {
+  isStateTransitionPreconditionMet(state: MessageState, messageNonce: string, value: IMessage): boolean {
     switch (state) {
-      case MessageState.Deposited:
-        return this.#isDepositedStateTransactionPreconditionMet(messageHash, value as IDepositedMessage)
+      case MessageState.Sent:
+        return this.#isSentStateTransactionPreconditionMet(messageNonce, value as ISentMessage)
       case MessageState.Attested:
-        return this.#isAttestedStateTransactionPreconditionMet(messageHash,value as IAttestedMessage)
+        return this.#isAttestedStateTransactionPreconditionMet(messageNonce,value as IAttestedMessage)
       case MessageState.Relayed:
-        return this.#isRelayedStateTransactionPreconditionMet(messageHash, value as IRelayedMessage)
+        return this.#isRelayedStateTransactionPreconditionMet(messageNonce, value as IRelayedMessage)
     }
   }
 
-  #isDepositedStateTransactionPreconditionMet (messageHash: string, value: IDepositedMessage): boolean {
-    const { sourceChainId, depositedTimestampMs } = value
+  #isSentStateTransactionPreconditionMet (messageNonce: string, value: ISentMessage): boolean {
+    const { sourceChainId, sentTimestampMs } = value
     const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
-    const finalityTimestampOk = depositedTimestampMs + chainFinalityTimeMs < Date.now()
+    const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
 
     return (
       finalityTimestampOk
     )
   }
 
-  #isAttestedStateTransactionPreconditionMet (messageHash: string, value: IAttestedMessage): boolean {
-    const cacheKey = this.#getCacheKey(MessageState.Attested, messageHash)
+  #isAttestedStateTransactionPreconditionMet (messageNonce: string, value: IAttestedMessage): boolean {
+    const cacheKey = this.#getCacheKey(MessageState.Attested, messageNonce)
     const isTxInFlight = this.#inFlightTxCache.has(cacheKey)
 
     // TODO: Introduce inflight timestamp for retry logic
@@ -90,10 +94,10 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     )
   }
 
-  #isRelayedStateTransactionPreconditionMet (messageHash: string, value: IRelayedMessage): boolean {
+  #isRelayedStateTransactionPreconditionMet (messageNonce: string, value: IRelayedMessage): boolean {
     // isPrecondition methods need access to all data at given state, so we need to fetch the message data
     // There is probably a better way to type this
-    const { relayTimestampMs, destinationChainId } = value as IDepositedMessage & IAttestedMessage & IRelayedMessage
+    const { relayTimestampMs, destinationChainId } = value as ISentMessage & IAttestedMessage & IRelayedMessage
     const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(destinationChainId)
     const finalityTimestampOk = relayTimestampMs + chainFinalityTimeMs < Date.now()
 
@@ -106,23 +110,23 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
    * Actions
    */
 
-  isStateActionPreconditionMet (state: MessageState, messageHash: string, value: IMessage): boolean {
+  isStateActionPreconditionMet (state: MessageState, messageNonce: string, value: IMessage): boolean {
     switch (state) {
-      case MessageState.Deposited:
-        return this.#isDepositedStateActionPreconditionMet(messageHash, value as IDepositedMessage)
+      case MessageState.Sent:
+        return this.#isSentStateActionPreconditionMet(messageNonce, value as ISentMessage)
       case MessageState.Attested:
-        return this.#isAttestedStateActionPreconditionMet(messageHash, value as IAttestedMessage)
+        return this.#isAttestedStateActionPreconditionMet(messageNonce, value as IAttestedMessage)
       case MessageState.Relayed:
-        return this.#isRelayedStateActionPreconditionMet(messageHash, value as IRelayedMessage)
+        return this.#isRelayedStateActionPreconditionMet(messageNonce, value as IRelayedMessage)
     }
   }
 
-  #isDepositedStateActionPreconditionMet (messageHash: string, value: IDepositedMessage): boolean {
+  #isSentStateActionPreconditionMet (messageNonce: string, value: ISentMessage): boolean {
     return true
   }
 
-  #isAttestedStateActionPreconditionMet (messageHash: string, value: IAttestedMessage): boolean {
-    const cacheKey = this.#getCacheKey(MessageState.Attested, messageHash)
+  #isAttestedStateActionPreconditionMet (messageNonce: string, value: IAttestedMessage): boolean {
+    const cacheKey = this.#getCacheKey(MessageState.Attested, messageNonce)
     const isTxInFlightCache = this.#inFlightTxCache.has(cacheKey)
 
     return (
@@ -130,7 +134,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     )
   }
 
-  #isRelayedStateActionPreconditionMet (messageHash: string, value: IRelayedMessage): boolean {
+  #isRelayedStateActionPreconditionMet (messageNonce: string, value: IRelayedMessage): boolean {
     return true
   }
 
@@ -138,28 +142,28 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
    * Other - hooks
    */
 
-  handleStateExitHook (state: MessageState, messageHash: string, value: IMessage): void {
+  handleStateExitHook (state: MessageState, messageNonce: string, value: IMessage): void {
     switch (state) {
-      case MessageState.Deposited:
-        return this.#handleDepositedStateExitHook(messageHash, value as IDepositedMessage)
+      case MessageState.Sent:
+        return this.#handleSentStateExitHook(messageNonce, value as ISentMessage)
       case MessageState.Attested:
-        return this.#handleAttestedStateExitHook(messageHash, value as IAttestedMessage)
+        return this.#handleAttestedStateExitHook(messageNonce, value as IAttestedMessage)
       case MessageState.Relayed:
-        return this.#handleRelayedStateExitHook(messageHash, value as IRelayedMessage)
+        return this.#handleRelayedStateExitHook(messageNonce, value as IRelayedMessage)
     }
   }
 
-  #handleDepositedStateExitHook (messageHash: string, value: IDepositedMessage): void {
+  #handleSentStateExitHook (messageNonce: string, value: ISentMessage): void {
     return
   }
 
-  #handleAttestedStateExitHook (messageHash: string, value: IAttestedMessage): void {
-    const cacheKey = this.#getCacheKey(MessageState.Attested, messageHash)
+  #handleAttestedStateExitHook (messageNonce: string, value: IAttestedMessage): void {
+    const cacheKey = this.#getCacheKey(MessageState.Attested, messageNonce)
     this.#inFlightTxCache.delete(cacheKey)
     return
   }
 
-  #handleRelayedStateExitHook (messageHash: string, value: IRelayedMessage): void {
+  #handleRelayedStateExitHook (messageNonce: string, value: IRelayedMessage): void {
     return
   }
 
@@ -169,8 +173,8 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
 
   async performAction(state: MessageState, value: IMessage): Promise<void> {
     switch (state) {
-      case MessageState.Deposited:
-        return this.#performDepositedStateAction(value)
+      case MessageState.Sent:
+        return this.#performSentStateAction(value)
       case MessageState.Attested:
         return this.#performAttestedStateAction(value)
       case MessageState.Relayed:
@@ -178,17 +182,30 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     }
   }
 
-  async #performDepositedStateAction (value: IMessage): Promise<void> {
+  async #performSentStateAction (value: IMessage): Promise<void> {
     return
   }
 
   async #performAttestedStateAction (value: IMessage): Promise<void> {
     // performAction methods need access to all data at given state, so we need to fetch the message data
     // There is probably a better way to type this
-    const { message, attestation, destinationChainId } = value as IDepositedMessage & IAttestedMessage
+    const { messageNonce, message, attestation, destinationChainId } = value as ISentMessage & IAttestedMessage
+
+    // TODO: RM Cache
+    if (RELAY_CACHE.has(messageNonce)) {
+      return
+    }
+    RELAY_CACHE.add(messageNonce)
+
     const chainSlug = chainIdToSlug(destinationChainId)
     const wallet = wallets.get(chainSlug)
-    await Message.relayMessage(wallet, message, attestation)
+    // TODO: better err handling
+    // error={"reason":"execution reverted: Nonce already used"
+    try {
+      await Message.relayMessage(wallet, message, attestation)
+    } catch (err) {
+      console.log('Relay failed', err)
+    }
   }
 
   async #performRelayedStateAction (value: IMessage): Promise<void> {
@@ -199,7 +216,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
    * Utils
    */
 
-  #getCacheKey (state: MessageState, messageHash: string): string {
-    return `${state}-${messageHash}`
+  #getCacheKey (state: MessageState, messageNonce: string): string {
+    return `${state}-${messageNonce}`
   }
 }

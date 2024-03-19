@@ -1,12 +1,15 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { APIEventStore } from './ApiEventStore'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { IAPIEventStoreRes, IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, ITransitionDataProvider } from './types'
 import { IMessage, MessageState } from '../MessageManager'
 import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB'
 import { Message } from '../Message'
 import { OnchainEventStore } from './OnchainEventStore'
+import { RequiredFilter } from '../../indexer/OnchainEventIndexer'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { getTimestampFromBlockNumberMs } from './utils'
 
 export class TransitionDataProvider<T extends MessageState, U extends IMessage> implements ITransitionDataProvider<T, U> {
   readonly #stores: Record<T, IDataStore>
@@ -15,26 +18,41 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
     const onchainEventSourceIndexer = new OnchainEventStore(chains)
     const apiFetchEventSourceIndexer = new APIEventStore()
 
+    // TODO: Initial state should not be here
     this.#stores = {
-      [MessageState.Deposited]: onchainEventSourceIndexer,
+      [MessageState.Sent]: onchainEventSourceIndexer,
       [MessageState.Attested]: apiFetchEventSourceIndexer,
       [MessageState.Relayed]: onchainEventSourceIndexer
     } as Record<T, IDataStore>
   }
 
-  async getTransitionData(state: T, messageHash: string): Promise<U | undefined> {
-    const eventData: IGetStoreDataRes | undefined = await this.#stores[state].getData(messageHash)
+  // TODO: Value and resp are different U
+  async getTransitionData(state: T, value: U): Promise<U | undefined> {
+    // TODO: Initial state cannot be here but should be more explicit about it not being a store
+
+    // TODO: Fix this
+    const key = this.#getKeyForGetter(state, value)
+
+    // TODO: Assert initial state cannot be here
+    const eventData: IGetStoreDataRes | undefined = await this.#stores[state].getData(key)
     if (!eventData) return
 
-    const parsedData = await this.#parseEventData(state, eventData)
-    return parsedData
+    return this.#parseEventData(state, eventData)
+  }
+
+  #getKeyForGetter = (state: T, value: U): string => {
+    // TODO: Not any
+    const res: any = value
+    if (MessageState.Attested === state) {
+      return Message.getMessageHashFromMessage(res.message)
+    } else if (MessageState.Relayed === state) {
+      return res.messageNonce
+    }
+    throw new Error('Invalid state')
   }
 
   async #parseEventData (state: T, data: IGetStoreDataRes): Promise<U> {
-    if (
-      MessageState.Deposited === state ||
-      MessageState. Relayed === state
-    ) {
+    if (MessageState. Relayed === state) {
       const res = data as IOnchainEventStoreRes
       return this.#parseOnchainEventData(state, res)
     } else if (MessageState.Attested === state) {
@@ -44,56 +62,31 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
     throw new Error('Invalid state')
   }
 
-  async #parseOnchainEventData (state: T, logs: IOnchainEventStoreRes): Promise<U> {
-    if (logs.length === 0) {
-      throw new Error('No logs found')
+  async #parseOnchainEventData (state: T, log: IOnchainEventStoreRes): Promise<U> {
+    const logState = this.#getLogState(log.topics[0])
+    if (!logState) {
+     throw new Error('Invalid log')
     }
-
-    for (const log of logs) {
-      const logState = this.#getLogState(log.topics[0])
-      if (logState !== state) continue
-
-      await this.#parseLogForState(logState, log)
-    }
-
-    throw new Error(`No logs found for state: ${state}`)
+    return this.#parseLogForState(logState, log)
   }
 
   #getLogState(eventSig: string): MessageState | undefined {
-    if (eventSig === Message.DEPOSIT_FOR_BURN_EVENT_SIG) {
-      return MessageState.Deposited
-    } else if (eventSig === Message.MESSAGE_RECEIVED_EVENT_SIG) {
+    if (eventSig === Message.MESSAGE_RECEIVED_EVENT_SIG) {
       return MessageState.Relayed
     }
   }
 
   async #parseLogForState (state: MessageState, log: LogWithChainId): Promise<U> {
     switch (state) {
-      case MessageState.Deposited:
-        return this.#parseDepositedLog(log)
       case MessageState.Relayed:
         return this.#parseRelayedLog(log)
     }
     throw new Error('Invalid state')
   }
 
-  async #parseDepositedLog (log: LogWithChainId): Promise<U> {
-    const { data, transactionHash, chainId, blockNumber } = log
-    const message = await this.#getMessageFromLog(log)
-    const destinationChainId = this.#getDestinationChainIdFromLogData(data)
-    const timestampMs = await this.#getLogTimestampMs(chainId, blockNumber)
-    return {
-      message,
-      sourceChainId: chainId,
-      destinationChainId,
-      depositedTxHash: transactionHash,
-      depositedTimestampMs: timestampMs
-    } as U
-  }
-
   async #parseRelayedLog (log: LogWithChainId): Promise<U> {
     const { transactionHash, chainId, blockNumber } = log
-    const timestampMs = await this.#getLogTimestampMs(chainId, blockNumber)
+    const timestampMs = await getTimestampFromBlockNumberMs(chainId, blockNumber)
     return {
       relayTransactionHash: transactionHash,
       relayTimestampMs: timestampMs
@@ -105,34 +98,53 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
       attestation
     } as U
   }
-    
-  async #getLogTimestampMs (chainId: number, blockNumber: number): Promise<number> {
+
+  /**
+   * Creation
+   */
+
+  // TODO: Clean this up or get rid of it
+  async *getCreationData(): AsyncIterable<U> {
+    const store: any = this.#stores[MessageState.Sent as T]
+    for await (const log of store.getAllLogsForTopic(Message.HOP_CCTP_TRANSFER_SENT_SIG)) {
+      const parsedLog = await this.#parseCreationLogs(log)
+      yield parsedLog
+    }
+  }
+
+  async #parseCreationLogs (log: LogWithChainId): Promise<U> {
+    const { transactionHash, chainId, blockNumber, topics } = log
+    const messageNonce = Number(BigNumber.from(topics[1]))
+    const destinationChainIdBN = BigNumber.from(topics[2])
+    const timestampMs = await getTimestampFromBlockNumberMs(chainId, blockNumber)
+    const message = await this.#getMessageFromHopCCTPTransferLog(log, /* rm */ messageNonce)
+
+    return {
+      message,
+      messageNonce,
+      sourceChainId: chainId,
+      destinationChainId: destinationChainIdBN.toNumber(),
+      sentTxHash: transactionHash,
+      sentTimestampMs: timestampMs
+    } as U
+  }
+
+  async #getMessageFromHopCCTPTransferLog (log: LogWithChainId, nonce: number): Promise<string> {
+    const { chainId, blockNumber } = log
+
     const chain = chainIdToSlug(chainId)
     const provider = getRpcProvider(chain)
-    const block = await provider.getBlock(blockNumber)
-    return block.timestamp * 1000
-  }
+    const eventFilter = Message.getMessageSentEventFilter(chainId)
+    const filter: RequiredFilter = {
+      ...eventFilter,
+      fromBlock: blockNumber,
+      toBlock: blockNumber
+    }
+    const logs = await provider.getLogs(filter)
+    if (logs.length === 0) {
+      throw new Error('No logs found')
+    }
 
-  async #getMessageFromLog (log: LogWithChainId): Promise<string> {
-    const { chainId, data, topics } = log
-    const { mintRecipient, amount } = Message.decodeDepositForBurnEvent(data)
-    const burnToken = topics[2]
-
-    const messageVersion = await this.#getMessageVersionFromOnchain(chainId)
-    return Message.getMessageFromDepositEvent (
-      messageVersion,
-      burnToken,
-      mintRecipient,
-      amount
-    )
-  }
-
-  async #getMessageVersionFromOnchain(chainId: number): Promise<number> {
-    return Message.getMessageBodyVersion(chainId)
-  }
-
-  #getDestinationChainIdFromLogData (data: string): number {
-    const { destinationDomain } = Message.decodeDepositForBurnEvent(data)
-    return Number(Message.convertDomainToChainId(destinationDomain))
+    return Message.decodeMessageFromEvent(logs[0].data)
   }
 }

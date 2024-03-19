@@ -49,19 +49,19 @@ export const MessageTransmitterAddresses: Record<string, Partial<Record<Chain, s
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
-export const TokenMessengerAddresses: Record<string, Partial<Record<Chain, string>>> = {
+export const HopCCTPAddresses : Record<string, Partial<Record<Chain, string>>> = {
   [Network.Mainnet]: {
-    [Chain.Ethereum]: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    [Chain.Optimism]: '0x2B4069517957735bE00ceE0fadAE88a26365528f',
-    [Chain.Arbitrum]: '0x19330d10D9Cc8751218eaf51E8885D058642E08A',
-    [Chain.Base]: '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962',
-    [Chain.Polygon]: '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE'
+    [Chain.Ethereum]: '0x7e77461CA2a9d82d26FD5e0Da2243BF72eA45747',
+    [Chain.Optimism]: '0x469147af8Bde580232BE9DC84Bb4EC84d348De24',
+    [Chain.Arbitrum]: '0x6504BFcaB789c35325cA4329f1f41FaC340bf982',
+    [Chain.Base]: '0xe7F40BF16AB09f4a6906Ac2CAA4094aD2dA48Cc2',
+    [Chain.Polygon]: '0x1CD391bd1D915D189dE162F0F1963C07E60E4CD6'
   },
   [Network.Sepolia]: {
-    [Chain.Ethereum]: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    [Chain.Optimism]: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    [Chain.Arbitrum]: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    [Chain.Base]: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5'
+    [Chain.Ethereum]: '',
+    [Chain.Optimism]: '',
+    [Chain.Arbitrum]: '',
+    [Chain.Base]: ''
   }
 }
 
@@ -84,26 +84,26 @@ export const CCTP_DOMAIN_MAP: Partial<Record<Network, Record<number, number>>> =
 
 // Remove all this in favor of the contract instance from the SDK when available
 export function getMessageTransmitterContract (chainId: number): Contract {
-  const messageTransmitterABI: string[] = [
-    'function version() external view returns (uint32)',
+  const abi: string[] = [
     'function receiveMessage(bytes message, bytes attestation)',
-    'event MessageReceived(address indexed caller, uint32 sourceDomain, uint64 indexed nonce, bytes32 sender, bytes messageBody)'
+    'event MessageReceived(address indexed caller, uint32 sourceDomain, uint64 indexed nonce, bytes32 sender, bytes messageBody)',
+    'event MessageSent(bytes message)'
   ]
   const chainSlug = chainIdToSlug(chainId)
   return new Contract(
     MessageTransmitterAddresses[globalConfig.network][chainSlug]!,
-    messageTransmitterABI
+    abi
   )
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
-export function getTokenMessengerContract (chainId: number): Contract {
-  const tokenMessengerAbi: string[] = [
-    'event DepositForBurn(uint64 indexed nonce, address indexed burnToken, uint256 amount, address indexed depositor, bytes32 mintRecipient, uint32 destinationDomain, bytes32 destinationTokenMessenger, bytes32 destinationCaller)'
+export function getHopCCTPContract (chainId: number): Contract {
+  const abi: string[] = [
+    'event CCTPTransferSent(uint64 indexed cctpNonce,uint256 indexed chainId,address indexed recipient,uint256 amount,uint256 bonderFee)'
   ]
   const chainSlug = chainIdToSlug(chainId)
   return new Contract(
-    TokenMessengerAddresses[globalConfig.network][chainSlug]!,
-    tokenMessengerAbi
+    HopCCTPAddresses[globalConfig.network][chainSlug]!,
+    abi
   )
 }

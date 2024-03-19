@@ -2,7 +2,6 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { Chain } from 'src/constants'
 import { EventFilter, providers, utils } from 'ethers'
-import { IGetIndexedDataByKey } from './types'
 import { type LogWithChainId, OnchainEventIndexerDB } from 'src/cctp/db/OnchainEventIndexerDB'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { wait } from 'src/utils/wait'
@@ -10,13 +9,14 @@ import { wait } from 'src/utils/wait'
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>
 
-export class OnchainEventIndexer implements IGetIndexedDataByKey {
+export class OnchainEventIndexer {
   readonly #db: OnchainEventIndexerDB
   readonly #eventFilter: RequiredEventFilter
 
   // TODO: config option
   readonly #maxBlockRange: number = 2000
   // TODO: Timing
+  // TODO: SLow down
   readonly #pollIntervalMs: number = 10_000
 
   constructor (
@@ -30,30 +30,37 @@ export class OnchainEventIndexer implements IGetIndexedDataByKey {
     this.#initPoller(chain)
   }
 
-  // TODO: When the DB supports multiple indexes, remove the topic
-  async getIndexedDataByKey(key: string, topic: string): Promise<LogWithChainId[] | undefined> {
-    // TODO: When the DB supports multiple indexes, replace this with a call to the DB and remove the topic
-    return this.#getLogsForSecondaryIndex(key, topic)
-  }
+  /**
+   * Public methods
+   */
 
-  // TODO: When the DB supports multiple indexes, remove this
-  async #getLogsForSecondaryIndex (key: string, topic: string): Promise<LogWithChainId[] | undefined> {
-    if (!topic || Array.isArray(topic)){
-      throw new Error('Topic must be string')
-    }
-
+  async *getAllLogsForTopic (topic: string): AsyncIterable<LogWithChainId> {
     for await (const log of this.#db.getLogsByTopic(topic)) {
-      if (log.data === key) {
-        return [log]
-      }
+      yield log
     }
   }
+
+  async getIndexedDataBySecondIndex(firstIndex: string, secondIndex: string): Promise<LogWithChainId | undefined> {
+    for await (const log of this.#db.getLogsByTopicAndSecondaryIndex(firstIndex, secondIndex)) {
+      return log
+    }
+  }
+
+  /**
+   * Poller
+   */
+
 
   #initPoller = async (chain: Chain) => {
-    while (true) {
-      await this.#syncEvents(chain)
+    try {
+      while (true) {
+        await this.#syncEvents(chain)
 
-      await wait(this.#pollIntervalMs)
+        await wait(this.#pollIntervalMs)
+      }
+    } catch (err) {
+      console.error('OnchainEventIndexer poll err', err)
+      process.exit(1)
     }
   }
 

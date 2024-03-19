@@ -116,6 +116,7 @@ const Send: FC = () => {
         fromNetwork={fromNetwork}
         setWarning={setWarning}
         maxButtonFixedAmountToSubtract={maxButtonFixedAmountToSubtract}
+        disableInput={isSpecificRouteDeprecated}
       />
 
       <Box display="flex" justifyContent="center" alignItems="center">

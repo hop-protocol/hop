@@ -11,7 +11,7 @@ type TickSpacing = 100 | 500 | 3000 | 10000
 const addresses: any = {
   mainnet: {
     optimism: {
-      swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
+      swapRouter: '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45',
       pools: {
         USDC: {
           'USDC.e': '0x2aB22ac86b25BD448A4D9dC041Bd2384655299c4',
@@ -21,7 +21,7 @@ const addresses: any = {
       tokens: ['0x7F5c764cBc14f9669B88837ca1490cCa17c31607', '0x0b2c639c533813f4aa9d7837caf62653d097ff85'] // USDC.e, USDC
     },
     arbitrum: {
-      swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
+      swapRouter: '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45',
       pools: {
         USDC: {
           'USDC.e': '0x8e295789c9465487074a65b1ae9Ce0351172393f',
@@ -31,7 +31,7 @@ const addresses: any = {
       tokens: ['0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8', '0xaf88d065e77c8cc2239327c5edb3a432268e5831']
     },
     polygon: {
-      swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
+      swapRouter: '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45',
       pools: {
         USDC: {
           'USDC.e': '0xD36ec33c8bed5a9F7B6630855f1533455b98a418',
@@ -220,41 +220,45 @@ export async function getUSDCSwapParams(options: any) {
   const swapParams = {
       path: encodeRouteToPath(route, exactOutput),
       recipient: recipient,
-      deadline: deadline.toString(),
+      // deadline: deadline.toString(),
       amountIn: parseUnits(trade.inputAmount.toExact(), fromTokenDecimals).toString(),
       amountOutMinimum: parseUnits(trade.minimumAmountOut(slippageTolerance).toExact(), toTokenDecimals).toString(),
   }
 
+  let quotedAmountOut : any
+  let quotedAmountOutFormatted: any
+
   if (getQuote) {
-    const quoterContract = new Contract(
-      quoter,
-      UniswapQuoterV2Abi,
-      provider
-    )
+    if (BigNumber.from(amountIn).eq(0)) {
+      quotedAmountOut = BigNumber.from(0)
+      quotedAmountOutFormatted = '0'
+    } else {
+      const quoterContract = new Contract(
+        quoter,
+        UniswapQuoterV2Abi,
+        provider
+      )
 
-    // const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
-    //   token0,
-    //   token1,
-    //   amountIn.toString(),
-    //   feeTier,
-    //   0
-    // )
+      // const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
+      //   token0,
+      //   token1,
+      //   amountIn.toString(),
+      //   feeTier,
+      //   0
+      // )
 
-    const quotedAmountOut = await quoterContract.callStatic.quoteExactInput(
-      encodeRouteToPath(route, exactOutput),
-      amountIn.toString()
-    )
+      quotedAmountOut = await quoterContract.callStatic.quoteExactInput(
+        encodeRouteToPath(route, exactOutput),
+        amountIn.toString()
+      )
 
-    const quotedAmountOutFormatted =  formatUnits(quotedAmountOut, toTokenDecimals)
-
-    return {
-      swapParams,
-      quotedAmountOut,
-      quotedAmountOutFormatted
+      quotedAmountOutFormatted = formatUnits(quotedAmountOut, toTokenDecimals)
     }
   }
 
   return {
-    swapParams
+    swapParams,
+    quotedAmountOut,
+    quotedAmountOutFormatted
   }
 }

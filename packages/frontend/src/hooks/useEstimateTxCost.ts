@@ -148,7 +148,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             fromNetwork.slug as string,
             toNetwork.slug as string,
             {
-              recipient: constants.AddressZero,
+              recipient: '0x' + '1'.repeat(40),
               bonderFee,
               amountOutMin: '0',
               deadline: deadline(),

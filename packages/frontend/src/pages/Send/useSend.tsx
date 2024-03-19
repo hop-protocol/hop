@@ -592,7 +592,8 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism)) {
+        const isUSDC = fromToken?.symbol === 'USDC' || fromToken?.symbol === 'USDC.e' // TODO: THis is temporarily disabled until merkle worker is updated to work with USDC and USDC.e
+        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism && !isUSDC)) {
           setFeeRefund('')
           setFeeRefundUsd('')
           return

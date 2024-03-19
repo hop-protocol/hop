@@ -56,7 +56,7 @@ class Token extends Base {
     super(networkOrOptionsObject, signer, chainProviders)
 
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject 
+      const options = networkOrOptionsObject
       if (chain ?? address ?? decimals ?? symbol ?? name ?? image ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -72,8 +72,10 @@ class Token extends Base {
       throw new Error('chain is required')
     }
 
+    chain = this.toChainModel(chain)
+
     if (!address) {
-      throw new Error('address is required')
+      throw new Error(`address is required for Token ${symbol} on Chain ${chain?.slug}`)
     }
 
     this.address = ethers.utils.getAddress(address)
@@ -81,7 +83,7 @@ class Token extends Base {
     this._symbol = symbol!
     this.name = name!
     this.image = image!
-    this.chain = this.toChainModel(chain)
+    this.chain = chain
   }
 
   get symbol () {

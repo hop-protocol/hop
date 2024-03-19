@@ -24,6 +24,7 @@ import { stableCoins } from 'src/utils/constants'
 import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
+import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
 import { useStaking } from 'src/pages/Pools/useStaking'
@@ -119,6 +120,7 @@ type PoolsContextProps = {
   volumeUsdFormatted : string
   walletConnected: boolean,
   warning?: string
+  isPoolDeprecated?: boolean
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -167,6 +169,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
   const { lpToken, lpTokenSymbol, stakingContract: hopStakingContract } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
   const { stakingContract } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
+  const isPoolDeprecated = useCheckPoolDeprecated(tokenSymbol)
 
   const isNativeToken =
     useMemo(() => {
@@ -1100,6 +1103,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         volumeUsdFormatted,
         walletConnected,
         warning,
+        isPoolDeprecated
       }}
     >
       {children}

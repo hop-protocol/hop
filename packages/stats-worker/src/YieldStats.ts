@@ -135,7 +135,7 @@ class YieldStats {
     let yieldData: YieldData = this.initializeYieldData(this.bridges)
     for (const token in this.bridges) {
       const promises: Promise<any>[] = []
-      for (const chain in this.bridges[token]) {
+      for (const chain in (this.bridges as any)[token]) {
         const shouldSkip = this.shouldSkipYields(this.bridges, chain, token)
         if (shouldSkip) {
           continue

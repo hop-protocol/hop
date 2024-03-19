@@ -8,7 +8,7 @@ on:
       - develop-bonder
       - goerli-bonder
       - sepolia-bonder
-      - feat-hop-node-cctp-impl
+      - feat/hop-node-cctp-impl
 
 jobs:
   build-hop-node:

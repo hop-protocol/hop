@@ -1593,10 +1593,6 @@ class HopBridge extends Base {
     const hopCctpBridge = await this.getCctpBridge(sourceChain)
     const canonicalTokenAddress = await hopCctpBridge.nativeToken()
     const cctpAddress = await hopCctpBridge.cctp()
-    const code = await sourceChain.provider!.getCode(cctpAddress)
-    if (code === '0x') {
-      throw new Error(`CCTP contract not found on chain ${sourceChain.slug}`)
-    }
     const tokenMessenger = CCTPTokenMessenger__factory.connect(cctpAddress, sourceChain.provider!)
     const localMinterAddress = await tokenMessenger.localMinter()
     const tokenMinter = CCTPTokenMinter__factory.connect(localMinterAddress, sourceChain.provider!)

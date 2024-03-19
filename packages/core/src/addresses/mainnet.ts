@@ -437,7 +437,7 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         l1CanonicalToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        cctpL1Bridge: '0x3cdc4bf5FC09E18a0A3b6F85A785448ACA3B42A8',
+        cctpL1Bridge: '0x7e77461CA2a9d82d26FD5e0Da2243BF72eA45747',
         cctpMessageTransmitter: '0x0a992d191deec32afe36203ad87d7d289a738f81'
       },
       polygon: {
@@ -469,7 +469,7 @@ export const addresses: Addresses = {
       ethereum: {
         l1CanonicalToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
-        cctpL1Bridge: '0x3cdc4bf5FC09E18a0A3b6F85A785448ACA3B42A8',
+        cctpL1Bridge: '0x7e77461CA2a9d82d26FD5e0Da2243BF72eA45747',
         cctpMessageTransmitter: '0x0a992d191deec32afe36203ad87d7d289a738f81',
         bridgeDeployedBlockNumber: 12650032
       },

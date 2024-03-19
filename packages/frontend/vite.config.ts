@@ -10,6 +10,7 @@ dotenv.config()
 const scriptSrc = new Set([
   "'self'",
   "'unsafe-inline'",
+  "'unsafe-eval'", // This is needed when using uniswap sdk, imported by hop sdk.
   "https://*.googletagmanager.com",
   "https://*.google.com",
   "https://*.gstatic.com",
@@ -101,7 +102,9 @@ const connectSrc = new Set([
   "https://hop.mypinata.cloud",
   "https://ipfs.io",
   "https://gateway.ipfs.io",
-  "https://media-exp1.licdn.com"
+  "https://media-exp1.licdn.com",
+  "https://iris-api.circle.com",
+  "https://iris-api-sandbox.circle.com"
 ])
 
 const networks: any[] = [mainnet, goerli, sepolia]
@@ -192,6 +195,7 @@ export default defineConfig({
     "process.env.REACT_APP_BLOCKLIST_ENABLED": process.env.REACT_APP_BLOCKLIST_ENABLED ? `"${process.env.REACT_APP_BLOCKLIST_ENABLED}"` : undefined,
     "process.env.REACT_APP_ENABLED_TOKENS": process.env.REACT_APP_ENABLED_TOKENS ? `"${process.env.REACT_APP_ENABLED_TOKENS}"` : undefined,
     "process.env.REACT_APP_DEPRECATED_TOKENS": process.env.REACT_APP_DEPRECATED_TOKENS ? `"${process.env.REACT_APP_DEPRECATED_TOKENS}"` : undefined,
+    "process.env.REACT_APP_DEPRECATED_POOLS": process.env.REACT_APP_DEPRECATED_POOLS? `"${process.env.REACT_APP_DEPRECATED_POOLS}"` : undefined,
     "process.env.REACT_APP_ENABLED_CHAINS": process.env.REACT_APP_ENABLED_CHAINS ? `"${process.env.REACT_APP_ENABLED_CHAINS}"` : undefined,
     "process.env.REACT_APP_BNC_DAPP_ID": process.env.REACT_APP_BNC_DAPP_ID ? `"${process.env.REACT_APP_BNC_DAPP_ID}"` : undefined,
     "process.env.REACT_APP_SHOW_BANNER_MESSAGE": process.env.REACT_APP_SHOW_BANNER_MESSAGE ? `"${process.env.REACT_APP_SHOW_BANNER_MESSAGE}"` : undefined,

@@ -1,7 +1,6 @@
 import React, { ChangeEvent, ReactNode, useEffect, useMemo, useState } from 'react'
 import logger from 'src/logger'
 import useAvailableLiquidity from './useAvailableLiquidity'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import useSendData from 'src/pages/Send/useSendData'
 import { Address } from 'src/models/Address'
@@ -32,6 +31,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import { getTransferTimeString } from 'src/utils/getTransferTimeString'
 import { isGoerli, showRewards } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
+import { useCheckTokenDeprecated } from 'src/hooks/useCheckTokenDeprecated'
 import { useSendTransaction } from './useSendTransaction'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
@@ -592,7 +592,8 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism)) {
+        const isUSDC = fromToken?.symbol === 'USDC' || fromToken?.symbol === 'USDC.e' // TODO: THis is temporarily disabled until merkle worker is updated to work with USDC and USDC.e
+        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism && !isUSDC)) {
           setFeeRefund('')
           setFeeRefundUsd('')
           return
@@ -794,7 +795,18 @@ export function useSend(): SendResponseProps {
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, fromToken?.symbol)
 
   const isTokenDeprecated = useCheckTokenDeprecated(fromToken?.symbol)
-  const isSpecificRouteDeprecated = !!(isTokenDeprecated && !toNetwork?.isL1)
+  const isSpecificRouteDeprecated = useMemo(() => {
+    if (isTokenDeprecated && !toNetwork?.isL1) {
+      return true
+    }
+
+    if (fromNetwork && toNetwork && selectedBridge && ['USDC', 'USDC.e'].includes(fromToken?.symbol) && !selectedBridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)) {
+      return true
+    }
+
+    return false
+  }, [fromNetwork, toNetwork, fromToken?.symbol, selectedBridge])
+
   const isApproveButtonActive = !!(!needsTokenForFee && !unsupportedAsset && needsApproval && !isSpecificRouteDeprecated)
 
   const isSendButtonActive = useMemo(() => {

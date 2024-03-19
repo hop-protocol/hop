@@ -253,9 +253,15 @@ export class Base {
       const data = cached || await this.fetchCoreConfigDataWithIpfsFallback()
       if (data) {
         if (data.bonders) {
+          if (data?.bonders?.USDC && !data?.bonders?.['USDC.e']) {
+            data.bonders['USDC.e'] = data.bonders.USDC
+          }
           this.bonders = data.bonders
         }
         if (data.bonderFeeBps) {
+          if (data?.bonderFeeBps?.USDC && !data?.bonderFeeBps?.['USDC.e']) {
+            data.bonderFeeBps['USDC.e'] = data.bonderFeeBps.USDC
+          }
           this.fees = data.bonderFeeBps
         }
         if (data.destinationFeeGasPriceMultiplier) {
@@ -573,8 +579,26 @@ export class Base {
     return this.getConfigAddresses(token, chain)?.l1Bridge
   }
 
+  public getCctpL1BridgeAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpL1Bridge
+  }
+
   public getL2BridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2Bridge
+  }
+
+  public getCctpL2BridgeAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpL2Bridge
+  }
+
+  public getCctpBridgeAddress (token: TToken, chain: TChain): string {
+    chain = this.toChainModel(chain)
+    const configAddresses = this.getConfigAddresses(token, chain)
+    return chain.isL1 ? configAddresses?.cctpL1Bridge : configAddresses?.cctpL2Bridge
+  }
+
+  public getCctpMessageTransmitterAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpMessageTransmitter
   }
 
   public getL1CanonicalBridgeAddress (token: TToken, chain: TChain): string {
@@ -694,7 +718,7 @@ export class Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const bonder = this.bonders?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+    const bonder = this.bonders?.[token?.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
     if (!bonder) {
       console.warn(`bonder address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
     }
@@ -707,7 +731,7 @@ export class Base {
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
 
-    const messengerWrapper = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
+    const messengerWrapper = this.addresses?.[token?.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
     if (!messengerWrapper) {
       console.warn(`messengerWrapper address not found for route ${token.symbol}. destinationChain ${destinationChain.slug}`)
     }

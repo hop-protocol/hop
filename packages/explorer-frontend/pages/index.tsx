@@ -97,7 +97,7 @@ const addresses = isGoerli ? goerliAddresses : mainnetAddresses
 for (const token in addresses.bridges) {
   tokenSet.add(token)
 
-  for (const chain in addresses.bridges[token]) {
+  for (const chain in (addresses.bridges as any)[token]) {
     chainSet.add(chain)
   }
 }

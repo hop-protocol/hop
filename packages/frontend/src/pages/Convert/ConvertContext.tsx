@@ -17,7 +17,6 @@ import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
 import logger from 'src/logger'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import { BigNumber } from 'ethers'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { Token } from '@hop-protocol/sdk'
@@ -33,6 +32,7 @@ import {
   useSelectedNetwork,
   useTransactionReplacement,
 } from 'src/hooks'
+import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { useLocation, useParams } from 'react-router-dom'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
@@ -147,7 +147,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(sourceToken, address)
   const { balance: destBalance, loading: loadingDestBalance } = useBalance(destToken, address)
 
-  const isTokenDeprecated = useCheckTokenDeprecated(sourceToken?._symbol ?? '')
+  const isTokenDeprecated = useCheckPoolDeprecated(sourceToken?._symbol)
 
   useEffect(() => {
     if (unsupportedAsset) {
@@ -156,6 +156,9 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } else if (assetWithoutAmm && convertOption instanceof AmmConvertOption) {
       const { chain, tokenSymbol } = assetWithoutAmm
       setError(`${tokenSymbol} does not use an AMM on ${chain}`)
+    } else if (assetWithoutAmm && convertOption instanceof HopConvertOption) {
+      const { chain, tokenSymbol } = assetWithoutAmm
+      setError(`${tokenSymbol} does not use hTokens on ${chain}`)
     } else if (isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isLayer1) {
       setError(`The ${sourceToken?._symbol} bridge is deprecated. Only transfers from L2 to L1 are supported.`)
     } else {

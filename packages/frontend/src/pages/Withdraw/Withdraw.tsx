@@ -141,6 +141,44 @@ export const Withdraw: FC = () => {
           })
           resolve(null)
         } catch (err) {
+
+          try {
+            const bridge = sdk.bridge('USDC')
+            const data = await bridge.getCctpWithdrawData(transferIdOrTxHash)
+            if (data) {
+              const { transactionHash, fromChain, toChain, toChainId } = data
+              await txConfirm?.show({
+                kind: 'withdrawReview',
+                inputProps: {
+                  source: {
+                    network: fromChain,
+                  },
+                  getProof: async () => {
+                    return null
+                  },
+                  getInfo: async () => {
+                    return null
+                  },
+                  sendTx: async () => {
+                    const networkId = Number(toChainId)
+                    const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                    if (!isNetworkConnected) {
+                      throw new Error('wrong network connected')
+                    }
+                    const tx = await bridge.cctpWithdraw(fromChain, toChain, transactionHash)
+                    return tx
+                  },
+                  onError: (err: any) => {
+                    reject(err)
+                  },
+                },
+                onConfirm: async () => {}, // needed to close modal
+              })
+            }
+          } catch (err: any) {
+            console.error('withdraw check error', error)
+          }
+
           reject(err)
         }
       })

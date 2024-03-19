@@ -1,7 +1,7 @@
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { BigNumber, constants } from 'ethers'
+import { BigNumber } from 'ethers'
 import { ChainSlug, Hop, Token } from '@hop-protocol/sdk'
 import { formatUnits } from 'ethers/lib/utils'
 import { getDefaultSendGasLimit } from 'src/utils/getDefaultSendGasLimit'

@@ -14,6 +14,7 @@ import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
 import { L2_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
 import { Multicall } from './Multicall'
+import { chainIdToSlug } from './utils/chainIdToSlug'
 import { getUSDCSwapParams } from './utils/uniswap'
 
 import { ApiKeys, PriceFeedFromS3 } from './priceFeed'
@@ -3405,7 +3406,7 @@ class HopBridge extends Base {
     return attestation
   }
 
-  async getCctpReceiveMessagePopulatedTx(message: string, attestation: string, toChain: TChain) {
+  async getCctpReceiveMessagePopulatedTx(message: string, attestation: string, toChain: TChain): Promise<any> {
     toChain = this.toChainModel(toChain)
 
     const transmitterAddress = this.getCctpMessageTransmitterAddress(this.tokenSymbol, toChain)
@@ -3415,8 +3416,96 @@ class HopBridge extends Base {
 
     const transmitter = CCTPMessageTransmitter__factory.connect(transmitterAddress, toChain.provider!)
     const populatedTx = await transmitter.populateTransaction.receiveMessage(message, attestation)
-    const provider = await this.getSignerOrProvider(toChain)
-    return this.estimateGas(provider, populatedTx)
+    return populatedTx
+  }
+
+  async getCctpWithdrawData (transactionHash: string) {
+    for (const chain in this.chains) {
+      try {
+        const fromChain = this.toChainModel(chain)
+        const provider = fromChain.provider!
+        const receipt = await provider.getTransactionReceipt(transactionHash)
+        if (receipt) {
+          let toChain : any
+          for (const log of receipt.logs) {
+            const cctpTransferSentTopic = '0x10bf4019e09db5876a05d237bfcc676cd84eee2c23f820284906dd7cfa70d2c4'
+            const fromBridgeAddress = this.getCctpBridgeAddress(this.tokenSymbol, chain)
+            if (log.address?.toLowerCase() === fromBridgeAddress.toLowerCase() && log.topics[0] === cctpTransferSentTopic) {
+              toChain = BigNumber.from(log.topics[2]).toNumber()
+            }
+          }
+          if (!toChain) {
+            throw new Error('to chain id not found')
+          }
+          return {
+            fromChain: chain,
+            fromChainId: fromChain.chainId,
+            toChain: chainIdToSlug(this.network, toChain),
+            toChainId: toChain,
+            transactionHash
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    throw new Error('transaction not found')
+  }
+
+  async getCctpWithdrawPopulatedTx (
+    fromChain: TChain,
+    toChain: TChain,
+    transactionHash: string
+  ) {
+    fromChain = this.toChainModel(fromChain)
+    toChain = this.toChainModel(toChain)
+
+    if (!this.getShouldUseCctpBridge()) {
+      throw new Error('CCTP bridge is not supported')
+    }
+
+    const transmitterAddress = this.getCctpMessageTransmitterAddress(this.tokenSymbol, fromChain)
+    const receipt = await fromChain.provider!.getTransactionReceipt(transactionHash)
+    if (!receipt) {
+      throw new Error(`transaction receipt not found for hash ${transactionHash}`)
+    }
+    let messageBody = ''
+    for (const log of receipt.logs) {
+      const messageSentTopic = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036'
+      if (log.address?.toLowerCase() === transmitterAddress.toLowerCase() && log.topics[0] === messageSentTopic) {
+        messageBody = log.data
+        break
+      }
+    }
+
+    if (!messageBody) {
+      throw new Error('message body not found in transaction receipt')
+    }
+
+    const message = this.getCctpDecodedMessageBody(messageBody)
+    const messageHash = keccak256(message).toString()
+    const attestation = await this.getCctpMessageAttestation(messageHash, toChain)
+
+    const populatedTx = await this.getCctpReceiveMessagePopulatedTx(message, attestation, toChain)
+    return populatedTx
+  }
+
+  async cctpWithdraw (
+    fromChain: TChain,
+    toChain: TChain,
+    transactionHash: string
+  ) {
+    fromChain = this.toChainModel(fromChain)
+    toChain = this.toChainModel(toChain)
+
+    if (!this.getShouldUseCctpBridge()) {
+      throw new Error('CCTP bridge is not supported')
+    }
+
+    const populatedTx = await this.getCctpWithdrawPopulatedTx(fromChain, toChain, transactionHash)
+    await this.checkConnectedChain(this.signer, toChain)
+    return this.sendTransaction(populatedTx, toChain)
   }
 
   async calcUniswapSwapAmountOut (sourceChain: TChain, amountIn: BigNumber): Promise<BigNumber> {

@@ -14,8 +14,9 @@ import {
   fetchTransferBonds,
   fetchTransferEventsByTransferIds,
   fetchTransferFromL1Completeds,
-  fetchTransfers,
-  fetchTransfersForTransferId,
+  fetchTransferSents,
+  fetchCctpTransferSents,
+  fetchTransferSentsForTransferId,
   fetchWithdrews
 } from './theGraph'
 import { formatUnits } from 'ethers/lib/utils'
@@ -580,7 +581,7 @@ export class TransferStats {
 
   async getTransferIdEvents (transferId: string) {
     const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
-      return fetchTransfersForTransferId(chain, transferId)
+      return fetchTransferSentsForTransferId(chain, transferId)
     }))
 
     const events :any = {}
@@ -598,7 +599,7 @@ export class TransferStats {
 
     console.log('fetching data for transferId', transferId)
     const events = await this.getTransferIdEvents(transferId)
-    const data = await this.normalizeTransferEvents(events)
+    const data = await this.normalizeTransferSentEvents(events)
     if (!data?.length) {
       console.log('no data for transferId', transferId)
 
@@ -731,16 +732,31 @@ export class TransferStats {
     return this.getTransfersBetweenDates(startTime, endTime)
   }
 
-  async getTransferEventsBetweenDates (startTime: number, endTime: number) {
-    console.log('querying fetchTransfers')
+  async getTransferSentEventsBetweenDates (startTime: number, endTime: number) {
+    console.log('querying fetchTransferSents')
 
     const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
-      return fetchTransfers(chain, startTime, endTime)
+      return fetchTransferSents(chain, startTime, endTime)
+    }))
+    const enabledChainTransfersCctp = await Promise.all(enabledChains.map(async (chain: string) => {
+      try {
+        const events = await fetchCctpTransferSents(chain, startTime, endTime)
+        events.forEach((event: any) => {
+          event.isCctp = true
+        })
+        return events
+      } catch (err: any) {
+        console.error(`fetchCctpTransferSents chain: ${chain}, error`,  err)
+      }
+      return []
     }))
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
       events[`${chain}Transfers`] = enabledChainTransfers[i];
+    }
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
     }
 
     return events
@@ -759,27 +775,45 @@ export class TransferStats {
     return events
   }
 
-  async normalizeTransferEvents (events: any) {
+  async normalizeTransferSentEvents (events: any) {
     const data :any[] = []
 
     for (const key in events) {
       for (const x of events[key]) {
         const chain = key.replace('Transfers', '')
-        data.push({
-          sourceChain: chainSlugToId(chain),
-          destinationChain: x.destinationChainId,
-          amount: x.amount,
-          amountOutMin: x.amountOutMin,
-          recipient: x.recipient,
-          bonderFee: chain === 'ethereum' ? x.relayerFee : x.bonderFee,
-          deadline: Number(x.deadline),
-          transferId: chain === 'ethereum' ? x.id : x.transferId,
-          transactionHash: x.transactionHash,
-          timestamp: Number(x.timestamp),
-          token: x.token,
-          from: x.from,
-          originContractAddress: x?.transaction?.to?.toLowerCase()
-        })
+        if (x.isCctp) {
+          data.push({
+            sourceChain: chainSlugToId(chain),
+            destinationChain: x.chainId,
+            amount: x.amount,
+            amountOutMin: null,
+            recipient: x.recipient,
+            bonderFee: x.bonderFee,
+            deadline: null,
+            transferId: x.cctpNonce,
+            transactionHash: x?.transaction?.hash,
+            timestamp: Number(x?.block?.timestamp),
+            token: 'USDC',
+            from: x?.transaction?.from,
+            originContractAddress: x?.transaction?.to?.toLowerCase()
+          })
+        } else {
+          data.push({
+            sourceChain: chainSlugToId(chain),
+            destinationChain: x.destinationChainId,
+            amount: x.amount,
+            amountOutMin: x.amountOutMin,
+            recipient: x.recipient,
+            bonderFee: chain === 'ethereum' ? x.relayerFee : x.bonderFee,
+            deadline: Number(x.deadline),
+            transferId: chain === 'ethereum' ? x.id : x.transferId,
+            transactionHash: x?.transaction?.hash ?? x.transactionHash,
+            timestamp: x?.block?.timestamp ? Number(x.block.timestamp) : Number(x.timestamp),
+            token: x.token,
+            from: x.from,
+            originContractAddress: x?.transaction?.to?.toLowerCase()
+          })
+        }
       }
     }
 
@@ -803,7 +837,7 @@ export class TransferStats {
       endTime = Math.floor(DateTime.fromSeconds(endTime).plus({ days: 2 }).toSeconds())
     }
 
-    const transferIds = data.map(x => x.transferId)
+    const transferIds = data.filter(x => !x.isCctp).map(x => x.transferId)
     const filterTransferIds = transferIds
 
     const single = data?.length === 1 ? data[0] : null
@@ -901,6 +935,9 @@ export class TransferStats {
     }
 
     for (const x of data) {
+      if (x.isCctp) {
+        continue
+      }
       const sourceChain = chainIdToSlug(x.sourceChain)
       if (sourceChain !== 'ethereum') {
         continue
@@ -948,6 +985,9 @@ export class TransferStats {
     if (data.length > 0) {
       const regenesisTimestamp = 1636531200
       for (const item of data) {
+        if (item.isCctp) {
+          continue
+        }
         const destChainSlug = chainIdToSlug(item.destinationChain)
         if (!item.bonded && item.timestamp < regenesisTimestamp && destChainSlug === 'optimism' && chainIdToSlug(item.sourceChain) !== 'ethereum') {
           try {
@@ -1006,6 +1046,9 @@ export class TransferStats {
       })
 
     for (const x of populatedData) {
+      if (x.isCctp) {
+        continue
+      }
       const isUnbondable = (x.destinationChainSlug === 'ethereum' && (x.deadline > 0 || BigNumber.from(x.amountOutMin || 0).gt(0)))
       x.unbondable = isUnbondable
 
@@ -1100,8 +1143,8 @@ export class TransferStats {
   }
 
   async getTransfersBetweenDates (startTime: number, endTime: number) {
-    const events = await this.getTransferEventsBetweenDates(startTime, endTime)
-    let data = await this.normalizeTransferEvents(events)
+    const events = await this.getTransferSentEventsBetweenDates(startTime, endTime)
+    let data = await this.normalizeTransferSentEvents(events)
     data = await this.getRemainingData(data, { refetch: false })
     console.log('getTransfersBetweenDates done', data.length)
     return data
@@ -1127,7 +1170,7 @@ export class TransferStats {
       events[`${chain}Transfers`] = enabledChainTransfers[i];
     }
 
-    const data = await this.normalizeTransferEvents(events)
+    const data = await this.normalizeTransferSentEvents(events)
     return this.getRemainingData(data)
   }
 

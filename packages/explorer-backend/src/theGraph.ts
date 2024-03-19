@@ -28,7 +28,7 @@ export async function _queryFetch (url: string, query: string, variables?: any) 
   return jsonRes.data
 }
 
-export async function fetchTransfers (chain: string, startTime: number, endTime: number, lastId?: string) {
+export async function fetchTransferSents (chain: string, startTime: number, endTime: number, lastId?: string) {
   const queryL1 = `
     query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
       transferSents: transferSentToL2S(
@@ -120,7 +120,7 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
 
   if (transfers.length === 1000) {
     lastId = transfers[transfers.length - 1].id
-    transfers = transfers.concat(...(await fetchTransfers(
+    transfers = transfers.concat(...(await fetchTransferSents(
       chain,
       startTime,
       endTime,
@@ -131,7 +131,7 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
   return transfers
 }
 
-export async function fetchTransfersForTransferId (chain: string, transferId: string) {
+export async function fetchTransferSentsForTransferId (chain: string, transferId: string) {
   const queryL1TransferId = `
     query TransferSentToL2($transferId: String) {
       transferSents: transferSentToL2S(
@@ -506,4 +506,135 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
   }
 
   return transferSents.filter((x: any) => x)
+}
+
+export async function fetchCctpTransferSents (chain: string, startTime: number, endTime: number, lastId?: string) {
+  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  const supportedChains = ['polygon']
+  if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  const query = `
+    query CctpTransferSents($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
+      cctptransferSents(
+        where: {
+          block_: {
+            timestamp_gte: $startTime,
+            timestamp_lte: $endTime,
+          },
+          id_gt: $lastId
+        },
+        first: $perPage,
+        orderBy: id,
+        orderDirection: asc
+      ) {
+        id
+        cctpNonce
+        chainId
+        recipient
+        amount
+        bonderFee
+        transaction {
+          to
+          hash
+          from
+        }
+        block {
+          timestamp
+        }
+      }
+    }
+  `
+  let url :string
+  try {
+    url = getSubgraphUrl(chain)
+    console.log(chain, url)
+  } catch (err) {
+    return []
+  }
+  if (!lastId) {
+    lastId = '0'
+  }
+  const data = await queryFetch(url, query, {
+    perPage: 1000,
+    startTime,
+    endTime,
+    lastId
+  })
+
+  let transfers = data.cctptransferSents
+    .filter((x: any) => x)
+    .map((x: any) => {
+      x.chainId = Number(x.chainId)
+      return x
+    })
+
+  if (transfers.length === 1000) {
+    lastId = transfers[transfers.length - 1].id
+    transfers = transfers.concat(...(await fetchCctpTransferSents(
+      chain,
+      startTime,
+      endTime,
+      lastId
+    )))
+  }
+
+  return transfers
+}
+
+export async function fetchCctpMessageReceiveds (chain: string, txHashes: string[]) {
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  const query = `
+    query CctpMessageReceiveds($txHashes: [String]) {
+      cctpmessageReceiveds: cctpmessageReceiveds(
+        where: {
+          transaction_: {
+            hash_in: $txHashes
+          }
+        },
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc,
+      ) {
+        id
+        address
+        sourceDomain
+        nonce
+        sender
+        messageBody
+        transaction {
+          to
+          hash
+          from
+        }
+        block {
+          timestamp
+        }
+      }
+    }
+  `
+
+  let url :string
+  try {
+    url = getSubgraphUrl(chain)
+  } catch (err) {
+    return []
+  }
+  let bonds: any = []
+  const chunkSize = 1000
+  const allChunks = chunk(txHashes, chunkSize)
+  for (const chunkedTxHashes of allChunks) {
+    const data = await queryFetch(url, query, {
+      txHashes: chunkedTxHashes
+    })
+
+    bonds = data.cctpmessageReceiveds
+  }
+
+  return bonds
 }

@@ -11,5 +11,5 @@ export function normalizeTokenSymbol(symbol: string) {
   if (symbol === 'WMATIC') {
     symbol = 'MATIC'
   }
-  return symbol
+  return symbol ?? ''
 }

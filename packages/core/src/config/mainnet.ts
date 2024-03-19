@@ -11,6 +11,15 @@ export const config : Config = {
       nova: 12,
       base: 12
     },
+    'USDC.e': {
+      ethereum: 12,
+      polygon: 12,
+      gnosis: 12,
+      optimism: 12,
+      arbitrum: 12,
+      nova: 12,
+      base: 12
+    },
     USDT: {
       ethereum: 20,
       polygon: 20,
@@ -81,7 +90,8 @@ export const config : Config = {
     }
   },
   bonderTotalStake: {
-    USDC: 2338333,
+    USDC: 0,
+    'USDC.e': 2338333,
     USDT: 649805,
     DAI: 1500000,
     MATIC: 766730,

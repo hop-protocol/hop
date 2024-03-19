@@ -10,6 +10,7 @@ dotenv.config()
 const scriptSrc = new Set([
   "'self'",
   "'unsafe-inline'",
+  "'unsafe-eval'", // This is needed when using uniswap sdk, imported by hop sdk.
   "https://*.googletagmanager.com",
   "https://*.google.com",
   "https://*.gstatic.com",

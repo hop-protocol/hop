@@ -1317,4 +1317,10 @@ describe.skip('cctp', () => {
     const populatedTx = await bridge.getCctpWithdrawPopulatedTx(fromChain, toChain, txHash)
     expect(populatedTx).toBeTruthy()
   }, 60 * 1000)
+
+  it('getIsCctpEnabled', async () => {
+    const bridge = hop.bridge('USDC')
+    const isEnabled = await bridge.getIsCctpEnabled()
+    expect(typeof isEnabled).toBe('boolean')
+  }, 60 * 1000)
 })

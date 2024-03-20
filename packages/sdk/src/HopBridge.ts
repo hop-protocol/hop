@@ -3343,12 +3343,13 @@ class HopBridge extends Base {
     fromChain = this.toChainModel(fromChain)
     toChain = this.toChainModel(toChain)
 
+    const defaultGasLimit = 500_000
     try {
       const estimatedGasLimit = await this.#getCctpReceiveMessageEstimateGasLimit(fromChain, toChain)
       return estimatedGasLimit
     } catch (err: any) {
       console.error(`failed to call getCctpReceiveMessageEstimateGasLimit, fromChain: ${fromChain?.slug}, toChain: ${toChain?.slug}, error: ${err}`)
-      return 200_000
+      return defaultGasLimit
     }
   }
 

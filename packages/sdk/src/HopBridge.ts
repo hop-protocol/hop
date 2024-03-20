@@ -2379,56 +2379,26 @@ class HopBridge extends Base {
     }
 
     if (this.getShouldUseCctpBridge()) {
-      const testUsdce = this.network === 'sepolia' && this.tokenSymbol === 'USDC.e'
-      if (testUsdce) {
-        l1Bridge = await this.getCctpL1Bridge()
-
-        const { swapParams } = await getUSDCSwapParams({
-          network: this.network,
-          chainId: sourceChain.chainId,
-          amountIn: amount,
-          provider: sourceChain.provider!,
-          recipient: l1Bridge.address
-        })
-
-        const txOptions = [
-          destinationChainId,
-          recipient,
-          amount,
-          0,
-          swapParams,
-          {
-            ...(await this.txOverrides(sourceChain)),
-            gasLimit: 5_000_000,
-            value
-          }
-        ] as const
-
-        return (l1Bridge as L2_HopCCTPImplementation).populateTransaction.swapAndSend(
-          ...txOptions,
-        )
-      } else {
-        if (this.tokenSymbol === 'USDC.e') {
-          throw new Error('USDC.e is no longer supported for L1->L2 transfers')
-        }
-
-        const txOptions = [
-          destinationChainId,
-          recipient,
-          amount || 0,
-          relayerFee,
-          {
-            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
-            value
-          }
-        ] as const
-
-        const tx = await (l1Bridge as L1_HopCCTPImplementation).populateTransaction.send(
-          ...txOptions
-        )
-
-        return tx
+      if (this.tokenSymbol === 'USDC.e') {
+        throw new Error('USDC.e is no longer supported for L1->L2 transfers')
       }
+
+      const txOptions = [
+        destinationChainId,
+        recipient,
+        amount || 0,
+        relayerFee,
+        {
+          ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+          value
+        }
+      ] as const
+
+      const tx = await (l1Bridge as L1_HopCCTPImplementation).populateTransaction.send(
+        ...txOptions
+      )
+
+      return tx
     } else {
       const isPaused = await (l1Bridge as L1_Bridge).isChainIdPaused(destinationChain.chainId)
       if (isPaused) {

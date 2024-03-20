@@ -1,7 +1,6 @@
 import React, { ChangeEvent, ReactNode, useEffect, useMemo, useState } from 'react'
 import logger from 'src/logger'
 import useAvailableLiquidity from './useAvailableLiquidity'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import useSendData from 'src/pages/Send/useSendData'
 import { Address } from 'src/models/Address'
@@ -32,6 +31,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import { getTransferTimeString } from 'src/utils/getTransferTimeString'
 import { isGoerli, showRewards } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
+import { useCheckTokenDeprecated } from 'src/hooks/useCheckTokenDeprecated'
 import { useSendTransaction } from './useSendTransaction'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
@@ -387,11 +387,14 @@ export function useSend(): SendResponseProps {
 
       const formattedAmount = toTokenDisplay(availableLiquidity, fromToken.decimals)
 
+      let message = `Insufficient liquidity. There is ${formattedAmount} ${fromToken.symbol} bonder liquidity available on ${toNetwork.name}. Please try again in a few minutes when liquidity becomes available again.`
+      if (fromToken?.symbol === 'USDC') {
+        message = `Insufficient liquidity. There is ${formattedAmount} ${fromToken.symbol} liquidity available on ${toNetwork.name} at the moment. Please try again at a later time when liquidity becomes available again.`
+      }
+
       const warningMessage = (
         <>
-          Insufficient liquidity. There is {formattedAmount} {fromToken.symbol} bonder liquidity
-          available on {toNetwork.name}. Please try again in a few minutes when liquidity becomes
-          available again.{' '}
+          {message}{' '}
           <InfoTooltip
             title={
               <>
@@ -443,6 +446,15 @@ export function useSend(): SendResponseProps {
     }
     setSlippageToleranceTooLowWarning(isLow)
   }, [sdk, slippageTolerance, toTokenAmount, fromTokenAmount])
+
+  useEffect(() => {
+    const isUSDCe = fromToken?.symbol === 'USDC.e'
+    if (isUSDCe) {
+      setInfo('Notice: Native USDC (not USDC.e) will be received at the destination.')
+    } else {
+      setInfo('')
+    }
+  }, [fromToken])
 
   // set warning message
   useEffect(() => {
@@ -592,7 +604,8 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism)) {
+        const isUSDC = fromToken?.symbol === 'USDC' || fromToken?.symbol === 'USDC.e' // TODO: This is temporarily disabled until merkle worker is updated to work with USDC and USDC.e
+        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism && !isUSDC)) {
           setFeeRefund('')
           setFeeRefundUsd('')
           return
@@ -794,7 +807,18 @@ export function useSend(): SendResponseProps {
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, fromToken?.symbol)
 
   const isTokenDeprecated = useCheckTokenDeprecated(fromToken?.symbol)
-  const isSpecificRouteDeprecated = !!(isTokenDeprecated && !toNetwork?.isL1)
+  const isSpecificRouteDeprecated = useMemo(() => {
+    if (isTokenDeprecated && !toNetwork?.isL1) {
+      return true
+    }
+
+    if (fromNetwork && toNetwork && selectedBridge && ['USDC', 'USDC.e'].includes(fromToken?.symbol) && !selectedBridge?.getIsSupportedCctpRoute(fromNetwork?.slug, toNetwork?.slug)) {
+      return true
+    }
+
+    return false
+  }, [fromNetwork, toNetwork, fromToken?.symbol, selectedBridge])
+
   const isApproveButtonActive = !!(!needsTokenForFee && !unsupportedAsset && needsApproval && !isSpecificRouteDeprecated)
 
   const isSendButtonActive = useMemo(() => {

@@ -1,4 +1,3 @@
-import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import ArrowDownIcon from '@mui/icons-material/ArrowDownwardRounded'
 import Box from '@mui/material/Box'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
@@ -7,7 +6,6 @@ import IconButton from '@mui/material/IconButton'
 import React, { FC, useEffect, useState } from 'react'
 import TokenWrapper from 'src/components/TokenWrapper'
 import Typography from '@mui/material/Typography'
-import useCheckTokenDeprecated from 'src/hooks/useCheckTokenDeprecated'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { Alert } from 'src/components/Alert'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
@@ -17,8 +15,8 @@ import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import { TxStatusModal } from 'src/components/Modal/TxStatusModal'
 import { makeStyles } from '@mui/styles'
-import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { sanitizeNumericalString } from 'src/utils'
+import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 
 const useStyles = makeStyles(theme => ({
@@ -157,7 +155,8 @@ const ConvertContent: FC = () => {
     validFormFields,
     warning,
     convertOption,
-    destinationChainPaused
+    destinationChainPaused,
+    info
   } = useConvert()
   const [manualWarning, setManualWarning] = useState<string>('')
   const [customRecipient, setCustomRecipient] = useState<string>('')
@@ -206,7 +205,7 @@ const ConvertContent: FC = () => {
     setCustomRecipient(value)
   }
 
-  const isTokenDeprecated = useCheckTokenDeprecated(normalizeTokenSymbol(sourceToken?._symbol ?? ''))
+  const isTokenDeprecated = useCheckPoolDeprecated(sourceToken?._symbol)
   const specificRouteDeprecated = isTokenDeprecated && convertOption instanceof HopConvertOption && sourceNetwork?.isL1
 
   const sendableWarning = !warning || (warning as string)?.startsWith('Warning:')
@@ -229,7 +228,7 @@ const ConvertContent: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {(unsupportedAsset || (assetWithoutAmm && convertOption instanceof AmmConvertOption)) ? (
+      {(unsupportedAsset || assetWithoutAmm) ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
             {error}
@@ -250,6 +249,7 @@ const ConvertContent: FC = () => {
             methodName={MethodNames.convertTokens}
             selectedNetwork={sourceNetwork}
             destNetwork={destNetwork}
+            disableInput={specificRouteDeprecated}
           />
           <Box display="flex" style={{ position: 'relative' }}>
             <Box display="flex" justifyContent="center" alignItems="center">
@@ -285,6 +285,7 @@ const ConvertContent: FC = () => {
           </Box>
 
           {!error && <Box className={styles.details}>{details}</Box>}
+          <Alert severity="info">{info}</Alert>
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error">{manualWarning}</Alert>

@@ -3,6 +3,8 @@ import { AssetSymbol, ChainSlug } from '../config/types'
 export interface L1BridgeProps {
   l1CanonicalToken: string
   l1Bridge: string
+  cctpL1Bridge?: string
+  cctpMessageTransmitter?: string
   bridgeDeployedBlockNumber: number
 }
 
@@ -12,6 +14,8 @@ export interface L2BridgeProps {
   l2CanonicalBridge: string
   l2CanonicalToken: string
   l2Bridge: string
+  cctpL2Bridge?: string
+  cctpMessageTransmitter?: string
   l2HopBridgeToken: string
   l2AmmWrapper: string
   l2SaddleSwap: string
@@ -19,17 +23,21 @@ export interface L2BridgeProps {
   bridgeDeployedBlockNumber: number
 }
 
-export interface PolygonBridgeProps extends L2BridgeProps {
+export interface PolygonBaseBridgeProps {
   l1FxBaseRootTunnel: string
   l1PosRootChainManager: string
   l1PosPredicate: string
   l2MessengerProxy: string
 }
 
-export interface GnosisBridgeProps extends L2BridgeProps {
+export interface PolygonBridgeProps extends L2BridgeProps, PolygonBaseBridgeProps {}
+
+export interface GnosisBaseBridgeProps {
   l1Amb: string
   l2Amb: string
 }
+
+export interface GnosisBridgeProps extends L2BridgeProps, GnosisBaseBridgeProps {}
 
 export type BridgeChains = Partial<{
     ethereum: L1BridgeProps,
@@ -45,8 +53,34 @@ export type BridgeChains = Partial<{
     polygonzk: L2BridgeProps
   }>
 
+type USDCL1BridgeBase = {
+  l1CanonicalToken: string
+  cctpL1Bridge?: string
+  cctpMessageTransmitter?: string
+}
+
+type USDCL2BridgeBase = {
+  l2CanonicalToken: string
+  cctpL2Bridge?: string
+  cctpMessageTransmitter?: string
+}
+
+type USDCBridge = Partial<{
+  ethereum: USDCL1BridgeBase
+  arbitrum: USDCL2BridgeBase
+  optimism: USDCL2BridgeBase
+  polygon: USDCL2BridgeBase & PolygonBaseBridgeProps
+  gnosis: USDCL2BridgeBase & GnosisBaseBridgeProps
+  nova: USDCL2BridgeBase,
+  zksync: USDCL2BridgeBase
+  linea: USDCL2BridgeBase
+  scrollzk: USDCL2BridgeBase
+  base: USDCL2BridgeBase
+  polygonzk: USDCL2BridgeBase
+}>
+
 export type Bridges = {
-  [tokenSymbol: string]: BridgeChains
+  [key in AssetSymbol]: key extends 'USDC' ? USDCBridge : BridgeChains
 }
 
 export type Routes = Partial<{

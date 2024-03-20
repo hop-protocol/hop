@@ -376,14 +376,14 @@ describe.skip('approve addresses', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Ethereum
     )
-    const expectedAddress = addresses.mainnet.bridges.USDC!.ethereum!.l1Bridge
+    const expectedAddress = addresses.mainnet.bridges['USDC.e']!.ethereum!.l1Bridge
     expect(approvalAddress).toBe(expectedAddress)
   })
   it('get send approval address (L2 -> L2)', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Polygon
     )
-    const expectedAddress = addresses.mainnet.bridges.USDC!.polygon!.l2AmmWrapper
+    const expectedAddress = addresses.mainnet.bridges['USDC.e']!.polygon!.l2AmmWrapper
     expect(approvalAddress).toBe(expectedAddress)
   })
 })
@@ -1288,5 +1288,39 @@ describe.skip('calcFromHTokenAmountMulticall', () => {
     expect(amountOuts[0].toString()).toBeTruthy()
     expect(amountOuts[1].toString()).toBeTruthy()
     expect(amountOuts[2].toString()).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe.skip('cctp', () => {
+  const hop = new Hop('mainnet')
+  const signer = new Wallet(privateKey!)
+  it('getCctpWithdrawData', async () => {
+    const bridge = hop.bridge('USDC')
+    const fromChain = 'polygon'
+    const toChain = 'optimism'
+    const txHash = '0x6cfdbb214f5d184697cc62cee1b5279a44ca55c80b003323f9ca126ace80ae22'
+    const data = await bridge.getCctpWithdrawData(txHash)
+    console.log(data)
+    expect(data).toBeTruthy()
+    expect(data.fromChain).toBe(fromChain)
+    expect(data.fromChainId).toBeTruthy()
+    expect(data.toChain).toBe(toChain)
+    expect(data.toChainId).toBeTruthy()
+    expect(data.transactionHash).toBe(txHash)
+  }, 60 * 1000)
+
+  it('getCctpWithdrawPopulatedTx', async () => {
+    const bridge = hop.bridge('USDC')
+    const fromChain = 'polygon'
+    const toChain = 'optimism'
+    const txHash = '0x6cfdbb214f5d184697cc62cee1b5279a44ca55c80b003323f9ca126ace80ae22'
+    const populatedTx = await bridge.getCctpWithdrawPopulatedTx(fromChain, toChain, txHash)
+    expect(populatedTx).toBeTruthy()
+  }, 60 * 1000)
+
+  it('getIsCctpEnabled', async () => {
+    const bridge = hop.bridge('USDC')
+    const isEnabled = await bridge.getIsCctpEnabled()
+    expect(typeof isEnabled).toBe('boolean')
   }, 60 * 1000)
 })

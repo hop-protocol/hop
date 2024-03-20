@@ -1,6 +1,7 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import { Multicall } from '@hop-protocol/sdk'
 import { addresses, hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
+import { checkIsPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { commafy, toPercentDisplay } from 'src/utils'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { findNetworkBySlug } from 'src/utils/networks'
@@ -71,6 +72,7 @@ export function usePools () {
           const poolName = `${token} ${chainModel.name} Pool`
           const poolSubtitle = `${token} - h${token}`
           const depositLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
+          const withdrawLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const claimLink = `/pool/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const stakeLink = `/pool/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           _pools.push({
@@ -93,8 +95,10 @@ export function usePools () {
             totalApr: 0,
             totalAprFormatted: '',
             depositLink,
+            withdrawLink,
             canClaim: false,
             canStake: false,
+            isPoolDeprecated: false,
             hasStakingContract: false,
             claimLink,
             stakeLink,
@@ -198,6 +202,7 @@ export function usePools () {
             pool.userBalanceTotalUsdFormatted = cached.userBalanceTotalUsdFormatted
             pool.canClaim = cached.canClaim
             pool.canStake = cached.canStake
+            pool.isPoolDeprecated = cached.isPoolDeprecated
             pool.hasStaked = cached.hasStaked
             pool.hasStakingContract = cached.hasStakingContract
             pool.stakingRewardsStakedTotalUsd = cached.stakingRewardsStakedTotalUsd
@@ -348,6 +353,7 @@ export function usePools () {
             cache[key].userBalanceTotalUsdFormatted = pool.userBalanceTotalUsdFormatted
             cache[key].canClaim = pool.canClaim
             cache[key].canStake = pool.canStake
+            cache[key].isPoolDeprecated = pool.isPoolDeprecated
             cache[key].hasStaked = pool.hasStaked
             cache[key].hasStakingContract = pool.hasStakingContract
             cache[key].stakingRewardsStakedTotalUsd = pool.stakingRewardsStakedTotalUsd
@@ -398,7 +404,9 @@ export function usePools () {
       }).map((x: any) => {
         x.userBalanceTotalUsdFormatted = x.userBalanceTotalUsd ? `$${commafy(x.userBalanceTotalUsd, 4)}` : '-'
 
-        if (x.hasStakingContract && x.userBalanceUsd && !x.hasStaked && !x.canClaim) {
+        const isPoolDeprecated = checkIsPoolDeprecated(x?.token?.symbol)
+        x.isPoolDeprecated = isPoolDeprecated
+        if (x.hasStakingContract && x.userBalanceUsd && !x.hasStaked && !x.canClaim && !isPoolDeprecated) {
           x.canStake = true
         }
 

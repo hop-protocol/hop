@@ -2527,7 +2527,7 @@ class HopBridge extends Base {
           amount || 0,
           bonderFee || 0,
           {
-            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+            ...(await this.txOverrides(sourceChain)),
             value
           }
         ] as const
@@ -2680,7 +2680,7 @@ class HopBridge extends Base {
           amount || 0,
           bonderFee || 0,
           {
-            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+            ...(await this.txOverrides(sourceChain)),
             value
           }
         ] as const

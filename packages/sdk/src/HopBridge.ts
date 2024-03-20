@@ -1589,6 +1589,11 @@ class HopBridge extends Base {
   public async getAvailableLiquidityCctp (
     sourceChain: TChain
   ): Promise<BigNumber> {
+    const isEnabled = await this.getIsCctpEnabled()
+    if (!isEnabled) {
+      return BigNumber.from(0)
+    }
+
     sourceChain = this.toChainModel(sourceChain)
 
     const hopCctpBridge = await this.getCctpBridge(sourceChain)
@@ -3538,6 +3543,19 @@ class HopBridge extends Base {
       getQuote: true
     })
     return quotedAmountOut
+  }
+
+  async getIsCctpEnabled() {
+    if (this.network !== NetworkSlug.Mainnet) {
+      return false
+    }
+
+    if (!this.getShouldUseCctpBridge()) {
+      return false
+    }
+
+    const response = await this.fetchBonderAvailableLiquidityData()
+    return response?.USDC?.cctpEnabled ?? false
   }
 }
 

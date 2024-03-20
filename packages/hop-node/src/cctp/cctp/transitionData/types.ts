@@ -7,7 +7,7 @@ export type IGetStoreDataRes = IAPIEventStoreRes | IOnchainEventStoreRes
 
 export interface ITransitionDataProvider<T, U> {
   // TODO: value U is different than the response U
-  getTransitionData (state: T, value: U): Promise<U | undefined>
+  getTransitionData (state: T, key: string, value: U): Promise<U | undefined>
 }
 
 export interface IDataStore {

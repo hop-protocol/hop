@@ -51,26 +51,28 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
 
   // TODO: I don't love this
   getStateCreationKey (value: IMessage): string {
-    const { messageNonce } = value as ISentMessage
-    return messageNonce.toString()
+    // TODO: Use different separator. With redundant chainId, the filtering of the db is messed up
+    // TODO: Also, this level of the code shouldn't care about the key
+    const { messageNonce, sourceChainId } = value as ISentMessage
+    return messageNonce.toString() + '!!' + sourceChainId.toString()
   }
 
   /**
    * Preconditions
    */
 
-  isStateTransitionPreconditionMet(state: MessageState, messageNonce: string, value: IMessage): boolean {
+  isStateTransitionPreconditionMet(state: MessageState, key: string, value: IMessage): boolean {
     switch (state) {
       case MessageState.Sent:
-        return this.#isSentStateTransactionPreconditionMet(messageNonce, value as ISentMessage)
+        return this.#isSentStateTransactionPreconditionMet(key, value as ISentMessage)
       case MessageState.Attested:
-        return this.#isAttestedStateTransactionPreconditionMet(messageNonce,value as IAttestedMessage)
+        return this.#isAttestedStateTransactionPreconditionMet(key,value as IAttestedMessage)
       case MessageState.Relayed:
-        return this.#isRelayedStateTransactionPreconditionMet(messageNonce, value as IRelayedMessage)
+        return this.#isRelayedStateTransactionPreconditionMet(key, value as IRelayedMessage)
     }
   }
 
-  #isSentStateTransactionPreconditionMet (messageNonce: string, value: ISentMessage): boolean {
+  #isSentStateTransactionPreconditionMet (key: string, value: ISentMessage): boolean {
     const { sourceChainId, sentTimestampMs } = value
     const chainFinalityTimeMs = getFinalityTimeFromChainIdMs(sourceChainId)
     const finalityTimestampOk = sentTimestampMs + chainFinalityTimeMs < Date.now()
@@ -80,8 +82,8 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     )
   }
 
-  #isAttestedStateTransactionPreconditionMet (messageNonce: string, value: IAttestedMessage): boolean {
-    const cacheKey = this.#getCacheKey(MessageState.Attested, messageNonce)
+  #isAttestedStateTransactionPreconditionMet (key: string, value: IAttestedMessage): boolean {
+    const cacheKey = this.#getCacheKey(MessageState.Attested, key)
     const isTxInFlight = this.#inFlightTxCache.has(cacheKey)
 
     // TODO: Introduce inflight timestamp for retry logic
@@ -94,7 +96,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     )
   }
 
-  #isRelayedStateTransactionPreconditionMet (messageNonce: string, value: IRelayedMessage): boolean {
+  #isRelayedStateTransactionPreconditionMet (key: string, value: IRelayedMessage): boolean {
     // isPrecondition methods need access to all data at given state, so we need to fetch the message data
     // There is probably a better way to type this
     const { relayTimestampMs, destinationChainId } = value as ISentMessage & IAttestedMessage & IRelayedMessage
@@ -110,23 +112,23 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
    * Actions
    */
 
-  isStateActionPreconditionMet (state: MessageState, messageNonce: string, value: IMessage): boolean {
+  isStateActionPreconditionMet (state: MessageState, key: string, value: IMessage): boolean {
     switch (state) {
       case MessageState.Sent:
-        return this.#isSentStateActionPreconditionMet(messageNonce, value as ISentMessage)
+        return this.#isSentStateActionPreconditionMet(key, value as ISentMessage)
       case MessageState.Attested:
-        return this.#isAttestedStateActionPreconditionMet(messageNonce, value as IAttestedMessage)
+        return this.#isAttestedStateActionPreconditionMet(key, value as IAttestedMessage)
       case MessageState.Relayed:
-        return this.#isRelayedStateActionPreconditionMet(messageNonce, value as IRelayedMessage)
+        return this.#isRelayedStateActionPreconditionMet(key, value as IRelayedMessage)
     }
   }
 
-  #isSentStateActionPreconditionMet (messageNonce: string, value: ISentMessage): boolean {
+  #isSentStateActionPreconditionMet (key: string, value: ISentMessage): boolean {
     return true
   }
 
-  #isAttestedStateActionPreconditionMet (messageNonce: string, value: IAttestedMessage): boolean {
-    const cacheKey = this.#getCacheKey(MessageState.Attested, messageNonce)
+  #isAttestedStateActionPreconditionMet (key: string, value: IAttestedMessage): boolean {
+    const cacheKey = this.#getCacheKey(MessageState.Attested, key)
     const isTxInFlightCache = this.#inFlightTxCache.has(cacheKey)
 
     return (
@@ -134,7 +136,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     )
   }
 
-  #isRelayedStateActionPreconditionMet (messageNonce: string, value: IRelayedMessage): boolean {
+  #isRelayedStateActionPreconditionMet (key: string, value: IRelayedMessage): boolean {
     return true
   }
 
@@ -142,28 +144,28 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
    * Other - hooks
    */
 
-  handleStateExitHook (state: MessageState, messageNonce: string, value: IMessage): void {
+  handleStateExitHook (state: MessageState, key: string, value: IMessage): void {
     switch (state) {
       case MessageState.Sent:
-        return this.#handleSentStateExitHook(messageNonce, value as ISentMessage)
+        return this.#handleSentStateExitHook(key, value as ISentMessage)
       case MessageState.Attested:
-        return this.#handleAttestedStateExitHook(messageNonce, value as IAttestedMessage)
+        return this.#handleAttestedStateExitHook(key, value as IAttestedMessage)
       case MessageState.Relayed:
-        return this.#handleRelayedStateExitHook(messageNonce, value as IRelayedMessage)
+        return this.#handleRelayedStateExitHook(key, value as IRelayedMessage)
     }
   }
 
-  #handleSentStateExitHook (messageNonce: string, value: ISentMessage): void {
+  #handleSentStateExitHook (key: string, value: ISentMessage): void {
     return
   }
 
-  #handleAttestedStateExitHook (messageNonce: string, value: IAttestedMessage): void {
-    const cacheKey = this.#getCacheKey(MessageState.Attested, messageNonce)
+  #handleAttestedStateExitHook (key: string, value: IAttestedMessage): void {
+    const cacheKey = this.#getCacheKey(MessageState.Attested, key)
     this.#inFlightTxCache.delete(cacheKey)
     return
   }
 
-  #handleRelayedStateExitHook (messageNonce: string, value: IRelayedMessage): void {
+  #handleRelayedStateExitHook (key: string, value: IRelayedMessage): void {
     return
   }
 
@@ -216,7 +218,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
    * Utils
    */
 
-  #getCacheKey (state: MessageState, messageNonce: string): string {
-    return `${state}-${messageNonce}`
+  #getCacheKey (state: MessageState, key: string): string {
+    return `${state}-${key}`
   }
 }

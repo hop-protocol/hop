@@ -103,13 +103,13 @@ export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
   }
 
   // TODO: Does this belong here or up a level?
-  async getTransitionEvent (newState: T, messageNonce: string, value: U): Promise<U | undefined> {
+  async getTransitionEvent (newState: T, key: string, value: U): Promise<U | undefined> {
     // TODO: Better error handling -- should handle elsewhere
     try {
       // TODO: Assert that newState cannot be the initial state
       const initialState = this.#getInitialState()
       if (newState === initialState) return
-      return await this.#transitionDataProvider.getTransitionData(newState, value)
+      return await this.#transitionDataProvider.getTransitionData(newState, key, value)
     } catch (err) {
       console.log('getTransitionEvent err', err)
       return

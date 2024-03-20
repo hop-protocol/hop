@@ -8,14 +8,15 @@ export type LogWithChainId = providers.Log & { chainId: number }
 
 type DBValue = LogWithChainId | number
 
-/**
- * Future work:
- * - Add secondary index for event in the form of <topic[0]!secondaryTopic, Log>
- */
 
 /**
- * Indexed by topic[0]!chainId!blockNumber!logIndex
+ * First index: topic[0]!chainId!blockNumber!logIndex
+ * Second index: topic[0]!messageNonce!!chainId!chainId!blockNumber!logIndex
+ * // TODO: Don't use !! in second index, rethink all
  */
+
+// TODO: Second index has chainId twice. this is because a message nonce is not unique across chains.
+// TODO: This should be hashed or handled differently so that there is not a redundant key
 
 export class OnchainEventIndexerDB extends DB<string, DBValue> {
 

@@ -27,26 +27,27 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
   }
 
   // TODO: Value and resp are different U
-  async getTransitionData(state: T, value: U): Promise<U | undefined> {
+  async getTransitionData(state: T, key: string, value: U): Promise<U | undefined> {
     // TODO: Initial state cannot be here but should be more explicit about it not being a store
 
     // TODO: Fix this
-    const key = this.#getKeyForGetter(state, value)
+    const getDataKey = this.#getKeyForGetter(state, key, value)
 
     // TODO: Assert initial state cannot be here
-    const eventData: IGetStoreDataRes | undefined = await this.#stores[state].getData(key)
+    const eventData: IGetStoreDataRes | undefined = await this.#stores[state].getData(getDataKey)
     if (!eventData) return
 
     return this.#parseEventData(state, eventData)
   }
 
-  #getKeyForGetter = (state: T, value: U): string => {
+  // TODO: Better naming/logic
+  #getKeyForGetter = (state: T, key: string, value: U): string => {
     // TODO: Not any
     const res: any = value
     if (MessageState.Attested === state) {
       return Message.getMessageHashFromMessage(res.message)
     } else if (MessageState.Relayed === state) {
-      return res.messageNonce
+      return key
     }
     throw new Error('Invalid state')
   }

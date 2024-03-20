@@ -28,10 +28,10 @@ export class OnchainEventStore implements IDataStore {
     ]
   }
 
-  async getData (messageNonce: string): Promise<IOnchainEventStoreRes | undefined> {
+  async getData (key: string): Promise<IOnchainEventStoreRes | undefined> {
     // TODO: Not hard-coded topic
     const topic: string = Message.MESSAGE_RECEIVED_EVENT_SIG
-    return this.#indexer.getIndexedDataBySecondIndex(topic, messageNonce)
+    return this.#indexer.getIndexedDataBySecondIndex(topic, key)
   }
 
   async *getAllLogsForTopic (topic: string): AsyncIterable<LogWithChainId> {

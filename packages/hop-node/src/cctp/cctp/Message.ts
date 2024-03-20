@@ -65,6 +65,7 @@ export class Message {
     return contract.filters.MessageReceived() as RequiredEventFilter
   }
 
+  // TODO: better name, not just "event"
   static decodeMessageFromEvent (encodedMessage: string): string {
     const decoded = utils.defaultAbiCoder.decode(['bytes'], encodedMessage)
     return decoded[0]

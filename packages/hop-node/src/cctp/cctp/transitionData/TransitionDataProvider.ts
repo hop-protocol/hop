@@ -131,6 +131,7 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
 
   // TODO: Move this to Message
   // TODO: Do the same with CLI command
+  // TODO: Better name than log -- specify which event log
   async #getMessageFromHopCCTPTransferLog (log: LogWithChainId, nonce: number): Promise<string> {
     const { chainId, blockNumber } = log
 
@@ -151,7 +152,7 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
     // TODO: This will not work for multiple transfers in the same tx. Handle that case if it comes up.
     for (const onchainLog of onchainLogs) {
       if (onchainLog.transactionHash === log.transactionHash) {
-        return Message.decodeMessageFromEvent(log.data)
+        return Message.decodeMessageFromEvent(onchainLog.data)
       }
     }
 

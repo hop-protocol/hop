@@ -666,7 +666,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async getReceipt (txHash: string) {
-    return this.signer.provider!.waitForTransaction(txHash)
+    const confirms = 1
+    const timeoutMs = 10 * 60 * 1000
+    return this.signer.provider!.waitForTransaction(txHash, confirms, timeoutMs)
   }
 
   private async startPoller () {
@@ -923,7 +925,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
-    this.signer.provider!.waitForTransaction(tx.hash).then((receipt: providers.TransactionReceipt) => {
+    this.getReceipt(tx.hash).then((receipt: providers.TransactionReceipt) => {
       this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
       this.handleConfirmation(tx.hash, receipt)
     })

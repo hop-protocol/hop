@@ -117,7 +117,7 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
     const messageNonce = Number(BigNumber.from(topics[1]))
     const destinationChainIdBN = BigNumber.from(topics[2])
     const timestampMs = await getTimestampFromBlockNumberMs(chainId, blockNumber)
-    const message = await this.#getMessageFromHopCCTPTransferLog(log, /* rm */ messageNonce)
+    const message = await this.#getMessageFromHopCCTPTransferLog(log, messageNonce)
 
     return {
       message,
@@ -145,6 +145,16 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
       throw new Error('No logs found')
     }
 
-    return Message.decodeMessageFromEvent(logs[0].data)
+    // If there are multiple transfers in a block, find the correct one
+    // TODO: This is not going to be perfect and will not work in some cases when the hex value of the nonce
+    // exists elsewhere in the log, but that should rarely occur, if ever
+    const hexNonce = nonce.toString(16).toLowerCase()
+    for (const log of logs) {
+      if (log.data.toLowerCase().includes(hexNonce)) {
+        return Message.decodeMessageFromEvent(log.data)
+      }
+    }
+
+    throw new Error(`No message found in logs for nonce ${nonce} on chain ${chainId}`)
   }
 }

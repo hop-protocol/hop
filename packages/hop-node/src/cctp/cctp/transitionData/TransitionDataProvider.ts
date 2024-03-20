@@ -129,6 +129,8 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
     } as U
   }
 
+  // TODO: Move this to Message
+  // TODO: Do the same with CLI command
   async #getMessageFromHopCCTPTransferLog (log: LogWithChainId, nonce: number): Promise<string> {
     const { chainId, blockNumber } = log
 
@@ -140,17 +142,15 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
       fromBlock: blockNumber,
       toBlock: blockNumber
     }
-    const logs = await provider.getLogs(filter)
-    if (logs.length === 0) {
+    const onchainLogs = await provider.getLogs(filter)
+    if (onchainLogs.length === 0) {
       throw new Error('No logs found')
     }
 
     // If there are multiple transfers in a block, find the correct one
-    // TODO: This is not going to be perfect and will not work in some cases when the hex value of the nonce
-    // exists elsewhere in the log, but that should rarely occur, if ever
-    const hexNonce = nonce.toString(16).toLowerCase()
-    for (const log of logs) {
-      if (log.data.toLowerCase().includes(hexNonce)) {
+    // TODO: This will not work for multiple transfers in the same tx. Handle that case if it comes up.
+    for (const onchainLog of onchainLogs) {
+      if (onchainLog.transactionHash === log.transactionHash) {
         return Message.decodeMessageFromEvent(log.data)
       }
     }

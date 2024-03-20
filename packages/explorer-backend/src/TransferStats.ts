@@ -11,11 +11,12 @@ import { chunk } from 'lodash'
 import { enabledChains, enabledTokens, integrations, isGoerli, network, rpcUrls } from './config'
 import {
   fetchBondTransferIdEvents,
+  fetchCctpTransferSents,
+  fetchCctpTransferSentsForTransferId,
   fetchTransferBonds,
   fetchTransferEventsByTransferIds,
   fetchTransferFromL1Completeds,
   fetchTransferSents,
-  fetchCctpTransferSents,
   fetchTransferSentsForTransferId,
   fetchWithdrews
 } from './theGraph'
@@ -261,6 +262,9 @@ export class TransferStats {
       }
       const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
       const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
+      if (!receipt) {
+        return null
+      }
       const transferTopic = '0xddf252ad'
 
       if (sourceChainSlug === 'ethereum' || destinationChainSlug !== 'ethereum') {
@@ -584,9 +588,17 @@ export class TransferStats {
       return fetchTransferSentsForTransferId(chain, transferId)
     }))
 
+    const enabledChainTransfersCctp = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchCctpTransferSentsForTransferId(chain, transferId)
+    }))
+
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
+    }
+
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
     }
 
     return events
@@ -625,6 +637,7 @@ export class TransferStats {
 
       return
     }
+
     const items = await this.getRemainingData(data, { refetch: true })
 
     for (const item of items) {
@@ -741,9 +754,6 @@ export class TransferStats {
     const enabledChainTransfersCctp = await Promise.all(enabledChains.map(async (chain: string) => {
       try {
         const events = await fetchCctpTransferSents(chain, startTime, endTime)
-        events.forEach((event: any) => {
-          event.isCctp = true
-        })
         return events
       } catch (err: any) {
         console.error(`fetchCctpTransferSents chain: ${chain}, error`,  err)

@@ -510,7 +510,7 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
 
 export async function fetchCctpTransferSents (chain: string, startTime: number, endTime: number, lastId?: string) {
   // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon']
+  const supportedChains = ['polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -567,6 +567,7 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
     .filter((x: any) => x)
     .map((x: any) => {
       x.chainId = Number(x.chainId)
+      x.isCctp = true
       return x
     })
 
@@ -579,6 +580,116 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
       lastId
     )))
   }
+
+  return transfers
+}
+
+export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: string) {
+  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  const supportedChains = ['polygon', 'base']
+  if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  const query = `
+    query CctpTransferSentsForTxHash($txHash: String) {
+      cctptransferSents: cctptransferSents(
+        where: {
+          transaction_: {
+            hash: $txHash,
+          }
+        },
+      ) {
+        id
+        cctpNonce
+        chainId
+        recipient
+        amount
+        bonderFee
+        transaction {
+          to
+          hash
+          from
+        }
+        block {
+          timestamp
+        }
+      }
+    }
+  `
+  let url :string
+  try {
+    url = getSubgraphUrl(chain)
+  } catch (err) {
+    return []
+  }
+  const data = await queryFetch(url, query, {
+    txHash
+  })
+
+  const transfers = data.cctptransferSents
+    .filter((x: any) => x)
+    .map((x: any) => {
+      x.chainId = Number(x.chainId)
+      x.isCctp = true
+      return x
+    })
+
+  return transfers
+}
+
+export async function fetchCctpTransferSentsForTransferId (chain: string, transferId: string) {
+  if (transferId.length === 66) {
+    return fetchCctpTransferSentsForTxHash(chain, transferId)
+  }
+
+  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  const supportedChains = ['polygon', 'base']
+  if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  const query = `
+    query CctpTransferSentsForTransferId($cctpNonce: String) {
+      cctptransferSents: cctptransferSents(
+        where: {
+          cctpNonce: $cctpNonce
+        },
+      ) {
+        id
+        cctpNonce
+        chainId
+        recipient
+        amount
+        bonderFee
+        transaction {
+          to
+          hash
+          from
+        }
+        block {
+          timestamp
+        }
+      }
+    }
+  `
+  let url :string
+  try {
+    url = getSubgraphUrl(chain)
+  } catch (err) {
+    return []
+  }
+  const data = await queryFetch(url, query, {
+    cctpNonce: transferId
+  })
+
+  const transfers = data.cctptransferSents
+    .filter((x: any) => x)
+    .map((x: any) => {
+      x.chainId = Number(x.chainId)
+      x.isCctp = true
+      return x
+    })
 
   return transfers
 }
@@ -635,6 +746,11 @@ export async function fetchCctpMessageReceiveds (chain: string, txHashes: string
 
     bonds = data.cctpmessageReceiveds
   }
+
+  bonds = bonds.map((x: any) => {
+    x.isCctp = true
+    return x
+  })
 
   return bonds
 }

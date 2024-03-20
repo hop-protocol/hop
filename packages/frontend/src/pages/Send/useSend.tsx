@@ -387,11 +387,14 @@ export function useSend(): SendResponseProps {
 
       const formattedAmount = toTokenDisplay(availableLiquidity, fromToken.decimals)
 
+      let message = `Insufficient liquidity. There is ${formattedAmount} ${fromToken.symbol} bonder liquidity available on ${toNetwork.name}. Please try again in a few minutes when liquidity becomes available again.`
+      if (fromToken?.symbol === 'USDC') {
+        message = `Insufficient liquidity. There is ${formattedAmount} ${fromToken.symbol} liquidity available on ${toNetwork.name} at the moment. Please try again at a later time when liquidity becomes available again.`
+      }
+
       const warningMessage = (
         <>
-          Insufficient liquidity. There is {formattedAmount} {fromToken.symbol} bonder liquidity
-          available on {toNetwork.name}. Please try again in a few minutes when liquidity becomes
-          available again.{' '}
+          {message}{' '}
           <InfoTooltip
             title={
               <>
@@ -443,6 +446,15 @@ export function useSend(): SendResponseProps {
     }
     setSlippageToleranceTooLowWarning(isLow)
   }, [sdk, slippageTolerance, toTokenAmount, fromTokenAmount])
+
+  useEffect(() => {
+    const isUSDCe = fromToken?.symbol === 'USDC.e'
+    if (isUSDCe) {
+      setInfo('Notice: Native USDC (not USDC.e) will be received at the destination.')
+    } else {
+      setInfo('')
+    }
+  }, [fromToken])
 
   // set warning message
   useEffect(() => {
@@ -592,7 +604,7 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        const isUSDC = fromToken?.symbol === 'USDC' || fromToken?.symbol === 'USDC.e' // TODO: THis is temporarily disabled until merkle worker is updated to work with USDC and USDC.e
+        const isUSDC = fromToken?.symbol === 'USDC' || fromToken?.symbol === 'USDC.e' // TODO: This is temporarily disabled until merkle worker is updated to work with USDC and USDC.e
         if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism && !isUSDC)) {
           setFeeRefund('')
           setFeeRefundUsd('')

@@ -47,6 +47,8 @@ export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
+// TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
+export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs

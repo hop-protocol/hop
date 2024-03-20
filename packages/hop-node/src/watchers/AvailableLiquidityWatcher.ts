@@ -6,17 +6,19 @@ import { BigNumber } from 'ethers'
 import {
   BondTransferRootChains,
   Chain,
-  TenMinutesMs
+  TenMinutesMs,
+  Token
 } from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
+  CCTPEnabled,
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityRoutes
 } from 'src/config'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 
 type Config = {
   chainSlug: string
@@ -384,6 +386,14 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
 
     s3JsonData[this.tokenSymbol] = data
+
+    if (this.tokenSymbol.toLowerCase() === Token.USDC.toLowerCase()) {
+      s3JsonData[this.tokenSymbol] = {
+        ...data,
+        cctpEnabled: CCTPEnabled
+      }
+    }
+
     if (!s3LastUpload || s3LastUpload < Date.now() - (60 * 1000)) {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)

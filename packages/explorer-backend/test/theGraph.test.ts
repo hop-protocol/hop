@@ -1,4 +1,4 @@
-import { fetchTransferFromL1Completeds, fetchCctpTransferSents, fetchCctpTransferSentsForTxHash, fetchCctpMessageReceiveds } from '../src/theGraph'
+import { fetchTransferFromL1Completeds, fetchCctpTransferSents, fetchCctpTransferSentsByTransferIds, fetchCctpTransferSentsForTxHash, fetchCctpMessageReceivedsByTxHashes, fetchCctpMessageReceivedsByTransferIds } from '../src/theGraph'
 
 // run with:
 // NETWORK=goerli ts-node test/theGraph.test.ts
@@ -29,16 +29,38 @@ async function testFetchCctpTransferSentsForTxHash () {
   console.log('done')
 }
 
-async function testFetchCctpMessageReceiveds () {
+async function testFetchCctpMessageReceivedsByTxHashes () {
   const chain = 'polygon'
   const txHashes: any[] = []
-  const events = await fetchCctpMessageReceiveds(chain, txHashes)
+  const events = await fetchCctpMessageReceivedsByTxHashes(chain, txHashes)
+  console.log(events.length)
+  console.log('done')
+}
+
+async function testFetchCctpMessageReceivedsByTransferIds () {
+  const chain = 'base'
+  const transferIds : any[] = ['44714', '123']
+  const events = await fetchCctpMessageReceivedsByTransferIds(chain, transferIds)
+  console.log(events.length)
+  console.log('done')
+}
+
+async function testFetchCctpTransferSentsByTransferIds () {
+  const chain = 'polygon'
+  const transferIds : any[] = ['44012', '44073', '123']
+  const events = await fetchCctpTransferSentsByTransferIds(chain, transferIds)
   console.log(events.length)
   console.log('done')
 }
 
 async function main () {
-  await testFetchCctpTransferSentsForTxHash()
+  // await testFetchTransferFromL1Completeds()
+  // await testFetchCctpTransferSentsForTxHash()
+  // await testFetchCctpMessageReceivedsByTxHashes()
+  // await testFetchCctpMessageReceivedsByTransferIds()
+  // await testFetchCctpTransferSents()
+  // await testFetchCctpMessageReceiveds()
+  // await testFetchCctpTransferSentsByTransferIds()
 }
 
 main().catch(console.error)

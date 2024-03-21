@@ -1352,7 +1352,7 @@ const Index: NextPage = (props: any) => {
                                 </Box>
                               )}
                             </span>
-                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded && (x.token === 'USDC' ? (Date.now()/1000) < 1710979200 : true)) && (
+                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
                               <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>Your funds are safe. If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.</Box>}</Box>}>
                               <span className="no">
                                 <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />

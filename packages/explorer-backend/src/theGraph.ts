@@ -567,6 +567,8 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
     .filter((x: any) => x)
     .map((x: any) => {
       x.chainId = Number(x.chainId)
+      x.destinationChain = x.chainId
+      x.transferId = x.cctpNonce
       x.isCctp = true
       return x
     })
@@ -631,6 +633,8 @@ export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: st
     .filter((x: any) => x)
     .map((x: any) => {
       x.chainId = Number(x.chainId)
+      x.destinationChain = x.chainId
+      x.transferId = x.cctpNonce
       x.isCctp = true
       return x
     })
@@ -687,6 +691,8 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
     .filter((x: any) => x)
     .map((x: any) => {
       x.chainId = Number(x.chainId)
+      x.destinationChain = x.chainId
+      x.transferId = x.cctpNonce
       x.isCctp = true
       return x
     })
@@ -694,8 +700,70 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
   return transfers
 }
 
-export async function fetchCctpMessageReceiveds (chain: string, txHashes: string[]) {
-  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+export async function fetchCctpTransferSentsByTransferIds (chain: string, transferIds: string[]) {
+  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  const supportedChains = ['polygon', 'base']
+  if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  const query = `
+    query CctpTransferSents($transferIds: [String]) {
+      cctptransferSents: cctptransferSents(
+        where: {
+          cctpNonce_in: $transferIds
+        },
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc
+      ) {
+        id
+        cctpNonce
+        chainId
+        recipient
+        amount
+        bonderFee
+        transaction {
+          to
+          hash
+          from
+        }
+        block {
+          timestamp
+        }
+      }
+    }
+  `
+
+  let url :string
+  try {
+    url = getSubgraphUrl(chain)
+  } catch (err) {
+    return []
+  }
+  let transferSents: any = []
+  const chunkSize = 1000
+  const allChunks = chunk(transferIds, chunkSize)
+  for (const chunkedTransferIds of allChunks) {
+    const data = await queryFetch(url, query, {
+      transferIds: chunkedTransferIds
+    })
+
+    transferSents = transferSents.concat(data.cctptransferSents || [])
+  }
+
+  return transferSents.filter(Boolean).map((x: any) => {
+    x.chainId = Number(x.chainId)
+    x.destinationChain = x.chainId
+    x.transferId = x.cctpNonce
+    x.isCctp = true
+    return x
+  })
+}
+
+export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHashes: string[]) {
+  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  const supportedChains = ['polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -748,6 +816,144 @@ export async function fetchCctpMessageReceiveds (chain: string, txHashes: string
   }
 
   bonds = bonds.map((x: any) => {
+    x.isCctp = true
+    x.transferId = x.nonce
+    return x
+  })
+
+  return bonds
+}
+
+export async function fetchCctpMessageReceivedsByTransferIds (chain: string, transferIds: string[]) {
+  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  const supportedChains = ['polygon', 'base']
+  if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  const query = `
+    query CctpMessageReceiveds($transferIds: [String]) {
+      cctpmessageReceiveds: cctpmessageReceiveds(
+        where: {
+          nonce_in: $transferIds
+        },
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc,
+      ) {
+        id
+        address
+        sourceDomain
+        nonce
+        sender
+        messageBody
+        transaction {
+          to
+          hash
+          from
+        }
+        block {
+          timestamp
+        }
+      }
+    }
+  `
+
+  let url :string
+  try {
+    url = getSubgraphUrl(chain)
+  } catch (err) {
+    return []
+  }
+  let bonds: any = []
+  const chunkSize = 1000
+  const allChunks = chunk(transferIds, chunkSize)
+  for (const chunkedTransferIds of allChunks) {
+    const data = await queryFetch(url, query, {
+      transferIds: chunkedTransferIds
+    })
+
+    bonds = data.cctpmessageReceiveds
+  }
+
+  bonds = bonds.map((x: any) => {
+    x.isCctp = true
+    x.transferId = x.nonce
+    return x
+  })
+
+  return bonds
+}
+
+export async function fetchMessageReceivedEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
+  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+  const supportedChains = ['polygon', 'base']
+  if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  const query = `
+    query MessageReceiveds($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
+      cctpmessageReceiveds: cctpmessageReceiveds(
+        where: {
+          block_: {
+            timestamp_gte: $startTime,
+            timestamp_lte: $endTime
+          },
+          id_gt: $lastId
+        },
+        first: $perPage,
+        orderBy: id,
+        orderDirection: asc
+      ) {
+        id
+        address
+        sourceDomain
+        nonce
+        sender
+        messageBody
+        transaction {
+          to
+          hash
+          from
+        }
+        block {
+          timestamp
+        }
+      }
+    }
+  `
+
+  let url :string
+  try {
+    url = getSubgraphUrl(chain)
+  } catch (err) {
+    return []
+  }
+  if (!lastId) {
+    lastId = '0'
+  }
+  const data = await queryFetch(url, query, {
+    perPage: 1000,
+    startTime,
+    endTime,
+    lastId
+  })
+
+  let bonds = data.cctpmessageReceiveds.filter((x: any) => x)
+
+  if (bonds.length === 1000) {
+    lastId = bonds[bonds.length - 1].id
+    bonds = bonds.concat(...(await fetchMessageReceivedEvents(
+      chain,
+      startTime,
+      endTime,
+      lastId
+    )))
+  }
+
+  bonds = bonds.map((x: any) => {
+    x.transferId = x.nonce
     x.isCctp = true
     return x
   })

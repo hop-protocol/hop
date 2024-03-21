@@ -4,7 +4,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useRef, useState } from 'react'
 
 // return statistical data in whole minutes given recent transaction times
-export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destinationChainSlug?: string | null) => {
+export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destinationChainSlug?: string | null, tokenSymbol?: string) => {
   const { sdk } = useApp()
 
   const sourceChain = sourceChainSlug ? Chain.fromSlug(sourceChainSlug) : null
@@ -24,6 +24,16 @@ export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destina
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('tokennn', tokenSymbol)
+      // TODO: this is temporary until we have a dynamic solution for USDC CCTP
+      if (tokenSymbol === 'USDC' || tokenSymbol === 'USDC.e') {
+        const fixedTime = 20 * 60 // 20 min
+        setAverageTimeEstimate(fixedTime)
+        setMedianTimeEstimate(fixedTime)
+        setPercentileTimeEstimate(fixedTime)
+        return
+      }
+
       const currentTime = Date.now()
       const route = `${sourceChainSlug}-${destinationChainSlug}`
       if (

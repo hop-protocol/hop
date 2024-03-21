@@ -155,7 +155,8 @@ const ConvertContent: FC = () => {
     validFormFields,
     warning,
     convertOption,
-    destinationChainPaused
+    destinationChainPaused,
+    info
   } = useConvert()
   const [manualWarning, setManualWarning] = useState<string>('')
   const [customRecipient, setCustomRecipient] = useState<string>('')
@@ -248,6 +249,7 @@ const ConvertContent: FC = () => {
             methodName={MethodNames.convertTokens}
             selectedNetwork={sourceNetwork}
             destNetwork={destNetwork}
+            disableInput={specificRouteDeprecated}
           />
           <Box display="flex" style={{ position: 'relative' }}>
             <Box display="flex" justifyContent="center" alignItems="center">
@@ -283,6 +285,7 @@ const ConvertContent: FC = () => {
           </Box>
 
           {!error && <Box className={styles.details}>{details}</Box>}
+          <Alert severity="info">{info}</Alert>
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error">{manualWarning}</Alert>

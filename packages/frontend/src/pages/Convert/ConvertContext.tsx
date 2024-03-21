@@ -2,6 +2,7 @@ import Address from 'src/models/Address'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
+import Link from '@mui/material/Link'
 import Network from 'src/models/Network'
 import React, {
   FC,
@@ -72,6 +73,7 @@ type ConvertContextProps = {
   validFormFields: boolean
   viaParamValue: string
   warning?: ReactNode
+  info?: ReactNode
   convertOption: ConvertOption
   destinationChainPaused: boolean
 }
@@ -97,6 +99,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [destToken, setDestToken] = useState<Token>()
   const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()
+  const [info, setInfo] = useState<ReactNode>()
   const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
@@ -505,6 +508,15 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
     update().catch(console.error)
   }, [sdk, sourceToken, sourceNetwork, destNetwork])
 
+  useEffect(() => {
+    const isUSDCe = sourceToken?.symbol === 'hUSDC.e' || destToken?.symbol === 'USDC.e'
+    if (isUSDCe && destNetwork?.isL1) {
+      setInfo(<>Notice: The USDC.e bonder was <Link target="_blank" rel="noopener noreferrer" href="https://twitter.com/HopProtocol/status/1765455840700694902">deprecated</Link> on March 20th, 2024. To transfer hUSDC.e to L1, <strong>you will need to wait for the full exit process (7+ days after root commit)</strong> before withdrawing. Please reach out on <Link target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwCF88emV4">Discord</Link> if you have any questions.</>)
+    } else {
+      setInfo(null)
+    }
+  }, [sourceToken, destToken, destNetwork])
+
   return (
     <ConvertContext.Provider
       value={{
@@ -544,7 +556,8 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         unsupportedAsset,
         validFormFields,
         viaParamValue,
-        warning
+        warning,
+        info
       }}
     >
       {children}

@@ -1589,6 +1589,11 @@ class HopBridge extends Base {
   public async getAvailableLiquidityCctp (
     sourceChain: TChain
   ): Promise<BigNumber> {
+    const isEnabled = await this.getIsCctpEnabled()
+    if (!isEnabled) {
+      return BigNumber.from(0)
+    }
+
     sourceChain = this.toChainModel(sourceChain)
 
     const hopCctpBridge = await this.getCctpBridge(sourceChain)
@@ -2374,56 +2379,26 @@ class HopBridge extends Base {
     }
 
     if (this.getShouldUseCctpBridge()) {
-      const testUsdce = this.network === 'sepolia' && this.tokenSymbol === 'USDC.e'
-      if (testUsdce) {
-        l1Bridge = await this.getCctpL1Bridge()
-
-        const { swapParams } = await getUSDCSwapParams({
-          network: this.network,
-          chainId: sourceChain.chainId,
-          amountIn: amount,
-          provider: sourceChain.provider!,
-          recipient: l1Bridge.address
-        })
-
-        const txOptions = [
-          destinationChainId,
-          recipient,
-          amount,
-          0,
-          swapParams,
-          {
-            ...(await this.txOverrides(sourceChain)),
-            gasLimit: 5_000_000,
-            value
-          }
-        ] as const
-
-        return (l1Bridge as L2_HopCCTPImplementation).populateTransaction.swapAndSend(
-          ...txOptions,
-        )
-      } else {
-        if (this.tokenSymbol === 'USDC.e') {
-          throw new Error('USDC.e is no longer supported for L1->L2 transfers')
-        }
-
-        const txOptions = [
-          destinationChainId,
-          recipient,
-          amount || 0,
-          relayerFee,
-          {
-            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
-            value
-          }
-        ] as const
-
-        const tx = await (l1Bridge as L1_HopCCTPImplementation).populateTransaction.send(
-          ...txOptions
-        )
-
-        return tx
+      if (this.tokenSymbol === 'USDC.e') {
+        throw new Error('USDC.e is no longer supported for L1->L2 transfers')
       }
+
+      const txOptions = [
+        destinationChainId,
+        recipient,
+        amount || 0,
+        relayerFee,
+        {
+          ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+          value
+        }
+      ] as const
+
+      const tx = await (l1Bridge as L1_HopCCTPImplementation).populateTransaction.send(
+        ...txOptions
+      )
+
+      return tx
     } else {
       const isPaused = await (l1Bridge as L1_Bridge).isChainIdPaused(destinationChain.chainId)
       if (isPaused) {
@@ -2552,7 +2527,7 @@ class HopBridge extends Base {
           amount || 0,
           bonderFee || 0,
           {
-            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+            ...(await this.txOverrides(sourceChain)),
             value
           }
         ] as const
@@ -2705,7 +2680,7 @@ class HopBridge extends Base {
           amount || 0,
           bonderFee || 0,
           {
-            ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+            ...(await this.txOverrides(sourceChain)),
             value
           }
         ] as const
@@ -3368,12 +3343,13 @@ class HopBridge extends Base {
     fromChain = this.toChainModel(fromChain)
     toChain = this.toChainModel(toChain)
 
+    const defaultGasLimit = 500_000
     try {
       const estimatedGasLimit = await this.#getCctpReceiveMessageEstimateGasLimit(fromChain, toChain)
       return estimatedGasLimit
     } catch (err: any) {
       console.error(`failed to call getCctpReceiveMessageEstimateGasLimit, fromChain: ${fromChain?.slug}, toChain: ${toChain?.slug}, error: ${err}`)
-      return 200_000
+      return defaultGasLimit
     }
   }
 
@@ -3538,6 +3514,19 @@ class HopBridge extends Base {
       getQuote: true
     })
     return quotedAmountOut
+  }
+
+  async getIsCctpEnabled() {
+    if (this.network !== NetworkSlug.Mainnet) {
+      return false
+    }
+
+    if (!this.getShouldUseCctpBridge()) {
+      return false
+    }
+
+    const response = await this.fetchBonderAvailableLiquidityData()
+    return response?.USDC?.cctpEnabled ?? false
   }
 }
 

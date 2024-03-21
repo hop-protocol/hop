@@ -145,9 +145,11 @@ const Send: FC = () => {
         isOpen={customRecipient || isSmartContractWallet}
       />
 
-      <div className={styles.smartContractWalletWarning}>
-        <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
-      </div>
+      {!!gnosisSafeWarning.text && (
+        <div className={styles.smartContractWalletWarning}>
+          <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
+        </div>
+      )}
 
       {isDestinationChainPaused && (
         <div className={styles.pausedWarning}>
@@ -225,7 +227,16 @@ const Send: FC = () => {
         </Box>
       )}
 
-      <Alert severity="error" onClose={() => setError('')} text={error} />
+      {!!info && (
+        <Box className={styles.infoWarning}>
+          <Alert severity="info" onClose={() => setInfo('')} text={info} />
+        </Box>
+      )}
+
+      {!!error && (
+        <Alert severity="error" onClose={() => setError('')} text={error} />
+      )}
+
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
       {!!manualError && (
@@ -273,7 +284,6 @@ const Send: FC = () => {
       }
 
       <Box mt={1}>
-        <Alert severity="info" onClose={() => setInfo('')} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
       </Box>
     </Box>

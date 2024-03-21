@@ -84,6 +84,8 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     if (secondIndex) {
       index += '!' + secondIndex
     }
+    // TODO: Be careful with future indexes, there may be multiple nonces on the same chain and the sourceChain is used
+    // as the index in the CCTP contracts but not indexed in events. Ensure that is handled.
     return index + '!' + log.chainId + '!' + log.blockNumber + '!' + log.logIndex
   }
 }

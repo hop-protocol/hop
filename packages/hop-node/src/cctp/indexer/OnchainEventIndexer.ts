@@ -66,40 +66,12 @@ export class OnchainEventIndexer {
 
   #syncEvents = async (chain: Chain): Promise<void> => {
     const chainId = chainSlugToId(chain)
-    const provider = getRpcProvider(chain)
     const filterId = this.#getUniqueFilterId(chainId, this.#eventFilter)
-
     const lastBlockSynced = await this.#db.getLastBlockSynced(chainId, filterId)
-    const headBlockNumber = await provider.getBlockNumber()
-
-    // Avoid double counting the edges
-    let currentStart = lastBlockSynced + 1
-    if (currentStart >= headBlockNumber) {
-      return
-    }
-
-    // TODO: logs.push() could load up too much in memory -- consider updating DB in chunks or streaming
-    const logsWithChainId: LogWithChainId[] = []
-    let currentEnd: number = 0
-    while (currentStart < headBlockNumber) {
-      currentEnd = Math.min(currentStart + this.#maxBlockRange, headBlockNumber)
-
-      const filter: RequiredFilter = {
-        ...this.#eventFilter,
-        fromBlock: currentStart,
-        toBlock: currentEnd
-      }
-      const logs = await provider.getLogs(filter)
-      for (const log of logs) {
-        const logWithChainId = { ...log, chainId }
-        logsWithChainId.push(logWithChainId)
-      }
-
-      currentStart = currentEnd
-    }
+    const { endBlockNumber, logs } = await getEventsInRange(chain, this.#eventFilter, lastBlockSynced, this.#maxBlockRange)
 
     // Atomically write new DB state and logs to avoid out of sync state
-    await this.#db.updateSyncAndEvents(filterId, currentEnd, logsWithChainId)
+    await this.#db.updateSyncAndEvents(filterId, endBlockNumber, logs)
   }
 
   // FilterID is unique per chain and event filter. The filter can technically match on multiple chains.
@@ -107,5 +79,58 @@ export class OnchainEventIndexer {
     const chainSlug = chainIdToSlug(chainId)
     const bytesId = utils.toUtf8Bytes(chainSlug + JSON.stringify(eventFilter))
     return utils.keccak256(bytesId)
+  }
+}
+
+// TODO: organize, don't love that anyone can consume. should be tightly controlled
+// TODO: getEvents? or getLogs? better name?
+// TODO: Max block range not constant
+export async function getEventsInRange (
+  chain: Chain,
+  eventFilter: RequiredEventFilter,
+  syncStartBlock: number,
+  maxBlockRange: number = 2_000
+): Promise<{
+  endBlockNumber: number,
+  logs: LogWithChainId[]
+}> {
+  const chainId = chainSlugToId(chain)
+  const provider = getRpcProvider(chain)
+
+  const lastBlockSynced = syncStartBlock
+  const headBlockNumber = await provider.getBlockNumber()
+
+  // Avoid double counting the edges
+  let currentStart = lastBlockSynced + 1
+  if (currentStart >= headBlockNumber) {
+    return {
+      endBlockNumber: lastBlockSynced,
+      logs: []
+    }
+  }
+
+  // TODO: logs.push() could load up too much in memory -- consider updating DB in chunks or streaming
+  const logsWithChainId: LogWithChainId[] = []
+  let currentEnd: number = 0
+  while (currentStart < headBlockNumber) {
+    currentEnd = Math.min(currentStart + maxBlockRange, headBlockNumber)
+
+    const filter: RequiredFilter = {
+      ...eventFilter,
+      fromBlock: currentStart,
+      toBlock: currentEnd
+    }
+    const logs = await provider.getLogs(filter)
+    for (const log of logs) {
+      const logWithChainId = { ...log, chainId }
+      logsWithChainId.push(logWithChainId)
+    }
+
+    currentStart = currentEnd
+  }
+
+  return {
+    endBlockNumber: currentEnd,
+    logs: logsWithChainId
   }
 }

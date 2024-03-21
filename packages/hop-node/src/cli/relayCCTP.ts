@@ -1,7 +1,7 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import { Message } from 'src/cctp/cctp/Message'
 import { RequiredFilter } from 'src/cctp/indexer/OnchainEventIndexer'
 import { getRpcProvider } from 'src/utils/getRpcProvider'

@@ -229,7 +229,17 @@ export class Base {
     this.chains = config[network].chains
     this.addresses = config[network].addresses
     this.bonders = config[network].bonders
+
+    if (this.bonders && this.bonders.USDC && !this.bonders['USDC.e']) {
+      this.bonders['USDC.e'] = this.bonders.USDC
+    }
+
     this.fees = config[network].bonderFeeBps
+
+    if (this.fees && this.fees.USDC && !this.fees['USDC.e']) {
+      this.fees['USDC.e'] = this.fees.USDC
+    }
+
     this.destinationFeeGasPriceMultiplier = config[network].destinationFeeGasPriceMultiplier
     this.relayerFeeEnabled = config[network].relayerFeeEnabled
     this.relayerFeeWei = config[network].relayerFeeWei

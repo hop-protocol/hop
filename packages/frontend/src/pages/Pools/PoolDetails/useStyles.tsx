@@ -72,8 +72,9 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   poolDetailsBox: {
+    width: '50%',
     [theme.breakpoints.down('xs')]: {
-      width: '100%'
+      width: '100% !important'
     },
   },
   tabs: {

@@ -11,6 +11,7 @@ import { InfoTooltip } from 'src/components/InfoTooltip'
 import { isMainnet, reactAppNetwork } from 'src/config'
 import { useQuery } from 'react-query'
 import { useTheme } from '@mui/material/styles'
+import { Alert } from 'src/components/Alert'
 
 type Item = {
   transferId: string
@@ -165,6 +166,13 @@ export function AccountTransferHistory (props: Props) {
               <ExternalLink href={explorerLink}>View in explorer</ExternalLink>
             </Typography>
           )}
+        </Box>
+        <Box>
+          <Alert severity="info">
+            <Typography variant="body2">
+              Notice: USDC transfer history is currently delayed due to subgraph delays.
+            </Typography>
+          </Alert>
         </Box>
       </Box>
       <Box>

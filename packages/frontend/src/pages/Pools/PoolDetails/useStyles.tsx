@@ -6,7 +6,7 @@ export const useStyles = makeStyles(theme => ({
     textDecoration: 'none'
   },
   backLinkIcon: {
-    fontSize: '5rem',
+    fontSize: '5rem !important',
     width: '40px',
     height: '40px',
     display: 'flex',

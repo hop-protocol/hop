@@ -14,7 +14,7 @@ import { BigNumber, Signer, constants } from 'ethers'
 import { Multicall, Token } from '@hop-protocol/sdk'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { amountToBN, formatError } from 'src/utils/format'
-import { commafy, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
@@ -25,6 +25,7 @@ import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
 import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
+import { useLocation  } from 'react-router-dom'
 import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
 import { useStaking } from 'src/pages/Pools/useStaking'
@@ -129,6 +130,7 @@ const PoolsContext = createContext<PoolsContextProps | undefined>(undefined)
 
 const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { queryParams } = useQueryParams()
+  const location = useLocation()
   const [token0Amount, setToken0Amount] = useState<string>('')
   const [token1Amount, setToken1Amount] = useState<string>('')
   const [poolReserves, setPoolReserves] = useState<BigNumber[]>([])
@@ -149,7 +151,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [isDepositing, setIsDepositing] = useState(false)
   const [error, setError] = useState<string | null | undefined>(null)
   const [warning, setWarning] = useState<string>()
-  const { txConfirm, sdk, selectedBridge, settings } = useApp()
+  const { txConfirm, sdk, selectedBridge, setSelectedBridge, bridges, settings } = useApp()
   const { address, provider, checkConnectedNetworkId, walletConnected } = useWeb3Context()
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork({
     l2Only: true,
@@ -339,6 +341,15 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setUserPoolBalance(undefined)
     setLoading(!!accountAddress)
   }, [accountAddress, selectedNetwork, selectedBridge, tokenDecimals])
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/pool/') && tokenSymbol === 'USDC') {
+      const bridge = findMatchingBridge(bridges, 'USDC.e')
+      if (bridge) {
+        setSelectedBridge(bridge)
+      }
+    }
+  }, [selectedBridge, bridges, tokenSymbol])
 
   useQuery(
     [

@@ -26,10 +26,7 @@ export const HeaderRoutes: FC = () => {
     navigate(`${newValue}${search}`)
   }
 
-  let value = pathname.split('/').slice(0, 2).join('/')
-  if (value?.includes('/pool')) {
-    value = '/pools'
-  }
+  const value = pathname.split('/').slice(0, 2).join('/')
   const { canClaim } = useClaim()
 
   const hasRewards = false

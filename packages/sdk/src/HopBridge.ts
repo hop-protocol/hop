@@ -703,10 +703,6 @@ class HopBridge extends Base {
       : defaultBonderFee
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
-    const relayer = await this.getBonderAddress(sourceChain, destinationChain)
-    if (!relayer) {
-      throw new Error('Relayer address is required')
-    }
 
     if (sourceChain.isL1) {
       if (bonderFee.gt(0) && !this.relayerFeeEnabled[destinationChain.slug]) {
@@ -721,6 +717,11 @@ class HopBridge extends Base {
 
       const isNativeToken = this.isNativeToken(sourceChain)
       const value = isNativeToken ? tokenAmount : 0
+
+      const relayer = await this.getBonderAddress(sourceChain, destinationChain)
+      if (!relayer) {
+        throw new Error('Relayer address is required')
+      }
 
       if (!this.isValidRelayerAndRelayerFee(relayer, bonderFee)) {
         throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')

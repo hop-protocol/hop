@@ -20,14 +20,17 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 let cache :any = {}
 const cacheExpiresMs = (2 * 60 * 1000)
 
+const cacheKey = 'poolsOverview:v002'
 try {
   const timestamp = localStorage.getItem('poolsOverviewTimestamp')
   if (timestamp && Number(timestamp) > Date.now() - cacheExpiresMs) {
-    const cached = localStorage.getItem('poolsOverview:v000')
+    const cached = localStorage.getItem(cacheKey)
     if (cached) {
       cache = JSON.parse(cached)
     }
   }
+  // delete older caches
+  localStorage.removeItem('poolsOverview:v001')
 } catch (err) {
 }
 
@@ -122,25 +125,31 @@ export function usePools () {
     }
   )
 
+  useEffect(() => {
+    if (!accountAddress) {
+      setHasFetchedAccount(false)
+      setIsFetching(false)
+    }
+  }, [accountAddress])
+
   useQuery(
     [
       `usePools:pools:${accountAddress}:${JSON.stringify(poolStats)}`,
       accountAddress,
       basePools,
-      poolStats
+      poolStats,
+      hasFetchedAccount,
+      isFetching
     ],
     async () => {
       if (!basePools) {
-        return cache.base
-      }
-      if (!cache.base) {
-        cache.base = basePools
+        return
       }
       if (!poolStats) {
-        return cache.base
+        return
       }
       if (isFetching) {
-        return cache.base
+        return
       }
       const timestamp = Date.now()
       // console.time(`${timestamp} usePools:pools`)
@@ -365,12 +374,18 @@ export function usePools () {
               console.error('usePools error:', err)
             }
           }
+        } else {
+          pool.userBalanceBn = BigNumber.from(0)
+          pool.userBalanceUsd =  0
+          pool.userBalanceFormatted = ''
+          pool.userBalanceTotalUsd = 0
+          pool.userBalanceTotalUsdFormatted = '-'
         }
         return pool
       }))
       try {
         delete cache.base
-        localStorage.setItem('poolsOverview:v000', JSON.stringify(cache))
+        localStorage.setItem(cacheKey, JSON.stringify(cache))
         const timestamp = localStorage.getItem('poolsOverviewTimestamp')
         if (Number(timestamp) && Date.now() > Number(timestamp) + cacheExpiresMs) {
           localStorage.setItem('poolsOverviewTimestamp', `${Date.now()}`)
@@ -393,7 +408,7 @@ export function usePools () {
     [
       `usePools:userPools:${accountAddress}:${JSON.stringify(pools)}`,
       accountAddress,
-      pools?.length
+      pools
     ],
     async () => {
       if (!pools?.length) {

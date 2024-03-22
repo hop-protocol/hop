@@ -6,12 +6,12 @@ import React, { useEffect, useState } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import useQueryParams from 'src/hooks/useQueryParams'
+import { Alert } from 'src/components/Alert'
 import { ExternalLink } from 'src/components/Link'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { isMainnet, reactAppNetwork } from 'src/config'
 import { useQuery } from 'react-query'
 import { useTheme } from '@mui/material/styles'
-import { Alert } from 'src/components/Alert'
 
 type Item = {
   transferId: string

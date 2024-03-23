@@ -180,6 +180,16 @@ for (const network in coreNetworks) {
     networks[chain].subgraphUrl = chainObj?.subgraphUrl
 
     bonderConfig.totalStake = coreConfig[network as Network].bonderTotalStake
+
+    // Temp handle USDC native vs bridge
+    const bonderConfigStake: any = bonderConfig.totalStake
+    if (
+      bonderConfigStake?.USDC !== undefined &&
+      bonderConfigStake?.['USDC.e'] !== undefined
+    ) {
+      bonderConfig.totalStake.USDC = bonderConfigStake['USDC.e']
+      delete (bonderConfig.totalStake as any)['USDC.e']
+    }
   }
 
   const metadata = coreMetadata[network as Network]
@@ -196,9 +206,20 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
   const { addresses, bonders, bonderConfig, networks, metadata } = networkConfig
   const isMainnet = network === Network.Mainnet
 
+  // Temp handle USDC native vs bridge
+  let modifiedAddresses = addresses
+  for (const token in addresses) {
+    if (token === 'USDC.e') {
+      modifiedAddresses = {
+        ...modifiedAddresses,
+        'USDC': addresses?.['USDC.e']
+      }
+    }
+  }
+
   return {
     network,
-    addresses,
+    addresses: modifiedAddresses,
     bonders,
     bonderConfig,
     networks,

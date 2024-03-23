@@ -21,11 +21,11 @@ export const config : Config = {
       base: 12
     },
     USDT: {
-      ethereum: 30,
-      polygon: 30,
-      gnosis: 30,
-      optimism: 30,
-      arbitrum: 30
+      ethereum: 100,
+      polygon: 100,
+      gnosis: 100,
+      optimism: 100,
+      arbitrum: 100
     },
     DAI: {
       ethereum: 35,

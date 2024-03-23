@@ -836,8 +836,14 @@ class HopBridge extends Base {
 
     let adjustedBonderFee = BigNumber.from(0)
 
-    // Don't charge destination tx fee for L2 -> L2 since cost is negligible
-    const adjustedDestinationTxFee = destinationChain.isL1 ? destinationTxFee : BigNumber.from(0)
+    // Don't charge destination tx fee for L2 -> L2 when cost is negligible
+    let adjustedDestinationTxFee = destinationTxFee
+    if (
+      !destinationChain.isL1 &&
+      adjustedDestinationTxFee.lte('50000')
+    ) {
+      adjustedDestinationTxFee = BigNumber.from(0)
+    }
 
     const cctpBridge = await this.getCctpBridge(sourceChain)
     const bonderFeeAbsolute = await cctpBridge.minBonderFee()

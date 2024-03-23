@@ -117,7 +117,6 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     const abi = ['function receiveMessage(bytes)']
     const iface = new utils.Interface(abi)
     const data = iface.encodeFunctionData('receiveMessage', [payload])
-    throw new Error('h')
     return this.l1Wallet.sendTransaction({
       to: rootTunnelAddress,
       data,

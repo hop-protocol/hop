@@ -119,7 +119,7 @@ export const config : Config = {
     linea: '1000000000000000',
     nova: '100000000000000',
     arbitrum: '100000000000000',
-    polygonzk: '100000000000000'
+    polygonzk: '1000000000000000'
   },
   bridgeDeprecated: {
     SNX: true,

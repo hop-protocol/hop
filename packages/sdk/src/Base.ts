@@ -771,8 +771,8 @@ export class Base {
     let feeBps = fees[destinationChain.slug] || 0
 
     // Special case for DAI transfers out of Gnosis Chain
-    if (sourceChain === ChainSlug.Gnosis && token.symbol === 'DAI') {
-      feeBps = fees?.[ChainSlug.Gnosis] || 0
+    if (sourceChain === ChainSlug.Gnosis && token.symbol === Token.DAI) {
+      feeBps = fees?.[ChainSlug.Gnosis] || feeBps
     }
 
     this.debugTimeLog('getFeeBps', timeStart)

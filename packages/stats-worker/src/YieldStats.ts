@@ -229,7 +229,7 @@ class YieldStats {
           }
         }
 
-        const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
+        const stakingContracts = this.stakingRewardsContracts?.[token === 'USDC' ? 'USDC.e' : token]?.[chain]
         if (stakingContracts && stakingContracts.length > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
           if (!yieldData.stakingRewards[token]) { yieldData.stakingRewards[token] = {} }

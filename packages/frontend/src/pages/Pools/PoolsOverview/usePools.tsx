@@ -117,7 +117,7 @@ export function usePools () {
           })
         }
       }
-      return _pools
+      return _pools.filter(Boolean)
     },
     {
       enabled: true,
@@ -330,7 +330,7 @@ export function usePools () {
               pool.stakingRewardsStakedUsdFormatted = `$${commafy(pool.stakingRewardsStakedUsd, 2)}`
             }
 
-            if (hopStakingRewardsEarned.gt(0)) {
+            if (hopStakingRewardsStakedBalance.gt(0)) {
               totalStakedBalance = totalStakedBalance.add(hopStakingRewardsStakedBalance)
               pool.hopRewardsStaked = Number(formatUnits(hopStakingRewardsStakedBalance, 18))
 

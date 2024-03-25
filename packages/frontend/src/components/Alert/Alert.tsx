@@ -5,21 +5,22 @@ import { makeStyles } from '@mui/styles'
 import { prettifyErrorMessage } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
-  root: {
+  root: (props: any) => ({
     fontSize: '1.6rem !important',
     borderRadius: '2rem !important',
-    maxWidth: '51.6rem !important',
+    maxWidth: props.maxWidth ? '100% !important' : '51.6rem !important',
     overflow: 'auto !important',
-  },
+  }),
 }))
 
 type AlertProps = {
   text?: string | null | undefined
+  maxWidth?: boolean
 }
 
 export const Alert: FC<AlertProps & MuiAlertProps> = props => {
-  const { text, className, children } = props
-  const styles = useStyles()
+  const { text, className, children, maxWidth } = props
+  const styles = useStyles({ maxWidth })
   const show = text ?? children
 
   return show ? (

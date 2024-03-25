@@ -1,0 +1,4 @@
+node_modules
+Dockerfile
+*.env
+packages/explorer-backend/scripts/pgdata

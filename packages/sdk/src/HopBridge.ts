@@ -827,7 +827,7 @@ class HopBridge extends Base {
       feeBps
     ] = await Promise.all([
       this.getDestinationTransactionFeeData(sourceChain, destinationChain),
-      this.getFeeBps(this.tokenSymbol, destinationChain)
+      this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain)
     ])
 
     const {
@@ -935,7 +935,7 @@ class HopBridge extends Base {
       this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain),
       this.getBonderFeeRelative(amountIn, sourceChain, destinationChain, isHTokenSend),
       this.getDestinationTransactionFeeData(sourceChain, destinationChain),
-      this.getFeeBps(this.tokenSymbol, destinationChain),
+      this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain),
       !sourceChain?.isL1 ? this.getFrontendAvailableLiquidity(sourceChain, destinationChain) : Promise.resolve(null)
     ])
 
@@ -2877,7 +2877,7 @@ class HopBridge extends Base {
         sourceChain,
         isHTokenSend
       ),
-      this.getFeeBps(this.tokenSymbol, destinationChain)
+      this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain)
     ])
 
     this.debugTimeLog('getBonderFeeRelative', timeStart)

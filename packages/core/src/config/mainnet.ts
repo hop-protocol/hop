@@ -42,17 +42,17 @@ export const config : Config = {
       arbitrum: 0
     },
     ETH: {
-      ethereum: 5,
-      polygon: 5,
-      gnosis: 5,
-      optimism: 5,
-      arbitrum: 5,
-      nova: 5,
-      zksync: 5,
-      linea: 5,
-      polygonzk: 5,
-      scrollzk: 5,
-      base: 5
+      ethereum: 4,
+      polygon: 4,
+      gnosis: 4,
+      optimism: 4,
+      arbitrum: 4,
+      nova: 4,
+      zksync: 4,
+      linea: 4,
+      polygonzk: 8,
+      scrollzk: 4,
+      base: 4
     },
     WBTC: {
       ethereum: 23,

@@ -1,3 +1,4 @@
+import { Alert } from 'src/components/Alert'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import React, { ChangeEvent } from 'react'
@@ -117,6 +118,7 @@ export function PoolsOverview () {
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
       <Box mb={4} p={1} textAlign="left">
+
         <Typography variant="h4">
           Add liquidity to earn trading fees and rewards.
         </Typography>
@@ -374,6 +376,10 @@ export function PoolsOverview () {
             </Box>
           </Typography>
         </Box>
+      </Box>
+
+      <Box mt={2}>
+        <Alert severity="info"maxWidth>Notice: USDC has been renamed to USDC.e (USD Coin Bridged). There are no AMM pools for native USDC.</Alert>
       </Box>
     </Box>
   )

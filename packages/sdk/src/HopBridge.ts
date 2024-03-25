@@ -810,6 +810,10 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
+    if (!this.getShouldUseCctpBridge()) {
+      throw new Error('Cannot use CCTP bridge for this token')
+    }
+
     const isHTokenSend = false
     let amountOutWithoutFee = amountIn
     if (!sourceChain.isL1) {
@@ -865,7 +869,7 @@ class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
-    const availableLiquidity = await this.getAvailableLiquidityCctp(sourceChain)
+    const availableLiquidity = await this.#getAvailableLiquidityCctp(sourceChain)
     const isLiquidityAvailable = availableLiquidity.gte(amountIn)
     const lpFeeBps = BigNumber.from(0)
     const requiredLiquidity = amountIn
@@ -1587,7 +1591,7 @@ class HopBridge extends Base {
     return availableLiquidity
   }
 
-  public async getAvailableLiquidityCctp (
+  async #getAvailableLiquidityCctp (
     sourceChain: TChain
   ): Promise<BigNumber> {
     const isEnabled = await this.getIsCctpEnabled()
@@ -1623,7 +1627,7 @@ class HopBridge extends Base {
     }
 
     if (this.getShouldUseCctpBridge()) {
-      return this.getAvailableLiquidityCctp(sourceChain)
+      return this.#getAvailableLiquidityCctp(sourceChain)
     }
 
     sourceChain = this.toChainModel(sourceChain)
@@ -3336,7 +3340,7 @@ class HopBridge extends Base {
   }
 
   getCctpMessageHash (message: string): string {
-    const hash = keccak256(message)
+    const hash = keccak256(message).toString()
     return hash
   }
 
@@ -3372,7 +3376,7 @@ class HopBridge extends Base {
       throw new Error(`message body not found for chain ${toChain.slug}`)
     }
 
-    const messageHash = keccak256(message).toString()
+    const messageHash = this.getCctpMessageHash(message)
     const attestation = await this.getCctpMessageAttestation(messageHash, toChain)
 
     const populatedTx = await this.getCctpReceiveMessagePopulatedTx(message, attestation, toChain)

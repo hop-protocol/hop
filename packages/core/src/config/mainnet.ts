@@ -113,12 +113,13 @@ export const config : Config = {
     zksync: false,
     linea: true,
     scrollzk: false,
-    polygonzk: false
+    polygonzk: true
   },
   relayerFeeWei: {
     linea: '1000000000000000',
     nova: '100000000000000',
-    arbitrum: '100000000000000'
+    arbitrum: '100000000000000',
+    polygonzk: '100000000000000'
   },
   bridgeDeprecated: {
     SNX: true,

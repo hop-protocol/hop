@@ -191,9 +191,14 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
   async #performAttestedStateAction (value: IMessage): Promise<void> {
     // performAction methods need access to all data at given state, so we need to fetch the message data
     // There is probably a better way to type this
-    const { messageNonce, message, attestation, destinationChainId } = value as ISentMessage & IAttestedMessage
+    const { sentTimestampMs, messageNonce, message, attestation, destinationChainId } = value as ISentMessage & IAttestedMessage
 
-    // TODO: RM Cache
+    // TODO: RM this
+    const lookbackTimestampMs = 3 * 60 * 60 * 1000
+    const lookbackTimePassed = sentTimestampMs + lookbackTimestampMs < Date.now()
+    if (lookbackTimePassed) {
+      RELAY_CACHE.add(messageNonce)
+    }
     if (RELAY_CACHE.has(messageNonce)) {
       return
     }

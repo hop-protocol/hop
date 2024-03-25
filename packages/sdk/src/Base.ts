@@ -749,13 +749,16 @@ export class Base {
     return messengerWrapper
   }
 
-  public async getFeeBps (token: TToken, destinationChain: TChain): Promise<number> {
+  public async getFeeBps (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<number> {
     const timeStart = Date.now()
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {
       throw new Error('token is required')
+    }
+    if (!sourceChain) {
+      throw new Error('sourceChain is required')
     }
     if (!destinationChain) {
       throw new Error('destinationChain is required')
@@ -765,7 +768,13 @@ export class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps = fees[destinationChain.slug] || 0
+    let feeBps = fees[destinationChain.slug] || 0
+
+    // Special case for DAI transfers out of Gnosis Chain
+    if (sourceChain === ChainSlug.Gnosis && token.symbol === 'DAI') {
+      feeBps = fees?.[ChainSlug.Gnosis] || 0
+    }
+
     this.debugTimeLog('getFeeBps', timeStart)
     return feeBps
   }

@@ -753,6 +753,7 @@ export class Base {
     const timeStart = Date.now()
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {
       throw new Error('token is required')
@@ -771,8 +772,8 @@ export class Base {
     let feeBps = fees[destinationChain.slug] || 0
 
     // Special case for DAI transfers out of Gnosis Chain
-    if (sourceChain === ChainSlug.Gnosis && token.symbol === Token.DAI) {
-      feeBps = fees?.[ChainSlug.Gnosis] || feeBps
+    if (sourceChain.equals(Chain.Gnosis) && token.symbol === Token.DAI) {
+      feeBps = fees?.[ChainSlug.Gnosis] ?? feeBps
     }
 
     this.debugTimeLog('getFeeBps', timeStart)

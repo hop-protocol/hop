@@ -1,9 +1,9 @@
-import { Alert } from 'src/components/Alert'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import React, { ChangeEvent } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'
 import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
@@ -379,7 +379,7 @@ export function PoolsOverview () {
       </Box>
 
       <Box mt={2}>
-        <Alert severity="info"maxWidth>Notice: USDC has been renamed to USDC.e (USD Coin Bridged). There are no AMM pools for native USDC.</Alert>
+        <Alert severity="info"maxWidth>Notice: Pool "USDC" has been renamed to "USDC.e" (USD Coin Bridged). There are no AMM pools for native USDC.</Alert>
       </Box>
     </Box>
   )

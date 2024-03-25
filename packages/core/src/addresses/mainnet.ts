@@ -354,7 +354,7 @@ export const addresses: Addresses = {
     }
   },
   rewardsContracts: {
-    USDC: {
+    'USDC.e': {
       arbitrum: ['0xb0CabFE930642AD3E7DECdc741884d8C3F7EbC70'], // HOP
       optimism: ['0xf587B9309c603feEdf0445aF4D3B21300989e93a'], // HOP
       polygon: [

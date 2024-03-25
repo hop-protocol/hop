@@ -998,8 +998,7 @@ export class HealthCheckWatcher {
 
     const missingTransfers: any[] = []
     for (const chain of RelayableChains.L1_TO_L2) {
-      // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
-      const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
+      const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes })
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
 

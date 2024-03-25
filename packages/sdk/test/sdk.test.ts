@@ -1291,7 +1291,7 @@ describe.skip('calcFromHTokenAmountMulticall', () => {
   }, 60 * 1000)
 })
 
-describe.only('cctp', () => {
+describe.skip('cctp', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey!)
 
@@ -1353,10 +1353,17 @@ describe.only('cctp', () => {
     expect(attestation.startsWith('0x')).toBeTruthy()
   })
 
+  it('getCctpRecipientHash', async () => {
+    const bridge = hop.bridge('USDC')
+    const addressHash = bridge.getCctpRecipientHash('0x9997da3de3ec197C853BCC96CaECf08a81dE9D69')
+    console.log(addressHash)
+    expect(addressHash).toBeTruthy()
+  })
+
   it('getCctpReceiveMessageEstimateGasLimit', async () => {
     const bridge = hop.bridge('USDC')
-    const gasLimit = await bridge.getCctpReceiveMessageEstimateGasLimit('arbitrum', 'polygon')
-    console.log(gasLimit)
+    const gasLimit = await bridge.getCctpReceiveMessageEstimateGasLimit('polygon', 'base')
+    console.log(gasLimit.toString())
     expect(gasLimit).toBeTruthy()
   })
 

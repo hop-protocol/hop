@@ -703,10 +703,6 @@ class HopBridge extends Base {
       : defaultBonderFee
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
-    const relayer = await this.getBonderAddress(sourceChain, destinationChain)
-    if (!relayer) {
-      throw new Error('Relayer address is required')
-    }
 
     if (sourceChain.isL1) {
       if (bonderFee.gt(0) && !this.relayerFeeEnabled[destinationChain.slug]) {
@@ -721,6 +717,11 @@ class HopBridge extends Base {
 
       const isNativeToken = this.isNativeToken(sourceChain)
       const value = isNativeToken ? tokenAmount : 0
+
+      const relayer = await this.getBonderAddress(sourceChain, destinationChain)
+      if (!relayer) {
+        throw new Error('Relayer address is required')
+      }
 
       if (!this.isValidRelayerAndRelayerFee(relayer, bonderFee)) {
         throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer is not set')
@@ -809,6 +810,10 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
+    if (!this.getShouldUseCctpBridge()) {
+      throw new Error('Cannot use CCTP bridge for this token')
+    }
+
     const isHTokenSend = false
     let amountOutWithoutFee = amountIn
     if (!sourceChain.isL1) {
@@ -822,7 +827,7 @@ class HopBridge extends Base {
       feeBps
     ] = await Promise.all([
       this.getDestinationTransactionFeeData(sourceChain, destinationChain),
-      this.getFeeBps(this.tokenSymbol, destinationChain)
+      this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain)
     ])
 
     const {
@@ -834,7 +839,15 @@ class HopBridge extends Base {
     } = destinationTxFeeData
 
     let adjustedBonderFee = BigNumber.from(0)
-    const adjustedDestinationTxFee = destinationTxFee
+
+    // Don't charge destination tx fee for L2 -> L2 when cost is negligible
+    let adjustedDestinationTxFee = destinationTxFee
+    if (
+      !destinationChain.isL1 &&
+      adjustedDestinationTxFee.lte('50000')
+    ) {
+      adjustedDestinationTxFee = BigNumber.from(0)
+    }
 
     const cctpBridge = await this.getCctpBridge(sourceChain)
     const bonderFeeAbsolute = await cctpBridge.minBonderFee()
@@ -864,7 +877,7 @@ class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
-    const availableLiquidity = await this.getAvailableLiquidityCctp(sourceChain)
+    const availableLiquidity = await this.#getAvailableLiquidityCctp(sourceChain)
     const isLiquidityAvailable = availableLiquidity.gte(amountIn)
     const lpFeeBps = BigNumber.from(0)
     const requiredLiquidity = amountIn
@@ -922,7 +935,7 @@ class HopBridge extends Base {
       this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain),
       this.getBonderFeeRelative(amountIn, sourceChain, destinationChain, isHTokenSend),
       this.getDestinationTransactionFeeData(sourceChain, destinationChain),
-      this.getFeeBps(this.tokenSymbol, destinationChain),
+      this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain),
       !sourceChain?.isL1 ? this.getFrontendAvailableLiquidity(sourceChain, destinationChain) : Promise.resolve(null)
     ])
 
@@ -1586,7 +1599,7 @@ class HopBridge extends Base {
     return availableLiquidity
   }
 
-  public async getAvailableLiquidityCctp (
+  async #getAvailableLiquidityCctp (
     sourceChain: TChain
   ): Promise<BigNumber> {
     const isEnabled = await this.getIsCctpEnabled()
@@ -1622,7 +1635,7 @@ class HopBridge extends Base {
     }
 
     if (this.getShouldUseCctpBridge()) {
-      return this.getAvailableLiquidityCctp(sourceChain)
+      return this.#getAvailableLiquidityCctp(sourceChain)
     }
 
     sourceChain = this.toChainModel(sourceChain)
@@ -2864,7 +2877,7 @@ class HopBridge extends Base {
         sourceChain,
         isHTokenSend
       ),
-      this.getFeeBps(this.tokenSymbol, destinationChain)
+      this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain)
     ])
 
     this.debugTimeLog('getBonderFeeRelative', timeStart)
@@ -3335,7 +3348,7 @@ class HopBridge extends Base {
   }
 
   getCctpMessageHash (message: string): string {
-    const hash = keccak256(message)
+    const hash = keccak256(message).toString()
     return hash
   }
 
@@ -3343,12 +3356,13 @@ class HopBridge extends Base {
     fromChain = this.toChainModel(fromChain)
     toChain = this.toChainModel(toChain)
 
-    const defaultGasLimit = 500_000
+    const defaultGasLimit = BigNumber.from(500_000)
+    const buffer = BigNumber.from(50_000)
     try {
       const estimatedGasLimit = await this.#getCctpReceiveMessageEstimateGasLimit(fromChain, toChain)
-      return estimatedGasLimit
+      return estimatedGasLimit.add(buffer)
     } catch (err: any) {
-      console.error(`failed to call getCctpReceiveMessageEstimateGasLimit, fromChain: ${fromChain?.slug}, toChain: ${toChain?.slug}, error: ${err}`)
+      // console.error(`failed to call getCctpReceiveMessageEstimateGasLimit, fromChain: ${fromChain?.slug}, toChain: ${toChain?.slug}, error: ${err}`)
       return defaultGasLimit
     }
   }
@@ -3357,12 +3371,18 @@ class HopBridge extends Base {
     fromChain = this.toChainModel(fromChain)
     toChain = this.toChainModel(toChain)
 
+    // Note: these transactions should never be relayed in order to be able to estimate destination tx gas limit
     const messageSentEventBodies : Record<string, string> = {
-      ethereum: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f80000000000000000000000040000000000006f70000000000000000000000000bd3fa81b58ba92a82136038b25adec7066af315500000000000000000000000057d4eaf1091577a6b7d121202afbd2808134f117000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000008c3da84d8e5201f37334c57f192450f1d65bb6f60000000000000000000000000000000000000000000000000000000077359400000000000000000000000000bcc5b8238ec7454a20a06e9450a61f88794aaa300000000000000000',
-      optimism: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f800000000000000020000000700000000000121840000000000000000000000002b4069517957735be00cee0fadae88a26365528f0000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff850000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d6900000000000000000000000000000000000000000000000000000000000016f0000000000000000000000000469147af8bde580232be9dc84bb4ec84d348de240000000000000000',
-      polygon: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000700000002000000000000a9970000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe0000000000000000000000002b4069517957735be00cee0fadae88a26365528f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c33590000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d69000000000000000000000000000000000000000000000000000000000002d5f20000000000000000000000001cd391bd1d915d189de162f0f1963c07e60e4cd60000000000000000',
-      arbitrum: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f800000000000000030000000700000000000184d600000000000000000000000019330d10d9cc8751218eaf51e8885d058642e08a0000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e58310000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d69000000000000000000000000000000000000000000000000000000000002d5e40000000000000000000000006504bfcab789c35325ca4329f1f41fac340bf9820000000000000000',
-      base: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000600000002000000000000b52c0000000000000000000000001682ae6375c4e4a97e4b583bc394c861a46d89620000000000000000000000002b4069517957735be00cee0fadae88a26365528f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d69000000000000000000000000000000000000000000000000000000000002e5bc000000000000000000000000e7f40bf16ab09f4a6906ac2caa4094ad2da48cc20000000000000000'
+      // polygon->ethereum: https://polygonscan.com/tx/0x380393d64de6eb16610275395350d2d7acea30a732132581c409d767da2f930c#eventlog
+      ethereum: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000700000000000000000000be730000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe000000000000000000000000bd3fa81b58ba92a82136038b25adec7066af31550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c33590000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d6900000000000000000000000000000000000000000000000000000000000027100000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d690000000000000000',
+      // polygon->optimism: https://polygonscan.com/tx/0x5720d09cf98e7b29f014881b1e4e2d9a1ab20da15c4a540588a596a80869da9b#eventlog
+      optimism: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000700000002000000000000be710000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe0000000000000000000000002b4069517957735be00cee0fadae88a26365528f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c33590000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d6900000000000000000000000000000000000000000000000000000000000027100000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d690000000000000000',
+      // arbitrum->polygon: https://arbiscan.io/tx/0xf334ecc109630db221d198c234f07c4b34f5223d5cd41fb3e51b09e50919c9b6#eventlog
+      polygon: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000300000007000000000001a4bb00000000000000000000000019330d10d9cc8751218eaf51e8885d058642e08a0000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e58310000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d6900000000000000000000000000000000000000000000000000000000000027100000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d690000000000000000',
+      // polygon->arbitrum: https://polygonscan.com/tx/0xf963f8798a2f2182e5a27da2f63e59c6ccdcb38d71a823e853581109059af755#eventlog
+      arbitrum: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000700000003000000000000be6f0000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe00000000000000000000000019330d10d9cc8751218eaf51e8885d058642e08a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c33590000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d6900000000000000000000000000000000000000000000000000000000000027100000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d690000000000000000',
+      // polygon->base: https://polygonscan.com/tx/0x535e2d27dcb34e173c128f3f8f9b026dc7fed9f77207dbaf1e73b36c831ca3c0#eventlog
+      base: '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000700000006000000000000be6d0000000000000000000000009daf8c91aefae50b9c0e69629d3f6ca40ca3b3fe0000000000000000000000001682ae6375c4e4a97e4b583bc394c861a46d89620000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003c499c542cef5e3811e1192ce70d8cc03d5c33590000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d6900000000000000000000000000000000000000000000000000000000000027100000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d690000000000000000'
     }
 
     const messageBody = messageSentEventBodies[toChain.slug]
@@ -3371,7 +3391,7 @@ class HopBridge extends Base {
       throw new Error(`message body not found for chain ${toChain.slug}`)
     }
 
-    const messageHash = keccak256(message).toString()
+    const messageHash = this.getCctpMessageHash(message)
     const attestation = await this.getCctpMessageAttestation(messageHash, toChain)
 
     const populatedTx = await this.getCctpReceiveMessagePopulatedTx(message, attestation, toChain)
@@ -3527,6 +3547,16 @@ class HopBridge extends Base {
 
     const response = await this.fetchBonderAvailableLiquidityData()
     return response?.USDC?.cctpEnabled ?? false
+  }
+
+  getCctpRecipientHash(recipientAddress: string) {
+    if (ethers.utils.isAddress(recipientAddress)) {
+      const addressAsUint256 = ethers.utils.hexZeroPad(ethers.utils.hexlify(ethers.utils.getAddress(recipientAddress)), 32)
+
+      return addressAsUint256
+    }
+
+    throw new Error('Invalid Ethereum address')
   }
 }
 

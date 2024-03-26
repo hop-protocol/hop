@@ -229,7 +229,17 @@ export class Base {
     this.chains = config[network].chains
     this.addresses = config[network].addresses
     this.bonders = config[network].bonders
+
+    if (this.bonders && this.bonders.USDC && !this.bonders['USDC.e']) {
+      this.bonders['USDC.e'] = this.bonders.USDC
+    }
+
     this.fees = config[network].bonderFeeBps
+
+    if (this.fees && this.fees.USDC && !this.fees['USDC.e']) {
+      this.fees['USDC.e'] = this.fees.USDC
+    }
+
     this.destinationFeeGasPriceMultiplier = config[network].destinationFeeGasPriceMultiplier
     this.relayerFeeEnabled = config[network].relayerFeeEnabled
     this.relayerFeeWei = config[network].relayerFeeWei
@@ -739,13 +749,17 @@ export class Base {
     return messengerWrapper
   }
 
-  public async getFeeBps (token: TToken, destinationChain: TChain): Promise<number> {
+  public async getFeeBps (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<number> {
     const timeStart = Date.now()
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {
       throw new Error('token is required')
+    }
+    if (!sourceChain) {
+      throw new Error('sourceChain is required')
     }
     if (!destinationChain) {
       throw new Error('destinationChain is required')
@@ -755,7 +769,13 @@ export class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps = fees[destinationChain.slug] || 0
+    let feeBps = fees[destinationChain.slug] || 0
+
+    // Special case for DAI transfers out of Gnosis Chain
+    if (sourceChain.equals(Chain.Gnosis) && token.symbol === Token.XDAI) {
+      feeBps = fees?.[ChainSlug.Gnosis] ?? feeBps
+    }
+
     this.debugTimeLog('getFeeBps', timeStart)
     return feeBps
   }

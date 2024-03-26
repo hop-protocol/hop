@@ -169,7 +169,7 @@ export function PoolDetails () {
       <Box mb={4}>
         <Box p={4} className={styles.poolDetails}>
           <Box p={2} display="flex" className={styles.poolDetailsBoxes}>
-            <Box width="50%" display="flex" flexDirection="column" className={styles.poolDetailsBox}>
+            <Box display="flex" flexDirection="column" className={styles.poolDetailsBox}>
               <Box p={2}>
                 <Box mb={4}>
                   <Typography variant="h4">
@@ -205,7 +205,7 @@ export function PoolDetails () {
                 )}
               </Box>
             </Box>
-            <Box width="50%" className={styles.poolDetailsBox}>
+            <Box className={styles.poolDetailsBox}>
               <Tabs value={selectedTab} onChange={handleTabChange} className={styles.tabs} style={{ width: 'max-content' }} variant="scrollable">
                 <Tab label="Deposit" value="deposit" className={styles.tab} />
                 <Tab label="Withdraw" value="withdraw" className={styles.tab} />

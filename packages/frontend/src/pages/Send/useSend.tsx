@@ -604,8 +604,7 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        const isUSDC = fromToken?.symbol === 'USDC' || fromToken?.symbol === 'USDC.e' // TODO: This is temporarily disabled until merkle worker is updated to work with USDC and USDC.e
-        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism && !isUSDC)) {
+        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism)) {
           setFeeRefund('')
           setFeeRefundUsd('')
           return
@@ -618,10 +617,14 @@ export function useSend(): SendResponseProps {
           gasCost = BigNumber.from(gasCost).div(2).toString()
         }
 
+        let tokenSymbol = fromToken?.symbol
+        if (tokenSymbol === 'USDC.e') {
+          tokenSymbol = 'USDC'
+        }
         const payload :Record<string, string> = {
           gasCost,
           amount: fromTokenAmountBN?.toString(),
-          token: fromToken?.symbol,
+          token: tokenSymbol,
           bonderFee: totalBonderFee.toString(),
           fromChain: fromNetwork?.slug
         }

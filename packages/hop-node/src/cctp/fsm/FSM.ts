@@ -59,7 +59,7 @@ export abstract class FSM<State, StateData>{
     }
   }
 
-  async #handleInitializeItem(key: string, value: U): Promise<void> {
+  async #handleInitializeItem(key: string, value: StateData): Promise<void> {
     const didInitialize = await this.#initializeItem(key, value)
     if (didInitialize) {
       await this.#stateDb.updateSyncMarker(key)

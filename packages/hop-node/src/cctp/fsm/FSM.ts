@@ -11,18 +11,18 @@ import { poll } from '../utils'
  * @dev The initial and terminal states are null
  */
 
-export abstract class FSM<T, U>{
-  readonly #states: T[]
-  readonly #stateDb: StateMachineDB<T, U>
-  readonly #dataRepository: AbstractRepository<T, U>
+export abstract class FSM<State, StateData>{
+  readonly #states: State[]
+  readonly #stateDb: StateMachineDB<State, StateData>
+  readonly #dataRepository: AbstractRepository<State, StateData>
   readonly #pollIntervalMs: number = 60_000
 
-  protected abstract isTransitionReady(state: T, value: U): boolean
+  protected abstract isTransitionReady(state: State, value: StateData): boolean
 
   constructor (
-    states: T[],
+    states: State[],
     stateMachineName: string,
-    dataRepository: AbstractRepository<T, U>
+    dataRepository: AbstractRepository<State, StateData>
   ) {
     this.#states = states
     this.#stateDb = new StateMachineDB(stateMachineName)
@@ -49,7 +49,7 @@ export abstract class FSM<T, U>{
   }
 
   #startListeners (): void {
-    this.#dataRepository.on(AbstractRepository.EVENT_ITEM_CREATED, (key: string, value: U) => this.#handleInitializeItem(key, value))
+    this.#dataRepository.on(AbstractRepository.EVENT_ITEM_CREATED, (key: string, value: StateData) => this.#handleInitializeItem(key, value))
     this.#dataRepository.on('error', () => { throw new Error('Data repository error') })
   }
 
@@ -66,7 +66,7 @@ export abstract class FSM<T, U>{
     }
   }
 
-  #checkStateTransition = async (state: T): Promise<void> => {
+  #checkStateTransition = async (state: State): Promise<void> => {
     for await (const [key, value] of this.#stateDb.getItemsInState(state)) {
       const canTransition = this.isTransitionReady(state, value)
       if (!canTransition) return
@@ -79,20 +79,20 @@ export abstract class FSM<T, U>{
    * State transitions
    */
 
-  async #initializeItem(key: string, value: U): Promise<boolean> {
+  async #initializeItem(key: string, value: StateData): Promise<boolean> {
     const firstState = this.#getFirstState()
     const didCreateItem = await this.#stateDb.createItemIfNotExist(firstState, key, value)
     return didCreateItem
   }
 
-  async #transitionState(state: T, key: string, value: U): Promise<void> {
+  async #transitionState(state: State, key: string, value: StateData): Promise<void> {
     const isLastState = this.#getLastState() === state
     if (isLastState) {
       return this.#terminateState(key, value)
     }
 
     // The terminal state is handled above so we can safely cast
-    const nextState = this.#getNextState(state as T) as T
+    const nextState = this.#getNextState(state as State) as State
     const stateTransitionData = await this.#dataRepository.getItem(nextState, value)
     if (!stateTransitionData) {
       return
@@ -101,7 +101,7 @@ export abstract class FSM<T, U>{
     return this.#stateDb.updateState(state, nextState, key, nextValue)
   }
 
-  async #terminateState(key: string, value: U): Promise<void> {
+  async #terminateState(key: string, value: StateData): Promise<void> {
     const lastState = this.#getLastState()
     return this.#stateDb.terminateItem(lastState, key, value)
   }
@@ -110,15 +110,15 @@ export abstract class FSM<T, U>{
    * State utils
    */
 
-  #getFirstState(): T {
+  #getFirstState(): State {
     return this.#states[0]
   }
 
-  #getLastState(): T {
+  #getLastState(): State {
     return this.#states[this.#states.length - 1]
   }
 
-  #getNextState(state: T): T | null {
+  #getNextState(state: State): State | null {
     const index = this.#states.indexOf(state)
 
     // If the state is unknown, the index will be -1

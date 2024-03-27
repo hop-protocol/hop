@@ -206,8 +206,8 @@ app.get('/index', (req: any, res: any) => {
 
 app.get('/v1/transfers/timeStats', async (req, res) => {
   try {
-    const { sourceChainSlug, destinationChainSlug } = req.query
-    const data = await controller.getTransferTimes({ sourceChainSlug, destinationChainSlug })
+    const { sourceChainSlug, destinationChainSlug, token } = req.query
+    const data = await controller.getTransferTimes({ sourceChainSlug, destinationChainSlug, token })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {
     res.status(400).json({ error: err.message })

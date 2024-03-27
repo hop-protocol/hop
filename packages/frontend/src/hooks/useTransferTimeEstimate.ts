@@ -24,16 +24,6 @@ export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destina
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log('tokennn', tokenSymbol)
-      // TODO: this is temporary until we have a dynamic solution for USDC CCTP
-      if (tokenSymbol === 'USDC' || tokenSymbol === 'USDC.e') {
-        const fixedTime = 20 * 60 // 20 min
-        setAverageTimeEstimate(fixedTime)
-        setMedianTimeEstimate(fixedTime)
-        setPercentileTimeEstimate(fixedTime)
-        return
-      }
-
       const currentTime = Date.now()
       const route = `${sourceChainSlug}-${destinationChainSlug}`
       if (
@@ -54,7 +44,7 @@ export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destina
         let historicalTimeStats : any
 
         try {
-          historicalTimeStats = await sdk.getTransferTimes(sourceChainSlug, destinationChainSlug)
+          historicalTimeStats = await sdk.getTransferTimes(sourceChainSlug, destinationChainSlug, tokenSymbol)
         } catch (error: any) {
           console.error('Failed to fetch time estimates:', error)
           return

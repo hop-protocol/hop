@@ -1034,9 +1034,9 @@ export class Base {
     return json.data ?? null
   }
 
-  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string):Promise<any> {
+  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, tokenSymbol?: string):Promise<any> {
     const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
-    const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
+    const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}&token=${tokenSymbol ?? ''}`
     const json = await fetchJsonOrThrow(url, (9 * 1000))
     return json.data ?? null
   }

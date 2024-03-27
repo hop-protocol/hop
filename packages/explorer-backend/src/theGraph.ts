@@ -601,6 +601,10 @@ export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: st
     return []
   }
 
+  if (!txHash?.startsWith('0x')) {
+    return []
+  }
+
   const query = `
     query CctpTransferSentsForTxHash($txHash: String) {
       cctptransferSents: cctptransferSents(
@@ -662,6 +666,10 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
 
   const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
+    return []
+  }
+
+  if (transferId?.startsWith('0x')) {
     return []
   }
 
@@ -829,7 +837,7 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
   }
   let bonds: any = []
   const chunkSize = 1000
-  const allChunks = chunk(txHashes, chunkSize)
+  const allChunks = chunk(txHashes.filter(x => x.startsWith('0x')), chunkSize)
   for (const chunkedTxHashes of allChunks) {
     const data = await queryFetch(url, query, {
       txHashes: chunkedTxHashes

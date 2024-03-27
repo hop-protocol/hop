@@ -817,7 +817,9 @@ class HopBridge extends Base {
     const isHTokenSend = false
     let amountOutWithoutFee = amountIn
     if (!sourceChain.isL1) {
-      amountOutWithoutFee = await this.calcUniswapSwapAmountOut(sourceChain, amountIn)
+      if (this.tokenSymbol === 'USDC.e') {
+        amountOutWithoutFee = await this.calcUniswapSwapAmountOut(sourceChain, amountIn)
+      }
     }
 
     const bonderFeeRelative = BigNumber.from(0)

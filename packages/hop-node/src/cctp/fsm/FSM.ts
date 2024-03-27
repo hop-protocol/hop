@@ -1,5 +1,6 @@
-import { AbstractRepository } from '../repository/AbstractRepository'
+import { AbstractRepository } from '../db/AbstractRepository'
 import { StateMachineDB } from '../db/StateMachineDB'
+import { SyncDB } from '../db/SyncDB'
 import { poll } from '../utils'
 
 /**
@@ -13,7 +14,7 @@ import { poll } from '../utils'
 
 export abstract class FSM<State, StateData>{
   readonly #states: State[]
-  readonly #stateDb: StateMachineDB<State, StateData>
+  readonly #stateDB: StateMachineDB<State, StateData>
   readonly #dataRepository: AbstractRepository<State, StateData>
   readonly #pollIntervalMs: number = 60_000
 
@@ -25,7 +26,7 @@ export abstract class FSM<State, StateData>{
     dataRepository: AbstractRepository<State, StateData>
   ) {
     this.#states = states
-    this.#stateDb = new StateMachineDB(stateMachineName)
+    this.#stateDB = new StateMachineDB(stateMachineName)
     this.#dataRepository = dataRepository 
   }
 
@@ -37,9 +38,9 @@ export abstract class FSM<State, StateData>{
 
   async #init(): Promise<void> {
     // Handle unsynced item initialization
-    const syncMarker = await this.#stateDb.getSyncMarker()
+    const syncMarker = await this.#stateDB.getSyncMarker()
     for await (const [key, value] of this.#dataRepository.getSyncItems(syncMarker)) {
-      await this.#handleInitializeItem(key, value)
+      await this.#initializeItem(key, value)
     }
 
     // Handle pending state transitions
@@ -49,7 +50,7 @@ export abstract class FSM<State, StateData>{
   }
 
   #startListeners (): void {
-    this.#dataRepository.on(AbstractRepository.EVENT_ITEM_CREATED, (key: string, value: StateData) => this.#handleInitializeItem(key, value))
+    this.#dataRepository.on(AbstractRepository.EVENT_ITEM_CREATED, (key: string, value: StateData) => this.#initializeItem(key, value))
     this.#dataRepository.on('error', () => { throw new Error('Data repository error') })
   }
 
@@ -59,15 +60,8 @@ export abstract class FSM<State, StateData>{
     }
   }
 
-  async #handleInitializeItem(key: string, value: StateData): Promise<void> {
-    const didInitialize = await this.#initializeItem(key, value)
-    if (didInitialize) {
-      await this.#stateDb.updateSyncMarker(key)
-    }
-  }
-
   #checkStateTransition = async (state: State): Promise<void> => {
-    for await (const [key, value] of this.#stateDb.getItemsInState(state)) {
+    for await (const [key, value] of this.#stateDB.getItemsInState(state)) {
       const canTransition = this.isTransitionReady(state, value)
       if (!canTransition) return
 
@@ -79,31 +73,24 @@ export abstract class FSM<State, StateData>{
    * State transitions
    */
 
-  async #initializeItem(key: string, value: StateData): Promise<boolean> {
+  async #initializeItem(key: string, value: StateData): Promise<void> {
     const firstState = this.#getFirstState()
-    const didCreateItem = await this.#stateDb.createItemIfNotExist(firstState, key, value)
-    return didCreateItem
+    return this.#stateDB.createItemIfNotExist(firstState, key, value)
   }
 
   async #transitionState(state: State, key: string, value: StateData): Promise<void> {
-    const isLastState = this.#getLastState() === state
-    if (isLastState) {
-      return this.#terminateState(key, value)
+    const nextState = this.#getNextState(state)
+    if (nextState === null) {
+      // This is the final state state
+      return this.#stateDB.updateState(state, nextState, key, value)
     }
 
-    // The terminal state is handled above so we can safely cast
-    const nextState = this.#getNextState(state as State) as State
     const stateTransitionData = await this.#dataRepository.getItem(nextState, value)
     if (!stateTransitionData) {
       return
     }
-    const nextValue = Object.assign(stateTransitionData, value)
-    return this.#stateDb.updateState(state, nextState, key, nextValue)
-  }
-
-  async #terminateState(key: string, value: StateData): Promise<void> {
-    const lastState = this.#getLastState()
-    return this.#stateDb.terminateItem(lastState, key, value)
+    const nextValue = { ...stateTransitionData, ...value }
+    return this.#stateDB.updateState(state, nextState, key, nextValue)
   }
 
   /**
@@ -112,10 +99,6 @@ export abstract class FSM<State, StateData>{
 
   #getFirstState(): State {
     return this.#states[0]
-  }
-
-  #getLastState(): State {
-    return this.#states[this.#states.length - 1]
   }
 
   #getNextState(state: State): State | null {

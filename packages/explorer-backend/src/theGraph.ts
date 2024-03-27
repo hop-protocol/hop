@@ -1,8 +1,13 @@
 import fetch from 'isomorphic-fetch'
 import { chunk } from 'lodash'
 import { getSubgraphUrl } from './utils/getSubgraphUrl'
+import { chainSlugToId } from './utils/chainSlugToId'
+import { cctpDomainToChainId } from './utils/cctpDomainToChainId'
 import { padHex } from './utils/padHex'
 import { promiseTimeout } from './utils/promiseTimeout'
+
+// TODO: remove this temp url once the mainnet subgraph is fully synced
+const cctpMainnetSubgraphUrl = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet-cctp'
 
 export async function queryFetch (url: string, query: string, variables?: any) {
   return promiseTimeout(_queryFetch(url, query, variables), 60 * 1000)
@@ -509,8 +514,7 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
 }
 
 export async function fetchCctpTransferSents (chain: string, startTime: number, endTime: number, lastId?: string) {
-  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon', 'base']
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -549,6 +553,9 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    if (chain === 'ethereum') {
+      url = cctpMainnetSubgraphUrl
+    }
     console.log(chain, url)
   } catch (err) {
     return []
@@ -568,7 +575,9 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
     .map((x: any) => {
       x.chainId = Number(x.chainId)
       x.destinationChain = x.chainId
-      x.transferId = x.cctpNonce
+      x.destinationChainId = x.chainId
+      x.sourceChainId = chainSlugToId(chain)
+      x.transferId = `${x.cctpNonce}`
       x.isCctp = true
       return x
     })
@@ -587,8 +596,7 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
 }
 
 export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: string) {
-  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon', 'base']
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -622,6 +630,9 @@ export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: st
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    if (chain === 'ethereum') {
+      url = cctpMainnetSubgraphUrl
+    }
   } catch (err) {
     return []
   }
@@ -634,7 +645,9 @@ export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: st
     .map((x: any) => {
       x.chainId = Number(x.chainId)
       x.destinationChain = x.chainId
-      x.transferId = x.cctpNonce
+      x.destinationChainId = x.chainId
+      x.sourceChainId = chainSlugToId(chain)
+      x.transferId = `${x.cctpNonce}`
       x.isCctp = true
       return x
     })
@@ -647,8 +660,7 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
     return fetchCctpTransferSentsForTxHash(chain, transferId)
   }
 
-  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon', 'base']
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -680,6 +692,9 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    if (chain === 'ethereum') {
+      url = cctpMainnetSubgraphUrl
+    }
   } catch (err) {
     return []
   }
@@ -692,7 +707,9 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
     .map((x: any) => {
       x.chainId = Number(x.chainId)
       x.destinationChain = x.chainId
-      x.transferId = x.cctpNonce
+      x.destinationChainId = x.chainId
+      x.sourceChainId = chainSlugToId(chain)
+      x.transferId = `${x.cctpNonce}`
       x.isCctp = true
       return x
     })
@@ -701,8 +718,7 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
 }
 
 export async function fetchCctpTransferSentsByTransferIds (chain: string, transferIds: string[]) {
-  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon', 'base']
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -738,12 +754,15 @@ export async function fetchCctpTransferSentsByTransferIds (chain: string, transf
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    if (chain === 'ethereum') {
+      url = cctpMainnetSubgraphUrl
+    }
   } catch (err) {
     return []
   }
   let transferSents: any = []
   const chunkSize = 1000
-  const allChunks = chunk(transferIds, chunkSize)
+  const allChunks = chunk(transferIds.filter(x => !x.startsWith('0x')), chunkSize)
   for (const chunkedTransferIds of allChunks) {
     const data = await queryFetch(url, query, {
       transferIds: chunkedTransferIds
@@ -755,15 +774,16 @@ export async function fetchCctpTransferSentsByTransferIds (chain: string, transf
   return transferSents.filter(Boolean).map((x: any) => {
     x.chainId = Number(x.chainId)
     x.destinationChain = x.chainId
-    x.transferId = x.cctpNonce
+    x.destinationChainId = x.chainId
+    x.sourceChainId = chainSlugToId(chain)
+    x.transferId = `${x.cctpNonce}`
     x.isCctp = true
     return x
   })
 }
 
 export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHashes: string[]) {
-  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon', 'base']
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -801,6 +821,9 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    if (chain === 'ethereum') {
+      url = cctpMainnetSubgraphUrl
+    }
   } catch (err) {
     return []
   }
@@ -817,7 +840,9 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
 
   bonds = bonds.map((x: any) => {
     x.isCctp = true
-    x.transferId = x.nonce
+    x.transferId = `${x.nonce}`
+    x.sourceChainId = cctpDomainToChainId(x.sourceDomain)
+    x.destinationChainId = chainSlugToId(chain)
     return x
   })
 
@@ -825,8 +850,7 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
 }
 
 export async function fetchCctpMessageReceivedsByTransferIds (chain: string, transferIds: string[]) {
-  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon', 'base']
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -862,12 +886,15 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    if (chain === 'ethereum') {
+      url = cctpMainnetSubgraphUrl
+    }
   } catch (err) {
     return []
   }
   let bonds: any = []
   const chunkSize = 1000
-  const allChunks = chunk(transferIds, chunkSize)
+  const allChunks = chunk(transferIds.filter(x => !x.startsWith('0x')), chunkSize)
   for (const chunkedTransferIds of allChunks) {
     const data = await queryFetch(url, query, {
       transferIds: chunkedTransferIds
@@ -878,7 +905,9 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
 
   bonds = bonds.map((x: any) => {
     x.isCctp = true
-    x.transferId = x.nonce
+    x.transferId = `${x.nonce}`
+    x.sourceChainId = cctpDomainToChainId(x.sourceDomain)
+    x.destinationChainId = chainSlugToId(chain)
     return x
   })
 
@@ -886,8 +915,7 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
 }
 
 export async function fetchMessageReceivedEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
-  // const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
-  const supportedChains = ['polygon', 'base']
+  const supportedChains = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
   if (!supportedChains.includes(chain)) {
     return []
   }
@@ -927,6 +955,9 @@ export async function fetchMessageReceivedEvents (chain: string, startTime: numb
   let url :string
   try {
     url = getSubgraphUrl(chain)
+    if (chain === 'ethereum') {
+      url = cctpMainnetSubgraphUrl
+    }
   } catch (err) {
     return []
   }
@@ -953,7 +984,9 @@ export async function fetchMessageReceivedEvents (chain: string, startTime: numb
   }
 
   bonds = bonds.map((x: any) => {
-    x.transferId = x.nonce
+    x.transferId = `${x.nonce}`
+    x.sourceChainId = cctpDomainToChainId(x.sourceDomain)
+    x.destinationChainId = chainSlugToId(chain)
     x.isCctp = true
     return x
   })

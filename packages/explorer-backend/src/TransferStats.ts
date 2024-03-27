@@ -633,7 +633,7 @@ export class TransferStats {
           _item.bonded = onchainData?.bonded
           _item.bondTransactionHash = onchainData?.bondTransactionHash
           try {
-            console.log('upserting', _item.transferId)
+            console.log('upserting transferId', _item.transferId)
             await this.upsertItem(_item)
           } catch (err: any) {
             console.error('upsert error:', err)
@@ -649,7 +649,7 @@ export class TransferStats {
 
     for (const item of items) {
       try {
-        console.log('upserting', item.transferId)
+        console.log('upserting transferId', item.transferId)
         await this.upsertItem(item)
         break
       } catch (err: any) {
@@ -984,7 +984,7 @@ export class TransferStats {
       const messageReceivedsByChain = messageReceiveds[destChainSlug]
       if (messageReceivedsByChain) {
         for (const receivedEvent of messageReceivedsByChain) {
-          if (receivedEvent.transferId === x.transferId) {
+          if (receivedEvent.transferId === x.transferId && x.destinationChain === receivedEvent.destinationChainId && x.sourceChain === receivedEvent.sourceChainId) {
             x.bonded = true
             x.bondTransactionHash = receivedEvent?.transaction?.hash
             x.bondedTimestamp = Number(receivedEvent?.block?.timestamp)

@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import useQueryParams from 'src/hooks/useQueryParams'
-import { Alert } from 'src/components/Alert'
 import { ExternalLink } from 'src/components/Link'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { isMainnet, reactAppNetwork } from 'src/config'
@@ -166,13 +165,6 @@ export function AccountTransferHistory (props: Props) {
               <ExternalLink href={explorerLink}>View in explorer</ExternalLink>
             </Typography>
           )}
-        </Box>
-        <Box>
-          <Alert severity="info">
-            <Typography variant="body2">
-              Notice: USDC transfer history is currently delayed due to subgraph delays.
-            </Typography>
-          </Alert>
         </Box>
       </Box>
       <Box>

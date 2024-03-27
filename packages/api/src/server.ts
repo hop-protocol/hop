@@ -1,9 +1,9 @@
 import cors from 'cors'
 import express from 'express'
 import { Hop } from '@hop-protocol/sdk'
-import { gitRev, port, trustProxy } from './config'
-import { ipRateLimitMiddleware } from './rateLimit'
-import { responseCache } from './responseCache'
+import { gitRev, port, trustProxy } from './config.js'
+import { ipRateLimitMiddleware } from './rateLimit.js'
+import { responseCache } from './responseCache.js'
 
 const app = express()
 

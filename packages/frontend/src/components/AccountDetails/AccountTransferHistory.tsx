@@ -198,7 +198,7 @@ export function AccountTransferHistory (props: Props) {
                   {!item?.bonded && (
                     <Box ml={1} display="inline-flex">
                       <Typography variant="body2" component="span" color="secondary">
-                        (<span>pending</span> <InfoTooltip title="This may take 5-15 minutes depending on the route" />)
+                        (<span>pending</span> <InfoTooltip title="This may take up to 30 minutes depending on the route" />)
                       </Typography>
                     </Box>
                   )}

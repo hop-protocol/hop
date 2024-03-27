@@ -578,6 +578,7 @@ export async function fetchCctpTransferSents (chain: string, startTime: number, 
       x.destinationChainId = x.chainId
       x.sourceChainId = chainSlugToId(chain)
       x.transferId = `${x.cctpNonce}`
+      x.token = 'USDC'
       x.isCctp = true
       return x
     })
@@ -652,6 +653,7 @@ export async function fetchCctpTransferSentsForTxHash (chain: string, txHash: st
       x.destinationChainId = x.chainId
       x.sourceChainId = chainSlugToId(chain)
       x.transferId = `${x.cctpNonce}`
+      x.token = 'USDC'
       x.isCctp = true
       return x
     })
@@ -718,6 +720,7 @@ export async function fetchCctpTransferSentsForTransferId (chain: string, transf
       x.destinationChainId = x.chainId
       x.sourceChainId = chainSlugToId(chain)
       x.transferId = `${x.cctpNonce}`
+      x.token = 'USDC'
       x.isCctp = true
       return x
     })
@@ -780,6 +783,7 @@ export async function fetchCctpTransferSentsByTransferIds (chain: string, transf
   }
 
   return transferSents.filter(Boolean).map((x: any) => {
+    x.token = 'USDC'
     x.chainId = Number(x.chainId)
     x.destinationChain = x.chainId
     x.destinationChainId = x.chainId
@@ -847,6 +851,7 @@ export async function fetchCctpMessageReceivedsByTxHashes (chain: string, txHash
   }
 
   bonds = bonds.map((x: any) => {
+    x.token = 'USDC'
     x.isCctp = true
     x.transferId = `${x.nonce}`
     x.sourceChainId = cctpDomainToChainId(x.sourceDomain)
@@ -912,6 +917,7 @@ export async function fetchCctpMessageReceivedsByTransferIds (chain: string, tra
   }
 
   bonds = bonds.map((x: any) => {
+    x.token = 'USDC'
     x.isCctp = true
     x.transferId = `${x.nonce}`
     x.sourceChainId = cctpDomainToChainId(x.sourceDomain)
@@ -995,6 +1001,7 @@ export async function fetchMessageReceivedEvents (chain: string, startTime: numb
     x.transferId = `${x.nonce}`
     x.sourceChainId = cctpDomainToChainId(x.sourceDomain)
     x.destinationChainId = chainSlugToId(chain)
+    x.token = 'USDC'
     x.isCctp = true
     return x
   })

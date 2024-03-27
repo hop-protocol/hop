@@ -33,7 +33,6 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       perPage,
       source: sourceChainSlug,
       destination: destinationChainSlug,
-      token,
       bonded,
       bonder: bonderAddress,
       account: accountAddress,
@@ -56,6 +55,11 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       refresh,
       integrationPartner
     } = req.query
+    let { token } = req.query
+    if (token === 'USDC.e') {
+      token = 'USDC'
+    }
+
     const data = await controller.getTransfers({
       page,
       perPage,
@@ -95,7 +99,6 @@ app.get('/v1/transfers/count', responseCache, async (req: any, res: any) => {
     const {
       source: sourceChainSlug,
       destination: destinationChainSlug,
-      token,
       bonded,
       bonder: bonderAddress,
       account: accountAddress,
@@ -111,6 +114,10 @@ app.get('/v1/transfers/count', responseCache, async (req: any, res: any) => {
       endDate,
       receivedHTokens
     } = req.query
+    let { token } = req.query
+    if (token === 'USDC.e') {
+      token = 'USDC'
+    }
     const data = await controller.getTransfers({
       sourceChainSlug,
       destinationChainSlug,
@@ -144,7 +151,6 @@ app.get('/v1/accounts', responseCache, async (req: any, res: any) => {
       perPage,
       source: sourceChainSlug,
       destination: destinationChainSlug,
-      token,
       bonded,
       bonder: bonderAddress,
       account: accountAddress,
@@ -166,6 +172,10 @@ app.get('/v1/accounts', responseCache, async (req: any, res: any) => {
       refresh,
       integrationPartner
     } = req.query
+    let { token } = req.query
+    if (token === 'USDC.e') {
+      token = 'USDC'
+    }
     const data = await controller.getTransfers({
       page,
       perPage,
@@ -200,18 +210,22 @@ app.get('/v1/accounts', responseCache, async (req: any, res: any) => {
   }
 })
 
-app.get('/index', (req: any, res: any) => {
-  res.sendFile(path.resolve(__dirname, '..', 'public/index.html'))
-})
-
 app.get('/v1/transfers/timeStats', async (req, res) => {
   try {
-    const { sourceChainSlug, destinationChainSlug, token } = req.query
+    const { sourceChainSlug, destinationChainSlug } = req.query
+    let { token } = req.query
+    if (token === 'USDC.e') {
+      token = 'USDC'
+    }
     const data = await controller.getTransferTimes({ sourceChainSlug, destinationChainSlug, token })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {
     res.status(400).json({ error: err.message })
   }
+})
+
+app.get('/index', (req: any, res: any) => {
+  res.sendFile(path.resolve(__dirname, '..', 'public/index.html'))
 })
 
 const argv = minimist(process.argv.slice(2))

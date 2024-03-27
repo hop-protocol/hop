@@ -1,8 +1,8 @@
 import fetch from 'isomorphic-fetch'
+import { cctpDomainToChainId } from './utils/cctpDomainToChainId'
+import { chainSlugToId } from './utils/chainSlugToId'
 import { chunk } from 'lodash'
 import { getSubgraphUrl } from './utils/getSubgraphUrl'
-import { chainSlugToId } from './utils/chainSlugToId'
-import { cctpDomainToChainId } from './utils/cctpDomainToChainId'
 import { padHex } from './utils/padHex'
 import { promiseTimeout } from './utils/promiseTimeout'
 

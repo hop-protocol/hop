@@ -260,11 +260,15 @@ export function AccountTransferHistory (props: Props) {
           })}
         </Box>
         <Box mb={2} display="flex" justifyContent="center">
-          {hasPreviousPage && (
+          {hasPreviousPage ? (
             <IconButton onClick={handlePreviousPageClick}><NavigateBeforeIcon fontSize="large" /></IconButton>
+          ) : (
+            <IconButton disabled style={{ color: '#0000003d' }}><NavigateBeforeIcon fontSize="large" /></IconButton>
           )}
-          {hasNextPage && (
+          {hasNextPage ? (
             <IconButton onClick={handleNextPageClick}><NavigateNextIcon fontSize="large" /></IconButton>
+          ): (
+            <IconButton disabled style={{ color: '#0000003d' }}><NavigateNextIcon fontSize="large" /></IconButton>
           )}
         </Box>
         {!!volumeUsd && (

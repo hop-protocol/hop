@@ -84,6 +84,14 @@ export const tokens: Tokens = {
     coingeckoId: 'usd-coin',
     isStablecoin: true
   },
+  'USDC.e': {
+    symbol: 'USDC.e',
+    name: 'USD Coin Bridged',
+    decimals: 6,
+    image: USDCImage,
+    coingeckoId: 'usd-coin',
+    isStablecoin: true
+  },
   USDT: {
     symbol: 'USDT',
     name: 'Tether USD',

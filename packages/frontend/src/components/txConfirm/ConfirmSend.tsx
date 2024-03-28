@@ -54,7 +54,8 @@ const ConfirmSend = (props: Props) => {
 
   const { fixedTimeEstimate, medianTimeEstimate, isLoading } = useTransferTimeEstimate(
     source?.network?.slug,
-    dest?.network?.slug
+    dest?.network?.slug,
+    source?.token?.symbol
   )
 
   let warning = ''

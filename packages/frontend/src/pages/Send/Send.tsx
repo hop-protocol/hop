@@ -116,6 +116,7 @@ const Send: FC = () => {
         fromNetwork={fromNetwork}
         setWarning={setWarning}
         maxButtonFixedAmountToSubtract={maxButtonFixedAmountToSubtract}
+        disableInput={isSpecificRouteDeprecated}
       />
 
       <Box display="flex" justifyContent="center" alignItems="center">
@@ -144,9 +145,11 @@ const Send: FC = () => {
         isOpen={customRecipient || isSmartContractWallet}
       />
 
-      <div className={styles.smartContractWalletWarning}>
-        <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
-      </div>
+      {!!gnosisSafeWarning.text && (
+        <div className={styles.smartContractWalletWarning}>
+          <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
+        </div>
+      )}
 
       {isDestinationChainPaused && (
         <div className={styles.pausedWarning}>
@@ -220,11 +223,20 @@ const Send: FC = () => {
 
       {isSpecificRouteDeprecated && (
         <Box mb={4}>
-          <Alert severity="error" text={`${fromToken?.symbol ? `The ${fromToken?.symbol}` : 'This'} bridge is deprecated. Only transfers from L2 to L1 are supported.`} />
+          <Alert severity="error" text={`${fromToken?.symbol ? `This ${fromToken?.symbol}` : 'This'} bridge route is deprecated or no longer supported.`} />
         </Box>
       )}
 
-      <Alert severity="error" onClose={() => setError('')} text={error} />
+      {!!info && (
+        <Box className={styles.infoWarning}>
+          <Alert severity="info" onClose={() => setInfo('')} text={info} />
+        </Box>
+      )}
+
+      {!!error && (
+        <Alert severity="error" onClose={() => setError('')} text={error} />
+      )}
+
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
       {!!manualError && (
@@ -272,7 +284,6 @@ const Send: FC = () => {
       }
 
       <Box mt={1}>
-        <Alert severity="info" onClose={() => setInfo('')} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
       </Box>
     </Box>

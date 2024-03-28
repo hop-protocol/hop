@@ -87,6 +87,8 @@ export { default as swapAbi } from './generated/Swap.json'
 export { default as swapUtilsAbi } from './generated/SwapUtils.json'
 export { default as timelockAbi } from './generated/Timelock.json'
 export { default as xDaiMessengerWrapperAbi } from './generated/xDaiMessengerWrapper.json'
+export { default as l1HopCCTPImplementation } from './generated/L1_HopCCTPImplementation.json'
+export { default as l2HopCCTPImplementation } from './generated/L2_HopCCTPImplementation.json'
 
 // Custom ABIs
 export { default as l1Erc20BridgeLegacyAbi } from './static/L1_ERC20_Bridge_Legacy.json'
@@ -115,3 +117,7 @@ export { default as l1ArbitrumMessengerAbi } from './static/L1_ArbitrumMessenger
 export { default as l1PolygonMessengerAbi } from './static/L1_PolygonMessenger.json'
 export { default as wethAbi } from './static/WETH9.json'
 export { default as Multicall3 } from './static/Multicall3.json'
+export { default as UniswapQuoterV2Abi } from './static/UniswapQuoterV2.json'
+export { default as CCTPTokenMessenger } from './static/CCTPTokenMessenger.json'
+export { default as CCTPTokenMinter } from './static/CCTPTokenMinter.json'
+export { default as CCTPMessageTransmitter } from './static/CCTPMessageTransmitter.json'

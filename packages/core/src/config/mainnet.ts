@@ -11,19 +11,28 @@ export const config : Config = {
       nova: 12,
       base: 12
     },
+    'USDC.e': {
+      ethereum: 12,
+      polygon: 12,
+      gnosis: 12,
+      optimism: 12,
+      arbitrum: 12,
+      nova: 12,
+      base: 12
+    },
     USDT: {
-      ethereum: 20,
-      polygon: 20,
-      gnosis: 20,
-      optimism: 20,
-      arbitrum: 20
+      ethereum: 100,
+      polygon: 100,
+      gnosis: 100,
+      optimism: 100,
+      arbitrum: 100
     },
     DAI: {
-      ethereum: 30,
-      polygon: 30,
-      gnosis: 7,
-      optimism: 30,
-      arbitrum: 30
+      ethereum: 35,
+      polygon: 35,
+      gnosis: 5,
+      optimism: 35,
+      arbitrum: 35
     },
     MATIC: {
       ethereum: 5,
@@ -33,17 +42,17 @@ export const config : Config = {
       arbitrum: 0
     },
     ETH: {
-      ethereum: 5,
-      polygon: 5,
-      gnosis: 5,
-      optimism: 5,
-      arbitrum: 5,
-      nova: 5,
-      zksync: 5,
-      linea: 5,
-      polygonzk: 5,
-      scrollzk: 5,
-      base: 5
+      ethereum: 4,
+      polygon: 4,
+      gnosis: 4,
+      optimism: 4,
+      arbitrum: 4,
+      nova: 4,
+      zksync: 4,
+      linea: 4,
+      polygonzk: 8,
+      scrollzk: 4,
+      base: 4
     },
     WBTC: {
       ethereum: 23,
@@ -81,7 +90,8 @@ export const config : Config = {
     }
   },
   bonderTotalStake: {
-    USDC: 2338333,
+    USDC: 0,
+    'USDC.e': 2338333,
     USDT: 649805,
     DAI: 1500000,
     MATIC: 766730,
@@ -103,12 +113,13 @@ export const config : Config = {
     zksync: false,
     linea: true,
     scrollzk: false,
-    polygonzk: false
+    polygonzk: true
   },
   relayerFeeWei: {
     linea: '1000000000000000',
     nova: '100000000000000',
-    arbitrum: '100000000000000'
+    arbitrum: '100000000000000',
+    polygonzk: '1000000000000000'
   },
   bridgeDeprecated: {
     SNX: true,

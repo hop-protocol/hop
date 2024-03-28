@@ -200,7 +200,7 @@
   },
   "ETH": {
     "0x710bDa329b2a6224E4B44833DE30F38E7f81d564": {
-      "totalStaked": "8009.00",
+      "totalStaked": "8255.00",
       "initialCanonicalAmounts": {},
       "initialNativeAmounts": {
         "ETH": {
@@ -251,7 +251,8 @@
         "2023-07-27": ["0.10", "9.90"],
         "2023-07-28": ["490"],
         "2023-11-07": ["0.10", "10", "490"],
-        "2023-11-21": ["25.00"] // special case where the 25 ETH sent to Linea for gas was sent back to L1 and staked
+        "2023-11-21": ["25.00"], // special case where the 25 ETH sent to Linea for gas was sent back to L1 and staked
+        "2024-03-25": ["325.00", "325.00", "500.00", "21.00", "200.00"]
       },
       "unstakedAmounts": {
         "2021-12-15": "0.05",
@@ -267,7 +268,9 @@
         "2023-03-06": "160",
         "2023-07-28": ["490"],
         "2023-11-07": ["500"],
-        "2023-11-14": ["25.00"] // special case where 25 was unstaked but sent to Linea for gas
+        "2023-11-14": ["25.00"], // special case where 25 was unstaked but sent to Linea for gas
+        "2024-03-08": ["100.00"],
+        "2024-03-25": ["300.00", "175.00", "500.00"]
       },
       "unstakedEthAmounts": {},
       "restakedProfits": {},
@@ -280,7 +283,8 @@
         "2022-12-23": "1250.00",
         "2022-12-31": "1266.70",
         "2023-03-06": "160",
-        "2024-02-07": "2.08"
+        "2024-02-07": "2.08",
+        "2024-03-09": "316"
       }
     }
   },

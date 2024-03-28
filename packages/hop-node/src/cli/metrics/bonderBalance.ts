@@ -47,7 +47,7 @@ async function main (source: any) {
   const coreAddresses = mainnetAddresses.bridges
   for (const hopAccountAddress of hopAccountAddresses) {
     for (const token in coreAddresses) {
-      const tokenNetworkAddresses: any = coreAddresses[token]
+      const tokenNetworkAddresses: any = (coreAddresses as any)[token]
       for (const chain in tokenNetworkAddresses) {
         // Get token addresses from core
         const tokenAddresses: string[] = getTokenAddressesFromCore(chain, tokenNetworkAddresses[chain])
@@ -148,9 +148,9 @@ function getTokenAddressesFromCore (chain: string, addresses: any): string[] {
 async function getBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<BigNumber> {
   if (tokenAddress === '0x0000000000000000000000000000000000000000') {
     return getEthBalance(chain, accountAddress, blockNumber)
-  } 
+  }
     return getTokenBalance(chain, accountAddress, tokenAddress, blockNumber)
-  
+
 }
 
 async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {

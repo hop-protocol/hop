@@ -287,7 +287,7 @@ export class Controller {
   }
 
   async getTransferTimes (params: any): Promise<TimeToBridgeStats> {
-    const { sourceChainSlug, destinationChainSlug } = params
+    const { sourceChainSlug, destinationChainSlug, token } = params
 
     if (!sourceChainSlug) {
       throw new Error('sourceChainSlug is required')
@@ -297,7 +297,7 @@ export class Controller {
       throw new Error('destinationChainSlug is required')
     }
 
-    const cacheKey = `${sourceChainSlug}-${destinationChainSlug}`
+    const cacheKey = `${sourceChainSlug}-${destinationChainSlug}-${token ?? ''}`
     const cacheDurationMs = 5 * 60 * 1000 // 5 minutes
     const cachedStats = cache.get(cacheKey)
 
@@ -306,11 +306,11 @@ export class Controller {
     }
 
     let days = 2
-    let txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, days)
+    let txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, days, token)
 
     if (txTimes.length < 1) {
       days = 4
-      txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, days)
+      txTimes = await this.db.getTransferTimes(sourceChainSlug, destinationChainSlug, days, token)
 
       if (txTimes.length < 1) {
         throw new Error('No transfer data available for set periods and chains')

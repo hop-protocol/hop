@@ -1,5 +1,5 @@
 module.exports = {
   extends: '../../.eslintrc.js',
   // TODO: Remove this later
-  ignorePatterns: ['test']
+  ignorePatterns: ['test', 'scripts']
 }

@@ -11,7 +11,11 @@ function main () {
     offsetDays: argv.offsetDays
   })
 
-  worker.start()
+  worker.start().catch((err) => {
+    console.error('error:', err)
+    console.log('exiting...')
+    process.exit(1)
+  })
 }
 
 main()

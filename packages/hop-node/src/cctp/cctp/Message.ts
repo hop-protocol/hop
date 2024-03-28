@@ -4,13 +4,15 @@ import {
   CCTP_DOMAIN_MAP,
   getAttestationUrl,
   getHopCCTPContract,
-  getMessageTransmitterContract
+  getHopCCTPInterface,
+  getMessageTransmitterContract,
 } from './utils'
 import { Chain, MinPolygonGasPrice, Network } from 'src/constants'
-import { RequiredEventFilter } from '../indexer/OnchainEventIndexer'
+import { RequiredEventFilter, RequiredFilter } from '../indexer/OnchainEventIndexer'
 import { Signer } from 'ethers'
 import { config as globalConfig } from 'src/config'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { LogWithChainId } from '../db/OnchainEventIndexerDB'
 
 enum AttestationStatus {
   PendingConfirmation = 'pending_confirmation',
@@ -30,9 +32,17 @@ type IAttestationResponse = IAttestationResponseError | IAttestationResponseSucc
 
 // TODO: Get from SDK
 export type HopCCTPTransferSentDecoded = {
+  cctpNonce: BigNumber
+  chainId: number
+  recipient: string
   amount: BigNumber
   bonderFee: BigNumber
 }
+
+export type HopCCTPTransferSentDecodedWithMessage = HopCCTPTransferSentDecoded & {
+  message: string
+}
+
 
 /**
  * CCTP Message utility class. This class exposes all required chain interactions with CCTP
@@ -73,18 +83,6 @@ export class Message {
 
   static getMessageHashFromMessage (message: string): string {
     return utils.keccak256(message)
-  }
-
-  static decodeHopCCTPTransferSentFromEvent (data: string):  HopCCTPTransferSentDecoded {
-    const res = utils.defaultAbiCoder.decode([
-      'uint256',
-      'uint256'
-    ], data)
-
-    return {
-      amount: BigNumber.from(res[0]),
-      bonderFee: BigNumber.from(res[1])
-    }
   }
 
   // TODO: Get from SDK
@@ -134,12 +132,12 @@ export class Message {
 
   // TODO: rm for config
   static async getTxOverrides (chainId: number): Promise<any>{
-    const chainSlug = chainIdToSlug(chainId)
-    const provider = getRpcProvider(chainSlug)
+    const provider = getRpcProvider(chainId)
     const txOptions: any = {}
 
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+    const chainSlug = chainIdToSlug(chainId)
     if (chainSlug === Chain.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 
@@ -151,5 +149,84 @@ export class Message {
     }
 
     return txOptions
+  }
+
+  // Returns the CCTP message as well as the Hop-specific data
+  static async parseHopCCTPTransferSentLog (log: LogWithChainId): Promise<HopCCTPTransferSentDecodedWithMessage> {
+    const iface = getHopCCTPInterface()
+    const parsed =iface.parseLog(log)
+
+    const {
+      cctpNonce,
+      chainId,
+      recipient,
+      amount,
+      bonderFee
+    } = parsed.args
+
+    const messages = await Message.getCCTPMessagesByTxHash(chainId, log.transactionHash)
+    const message = Message.getMatchingMessageFromMessages(messages, cctpNonce, recipient)
+
+    return {
+      cctpNonce,
+      chainId: Number(chainId),
+      recipient,
+      amount,
+      bonderFee,
+      message
+    }
+  }
+
+  // TODO: This shouldn't be public, but everything else is static...
+  static async getCCTPMessagesByTxHash (chainId: number, txHash: string): Promise<string[]> {
+    const provider = getRpcProvider(chainId)
+    const txReceipt = await provider.getTransactionReceipt(txHash)
+    const blockNumber = txReceipt.blockNumber
+
+    const eventFilter = Message.getMessageSentEventFilter(chainId)
+    const filter: RequiredFilter = {
+      ...eventFilter,
+      fromBlock: blockNumber,
+      toBlock: blockNumber
+    }
+    const logs = await provider.getLogs(filter)
+    if (logs.length === 0) {
+      throw new Error('No logs found')
+    }
+
+    const messages: string[] = []
+    for (const log of logs) {
+      if (log.transactionHash === txHash) {
+        messages.push(Message.decodeMessageFromEvent(log.data))
+      }
+    }
+
+    if (messages.length === 0) {
+      throw new Error('No messages found')
+    }
+
+    return messages
+  }
+
+  // TODO: Not static
+  // Find the correct message if there are multiple messages in a tx hash. This does not work if there
+  // are multiple messages with the same recipient and a matching hex nonce in the string, which should be rare.
+  static getMatchingMessageFromMessages (
+    messages: string[],
+    cctpNonce: BigNumber,
+    recipient: string
+  ): string {
+    const recipientHex = recipient.substring(2)
+    const cctpNonceHex = cctpNonce.toHexString().substring(2)
+
+    for (const message of messages) {
+      if (
+        message.includes(cctpNonceHex) &&
+        message.includes(recipientHex)
+      ) {
+        return message
+      }
+    }
+    throw new Error('No matching message found')
   }
 }

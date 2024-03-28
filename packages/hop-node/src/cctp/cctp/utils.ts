@@ -1,6 +1,6 @@
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { Chain, Network } from 'src/constants'
-import { Contract } from 'ethers' 
+import { Contract, utils } from 'ethers' 
 import { config as globalConfig } from 'src/config'
 
 export function getAttestationUrl (messageHash: string): string {
@@ -84,26 +84,36 @@ export const CCTP_DOMAIN_MAP: Partial<Record<Network, Record<number, number>>> =
 
 // Remove all this in favor of the contract instance from the SDK when available
 export function getMessageTransmitterContract (chainId: number): Contract {
-  const abi: string[] = [
-    'function receiveMessage(bytes message, bytes attestation)',
-    'event MessageReceived(address indexed caller, uint32 sourceDomain, uint64 indexed nonce, bytes32 sender, bytes messageBody)',
-    'event MessageSent(bytes message)'
-  ]
+  const iface = getCCTPMessageTransmitterContractInterface()
   const chainSlug = chainIdToSlug(chainId)
   return new Contract(
     MessageTransmitterAddresses[globalConfig.network][chainSlug]!,
-    abi
+    iface
   )
 }
 
 // Remove all this in favor of the contract instance from the SDK when available
 export function getHopCCTPContract (chainId: number): Contract {
-  const abi: string[] = [
-    'event CCTPTransferSent(uint64 indexed cctpNonce,uint256 indexed chainId,address indexed recipient,uint256 amount,uint256 bonderFee)'
-  ]
+  const iface = getHopCCTPInterface()
   const chainSlug = chainIdToSlug(chainId)
   return new Contract(
     HopCCTPAddresses[globalConfig.network][chainSlug]!,
-    abi
+    iface
   )
+}
+
+export function getCCTPMessageTransmitterContractInterface (): utils.Interface {
+  const abi: string[] = [
+    'function receiveMessage(bytes message, bytes attestation)',
+    'event MessageReceived(address indexed caller, uint32 sourceDomain, uint64 indexed nonce, bytes32 sender, bytes messageBody)',
+    'event MessageSent(bytes message)'
+  ]
+  return new utils.Interface(abi)
+}
+
+export function getHopCCTPInterface (): utils.Interface {
+  const abi: string[] = [
+    'event CCTPTransferSent(uint64 indexed cctpNonce,uint256 indexed chainId,address indexed recipient,uint256 amount,uint256 bonderFee)'
+  ]
+  return new utils.Interface(abi)
 }

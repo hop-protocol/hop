@@ -7,6 +7,7 @@ import { Message } from '../Message'
 import { MessageState } from '../MessageManager'
 import { OnchainEventStore } from './OnchainEventStore'
 import { getTimestampFromBlockNumberMs } from './utils'
+import { AbstractRepository } from '../repository/AbstractRepository'
 
 export enum Event {
   Initialization = 'initialization'
@@ -37,7 +38,7 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
     this.#eventEmitter.on('write', (items: any) => this.#eventEmitter.emit('lolg', items))
   }
 
-  async *getSyncItems (syncMarker: string): AsyncIterable<[string, U]> {
+  async *getSyncItems (syncMarker: string): AsyncIterable<[string, U, string]> {
     // TODO: State var
     const initializationEvent = Message.HOP_CCTP_TRANSFER_SENT_SIG
     // TODO: Not arbitrary
@@ -55,7 +56,7 @@ export class TransitionDataProvider<T, U> extends EventEmitter implements ITrans
       const parsedLog: any = await this.#parseInitializationLog(log)
       const key = Message.getMessageHashFromMessage(parsedLog.message)
       // TODO: 
-      yield [key, parsedLog]
+      yield [key, parsedLog, 'syncMarker']
     }
   }
 

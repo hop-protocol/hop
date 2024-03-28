@@ -44,7 +44,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
     // TODO: Use decorator for creation
     let dbValue = 0
     try {
-      dbValue = await this.get(this.encodeKey(syncDBKey)) as number
+      dbValue = await this.get(syncDBKey) as number
     } catch (e) {
       // TODO: Better handling
       // Noop

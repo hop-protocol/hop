@@ -3,9 +3,11 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "paths": {
-      "src/*": ["./src/*"]
-    }
+
+    // node16 and nodenext are the only correct module options for all apps and libraries that are intended to run in Node.js v12 or later, whether they use ES modules or not.
+    // https://www.typescriptlang.org/docs/handbook/modules/reference.html#summary
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": [
     "src"

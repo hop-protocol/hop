@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import useQueryParams from 'src/hooks/useQueryParams'
-import { Alert } from 'src/components/Alert'
 import { ExternalLink } from 'src/components/Link'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { isMainnet, reactAppNetwork } from 'src/config'
@@ -167,13 +166,6 @@ export function AccountTransferHistory (props: Props) {
             </Typography>
           )}
         </Box>
-        <Box>
-          <Alert severity="info">
-            <Typography variant="body2">
-              Notice: USDC transfer history is currently delayed due to subgraph delays.
-            </Typography>
-          </Alert>
-        </Box>
       </Box>
       <Box>
         <Box>
@@ -206,7 +198,7 @@ export function AccountTransferHistory (props: Props) {
                   {!item?.bonded && (
                     <Box ml={1} display="inline-flex">
                       <Typography variant="body2" component="span" color="secondary">
-                        (<span>pending</span> <InfoTooltip title="This may take 5-15 minutes depending on the route" />)
+                        (<span>pending</span> <InfoTooltip title="This may take up to 30 minutes depending on the route" />)
                       </Typography>
                     </Box>
                   )}
@@ -268,11 +260,15 @@ export function AccountTransferHistory (props: Props) {
           })}
         </Box>
         <Box mb={2} display="flex" justifyContent="center">
-          {hasPreviousPage && (
+          {hasPreviousPage ? (
             <IconButton onClick={handlePreviousPageClick}><NavigateBeforeIcon fontSize="large" /></IconButton>
+          ) : (
+            <IconButton disabled style={{ color: '#0000003d' }}><NavigateBeforeIcon fontSize="large" /></IconButton>
           )}
-          {hasNextPage && (
+          {hasNextPage ? (
             <IconButton onClick={handleNextPageClick}><NavigateNextIcon fontSize="large" /></IconButton>
+          ): (
+            <IconButton disabled style={{ color: '#0000003d' }}><NavigateNextIcon fontSize="large" /></IconButton>
           )}
         </Box>
         {!!volumeUsd && (

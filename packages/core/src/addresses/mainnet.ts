@@ -438,7 +438,8 @@ export const addresses: Addresses = {
       ethereum: {
         l1CanonicalToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         cctpL1Bridge: '0x7e77461CA2a9d82d26FD5e0Da2243BF72eA45747',
-        cctpMessageTransmitter: '0x0a992d191deec32afe36203ad87d7d289a738f81'
+        cctpMessageTransmitter: '0x0a992d191deec32afe36203ad87d7d289a738f81',
+        cctpBridgeDeployedBlockNumber: 19466442
       },
       polygon: {
         l2CanonicalToken: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
@@ -447,22 +448,26 @@ export const addresses: Addresses = {
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         l2MessengerProxy: '0xf8024972590cad31C47C41371ff5c98956311747',
         cctpL2Bridge: '0x1CD391bd1D915D189dE162F0F1963C07E60E4CD6',
-        cctpMessageTransmitter: '0xF3be9355363857F3e001be68856A2f96b4C39Ba9'
+        cctpMessageTransmitter: '0xF3be9355363857F3e001be68856A2f96b4C39Ba9',
+        cctpBridgeDeployedBlockNumber: 54817111
       },
       optimism: {
         l2CanonicalToken: '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
         cctpL2Bridge: '0x469147af8Bde580232BE9DC84Bb4EC84d348De24',
-        cctpMessageTransmitter: '0x4d41f22c5a0e5c74090899e5a8fb597a8842b3e8'
+        cctpMessageTransmitter: '0x4d41f22c5a0e5c74090899e5a8fb597a8842b3e8',
+        cctpBridgeDeployedBlockNumber: 117599491
       },
       arbitrum: {
         l2CanonicalToken: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
         cctpL2Bridge: '0x6504BFcaB789c35325cA4329f1f41FaC340bf982',
-        cctpMessageTransmitter: '0xC30362313FBBA5cf9163F0bb16a0e01f01A896ca'
+        cctpMessageTransmitter: '0xC30362313FBBA5cf9163F0bb16a0e01f01A896ca',
+        cctpBridgeDeployedBlockNumber: 191777196
       },
       base: {
         l2CanonicalToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         cctpL2Bridge: '0xe7F40BF16AB09f4a6906Ac2CAA4094aD2dA48Cc2',
-        cctpMessageTransmitter: '0xAD09780d193884d503182aD4588450C416D6F9D4'
+        cctpMessageTransmitter: '0xAD09780d193884d503182aD4588450C416D6F9D4',
+        cctpBridgeDeployedBlockNumber: 12004192
       }
     },
     'USDC.e': {
@@ -471,7 +476,8 @@ export const addresses: Addresses = {
         l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
         cctpL1Bridge: '0x7e77461CA2a9d82d26FD5e0Da2243BF72eA45747',
         cctpMessageTransmitter: '0x0a992d191deec32afe36203ad87d7d289a738f81',
-        bridgeDeployedBlockNumber: 12650032
+        bridgeDeployedBlockNumber: 12650032,
+        cctpBridgeDeployedBlockNumber: 19466442
       },
       gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
@@ -503,7 +509,8 @@ export const addresses: Addresses = {
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         l2MessengerProxy: '0xf8024972590cad31C47C41371ff5c98956311747',
-        bridgeDeployedBlockNumber: 15810014
+        bridgeDeployedBlockNumber: 15810014,
+        cctpBridgeDeployedBlockNumber: 54817111
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -517,7 +524,8 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
         l2SaddleSwap: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',
         l2SaddleLpToken: '0x2e17b8193566345a2Dd467183526dEdc42d2d5A8',
-        bridgeDeployedBlockNumber: 1
+        bridgeDeployedBlockNumber: 1,
+        cctpBridgeDeployedBlockNumber: 117599491
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -531,7 +539,8 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xe22D2beDb3Eca35E6397e0C6D62857094aA26F52',
         l2SaddleSwap: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
         l2SaddleLpToken: '0xB67c014FA700E69681a673876eb8BAFAA36BFf71',
-        bridgeDeployedBlockNumber: 440027
+        bridgeDeployedBlockNumber: 440027,
+        cctpBridgeDeployedBlockNumber: 191777196
       },
       base: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -545,7 +554,8 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F',
         l2SaddleSwap: '0x022C5cE6F1Add7423268D41e08Df521D5527C2A0',
         l2SaddleLpToken: '0x3b507422EBe64440f03BCbE5EEe4bdF76517f320',
-        bridgeDeployedBlockNumber: 2077758
+        bridgeDeployedBlockNumber: 2077758,
+        cctpBridgeDeployedBlockNumber: 12004192
       }
     },
     USDT: {

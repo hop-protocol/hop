@@ -1,20 +1,19 @@
-import { type ChainedBatch } from './DB'
 import { SyncDB } from './SyncDB'
 
 /**
  * Uses state-indexed subDBs with the state to allow for efficient querying.
- * - relayed!0x1234
+ * - Ex: relayed!0x1234
  *
  * The final state writes to the top-level DB. It will exist in no other state subDB.
- * - 0x1234
+ * - Ex: 0x1234
  * 
  * An item only exists in one state subDB at a time.
  */
 
-export class StateMachineDB<State extends string, StateData> extends SyncDB<State, StateData> {
+export class StateMachineDB<State extends string, Key extends string, StateData> extends SyncDB<Key, StateData> {
 
-  async createItemIfNotExist(initialState: State, key: string, value: StateData): Promise<void> {
-    const existingValue = await this.get(this.encodeKey(key))
+  async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
+    const existingValue = await this.get(key)
     if (!existingValue) {
       return this.#updateState(null, initialState, key, value)
     }
@@ -28,7 +27,7 @@ export class StateMachineDB<State extends string, StateData> extends SyncDB<Stat
   async updateState(
     state: State,
     nextState: State | null,
-    key: string,
+    key: Key,
     value: StateData
   ): Promise<void> {
     return this.#updateState(state, nextState, key, value)
@@ -37,7 +36,7 @@ export class StateMachineDB<State extends string, StateData> extends SyncDB<Stat
   async #updateState(
     state: State | null,
     nextState: State | null,
-    key: string,
+    key: Key,
     value: StateData
   ): Promise<void> {
     // Falsy check is intentional to ensure that the state is not undefined
@@ -45,18 +44,18 @@ export class StateMachineDB<State extends string, StateData> extends SyncDB<Stat
       throw new Error('At least one state must be defined')
     }
 
-    const existingValue: StateData | null = await this.getIfExists(this.encodeKey(key))
+    const existingValue: StateData | null = await this.getIfExists(key)
     const updatedValue = { ...existingValue, ...value }
 
-    const batch: ChainedBatch<this, State, StateData> = this.batch()
+    const batch = this.batch()
     // Delete the current state entry if this is not the initial state
     if (state !== null) {
-      batch.del(this.encodeKey(key), { sublevel: this.sublevel(state) })
+      batch.del(key, { sublevel: this.sublevel(state) })
     }
 
     // Add the next state entry
     const opts = nextState === null ? {}: { sublevel: this.sublevel(nextState) }
-    batch.put(this.encodeKey(key), updatedValue, opts)
+    batch.put(key, updatedValue, opts)
 
     return batch.write()
   }
@@ -65,9 +64,9 @@ export class StateMachineDB<State extends string, StateData> extends SyncDB<Stat
    * Iterators
    */
 
-  async *getItemsInState(state: State): AsyncIterable<[State, StateData]> {
+  async *getItemsInState(state: State): AsyncIterable<[Key , StateData]> {
     for await (const [key, value] of this.sublevel(state).iterator()) {
-      yield [key as State, value as StateData]
+      yield [key as Key, value as StateData]
     }
   }
 

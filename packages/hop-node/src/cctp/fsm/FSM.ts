@@ -1,6 +1,5 @@
 import { AbstractRepository } from '../db/AbstractRepository'
 import { StateMachineDB } from '../db/StateMachineDB'
-import { SyncDB } from '../db/SyncDB'
 import { poll } from '../utils'
 
 /**
@@ -9,12 +8,14 @@ import { poll } from '../utils'
  * 
  * Data used is retrieved from an external data repository.
  * 
+ * Upon startup, the FSM will sync back to the latest known state.
+ * 
  * @dev The initial and terminal states are null
  */
 
-export abstract class FSM<State, StateData>{
+export abstract class FSM<State extends string, StateData>{
   readonly #states: State[]
-  readonly #stateDB: StateMachineDB<State, StateData>
+  readonly #stateDB: StateMachineDB<State, string, StateData>
   readonly #dataRepository: AbstractRepository<State, StateData>
   readonly #pollIntervalMs: number = 60_000
 
@@ -39,8 +40,11 @@ export abstract class FSM<State, StateData>{
   async #init(): Promise<void> {
     // Handle unsynced item initialization
     const syncMarker = await this.#stateDB.getSyncMarker()
-    for await (const [key, value] of this.#dataRepository.getSyncItems(syncMarker)) {
+    for await (const [key, value, newSyncMarker] of this.#dataRepository.getSyncItems(syncMarker)) {
       await this.#initializeItem(key, value)
+      // SyncMarker should be updated atomically, however, this requires deep drilling. This likely means
+      // there is a better way. Instead, inefficiently update the sync marker after each item is processed.
+      await this.#stateDB.updateSyncMarker(newSyncMarker)
     }
 
     // Handle pending state transitions

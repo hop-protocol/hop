@@ -1,29 +1,48 @@
-import { ClassicLevel } from 'classic-level'
-import { getDbPathForNameOrLocation } from './utils'
-export { type ChainedBatch } from 'classic-level'
+import { Level }  from 'level'
+import { getDBPath } from './utils'
+
+// Introduce updatedAt here if desired
+interface DefaultMetadata {}
 
 interface DatabaseOptions {
   keyEncoding: string
   valueEncoding: string
 }
 
-// TODO: Binary?
-// TODO: Not sure I should be exporting this
-export const KEY_ENCODING_OPTIONS: DatabaseOptions = {
+// TODO: Binary
+const KEY_ENCODING_OPTIONS: DatabaseOptions = {
   keyEncoding: 'utf8',
   valueEncoding: 'json'
 }
 
-// TODO: Should we cache the DB instance?
-export abstract class DB<T extends string, U> extends ClassicLevel<T, U> {
-  constructor (dbNameOrLocation: string) {
-    super(getDbPathForNameOrLocation(dbNameOrLocation), KEY_ENCODING_OPTIONS)
+export abstract class DB<K, V, Metadata = DefaultMetadata> extends Level<K, V> {
+  #metadataKey: string = 'metadata'
+
+  constructor (name: string) {
+    super(getDBPath(name), KEY_ENCODING_OPTIONS)
   }
 
-  // TODO: Possibly override methods and type instead of this. Gets tricky with batch but
-  // cleaner than encoding every key in each implementation.
-  // TODO: If this is kept, don't use the word encode
-  encodeKey(key: string): T {
-    return key as T
+  async getIfExists(key: K): Promise<V | null> {
+    try {
+      return (await this.get(key))
+    } catch (e) {
+      return null
+    }
+  }
+
+  async has(key: K): Promise<boolean> {
+    return (await this.getIfExists(key)) !== null
+  }
+
+  /**
+   * Metadata
+   */
+
+  protected async getMetadata(): Promise<Metadata> {
+    return this.get<string, Metadata>(this.#metadataKey, KEY_ENCODING_OPTIONS)
+  }
+
+  protected async updateMetadata(value: Metadata): Promise<void> {
+    return this.put<string, Metadata>(this.#metadataKey, value, KEY_ENCODING_OPTIONS)
   }
 }

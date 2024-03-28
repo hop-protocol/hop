@@ -1,7 +1,7 @@
 import { DB } from './DB'
 
 /**
- * SyncDB adds a syncMarker to the DB Metadata.
+ * Add a syncMarker to the DB Metadata.
  */
 
 interface Metadata {

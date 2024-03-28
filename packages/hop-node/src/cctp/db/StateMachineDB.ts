@@ -1,4 +1,4 @@
-import { SyncDB } from './SyncDB'
+import { DB } from './DB'
 
 /**
  * Uses state-indexed subDBs with the state to allow for efficient querying.
@@ -10,7 +10,7 @@ import { SyncDB } from './SyncDB'
  * An item only exists in one state subDB at a time.
  */
 
-export class StateMachineDB<State extends string, Key extends string, StateData> extends SyncDB<Key, StateData> {
+export class StateMachineDB<State extends string, Key extends string, StateData> extends DB<Key, StateData> {
 
   async createItemIfNotExist(initialState: State, key: Key, value: StateData): Promise<void> {
     const existingValue = await this.get(key)
@@ -82,5 +82,21 @@ export class StateMachineDB<State extends string, Key extends string, StateData>
       }
     }
     return true
+  }
+
+  /**
+   * Metadata
+   */
+
+  async getSyncMarker (): Promise<string> {
+    const metadata = await this.getMetadata()
+    if (metadata?.syncMarker === undefined) {
+      throw new Error('Sync marker not found')
+    }
+    return metadata.syncMarker
+  }
+
+  async updateSyncMarker(syncMarker: string): Promise<void> {
+    return this.updateMetadata({ syncMarker })
   }
 }

@@ -2,7 +2,10 @@ import { Level }  from 'level'
 import { getDBPath } from './utils'
 
 // Introduce updatedAt here if desired
-interface DefaultMetadata {}
+interface Metadata {
+  updatedAt?: string
+  syncMarker?: string
+}
 
 interface DatabaseOptions {
   keyEncoding: string
@@ -15,14 +18,14 @@ const KEY_ENCODING_OPTIONS: DatabaseOptions = {
   valueEncoding: 'json'
 }
 
-export abstract class DB<K, V, Metadata = DefaultMetadata> extends Level<K, V> {
+export abstract class DB<K, V> extends Level<K, V> {
   #metadataKey: string = 'metadata'
 
   constructor (name: string) {
     super(getDBPath(name), KEY_ENCODING_OPTIONS)
   }
 
-  async getIfExists(key: K): Promise<V | null> {
+  protected async getIfExists(key: K): Promise<V | null> {
     try {
       return (await this.get(key))
     } catch (e) {
@@ -30,7 +33,7 @@ export abstract class DB<K, V, Metadata = DefaultMetadata> extends Level<K, V> {
     }
   }
 
-  async has(key: K): Promise<boolean> {
+  protected async has(key: K): Promise<boolean> {
     return (await this.getIfExists(key)) !== null
   }
 

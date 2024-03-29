@@ -47,7 +47,7 @@ async function main (source: any) {
   const coreAddresses = mainnetAddresses.bridges
   for (const hopAccountAddress of hopAccountAddresses) {
     for (const token in coreAddresses) {
-      const tokenNetworkAddresses: any = coreAddresses[token]
+      const tokenNetworkAddresses: any = (coreAddresses as any)[token]
       for (const chain in tokenNetworkAddresses) {
         // Get token addresses from core
         const tokenAddresses: string[] = getTokenAddressesFromCore(chain, tokenNetworkAddresses[chain])

@@ -131,8 +131,8 @@ export type CoreConfig = {
   signerConfig: SignerConfig
   blocklist: BlocklistConfig
   emergencyDryMode: boolean
-  network: string
   isMainnet: boolean
+  network: string
   networks: Networks
   metadata: Metadata
 }

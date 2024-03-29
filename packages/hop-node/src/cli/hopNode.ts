@@ -14,7 +14,6 @@ import {
   slackChannel,
   slackUsername
 } from '@hop-protocol/hop-node-core/config'
-import { setConfig } from '@hop-protocol/hop-node-core/config'
 import { printHopArt } from './shared/art.js'
 import {
   startWatchers
@@ -140,8 +139,6 @@ async function main (source: any) {
     logger.info('Bonder public address:', bonderPublicAddress)
   }
 
-  // TODO: MIGRATION: Handle this
-  setConfig(globalConfig)
   const { starts } = await startWatchers({
     enabledWatchers: Object.keys(config.watchers).filter(
       key => config.watchers[key]

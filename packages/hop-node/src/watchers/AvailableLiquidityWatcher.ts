@@ -14,7 +14,8 @@ import {
 } from '#config/index.js'
 import {
   Chain,
-  TenMinutesMs
+  TenMinutesMs,
+  Token
 } from '@hop-protocol/hop-node-core/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'

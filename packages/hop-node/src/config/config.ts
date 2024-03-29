@@ -27,6 +27,7 @@ import {
 } from '#constants/index.js'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
+import { execSync } from 'node:child_process'
 import { loadEnv } from './loadEnvFile.js'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'

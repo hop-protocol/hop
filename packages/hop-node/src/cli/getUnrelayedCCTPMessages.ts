@@ -1,14 +1,12 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import { BigNumber, } from 'ethers'
-import { CCTP_DOMAIN_MAP } from 'src/cctp/cctp/utils'
-import { Chain, Network } from 'src/constants'
-import { Message } from 'src/cctp/cctp/Message'
-import { actionHandler, root } from './shared'
-import { getDefaultStartBlockNumber } from 'src/cctp/db/utils'
-import { getEventsInRange } from 'src/cctp/indexer/OnchainEventIndexer'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
-import { config as globalConfig } from 'src/config'
+import { BigNumber } from 'ethers'
+import { CCTP_DOMAIN_MAP } from '#cctp/cctp/utils.js'
+import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
+import { Message } from '#cctp/cctp/Message.js'
+import { actionHandler, root } from './shared/index.js'
+import { chainIdToSlug, chainSlugToId, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getDefaultStartBlockNumber } from '#cctp/db/utils.js'
+import { getEventsInRange } from '#cctp/indexer/OnchainEventIndexer.js'
+import { config as globalConfig } from '#config/index.js'
 
 // TODO: Replace all this with efficient subgraph lookup
 // TODO: This is CLI call so does not assume local DB
@@ -99,7 +97,7 @@ async function getTransfersSent (chain: string): Promise<{ sourceChainId: number
     return []
   }
 
-  return logs.map(log => {
+  return logs.map((log: any) => {
     return {
       sourceChainId: chainId,
       transactionHash: log.transactionHash,

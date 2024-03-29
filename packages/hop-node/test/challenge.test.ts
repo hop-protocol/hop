@@ -5,7 +5,7 @@ import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { User, waitForEvent } from './utils/helpers.js'
 import { bonderPrivateKey, governancePrivateKey, privateKey } from './config'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import { keccak256 } from 'ethereumjs-util'
+import { keccak256 } from 'ethers/lib/utils.js'
 import { startWatchers } from '#watchers/watchers/index.js'
 import { wait } from '@hop-protocol/hop-node-core/utils'
 

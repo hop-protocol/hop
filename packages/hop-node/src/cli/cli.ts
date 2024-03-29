@@ -2,7 +2,6 @@ import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { execSync } from 'node:child_process'
 import { program } from './shared/index.js'
 
-import './arbBot.js'
 import './bondFirstRootOfRoute.js'
 import './bondTransferRoot.js'
 import './bondWithdrawal.js'

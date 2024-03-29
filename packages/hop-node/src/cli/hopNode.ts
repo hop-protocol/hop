@@ -5,13 +5,10 @@ import {
   BondWithdrawalBatchSize,
   config as globalConfig
 } from '#config/index.js'
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
-import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
-import { computeAddress } from 'ethers/lib/utils'
 import { computeAddress } from 'ethers/lib/utils.js'
-import { main as enableCCTP } from './shared/cctp'
+import { main as enableCCTP } from './shared/cctp.js'
 import {
   gitRev,
   slackAuthToken,

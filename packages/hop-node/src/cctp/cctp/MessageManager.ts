@@ -1,9 +1,9 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import wallets from 'src/wallets'
-import { Chain } from 'src/constants'
-import { FSMPoller } from '../fsm/FSMPoller'
-import { Message } from './Message'
-import { getFinalityTimeFromChainIdMs } from './utils'
+import wallets from '@hop-protocol/hop-node-core/wallets'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { FSMPoller } from '../fsm/FSMPoller.js'
+import { Message } from './Message.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getFinalityTimeFromChainIdMs } from './utils.js'
 
 interface ISentMessage {
   // TODO: should nonce be removed since it is already the key?
@@ -89,7 +89,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     // TODO: Introduce inflight timestamp for retry logic
     // though we used this in v1 for server restart and that doesn't matter if we have a cache....
     const inFlightTxTimestampOk = true
-    
+
     return (
       !isTxInFlight &&
       inFlightTxTimestampOk

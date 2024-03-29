@@ -32,6 +32,7 @@
     "lint": "eslint . --ext .ts --fix"
   },
   "dependencies": {
+    "@arbitrum/sdk": "2.0.18",
     "@ethersproject/hdnode": "5.0.9",
     "@eth-optimism/sdk": "3.1.4",
     "@hop-protocol/core": "workspace:*",
@@ -53,7 +54,6 @@
     "console-clear": "1.1.1",
     "dotenv": "16.4.1",
     "ethereum-block-by-date": "1.4.9",
-    "ethereumjs-util": "7.1.5",
     "ethers": "5.7.2",
     "level-party": "5.1.1",
     "lodash": "4.17.21",

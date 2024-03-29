@@ -1,10 +1,7 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import { Chain } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { EventFilter, providers, utils } from 'ethers'
-import { type LogWithChainId, OnchainEventIndexerDB } from 'src/cctp/db/OnchainEventIndexerDB'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
-import { wait } from 'src/utils/wait'
+import { type LogWithChainId, OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
+import { chainIdToSlug, chainSlugToId, getRpcProvider, wait } from '@hop-protocol/hop-node-core/utils'
 
 export type RequiredEventFilter = Required<EventFilter>
 export type RequiredFilter = Required<providers.Filter>

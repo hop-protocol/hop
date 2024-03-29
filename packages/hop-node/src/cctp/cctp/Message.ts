@@ -1,16 +1,15 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber, providers, utils } from 'ethers'
 import {
   CCTP_DOMAIN_MAP,
   getAttestationUrl,
   getHopCCTPContract,
   getMessageTransmitterContract
-} from './utils'
-import { Chain, MinPolygonGasPrice, Network } from 'src/constants'
-import { RequiredEventFilter } from '../indexer/OnchainEventIndexer'
+} from './utils.js'
+import { Chain, MinPolygonGasPrice, Network } from '@hop-protocol/hop-node-core/constants'
+import { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import { Signer } from 'ethers'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
-import { config as globalConfig } from 'src/config'
+import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { config as globalConfig } from '#config/index.js'
 
 enum AttestationStatus {
   PendingConfirmation = 'pending_confirmation',
@@ -24,7 +23,7 @@ interface IAttestationResponseError {
 interface IAttestationResponseSuccess {
   status: AttestationStatus
   attestation: string
-} 
+}
 
 type IAttestationResponse = IAttestationResponseError | IAttestationResponseSuccess
 
@@ -52,7 +51,7 @@ export class Message {
     const contract = getHopCCTPContract(chainId)
     return contract.filters.CCTPTransferSent() as RequiredEventFilter
   }
-  
+
   // TODO: Get from SDK
   static getMessageSentEventFilter(chainId: number): RequiredEventFilter {
     const contract = getMessageTransmitterContract(chainId)

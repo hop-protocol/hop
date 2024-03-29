@@ -14,7 +14,7 @@ function getTokenMetadataByAddress (address: string, chain: string) {
     for (const k in globalConfig.addresses[tkn][chain]) {
       const val = globalConfig.addresses[tkn][chain][k]
       if (val === address) {
-        const meta = globalConfig.metadata.tokens[
+        const meta = (globalConfig.metadata.tokens as any)[
           tkn
         ]
         cache[cacheKey] = meta

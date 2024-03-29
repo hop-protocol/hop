@@ -4,8 +4,8 @@ import {
   Network,
   OneHourMs
 } from '#constants/index.js'
-import { metadata as coreMetadata } from '@hop-protocol/core/metadata'
-import { networks as coreNetworks } from '@hop-protocol/core/networks'
+import { type Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
+import { type Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { execSync } from 'node:child_process'
 import { loadEnv } from './loadEnvFile.js'
 import { normalizeEnvVarNumber } from './utils/normalizeEnvVarNumber.js'
@@ -120,7 +120,13 @@ export const getCoreNetworkConfig = (network: Network): any => {
     networks[chain].rpcUrl = chainObj?.publicRpcUrl
   }
 
+  // Convert USDC to USDC.e
   const metadata = coreMetadata[network as Network]
+  if (metadata?.tokens?.USDC && metadata.tokens?.['USDC.e']) {
+    metadata.tokens.USDC = metadata.tokens?.['USDC.e']
+    metadata.tokens.USDC.symbol = 'USDC'
+    delete (metadata.tokens as any)?.['USDC.e']
+  }
   return { networks, metadata }
 }
 

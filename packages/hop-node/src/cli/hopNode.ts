@@ -16,7 +16,6 @@ import {
   slackUsername
 } from '@hop-protocol/hop-node-core/config'
 import { printHopArt } from './shared/art.js'
-import { setConfig } from '@hop-protocol/hop-node-core/config'
 import {
   startWatchers
 } from '#watchers/watchers.js'

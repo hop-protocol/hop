@@ -46,6 +46,50 @@ export const addresses: Addresses = {
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       }
     },
+    'USDC.e': {
+      ethereum: {
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      optimism: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      arbitrum: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      gnosis: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      polygon: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        base: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      base: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      }
+    },
     USDT: {
       ethereum: {
         optimism: '0x698d6c5475e95aa821b4ed4913831b96f6680ec9',

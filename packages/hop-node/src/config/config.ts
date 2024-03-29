@@ -5,13 +5,9 @@ import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-pr
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
 import {
   type BlocklistConfig,
-  type Config as HopNodeCoreConfig,
   type MetricsConfig,
   type SignerConfig,
-  type Tokens,
-  envNetwork,
-  isTestMode,
-  setConfig
+  type Tokens
 } from '@hop-protocol/hop-node-core/config'
 import { BonderConfig } from './types.js'
 import {
@@ -37,20 +33,16 @@ import {
   setCoreNetworkRedundantRpcUrls,
   setCoreNetworkRpcUrl,
   type CoreConfig,
-  type Tokens,
-  type MetricsConfig,
-  type SignerConfig,
-  type BlocklistConfig
 } from '@hop-protocol/hop-node-core/config'
 import { parseEther } from 'ethers/lib/utils.js'
-import url from 'node:url'
 import { loadEnv } from './loadEnvFile.js'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
-import { parseEther } from 'ethers/lib/utils.js'
 
 loadEnv()
 
+// TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
+export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
 const dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const defaultDbPath = path.resolve(dirname, '../../db_data')
 // const defaultDbPath = path.resolve(__dirname, '../../db_data')
@@ -127,6 +119,18 @@ for (const network in coreNetworks) {
     networks[chain].subgraphUrl = chainObj?.subgraphUrl
   }
   bonderConfig.totalStake = coreConfig[network as Network].bonderTotalStake
+
+  // Convert USDC to USDC.e
+  if (addresses.USDC && addresses['USDC.e']) {
+    addresses.USDC = addresses['USDC.e']
+    delete addresses['USDC.e']
+  }
+
+  // Convert USDC to USDC.e
+  if (bonders.USDC && bonders['USDC.e']) {
+    bonders.USDC = bonders['USDC.e']
+    delete bonders['USDC.e']
+  }
 
   const networkInfo = { addresses, bonders, bonderConfig, networks, metadata }
   networkConfigs[network] = networkInfo

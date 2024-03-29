@@ -1214,6 +1214,9 @@ importers:
       ethers:
         specifier: 5.6.8
         version: 5.6.8
+      qs:
+        specifier: 6.11.0
+        version: 6.11.0
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -6108,7 +6111,7 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.24.1
-      '@mui/material': 5.15.6(@emotion/react@11.10.5)(@emotion/styled@11.11.0)(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
+      '@mui/material': 5.15.6(@emotion/react@11.5.0)(@emotion/styled@11.11.0)(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
       '@types/react': 18.2.73
       react: 18.2.0
     dev: false

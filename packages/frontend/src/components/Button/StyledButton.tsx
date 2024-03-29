@@ -31,7 +31,7 @@ export const StyledButton = styled(Button)<StylishButtonProps>`
         `
     }
     return `
-        font-size: 1.5rem;
+        font-size: 1.5rem !important;
         padding: 0.8rem 2.8rem;
         height: 4.0rem;
       `

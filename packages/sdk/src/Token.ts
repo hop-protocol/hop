@@ -1,12 +1,12 @@
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import Chain from './models/Chain'
-import TokenModel from './models/Token'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { Chain, TokenModel } from '@hop-protocol/sdk-core'
 import { ERC20__factory } from '@hop-protocol/core/contracts'
-import { TAmount, TChain } from './types'
-import { TokenSymbol, WrappedToken } from './constants'
+import { TAmount, TChain } from './types.js'
+import { TokenSymbol, WrappedToken } from './constants/index.js'
 import { WETH9__factory } from '@hop-protocol/core/contracts'
 import { chains as chainMetadata } from '@hop-protocol/core/metadata'
+import { getAddress } from 'ethers/lib/utils.js'
 
 export type TokenConstructorOptions = {
   chain: TChain,
@@ -21,7 +21,7 @@ export type TokenConstructorOptions = {
  * Class reprensenting ERC20 Token
  * @namespace Token
  */
-class Token extends Base {
+export class Token extends Base {
   public readonly address: string
   public readonly decimals: number
   public readonly name: string
@@ -56,7 +56,7 @@ class Token extends Base {
     super(networkOrOptionsObject, signer, chainProviders)
 
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject 
+      const options = networkOrOptionsObject
       if (chain ?? address ?? decimals ?? symbol ?? name ?? image ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -72,16 +72,18 @@ class Token extends Base {
       throw new Error('chain is required')
     }
 
+    chain = this.toChainModel(chain)
+
     if (!address) {
-      throw new Error('address is required')
+      throw new Error(`address is required for Token ${symbol} on Chain ${chain?.slug}`)
     }
 
-    this.address = ethers.utils.getAddress(address)
+    this.address = getAddress(address)
     this.decimals = decimals!
     this._symbol = symbol!
     this.name = name!
     this.image = image!
-    this.chain = this.toChainModel(chain)
+    this.chain = chain
   }
 
   get symbol () {
@@ -414,5 +416,3 @@ class Token extends Base {
     return this.imageUrl
   }
 }
-
-export default Token

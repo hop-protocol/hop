@@ -1,14 +1,14 @@
 import { BigNumber } from 'ethers'
 import { DateTime } from 'luxon'
-import { PriceFeed } from './PriceFeed'
-import { db } from './Db'
-import { enabledChains, enabledTokens } from './config'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { getSubgraphUrl } from './utils/getSubgraphUrl'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+import { PriceFeed } from './PriceFeed.js'
+import { db } from './Db.js'
+import { enabledChains, enabledTokens } from './config.js'
+import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
+import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
+import { getTokenDecimals } from './utils/getTokenDecimals.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { nearestDate } from './utils/nearestDate'
-import { queryFetch } from './utils/queryFetch'
+import { nearestDate } from './utils/nearestDate.js'
+import { queryFetch } from './utils/queryFetch.js'
 
 type Options = {
   regenesis?: boolean

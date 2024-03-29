@@ -19,8 +19,8 @@ import {
   // FraxImage,
   // sBTCImage,
   // sETHImage,
-} from './assets'
-import { Tokens } from './types'
+} from './assets/index.js'
+import { Tokens } from './types.js'
 
 export const tokens: Tokens = {
   ETH: {
@@ -79,6 +79,14 @@ export const tokens: Tokens = {
   USDC: {
     symbol: 'USDC',
     name: 'USD Coin',
+    decimals: 6,
+    image: USDCImage,
+    coingeckoId: 'usd-coin',
+    isStablecoin: true
+  },
+  'USDC.e': {
+    symbol: 'USDC.e',
+    name: 'USD Coin Bridged',
     decimals: 6,
     image: USDCImage,
     coingeckoId: 'usd-coin',

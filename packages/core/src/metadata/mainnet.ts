@@ -1,6 +1,6 @@
-import { Metadata } from './types'
-import { chains } from './chains'
-import { tokens } from './tokens'
+import { Metadata } from './types.js'
+import { chains } from './chains.js'
+import { tokens } from './tokens.js'
 
 export const metadata: Metadata = {
   tokens,

@@ -1,4 +1,4 @@
-import TransfersDb from 'src/db/TransfersDb'
+import TransfersDb from '#db/TransfersDb.js'
 import dotenv from 'dotenv'
 
 dotenv.config()

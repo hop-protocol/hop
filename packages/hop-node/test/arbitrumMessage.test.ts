@@ -1,5 +1,5 @@
-import { ArbitrumMessageService } from '../src/chains/Chains/arbitrum/Message'
-import { MessageDirection } from '../src/chains/Services/MessageService'
+import { ArbitrumMessageService } from '#chains/Chains/arbitrum/Message.js'
+import { MessageDirection } from '#chains/Services/MessageService.js'
 
 describe.skip('getMessage', () => {
   it("should not retry if it can't get L1 to L2 messages", async () => {

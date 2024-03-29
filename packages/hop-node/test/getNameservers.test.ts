@@ -1,5 +1,5 @@
-import { appTld } from 'src/config'
-import { getNameservers } from 'src/utils/getNameservers'
+import { appTld } from '#config/index.js'
+import { getNameservers } from '#utils/getNameservers.js'
 
 test('getBumpedBN', async () => {
   const servers = await getNameservers(appTld)

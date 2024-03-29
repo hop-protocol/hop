@@ -1,19 +1,18 @@
-import Hop from './Hop'
+import { Hop } from './Hop.js'
 export { Hop }
-export { default as HopBridge } from './HopBridge'
-export { default as AMM } from './AMM'
-export { default as Token } from './Token'
-export { default as Base } from './Base'
-export { PriceFeed } from './priceFeed/PriceFeed'
-export * as utils from './utils'
-export { WithdrawalProof } from './utils/WithdrawalProof'
-
-export { Chain } from './models'
-export { RelayerFee } from './relayerFee'
-export { Route } from './models'
-export { TokenAmount, Token as TokenModel } from './models'
-export * from './types'
-export { eventTopics } from './constants'
+export { HopBridge } from './HopBridge.js'
+export { AMM } from './AMM.js'
+export { Token } from './Token.js'
+export { Base } from './Base.js'
+export { RelayerFee } from './relayerFee/index.js'
+export {
+  TChain,
+  TToken,
+  TAmount,
+  TTime,
+  TTimeSlot,
+  TProvider
+} from './types.js'
 export {
   ChainSlug,
   ChainName,
@@ -23,10 +22,39 @@ export {
   TokenSymbol,
   CanonicalToken,
   WrappedToken,
-  HToken
-} from './constants/constants'
-export * from './provider'
-export { Multicall, GetMulticallBalanceOptions } from './Multicall'
+  HToken,
+  eventTopics
+} from './constants/index.js'
+export {
+  Chain,
+  TokenModel,
+  Multicall,
+  GetMulticallBalanceOptions,
+  PriceFeed,
+  RetryProvider,
+  FallbackProvider,
+  chainIdToSlug,
+  fetchJsonOrThrow,
+  getBlockNumberFromDate,
+  getChainSlugFromName,
+  getEtherscanApiKey,
+  getEtherscanApiUrl,
+  getLpFeeBps,
+  getMinGasLimit,
+  getMinGasPrice,
+  getProviderFromUrl,
+  getSubgraphChains,
+  getSubgraphUrl,
+  getTokenDecimals,
+  getUrlFromProvider,
+  isValidUrl,
+  promiseQueue,
+  promiseTimeout,
+  rateLimitRetry,
+  serializeQueryParams,
+  shiftBNDecimals,
+  WithdrawalProof
+} from '@hop-protocol/sdk-core'
 
 if (typeof window !== 'undefined') {
   (window as any).Hop = Hop

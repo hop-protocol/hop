@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import objectDepth from '#utils/objectDepth.js'
 import path from 'node:path'
 import {
@@ -10,6 +9,7 @@ import {
   writeConfigFile
 } from '#config/index.js'
 import { actionHandler, logger, parseBool, parseString, root } from './shared/index.js'
+import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 
 root
   .command('update-config')

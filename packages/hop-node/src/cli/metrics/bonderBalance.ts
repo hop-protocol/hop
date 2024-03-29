@@ -1,8 +1,8 @@
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { Interface, formatUnits } from 'ethers/lib/utils.js'
 import { actionHandler, parseString, root } from '../shared/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import {
   hopAccountAddresses,
   possibleYears,
@@ -148,9 +148,9 @@ function getTokenAddressesFromCore (chain: string, addresses: any): string[] {
 async function getBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<BigNumber> {
   if (tokenAddress === '0x0000000000000000000000000000000000000000') {
     return getEthBalance(chain, accountAddress, blockNumber)
-  } 
+  }
     return getTokenBalance(chain, accountAddress, tokenAddress, blockNumber)
-  
+
 }
 
 async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {

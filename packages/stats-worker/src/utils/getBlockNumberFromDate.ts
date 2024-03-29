@@ -1,7 +1,7 @@
 import BlockDater from 'ethereum-block-by-date'
 import { DateTime } from 'luxon'
-import { etherscanApiKeys } from '../config'
-import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl'
+import { etherscanApiKeys } from '../config.js'
+import { getEtherscanApiUrl } from '../utils/getEtherscanApiUrl.js'
 
 export async function getBlockNumberFromDate (
   chain: string,
@@ -10,8 +10,7 @@ export async function getBlockNumberFromDate (
 ): Promise<number> {
   try {
     const useEtherscan = etherscanApiKeys[chain]
-    // Polygon's Etherscan returns invalid and inconsistent data, so skip it
-    if (useEtherscan && chain !== 'polygon') {
+    if (useEtherscan) {
       return await getBlockNumberFromDateUsingEtherscan(chain, timestamp)
     }
 
@@ -21,7 +20,8 @@ export async function getBlockNumberFromDate (
   }
 }
 
-// note: the etherscan api can be unreliable because of rate limiting
+// Note: The etherscan api can be unreliable because of rate limiting.
+// Note: Polygon's Etherscan may return invalid and inconsistent data, so make sure to error handle it.
 async function getBlockNumberFromDateUsingEtherscan (
   chain: string,
   timestamp: number

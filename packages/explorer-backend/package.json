@@ -13,7 +13,7 @@
     "dev:local": "npm run start:local",
     "lint": "eslint . --ext .ts --fix",
     "build": "tsc",
-    "test": "jest test",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo"
   },
   "author": "",
@@ -37,7 +37,7 @@
     "@types/pidusage": "2.0.2",
     "cors": "2.8.5",
     "dotenv": "16.0.0",
-    "ethers": "5.6.4",
+    "ethers": "5.7.2",
     "express": "4.17.3",
     "express-rate-limit": "6.4.0",
     "isomorphic-fetch": "3.0.0",

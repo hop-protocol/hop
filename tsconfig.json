@@ -40,7 +40,7 @@
     // https://www.typescriptlang.org/docs/handbook/modules/theory.html#input-module-syntax
     // Details: https://github.com/microsoft/TypeScript/pull/52203
     // TODO: Ensure this is set to `false` for CJS and dual export package like the SDK
-    "verbatimModuleSyntax": false,
+    "verbatimModuleSyntax": false
 
    /**
     * Explicitly define outDir and rootDir in each package since they

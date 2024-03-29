@@ -1,8 +1,5 @@
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import contracts from '#contracts/index.js'
 import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
 import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
 import getTransferRootSet from '#theGraph/getTransferRootSet.js'
@@ -16,7 +13,10 @@ import {
   ChainBalanceArchiveData
 } from '#constants/index.js'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
 
 import { getRecentUnrelayedL1ToL2Transfers } from './shared/utils.js'

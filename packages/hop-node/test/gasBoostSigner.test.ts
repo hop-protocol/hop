@@ -1,12 +1,12 @@
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
+import GasBoostSigner from '#gasboost/GasBoostSigner.js'
 import GasBoostTransaction from '@hop-protocol/hop-node-core'
-import MemoryStore from 'src/gasboost/MemoryStore'
-import expectDefined from './utils/expectDefined'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import MemoryStore from '#gasboost/MemoryStore.js'
+import expectDefined from './utils/expectDefined.js'
 import { Wallet } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
-import { privateKey } from './config'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { parseUnits } from 'ethers/lib/utils.js'
+import { privateKey } from './config/index.js'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {

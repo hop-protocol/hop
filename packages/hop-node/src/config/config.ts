@@ -1,9 +1,18 @@
-import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
-import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
 import os from 'node:os'
 import path from 'node:path'
+import url from 'node:url'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
+import {
+  type BlocklistConfig,
+  type Config as HopNodeCoreConfig,
+  type MetricsConfig,
+  type SignerConfig,
+  type Tokens,
+  envNetwork,
+  isTestMode,
+  setConfig
+} from '@hop-protocol/hop-node-core/config'
 import { BonderConfig } from './types.js'
 import {
   Chain,
@@ -36,6 +45,9 @@ import {
 import { parseEther } from 'ethers/lib/utils.js'
 import url from 'node:url'
 import { loadEnv } from './loadEnvFile.js'
+import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
+import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
+import { parseEther } from 'ethers/lib/utils.js'
 
 loadEnv()
 

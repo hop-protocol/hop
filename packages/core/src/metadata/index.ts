@@ -1,11 +1,11 @@
-import { metadata as goerli } from './goerli'
-import { metadata as mainnet } from './mainnet'
-import { metadata as sepolia } from './sepolia'
+import { metadata as goerli } from './goerli.js'
+import { metadata as mainnet } from './mainnet.js'
+import { metadata as sepolia } from './sepolia.js'
 
 const metadata = { goerli, sepolia, mainnet }
 export { goerli, sepolia, mainnet, metadata }
 
-export * from './types'
-export { tokens } from './tokens'
-export { chains } from './chains'
-export { rpcProviders, RpcProviderSlug, RpcProvider } from './providers'
+export * from './types.js'
+export { tokens } from './tokens.js'
+export { chains } from './chains.js'
+export { rpcProviders, RpcProviderSlug, RpcProvider } from './providers.js'

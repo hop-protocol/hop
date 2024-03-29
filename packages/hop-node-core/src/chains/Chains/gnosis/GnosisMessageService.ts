@@ -1,16 +1,14 @@
 import assert from 'node:assert'
 import { AbstractMessageService, IMessageService } from '../../Services/AbstractMessageService.js'
-import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
+import { Chain } from '#constants/index.js'
 import { Contract, Overrides, providers } from 'ethers'
+import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import { GnosisAddresses, GnosisCanonicalAddresses } from '../../Chains/gnosis/GnosisAddresses.js'
 import { L1_xDaiAMB } from '@hop-protocol/core/contracts'
 import { L2_xDaiAMB } from '@hop-protocol/core/contracts'
 import { NetworkSlug } from '@hop-protocol/core/networks'
-import hopCoreAbi from '@hop-protocol/core/abi'
+import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/core/abi'
 import { solidityKeccak256 } from 'ethers/lib/utils.js'
-import { Chain } from '#constants/index.js'
-
-const { l1xDaiAmbAbi, l2xDaiAmbAbi } =hopCoreAbi 
 
 type Message = string
 type MessageStatus = string

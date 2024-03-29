@@ -1,8 +1,6 @@
-import { CanonicalToken, ChainId, ChainName, ChainSlug, HToken, NetworkSlug, Slug, WrappedToken } from '@hop-protocol/core/networks'
+import { CanonicalToken, ChainId, ChainName, ChainSlug, Errors, HToken, NetworkSlug, Slug, TokenSymbol, WrappedToken } from '@hop-protocol/sdk-core'
 
-export { NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
-
-export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string
+export { Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
 
 export enum TokenIndex {
   CanonicalToken = 0,
@@ -39,11 +37,6 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 
 export const PendingAmountBufferUsd = 50000
 
-export enum Errors {
-  NotEnoughAllowance = 'Not enough allowance. Please call `approve` on the token contract to allow contract to move tokens and make sure you are connected to the correct network.',
-  xDaiRebrand = 'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.'
-}
-
 export enum EventNames {
   TransferSent = 'TransferSent',
   TransferSentToL2 = 'TransferSentToL2',
@@ -51,8 +44,9 @@ export enum EventNames {
 
 export const MaxDeadline: number = 9999999999
 // Low liquidity or single-chain tokens should have a buffer of appx 10% of their L1 stake
-export const LowLiquidityTokens: string[] = ['HOP', 'SNX', 'sUSD', 'rETH']
+export const LowLiquidityTokens: string[] = ['USDT', 'HOP', 'SNX', 'sUSD', 'rETH']
 export const LowLiquidityTokenBufferAmountsUsd: Record<string, string> = {
+  USDT: '10000',
   HOP: '8000',
   SNX: '40000',
   sUSD: '40000',

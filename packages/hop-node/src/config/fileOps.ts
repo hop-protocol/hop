@@ -1,4 +1,3 @@
-import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -31,6 +30,7 @@ import {
   setSignerConfig,
   setSyncConfig
 } from './config.js'
+import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
 import { getAddress } from 'ethers/lib/utils.js'
 import { getParameter } from '@hop-protocol/hop-node-core/aws'
 import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'

@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.228",
+  "version": "0.0.1-beta.236",
   "description": "Hop Protocol networks config",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -8,7 +8,6 @@
     "node": ">=20.10.0",
     "pnpm": ">=8"
   },
-  "type": "commonjs",
   "files": [
     "dist",
     "abi",
@@ -19,59 +18,71 @@
     "networks",
     "s3upload"
   ],
+  "imports": {
+    "#*": "./dist/esm/*"
+  },
   "exports": {
     ".": {
       "types": "./dist/cjs/index.d.ts",
+      "import": "./dist/esm/index.js",
       "default": "./dist/cjs/index.js"
     },
     "./abi": {
       "types": "./dist/cjs/abi/index.d.ts",
+      "import": "./dist/esm/abi/index.js",
       "default": "./dist/cjs/abi/index.js"
     },
     "./addresses": {
       "types": "./dist/cjs/addresses/index.d.ts",
+      "import": "./dist/esm/addresses/index.js",
       "default": "./dist/cjs/addresses/index.js"
     },
     "./config": {
       "types": "./dist/cjs/config/index.d.ts",
+      "import": "./dist/esm/config/index.js",
       "default": "./dist/cjs/config/index.js"
     },
     "./contracts": {
       "types": "./dist/cjs/contracts/index.d.ts",
+      "import": "./dist/esm/contracts/index.js",
       "default": "./dist/cjs/contracts/index.js"
     },
     "./contracts/*": {
       "types": "./dist/cjs/contracts/*.d.ts",
+      "import": "./dist/esm/contracts/*.js",
       "default": "./dist/cjs/contracts/*.js"
     },
     "./metadata": {
       "types": "./dist/cjs/metadata/index.d.ts",
+      "import": "./dist/esm/metadata/index.js",
       "default": "./dist/cjs/metadata/index.js"
     },
     "./metadata/tokens": {
       "types": "./dist/cjs/metadata/index.d.ts",
+      "import": "./dist/esm/metadata/tokens.js",
       "default": "./dist/cjs/metadata/tokens.js"
     },
     "./networks": {
       "types": "./dist/cjs/networks/index.d.ts",
+      "import": "./dist/esm/networks/index.js",
       "default": "./dist/cjs/networks/index.js"
     }
   },
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./abi ./addresses ./config ./contracts ./metadata ./networks",
-    "test": "jest test",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
-    "build:all": "pnpm build:typechain && pnpm build:ts && pnpm build:cjs && pnpm build:toplevel",
-    "build:ts": "tsc",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:all": "pnpm build:typechain && pnpm build:cjs && pnpm build:esm && pnpm build:toplevel",
+    "build:esm": "cp scripts/esm_abi_index.ts src/abi/index.ts && tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh",
+    "build:cjs": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
     "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
-    "build:toplevel": "bash -c 'cp -r ./dist/{abi,addresses,config,contracts,metadata,networks} ./'",
+    "build:toplevel": "bash -c 'cp -r ./dist/cjs/{abi,addresses,config,contracts,metadata,networks} ./'",
     "lint": "eslint . --ext .ts --fix",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "bump": "pnpm version prerelease --preid=beta",
     "release": "pnpm build:all && pnpm lint && pnpm test && pnpm bump",
-    "upload": "pnpm build:ts && node dist/s3upload/main"
+    "upload": "pnpm build:ts && node dist/cjs/s3upload/main"
   },
   "directories": {},
   "dependencies": {

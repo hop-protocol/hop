@@ -199,6 +199,7 @@ export const Header: FC = () => {
               borderRadius={'3rem'}
               mx={1}
               p={'1.2rem 2rem'}
+              title={`Your Balance on ${connectedNetwork?.name}`}
               boxShadow={
                 isDarkMode && theme
                   ? theme.boxShadow.inner

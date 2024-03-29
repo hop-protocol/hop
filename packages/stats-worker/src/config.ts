@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { getDefaultRpcUrl } from './utils/getDefaultRpcProvider'
+import { getDefaultRpcUrl } from './utils/getDefaultRpcProvider.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 export const pinataApiKey = process.env.PINATA_API_KEY
@@ -18,7 +18,7 @@ const addresses = mainnetAddresses
 for (const token in addresses.bridges) {
   tokenSet.add(token)
 
-  for (const chain in addresses.bridges[token]) {
+  for (const chain in (addresses.bridges as any)[token]) {
     chainSet.add(chain)
   }
 }

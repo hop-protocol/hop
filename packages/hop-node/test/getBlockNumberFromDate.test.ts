@@ -1,4 +1,4 @@
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
+import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 
 test('getBlockNumberFromDate', async () => {

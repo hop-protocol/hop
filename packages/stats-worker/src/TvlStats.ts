@@ -1,15 +1,15 @@
-import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { DateTime } from 'luxon'
-import { PriceFeed } from './PriceFeed'
-import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config'
-import { db } from './Db'
+import { PriceFeed } from './PriceFeed.js'
+import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config.js'
+import { db } from './Db.js'
 import { erc20Abi } from '@hop-protocol/core/abi'
-import { formatUnits } from 'ethers/lib/utils'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+import { formatUnits } from 'ethers/lib/utils.js'
+import { getTokenDecimals } from './utils/getTokenDecimals.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { nearestDate } from './utils/nearestDate'
-import { timestampPerBlockPerChain } from './constants'
+import { nearestDate } from './utils/nearestDate.js'
+import { timestampPerBlockPerChain } from './constants.js'
 
 function sumAmounts (items: any) {
   let sum = BigNumber.from(0)

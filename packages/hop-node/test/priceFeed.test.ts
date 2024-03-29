@@ -1,4 +1,4 @@
-import { PriceFeed } from 'src/priceFeed'
+import { PriceFeed } from '#priceFeed/index.js'
 
 describe('priceFeed', () => {
   const priceFeed = new PriceFeed()

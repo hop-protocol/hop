@@ -1,0 +1,16 @@
+data
+*.log
+yarn.lock
+build
+dist
+!third_party/*.tgz
+src/package.json
+*.map
+.env
+*.env
+!docs/*
+!docs/README.md
+docs-ui
+/hop.js
+.prettierrc
+test/_*

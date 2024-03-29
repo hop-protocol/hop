@@ -32,6 +32,7 @@ type Props = {
   token1Symbol: string
   tokenDecimals: number
   walletConnected: boolean
+  isTokenDeprecated: boolean
 }
 
 export function WithdrawForm(props: any) {
@@ -51,6 +52,7 @@ export function WithdrawForm(props: any) {
     token1Symbol,
     tokenDecimals,
     walletConnected,
+    isTokenDeprecated
   } = props
 
   const selections: any[] = [
@@ -206,13 +208,15 @@ export function WithdrawForm(props: any) {
             </Typography>
           )}
         </Box>
-        <Box>
-          <Button onClick={() => goToTab('deposit')}>
-            <Typography variant="body1">
-              Deposit
-            </Typography>
-          </Button>
-        </Box>
+        {!isTokenDeprecated && (
+          <Box>
+            <Button onClick={() => goToTab('deposit')}>
+              <Typography variant="body1">
+                Deposit
+              </Typography>
+            </Button>
+          </Box>
+        )}
       </Box>
     )
   }

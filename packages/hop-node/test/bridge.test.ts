@@ -1,8 +1,8 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import contracts from 'src/contracts/index.js'
-import expectDefined from './utils/expectDefined'
-import { config as globalConfig } from 'src/config'
+import L1Bridge from '#watchers/classes/L1Bridge.js'
+import contracts from '#contracts/index.js'
 import dotenv from 'dotenv'
+import expectDefined from './utils/expectDefined'
+import { config as globalConfig } from '#config/index.js'
 
 dotenv.config()
 

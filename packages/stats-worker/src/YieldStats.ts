@@ -9,8 +9,8 @@ import {
   StakingRewards__factory
 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { coingeckoApiKey, rpcUrls } from './config'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { coingeckoApiKey, rpcUrls } from './config.js'
+import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
@@ -135,7 +135,7 @@ class YieldStats {
     let yieldData: YieldData = this.initializeYieldData(this.bridges)
     for (const token in this.bridges) {
       const promises: Promise<any>[] = []
-      for (const chain in this.bridges[token]) {
+      for (const chain in (this.bridges as any)[token]) {
         const shouldSkip = this.shouldSkipYields(this.bridges, chain, token)
         if (shouldSkip) {
           continue
@@ -229,7 +229,7 @@ class YieldStats {
           }
         }
 
-        const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
+        const stakingContracts = this.stakingRewardsContracts?.[token === 'USDC' ? 'USDC.e' : token]?.[chain]
         if (stakingContracts && stakingContracts.length > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
           if (!yieldData.stakingRewards[token]) { yieldData.stakingRewards[token] = {} }

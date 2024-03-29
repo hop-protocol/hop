@@ -1,16 +1,16 @@
 import L1Bridge from '#watchers/classes/L1Bridge.js'
 import L2Bridge from '#watchers/classes/L2Bridge.js'
 import Token from '#watchers/classes/Token.js'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import { wait } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber, constants } from 'ethers'
 import { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 root
   .command('stake')

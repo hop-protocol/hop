@@ -1,4 +1,4 @@
-import getTransferRootId from 'src/utils/getTransferRootId'
+import getTransferRootId from '#utils/getTransferRootId.js'
 import { BigNumber } from 'ethers'
 
 test('getTransferRootId', () => {

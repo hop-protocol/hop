@@ -130,7 +130,6 @@ export const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(func
   }, [keypress, handleClose])
 
   return (
-    <ClickAwayListener onClickAway={handleClose}>
       <Transition
         in={true}
         timeout={{
@@ -153,24 +152,19 @@ export const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(func
               appear={true}
               unmountOnExit={false}
             >
-              <div className={clsx(styles.container, transitionState)}>
-                <ClickAwayListener
-                  onClickAway={handleClose}
-                  mouseEvent="onMouseDown"
-                  touchEvent="onTouchStart"
-                >
+              <ClickAwayListener onClickAway={handleClose}>
+                <div className={clsx(styles.container, transitionState)}>
                   <Card className={styles.card}>
                     <div className={styles.close} onClick={handleClose}>
                       ✕
                     </div>
                     <div className={styles.content}>{children}</div>
                   </Card>
-                </ClickAwayListener>
-              </div>
+                </div>
+              </ClickAwayListener>
             </Transition>
           </div>
         )}
       </Transition>
-    </ClickAwayListener>
   )
 })

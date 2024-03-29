@@ -1,19 +1,15 @@
-import { Logger } from '#logger/index.js'
-import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
+import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
 import wallets from '#wallets/index.js'
 import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from '#constants/index.js'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
+import { Logger } from '#logger/index.js'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { SwapInput } from '../types.js'
-import hopCoreAbi from '@hop-protocol/core/abi'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { erc20Abi } from '@hop-protocol/core/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
-import path from 'node:path'
-import fs from 'node:fs'
-import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
-
-const { erc20Abi } = hopCoreAbi
+import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
 
 const logger = new Logger({
   tag: 'Uniswap'

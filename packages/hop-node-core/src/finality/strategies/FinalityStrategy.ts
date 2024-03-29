@@ -1,8 +1,8 @@
-import { getChainBridge } from '#chains/getChainBridge.js'
 import { Chain } from '#constants/index.js'
 import { FinalityBlockTag, IChainBridge } from '#chains/IChainBridge.js'
 import { FinalityState } from '@hop-protocol/core/config'
 import { IFinalityStrategy } from './IFinalityStrategy.js'
+import { getChainBridge } from '#chains/getChainBridge.js'
 import { providers } from 'ethers'
 
 // Default values to be overridden by child classes if desired

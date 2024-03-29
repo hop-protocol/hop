@@ -1,5 +1,4 @@
 import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
-import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { KmsSigner } from '#aws/KmsSigner.js'
 import { LambdaSigner } from '#aws/LambdaSigner.js'
 import { Signer, Wallet } from 'ethers'
@@ -11,6 +10,7 @@ import {
   priorityFeePerGasCap,
   timeTilBoostMs
 } from '#config/index.js'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 
 const cache: Record<string, Signer> = {}
 

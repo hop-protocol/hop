@@ -169,17 +169,19 @@ export function populateTransfer (item: any, prices?: Record<string, any>) {
     }
   }
 
-  const decimals = getTokenDecimals(item.token)
-  if (!item.amountFormatted) {
-    item.amountFormatted = Number(formatUnits(item.amount, decimals))
+  if (item.token) {
+    const decimals = getTokenDecimals(item.token)
+    if (!item.amountFormatted && item.amount) {
+      item.amountFormatted = Number(formatUnits(item.amount, decimals))
+    }
+    if (!item.bonderFeeFormatted) {
+      item.bonderFeeFormatted = item.bonderFee ? Number(formatUnits(item.bonderFee, decimals)) : 0
+    }
   }
-  if (!item.amountDisplay) {
+  if (!item.amountDisplay && item.amountFormatted != null) {
     item.amountDisplay = item.amountFormatted.toFixed(4)
   }
-  if (!item.bonderFeeFormatted) {
-    item.bonderFeeFormatted = item.bonderFee ? Number(formatUnits(item.bonderFee, decimals)) : 0
-  }
-  if (!item.bonderFeeDisplay) {
+  if (!item.bonderFeeDisplay && item.bonderFeeFormatted != null) {
     item.bonderFeeDisplay = item.bonderFeeFormatted.toFixed(4)
   }
   if (!item.tokenImageUrl && item.token) {
@@ -205,7 +207,7 @@ export function populateTransfer (item: any, prices?: Record<string, any>) {
     item.bonderFeeUsdDisplay = ''
   }
 
-  if (prices && prices[item.token]) {
+  if (prices && item.token && prices[item.token]) {
     const dates = prices[item.token].reverse().map((x: number[]) => x[0])
     const nearest = nearestDate(dates, item.timestamp)
     if (prices[item.token][nearest]) {

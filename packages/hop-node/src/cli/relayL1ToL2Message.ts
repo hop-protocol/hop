@@ -1,5 +1,5 @@
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { WatcherNotFoundError } from './shared/utils.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import {
   getL1ToL2RelayWatcher
 } from '#watchers/watchers.js'

@@ -1,9 +1,18 @@
-import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
-import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
 import os from 'node:os'
 import path from 'node:path'
+import url from 'node:url'
 import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
 import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
+import {
+  type BlocklistConfig,
+  type Config as HopNodeCoreConfig,
+  type MetricsConfig,
+  type SignerConfig,
+  type Tokens,
+  envNetwork,
+  isTestMode,
+  setConfig
+} from '@hop-protocol/hop-node-core/config'
 import { BonderConfig } from './types.js'
 import {
   Chain,
@@ -18,20 +27,10 @@ import {
 } from '#constants/index.js'
 import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
 import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
-import {
-  config as hopNodeCoreConfig,
-  envNetwork,
-  isTestMode,
-  setConfig,
-  type Config as HopNodeCoreConfig,
-  type Tokens,
-  type MetricsConfig,
-  type SignerConfig,
-  type BlocklistConfig
-} from '@hop-protocol/hop-node-core/config'
-import { parseEther } from 'ethers/lib/utils.js'
-import url from 'node:url'
 import { loadEnv } from './loadEnvFile.js'
+import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
+import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
+import { parseEther } from 'ethers/lib/utils.js'
 
 loadEnv()
 
@@ -41,6 +40,20 @@ const defaultDbPath = path.resolve(dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
+export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
+export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
+export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
+export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
+export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
+export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
+export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
+export const awsProfile = process.env.AWS_PROFILE
+export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
+export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
+export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
+// TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
+export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs

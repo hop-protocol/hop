@@ -1,14 +1,14 @@
-import { normalizeEnvVarNumber } from './utils/normalizeEnvVarNumber.js'
 import os from 'node:os'
 import {
   Chain,
   Network,
   OneHourMs
 } from '#constants/index.js'
-import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
-import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
+import { metadata as coreMetadata } from '@hop-protocol/core/metadata'
+import { networks as coreNetworks } from '@hop-protocol/core/networks'
 import { execSync } from 'node:child_process'
 import { loadEnv } from './loadEnvFile.js'
+import { normalizeEnvVarNumber } from './utils/normalizeEnvVarNumber.js'
 
 loadEnv()
 

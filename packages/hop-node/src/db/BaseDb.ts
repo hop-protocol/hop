@@ -1,6 +1,7 @@
 import DatabaseMigrator from './DatabaseMigrator.js'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 // @ts-expect-error level-party does not have a types file as of 20231227
+import _ from 'lodash'
 import level from 'level-party'
 import os from 'node:os'
 import path from 'node:path'
@@ -8,7 +9,6 @@ import sub from 'subleveldown'
 import { EventEmitter } from 'node:events'
 import { Migration } from './migrations.js'
 import { config as globalConfig } from '#config/index.js'
-import _ from 'lodash'
 import { mkdirp } from 'mkdirp'
 import { normalizeDbValue } from './utils.js'
 const dbMap: { [key: string]: any } = {}

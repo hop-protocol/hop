@@ -1,8 +1,7 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import { Header } from './Header'
+import React from 'react'
 import { Footer } from './Footer'
+import { Header } from './Header'
 
 export function SiteWrapper (props: any) {
   const { children } = props

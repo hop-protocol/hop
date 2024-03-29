@@ -5,17 +5,21 @@ import {
   BondWithdrawalBatchSize,
   config as globalConfig
 } from '#config/index.js'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
+import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
+import { computeAddress } from 'ethers/lib/utils'
 import { computeAddress } from 'ethers/lib/utils.js'
+import { main as enableCCTP } from './shared/cctp'
 import {
   gitRev,
   slackAuthToken,
   slackChannel,
   slackUsername
 } from '@hop-protocol/hop-node-core/config'
-import { setConfig } from '@hop-protocol/hop-node-core/config'
 import { printHopArt } from './shared/art.js'
+import { setConfig } from '@hop-protocol/hop-node-core/config'
 import {
   startWatchers
 } from '#watchers/watchers.js'
@@ -41,6 +45,7 @@ root
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
   .option('--arb-bot [boolean]', 'Run the Goerli arb bot', parseBool)
+  .option('--cctp [boolean]', 'Run CCTP', parseBool)
   .option(
     '--arb-bot-config <path>',
     'Arb bot(s) config JSON file',
@@ -53,7 +58,8 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig, cctp: runCCTP } = source
+
   if (!config) {
     throw new Error('config file is required')
   }
@@ -142,6 +148,12 @@ async function main (source: any) {
 
   // TODO: MIGRATION: Handle this
   setConfig(globalConfig)
+
+  // Don't start watchers if running CCTP
+  if (runCCTP) {
+    return enableCCTP()
+  }
+
   const { starts } = await startWatchers({
     enabledWatchers: Object.keys(config.watchers).filter(
       key => config.watchers[key]

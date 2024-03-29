@@ -33,6 +33,9 @@
   },
   "dependencies": {
     "@hop-protocol/core": "workspace:*",
+    "@uniswap/sdk-core": "4.2.0",
+    "@uniswap/v3-core": "1.0.1",
+    "@uniswap/v3-sdk": "3.9.0",
     "buffer": "6.0.3",
     "dotenv": "16.4.1",
     "esbuild": "0.20.0",

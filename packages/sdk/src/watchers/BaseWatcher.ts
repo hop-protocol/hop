@@ -1,9 +1,9 @@
-import { EventEmitter } from 'eventemitter3'
-import { wait } from '../utils/index.js'
 import { Base, ChainProviders } from '../Base.js'
 import { Chain, TokenModel } from '@hop-protocol/sdk-core'
+import { EventEmitter } from 'eventemitter3'
 import { HopBridge } from '../HopBridge.js'
 import { TChain, TProvider, TToken } from '../types.js'
+import { wait } from '../utils/index.js'
 
 /**
  * @desc Event types for transaction watcher.

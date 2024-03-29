@@ -1,6 +1,4 @@
 import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
 import {
   Chain,
@@ -14,6 +12,8 @@ import {
   TxError
 } from '#constants/index.js'
 import { TxRetryDelayMs } from '#config/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
 import { transfersMigrations } from './migrations.js'
 
 interface BaseTransfer {
@@ -495,7 +495,7 @@ class TransfersDb extends BaseDb<Transfer> {
     // Look back this many days/weeks to construct the root. If this is not enough, the consumer should look
     // up the root onchain.
     // As a rough reference, a third-party Optimism provider looks back appx 1 day per index.
-    const maxLookbackIndex = 50
+    const maxLookbackIndex = 150
     const transferIds: string[] = []
 
     const now = Date.now()

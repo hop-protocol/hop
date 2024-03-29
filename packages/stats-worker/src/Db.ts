@@ -1,8 +1,8 @@
 import minimist from 'minimist'
 import sqlite3 from 'sqlite3'
-import { wait } from './utils/wait.js'
 import { dbPath } from './config.js'
 import { v4 as uuid } from 'uuid'
+import { wait } from './utils/wait.js'
 
 console.log('db path:', dbPath)
 

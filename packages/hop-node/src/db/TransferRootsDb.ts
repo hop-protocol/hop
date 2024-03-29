@@ -1,6 +1,4 @@
 import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
 import {
   BondTransferRootChains,
@@ -16,6 +14,8 @@ import {
   TenMinutesMs
 } from '@hop-protocol/hop-node-core/constants'
 import { TxRetryDelayMs } from '#config/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
 import { transferRootsMigrations } from './migrations.js'
 
 interface BaseTransferRoot {

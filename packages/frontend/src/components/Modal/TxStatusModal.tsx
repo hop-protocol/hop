@@ -31,7 +31,8 @@ export function TxStatusModal(props: Props) {
 
   const { fixedTimeEstimate, medianTimeEstimate, percentileTimeEstimate } = useTransferTimeEstimate(
     tx.networkName,
-    tx.destNetworkName
+    tx.destNetworkName,
+    tx?.token?._symbol
   )
 
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
@@ -54,7 +55,7 @@ export function TxStatusModal(props: Props) {
               ? `on ${networkSlugToName(tx.destNetworkName)}`
               : "at the destination"
             }
-            <strong>{' '}~
+            <strong>{' '}
               { transferTimeDisplay(medianTimeEstimate, fixedTimeEstimate) }
             </strong>{' '}
             after the transaction is confirmed.

@@ -1,10 +1,10 @@
-import { getRpcRootProviderName } from '#utils/getRpcRootProviderName.js'
-import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
-import { wait } from '#utils/wait.js'
 import { AbstractOptimismInclusionService } from '../../../Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
 import { IInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { RootProviderName } from '#constants/index.js'
+import { getRpcRootProviderName } from '#utils/getRpcRootProviderName.js'
+import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
 import { providers } from 'ethers'
+import { wait } from '#utils/wait.js'
 
 interface GetInclusionTxHashes {
   destChainProvider: providers.Provider

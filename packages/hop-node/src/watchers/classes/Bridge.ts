@@ -1,7 +1,4 @@
 import ContractBase from './ContractBase.js'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import getTokenMetadataByAddress from '#utils/getTokenMetadataByAddress.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
 import { BigNumber, Contract, providers } from 'ethers'
@@ -21,6 +18,7 @@ import {
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
 import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from '#db/SyncStateDb.js'
@@ -31,6 +29,8 @@ import {
   getNetworkCustomSyncType,
   config as globalConfig
 } from '#config/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 
 export type EventsBatchOptions = {
   syncCacheKey: string

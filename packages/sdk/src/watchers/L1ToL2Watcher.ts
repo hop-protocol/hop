@@ -1,7 +1,7 @@
-import { EventEmitter } from 'eventemitter3'
 import { BaseWatcher } from './BaseWatcher.js'
 import { BigNumber } from 'ethers'
 import { DateTime } from 'luxon'
+import { EventEmitter } from 'eventemitter3'
 import { EventNames } from '../constants/index.js'
 import { makeRequest } from './makeRequest.js'
 import {

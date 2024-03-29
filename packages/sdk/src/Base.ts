@@ -1,3 +1,4 @@
+import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { ArbERC20 } from '@hop-protocol/core/contracts'
 import { ArbERC20__factory } from '@hop-protocol/core/contracts'
@@ -5,21 +6,15 @@ import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts'
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import {
+  Chain,
+  TokenModel,
   fetchJsonOrThrow,
   getMinGasLimit,
   getMinGasPrice,
   getProviderFromUrl,
   getUrlFromProvider,
   promiseTimeout,
-  rateLimitRetry
-} from '@hop-protocol/sdk-core'
-import {
-  Chain,
-  TokenModel
-} from '@hop-protocol/sdk-core'
-import {
-  Multicall,
-  MulticallBalance
+  rateLimitRetry,
 } from '@hop-protocol/sdk-core'
 import { ChainSlug, Errors, NetworkSlug } from './constants/index.js'
 import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts'
@@ -34,11 +29,14 @@ import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts'
 import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts'
 import { L2_xDaiToken } from '@hop-protocol/core/contracts'
 import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts'
+import {
+  Multicall,
+  MulticallBalance
+} from '@hop-protocol/sdk-core'
 import { RelayerFee } from './relayerFee/index.js'
 import { TChain, TProvider, TToken } from './types.js'
 import { config, metadata } from './config/index.js'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils.js'
-import memoize from 'fast-memoize'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -236,7 +234,17 @@ export class Base {
     this.chains = config[network].chains
     this.addresses = config[network].addresses
     this.bonders = config[network].bonders
+
+    if (this.bonders && this.bonders.USDC && !this.bonders['USDC.e']) {
+      this.bonders['USDC.e'] = this.bonders.USDC
+    }
+
     this.fees = config[network].bonderFeeBps
+
+    if (this.fees && this.fees.USDC && !this.fees['USDC.e']) {
+      this.fees['USDC.e'] = this.fees.USDC
+    }
+
     this.destinationFeeGasPriceMultiplier = config[network].destinationFeeGasPriceMultiplier
     this.relayerFeeEnabled = config[network].relayerFeeEnabled
     this.relayerFeeWei = config[network].relayerFeeWei
@@ -260,9 +268,15 @@ export class Base {
       const data = cached || await this.fetchCoreConfigDataWithIpfsFallback()
       if (data) {
         if (data.bonders) {
+          if (data?.bonders?.USDC && !data?.bonders?.['USDC.e']) {
+            data.bonders['USDC.e'] = data.bonders.USDC
+          }
           this.bonders = data.bonders
         }
         if (data.bonderFeeBps) {
+          if (data?.bonderFeeBps?.USDC && !data?.bonderFeeBps?.['USDC.e']) {
+            data.bonderFeeBps['USDC.e'] = data.bonderFeeBps.USDC
+          }
           this.fees = data.bonderFeeBps
         }
         if (data.destinationFeeGasPriceMultiplier) {
@@ -580,8 +594,26 @@ export class Base {
     return this.getConfigAddresses(token, chain)?.l1Bridge
   }
 
+  public getCctpL1BridgeAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpL1Bridge
+  }
+
   public getL2BridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2Bridge
+  }
+
+  public getCctpL2BridgeAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpL2Bridge
+  }
+
+  public getCctpBridgeAddress (token: TToken, chain: TChain): string {
+    chain = this.toChainModel(chain)
+    const configAddresses = this.getConfigAddresses(token, chain)
+    return chain.isL1 ? configAddresses?.cctpL1Bridge : configAddresses?.cctpL2Bridge
+  }
+
+  public getCctpMessageTransmitterAddress (token: TToken, chain: TChain): string {
+    return this.getConfigAddresses(token, chain)?.cctpMessageTransmitter
   }
 
   public getL1CanonicalBridgeAddress (token: TToken, chain: TChain): string {
@@ -701,7 +733,7 @@ export class Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const bonder = this.bonders?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+    const bonder = this.bonders?.[token?.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
     if (!bonder) {
       console.warn(`bonder address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
     }
@@ -714,7 +746,7 @@ export class Base {
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
 
-    const messengerWrapper = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
+    const messengerWrapper = this.addresses?.[token?.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
     if (!messengerWrapper) {
       console.warn(`messengerWrapper address not found for route ${token.symbol}. destinationChain ${destinationChain.slug}`)
     }
@@ -722,13 +754,17 @@ export class Base {
     return messengerWrapper
   }
 
-  public async getFeeBps (token: TToken, destinationChain: TChain): Promise<number> {
+  public async getFeeBps (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<number> {
     const timeStart = Date.now()
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {
       throw new Error('token is required')
+    }
+    if (!sourceChain) {
+      throw new Error('sourceChain is required')
     }
     if (!destinationChain) {
       throw new Error('destinationChain is required')
@@ -738,7 +774,13 @@ export class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps = fees[destinationChain.slug] || 0
+    let feeBps = fees[destinationChain.slug] || 0
+
+    // Special case for DAI transfers out of Gnosis Chain
+    if (sourceChain.equals(Chain.Gnosis) && token.symbol === TokenModel.XDAI) {
+      feeBps = fees?.[ChainSlug.Gnosis] ?? feeBps
+    }
+
     this.debugTimeLog('getFeeBps', timeStart)
     return feeBps
   }
@@ -997,9 +1039,9 @@ export class Base {
     return json.data ?? null
   }
 
-  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string):Promise<any> {
+  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, tokenSymbol?: string):Promise<any> {
     const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
-    const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
+    const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}&token=${tokenSymbol ?? ''}`
     const json = await fetchJsonOrThrow(url, (9 * 1000))
     return json.data ?? null
   }

@@ -45,13 +45,17 @@ export function usePoolStats () {
           try {
             let data = json.pools
             const _stakingStats = json.stakingRewards
-            if (!data[symbol]) {
+            let jsonTokenSymbol = symbol
+            if (symbol === 'USDC.e' && !data[symbol]) {
+              jsonTokenSymbol = 'USDC'
+            }
+            if (!data[jsonTokenSymbol]) {
               throw new Error(`expected data for token symbol "${symbol}"`)
             }
-            if (!data[symbol][chain]) {
+            if (!data[jsonTokenSymbol][chain]) {
               throw new Error(`expected data for network "${chain}"`)
             }
-            data = data[symbol][chain]
+            data = data[jsonTokenSymbol][chain]
             if (data.apr === undefined) {
               throw new Error(`expected apr value for token "${symbol}" and network "${chain}"`)
             }

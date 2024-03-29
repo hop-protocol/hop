@@ -1,4 +1,3 @@
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
 import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
@@ -7,6 +6,7 @@ import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import { PreRegenesisRootsCommitted } from '#constants/index.js'
 import { actionHandler, parseString, root } from './shared/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 
 type RootCommitted = {
   rootHash: string

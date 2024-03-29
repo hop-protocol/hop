@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@emotion/react": "11.10.5",
-    "@emotion/styled": "11.10.5",
+    "@emotion/styled": "11.11.0",
     "@hop-protocol/core": "workspace:*",
     "@mui/icons-material": "5.11.0",
     "@mui/material": "5.11.8",
@@ -40,13 +40,8 @@
     "@types/lodash": "4.14.181",
     "@types/luxon": "2.3.1",
     "@types/node": "17.0.23",
-    "@types/react": "18.2.55",
+    "@types/react": "18.2.73",
     "@types/react-dom": "18.2.19",
     "eslint-config-next": "14.1.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "^18.0.0"
-    }
   }
 }

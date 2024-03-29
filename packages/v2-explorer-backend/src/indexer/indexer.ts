@@ -2,7 +2,7 @@ import wait from 'wait'
 // import { Hop } from '@hop-protocol/v2-sdk'
 import { SyncStateDb } from '../db/syncStateDb'
 import { db } from '../db'
-import { dbPath, sdkContractAddresses } from 'src/config'
+import { dbPath } from 'src/config'
 import { pgDb } from '../pgDb'
 
 type StartBlocks = {
@@ -183,7 +183,7 @@ export class Indexer {
     }
 
     await wait(100)
-    return await this.waitForSyncIndex(syncIndex)
+    return this.waitForSyncIndex(syncIndex)
   }
 
   getIsL1 (chainId: number) {

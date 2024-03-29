@@ -1,6 +1,5 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import React from 'react'
 import { SiteWrapper } from '../components/SiteWrapper'
 // import { useQueryParams } from './hooks/useQueryParams'
 import { BundleCommittedEvents } from '../components/events/BundleCommittedEvents'

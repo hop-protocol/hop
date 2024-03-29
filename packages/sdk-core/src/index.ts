@@ -47,5 +47,7 @@ export {
   rateLimitRetry,
   serializeQueryParams,
   shiftBNDecimals,
-  WithdrawalProof
+  WithdrawalProof,
+  getCctpDomain,
+  getUSDCSwapParams
 } from './utils/index.js'

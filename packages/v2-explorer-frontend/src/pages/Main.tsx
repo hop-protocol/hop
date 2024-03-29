@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
-import { SiteWrapper } from '../components/SiteWrapper'
-import { ExplorerEvents } from '../components/ExplorerEvents'
 import Box from '@mui/material/Box'
+import React from 'react'
+import { ExplorerEvents } from '../components/ExplorerEvents'
+import { SiteWrapper } from '../components/SiteWrapper'
 
 export function Main () {
   return (

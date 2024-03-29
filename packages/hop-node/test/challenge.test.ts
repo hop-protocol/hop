@@ -1,13 +1,13 @@
-import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import dotenv from 'dotenv'
 import expectDefined from './utils/expectDefined.js'
-import { wait } from '@hop-protocol/hop-node-core/utils'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { User, waitForEvent } from './utils/helpers.js'
 import { bonderPrivateKey, governancePrivateKey, privateKey } from './config'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { keccak256 } from 'ethereumjs-util'
 import { startWatchers } from '#watchers/watchers/index.js'
-import dotenv from 'dotenv'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 dotenv.config()
 

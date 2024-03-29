@@ -1,8 +1,8 @@
-import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { FinalityBlockTag, IChainBridge } from '@hop-protocol/hop-node-core'
+import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
 import { getConfirmRootsWatcher } from '#watchers/watchers/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile

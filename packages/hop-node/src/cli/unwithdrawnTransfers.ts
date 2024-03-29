@@ -1,5 +1,3 @@
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import getTransferRootSet from '#theGraph/getTransferRootSet.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber, Contract } from 'ethers'
@@ -11,6 +9,8 @@ import {
   root
 } from './shared/index.js'
 import { bridgeAbi } from '@hop-protocol/core/abi'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
 
 interface TransferRootsToChain {

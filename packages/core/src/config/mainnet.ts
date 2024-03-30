@@ -116,7 +116,7 @@ export const config : Config = {
     polygonzk: true
   },
   relayerFeeWei: {
-    linea: '1000000000000000',
+    linea: '100000000000000',
     nova: '100000000000000',
     arbitrum: '100000000000000',
     polygonzk: '1000000000000000'

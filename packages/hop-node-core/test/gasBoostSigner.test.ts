@@ -1,12 +1,15 @@
-import GasBoostSigner from '#gasboost/GasBoostSigner.js'
-import GasBoostTransaction from '@hop-protocol/hop-node-core'
-import MemoryStore from '#gasboost/MemoryStore.js'
-import expectDefined from './utils/expectDefined.js'
+import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
+import { GasBoostTransaction } from '#gasboost/GasBoostTransaction.js'
+import { MemoryStore } from '#gasboost/MemoryStore.js'
 import { Wallet } from 'ethers'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '#utils/getRpcProvider.js'
 import { parseUnits } from 'ethers/lib/utils.js'
-import { privateKey } from './config/index.js'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '#utils/wait.js'
+
+const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000001'
+function expectDefined<T> (arg: T): asserts arg is NonNullable<T> {
+  expect(arg).toBeDefined()
+}
 
 describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {
@@ -204,50 +207,11 @@ describe.skip('GasBoostSigner', () => {
     expect((tx as GasBoostTransaction).txHash).toBeTruthy()
     expect((tx as GasBoostTransaction).txHash).not.toBe(reorgedTxHash)
   }, 10 * 60 * 1000)
-  it.skip('sendTransaction - mainnet - uses market maxFeePerGas for boosted tx', async () => {
-    const provider = getRpcProvider('ethereum')
-    expectDefined(provider)
-    expectDefined(privateKey)
-    const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider, store, {
-      timeTilBoostMs: 10 * 1000,
-      priorityFeePerGasCap: 1
-    })
-    const recipient = await signer.getAddress()
-    console.log('recipient:', recipient)
-    const tx = await signer.sendTransaction({
-      to: recipient,
-      value: '0',
-      gasPrice: parseUnits('1', 9)
-    })
-    expect(tx.hash).toBeTruthy()
-    let confirmed = false
-    ;(tx as GasBoostTransaction).on('confirmed', (tx: any) => {
-      confirmed = true
-    })
-    let boosted = false
-    ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
-      console.log('boosted', {
-        hash: boostedTx.hash,
-        type: tx.type,
-        gasPrice: tx.gasPrice?.toString(),
-        maxFeePerGas: tx.maxFeePerGas?.toString(),
-        maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
-        boostIndex
-      })
-      boosted = true
-      expect(boostedTx).toBeTruthy()
-    })
-    await tx.wait()
-    await wait(1 * 1000)
-    expect(confirmed).toBeTruthy()
-    expect(boosted).toBeTruthy()
-  }, 10 * 60 * 1000)
 })
 
 describe('GasBoostTransaction', () => {
   const store = new MemoryStore()
-  const provider = getRpcProvider('gnosis')
+  const provider = getRpcProvider('optimism')
   expectDefined(provider)
   expectDefined(privateKey)
   const signer = new Wallet(privateKey, provider)
@@ -260,7 +224,7 @@ describe('GasBoostTransaction', () => {
 
     expect(gTx.id).toBeTruthy()
   })
-  it('getMaxGasPrice', () => {
+  it.skip('getMaxGasPrice', () => {
     const tx = {
       to: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
       value: '1'

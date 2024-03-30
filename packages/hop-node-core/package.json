@@ -84,8 +84,8 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "build": "tsc -p tsconfig.json",
+    "test": "tsc -p ./test/tsconfig.json && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "build": "tsc -p ./tsconfig.json",
     "lint": "eslint . --ext .ts --fix"
   },
   "//": "@maticnetwork/maticjs-ethers requires 3.5.0 of @maticnetwork/maticjs but 3.7.7 is needed for zkEVM compatibility as well as general compatibility",

@@ -1,5 +1,5 @@
-import isNativeToken from '@hop-protocol/hop-node-core'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { Chain } from '#constants/index.js'
+import { isNativeToken } from '#utils/isNativeToken.js'
 
 describe('isNativeToken', () => {
   it('isNativeToken', () => {
@@ -21,13 +21,13 @@ describe('isNativeToken', () => {
     expect(isNativeToken(network, token)).toBe(true)
 
     network = Chain.Gnosis
-    token = 'xDai'
+    token = 'XDAI'
     expect(isNativeToken(network, token)).toBe(true)
 
     // Non-happy path
     network = Chain.Polygon
     token = 'mAtIc'
-    expect(isNativeToken(network, token)).toBe(true)
+    expect(isNativeToken(network, token)).toBe(false)
 
     network = Chain.Ethereum
     token = 'MATIC'

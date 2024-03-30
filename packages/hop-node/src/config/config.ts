@@ -28,6 +28,7 @@ import {
   getCoreConfig,
   getCoreNetworkConfig,
   isTestMode,
+  loadEnv,
   setCoreBonderPrivateKey,
   setCoreNetworkMaxGasPrice,
   setCoreNetworkRedundantRpcUrls,
@@ -35,7 +36,6 @@ import {
   type CoreConfig,
 } from '@hop-protocol/hop-node-core/config'
 import { parseEther } from 'ethers/lib/utils.js'
-import { loadEnv } from './loadEnvFile.js'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
 

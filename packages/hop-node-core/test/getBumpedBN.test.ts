@@ -1,4 +1,4 @@
-import getBumpedBN from '#utils/getBumpedBN.js'
+import { getBumpedBN } from '#utils/getBumpedBN.js'
 import { BigNumber } from 'ethers'
 
 test('getBumpedBN', () => {

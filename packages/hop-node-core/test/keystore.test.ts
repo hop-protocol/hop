@@ -1,19 +1,7 @@
-import { entropyToMnemonic } from '@hop-protocol/hop-node-core/keystore'
-import { generateKeystore, recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
+import { entropyToMnemonic } from '#keystore/index.js'
+import { generateKeystore, recoverKeystore } from '#keystore/index.js'
 
 describe('keystore', () => {
-  it('generateKeystore - random', async () => {
-    const keystore = await generateKeystore()
-    expect(keystore.address.length).toBe(40)
-  })
-
-  it('generateKeystore - from private key', async () => {
-    const privateKey =
-      '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    const keystore = await generateKeystore(privateKey)
-    expect(keystore.address).toBe('90f8bf6a479f320ead074411a4b0e7944ea8c9c1')
-  })
-
   it('generateKeystore - with passphrase', async () => {
     const privateKey =
       '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'

@@ -7,12 +7,10 @@ update_file() {
         # macOS uses BSD sed
         sed -i '' 's|export \* as factories from "./factories";|export * as factories from "./factories/index.js";|' "$file_path"
         sed -i '' 's|export \* as generated from "./generated";|export * as generated from "./generated/index.js";|' "$file_path"
-        sed -i '' 's|export \* as nonGenerated from "./non_generated";|export * as nonGenerated from "./non_generated/index.js";|' "$file_path"
     else
         # Linux and other systems use GNU sed
         sed -i 's|export \* as factories from "./factories";|export * as factories from "./factories/index.js";|' "$file_path"
         sed -i 's|export \* as generated from "./generated";|export * as generated from "./generated/index.js";|' "$file_path"
-        sed -i 's|export \* as nonGenerated from "./non_generated";|export * as nonGenerated from "./non_generated/index.js";|' "$file_path"
     fi
 }
 

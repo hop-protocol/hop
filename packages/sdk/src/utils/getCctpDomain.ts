@@ -6,6 +6,11 @@ const map: Record<string, number> = {
   polygon: 7
 }
 
-function getCctpDomain(chainSlug: string): number | null {
-  return map[chainSlug] ?? null
+export function getCctpDomain(chainSlug: string): number | null {
+  const domain = map[chainSlug]
+  if (domain == null) {
+    throw new Error(`Unknown domain for chain slug: ${chainSlug}`)
+  }
+
+  return domain
 }

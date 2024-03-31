@@ -1,6 +1,6 @@
-import { wait } from './wait.js'
 import { promiseTimeout } from './promiseTimeout.js'
 import { rateLimitMaxRetries, rpcTimeoutSeconds } from '#config/index.js'
+import { wait } from './wait.js'
 
 export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
   const id = `${Date.now()}`

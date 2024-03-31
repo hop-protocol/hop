@@ -5,7 +5,8 @@ const provider = getProviderByNetworkName(ChainSlug.Ethereum)
 
 export async function getEnsName(address: string) {
   try {
-    return await provider.lookupAddress(address)
+    const ens = await provider.lookupAddress(address)
+    return ens
   } catch (error) {
     // noop
   }
@@ -26,7 +27,8 @@ export async function getEnsAvatar(ensNameOrAddress: string) {
 
 export async function getEnsAddress(ensName: string) {
   try {
-    return await provider.resolveName(ensName)
+    const address = await provider.resolveName(ensName)
+    return address
   } catch (error) {
     // noop
   }

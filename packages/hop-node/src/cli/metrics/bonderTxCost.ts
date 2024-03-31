@@ -1,5 +1,3 @@
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber } from 'ethers'
 import { CoingeckoApiKey } from '@hop-protocol/hop-node-core/config'
 import { actionHandler, parseString, root } from '../shared/index.js'
@@ -12,6 +10,8 @@ import {
   tokenDecimals
 } from '../metrics/sharedMetrics.js'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
 import { nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
 
 root

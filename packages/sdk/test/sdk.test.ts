@@ -376,14 +376,14 @@ describe.skip('approve addresses', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Ethereum
     )
-    const expectedAddress = addresses.mainnet.bridges.USDC!.ethereum!.l1Bridge
+    const expectedAddress = addresses.mainnet.bridges['USDC.e']!.ethereum!.l1Bridge
     expect(approvalAddress).toBe(expectedAddress)
   })
   it('get send approval address (L2 -> L2)', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Polygon
     )
-    const expectedAddress = addresses.mainnet.bridges.USDC!.polygon!.l2AmmWrapper
+    const expectedAddress = addresses.mainnet.bridges['USDC.e']!.polygon!.l2AmmWrapper
     expect(approvalAddress).toBe(expectedAddress)
   })
 })
@@ -1326,5 +1326,112 @@ describe.skip('priceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(50)
+  })
+})
+
+describe.skip('cctp', () => {
+  const hop = new Hop('mainnet')
+  const signer = new Wallet(privateKey!)
+
+  it('getShouldUseCctpBridge', async () => {
+    const bridgeUsdce = hop.bridge('USDC.e')
+    expect(bridgeUsdce.getShouldUseCctpBridge()).toBe(true)
+    expect(bridgeUsdce.getShouldUseCctpBridge({ isHTokenSend: true })).toBe(false)
+
+    const bridgeUsdc = hop.bridge('USDC')
+    expect(bridgeUsdc.getShouldUseCctpBridge()).toBe(true)
+
+    const bridgeEth = hop.bridge('ETH')
+    expect(bridgeEth.getShouldUseCctpBridge()).toBe(false)
+  })
+
+  it('getAvailableLiquidityCctp', async () => {
+    const bridge = hop.bridge('USDC')
+    const availableLiquidity = await bridge.getFrontendAvailableLiquidity('arbitrum', 'polygon')
+    console.log(availableLiquidity)
+    expect(availableLiquidity.gt(0)).toBe(true)
+  })
+
+  it('getSendDataCctp', async () => {
+    const bridge = hop.bridge('USDC')
+    const data = await bridge.getSendData(parseUnits('1', 6), 'arbitrum', 'polygon')
+    console.log(data)
+    expect(data).toBeTruthy()
+  })
+
+  it('getIsSupportedCctpRoute', async () => {
+    const bridge = hop.bridge('USDC')
+    expect(bridge.getIsSupportedCctpRoute('arbitrum', 'polygon')).toBe(true)
+    expect(bridge.getIsSupportedCctpRoute('gnosis', 'polygon')).toBe(false)
+  })
+
+  it('getCctpDecodedMessageBody', async () => {
+    const bridge = hop.bridge('USDC')
+    const messageBody = '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000f8000000000000000600000002000000000000b52c0000000000000000000000001682ae6375c4e4a97e4b583bc394c861a46d89620000000000000000000000002b4069517957735be00cee0fadae88a26365528f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d69000000000000000000000000000000000000000000000000000000000002e5bc000000000000000000000000e7f40bf16ab09f4a6906ac2caa4094ad2da48cc20000000000000000'
+
+    const message = bridge.getCctpDecodedMessageBody(messageBody)
+    console.log(message)
+    expect(message.startsWith('0x')).toBeTruthy()
+  })
+
+  it('getCctpMessageHash', async () => {
+    const bridge = hop.bridge('USDC')
+    const message = '0x000000000000000600000002000000000000b52c0000000000000000000000001682ae6375c4e4a97e4b583bc394c861a46d89620000000000000000000000002b4069517957735be00cee0fadae88a26365528f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000009997da3de3ec197c853bcc96caecf08a81de9d69000000000000000000000000000000000000000000000000000000000002e5bc000000000000000000000000e7f40bf16ab09f4a6906ac2caa4094ad2da48cc2'
+    const hash = bridge.getCctpMessageHash(message)
+    console.log(hash)
+    expect(hash.startsWith('0x')).toBeTruthy()
+  })
+
+  it('getCctpMessageAttestation', async () => {
+    const bridge = hop.bridge('USDC')
+    const messageHash = '0xa03ed734b7f91cbeaf20596a181272da3a3b6ba5e1eea063abe1218552ef4387'
+    const toChain = 'base'
+    const attestation = await bridge.getCctpMessageAttestation(messageHash, toChain)
+    console.log(attestation)
+    expect(attestation.startsWith('0x')).toBeTruthy()
+  })
+
+  it('getCctpRecipientHash', async () => {
+    const bridge = hop.bridge('USDC')
+    const addressHash = bridge.getCctpRecipientHash('0x9997da3de3ec197C853BCC96CaECf08a81dE9D69')
+    console.log(addressHash)
+    expect(addressHash).toBeTruthy()
+  })
+
+  it('getCctpReceiveMessageEstimateGasLimit', async () => {
+    const bridge = hop.bridge('USDC')
+    const gasLimit = await bridge.getCctpReceiveMessageEstimateGasLimit('polygon', 'base')
+    console.log(gasLimit.toString())
+    expect(gasLimit).toBeTruthy()
+  })
+
+  it('getCctpWithdrawData', async () => {
+    const bridge = hop.bridge('USDC')
+    const fromChain = 'polygon'
+    const toChain = 'optimism'
+    const txHash = '0x6cfdbb214f5d184697cc62cee1b5279a44ca55c80b003323f9ca126ace80ae22'
+    const data = await bridge.getCctpWithdrawData(txHash)
+    console.log(data)
+    expect(data).toBeTruthy()
+    expect(data.fromChain).toBe(fromChain)
+    expect(data.fromChainId).toBeTruthy()
+    expect(data.toChain).toBe(toChain)
+    expect(data.toChainId).toBeTruthy()
+    expect(data.transactionHash).toBe(txHash)
+  }, 60 * 1000)
+
+  it('getCctpWithdrawPopulatedTx', async () => {
+    const bridge = hop.bridge('USDC')
+    const fromChain = 'polygon'
+    const toChain = 'optimism'
+    const txHash = '0x6cfdbb214f5d184697cc62cee1b5279a44ca55c80b003323f9ca126ace80ae22'
+    const populatedTx = await bridge.getCctpWithdrawPopulatedTx(fromChain, toChain, txHash)
+    expect(populatedTx).toBeTruthy()
+  }, 60 * 1000)
+
+  it('getIsCctpEnabled', async () => {
+    const bridge = hop.bridge('USDC')
+    const isEnabled = await bridge.getIsCctpEnabled()
+    expect(typeof isEnabled).toBe('boolean')
   }, 60 * 1000)
 })

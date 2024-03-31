@@ -1,12 +1,11 @@
-import React, { useState } from 'react'
-import { Table } from '../Table'
-import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
-import { useEvents } from '../../hooks/useEvents'
-import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import React, { useState } from 'react'
+import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { Table } from '../Table'
+import { useEvents } from '../../hooks/useEvents'
 
 export function MessageBundledEvents () {
   const eventName = 'MessageBundled'

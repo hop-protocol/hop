@@ -1,4 +1,4 @@
-import { TokenModel } from '#models/Token'
+import { TokenModel } from '#models/Token.js'
 
 test.skip('token', () => {
   const token = new TokenModel(

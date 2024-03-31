@@ -28,4 +28,4 @@ docker-build-and-push: docker-build docker-image-tag docker-registry-push
 docker-tag-and-push: docker-image-tag docker-registry-push
 
 docker-start:
-	docker run --env-file .env hopprotocol/hop-api
+	docker run --env-file .env -p 8000:8000 hopprotocol/hop-api

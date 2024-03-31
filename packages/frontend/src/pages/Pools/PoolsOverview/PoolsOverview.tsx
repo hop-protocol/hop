@@ -3,6 +3,7 @@ import IconButton from '@mui/material/IconButton'
 import React, { ChangeEvent } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
+import { Alert } from 'src/components/Alert'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { PoolRow } from 'src/pages/Pools/PoolsOverview/PoolRow'
 import { StakingRewardsClaim } from 'src/pages/Pools/PoolDetails/StakingRewardsClaim'
@@ -117,6 +118,7 @@ export function PoolsOverview () {
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
       <Box mb={4} p={1} textAlign="left">
+
         <Typography variant="h4">
           Add liquidity to earn trading fees and rewards.
         </Typography>
@@ -374,6 +376,10 @@ export function PoolsOverview () {
             </Box>
           </Typography>
         </Box>
+      </Box>
+
+      <Box mt={2}>
+        <Alert severity="info"maxWidth>Notice: Pool "USDC" has been renamed to "USDC.e" (USD Coin Bridged). There are no AMM pools for native USDC.</Alert>
       </Box>
     </Box>
   )

@@ -1,5 +1,4 @@
 import { Logger } from '#logger/index.js'
-import { wait } from './wait.js'
 import { Notifier } from '#notifier/index.js'
 import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from '#config/index.js'
 import { isFetchBadResponseError } from './isFetchBadResponseError.js'
@@ -7,6 +6,7 @@ import { isFetchConnectionError } from './isFetchConnectionError.js'
 import { isFetchRateLimitError } from './isFetchRateLimitError.js'
 import { isFetchTimeoutError } from './isFetchTimeoutError.js'
 import { promiseTimeout } from './promiseTimeout.js'
+import { wait } from './wait.js'
 
 const _logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)

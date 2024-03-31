@@ -195,6 +195,19 @@ export class Transaction extends EventEmitter {
       if (!this.pendingDestinationConfirmation) {
         return true
       }
+
+      try {
+        // attempt getting transfer status from explorer api
+        const transferStatus = await sdk.getTransferStatus(this.hash)
+        if (transferStatus?.bonded) {
+          this.destTxHash = transferStatus.bondTransactionHash
+          this.setPendingDestinationConfirmed()
+          return true
+        }
+      } catch (err: any) {
+        // logger.error('Transaction Model checkIsTransferIdSpent getTransferStatus error:', err)
+      }
+
       const receipt = await this.receipt()
       if (!receipt) {
         return false

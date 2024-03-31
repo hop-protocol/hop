@@ -1,33 +1,33 @@
 import IncompleteSettlementsWatcher from './IncompleteSettlementsWatcher.js'
 import L1Bridge from './classes/L1Bridge.js'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
 import OsWatcher from './OsWatcher.js'
-import { S3Upload } from '@hop-protocol/hop-node-core/aws'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import contracts from '#contracts/index.js'
 import fs from 'node:fs'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
 import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
 import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
 import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
-import { wait } from '@hop-protocol/hop-node-core/utils'
 import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, stableCoins } from '@hop-protocol/hop-node-core/constants'
 import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { Notifier } from '@hop-protocol/hop-node-core/notifier'
 import { RelayableChains } from '#constants/index.js'
 import { Routes } from '@hop-protocol/core/addresses'
+import { S3Upload } from '@hop-protocol/hop-node-core/aws'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { appTld, hostname } from '@hop-protocol/hop-node-core/config'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel } from '#config/index.js'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils.js'
 import { getInvalidBondWithdrawals } from '#theGraph/getInvalidBondWithdrawals.js'
 import { getNameservers } from '#utils/getNameservers.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { getUnbondedTransfers } from '#theGraph/getUnbondedTransfers.js'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 type LowBonderBalance = {
   bridge: string
@@ -237,7 +237,7 @@ export class HealthCheckWatcher {
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
     USDC: parseUnits('2951000', 6),
-    USDT: parseUnits('699805', 6),
+    USDT: parseUnits('120000', 6),
     DAI: parseUnits('1500000', 18),
     ETH: parseUnits('7949', 18),
     MATIC: parseUnits('766730', 18),
@@ -1000,8 +1000,7 @@ export class HealthCheckWatcher {
 
     const missingTransfers: any[] = []
     for (const chain of RelayableChains.L1_TO_L2) {
-      // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
-      const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
+      const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes })
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
 

@@ -1,7 +1,7 @@
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { BigNumber, constants } from 'ethers'
+import { BigNumber } from 'ethers'
 import { ChainSlug, Hop, Token } from '@hop-protocol/sdk'
 import { formatUnits } from 'ethers/lib/utils'
 import { getDefaultSendGasLimit } from 'src/utils/getDefaultSendGasLimit'
@@ -148,7 +148,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             fromNetwork.slug as string,
             toNetwork.slug as string,
             {
-              recipient: constants.AddressZero,
+              recipient: '0x' + '1'.repeat(40),
               bonderFee,
               amountOutMin: '0',
               deadline: deadline(),

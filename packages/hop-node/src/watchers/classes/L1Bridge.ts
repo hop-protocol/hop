@@ -1,6 +1,5 @@
 import Bridge, { CanonicalTokenConvertOptions, EventCb, EventsBatchOptions } from './Bridge.js'
 import Token from './Token.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain, Network, Token as TokenEnum } from '@hop-protocol/hop-node-core/constants'
@@ -10,8 +9,9 @@ import { Hop } from '@hop-protocol/sdk'
 import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'
-import { config as globalConfig } from '#config/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/core/abi'
+import { config as globalConfig } from '#config/index.js'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'

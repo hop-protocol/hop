@@ -84,8 +84,10 @@ type Data = {
   depositLink: string
   canClaim: boolean
   canStake: boolean
+  isPoolDeprecated: boolean
   claimLink: string
   stakeLink: string
+  withdrawLink: string
   stakingRewardsStakedTotalUsdFormatted: string
 }
 
@@ -98,7 +100,7 @@ export function PoolRow (props: Props) {
   const styles = useStyles()
   const navigate = useNavigate()
   const { isAllPools, data } = props
-  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, aprFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink, stakeLink } = data
+  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, aprFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, isPoolDeprecated, withdrawLink, claimLink, stakeLink } = data
 
   return (
     <tr className={styles.tr}>
@@ -201,6 +203,14 @@ export function PoolRow (props: Props) {
               </Button>
             )
             }
+          </> : (isPoolDeprecated ? <>
+            <Link to={withdrawLink} className={styles.poolLink}>
+              <MuiButton variant="text" className={styles.depositLink} onClick={() => navigate(withdrawLink)}>
+                  <Typography variant="body1" component="span" title="Withdraw from pool">
+                    <strong>Withdraw</strong>
+                  </Typography>
+                </MuiButton>
+            </Link>
           </> : <>
             <Link to={depositLink} className={styles.poolLink}>
               <MuiButton variant="text" className={styles.depositLink} onClick={() => navigate(depositLink)}>
@@ -209,7 +219,7 @@ export function PoolRow (props: Props) {
                   </Typography>
                 </MuiButton>
             </Link>
-          </>
+          </>)
           }
         </Box>
       </td>

@@ -1,5 +1,5 @@
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
-import { keccak256 } from 'ethereumjs-util'
+import { keccak256 } from 'ethers/lib/utils.js'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {

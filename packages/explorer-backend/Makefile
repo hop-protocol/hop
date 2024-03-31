@@ -1,5 +1,5 @@
 docker-start:
-	docker run -p 3000:3000 hopprotocol/explorer-backend
+	docker run -p 8000:8000 hopprotocol/explorer-backend --transfers --worker --days=1
 
 # Build docker target
 docker-build:

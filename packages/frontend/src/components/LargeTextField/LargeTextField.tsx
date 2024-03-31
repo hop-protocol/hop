@@ -83,11 +83,11 @@ const useInputStyles = makeStyles(theme => ({
     textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
     fontSize: smallFontSize ? '1.6rem !important' : theme.typography.h4.fontSize,
     fontWeight: smallFontSize ? 'normal !important' : theme.typography.h4.fontWeight,
-    color: theme.palette.text.primary,
+    color: `${theme.palette.text.primary} !important`,
     textOverflow: 'clip',
     padding: `6px ${theme.padding?.extraLight} 7px ${theme.padding?.extraLight}`,
     animation: loadingValue
-      ? `loadingEffect 1s ${theme.transitions?.easing.sharp} infinite`
+      ? `loadingEffect 1s ${theme.transitions?.easing.sharp} infinite !important`
       : 'none',
     [theme.breakpoints.down('xs')]: {
       fontSize: smallFontSize ? '1.6rem !important' : theme.typography.subtitle2.fontSize,

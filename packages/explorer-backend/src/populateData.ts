@@ -35,7 +35,7 @@ export function populateData (x: any, i: number) {
     x.amountReceivedFormatted = Number(x.amountReceivedFormatted)
   }
 
-  if (x.amountOutMin) {
+  if (x.amountOutMin && x.token) {
     x.amountOutMinFormatted = Number(formatUnits(x.amountOutMin, getTokenDecimals(x.token)))
   }
 
@@ -87,7 +87,7 @@ export function populateData (x: any, i: number) {
   if (typeof x.receivedHTokens !== 'boolean' || x.token === 'HOP') {
     x.receivedHTokens = false
   }
-  if (!x.convertHTokenUrl) {
+  if (!x.convertHTokenUrl && x.token) {
     x.convertHTokenUrl = `https://${isGoerli ? 'goerli.hop.exchange' : 'app.hop.exchange'}/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
   }
 

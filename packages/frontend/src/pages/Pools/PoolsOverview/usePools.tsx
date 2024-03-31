@@ -1,6 +1,7 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import { Multicall } from '@hop-protocol/sdk'
 import { addresses, hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
+import { checkIsPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { commafy, toPercentDisplay } from 'src/utils'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { findNetworkBySlug } from 'src/utils/networks'
@@ -19,14 +20,17 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 let cache :any = {}
 const cacheExpiresMs = (2 * 60 * 1000)
 
+const cacheKey = 'poolsOverview:v002'
 try {
   const timestamp = localStorage.getItem('poolsOverviewTimestamp')
   if (timestamp && Number(timestamp) > Date.now() - cacheExpiresMs) {
-    const cached = localStorage.getItem('poolsOverview:v000')
+    const cached = localStorage.getItem(cacheKey)
     if (cached) {
       cache = JSON.parse(cached)
     }
   }
+  // delete older caches
+  localStorage.removeItem('poolsOverview:v001')
 } catch (err) {
 }
 
@@ -71,6 +75,7 @@ export function usePools () {
           const poolName = `${token} ${chainModel.name} Pool`
           const poolSubtitle = `${token} - h${token}`
           const depositLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
+          const withdrawLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const claimLink = `/pool/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const stakeLink = `/pool/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           _pools.push({
@@ -93,8 +98,10 @@ export function usePools () {
             totalApr: 0,
             totalAprFormatted: '',
             depositLink,
+            withdrawLink,
             canClaim: false,
             canStake: false,
+            isPoolDeprecated: false,
             hasStakingContract: false,
             claimLink,
             stakeLink,
@@ -110,7 +117,7 @@ export function usePools () {
           })
         }
       }
-      return _pools
+      return _pools.filter(Boolean)
     },
     {
       enabled: true,
@@ -118,25 +125,31 @@ export function usePools () {
     }
   )
 
+  useEffect(() => {
+    if (!accountAddress) {
+      setHasFetchedAccount(false)
+      setIsFetching(false)
+    }
+  }, [accountAddress])
+
   useQuery(
     [
       `usePools:pools:${accountAddress}:${JSON.stringify(poolStats)}`,
       accountAddress,
       basePools,
-      poolStats
+      poolStats,
+      hasFetchedAccount,
+      isFetching
     ],
     async () => {
       if (!basePools) {
-        return cache.base
-      }
-      if (!cache.base) {
-        cache.base = basePools
+        return
       }
       if (!poolStats) {
-        return cache.base
+        return
       }
       if (isFetching) {
-        return cache.base
+        return
       }
       const timestamp = Date.now()
       // console.time(`${timestamp} usePools:pools`)
@@ -198,6 +211,7 @@ export function usePools () {
             pool.userBalanceTotalUsdFormatted = cached.userBalanceTotalUsdFormatted
             pool.canClaim = cached.canClaim
             pool.canStake = cached.canStake
+            pool.isPoolDeprecated = cached.isPoolDeprecated
             pool.hasStaked = cached.hasStaked
             pool.hasStakingContract = cached.hasStakingContract
             pool.stakingRewardsStakedTotalUsd = cached.stakingRewardsStakedTotalUsd
@@ -316,7 +330,7 @@ export function usePools () {
               pool.stakingRewardsStakedUsdFormatted = `$${commafy(pool.stakingRewardsStakedUsd, 2)}`
             }
 
-            if (hopStakingRewardsEarned.gt(0)) {
+            if (hopStakingRewardsStakedBalance.gt(0)) {
               totalStakedBalance = totalStakedBalance.add(hopStakingRewardsStakedBalance)
               pool.hopRewardsStaked = Number(formatUnits(hopStakingRewardsStakedBalance, 18))
 
@@ -348,6 +362,7 @@ export function usePools () {
             cache[key].userBalanceTotalUsdFormatted = pool.userBalanceTotalUsdFormatted
             cache[key].canClaim = pool.canClaim
             cache[key].canStake = pool.canStake
+            cache[key].isPoolDeprecated = pool.isPoolDeprecated
             cache[key].hasStaked = pool.hasStaked
             cache[key].hasStakingContract = pool.hasStakingContract
             cache[key].stakingRewardsStakedTotalUsd = pool.stakingRewardsStakedTotalUsd
@@ -359,12 +374,18 @@ export function usePools () {
               console.error('usePools error:', err)
             }
           }
+        } else {
+          pool.userBalanceBn = BigNumber.from(0)
+          pool.userBalanceUsd =  0
+          pool.userBalanceFormatted = ''
+          pool.userBalanceTotalUsd = 0
+          pool.userBalanceTotalUsdFormatted = '-'
         }
         return pool
       }))
       try {
         delete cache.base
-        localStorage.setItem('poolsOverview:v000', JSON.stringify(cache))
+        localStorage.setItem(cacheKey, JSON.stringify(cache))
         const timestamp = localStorage.getItem('poolsOverviewTimestamp')
         if (Number(timestamp) && Date.now() > Number(timestamp) + cacheExpiresMs) {
           localStorage.setItem('poolsOverviewTimestamp', `${Date.now()}`)
@@ -387,7 +408,7 @@ export function usePools () {
     [
       `usePools:userPools:${accountAddress}:${JSON.stringify(pools)}`,
       accountAddress,
-      pools?.length
+      pools
     ],
     async () => {
       if (!pools?.length) {
@@ -398,7 +419,9 @@ export function usePools () {
       }).map((x: any) => {
         x.userBalanceTotalUsdFormatted = x.userBalanceTotalUsd ? `$${commafy(x.userBalanceTotalUsd, 4)}` : '-'
 
-        if (x.hasStakingContract && x.userBalanceUsd && !x.hasStaked && !x.canClaim) {
+        const isPoolDeprecated = checkIsPoolDeprecated(x?.token?.symbol)
+        x.isPoolDeprecated = isPoolDeprecated
+        if (x.hasStakingContract && x.userBalanceUsd && !x.hasStaked && !x.canClaim && !isPoolDeprecated) {
           x.canStake = true
         }
 

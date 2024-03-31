@@ -114,6 +114,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xb5E87a0Cd0dcB09308f4DB0ea56884a8005097B3',
         bridgeDeployedBlockNumber: 3615908
       }
-    }
+    },
   }
 }

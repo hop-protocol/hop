@@ -27,6 +27,7 @@ export class PriceFeed {
   timeoutMs: number = 5 * 1000
 
   aliases: { [tokenSymbol: string]: string } = {
+    'USDC.e': 'USDC',
     WETH: 'ETH',
     WMATIC: 'MATIC',
     WXDAI: 'DAI',

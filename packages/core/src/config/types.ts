@@ -14,6 +14,7 @@ export enum ChainSlug {
 
 export enum AssetSymbol {
   USDC = 'USDC',
+  'USDC.e' = 'USDC.e',
   USDT = 'USDT',
   DAI = 'DAI',
   MATIC = 'MATIC',

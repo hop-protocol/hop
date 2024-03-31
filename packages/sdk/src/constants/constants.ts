@@ -44,8 +44,9 @@ export enum EventNames {
 
 export const MaxDeadline: number = 9999999999
 // Low liquidity or single-chain tokens should have a buffer of appx 10% of their L1 stake
-export const LowLiquidityTokens: string[] = ['HOP', 'SNX', 'sUSD', 'rETH']
+export const LowLiquidityTokens: string[] = ['USDT', 'HOP', 'SNX', 'sUSD', 'rETH']
 export const LowLiquidityTokenBufferAmountsUsd: Record<string, string> = {
+  USDT: '10000',
   HOP: '8000',
   SNX: '40000',
   sUSD: '40000',

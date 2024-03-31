@@ -1,5 +1,5 @@
-import { EventEmitter } from 'eventemitter3'
 import { BaseWatcher } from './BaseWatcher.js'
+import { EventEmitter } from 'eventemitter3'
 import { makeRequest } from './makeRequest.js'
 import { transferSentTopic } from '../constants/eventTopics.js'
 

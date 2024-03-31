@@ -1,5 +1,5 @@
-import makeRequest from './makeRequest.js'
 import _ from 'lodash'
+import makeRequest from './makeRequest.js'
 
 async function getBonds (chain: string, startDate: number, endDate: number, lastId: string = '0') {
   const query = `

@@ -113,6 +113,9 @@ export const useSendStyles = makeStyles((theme: any) => ({
     margin: `0 ${theme.padding?.light}`,
     minWidth: '17.5rem'
   },
+  infoWarning: {
+    marginTop: theme.padding?.light,
+  },
   smartContractWalletWarning: {
     marginTop: theme.padding?.light,
   },

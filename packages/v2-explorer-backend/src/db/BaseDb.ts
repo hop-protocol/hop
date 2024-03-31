@@ -108,7 +108,7 @@ export class BaseDb {
   }
 
   async _getKeyValues (filter: KeyValueFilter = { keys: true, values: true }): Promise<KV[]> {
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const kv: KV[] = []
       const s = this.db.createReadStream(filter)
       s.on('data', (key: any, value: any) => {

@@ -1,6 +1,5 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
-import { useInterval } from 'react-use'
 import { apiUrl } from '../config'
+import { useMemo, useState } from 'react'
 import { useQuery } from 'react-query'
 
 export function useEvents (eventName: string, filter: any = {}, onPagination?: any, queryParams?: any) {

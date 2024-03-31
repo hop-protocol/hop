@@ -781,7 +781,14 @@ class Db {
     return this.db.any(sql, queryParams)
   }
 
-  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, days = 1) {
+  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, days = 1, token?: string) {
+    const timestamp = Number(DateTime.utc().minus({ days }).toSeconds())
+    const queryParams = [sourceChainSlug, destinationChainSlug, timestamp]
+
+    if (token) {
+      queryParams.push(token)
+    }
+
     const sql = `
       SELECT bond_within_timestamp AS "bondWithinTimestamp"
       FROM transfers
@@ -789,10 +796,8 @@ class Db {
       AND destination_chain_slug = $2
       AND timestamp >= $3
       AND bond_within_timestamp > 0
+      ${token ? 'AND token = $4' : ''}
     `
-
-    const timestamp = Number(DateTime.utc().minus({ days }).toSeconds())
-    const queryParams = [sourceChainSlug, destinationChainSlug, timestamp]
 
     return this.db.any(sql, queryParams)
   }

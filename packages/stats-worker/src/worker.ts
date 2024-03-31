@@ -3,9 +3,9 @@ import S3Upload from './S3Upload.js'
 import TvlStats from './TvlStats.js'
 import VolumeStats from './VolumeStats.js'
 import YieldStats from './YieldStats.js'
-import { wait } from './utils/wait.js'
 import { AmmStats } from './AmmStats.js'
 import { PriceStats } from './PriceStats.js'
+import { wait } from './utils/wait.js'
 
 type Options = {
   yields?: boolean

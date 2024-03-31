@@ -1,9 +1,9 @@
-import { wait } from '#utils/wait.js'
-import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
-import { BigNumber, providers } from 'ethers'
-import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
-import MaticJsEthers from '@maticnetwork/maticjs-ethers'
 import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
+import MaticJsEthers from '@maticnetwork/maticjs-ethers'
+import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
+import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
+import { providers } from 'ethers'
+import { wait } from '#utils/wait.js'
 import * as MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
 
 const { ZkEvmClient, setProofApi } = MaticJs

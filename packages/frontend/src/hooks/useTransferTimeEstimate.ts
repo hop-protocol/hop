@@ -4,7 +4,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useRef, useState } from 'react'
 
 // return statistical data in whole minutes given recent transaction times
-export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destinationChainSlug?: string | null) => {
+export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destinationChainSlug?: string | null, tokenSymbol?: string) => {
   const { sdk } = useApp()
 
   const sourceChain = sourceChainSlug ? Chain.fromSlug(sourceChainSlug) : null
@@ -44,7 +44,7 @@ export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destina
         let historicalTimeStats : any
 
         try {
-          historicalTimeStats = await sdk.getTransferTimes(sourceChainSlug, destinationChainSlug)
+          historicalTimeStats = await sdk.getTransferTimes(sourceChainSlug, destinationChainSlug, tokenSymbol)
         } catch (error: any) {
           console.error('Failed to fetch time estimates:', error)
           return

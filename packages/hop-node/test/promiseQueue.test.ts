@@ -1,5 +1,5 @@
-import { wait } from '@hop-protocol/hop-node-core/utils'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 test(
   'promiseQueue',

@@ -1,7 +1,7 @@
-import { Logger } from '@hop-protocol/hop-node-core/logger'
 import Metrics from './classes/Metrics.js'
 import os from 'node:os'
 import pidusage from 'pidusage'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { wait } from '@hop-protocol/hop-node-core/utils'
 
 type Config = {

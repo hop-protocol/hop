@@ -1,6 +1,6 @@
-import { EventEmitter } from 'eventemitter3'
 import { Base } from '../Base.js'
 import { Config } from './BaseWatcher.js'
+import { EventEmitter } from 'eventemitter3'
 import { L1ToL2Watcher } from './L1ToL2Watcher.js'
 import { L2ToL1Watcher } from './L2ToL1Watcher.js'
 import { L2ToL2Watcher } from './L2ToL2Watcher.js'

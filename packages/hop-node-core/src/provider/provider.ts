@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import { rateLimitRetry } from '#utils/rateLimitRetry.js'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { ConnectionInfo } from '@ethersproject/web'
@@ -7,6 +6,7 @@ import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
 import { monitorProviderCalls } from '#config/index.js'
 import { providers } from 'ethers'
+import { rateLimitRetry } from '#utils/rateLimitRetry.js'
 
 const inMemoryMonitor = false
 const calls: Record<string, any> = {}
@@ -120,6 +120,9 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
   })
 
   override getTransactionReceipt = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionReceipt> => {
+    if (process.env.TX_RECEIPT_TRACE) {
+      console.trace(`getTransactionReceipt ${transactionHash}`)
+    }
     return super.getTransactionReceipt(transactionHash)
   })
 

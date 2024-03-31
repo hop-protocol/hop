@@ -1,7 +1,3 @@
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import { getBumpedGasPrice } from '@hop-protocol/hop-node-core/utils'
-import { getProviderChainSlug } from '@hop-protocol/hop-node-core/utils'
 import { BigNumber, Contract, providers } from 'ethers'
 import {
   Chain,
@@ -15,7 +11,11 @@ import {
   SyncType
 } from '#constants/index.js'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { getBumpedGasPrice } from '@hop-protocol/hop-node-core/utils'
 import { getNetworkCustomSyncType, config as globalConfig } from '#config/index.js'
+import { getProviderChainSlug } from '@hop-protocol/hop-node-core/utils'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract

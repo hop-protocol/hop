@@ -1,13 +1,3 @@
-import { Logger } from '#logger/index.js'
-import { Store } from './Store.js'
-import { bigNumberMax } from '#utils/bigNumberMax.js'
-import { bigNumberMin } from '#utils/bigNumberMin.js'
-import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { getBumpedBN } from '#utils/getBumpedBN.js'
-import { getBumpedGasPrice } from '#utils/getBumpedGasPrice.js'
-import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
-import { getRpcUrl } from '#utils/getRpcUrl.js'
-import { wait } from '#utils/wait.js'
 import { BigNumber, Signer, providers } from 'ethers'
 import {
   Chain,
@@ -22,7 +12,11 @@ import {
   NonceTooLowError
 } from '#types/error.js'
 import { EventEmitter } from 'node:events'
+import { Logger } from '#logger/index.js'
 import { Notifier } from '#notifier/index.js'
+import { Store } from './Store.js'
+import { bigNumberMax } from '#utils/bigNumberMax.js'
+import { bigNumberMin } from '#utils/bigNumberMin.js'
 import {
   blocknativeApiKey,
   gasBoostErrorSlackChannel,
@@ -30,8 +24,14 @@ import {
   config as globalConfig,
   hostname
 } from '#config/index.js'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils.js'
+import { getBumpedBN } from '#utils/getBumpedBN.js'
+import { getBumpedGasPrice } from '#utils/getBumpedGasPrice.js'
+import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
+import { getRpcUrl } from '#utils/getRpcUrl.js'
 import { v4 as uuidv4 } from 'uuid'
+import { wait } from '#utils/wait.js'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -646,7 +646,9 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   }
 
   private async getReceipt (txHash: string) {
-    return this.signer.provider!.waitForTransaction(txHash)
+    const confirms = 1
+    const timeoutMs = 10 * 60 * 1000
+    return this.signer.provider!.waitForTransaction(txHash, confirms, timeoutMs)
   }
 
   private async startPoller () {
@@ -903,7 +905,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       sentAt: Date.now()
     })
     this.logger.debug(`tracking: inflightItems${JSON.stringify(this.inflightItems)}`)
-    this.signer.provider!.waitForTransaction(tx.hash).then((receipt: providers.TransactionReceipt) => {
+    this.getReceipt(tx.hash).then((receipt: providers.TransactionReceipt) => {
       this.logger.debug(`tracking: wait completed. tx hash ${tx.hash}`)
       this.handleConfirmation(tx.hash, receipt)
     })

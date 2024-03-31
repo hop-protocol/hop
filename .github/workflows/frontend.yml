@@ -119,13 +119,14 @@ jobs:
           REACT_APP_ENABLED_CHAINS: ${{ secrets.REACT_APP_ENABLED_CHAINS }}
           REACT_APP_ENABLED_TOKENS: ${{ secrets.REACT_APP_ENABLED_TOKENS }}
           REACT_APP_DEPRECATED_TOKENS: ${{ secrets.REACT_APP_DEPRECATED_TOKENS }}
+          REACT_APP_DEPRECATED_POOLS: ${{ secrets.REACT_APP_DEPRECATED_POOLS }}
           REACT_APP_DISABLED_ROUTES: ${{ secrets.REACT_APP_DISABLED_ROUTES }}
           REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
           REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
           REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
           REACT_APP_SHOW_BANNER_MESSAGE: ${{ secrets.REACT_APP_SHOW_BANNER_MESSAGE }}
           REACT_APP_BLOCKLIST_ENABLED: ${{ secrets.REACT_APP_BLOCKLIST_ENABLED }}
-        run: pnpm build
+        run: pnpm --filter=@hop-protocol/core build && pnpm --filter=@hop-protocol/sdk build && pnpm --filter=@hop-protocol/frontend build
 
       - name: Write commit file
         uses: "DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c"

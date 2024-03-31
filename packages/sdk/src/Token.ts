@@ -72,8 +72,10 @@ export class Token extends Base {
       throw new Error('chain is required')
     }
 
+    chain = this.toChainModel(chain)
+
     if (!address) {
-      throw new Error('address is required')
+      throw new Error(`address is required for Token ${symbol} on Chain ${chain?.slug}`)
     }
 
     this.address = getAddress(address)
@@ -81,7 +83,7 @@ export class Token extends Base {
     this._symbol = symbol!
     this.name = name!
     this.image = image!
-    this.chain = this.toChainModel(chain)
+    this.chain = chain
   }
 
   get symbol () {

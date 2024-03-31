@@ -1,8 +1,8 @@
-import { getRpcUrl } from '#utils/getRpcUrl.js'
 import { AbstractInclusionService, IInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from '../../../Chains/arbitrum/ArbitrumAddresses.js'
 import { BigNumber, Contract, providers } from 'ethers'
 import { NetworkSlug } from '@hop-protocol/core/networks'
+import { getRpcUrl } from '#utils/getRpcUrl.js'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber

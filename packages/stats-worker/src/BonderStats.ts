@@ -1,6 +1,6 @@
+import _ from 'lodash'
 import fs from 'fs'
 import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
-import { fileURLToPath } from 'url'
 import path from 'path'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { DateTime } from 'luxon'
@@ -12,10 +12,10 @@ import {
   etherscanApiKeys,
   rpcUrls
 } from './config.js'
-import _ from 'lodash'
 import { createObjectCsvWriter } from 'csv-writer'
 import { db } from './Db.js'
 import { erc20Abi } from '@hop-protocol/core/abi'
+import { fileURLToPath } from 'url'
 import {
   formatEther,
   formatUnits,

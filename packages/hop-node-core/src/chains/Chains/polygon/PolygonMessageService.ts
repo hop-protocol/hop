@@ -1,11 +1,11 @@
-import { wait } from '#utils/wait.js'
+import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
+import MaticJsDefaults  from '@maticnetwork/maticjs-pos-zkevm'
+import MaticJsEthers from '@maticnetwork/maticjs-ethers'
 import { AbstractMessageService, IMessageService } from '../../Services/AbstractMessageService.js'
 import { BigNumber, providers, utils } from 'ethers'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import { defaultAbiCoder } from 'ethers/lib/utils.js'
-import MaticJsEthers from '@maticnetwork/maticjs-ethers'
-import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
-import MaticJsDefaults  from '@maticnetwork/maticjs-pos-zkevm'
+import { wait } from '#utils/wait.js'
 
 const { POSClient, setProofApi } = MaticJs
 const { default: maticJsDefault } = MaticJsDefaults

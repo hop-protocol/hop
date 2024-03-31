@@ -1,6 +1,6 @@
+import MenuItem from '@mui/material/MenuItem'
 import React from 'react'
 import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 
 export type Chain = {
   chainId: string

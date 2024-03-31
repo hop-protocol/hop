@@ -1,8 +1,8 @@
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import getTransferId from '#theGraph/getTransfer.js'
 import getTransferRoot from '#theGraph/getTransferRoot.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'

@@ -1,13 +1,13 @@
 import L1Bridge from '#watchers/classes/L1Bridge.js'
 import L2Bridge from '#watchers/classes/L2Bridge.js'
 import Token from '#watchers/classes/Token.js'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import contracts from '#contracts/index.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
 import { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
 import { Chain, nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { formatEther, parseEther } from 'ethers/lib/utils.js'
 
 root

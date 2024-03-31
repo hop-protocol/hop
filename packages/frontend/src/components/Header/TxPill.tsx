@@ -61,7 +61,6 @@ export const TxPill = () => {
           flat
           onClick={handleClick}
           boxShadow={0}
-          fontSize={[0, 0, 1]}
           px={ensAvatar ? 3 : 4}
         >
           {ensAvatar && (

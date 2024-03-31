@@ -1,8 +1,8 @@
-import { Logger } from '@hop-protocol/hop-node-core/logger'
 import fs from 'node:fs'
 import path from 'node:path'
 import { BigNumber } from 'ethers'
 import { Command } from 'commander'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
 import {
   config as globalConfig,

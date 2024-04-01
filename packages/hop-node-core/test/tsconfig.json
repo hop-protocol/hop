@@ -2,10 +2,11 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
+    "skipLibCheck": true,
 
-    // Explicitly defined buildinfo file to avoid conflicts with src and
-    // keep concerns separated
-    "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
+    // Explicitly defined buildinfo file path to avoid conflicts with src
+    // buildinfo file and keep concerns separated
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
   },
   "references": [
     { "path": "../src" }

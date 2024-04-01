@@ -1,0 +1,1 @@
+{"version":3,"file":"getUrlFromProvider.js","sourceRoot":"","sources":["../../../src/utils/getUrlFromProvider.ts"],"names":[],"mappings":";;;AAAA,SAAgB,kBAAkB,CAAE,QAAa;IAC/C,MAAM,MAAM,GAAG,QAAQ,EAAE,UAAU,EAAE,GAAG,IAAI,QAAQ,CAAC,SAAS,EAAE,CAAC,CAAC,CAAC,EAAE,UAAU,EAAE,GAAG,IAAI,EAAE,CAAA;IAC1F,OAAO,MAAM,CAAA;AACf,CAAC;AAHD,gDAGC"}

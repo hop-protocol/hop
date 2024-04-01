@@ -1,0 +1,1 @@
+{"version":3,"file":"getMinGasLimit.js","sourceRoot":"","sources":["../../../src/utils/getMinGasLimit.ts"],"names":[],"mappings":";;;AAAA,0DAAsD;AAEtD,SAAgB,cAAc,CAAE,OAAe,EAAE,KAAa;IAC5D,MAAM,UAAU,GAAI,mBAAgB,CAAC,OAAO,CAAC,CAAA;IAC7C,MAAM,QAAQ,GAAG,UAAU,CAAC,KAAK,CAAC,CAAA;IAClC,OAAO,QAAQ,EAAE,WAAW,EAAE,WAAW,CAAA;AAC3C,CAAC;AAJD,wCAIC"}

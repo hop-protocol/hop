@@ -1,0 +1,1 @@
+{"version":3,"file":"PriceFeedFromS3.d.ts","sourceRoot":"","sources":["../../../src/priceFeed/PriceFeedFromS3.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,gBAAgB,EAAE,MAAM,gBAAgB,CAAA;AAG5D,qBAAa,eAAe;IAC1B,SAAS,EAAE,SAAS,CAAA;gBAEP,UAAU,GAAE,gBAAqB;IAK9C,UAAU,CAAE,UAAU,GAAE,gBAAqB;IAIvC,qBAAqB,CAAE,WAAW,EAAE,MAAM,GAAG,OAAO,CAAC,MAAM,CAAC;CAGnE"}

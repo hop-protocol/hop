@@ -1,0 +1,1 @@
+{"version":3,"file":"Coinpaprika.d.ts","sourceRoot":"","sources":["../../../src/priceFeed/Coinpaprika.ts"],"names":[],"mappings":"AAEA,qBAAa,oBAAoB;IAC/B,OAAO,CAAC,QAAQ,CAAC,QAAQ,CAA2C;IACpE,KAAK,EAAC,GAAG,CAcR;IAEM,qBAAqB,WAAkB,MAAM,SAAQ,MAAM,KAAW,QAAQ,MAAM,CAAC,CAsC3F;CACF"}

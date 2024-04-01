@@ -1,0 +1,1 @@
+{"version":3,"file":"promiseQueue.d.ts","sourceRoot":"","sources":["../../../src/utils/promiseQueue.ts"],"names":[],"mappings":"AAEA,MAAM,MAAM,OAAO,GAAG;IACpB,WAAW,EAAE,MAAM,CAAA;CACpB,CAAA;AAED,wBAAsB,YAAY,CAAE,KAAK,EAAE,GAAG,EAAE,EAAE,EAAE,EAAE,GAAG,EAAE,OAAO,EAAE,OAAO,iBAQ1E"}

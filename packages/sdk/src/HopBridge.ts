@@ -3140,6 +3140,7 @@ export class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const populatedTx = await this.populateWithdrawTransferTx(sourceChain, destinationChain, transferIdOrTransactionHash)
+
     return this.sendTransaction(populatedTx, destinationChain)
   }
 

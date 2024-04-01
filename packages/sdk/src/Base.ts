@@ -300,8 +300,19 @@ export class Base {
   }
 
   async sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
-    const chainId = this.toChainModel(chain).chainId
+    chain = this.toChainModel(chain)
+    const chainId = chain.chainId
     await this.checkBlocklist()
+
+    if (!transactionRequest.to) {
+      throw new Error('tx "to" address is required')
+    }
+
+    const contractExists = await this.getContractExists(transactionRequest.to, chain)
+    if (!contractExists) {
+      throw new Error(`Contract "${transactionRequest.to}" does not exist on chain "${chain.slug}"`)
+    }
+
     return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
   }
 
@@ -1150,6 +1161,24 @@ export class Base {
     const multicall = new Multicall({ network: this.network, accountAddress })
     const balances = await multicall.getBalances()
     return balances
+  }
+
+  async getContractExists (address: string, chain: TChain): Promise<boolean> {
+    if (!address) {
+      throw new Error('address is required')
+    }
+
+    if (!chain) {
+      throw new Error('chain is required')
+    }
+
+    chain = this.toChainModel(chain)
+    const code = await chain.provider!.getCode(address)
+    if (!code) {
+      return false
+    }
+
+    return code !== '0x'
   }
 }
 

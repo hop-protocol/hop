@@ -1,1 +1,0 @@
-{"version":3,"file":"serializeQueryParams.d.ts","sourceRoot":"","sources":["../../../src/utils/serializeQueryParams.ts"],"names":[],"mappings":"AAAA,UAAU,QAAQ;IAChB,SAAS,EAAE,OAAO,CAAA;IAClB,SAAS,EAAE,OAAO,CAAA;CACnB;AAED,eAAO,MAAM,oBAAoB,WACvB,GAAG,YACF,QAAQ,QAAQ,CAAC,WAoB3B,CAAA"}

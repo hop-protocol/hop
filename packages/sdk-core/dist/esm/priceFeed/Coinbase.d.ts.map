@@ -1,1 +1,0 @@
-{"version":3,"file":"Coinbase.d.ts","sourceRoot":"","sources":["../../../src/priceFeed/Coinbase.ts"],"names":[],"mappings":"AAEA,qBAAa,iBAAiB;IAC5B,OAAO,CAAC,QAAQ,CAAC,QAAQ,CAAyC;IAE3D,qBAAqB,WAAkB,MAAM,SAAQ,MAAM,KAAW,QAAQ,MAAM,CAAC,CAkB3F;CACF"}

@@ -1,12 +1,6 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist/esm",
-    "module": "ESNext",
-    "moduleResolution": "node"
-  },
-  "include": [
-    "src",
-    "src/**/*.json" // Required to include JSON files specifically
-  ]
+    "outDir": "dist/esm"
+  }
 }

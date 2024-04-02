@@ -1,19 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "paths": {
-      "#config/*": ["./src/config/*"],
-      "#constants/*": ["./src/constants/*"],
-      "#models/*": ["./src/models/*"],
-      "#multicall/*": ["./src/multicall/*"],
-      "#provider/*": ["./src/provider/*"],
-      "#priceFeed/*": ["./src/priceFeed/*"],
-      "#utils/*": ["./src/utils/*"]
-    }
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": [
-    "src"
+    "src",
+    "src/**/*.json" // Required to include JSON files specifically
   ]
 }

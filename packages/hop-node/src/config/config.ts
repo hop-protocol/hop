@@ -18,12 +18,7 @@ import {
   TotalBlocks
 } from '@hop-protocol/hop-node-core/constants'
 import {
-  DefaultBondThreshold,
-  SyncType
-} from '#constants/index.js'
-import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
-import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
-import {
+  type CoreConfig,
   envNetwork,
   getCoreConfig,
   getCoreNetworkConfig,
@@ -33,11 +28,16 @@ import {
   setCoreNetworkMaxGasPrice,
   setCoreNetworkRedundantRpcUrls,
   setCoreNetworkRpcUrl,
-  type CoreConfig,
 } from '@hop-protocol/hop-node-core/config'
-import { parseEther } from 'ethers/lib/utils.js'
+import {
+  DefaultBondThreshold,
+  SyncType
+} from '#constants/index.js'
+import { Tokens as Metadata } from '@hop-protocol/core/metadata'
+import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
+import { parseEther } from 'ethers/lib/utils.js'
 
 loadEnv()
 

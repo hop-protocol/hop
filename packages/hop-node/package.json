@@ -25,10 +25,10 @@
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf ./db_data",
-    "test": "tsc -p tsconfig.test.json && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "start": "node ./dist/cli/cli.js",
     "dev": "pnpm start",
-    "build": "tsc -p tsconfig.json",
+    "test": "tsc -b ./test/tsconfig.json && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "build": "tsc -b ./src/tsconfig.json",
     "lint": "eslint . --config ./eslint.config.mjs"
   },
   "dependencies": {

@@ -90,6 +90,7 @@ export default tseslint.config(
           '@ethersproject/abstract',
           '@ethersproject/abstract-provider',
           '@ethersproject/bignumber',
+          '@ethersproject/contracts',
           '@ethersproject/networks',
           '@ethersproject/properties',
           '@ethersproject/web',

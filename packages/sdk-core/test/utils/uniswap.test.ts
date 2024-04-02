@@ -1,4 +1,4 @@
-import { getUSDCSwapParams } from '../../src/utils/uniswap'
+import { getUSDCSwapParams } from '#utils/uniswap.js'
 import { parseUnits } from 'ethers/lib/utils'
 import { providers } from 'ethers'
 

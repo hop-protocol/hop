@@ -2,14 +2,6 @@ export { PriceFeed, PriceFeedFromS3, PriceFeedApiKeys } from './priceFeed/index.
 export { Chain, TokenModel } from './models/index.js'
 export { RetryProvider, FallbackProvider } from './provider/index.js'
 export {
-  Chains,
-  metadata,
-  bondableChains,
-  rateLimitMaxRetries,
-  rpcTimeoutSeconds,
-  config
-} from './config/index.js'
-export {
   Errors,
   TokenSymbol,
   NetworkSlug,
@@ -51,3 +43,11 @@ export {
   getCctpDomain,
   getUSDCSwapParams
 } from './utils/index.js'
+
+
+export * as abi from './abi/index.js'
+export * as addresses from './addresses/index.js'
+export * as config from './config/index.js'
+export * as contracts from './contracts/index.js'
+export * as metadata from './metadata/index.js'
+export * as networks from './networks/index.js'

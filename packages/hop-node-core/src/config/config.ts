@@ -4,8 +4,8 @@ import {
   Network,
   OneHourMs
 } from '#constants/index.js'
-import { type Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
-import { type Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
+import { type Metadata, metadata as coreMetadata } from '@hop-protocol/sdk/metadata'
+import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { execSync } from 'node:child_process'
 import { loadEnv } from './loadEnvFile.js'
 import { normalizeEnvVarNumber } from './utils/normalizeEnvVarNumber.js'

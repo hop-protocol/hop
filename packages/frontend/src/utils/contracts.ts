@@ -7,7 +7,7 @@ import {
   L2_Bridge__factory,
   Swap__factory,
   WETH9__factory,
-} from '@hop-protocol/core/contracts'
+} from '@hop-protocol/sdk/contracts'
 import { Interface } from '@ethersproject/abi'
 import { Signer, providers } from 'ethers'
 

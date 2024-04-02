@@ -7,5 +7,10 @@ const map: Record<string, number> = {
 }
 
 export function getCctpDomain(chainSlug: string): number | null {
-  return map[chainSlug] ?? null
+  const domain = map[chainSlug]
+  if (domain == null) {
+    throw new Error(`Unknown domain for chain slug: ${chainSlug}`)
+  }
+
+  return domain
 }

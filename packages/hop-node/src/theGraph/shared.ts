@@ -1,6 +1,6 @@
-import { ChainSlug } from '@hop-protocol/core/config'
+import { ChainSlug } from '@hop-protocol/sdk/config'
 import { DateTime } from 'luxon'
-import { NetworkSlug, networks } from '@hop-protocol/core/networks'
+import { NetworkSlug, networks } from '@hop-protocol/sdk/networks'
 import { formatUnits } from 'ethers/lib/utils.js'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 

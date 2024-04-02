@@ -1,4 +1,4 @@
-import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 
 const addresses: Record<string, any> = {
   mainnet: mainnetAddresses,

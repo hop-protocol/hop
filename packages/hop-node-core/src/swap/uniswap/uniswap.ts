@@ -7,7 +7,7 @@ import { Logger } from '#logger/index.js'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { SwapInput } from '../types.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { erc20Abi } from '@hop-protocol/core/abi'
+import { erc20Abi } from '@hop-protocol/sdk/abi'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
 

@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { StakingRewards__factory } from '@hop-protocol/core/contracts'
+import { StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { commafy, findNetworkBySlug } from 'src/utils'
 import { formatUnits } from 'ethers/lib/utils'
 import { hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'

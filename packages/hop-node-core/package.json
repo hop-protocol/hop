@@ -100,7 +100,6 @@
     "@eth-optimism/sdk": "3.1.4",
     "@ethereumjs/rlp": "5.0.2",
     "@ethereumjs/tx": "5.3.0",
-    "@hop-protocol/core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
     "@maticnetwork/maticjs": "3.5.0",
     "@maticnetwork/maticjs-ethers": "1.0.3",

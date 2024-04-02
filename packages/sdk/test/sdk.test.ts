@@ -5,9 +5,9 @@ import {
   Chain,
   Hop
 } from '#index.js'
-import { Swap__factory } from '@hop-protocol/core/contracts'
+import { Swap__factory } from '#contracts/index.js'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
-import * as addresses from '@hop-protocol/core/addresses'
+import * as addresses from '@hop-protocol/sdk-core/addresses'
 import { TokenModel, FallbackProvider, promiseQueue, getChainSlugFromName, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
 // @ts-ignore
 import pkg from '../package.json'

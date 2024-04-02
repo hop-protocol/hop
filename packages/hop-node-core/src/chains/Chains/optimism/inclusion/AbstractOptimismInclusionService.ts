@@ -3,7 +3,7 @@ import { AbstractInclusionService } from '../../../Services/AbstractInclusionSer
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from '#constants/index.js'
 import { Contract, providers } from 'ethers'
 import { Derive, Frame } from './Derive.js'
-import { NetworkSlug } from '@hop-protocol/core/networks'
+import { NetworkSlug } from '@hop-protocol/sdk/networks'
 import { OptimismAddresses, OptimismCanonicalAddresses, OptimismSuperchainSlugs } from '../../../Chains/optimism/OptimismAddresses.js'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'

@@ -1,9 +1,9 @@
 import memoize from 'fast-memoize'
-import { Addresses } from '@hop-protocol/core/addresses'
-import { ArbERC20 } from '@hop-protocol/core/contracts'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts'
-import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts'
+import { Addresses } from '@hop-protocol/sdk-core/addresses'
+import { ArbERC20 } from './contracts/index.js'
+import { ArbERC20__factory } from './contracts/index.js'
+import { ArbitrumGlobalInbox } from './contracts/index.js'
+import { ArbitrumGlobalInbox__factory } from './contracts/index.js'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import {
   Chain,
@@ -17,18 +17,18 @@ import {
   rateLimitRetry,
 } from '@hop-protocol/sdk-core'
 import { ChainSlug, Errors, NetworkSlug } from './constants/index.js'
-import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts'
-import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
-import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts'
-import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts'
-import { L1_xDaiForeignOmniBridge } from '@hop-protocol/core/contracts'
-import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts'
-import { L2_OptimismTokenBridge } from '@hop-protocol/core/contracts'
-import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
-import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts'
-import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts'
-import { L2_xDaiToken } from '@hop-protocol/core/contracts'
-import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts'
+import { L1_OptimismTokenBridge } from './contracts/index.js'
+import { L1_OptimismTokenBridge__factory } from './contracts/index.js'
+import { L1_PolygonPosRootChainManager } from './contracts/index.js'
+import { L1_PolygonPosRootChainManager__factory } from './contracts/index.js'
+import { L1_xDaiForeignOmniBridge } from './contracts/index.js'
+import { L1_xDaiForeignOmniBridge__factory } from './contracts/index.js'
+import { L2_OptimismTokenBridge } from './contracts/index.js'
+import { L2_OptimismTokenBridge__factory } from './contracts/index.js'
+import { L2_PolygonChildERC20 } from './contracts/index.js'
+import { L2_PolygonChildERC20__factory } from './contracts/index.js'
+import { L2_xDaiToken } from './contracts/index.js'
+import { L2_xDaiToken__factory } from './contracts/index.js'
 import {
   Multicall,
   MulticallBalance
@@ -305,8 +305,19 @@ export class Base {
   }
 
   async sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
-    const chainId = this.toChainModel(chain).chainId
+    chain = this.toChainModel(chain)
+    const chainId = chain.chainId
     await this.checkBlocklist()
+
+    if (!transactionRequest.to) {
+      throw new Error('tx "to" address is required')
+    }
+
+    const contractExists = await this.getContractExists(transactionRequest.to, chain)
+    if (!contractExists) {
+      throw new Error(`Contract "${transactionRequest.to}" does not exist on chain "${chain.slug}"`)
+    }
+
     return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
   }
 
@@ -1155,5 +1166,23 @@ export class Base {
     const multicall = new Multicall({ network: this.network, accountAddress })
     const balances = await multicall.getBalances()
     return balances
+  }
+
+  async getContractExists (address: string, chain: TChain): Promise<boolean> {
+    if (!address) {
+      throw new Error('address is required')
+    }
+
+    if (!chain) {
+      throw new Error('chain is required')
+    }
+
+    chain = this.toChainModel(chain)
+    const code = await chain.provider!.getCode(address)
+    if (!code) {
+      return false
+    }
+
+    return code !== '0x'
   }
 }

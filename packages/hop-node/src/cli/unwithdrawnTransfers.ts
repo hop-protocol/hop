@@ -8,7 +8,7 @@ import {
   parseString,
   root
 } from './shared/index.js'
-import { bridgeAbi } from '@hop-protocol/core/abi'
+import { bridgeAbi } from '@hop-protocol/sdk/abi'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'

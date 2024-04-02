@@ -1,8 +1,8 @@
 import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
-import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
-import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
+import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/sdk/addresses'
+import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/sdk/config'
 import {
   type BlocklistConfig,
   type MetricsConfig,
@@ -33,8 +33,8 @@ import {
   DefaultBondThreshold,
   SyncType
 } from '#constants/index.js'
-import { Tokens as Metadata } from '@hop-protocol/core/metadata'
-import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
+import { Tokens as Metadata } from '@hop-protocol/sdk/metadata'
+import { Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
 import { parseEther } from 'ethers/lib/utils.js'

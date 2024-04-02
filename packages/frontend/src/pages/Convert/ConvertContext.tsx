@@ -109,7 +109,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const { assetWithoutAmm, unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
-  const { via } = useParams()
+  const { via } = useParams<{via: string}>()
   const [viaParamValue, setViaParamValue] = useState<string>(via ?? 'amm')
 
   useEffect(() => {

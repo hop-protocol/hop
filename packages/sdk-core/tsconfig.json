@@ -6,3 +6,26 @@
     { "path": "./test" }
   ]
 }
+// "extends": "../../tsconfig.json",
+// "compilerOptions": {
+//   "rootDir": "./src",
+//   "outDir": "./dist",
+//   "paths": {
+//     "src/*": ["./src/*"],
+//     "#config/*": ["./src/config/*"],
+//     "#constants/*": ["./src/constants/*"],
+//     "#models/*": ["./src/models/*"],
+//     "#multicall/*": ["./src/multicall/*"],
+//     "#provider/*": ["./src/provider/*"],
+//     "#priceFeed/*": ["./src/priceFeed/*"],
+//     "#utils/*": ["./src/utils/*"],
+
+//     "#abi/*": ["./src/abi/*"],
+//     "#addresses/*": ["./src/addresses/*"],
+//     "#contracts/*": ["./src/contracts/*"],
+//     "#contracts/generated/*": ["./src/contracts/generated/*"],
+//     "#metadata/*": ["./src/metadata/*"],
+//     "#networks/*": ["./src/networks/*"]
+//   }
+// },
+// "include": [

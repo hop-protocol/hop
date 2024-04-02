@@ -4,7 +4,7 @@ import {
   Chain
 } from '@hop-protocol/sdk-core'
 import { SecondsInDay, TokenIndex, TokenSymbol } from './constants/index.js'
-import { Swap__factory } from '@hop-protocol/core/contracts'
+import { Swap__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { formatUnits } from 'ethers/lib/utils.js'

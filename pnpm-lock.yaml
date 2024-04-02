@@ -100,9 +100,9 @@ importers:
 
   packages/explorer-backend:
     dependencies:
-      '@hop-protocol/core':
+      '@hop-protocol/sdk':
         specifier: workspace:*
-        version: link:../core
+        version: link:../sdk
       '@types/memory-cache':
         specifier: 0.2.2
         version: 0.2.2
@@ -197,9 +197,9 @@ importers:
       '@emotion/styled':
         specifier: 11.11.0
         version: 11.11.0(@emotion/react@11.10.5)(@types/react@18.2.73)(react@18.2.0)
-      '@hop-protocol/core':
+      '@hop-protocol/sdk':
         specifier: workspace:*
-        version: link:../core
+        version: link:../sdk
       '@mui/icons-material':
         specifier: 5.11.0
         version: 5.11.0(@mui/material@5.11.8)(@types/react@18.2.73)(react@18.2.0)
@@ -282,9 +282,6 @@ importers:
       '@gnosis.pm/safe-apps-sdk':
         specifier: 7.8.0
         version: 7.8.0
-      '@hop-protocol/core':
-        specifier: workspace:*
-        version: link:../core
       '@hop-protocol/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -475,9 +472,6 @@ importers:
       '@ethersproject/hdnode':
         specifier: 5.0.9
         version: 5.0.9
-      '@hop-protocol/core':
-        specifier: workspace:*
-        version: link:../core
       '@hop-protocol/hop-node-core':
         specifier: workspace:*
         version: link:../hop-node-core
@@ -629,9 +623,6 @@ importers:
       '@ethereumjs/tx':
         specifier: 5.3.0
         version: 5.3.0
-      '@hop-protocol/core':
-        specifier: workspace:*
-        version: link:../core
       '@hop-protocol/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -738,9 +729,6 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@hop-protocol/core':
-        specifier: workspace:*
-        version: link:../core
       '@hop-protocol/sdk-core':
         specifier: workspace:*
         version: link:../sdk-core
@@ -772,6 +760,9 @@ importers:
         specifier: 0.3.11
         version: 0.3.11
     devDependencies:
+      '@typechain/ethers-v5':
+        specifier: 10.1.0
+        version: 10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.3.3)
       '@types/luxon':
         specifier: 3.4.2
         version: 3.4.2
@@ -781,6 +772,9 @@ importers:
       ts-jest:
         specifier: 29.1.2
         version: 29.1.2(@babel/core@7.24.3)(esbuild@0.20.0)(jest@29.7.0)(typescript@5.3.3)
+      typechain:
+        specifier: 8.1.0
+        version: 8.1.0(typescript@5.3.3)
       typedoc:
         specifier: 0.25.7
         version: 0.25.7(typescript@5.3.3)
@@ -790,9 +784,6 @@ importers:
 
   packages/sdk-core:
     dependencies:
-      '@hop-protocol/core':
-        specifier: workspace:*
-        version: link:../core
       '@uniswap/sdk-core':
         specifier: 4.2.0
         version: 4.2.0
@@ -833,6 +824,15 @@ importers:
         specifier: 8.0.1
         version: 8.0.1
     devDependencies:
+      '@aws-sdk/client-s3':
+        specifier: 3.338.0
+        version: 3.338.0
+      '@aws-sdk/types':
+        specifier: 3.485.0
+        version: 3.485.0
+      '@typechain/ethers-v5':
+        specifier: 10.1.0
+        version: 10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.3.3)
       '@types/luxon':
         specifier: 3.4.2
         version: 3.4.2
@@ -842,6 +842,9 @@ importers:
       ts-jest:
         specifier: 29.1.2
         version: 29.1.2(@babel/core@7.24.3)(esbuild@0.20.0)(jest@29.7.0)(typescript@5.3.3)
+      typechain:
+        specifier: 8.1.0
+        version: 8.1.0(typescript@5.3.3)
       typedoc:
         specifier: 0.25.7
         version: 0.25.7(typescript@5.3.3)
@@ -930,9 +933,6 @@ importers:
       '@aws-sdk/client-s3':
         specifier: 3.338.0
         version: 3.338.0
-      '@hop-protocol/core':
-        specifier: workspace:*
-        version: link:../core
       '@hop-protocol/sdk':
         specifier: workspace:*
         version: link:../sdk

@@ -1,4 +1,4 @@
-import { tokens as tokensMetadata } from '@hop-protocol/core/metadata'
+import { tokens as tokensMetadata } from '#metadata/index.js'
 
 export function getTokenDecimals (tokenSymbol: string) {
   const token = (tokensMetadata as any)[tokenSymbol]

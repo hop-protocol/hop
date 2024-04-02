@@ -1,5 +1,5 @@
 import { fetchJsonOrThrow, serializeQueryParams, wait } from '#utils/index.js'
-import { tokens } from '@hop-protocol/core/metadata'
+import { tokens } from '#metadata/index.js'
 
 function getCoinId (tokenSymbol: string) {
   return (tokens as any)[tokenSymbol]?.coingeckoId

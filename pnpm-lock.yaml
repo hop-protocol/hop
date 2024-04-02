@@ -70,34 +70,6 @@ importers:
         specifier: 29.1.2
         version: 29.1.2(@babel/core@7.24.3)(jest@29.7.0)(typescript@5.4.3)
 
-  packages/core:
-    dependencies:
-      ethers:
-        specifier: 5.7.2
-        version: 5.7.2
-    devDependencies:
-      '@aws-sdk/client-s3':
-        specifier: 3.338.0
-        version: 3.338.0
-      '@aws-sdk/types':
-        specifier: 3.485.0
-        version: 3.485.0
-      '@typechain/ethers-v5':
-        specifier: 10.1.0
-        version: 10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.4.3)
-      dotenv:
-        specifier: 16.4.1
-        version: 16.4.1
-      jest:
-        specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.2)(ts-node@10.9.2)
-      ts-jest:
-        specifier: 29.1.2
-        version: 29.1.2(@babel/core@7.24.3)(jest@29.7.0)(typescript@5.4.3)
-      typechain:
-        specifier: 8.1.0
-        version: 8.1.0(typescript@5.4.3)
-
   packages/explorer-backend:
     dependencies:
       '@hop-protocol/sdk':
@@ -1180,7 +1152,7 @@ importers:
         version: 11.11.0(@emotion/react@11.5.0)(@types/react@18.2.73)(react@18.2.0)
       '@hop-protocol/v2-sdk':
         specifier: 0.0.0-beta.21
-        version: 0.0.0-beta.21(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(@types/node@20.12.2)(ts-node@10.9.2)(typescript@5.4.3)
+        version: 0.0.0-beta.21(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(@types/node@20.12.2)(typescript@5.4.3)
       '@mui/icons-material':
         specifier: 5.15.6
         version: 5.15.6(@mui/material@5.15.6)(@types/react@18.2.73)(react@18.2.0)
@@ -1284,6 +1256,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 4.2.1
         version: 4.2.1(vite@5.0.8)
+      dotenv:
+        specifier: 16.4.5
+        version: 16.4.5
       eslint-plugin-react:
         specifier: 7.33.2
         version: 7.33.2(eslint@8.57.0)
@@ -5380,6 +5355,45 @@ packages:
       - utf-8-validate
     dev: false
 
+  /@hop-protocol/v2-sdk@0.0.0-beta.21(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(@types/node@20.12.2)(typescript@5.4.3):
+    resolution: {integrity: sha512-wBsiMKN7aoxvKRgClUZP1YKps8fcMuAfSKaghQ06G6M+ZhFd5tgiV5Fq6ZWJj4KT5MlQpP+TcXMPyf4puMg6Iw==}
+    engines: {node: '>=14'}
+    dependencies:
+      '@arbitrum/sdk': 2.0.18(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(@types/node@20.12.2)(typescript@5.4.3)
+      '@eth-optimism/contracts': 0.5.40(ethers@5.7.1)
+      '@eth-optimism/message-relayer': 0.2.18
+      '@eth-optimism/sdk': 1.10.4(ethers@5.7.1)(ts-node@10.9.2)(typescript@5.4.3)
+      '@fxportal/maticjs-fxportal': 1.1.1(@maticnetwork/maticjs@3.2.0)
+      '@hop-protocol/core': 0.0.1-beta.111
+      '@hop-protocol/v2-core': 0.0.0-beta.5
+      '@maticnetwork/maticjs': 3.2.0
+      '@maticnetwork/maticjs-ethers': 1.0.2(@maticnetwork/maticjs@3.2.0)
+      dotenv: 16.4.5
+      ethers: 5.7.1
+      eventemitter3: 4.0.7
+      fast-memoize: 2.5.2
+      isomorphic-fetch: 3.0.0
+      lodash: 4.17.21
+      luxon: 2.5.0
+      merkletreejs: 0.2.32
+      p-queue: 6.6.2
+      wait: 0.4.2
+      web3-utils: 1.7.5
+    transitivePeerDependencies:
+      - '@ethersproject/abi'
+      - '@ethersproject/providers'
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/node'
+      - bufferutil
+      - c-kzg
+      - encoding
+      - supports-color
+      - ts-node
+      - typescript
+      - utf-8-validate
+    dev: false
+
   /@humanwhocodes/config-array@0.11.14:
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
@@ -6108,7 +6122,7 @@ packages:
         optional: true
     dependencies:
       '@babel/runtime': 7.24.1
-      '@mui/material': 5.15.6(@emotion/react@11.10.5)(@emotion/styled@11.11.0)(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
+      '@mui/material': 5.15.6(@emotion/react@11.5.0)(@emotion/styled@11.11.0)(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
       '@types/react': 18.2.73
       react: 18.2.0
     dev: false
@@ -8103,7 +8117,7 @@ packages:
   /@tsconfig/node16@1.0.4:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
-  /@typechain/ethers-v5@10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.4.3):
+  /@typechain/ethers-v5@10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.3.3):
     resolution: {integrity: sha512-3LIb+eUpV3mNCrjUKT5oqp8PBsZYSnVrkfk6pY/ZM0boRs2mKxjFZ7bktx42vfDye8PPz3NxtW4DL5NsNsFqlg==}
     peerDependencies:
       '@ethersproject/abi': ^5.0.0
@@ -8118,9 +8132,9 @@ packages:
       '@ethersproject/providers': 5.7.2
       ethers: 5.7.2
       lodash: 4.17.21
-      ts-essentials: 7.0.3(typescript@5.4.3)
-      typechain: 8.1.0(typescript@5.4.3)
-      typescript: 5.4.3
+      ts-essentials: 7.0.3(typescript@5.3.3)
+      typechain: 8.1.0(typescript@5.3.3)
+      typescript: 5.3.3
     dev: true
 
   /@typechain/ethers-v5@9.0.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@7.0.0)(typescript@5.4.3):
@@ -11826,6 +11840,10 @@ packages:
     resolution: {integrity: sha512-CjA3y+Dr3FyFDOAMnxZEGtnW9KBR2M0JvvUtXNW+dYJL5ROWxP9DUHCwgFqpMk0OXCc0ljhaNTr2w/kutYIcHQ==}
     engines: {node: '>=12'}
 
+  /dotenv@16.4.5:
+    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
+    engines: {node: '>=12'}
+
   /dotenv@8.6.0:
     resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
     engines: {node: '>=10'}
@@ -13173,6 +13191,7 @@ packages:
       is-hex-prefixed: 1.0.0
       strip-hex-prefix: 1.0.0
     dev: false
+    bundledDependencies: false
 
   /event-emitter@0.3.5:
     resolution: {integrity: sha512-D9rRn9y7kLPnJ+hMq7S/nhvoKwwvVJahBi2BPmx3bvbsEdK3W9ii8cBSGjP+72/LnM4n6fo3+dkCX5FeTQruXA==}
@@ -19275,7 +19294,7 @@ packages:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
     hasBin: true
     dependencies:
-      glob: 7.2.0
+      glob: 7.2.3
     dev: false
 
   /rimraf@3.0.2:
@@ -20615,12 +20634,21 @@ packages:
     resolution: {integrity: sha512-Z86EW+fFFh/IFB1fqQ3/+7Zpf9t2ebOAxNI/V6Wo7r5gqiqtxmgTlQ1qbqQcjLKYeSHPTsEmvlJUDg/EuL0uHQ==}
     dev: false
 
+  /ts-essentials@7.0.3(typescript@5.3.3):
+    resolution: {integrity: sha512-8+gr5+lqO3G84KdiTSMRLtuyJ+nTBVRKuCrK4lidMPdVeEp0uqC875uE5NMcaA7YYMN7XsNiFQuMvasF8HT/xQ==}
+    peerDependencies:
+      typescript: '>=3.7.0'
+    dependencies:
+      typescript: 5.3.3
+    dev: true
+
   /ts-essentials@7.0.3(typescript@5.4.3):
     resolution: {integrity: sha512-8+gr5+lqO3G84KdiTSMRLtuyJ+nTBVRKuCrK4lidMPdVeEp0uqC875uE5NMcaA7YYMN7XsNiFQuMvasF8HT/xQ==}
     peerDependencies:
       typescript: '>=3.7.0'
     dependencies:
       typescript: 5.4.3
+    dev: false
 
   /ts-jest@29.1.1(@babel/core@7.24.3)(jest@29.6.2)(typescript@5.4.3):
     resolution: {integrity: sha512-D6xjnnbP17cC85nliwGiL+tpoKN0StpgE0TeOjXQTU6MVCfsB4v7aW05CgQ/1OywGb0x/oy9hHFnN+sczTiRaA==}
@@ -20881,7 +20909,7 @@ packages:
       - supports-color
     dev: false
 
-  /typechain@8.1.0(typescript@5.4.3):
+  /typechain@8.1.0(typescript@5.3.3):
     resolution: {integrity: sha512-5jToLgKTjHdI1VKqs/K8BLYy42Sr3o8bV5ojh4MnR9ExHO83cyyUdw+7+vMJCpKXUiVUvARM4qmHTFuyaCMAZQ==}
     hasBin: true
     peerDependencies:
@@ -20896,8 +20924,8 @@ packages:
       mkdirp: 1.0.4
       prettier: 2.8.8
       ts-command-line-args: 2.5.1
-      ts-essentials: 7.0.3(typescript@5.4.3)
-      typescript: 5.4.3
+      ts-essentials: 7.0.3(typescript@5.3.3)
+      typescript: 5.3.3
     transitivePeerDependencies:
       - supports-color
     dev: true

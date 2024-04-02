@@ -29,7 +29,7 @@
     "start": "node ./dist/cli/cli.js",
     "dev": "pnpm start",
     "build": "tsc -p tsconfig.json",
-    "lint": "eslint . --ext .ts --fix"
+    "lint": "eslint . --config ./eslint.config.mjs"
   },
   "dependencies": {
     "@arbitrum/sdk": "2.0.18",

@@ -86,7 +86,7 @@
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "tsc -b ./test/tsconfig.json && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "tsc -b ./src/tsconfig.json",
-    "lint": "eslint . --ext .ts --fix"
+    "lint": "eslint . --config ./eslint.config.mjs"
   },
   "//": "@maticnetwork/maticjs-ethers requires 3.5.0 of @maticnetwork/maticjs but 3.7.7 is needed for zkEVM compatibility as well as general compatibility",
   "dependencies": {

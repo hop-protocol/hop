@@ -46,12 +46,12 @@ jobs:
       - name: Install local packages and dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/core install && pnpm --filter @hop-protocol/sdk-core && pnpm --filter @hop-protocol/sdk install
+        run: pnpm --filter @hop-protocol/sdk-core && pnpm --filter @hop-protocol/sdk install
 
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/core build && pnpm --filter @hop-protocol/sdk-core build && pnpm --filter @hop-protocol/sdk build
+        run: pnpm --filter @hop-protocol/sdk-core build && pnpm --filter @hop-protocol/sdk build
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'

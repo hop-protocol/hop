@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.338.0",
-    "@hop-protocol/core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
     "@pinata/sdk": "1.1.26",
     "comment-json": "4.2.3",

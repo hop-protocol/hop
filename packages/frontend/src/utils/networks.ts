@@ -5,7 +5,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { Signer, providers } from 'ethers'
 import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
-import { networks as coreNetworks } from '@hop-protocol/core/networks'
+import { networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { getNativeTokenSymbol } from './getNativeTokenSymbol'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {

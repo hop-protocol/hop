@@ -2,8 +2,8 @@ import BaseWatcher from './classes/BaseWatcher.js'
 import { EnforceRelayerFee, RelayTransactionBatchSize, getEnabledNetworks, config as globalConfig } from '#config/index.js'
 import { GasCostTransactionType, TxError } from '#constants/index.js'
 import { IChainBridge } from '@hop-protocol/hop-node-core/chains'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import {
   MessageInFlightError,

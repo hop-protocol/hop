@@ -14,7 +14,7 @@ import {
 } from './config.js'
 import { createObjectCsvWriter } from 'csv-writer'
 import { db } from './Db.js'
-import { erc20Abi } from '@hop-protocol/core/abi'
+import { erc20Abi } from '@hop-protocol/sdk/abi'
 import { fileURLToPath } from 'url'
 import {
   formatEther,
@@ -25,7 +25,7 @@ import {
 import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl.js'
 import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
 import { getTokenDecimals } from './utils/getTokenDecimals.js'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { parse } from 'comment-json'
 
 const __filename = fileURLToPath(import.meta.url)

@@ -1,4 +1,4 @@
-import { ChainSlug } from '../config/types'
+import { ChainSlug } from '../config/types.js'
 
 export type Network = {
   name: string

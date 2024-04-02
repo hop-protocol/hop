@@ -3,7 +3,7 @@ import path from 'path'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
 import { defineConfig } from 'vite'
-import { goerli, mainnet, sepolia } from '@hop-protocol/core/networks'
+import { goerli, mainnet, sepolia } from '@hop-protocol/sdk/networks'
 
 dotenv.config()
 

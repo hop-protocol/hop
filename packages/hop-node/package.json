@@ -35,7 +35,6 @@
     "@arbitrum/sdk": "2.0.18",
     "@ethersproject/hdnode": "5.0.9",
     "@eth-optimism/sdk": "3.1.4",
-    "@hop-protocol/core": "workspace:*",
     "@hop-protocol/hop-node-core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
     "@maticnetwork/maticjs": "3.5.0",

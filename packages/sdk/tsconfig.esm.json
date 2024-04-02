@@ -6,6 +6,7 @@
     "moduleResolution": "bundler"
   },
   "include": [
-    "src"
+    "src",
+    "src/**/*.json" // Required to include JSON files specifically
   ]
 }

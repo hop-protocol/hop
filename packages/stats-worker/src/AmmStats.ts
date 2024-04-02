@@ -6,7 +6,7 @@ import { enabledChains, enabledTokens } from './config.js'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
 import { getTokenDecimals } from './utils/getTokenDecimals.js'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { nearestDate } from './utils/nearestDate.js'
 import { queryFetch } from './utils/queryFetch.js'
 

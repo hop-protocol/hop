@@ -1,6 +1,6 @@
 import { HopAddresses, Networks } from 'src/config/interfaces'
-import { goerli as _goerliAddresses } from '@hop-protocol/core/addresses'
-import { goerli as _goerliNetworks } from '@hop-protocol/core/networks'
+import { goerli as _goerliAddresses } from '@hop-protocol/sdk/addresses'
+import { goerli as _goerliNetworks } from '@hop-protocol/sdk/networks'
 
 export const goerliAddresses: HopAddresses = {
   governance: {

@@ -1,6 +1,5 @@
 import { Multicall } from '#multicall/index.js'
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { stakingRewardsAbi } from '@hop-protocol/core/abi'
+import { erc20Abi } from '#abi/index.js'
 
 describe.skip('Multicall', () => {
   it('Should get token addresses for chain', async () => {
@@ -47,10 +46,10 @@ describe.skip('Multicall', () => {
       address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
       tokenSymbol: 'DAI'
     }, {
-      abi: stakingRewardsAbi,
-      method: 'earned',
-      address: '0xd6dC6F69f81537Fe9DEcc18152b7005B45Dc2eE7',
-      tokenSymbol: 'DAI'
+      abi: erc20Abi,
+      method: 'balanceOf',
+      address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      tokenSymbol: 'USDC'
     }])
     console.log(balances)
     expect(balances.length > 0).toBeTruthy()

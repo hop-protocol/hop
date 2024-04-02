@@ -1,7 +1,7 @@
 import { Addressish } from 'src/models/Address'
 import { ChainId, Token } from '@hop-protocol/sdk'
 import { Contract } from 'ethers'
-import { StakingRewards } from '@hop-protocol/core/contracts'
+import { StakingRewards } from '@hop-protocol/sdk/contracts'
 import { useQuery } from 'react-query'
 
 type ContractType = Token | StakingRewards   | Contract

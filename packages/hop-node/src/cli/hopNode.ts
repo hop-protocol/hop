@@ -1,5 +1,5 @@
 import OsWatcher from '#watchers/OsWatcher.js'
-import { AssetSymbol } from '@hop-protocol/core/config'
+import { AssetSymbol } from '@hop-protocol/sdk/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,

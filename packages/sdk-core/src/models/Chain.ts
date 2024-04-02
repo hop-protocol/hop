@@ -1,7 +1,7 @@
 import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants/index.js'
 import { getChainSlugFromName } from '../utils/index.js'
-import { goerli, mainnet } from '@hop-protocol/core/networks'
-import { metadata } from '../config/index.js'
+import { goerli, mainnet } from '#networks/index.js'
+import { sdkMetadata } from '../config/index.js'
 import { providers } from 'ethers'
 
 export class Chain {
@@ -46,7 +46,7 @@ export class Chain {
       this.provider = provider
     }
 
-    this.nativeTokenSymbol = metadata.networks[this.slug]?.nativeTokenSymbol
+    this.nativeTokenSymbol = sdkMetadata.networks[this.slug]?.nativeTokenSymbol
     if (!this.nativeTokenSymbol) {
       throw new Error(`nativeTokenSymbol not found for chain "${name}", slug "${this.slug}"`)
     }
@@ -68,8 +68,8 @@ function newChain (chain: NetworkSlug | ChainSlug | string, chainId?: number) {
   ) {
     chain = ChainSlug.Ethereum
   }
-  if (!metadata.networks[chain]) {
+  if (!sdkMetadata.networks[chain]) {
     throw new Error(`unsupported chain "${chain}"`)
   }
-  return new Chain(metadata.networks[chain].name, chainId)
+  return new Chain(sdkMetadata.networks[chain].name, chainId)
 }

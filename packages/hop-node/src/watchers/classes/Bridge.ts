@@ -15,11 +15,11 @@ import {
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from '#constants/index.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
+import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/sdk/contracts/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from '#db/SyncStateDb.js'
 import { TxOverrides } from '@hop-protocol/hop-node-core/types'

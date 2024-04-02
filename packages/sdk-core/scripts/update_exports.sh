@@ -17,6 +17,7 @@ update_file() {
 # Define file paths
 FILE_PATH_1="./dist/esm/contracts/index.js"
 FILE_PATH_2="./dist/esm/contracts/factories/index.js"
+FILE_PATH_3="./dist/esm/contracts/index.d.ts"
 
 # Update FILE_PATH_1 if it exists
 if [ -f "$FILE_PATH_1" ]; then
@@ -32,4 +33,12 @@ if [ -f "$FILE_PATH_2" ]; then
     echo "File updated successfully: $FILE_PATH_2"
 else
     echo "File does not exist: $FILE_PATH_2"
+fi
+
+# Update FILE_PATH_3 if it exists
+if [ -f "$FILE_PATH_3" ]; then
+    update_file "$FILE_PATH_3"
+    echo "File updated successfully: $FILE_PATH_3"
+else
+    echo "File does not exist: $FILE_PATH_3"
 fi

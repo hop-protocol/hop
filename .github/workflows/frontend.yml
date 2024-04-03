@@ -39,16 +39,16 @@ jobs:
           echo "dnslink_subdomain=_dnslink.${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         fi
 
-  call-core-publish-workflow:
-    name: Publish NPM Core Package If Necessary
-    uses: ./.github/workflows/npm_publish_core.yml
+  call-sdk-core-publish-workflow:
+    name: Publish NPM SDK Core Package If Necessary
+    uses: ./.github/workflows/npm_publish_sdk_core.yml
     with:
       environment: production
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   call-sdk-publish-workflow:
-    needs: call-core-publish-workflow
+    needs: call-sdk-core-publish-workflow
     name: Publish NPM SDK Package If Necessary
     uses: ./.github/workflows/npm_publish_sdk.yml
     with:

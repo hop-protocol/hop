@@ -2,6 +2,7 @@
   "name": "@hop-protocol/v2-explorer-frontend",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@emotion/react": "11.5.0",
     "@emotion/styled": "11.11.0",
@@ -42,6 +43,7 @@
     "@types/styled-components": "5.1.34",
     "@types/styled-system": "5.1.22",
     "@vitejs/plugin-react": "4.2.1",
+    "dotenv": "16.4.5",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
     "eslint-plugin-react-refresh": "0.4.5",

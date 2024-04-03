@@ -1,13 +1,9 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "paths": {
-      "#*": ["./src/*"]
-    }
-  },
-  "include": [
-    "src"
+  "files": [],
+  "include": [],
+  "references": [
+    { "path": "./src/tsconfig.esm.json" },
+    { "path": "./src/tsconfig.cjs.json" },
+    { "path": "./test" }
   ]
 }

@@ -70,34 +70,6 @@ importers:
         specifier: 29.1.2
         version: 29.1.2(@babel/core@7.24.3)(jest@29.7.0)(typescript@5.4.3)
 
-  packages/core:
-    dependencies:
-      ethers:
-        specifier: 5.7.2
-        version: 5.7.2
-    devDependencies:
-      '@aws-sdk/client-s3':
-        specifier: 3.338.0
-        version: 3.338.0
-      '@aws-sdk/types':
-        specifier: 3.485.0
-        version: 3.485.0
-      '@typechain/ethers-v5':
-        specifier: 10.1.0
-        version: 10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.4.3)
-      dotenv:
-        specifier: 16.4.1
-        version: 16.4.1
-      jest:
-        specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.2)(ts-node@10.9.2)
-      ts-jest:
-        specifier: 29.1.2
-        version: 29.1.2(@babel/core@7.24.3)(jest@29.7.0)(typescript@5.4.3)
-      typechain:
-        specifier: 8.1.0
-        version: 8.1.0(typescript@5.4.3)
-
   packages/explorer-backend:
     dependencies:
       '@hop-protocol/sdk':
@@ -2839,9 +2811,9 @@ packages:
       class-validator: 0.14.1
       dotenv: 16.4.1
       ethers: 5.7.2
-      pg: 8.11.4
+      pg: 8.11.5
       reflect-metadata: 0.1.13
-      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.4)
+      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.5)
       typeorm-naming-strategies: 4.1.0(typeorm@0.3.20)
       winston: 3.13.0
     transitivePeerDependencies:
@@ -8103,7 +8075,7 @@ packages:
   /@tsconfig/node16@1.0.4:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
-  /@typechain/ethers-v5@10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.4.3):
+  /@typechain/ethers-v5@10.1.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@8.1.0)(typescript@5.3.3):
     resolution: {integrity: sha512-3LIb+eUpV3mNCrjUKT5oqp8PBsZYSnVrkfk6pY/ZM0boRs2mKxjFZ7bktx42vfDye8PPz3NxtW4DL5NsNsFqlg==}
     peerDependencies:
       '@ethersproject/abi': ^5.0.0
@@ -8118,9 +8090,9 @@ packages:
       '@ethersproject/providers': 5.7.2
       ethers: 5.7.2
       lodash: 4.17.21
-      ts-essentials: 7.0.3(typescript@5.4.3)
-      typechain: 8.1.0(typescript@5.4.3)
-      typescript: 5.4.3
+      ts-essentials: 7.0.3(typescript@5.3.3)
+      typechain: 8.1.0(typescript@5.3.3)
+      typescript: 5.3.3
     dev: true
 
   /@typechain/ethers-v5@9.0.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@7.0.0)(typescript@5.4.3):
@@ -10533,7 +10505,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001605
-      electron-to-chromium: 1.4.723
+      electron-to-chromium: 1.4.724
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.23.0)
 
@@ -11853,8 +11825,8 @@ packages:
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  /electron-to-chromium@1.4.723:
-    resolution: {integrity: sha512-rxFVtrMGMFROr4qqU6n95rUi9IlfIm+lIAt+hOToy/9r6CDv0XiEcQdC3VP71y1pE5CFTzKV0RvxOGYCPWWHPw==}
+  /electron-to-chromium@1.4.724:
+    resolution: {integrity: sha512-RTRvkmRkGhNBPPpdrgtDKvmOEYTrPlXDfc0J/Nfq5s29tEahAwhiX4mmhNzj6febWMleulxVYPh7QwCSL/EldA==}
 
   /elliptic@6.5.4:
     resolution: {integrity: sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ==}
@@ -18020,8 +17992,8 @@ packages:
     dev: false
     optional: true
 
-  /pg-connection-string@2.6.3:
-    resolution: {integrity: sha512-77FxhhKJQH+xJx6tDqkhhMa0nZvv3U1HYLDQgwZxZafVD583++O5LXn5oo5HaQZ0vXwYcZA1koYAJM3JvD6Gtw==}
+  /pg-connection-string@2.6.4:
+    resolution: {integrity: sha512-v+Z7W/0EO707aNMaAEfiGnGL9sxxumwLl2fJvCQtMn9Fxsg+lPpPkdcyBSv/KFgpGdYkMfn+EI1Or2EHjpgLCA==}
     dev: false
 
   /pg-int8@1.0.1:
@@ -18047,12 +18019,12 @@ packages:
       pg: 8.11.3
     dev: false
 
-  /pg-pool@3.6.2(pg@8.11.4):
+  /pg-pool@3.6.2(pg@8.11.5):
     resolution: {integrity: sha512-Htjbg8BlwXqSBQ9V8Vjtc+vzf/6fVUuak/3/XXKA9oxZprwW3IMDQTGHP+KDmVL7rtd+R1QjbnCFPuTHm3G4hg==}
     peerDependencies:
       pg: '>=8.0'
     dependencies:
-      pg: 8.11.4
+      pg: 8.11.5
     dev: false
 
   /pg-pool@3.6.2(pg@8.7.1):
@@ -18113,7 +18085,7 @@ packages:
     dependencies:
       buffer-writer: 2.0.0
       packet-reader: 1.0.0
-      pg-connection-string: 2.6.3
+      pg-connection-string: 2.6.4
       pg-pool: 3.6.2(pg@8.11.3)
       pg-protocol: 1.6.1
       pg-types: 2.2.0
@@ -18122,8 +18094,8 @@ packages:
       pg-cloudflare: 1.1.1
     dev: false
 
-  /pg@8.11.4:
-    resolution: {integrity: sha512-pWb7JKPxGk1UFbtq7jQ0m3IfPpb7LLACCEyN8/u9DYEom+Q/BSKy+4TRl4+Hh003AOYhppB/z+QK87/hx/bk0w==}
+  /pg@8.11.5:
+    resolution: {integrity: sha512-jqgNHSKL5cbDjFlHyYsCXmQDrfIX/3RsNwYqpd4N0Kt8niLuNoRNH+aazv6cOd43gPh9Y4DjQCtb+X0MH0Hvnw==}
     engines: {node: '>= 8.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
@@ -18131,8 +18103,8 @@ packages:
       pg-native:
         optional: true
     dependencies:
-      pg-connection-string: 2.6.3
-      pg-pool: 3.6.2(pg@8.11.4)
+      pg-connection-string: 2.6.4
+      pg-pool: 3.6.2(pg@8.11.5)
       pg-protocol: 1.6.1
       pg-types: 2.2.0
       pgpass: 1.0.5
@@ -18151,7 +18123,7 @@ packages:
     dependencies:
       buffer-writer: 2.0.0
       packet-reader: 1.0.0
-      pg-connection-string: 2.6.3
+      pg-connection-string: 2.6.4
       pg-pool: 3.6.2(pg@8.7.1)
       pg-protocol: 1.6.1
       pg-types: 2.2.0
@@ -20615,12 +20587,21 @@ packages:
     resolution: {integrity: sha512-Z86EW+fFFh/IFB1fqQ3/+7Zpf9t2ebOAxNI/V6Wo7r5gqiqtxmgTlQ1qbqQcjLKYeSHPTsEmvlJUDg/EuL0uHQ==}
     dev: false
 
+  /ts-essentials@7.0.3(typescript@5.3.3):
+    resolution: {integrity: sha512-8+gr5+lqO3G84KdiTSMRLtuyJ+nTBVRKuCrK4lidMPdVeEp0uqC875uE5NMcaA7YYMN7XsNiFQuMvasF8HT/xQ==}
+    peerDependencies:
+      typescript: '>=3.7.0'
+    dependencies:
+      typescript: 5.3.3
+    dev: true
+
   /ts-essentials@7.0.3(typescript@5.4.3):
     resolution: {integrity: sha512-8+gr5+lqO3G84KdiTSMRLtuyJ+nTBVRKuCrK4lidMPdVeEp0uqC875uE5NMcaA7YYMN7XsNiFQuMvasF8HT/xQ==}
     peerDependencies:
       typescript: '>=3.7.0'
     dependencies:
       typescript: 5.4.3
+    dev: false
 
   /ts-jest@29.1.1(@babel/core@7.24.3)(jest@29.6.2)(typescript@5.4.3):
     resolution: {integrity: sha512-D6xjnnbP17cC85nliwGiL+tpoKN0StpgE0TeOjXQTU6MVCfsB4v7aW05CgQ/1OywGb0x/oy9hHFnN+sczTiRaA==}
@@ -20881,7 +20862,7 @@ packages:
       - supports-color
     dev: false
 
-  /typechain@8.1.0(typescript@5.4.3):
+  /typechain@8.1.0(typescript@5.3.3):
     resolution: {integrity: sha512-5jToLgKTjHdI1VKqs/K8BLYy42Sr3o8bV5ojh4MnR9ExHO83cyyUdw+7+vMJCpKXUiVUvARM4qmHTFuyaCMAZQ==}
     hasBin: true
     peerDependencies:
@@ -20896,8 +20877,8 @@ packages:
       mkdirp: 1.0.4
       prettier: 2.8.8
       ts-command-line-args: 2.5.1
-      ts-essentials: 7.0.3(typescript@5.4.3)
-      typescript: 5.4.3
+      ts-essentials: 7.0.3(typescript@5.3.3)
+      typescript: 5.3.3
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -20980,10 +20961,10 @@ packages:
     peerDependencies:
       typeorm: ^0.2.0 || ^0.3.0
     dependencies:
-      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.4)
+      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.5)
     dev: false
 
-  /typeorm@0.3.20(better-sqlite3@8.7.0)(pg@8.11.4):
+  /typeorm@0.3.20(better-sqlite3@8.7.0)(pg@8.11.5):
     resolution: {integrity: sha512-sJ0T08dV5eoZroaq9uPKBoNcGslHBR4E4y+EBHs//SiGbblGe7IeduP/IH4ddCcj0qp3PHwDwGnuvqEAnKlq/Q==}
     engines: {node: '>=16.13.0'}
     hasBin: true
@@ -21052,7 +21033,7 @@ packages:
       dotenv: 16.4.1
       glob: 10.3.12
       mkdirp: 2.1.6
-      pg: 8.11.4
+      pg: 8.11.5
       reflect-metadata: 0.2.2
       sha.js: 2.4.11
       tslib: 2.6.2

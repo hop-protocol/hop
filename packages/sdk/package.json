@@ -21,7 +21,7 @@
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",
-    "build:esm": "cp scripts/esm_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh",
+    "build:esm": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh && cp scripts/esm_abi_index.ts dist/esm/abi/index.js",
     "build:cjs": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:typechain && pnpm build:esm && pnpm build:cjs && pnpm build:toplevel && pnpm build:browser",
     "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
@@ -74,41 +74,33 @@
     },
     "./config": {
       "import": "./dist/esm/config/index.js",
-      "types": "./dist/cjs/config/index.d.ts",
       "default": "./dist/cjs/config/index.js"
     },
     "./abi": {
-      "types": "./dist/cjs/abi/index.d.ts",
       "import": "./dist/esm/abi/index.js",
       "default": "./dist/cjs/abi/index.js"
     },
     "./addresses": {
-      "types": "./dist/cjs/addresses/index.d.ts",
       "import": "./dist/esm/addresses/index.js",
       "default": "./dist/cjs/addresses/index.js"
     },
     "./contracts": {
-      "types": "./dist/cjs/contracts/index.d.ts",
       "import": "./dist/esm/contracts/index.js",
       "default": "./dist/cjs/contracts/index.js"
     },
     "./contracts/*": {
-      "types": "./dist/cjs/contracts/*.d.ts",
       "import": "./dist/esm/contracts/*.js",
       "default": "./dist/cjs/contracts/*.js"
     },
     "./metadata": {
-      "types": "./dist/cjs/metadata/index.d.ts",
       "import": "./dist/esm/metadata/index.js",
       "default": "./dist/cjs/metadata/index.js"
     },
     "./metadata/tokens": {
-      "types": "./dist/cjs/metadata/index.d.ts",
       "import": "./dist/esm/metadata/tokens.js",
       "default": "./dist/cjs/metadata/tokens.js"
     },
     "./networks": {
-      "types": "./dist/cjs/networks/index.d.ts",
       "import": "./dist/esm/networks/index.js",
       "default": "./dist/cjs/networks/index.js"
     }

@@ -53,7 +53,7 @@
     "fast-memoize": "2.5.2",
     "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
-    "p-queue": "8.0.1"
+    "p-queue": "6.6.2"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",

@@ -12,17 +12,31 @@ export class Chain {
   isL1: boolean = false
   nativeTokenSymbol: string
 
-  static Ethereum = newChain(ChainSlug.Ethereum, mainnet.ethereum!.networkId)
-  static Optimism = newChain(ChainSlug.Optimism, mainnet.optimism!.networkId)
-  static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum!.networkId)
-  static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis!.networkId)
-  static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon!.networkId)
-  static Nova = newChain(ChainSlug.Nova, mainnet.nova!.networkId)
-  static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
-  static Linea = newChain(ChainSlug.Linea, mainnet.linea?.networkId ?? goerli.linea?.networkId)
-  static ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
-  static Base = newChain(ChainSlug.Base, mainnet.base?.networkId ?? goerli.base?.networkId)
-  static PolygonZk = newChain(ChainSlug.PolygonZk, mainnet.polygonzk?.networkId ?? goerli.polygonzk?.networkId)
+  static Ethereum: Chain
+  static Optimism: Chain
+  static Arbitrum: Chain
+  static Gnosis: Chain
+  static Polygon: Chain
+  static Nova: Chain
+  static ZkSync: Chain
+  static Linea: Chain
+  static ScrollZk: Chain
+  static Base: Chain
+  static PolygonZk: Chain
+
+  static initializeChains() {
+    Chain.Ethereum = newChain(ChainSlug.Ethereum, mainnet.ethereum!.networkId)
+    Chain.Optimism = newChain(ChainSlug.Optimism, mainnet.optimism!.networkId)
+    Chain.Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum!.networkId)
+    Chain.Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis!.networkId)
+    Chain.Polygon = newChain(ChainSlug.Polygon, mainnet.polygon!.networkId)
+    Chain.Nova = newChain(ChainSlug.Nova, mainnet.nova!.networkId)
+    Chain.ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
+    Chain.Linea = newChain(ChainSlug.Linea, mainnet.linea?.networkId ?? goerli.linea?.networkId)
+    Chain.ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
+    Chain.Base = newChain(ChainSlug.Base, mainnet.base?.networkId ?? goerli.base?.networkId)
+    Chain.PolygonZk = newChain(ChainSlug.PolygonZk, mainnet.polygonzk?.networkId ?? goerli.polygonzk?.networkId)
+  }
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {
@@ -60,6 +74,8 @@ export class Chain {
     return (this.provider as any)?.connection?.url
   }
 }
+
+Chain.initializeChains()
 
 function newChain (chain: NetworkSlug | ChainSlug | string, chainId?: number) {
   if (

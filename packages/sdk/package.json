@@ -70,39 +70,39 @@
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "default": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.js"
     },
     "./config": {
       "import": "./dist/esm/config/index.js",
-      "default": "./dist/cjs/config/index.js"
+      "require": "./dist/cjs/config/index.js"
     },
     "./abi": {
       "import": "./dist/esm/abi/index.js",
-      "default": "./dist/cjs/abi/index.js"
+      "require": "./dist/cjs/abi/index.js"
     },
     "./addresses": {
       "import": "./dist/esm/addresses/index.js",
-      "default": "./dist/cjs/addresses/index.js"
+      "require": "./dist/cjs/addresses/index.js"
     },
     "./contracts": {
       "import": "./dist/esm/contracts/index.js",
-      "default": "./dist/cjs/contracts/index.js"
+      "require": "./dist/cjs/contracts/index.js"
     },
     "./contracts/*": {
       "import": "./dist/esm/contracts/*.js",
-      "default": "./dist/cjs/contracts/*.js"
+      "require": "./dist/cjs/contracts/*.js"
     },
     "./metadata": {
       "import": "./dist/esm/metadata/index.js",
-      "default": "./dist/cjs/metadata/index.js"
+      "require": "./dist/cjs/metadata/index.js"
     },
     "./metadata/tokens": {
       "import": "./dist/esm/metadata/tokens.js",
-      "default": "./dist/cjs/metadata/tokens.js"
+      "require": "./dist/cjs/metadata/tokens.js"
     },
     "./networks": {
       "import": "./dist/esm/networks/index.js",
-      "default": "./dist/cjs/networks/index.js"
+      "require": "./dist/cjs/networks/index.js"
     }
   }
 }

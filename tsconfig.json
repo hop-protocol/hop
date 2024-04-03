@@ -10,7 +10,6 @@
 
     // Modules
     "module": "ESNext",
-    "moduleResolution": "node",
     "resolveJsonModule": true,
 
     // Emit

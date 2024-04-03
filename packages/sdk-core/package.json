@@ -81,7 +81,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
-    "build:esm": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh",
+    "build:esm": "cp scripts/esm_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh",
     "build:cjs": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:typechain && pnpm build:cjs && pnpm build:esm && pnpm build:toplevel",
     "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",

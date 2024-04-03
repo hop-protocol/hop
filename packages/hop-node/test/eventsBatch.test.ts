@@ -23,12 +23,12 @@ describe.skip('eventsBatch', () => {
       expect(batchBlocks).toBe(1000)
 
       await bridge.eventsBatch(
-        async (start: number, end: number, i: number) => {
+        async (start: number, end: number, i: number | undefined) => {
           iterations++
           if (iterations < maxIterations) {
             expect(end - start).toBe(batchBlocks)
           } else {
-            expect(end - start).toBe(remainder - i)
+            expect(end - start).toBe(remainder - (i as number))
           }
         }
       )
@@ -56,7 +56,7 @@ describe.skip('eventsBatch', () => {
       expect(batchBlocks).toBe(1000)
 
       await bridge.eventsBatch(
-        async (start: number, end: number, i: number) => {
+        async (start: number, end: number, i: number | undefined) => {
           iterations++
           if (iterations === 1) {
             expect(end).toBe(endBlockNumber)
@@ -64,7 +64,7 @@ describe.skip('eventsBatch', () => {
           if (iterations < maxIterations) {
             expect(end - start).toBe(batchBlocks)
           } else {
-            expect(end - start).toBe(remainder - i)
+            expect(end - start).toBe(remainder - (i as number))
             expect(start).toBe(startBlockNumber)
           }
         },
@@ -100,7 +100,7 @@ describe.skip('eventsBatch', () => {
       let lastEnd = 0
 
       await bridge.eventsBatch(
-        async (start: number, end: number, i: number) => {
+        async (start: number, end: number, i: number | undefined) => {
           iterations++
           if (iterations === 1) {
             firstStart = start
@@ -120,7 +120,7 @@ describe.skip('eventsBatch', () => {
       expect(iterations).toBe(halfway)
 
       await bridge.eventsBatch(
-        async (start: number, end: number, i: number) => {
+        async (start: number, end: number, i: number | undefined) => {
           // eventsBatch resets when it enounters an error in process
           if (iterations === halfway) {
             expect(start).toBeGreaterThanOrEqual(firstStart)

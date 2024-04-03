@@ -1,4 +1,4 @@
-import { AssetSymbol } from '@hop-protocol/core/config'
+import { AssetSymbol } from '@hop-protocol/sdk/config'
 
 export function getCanonicalTokenSymbol (tokenSymbol: string) {
   const symbols = Object.values(AssetSymbol)

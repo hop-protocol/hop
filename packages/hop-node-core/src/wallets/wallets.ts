@@ -45,7 +45,7 @@ const constructSigner = (network: string, privateKey: string): Signer => {
   }
 
   const signer = new GasBoostSigner(wallet)
-  const maxGasPriceGwei = globalConfig.networks[network].maxGasPrice
+  const maxGasPriceGwei = (globalConfig as any).networks[network].maxGasPrice
   signer.setOptions({
     gasPriceMultiplier,
     initialTxGasPriceMultiplier,

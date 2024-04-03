@@ -6,7 +6,6 @@
 
 | Library                                                       | Current Version                                                                                                                                   | Description                                 |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [@hop-protocol/core](packages/core)                             | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fcore.svg)](https://badge.fury.io/js/)                                                   | Metadata and config                         |
 | [@hop-protocol/sdk](packages/sdk)                             | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/)                                                   | TypeScript Hop SDK                          |
 
 

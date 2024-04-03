@@ -1,19 +1,21 @@
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-
-    // node16 and nodenext are the only correct module options for all apps and libraries that are intended to run in Node.js v12 or later, whether they use ES modules or not.
-    // https://www.typescriptlang.org/docs/handbook/modules/reference.html#summary
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-
-    // "This setting is particularly recommended for Node.js projects that use mostly ESM, but have a select few CJS files. It is not recommended for projects that currently target CJS, but may want to target ESM in the future."
-    // https://www.typescriptlang.org/docs/handbook/modules/theory.html#input-module-syntax
-    "verbatimModuleSyntax": false
-  },
-  "include": [
-    "src"
+/**
+ * This setup is recommended for modern projects that have multiple packages at the root
+ * (i.e. src and test). This allows for full TS compatability in and between all packages,
+ * including autocompletions and intellisense.
+ *
+ * The important piece is that teach package is its own TS project and uses references
+ * to access the build of the other packages.
+ * 
+ * TS Docs: https://www.typescriptlang.org/docs/handbook/project-references.html#guidance
+ * RS Repo (implements this): https://github.com/microsoft/TypeScript/tree/main
+ * Best SE Answer: https://stackoverflow.com/a/55000497/10378715
+ * Thorough discussion: https://github.com/Microsoft/vscode/issues/12463
+ */
+ {
+  "files": [],
+  "include": [],
+  "references": [
+    { "path": "./src" },
+    { "path": "./test" }
   ]
 }

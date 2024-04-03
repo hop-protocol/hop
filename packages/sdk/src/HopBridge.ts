@@ -21,21 +21,21 @@ import {
   TokenIndex,
   TokenSymbol
 } from './constants/index.js'
-import { CCTPMessageTransmitter__factory } from '@hop-protocol/core/contracts'
-import { CCTPTokenMessenger__factory } from '@hop-protocol/core/contracts'
-import { CCTPTokenMinter__factory } from '@hop-protocol/core/contracts'
-import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, WithdrawalProof, chainIdToSlug, fetchJsonOrThrow, getUSDCSwapParams } from '@hop-protocol/sdk-core'
-import { L1_Bridge } from '@hop-protocol/core/contracts'
-import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts'
-import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts'
-import { L1_HopCCTPImplementation, L1_HopCCTPImplementation__factory, L2_HopCCTPImplementation, L2_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
-import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts'
-import { L2_Bridge } from '@hop-protocol/core/contracts'
-import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
+import { CCTPMessageTransmitter__factory } from './contracts/index.js'
+import { CCTPTokenMessenger__factory } from './contracts/index.js'
+import { CCTPTokenMinter__factory } from './contracts/index.js'
+import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, WithdrawalProof, chainIdToSlug, fetchJsonOrThrow, getUSDCSwapParams, getCctpDomain } from '@hop-protocol/sdk-core'
+import { L1_Bridge } from './contracts/index.js'
+import { L1_ERC20_Bridge__factory } from './contracts/index.js'
+import { L1_HomeAMBNativeToErc20__factory } from './contracts/index.js'
+import { L1_HopCCTPImplementation, L1_HopCCTPImplementation__factory, L2_HopCCTPImplementation, L2_HopCCTPImplementation__factory } from './contracts/index.js'
+import { L2_AmmWrapper__factory } from './contracts/index.js'
+import { L2_Bridge } from './contracts/index.js'
+import { L2_Bridge__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
 import { Token } from './Token.js'
 import { bondableChains, metadata } from './config/index.js'
-import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, keccak256, parseEther, parseUnits } from 'ethers/lib/utils.js'
+import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, keccak256, parseEther, parseUnits, solidityPack } from 'ethers/lib/utils.js'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -3140,6 +3140,7 @@ export class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const populatedTx = await this.populateWithdrawTransferTx(sourceChain, destinationChain, transferIdOrTransactionHash)
+
     return this.sendTransaction(populatedTx, destinationChain)
   }
 
@@ -3435,21 +3436,30 @@ export class HopBridge extends Base {
         const receipt = await provider.getTransactionReceipt(transactionHash)
         if (receipt) {
           let toChain : any
+          let nonce = ''
           for (const log of receipt.logs) {
             const cctpTransferSentTopic = '0x10bf4019e09db5876a05d237bfcc676cd84eee2c23f820284906dd7cfa70d2c4'
             const fromBridgeAddress = this.getCctpBridgeAddress(this.tokenSymbol, chain)
             if (log.address?.toLowerCase() === fromBridgeAddress.toLowerCase() && log.topics[0] === cctpTransferSentTopic) {
+              nonce = BigNumber.from(log.topics[1].toString()).toString()
               toChain = BigNumber.from(log.topics[2]).toNumber()
             }
           }
           if (!toChain) {
             throw new Error('to chain id not found')
           }
+          if (!nonce) {
+            throw new Error('nonce not found')
+          }
+          const toChainSlug = chainIdToSlug(this.network, toChain)
+          const nonceUsed = await this.getIsCctpNonceUsed(nonce, fromChain, toChainSlug)
           return {
             fromChain: chain,
             fromChainId: fromChain.chainId,
-            toChain: chainIdToSlug(this.network, toChain),
+            toChain: toChainSlug,
             toChainId: toChain,
+            nonce,
+            nonceUsed,
             transactionHash
           }
         }
@@ -3551,5 +3561,25 @@ export class HopBridge extends Base {
     }
 
     throw new Error('Invalid Ethereum address')
+  }
+
+  async getIsCctpNonceUsed (nonce: string, fromChain: TChain, toChain: TChain): Promise<boolean> {
+    try {
+      fromChain = this.toChainModel(fromChain)
+      toChain = this.toChainModel(toChain)
+      const sourceDomain = getCctpDomain(fromChain.slug)
+      const nonceHash = keccak256(solidityPack(['uint32', 'uint64'], [sourceDomain, nonce]))
+
+      const transmitterAddress = this.getCctpMessageTransmitterAddress(this.tokenSymbol, toChain)
+      if (!transmitterAddress) {
+        throw new Error(`transmitter address not found for chain ${toChain.slug}`)
+      }
+
+      const transmitter = CCTPMessageTransmitter__factory.connect(transmitterAddress, toChain.provider!)
+      const result = await transmitter.usedNonces(nonceHash)
+      return BigNumber.from(result).eq(1)
+    } catch (err) {
+      return false
+    }
   }
 }

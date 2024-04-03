@@ -1,6 +1,6 @@
 import { CanonicalToken, TokenSymbol } from '#constants/index.js'
 import { getAddress } from 'ethers/lib/utils.js'
-import { metadata } from '#config/index.js'
+import { sdkMetadata } from '#config/index.js'
 
 export class TokenModel {
   public readonly chainId: number
@@ -54,7 +54,7 @@ export class TokenModel {
       this.decimals = decimals
     }
     if (!decimals && symbol) {
-      this.decimals = metadata.tokens[symbol]?.decimals
+      this.decimals = sdkMetadata.tokens[symbol]?.decimals
     }
   }
 

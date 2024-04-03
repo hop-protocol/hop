@@ -1,4 +1,4 @@
-import { TotalStake } from '@hop-protocol/core/config'
+import { TotalStake } from '@hop-protocol/sdk/config'
 
 export type BonderConfig = {
   totalStake?: Partial<TotalStake>

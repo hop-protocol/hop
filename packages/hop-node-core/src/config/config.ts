@@ -4,14 +4,15 @@ import {
   Network,
   OneHourMs
 } from '#constants/index.js'
-import { metadata as coreMetadata } from '@hop-protocol/core/metadata'
-import { networks as coreNetworks } from '@hop-protocol/core/networks'
+import { type Metadata, metadata as coreMetadata } from '@hop-protocol/sdk/metadata'
+import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { execSync } from 'node:child_process'
 import { loadEnv } from './loadEnvFile.js'
 import { normalizeEnvVarNumber } from './utils/normalizeEnvVarNumber.js'
 
 loadEnv()
 
+const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const hostname = process.env.HOSTNAME ?? os.hostname()
 export const slackChannel = process.env.SLACK_CHANNEL
@@ -93,14 +94,19 @@ export type BlocklistConfig = {
   addresses: Record<string, boolean>
 }
 
+const getCoreNetworksConfig = (): any => {
+  let networks: any = {}
+  let metadata: any = {}
 
-// TODO: MIGRATION: Handle this
-// Better type
-const networkConfigs: {[key: string]: any} = {}
+  for (const network in coreNetworks) {
+    const config = getCoreNetworkConfig(network as Network)
+    networks = { ...networks, ...config.networks }
+    metadata = { ...metadata, ...config.metadata }
+  }
+  return { networks, metadata }
+}
 
-// TODO: MIGRATION: Handle this
-// Better config handling
-for (const network in coreNetworks) {
+export const getCoreNetworkConfig = (network: Network): any => {
   const coreNetwork = coreNetworks[network as Network]
   const networks: any = {}
 
@@ -114,25 +120,66 @@ for (const network in coreNetworks) {
     networks[chain].rpcUrl = chainObj?.publicRpcUrl
   }
 
+  // Convert USDC to USDC.e
   const metadata = coreMetadata[network as Network]
-  const networkInfo = { networks, metadata }
-  networkConfigs[network] = networkInfo
+  if (metadata?.tokens?.USDC && metadata.tokens?.['USDC.e']) {
+    metadata.tokens.USDC = metadata.tokens?.['USDC.e']
+    metadata.tokens.USDC.symbol = 'USDC'
+    delete (metadata.tokens as any)?.['USDC.e']
+  }
+  return { networks, metadata }
 }
 
-// TODO: MIGRATION: Handle this
-// better config handling
-export type Config = {
+export type CoreConfig = {
   tokens: Tokens
   bonderPrivateKey: string
   metrics: MetricsConfig
   signerConfig: SignerConfig
   blocklist: BlocklistConfig
   emergencyDryMode: boolean
+  isMainnet: boolean
+  network: string
+  networks: Networks
+  metadata: Metadata
 }
 
+export const config: CoreConfig = {
+  tokens: {},
+  bonderPrivateKey: bonderPrivateKey ?? '',
+  metrics: {
+    enabled: false
+  },
+  signerConfig: {
+    type: 'keystore'
+  },
+  blocklist: {
+    path: '',
+    addresses: {}
+  },
+  emergencyDryMode: false,
+  network: envNetwork,
+  isMainnet: envNetwork === Network.Mainnet,
+  ...getCoreNetworksConfig()
+}
 
-// TODO: MIGRATION: Handle this
-export let config: any = {}
-export const setConfig = (hopNodeCoreConfig: any) => {
-  config = hopNodeCoreConfig
+export const getCoreConfig = (): CoreConfig => {
+  return config
+}
+
+// Setters
+
+export const setCoreBonderPrivateKey = (privateKey: string) => {
+  config.bonderPrivateKey = privateKey
+}
+
+export const setCoreNetworkRpcUrl = (network: string, rpcUrl: string) => {
+  (config.networks as any)[network].rpcUrl = rpcUrl
+}
+
+export const setCoreNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
+  (config.networks as any)[network].redundantRpcUrls = redundantRpcUrls
+}
+
+export const setCoreNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
+  (config.networks as any)[network].maxGasPrice = maxGasPrice
 }

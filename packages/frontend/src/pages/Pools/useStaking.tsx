@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/core/contracts'
+import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { calculateStakedPosition, commafy, findMatchingBridge, findNetworkBySlug, formatError, getTokenImage, isRewardsExpired as isRewardsExpiredCheck } from 'src/utils'
 import { formatTokenDecimalString } from 'src/utils/format'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'

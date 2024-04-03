@@ -13,7 +13,7 @@ export const getProviderChainSlug = (provider: any): Chain | undefined => {
     return cache[providerUrl]
   }
   for (const chain in globalConfig.networks) {
-    const url = globalConfig.networks[chain].rpcUrl
+    const url = (globalConfig as any).networks[chain].rpcUrl
     const providerUrlObj = new URL(providerUrl)
     const configUrlObj = new URL(url)
     if (providerUrlObj.host === configUrlObj.host && providerUrlObj.pathname === configUrlObj.pathname) {

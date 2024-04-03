@@ -1,4 +1,4 @@
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import {
   Config,

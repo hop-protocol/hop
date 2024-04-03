@@ -10,7 +10,7 @@ import {
   L2_Bridge__factory,
   MessengerWrapper__factory,
   SaddleLpToken__factory
-} from '@hop-protocol/core/contracts'
+} from '@hop-protocol/sdk/contracts'
 import { config as globalConfig } from '#config/index.js'
 
 const getL1BridgeContract = (token: string) => {

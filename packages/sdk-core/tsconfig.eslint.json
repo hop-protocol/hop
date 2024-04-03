@@ -1,0 +1,3 @@
+{
+"extends": "./src/esm/tsconfig.json"
+}

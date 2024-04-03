@@ -1,5 +1,5 @@
 import OsWatcher from '#watchers/OsWatcher.js'
-import { AssetSymbol } from '@hop-protocol/core/config'
+import { AssetSymbol } from '@hop-protocol/sdk/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
@@ -16,7 +16,6 @@ import {
   slackUsername
 } from '@hop-protocol/hop-node-core/config'
 import { printHopArt } from './shared/art.js'
-import { setConfig } from '@hop-protocol/hop-node-core/config'
 import {
   startWatchers
 } from '#watchers/watchers.js'
@@ -142,9 +141,6 @@ async function main (source: any) {
     const bonderPublicAddress = computeAddress(privateKey)
     logger.info('Bonder public address:', bonderPublicAddress)
   }
-
-  // TODO: MIGRATION: Handle this
-  setConfig(globalConfig)
 
   // Don't start watchers if running CCTP
   if (runCCTP) {

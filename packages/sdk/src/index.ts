@@ -1,3 +1,4 @@
+export * from './abi/index.js'
 import { Hop } from './Hop.js'
 export { Hop }
 export { HopBridge } from './HopBridge.js'

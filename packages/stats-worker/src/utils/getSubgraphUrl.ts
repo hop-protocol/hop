@@ -1,4 +1,4 @@
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/networks'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/networks'
 
 export function getSubgraphUrl (
   chain: string,

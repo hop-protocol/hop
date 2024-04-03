@@ -1,7 +1,7 @@
 import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants/index.js'
 import { getChainSlugFromName } from '../utils/index.js'
-import { goerli, mainnet } from '@hop-protocol/core/networks'
-import { metadata } from '../config/index.js'
+import { goerli, mainnet } from '#networks/index.js'
+import { sdkMetadata } from '../config/index.js'
 import { providers } from 'ethers'
 
 export class Chain {
@@ -12,17 +12,31 @@ export class Chain {
   isL1: boolean = false
   nativeTokenSymbol: string
 
-  static Ethereum = newChain(ChainSlug.Ethereum, mainnet.ethereum!.networkId)
-  static Optimism = newChain(ChainSlug.Optimism, mainnet.optimism!.networkId)
-  static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum!.networkId)
-  static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis!.networkId)
-  static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon!.networkId)
-  static Nova = newChain(ChainSlug.Nova, mainnet.nova!.networkId)
-  static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
-  static Linea = newChain(ChainSlug.Linea, mainnet.linea?.networkId ?? goerli.linea?.networkId)
-  static ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
-  static Base = newChain(ChainSlug.Base, mainnet.base?.networkId ?? goerli.base?.networkId)
-  static PolygonZk = newChain(ChainSlug.PolygonZk, mainnet.polygonzk?.networkId ?? goerli.polygonzk?.networkId)
+  static Ethereum: Chain
+  static Optimism: Chain
+  static Arbitrum: Chain
+  static Gnosis: Chain
+  static Polygon: Chain
+  static Nova: Chain
+  static ZkSync: Chain
+  static Linea: Chain
+  static ScrollZk: Chain
+  static Base: Chain
+  static PolygonZk: Chain
+
+  static initializeChains() {
+    Chain.Ethereum = newChain(ChainSlug.Ethereum, mainnet.ethereum!.networkId)
+    Chain.Optimism = newChain(ChainSlug.Optimism, mainnet.optimism!.networkId)
+    Chain.Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum!.networkId)
+    Chain.Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis!.networkId)
+    Chain.Polygon = newChain(ChainSlug.Polygon, mainnet.polygon!.networkId)
+    Chain.Nova = newChain(ChainSlug.Nova, mainnet.nova!.networkId)
+    Chain.ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
+    Chain.Linea = newChain(ChainSlug.Linea, mainnet.linea?.networkId ?? goerli.linea?.networkId)
+    Chain.ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
+    Chain.Base = newChain(ChainSlug.Base, mainnet.base?.networkId ?? goerli.base?.networkId)
+    Chain.PolygonZk = newChain(ChainSlug.PolygonZk, mainnet.polygonzk?.networkId ?? goerli.polygonzk?.networkId)
+  }
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {
@@ -46,7 +60,7 @@ export class Chain {
       this.provider = provider
     }
 
-    this.nativeTokenSymbol = metadata.networks[this.slug]?.nativeTokenSymbol
+    this.nativeTokenSymbol = sdkMetadata.networks[this.slug]?.nativeTokenSymbol
     if (!this.nativeTokenSymbol) {
       throw new Error(`nativeTokenSymbol not found for chain "${name}", slug "${this.slug}"`)
     }
@@ -61,6 +75,8 @@ export class Chain {
   }
 }
 
+Chain.initializeChains()
+
 function newChain (chain: NetworkSlug | ChainSlug | string, chainId?: number) {
   if (
     chain === NetworkSlug.Mainnet ||
@@ -68,8 +84,8 @@ function newChain (chain: NetworkSlug | ChainSlug | string, chainId?: number) {
   ) {
     chain = ChainSlug.Ethereum
   }
-  if (!metadata.networks[chain]) {
+  if (!sdkMetadata.networks[chain]) {
     throw new Error(`unsupported chain "${chain}"`)
   }
-  return new Chain(metadata.networks[chain].name, chainId)
+  return new Chain(sdkMetadata.networks[chain].name, chainId)
 }

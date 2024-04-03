@@ -1,17 +1,13 @@
 import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
-import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/core/addresses'
-import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/core/config'
+import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/sdk/addresses'
+import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/sdk/config'
 import {
   type BlocklistConfig,
-  type Config as HopNodeCoreConfig,
   type MetricsConfig,
   type SignerConfig,
-  type Tokens,
-  envNetwork,
-  isTestMode,
-  setConfig
+  type Tokens
 } from '@hop-protocol/hop-node-core/config'
 import { BonderConfig } from './types.js'
 import {
@@ -22,39 +18,36 @@ import {
   TotalBlocks
 } from '@hop-protocol/hop-node-core/constants'
 import {
+  type CoreConfig,
+  envNetwork,
+  getCoreConfig,
+  getCoreNetworkConfig,
+  isTestMode,
+  loadEnv,
+  setCoreBonderPrivateKey,
+  setCoreNetworkMaxGasPrice,
+  setCoreNetworkRedundantRpcUrls,
+  setCoreNetworkRpcUrl,
+} from '@hop-protocol/hop-node-core/config'
+import {
   DefaultBondThreshold,
   SyncType
 } from '#constants/index.js'
-import { Tokens as Metadata, metadata as coreMetadata } from '@hop-protocol/core/metadata'
-import { Networks, networks as coreNetworks } from '@hop-protocol/core/networks'
-import { execSync } from 'node:child_process'
-import { loadEnv } from './loadEnvFile.js'
+import { Tokens as Metadata } from '@hop-protocol/sdk/metadata'
+import { Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
 import { parseEther } from 'ethers/lib/utils.js'
 
 loadEnv()
 
+// TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
+export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
 const dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const defaultDbPath = path.resolve(dirname, '../../db_data')
 // const defaultDbPath = path.resolve(__dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
-const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
-export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
-export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
-export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
-export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
-export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
-export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
-export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
-export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
-export const awsProfile = process.env.AWS_PROFILE
-export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
-export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
-export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
-// TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
-export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
@@ -94,7 +87,7 @@ export type CommitTransfersConfig = {
   minThresholdAmount: Record<string, Record<string, Record<string, any>>>
 }
 
-export type Config = HopNodeCoreConfig & {
+export type Config = CoreConfig & {
   isMainnet: boolean
   network: string
   networks: Networks & {[network: string]: any}
@@ -112,25 +105,33 @@ export type Config = HopNodeCoreConfig & {
 const networkConfigs: {[key: string]: any} = {}
 
 for (const network in coreNetworks) {
+  const { networks, metadata } = getCoreNetworkConfig(network as Network)
+
   const { bridges: addresses, bonders } = coreAddresses[network as Network]
   const coreNetwork = coreNetworks[network as Network]
   const bonderConfig: BonderConfig = {}
-  const networks: any = {}
 
   for (const chain in coreNetwork) {
     const chainObj = coreNetwork[chain as Chain]
     if (!networks[chain]) {
       networks[chain] = {}
     }
-    networks[chain].name = chainObj?.name
-    networks[chain].chainId = chainObj?.networkId
-    networks[chain].rpcUrl = chainObj?.publicRpcUrl
     networks[chain].subgraphUrl = chainObj?.subgraphUrl
+  }
+  bonderConfig.totalStake = coreConfig[network as Network].bonderTotalStake
 
-    bonderConfig.totalStake = coreConfig[network as Network].bonderTotalStake
+  // Convert USDC to USDC.e
+  if (addresses.USDC && addresses['USDC.e']) {
+    addresses.USDC = addresses['USDC.e']
+    delete addresses['USDC.e']
   }
 
-  const metadata = coreMetadata[network as Network]
+  // Convert USDC to USDC.e
+  if (bonders.USDC && bonders['USDC.e']) {
+    bonders.USDC = bonders['USDC.e']
+    delete bonders['USDC.e']
+  }
+
   const networkInfo = { addresses, bonders, bonderConfig, networks, metadata }
   networkConfigs[network] = networkInfo
 }
@@ -158,23 +159,8 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 
 const { network, networks, metadata, addresses, bonders, bonderConfig, isMainnet } = getConfigByNetwork(envNetwork)
 
-// TODO: MIGRATION: Handle this
-// redo config. core shouldn't need it
-// defaults
 export const config: Config = {
-  tokens: {},
-  bonderPrivateKey: bonderPrivateKey ?? '',
-  metrics: {
-    enabled: false
-  },
-  signerConfig: {
-    type: 'keystore'
-  },
-  blocklist: {
-    path: '',
-    addresses: {}
-  },
-  emergencyDryMode: false,
+  ...getCoreConfig(),
   isMainnet,
   network,
   networks,
@@ -238,9 +224,6 @@ export const config: Config = {
   },
 }
 
-// TODO: MIGRATION: Handle this
-setConfig(config)
-
 export const setConfigByNetwork = (network: string) => {
   const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
@@ -259,31 +242,37 @@ export const setConfigBonders = (bonders: Bonders) => {
   config.bonders = bonders
 }
 
+export const setNetworkCustomSyncType = (network: string, customSyncType: SyncType) => {
+  if (config.networks[network]) {
+    config.networks[network].customSyncType = customSyncType
+  }
+}
+
+// Core Setters
+
 export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
+  setCoreBonderPrivateKey(privateKey)
 }
 
 export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
+    setCoreNetworkRpcUrl(network, rpcUrl)
   }
 }
 
 export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
   if (config.networks[network]) {
     config.networks[network].redundantRpcUrls = redundantRpcUrls
+    setCoreNetworkRedundantRpcUrls(network, redundantRpcUrls)
   }
 }
 
 export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
   if (config.networks[network]) {
     config.networks[network].maxGasPrice = maxGasPrice
-  }
-}
-
-export const setNetworkCustomSyncType = (network: string, customSyncType: SyncType) => {
-  if (config.networks[network]) {
-    config.networks[network].customSyncType = customSyncType
+    setCoreNetworkMaxGasPrice(network, maxGasPrice)
   }
 }
 

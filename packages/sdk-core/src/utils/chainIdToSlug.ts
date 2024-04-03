@@ -1,4 +1,4 @@
-import { networks } from '@hop-protocol/core/networks'
+import { networks } from '#networks/index.js'
 
 export function chainIdToSlug (network: string, chainId: number | string) {
   if (chainId === undefined) {

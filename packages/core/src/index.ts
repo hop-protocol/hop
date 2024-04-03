@@ -1,6 +1,0 @@
-export * as abi from './abi/index.js'
-export * as addresses from './addresses/index.js'
-export * as config from './config/index.js'
-export * as contracts from './contracts/index.js'
-export * as metadata from './metadata/index.js'
-export * as networks from './networks/index.js'

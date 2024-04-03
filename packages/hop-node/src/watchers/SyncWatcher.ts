@@ -45,12 +45,12 @@ import {
   WithdrawalBondSettledEvent,
   WithdrawalBondedEvent,
   WithdrewEvent
-} from '@hop-protocol/core/contracts/generated/L1_Bridge'
+} from '@hop-protocol/sdk/contracts/L1_Bridge'
 import {
   L2_Bridge as L2BridgeContract,
   TransferSentEvent,
   TransfersCommittedEvent
-} from '@hop-protocol/core/contracts/generated/L2_Bridge'
+} from '@hop-protocol/sdk/contracts/L2_Bridge'
 import { Transfer } from '#db/TransfersDb.js'
 import { TransferRoot } from '#db/TransferRootsDb.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'

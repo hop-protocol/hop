@@ -1,6 +1,6 @@
 import { HopAddresses, Networks } from 'src/config/interfaces'
-import { sepolia as _sepoliaAddresses } from '@hop-protocol/core/addresses'
-import { sepolia as _sepoliaNetworks } from '@hop-protocol/core/networks'
+import { sepolia as _sepoliaAddresses } from '@hop-protocol/sdk/addresses'
+import { sepolia as _sepoliaNetworks } from '@hop-protocol/sdk/networks'
 
 export const sepoliaAddresses: HopAddresses = {
   governance: {

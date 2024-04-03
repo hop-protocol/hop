@@ -1,4 +1,4 @@
-import { config as coreConfig } from '@hop-protocol/core/config'
+import { config as coreConfig } from '@hop-protocol/sdk/config'
 import { getNativeTokenSymbol } from './getNativeTokenSymbol'
 import { reactAppNetwork } from 'src/config'
 

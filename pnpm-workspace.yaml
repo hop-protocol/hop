@@ -1,6 +1,5 @@
 packages:
   - 'packages/api'
-  - 'packages/core'
   - 'packages/explorer-backend'
   - 'packages/explorer-frontend'
   - 'packages/frontend'

@@ -1,6 +1,6 @@
-import { ChainSlug as Chain } from '@hop-protocol/core/networks'
+import { ChainSlug as Chain } from '@hop-protocol/sdk/networks'
 import { OneHourMs } from '@hop-protocol/hop-node-core/constants'
-import { RpcProviderSlug, rpcProviders } from '@hop-protocol/core/metadata'
+import { RpcProviderSlug, rpcProviders } from '@hop-protocol/sdk/metadata'
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,

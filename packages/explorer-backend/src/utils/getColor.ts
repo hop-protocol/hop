@@ -1,4 +1,4 @@
-import { chains } from '@hop-protocol/core/metadata'
+import { chains } from '@hop-protocol/sdk/metadata'
 
 const colorsMap: Record<string, string> = {
   bonded: '#81ff81',

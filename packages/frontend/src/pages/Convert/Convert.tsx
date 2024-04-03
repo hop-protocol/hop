@@ -45,7 +45,7 @@ const Convert: FC = () => {
   const { convertOptions, selectedNetwork, selectBothNetworks, viaParamValue, setViaParamValue } = useConvert()
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
-  const { via } = useParams()
+  const { via } = useParams<{ via: string }>()
 
   useEffect(() => {
     if (!via) {

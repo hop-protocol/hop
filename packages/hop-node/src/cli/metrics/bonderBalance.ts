@@ -10,7 +10,7 @@ import {
   tokenDecimals,
   tokens
 } from '../metrics/sharedMetrics.js'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 
 root
   .command('bonder-balance')

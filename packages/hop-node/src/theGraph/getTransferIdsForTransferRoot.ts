@@ -1,7 +1,7 @@
 import MerkleTree from '#utils/MerkleTree.js'
 import makeRequest from './makeRequest.js'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { mainnet as addresses } from '@hop-protocol/core/addresses'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
 import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
 import { normalizeEntity } from './shared.js'
 

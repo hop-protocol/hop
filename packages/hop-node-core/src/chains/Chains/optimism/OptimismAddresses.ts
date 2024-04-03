@@ -1,5 +1,5 @@
 import { Chain } from '#constants/index.js'
-import { NetworkSlug } from '@hop-protocol/core/networks'
+import { NetworkSlug } from '@hop-protocol/sdk/networks'
 
 export type OptimismSuperchainSlugs = Chain.Optimism | Chain.Base
 

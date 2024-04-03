@@ -1,11 +1,13 @@
+export * from '@hop-protocol/sdk-core/config'
+
 import {
   bondableChains,
-  config,
-  metadata
+  sdkConfig,
+  sdkMetadata
 } from '@hop-protocol/sdk-core/config'
 
 export {
-  metadata,
+  sdkMetadata as metadata,
   bondableChains,
-  config
+  sdkConfig as config
 }

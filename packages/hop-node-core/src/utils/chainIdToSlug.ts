@@ -12,7 +12,7 @@ export const chainIdToSlug = (chainId: string | number): Chain => {
     throw new Error('networks not found')
   }
   for (const k in globalConfig.networks) {
-    const v = globalConfig.networks[k]
+    const v = (globalConfig as any).networks[k]
     if (!v) {
       continue
     }

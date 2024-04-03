@@ -17,8 +17,8 @@ import {
   TenMinutesMs,
   Token
 } from '@hop-protocol/hop-node-core/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { S3Upload } from '@hop-protocol/hop-node-core/aws'
 import { TransferRoot } from '#db/TransferRootsDb.js'
 

@@ -1,8 +1,8 @@
 import { BigNumber, Contract } from 'ethers'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pool, Route, TICK_SPACINGS, TickMath, Trade, encodeRouteToPath, nearestUsableTick } from '@uniswap/v3-sdk'
-import { UniswapQuoterV2Abi, erc20Abi } from '@hop-protocol/core/abi'
-import { UniswapV3Pool } from '@hop-protocol/core/abi'
+import { UniswapQuoterV2Abi, erc20Abi } from '#abi/index.js'
+import { UniswapV3Pool } from '#abi/index.js'
 import { chainIdToSlug } from './chainIdToSlug.js'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 

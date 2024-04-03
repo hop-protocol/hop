@@ -146,7 +146,11 @@ export const Withdraw: FC = () => {
             const bridge = sdk.bridge('USDC')
             const data = await bridge.getCctpWithdrawData(transferIdOrTxHash)
             if (data) {
-              const { transactionHash, fromChain, toChain, toChainId } = data
+              const { transactionHash, fromChain, toChain, toChainId, nonceUsed } = data
+              if (nonceUsed) {
+                reject(new Error('The withdrawal for this transfer has already been processed'))
+                return
+              }
               await txConfirm?.show({
                 kind: 'withdrawReview',
                 inputProps: {

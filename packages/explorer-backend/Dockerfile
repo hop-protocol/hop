@@ -8,7 +8,6 @@ WORKDIR /app
 
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
-RUN pnpm --filter=@hop-protocol/core build
 RUN pnpm --filter=@hop-protocol/explorer-backend build
 RUN pnpm --filter=@hop-protocol/explorer-backend deploy --prod /prod/app
 

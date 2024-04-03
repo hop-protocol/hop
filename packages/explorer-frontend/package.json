@@ -19,7 +19,7 @@
   "dependencies": {
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.11.0",
-    "@hop-protocol/core": "workspace:*",
+    "@hop-protocol/sdk": "workspace:*",
     "@mui/icons-material": "5.11.0",
     "@mui/material": "5.11.8",
     "@mui/styles": "5.11.7",

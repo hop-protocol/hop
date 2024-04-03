@@ -1,0 +1,11 @@
+node_modules
+build
+dist
+.env
+*.env
+.env*
+src/scripts
+*.dump
+*.log
+.build-info.json
+test-db

@@ -1,14 +1,15 @@
-import Logger, { setLogLevel } from 'src/logger'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
   BlocklistConfig,
+  SignerConfig,
+} from '@hop-protocol/hop-node-core/config'
+import {
   Bonders,
   CommitTransfersConfig,
   Fees,
   Routes,
-  SignerConfig,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,
@@ -28,11 +29,12 @@ import {
   setRoutesConfig,
   setSignerConfig,
   setSyncConfig
-} from './config'
-import { getAddress } from 'ethers/lib/utils'
-import { getParameter } from 'src/aws/parameterStore'
-import { promptPassphrase } from 'src/prompt'
-import { recoverKeystore } from 'src/keystore'
+} from './config.js'
+import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
+import { getAddress } from 'ethers/lib/utils.js'
+import { getParameter } from '@hop-protocol/hop-node-core/aws'
+import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
+import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
 
 const logger = new Logger('config')
 
@@ -204,7 +206,10 @@ export async function setGlobalConfigFromConfigFile (
     if (!fs.existsSync(location)) {
       throw new Error(`no config file found at ${location}`)
     }
-    const addresses = require(location) // eslint-disable-line @typescript-eslint/no-var-requires
+
+    const { default: addresses } = await import(location, {
+      with: { type: "json" }
+    })
     setConfigAddresses(addresses)
   }
   if (config?.metrics) {
@@ -314,7 +319,10 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    config = require(configPath)
+    const { default: importedConfig } = await import(configPath, {
+      with: { type: "json" }
+    })
+    config = importedConfig
   }
   if (config != null) {
     logger.info('config file:', configPath)

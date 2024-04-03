@@ -1,9 +1,9 @@
-import MerkleTree from 'src/utils/MerkleTree'
-import makeRequest from './makeRequest'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { mainnet as addresses } from '@hop-protocol/core/addresses'
-import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { normalizeEntity } from './shared'
+import MerkleTree from '#utils/MerkleTree.js'
+import makeRequest from './makeRequest.js'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
+import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
+import { normalizeEntity } from './shared.js'
 
 export default async function getTransferIdsForTransferRoot (
   chain: string,

@@ -1,5 +1,5 @@
-import makeRequest from './makeRequest'
-import { chunk } from 'lodash'
+import _ from 'lodash'
+import makeRequest from './makeRequest.js'
 
 async function getBonds (chain: string, startDate: number, endDate: number, lastId: string = '0') {
   const query = `
@@ -85,7 +85,7 @@ async function getTransfers (chain: string, transferIds: string[]) {
 
   let items: any = []
   const chunkSize = 1000
-  const allChunks = chunk(transferIds, chunkSize)
+  const allChunks = _.chunk(transferIds, chunkSize)
   let i = 0
   for (const _transferIds of allChunks) {
     i++

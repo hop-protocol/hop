@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
-import { ChainedBatch, DB } from './DB'
-import { Message } from '../cctp/Message'
-import { getDefaultStartBlockNumber } from './utils'
+import { ChainedBatch, DB } from './DB.js'
+import { Message } from '../cctp/Message.js'
+import { getDefaultStartBlockNumber } from './utils.js'
 import { providers } from 'ethers'
 
 export type LogWithChainId = providers.Log & { chainId: number }
@@ -36,7 +36,7 @@ export class OnchainEventIndexerDB extends DB<string, DBValue> {
       gte: `${topic}!${secondaryIndex}`,
       lt: `${topic}!${secondaryIndex}~`
     }
-    
+
     yield* this.values(filter)
   }
 

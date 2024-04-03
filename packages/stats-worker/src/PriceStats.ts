@@ -1,5 +1,5 @@
-import { PriceFeed } from './PriceFeed'
-import { tokens } from '@hop-protocol/core/metadata'
+import { PriceFeed } from './PriceFeed.js'
+import { tokens } from '@hop-protocol/sdk/metadata'
 
 export class PriceStats {
   tokens: string[] = []

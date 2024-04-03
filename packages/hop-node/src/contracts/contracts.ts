@@ -1,9 +1,7 @@
-import '../moduleAlias'
-import memoize from 'fast-memoize'
-import { Chain, Network, Token } from 'src/constants'
+import { Chain, Network, Token } from '@hop-protocol/hop-node-core/constants'
 import { Signer, providers } from 'ethers'
 
-import wallets from 'src/wallets'
+import wallets from '@hop-protocol/hop-node-core/wallets'
 import {
   ERC20__factory,
   L1_ERC20_Bridge_Legacy__factory,
@@ -12,8 +10,8 @@ import {
   L2_Bridge__factory,
   MessengerWrapper__factory,
   SaddleLpToken__factory
-} from '@hop-protocol/core/contracts'
-import { config as globalConfig } from 'src/config'
+} from '@hop-protocol/sdk/contracts'
+import { config as globalConfig } from '#config/index.js'
 
 const getL1BridgeContract = (token: string) => {
   if (token === Token.USDC && globalConfig.network === Network.Mainnet) {
@@ -93,12 +91,19 @@ const getL1MessengerWrapperContract = (
   )
 }
 
-const constructContractsObject = memoize((token: string) => {
+const cache: Record<string, any> = {}
+
+const constructContractsObject = (token: string) => {
   if (!globalConfig.addresses[token]) {
     return null
   }
 
-  return Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
+  const cacheKey = `${token}`
+  if (cache[cacheKey]) {
+    return cache[cacheKey]
+  }
+
+  const contractObj = Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
     const wallet = wallets.get(network)
     if (!wallet) {
       return obj
@@ -120,7 +125,11 @@ const constructContractsObject = memoize((token: string) => {
     }
     return obj
   }, {})
-})
+
+  cache[cacheKey] = contractObj
+  return contractObj
+
+}
 
 export default {
   has (token: string, network: string) {

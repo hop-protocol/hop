@@ -1,0 +1,17 @@
+build
+dist
+yarn.lock
+secret.json
+.env
+*.env
+.env*
+docker/arbitrum/data
+docker/arbitrum/docker-compose.yml
+src/scripts
+*.dump
+*.log
+.build-info.json
+provider_calls.json
+prometheus_pass.txt
+*.txt
+*.tsbuildinfo

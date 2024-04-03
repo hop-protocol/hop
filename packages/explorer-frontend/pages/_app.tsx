@@ -1,4 +1,5 @@
 import '../styles/globals.css'
+import React from 'react'
 import { ReactElement } from 'react'
 import { ThemeProvider } from '@mui/material/styles'
 import { useTheme } from '../components/_useTheme'

@@ -1,12 +1,10 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import wallets from 'src/wallets'
+import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber } from 'ethers'
-import { Message } from 'src/cctp/cctp/Message'
-import { RequiredFilter } from 'src/cctp/indexer/OnchainEventIndexer'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { Message } from '#cctp/cctp/Message.js'
+import { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
+import { chainIdToSlug, chainSlugToId, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 
-import { actionHandler, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('relay-cctp')

@@ -1,10 +1,10 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
-import { WatcherNotFoundError } from './shared/utils'
+import { WatcherNotFoundError } from './shared/utils.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import {
   getL1ToL2RelayWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
 
-import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('relay-l1-to-l2-message')

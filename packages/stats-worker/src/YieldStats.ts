@@ -3,14 +3,14 @@ import {
   Bridges,
   RewardsContracts,
   mainnet as mainnetAddresses
-} from '@hop-protocol/core/addresses'
+} from '@hop-protocol/sdk/addresses'
 import {
   ERC20__factory,
   StakingRewards__factory
-} from '@hop-protocol/core/contracts'
+} from '@hop-protocol/sdk/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { coingeckoApiKey, rpcUrls } from './config'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { coingeckoApiKey, rpcUrls } from './config.js'
+import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365

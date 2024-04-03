@@ -1,14 +1,14 @@
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import getTransferSent from 'src/theGraph/getTransferSent'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { WatcherNotFoundError } from './shared/utils'
+import L2Bridge from '#watchers/classes/L2Bridge.js'
+import getTransferSent from '#theGraph/getTransferSent.js'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
 
-import getTransferCommitted from 'src/theGraph/getTransferCommitted'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
+import getTransferCommitted from '#theGraph/getTransferCommitted.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('resync-data')

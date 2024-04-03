@@ -1,24 +1,5 @@
-import AMM from './AMM'
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import Chain from './models/Chain'
-import Token from './Token'
-import TokenModel from './models/Token'
-import { CCTPMessageTransmitter__factory } from '@hop-protocol/core/contracts'
-import { CCTPTokenMessenger__factory } from '@hop-protocol/core/contracts'
-import { CCTPTokenMinter__factory } from '@hop-protocol/core/contracts'
-import { L1_Bridge, L1_HopCCTPImplementation, L2_Bridge, L2_HopCCTPImplementation } from '@hop-protocol/core/contracts'
-import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts'
-import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts'
-import { L1_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
-import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts'
-import { L2_Bridge__factory } from '@hop-protocol/core/contracts'
-import { L2_HopCCTPImplementation__factory } from '@hop-protocol/core/contracts'
-import { Multicall } from './Multicall'
-import { chainIdToSlug } from './utils/chainIdToSlug'
-import { getCctpDomain } from './utils/getCctpDomain'
-import { getUSDCSwapParams } from './utils/uniswap'
-
-import { ApiKeys, PriceFeedFromS3 } from './priceFeed'
+import { AMM } from './AMM.js'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import {
   BigNumber,
   BigNumberish,
@@ -39,12 +20,22 @@ import {
   SettlementGasLimitPerTx,
   TokenIndex,
   TokenSymbol
-} from './constants'
-import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
-import { WithdrawalProof } from './utils/WithdrawalProof'
-import { bondableChains, metadata } from './config'
-import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, keccak256, parseEther, parseUnits, solidityPack } from 'ethers/lib/utils'
-import {fetchJsonOrThrow} from './utils/fetchJsonOrThrow'
+} from './constants/index.js'
+import { CCTPMessageTransmitter__factory } from './contracts/index.js'
+import { CCTPTokenMessenger__factory } from './contracts/index.js'
+import { CCTPTokenMinter__factory } from './contracts/index.js'
+import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, WithdrawalProof, chainIdToSlug, fetchJsonOrThrow, getUSDCSwapParams, getCctpDomain } from '@hop-protocol/sdk-core'
+import { L1_Bridge } from './contracts/index.js'
+import { L1_ERC20_Bridge__factory } from './contracts/index.js'
+import { L1_HomeAMBNativeToErc20__factory } from './contracts/index.js'
+import { L1_HopCCTPImplementation, L1_HopCCTPImplementation__factory, L2_HopCCTPImplementation, L2_HopCCTPImplementation__factory } from './contracts/index.js'
+import { L2_AmmWrapper__factory } from './contracts/index.js'
+import { L2_Bridge } from './contracts/index.js'
+import { L2_Bridge__factory } from './contracts/index.js'
+import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
+import { Token } from './Token.js'
+import { bondableChains, metadata } from './config/index.js'
+import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, keccak256, parseEther, parseUnits, solidityPack } from 'ethers/lib/utils.js'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -143,7 +134,7 @@ type FeeAndAmountOutMinData = {
  * Class representing Hop bridge.
  * @namespace HopBridge
  */
-class HopBridge extends Base {
+export class HopBridge extends Base {
   private tokenSymbol: TokenSymbol
 
   /** Source Chain model */
@@ -156,7 +147,7 @@ class HopBridge extends Base {
   public defaultDeadlineMinutes = 7 * 24 * 60 // 1 week
 
   priceFeed: PriceFeedFromS3
-  priceFeedApiKeys: ApiKeys | null = null
+  priceFeedApiKeys: PriceFeedApiKeys | null = null
   doesUseAmm: boolean
 
   /**
@@ -1133,7 +1124,7 @@ class HopBridge extends Base {
     )
 
     const priceImpact = this.getPriceImpact(rate, marketRate)
-    const oneDestBN = ethers.utils.parseUnits('1', sourceToken.decimals)
+    const oneDestBN = parseUnits('1', sourceToken.decimals)
     const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
 
     // Divide by 10000 at the end so that the amount isn't floored at 0
@@ -2948,12 +2939,12 @@ class HopBridge extends Base {
     if (amountIn.eq(0)) {
       rateBN = BigNumber.from(0)
     } else {
-      const oneSourceBN = ethers.utils.parseUnits('1', sourceToken.decimals)
+      const oneSourceBN = parseUnits('1', sourceToken.decimals)
 
       rateBN = amountOut.mul(oneSourceBN).div(amountIn)
     }
 
-    const rate = Number(ethers.utils.formatUnits(rateBN, destToken.decimals))
+    const rate = Number(formatUnits(rateBN, destToken.decimals))
 
     return rate
   }
@@ -3159,7 +3150,7 @@ class HopBridge extends Base {
     return wp.generateProof()
   }
 
-  setPriceFeedApiKeys (apiKeys: ApiKeys = {}): void {
+  setPriceFeedApiKeys (apiKeys: PriceFeedApiKeys = {}): void {
     this.priceFeedApiKeys = apiKeys
     this.priceFeed.setApiKeys(this.priceFeedApiKeys)
   }
@@ -3592,5 +3583,3 @@ class HopBridge extends Base {
     }
   }
 }
-
-export default HopBridge

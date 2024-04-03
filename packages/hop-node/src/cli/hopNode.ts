@@ -1,23 +1,24 @@
-import OsWatcher from 'src/watchers/OsWatcher'
-import { AssetSymbol } from '@hop-protocol/core/config'
+import OsWatcher from '#watchers/OsWatcher.js'
+import { AssetSymbol } from '@hop-protocol/sdk/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
+  config as globalConfig
+} from '#config/index.js'
+import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
+import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
+import { computeAddress } from 'ethers/lib/utils.js'
+import { main as enableCCTP } from './shared/cctp.js'
+import {
   gitRev,
-  config as globalConfig,
   slackAuthToken,
   slackChannel,
   slackUsername
-} from 'src/config'
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
-import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
-import { computeAddress } from 'ethers/lib/utils'
-import { main as enableCCTP } from './shared/cctp'
-import { printHopArt } from './shared/art'
-import { startArbBots } from 'src/arbBot'
+} from '@hop-protocol/hop-node-core/config'
+import { printHopArt } from './shared/art.js'
 import {
   startWatchers
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
 
 root
   .description('Start Hop node')
@@ -54,6 +55,7 @@ async function main (source: any) {
   logger.debug(`git revision: ${gitRev}`)
 
   const { config, syncFromDate, s3Upload, s3Namespace, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, arbBot: runArbBot, arbBotConfig, cctp: runCCTP } = source
+
   if (!config) {
     throw new Error('config file is required')
   }
@@ -205,13 +207,6 @@ async function main (source: any) {
         cacheFile: healthCheckCacheFile,
         enabledChecks: enabledChecksObj
       }).start()
-      resolve()
-    }))
-  }
-
-  if (runArbBot) {
-    promises.push(new Promise((resolve) => {
-      startArbBots({ dryMode, configFilePath: arbBotConfig })
       resolve()
     }))
   }

@@ -11,6 +11,7 @@ on:
 
 jobs:
   build-hop-node:
+    needs: [call-hop-node-core-publish-workflow]
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -39,6 +40,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
 
       - name: Push Hop Node Docker image to Docker Hub
+        if: false
         run: |
           BRANCH=${GITHUB_REF##*/}
           BRANCH=$(echo $BRANCH | sed 's/\//-/g' | sed 's/-bonder//g')
@@ -50,3 +52,11 @@ jobs:
             docker tag app $DOCKER_IMAGE:latest
             docker push $DOCKER_IMAGE:latest
           fi
+
+  call-hop-node-core-publish-workflow:
+    name: Publish NPM Hop Node Core Package If Necessary
+    uses: ./.github/workflows/npm_publish_hop_node_core.yml
+    with:
+      environment: production
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

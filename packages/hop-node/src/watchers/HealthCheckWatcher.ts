@@ -1,31 +1,33 @@
-import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher'
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import Logger from 'src/logger'
-import OsWatcher from 'src/watchers/OsWatcher'
-import S3Upload from 'src/aws/s3Upload'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import contracts from 'src/contracts'
+import IncompleteSettlementsWatcher from './IncompleteSettlementsWatcher.js'
+import L1Bridge from './classes/L1Bridge.js'
+import OsWatcher from './OsWatcher.js'
+import contracts from '#contracts/index.js'
 import fs from 'node:fs'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
-import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
-import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
-import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
-import wait from 'src/utils/wait'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
+import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
+import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
+import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
+import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, stableCoins } from '@hop-protocol/hop-node-core/constants'
 import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
-import { Notifier } from 'src/notifier'
-import { Routes } from '@hop-protocol/core/addresses'
-import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { appTld, expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
-import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
-import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
-import { getNameservers } from 'src/utils/getNameservers'
-import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
-import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { RelayableChains } from '#constants/index.js'
+import { Routes } from '@hop-protocol/sdk/addresses'
+import { S3Upload } from '@hop-protocol/hop-node-core/aws'
+import { TransferBondChallengedEvent } from '@hop-protocol/sdk/contracts/L1_Bridge'
+import { appTld, hostname } from '@hop-protocol/hop-node-core/config'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel } from '#config/index.js'
+import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils.js'
+import { getInvalidBondWithdrawals } from '#theGraph/getInvalidBondWithdrawals.js'
+import { getNameservers } from '#utils/getNameservers.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import { getUnbondedTransfers } from '#theGraph/getUnbondedTransfers.js'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 type LowBonderBalance = {
   bridge: string
@@ -1096,20 +1098,21 @@ export class HealthCheckWatcher {
 
   async getLowOsResources (): Promise<LowOsResource[]> {
     const lowOsResources: LowOsResource[] = []
-    const {
-      usedSizeGb: diskUsed,
-      totalSizeGb: diskTotal,
-      usedPercent: diskPercent
-    } = await OsWatcher.getDiskUsage()
+    // TODO: check-disk-space package was giving problems so this is temp removed
+    // const {
+    //   usedSizeGb: diskUsed,
+    //   totalSizeGb: diskTotal,
+    //   usedPercent: diskPercent
+    // } = await OsWatcher.getDiskUsage()
 
-    if (diskPercent > 95) {
-      lowOsResources.push({
-        kind: 'disk',
-        used: diskUsed,
-        total: diskTotal,
-        percent: diskPercent
-      })
-    }
+    // if (diskPercent > 95) {
+    //   lowOsResources.push({
+    //     kind: 'disk',
+    //     used: diskUsed,
+    //     total: diskTotal,
+    //     percent: diskPercent
+    //   })
+    // }
 
     const {
       cpuPercent,

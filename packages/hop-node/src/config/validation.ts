@@ -1,5 +1,5 @@
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { Chain, SyncType } from 'src/constants'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import {
   Config,
   FileConfig,
@@ -7,9 +7,10 @@ import {
   getAllChains,
   getAllTokens,
   getEnabledTokens
-} from 'src/config'
+} from './index.js'
+import { SyncType } from '#constants/index.js'
 import { URL } from 'node:url'
-import { getAddress as checksumAddress } from 'ethers/lib/utils'
+import { getAddress as checksumAddress } from 'ethers/lib/utils.js'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()

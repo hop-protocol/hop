@@ -1,24 +1,26 @@
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
-import L2Bridge from './classes/L2Bridge'
-import S3Upload from 'src/aws/s3Upload'
+import BaseWatcher from './classes/BaseWatcher.js'
+import L1Bridge from './classes/L1Bridge.js'
+import L2Bridge from './classes/L2Bridge.js'
 import { BigNumber } from 'ethers'
 import {
-  BondTransferRootChains,
-  Chain,
-  TenMinutesMs,
-  Token
-} from 'src/constants'
+  BondTransferRootChains
+} from '#constants/index.js'
 import {
   CCTPEnabled,
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityRoutes
-} from 'src/config'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { TransferRoot } from 'src/db/TransferRootsDb'
+} from '#config/index.js'
+import {
+  Chain,
+  TenMinutesMs,
+  Token
+} from '@hop-protocol/hop-node-core/constants'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { S3Upload } from '@hop-protocol/hop-node-core/aws'
+import { TransferRoot } from '#db/TransferRootsDb.js'
 
 type Config = {
   chainSlug: string

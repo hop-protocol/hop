@@ -1,5 +1,4 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 
 export async function getTimestampFromBlockNumberMs (chainId: number, blockNumber: number): Promise<number> {
   const chain = chainIdToSlug(chainId)

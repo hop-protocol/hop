@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch'
 import { CoingeckoApiKey } from './config'
-import { tokens } from '@hop-protocol/core/metadata'
+import { tokens } from '@hop-protocol/sdk/metadata'
 
 function getCoinId (tokenSymbol: string) {
   return (tokens as any)[tokenSymbol]?.coingeckoId

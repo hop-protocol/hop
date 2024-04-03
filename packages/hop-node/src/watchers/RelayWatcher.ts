@@ -1,26 +1,26 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import Logger from 'src/logger'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getChainBridge from 'src/chains/getChainBridge'
-import { EnforceRelayerFee, RelayTransactionBatchSize, config as globalConfig } from 'src/config'
-import { GasCostTransactionType, TxError } from 'src/constants'
-import { IChainBridge } from 'src/chains/IChainBridge'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+import BaseWatcher from './classes/BaseWatcher.js'
+import { EnforceRelayerFee, RelayTransactionBatchSize, getEnabledNetworks, config as globalConfig } from '#config/index.js'
+import { GasCostTransactionType, TxError } from '#constants/index.js'
+import { IChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 import {
   MessageInFlightError,
   MessageInvalidError,
   MessageRelayedError,
   MessageUnknownError
-} from 'src/chains/Services/AbstractMessageService'
-import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
-import { RelayableTransferRoot, TransferRootRelayProps } from 'src/db/TransferRootsDb'
-import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
-import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
-import { isFetchRpcServerError } from 'src/utils/isFetchRpcServerError'
-import { isNativeToken } from 'src/utils/isNativeToken'
-import { promiseQueue } from 'src/utils/promiseQueue'
+} from '@hop-protocol/hop-node-core/chains'
+import { NonceTooLowError } from '@hop-protocol/hop-node-core/types'
+import { RelayableTransferRoot, TransferRootRelayProps } from '#db/TransferRootsDb.js'
+import { RelayerFeeTooLowError } from '#types/error.js'
+import { Transfer, UnrelayedSentTransfer } from '#db/TransfersDb.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
+import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/utils'
+import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
+import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
 import { providers } from 'ethers'
 
 type Config = {
@@ -411,6 +411,10 @@ class RelayWatcher extends BaseWatcher {
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
     const destinationChainSlug = chainIdToSlug(destinationChainId)
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(destinationChainSlug)) {
+      throw new Error(`RelayWatcher: sendRelayTx: destination chain id "${destinationChainId}" not enabled`)
+    }
     const chainBridge: IChainBridge = getChainBridge(destinationChainSlug)
     if (!chainBridge) {
       throw new Error(`RelayWatcher: sendRelayTx: no relay watcher for destination chain id "${destinationChainId}", tx hash "${txHash}"`)

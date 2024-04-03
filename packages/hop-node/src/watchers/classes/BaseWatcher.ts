@@ -1,37 +1,41 @@
-import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
-import Bridge from './Bridge'
-import L1Bridge from './L1Bridge'
-import L2Bridge from './L2Bridge'
-import Logger from 'src/logger'
-import Metrics from './Metrics'
-import SyncWatcher from 'src/watchers/SyncWatcher'
-import bigNumberMin from 'src/utils/bigNumberMin'
-import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
-import wait from 'src/utils/wait'
-import wallets from 'src/wallets'
-import { BigNumber, constants } from 'ethers'
+import AvailableLiquidityWatcher from '../AvailableLiquidityWatcher.js'
+import Bridge from './Bridge.js'
+import L1Bridge from './L1Bridge.js'
+import L2Bridge from './L2Bridge.js'
+import Metrics from './Metrics.js'
+import SyncWatcher from '../SyncWatcher.js'
+import wallets from '@hop-protocol/hop-node-core/wallets'
+import { BigNumber } from 'ethers'
 import {
-  Chain,
+  Chain
+} from '@hop-protocol/hop-node-core/constants'
+import { DbSet, getDbSet, isDbSetReady } from '#db/index.js'
+import { EventEmitter } from 'node:events'
+import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
-} from 'src/constants'
-import { DbSet, getDbSet, isDbSetReady } from 'src/db'
-import { EventEmitter } from 'node:events'
-import { IBaseWatcher } from './IBaseWatcher'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+} from '#constants/index.js'
+import { IBaseWatcher } from './IBaseWatcher.js'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { Mutex } from 'async-mutex'
-import { Notifier } from 'src/notifier'
+import { Notifier } from '@hop-protocol/hop-node-core/notifier'
 import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync
-} from 'src/types/error'
+} from '@hop-protocol/hop-node-core/types'
 import {
   TxRetryDelayMs,
-  config as globalConfig,
+  config as globalConfig
+} from '#config/index.js'
+import { bigNumberMin } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProviderFromUrl } from '@hop-protocol/hop-node-core/utils'
+import {
   hostname
-} from 'src/config'
-import { isFetchExecutionError } from 'src/utils/isFetchExecutionError'
+} from '@hop-protocol/hop-node-core/config'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract
@@ -245,7 +249,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     // TODO: This should be more robust in general
 
-    // It has been verified that all chains have at least 1 wei at 0xdead. 
+    // It has been verified that all chains have at least 1 wei at 0xdead.
     // Some observations from practice worth being aware of:
     // * Some contracts accept ETH only from 0x0 but nobody else.
     // * PolygonZk RPC does not allow eth_call with a from address of 0x0.

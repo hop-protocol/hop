@@ -1,6 +1,6 @@
-import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot'
-import getTransferRoot from './getTransferRoot'
-import makeRequest from './makeRequest'
+import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot.js'
+import getTransferRoot from './getTransferRoot.js'
+import makeRequest from './makeRequest.js'
 
 export default async function getTransferRootForTransferId (chain: string, token: string, transferId: string): Promise<any> {
   let query = `

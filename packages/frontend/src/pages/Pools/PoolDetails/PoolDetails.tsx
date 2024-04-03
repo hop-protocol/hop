@@ -18,7 +18,7 @@ import { WithdrawForm } from 'src/pages/Pools/PoolDetails/WithdrawForm'
 import { bigNumberMin } from 'src/utils/bigNumberMin'
 import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
-import { useParams } from 'react-router'
+import { useParams } from 'react-router-dom'
 import { usePool } from '../PoolsContext'
 import { useStyles } from 'src/pages/Pools/PoolDetails/useStyles'
 
@@ -83,7 +83,7 @@ export function PoolDetails () {
   } = usePool()
   const navigate = useNavigate()
   const { search } = useLocation()
-  const { tab } = useParams<{ tab: string }>()
+  const { tab } = useParams<{tab: string}>()
   const [selectedTab, setSelectedTab] = useState(tab ?? 'deposit')
   const [selectedStaking, setSelectedStaking] = useState<string>('0')
   const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)

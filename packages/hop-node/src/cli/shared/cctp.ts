@@ -1,7 +1,7 @@
-import { Chain, Network } from 'src/constants'
-import { MessageManager } from 'src/cctp/cctp/MessageManager'
-import { config as globalConfig } from 'src/config'
-import { wait } from 'src/utils/wait'
+import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
+import { MessageManager } from '#cctp/cctp/MessageManager.js'
+import { config as globalConfig } from '#config/index.js'
+import { wait } from '@hop-protocol/hop-node-core/utils'
 
 // TODO: Automate
 const CHAINS: Partial<Record<Network, Chain[]>> = {

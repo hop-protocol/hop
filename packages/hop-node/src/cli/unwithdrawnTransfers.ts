@@ -1,17 +1,17 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTransferRootSet from 'src/theGraph/getTransferRootSet'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import getTransferRootSet from '#theGraph/getTransferRootSet.js'
+import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber, Contract } from 'ethers'
-import { Chain, OneHourSeconds } from 'src/constants'
+import { Chain, OneHourSeconds } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import {
   actionHandler,
   parseString,
   root
-} from './shared'
-import { bridgeAbi } from '@hop-protocol/core/abi'
-import { config as globalConfig } from 'src/config'
+} from './shared/index.js'
+import { bridgeAbi } from '@hop-protocol/sdk/abi'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { config as globalConfig } from '#config/index.js'
 
 interface TransferRootsToChain {
   rootHash: string

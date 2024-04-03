@@ -1,9 +1,9 @@
-import getStake from 'src/theGraph/getStake'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getUnstake from 'src/theGraph/getUnstake'
+import getStake from '#theGraph/getStake.js'
+import getUnstake from '#theGraph/getUnstake.js'
 import { BigNumber, utils } from 'ethers'
-import { Chain } from 'src/constants'
-import { actionHandler, parseString, root } from './shared'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { actionHandler, parseString, root } from './shared/index.js'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 
 root
   .command('total-stake')

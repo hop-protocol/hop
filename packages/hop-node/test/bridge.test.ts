@@ -1,8 +1,8 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import contracts from 'src/contracts'
-import expectDefined from './utils/expectDefined'
-import { config as globalConfig } from 'src/config'
+import L1Bridge from '#watchers/classes/L1Bridge.js'
+import contracts from '#contracts/index.js'
 import dotenv from 'dotenv'
+import expectDefined from './utils/expectDefined.js'
+import { config as globalConfig } from '#config/index.js'
 
 dotenv.config()
 
@@ -26,7 +26,7 @@ describe.skip('events batch - Happy Path', () => {
     const expectedSizeOfLastIteration = totalBlocks % batchBlocks
     const expectedCount = Math.ceil(totalBlocks / batchBlocks)
     await bridge.eventsBatch(
-      async (start: number, end: number, index: number) => {
+      async (start: number, end: number, index: number | undefined) => {
         expect(index).toBe(count)
         if (index !== expectedCount - 1) {
           expect(end).toBe(start + batchBlocks)
@@ -48,7 +48,7 @@ describe.skip('events batch - Happy Path', () => {
 
     let count = 0
     await bridge.eventsBatch(
-      async (start: number, end: number, index: number) => {
+      async (start: number, end: number, index: number | undefined) => {
         expect(index).toBe(count)
         expect(end).toBe(start + totalBlocks)
         count++
@@ -67,7 +67,7 @@ describe.skip('events batch - Happy Path', () => {
     const expectedCount = Math.ceil(totalBlocks / batchBlocks)
 
     await bridge.eventsBatch(
-      async (start: number, end: number, index: number) => {
+      async (start: number, end: number, index: number | undefined) => {
         expect(index).toBe(count)
         if (index !== expectedCount - 1) {
           expect(end).toBe(start + batchBlocks)
@@ -93,7 +93,7 @@ describe.skip('events batch - Happy Path', () => {
     if (!state) {
       let count = 0
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {
+        async (start: number, end: number, index: number | undefined) => {
           expect(index).toBe(count)
           expect(end).toBe(start + batchBlocks)
           count++
@@ -103,6 +103,9 @@ describe.skip('events batch - Happy Path', () => {
     }
 
     state = await bridge.db.syncState.getByKey(syncCacheKey)
+    if (!state) {
+      throw new Error('Sync state should exist')
+    }
     expect(state.latestBlockSynced).toBeDefined()
     expect(state.timestamp).toBeDefined()
 
@@ -111,7 +114,7 @@ describe.skip('events batch - Happy Path', () => {
 
     let count = 0
     await bridge.eventsBatch(
-      async (start: number, end: number, index: number) => {
+      async (start: number, end: number, index: number | undefined) => {
         expect(index).toBe(count)
         count++
       },
@@ -119,6 +122,9 @@ describe.skip('events batch - Happy Path', () => {
     )
 
     state = await bridge.db.syncState.getByKey(syncCacheKey)
+    if (!state) {
+      throw new Error('Sync state should exist')
+    }
     expect(state.latestBlockSynced).toBeGreaterThan(latestBlockSynced)
     expect(state.timestamp).toBeGreaterThan(timestamp)
     expect(count).toBe(1)
@@ -128,7 +134,7 @@ describe.skip('events batch - Happy Path', () => {
     const expectedCount = 5
     let count = 0
     await bridge.eventsBatch(
-      async (start: number, end: number, index: number) => {
+      async (start: number, end: number, index: number | undefined) => {
         expect(index).toBe(count)
         expect(end).toBe(start + batchBlocks)
 
@@ -148,7 +154,7 @@ describe.skip('events batch - Happy Path', () => {
     const expectedSizeOfLastIteration = totalBlocks % batchBlocks
     const expectedTotalCount = Math.ceil(totalBlocks / batchBlocks)
     await bridge.eventsBatch(
-      async (start: number, end: number, index: number) => {
+      async (start: number, end: number, index: number | undefined) => {
         expect(index).toBe(count)
         if (index !== expectedTotalCount - 1) {
           expect(end).toBe(start + batchBlocks)
@@ -178,7 +184,7 @@ describe.skip('events batch - Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {},
+        async (start: number, end: number, index: number | undefined) => {},
         { startBlockNumber }
       )
     } catch (err) {
@@ -189,7 +195,7 @@ describe.skip('events batch - Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {},
+        async (start: number, end: number, index: number | undefined) => {},
         { endBlockNumber }
       )
     } catch (err) {
@@ -205,7 +211,7 @@ describe.skip('events batch - Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {},
+        async (start: number, end: number, index: number | undefined) => {},
         { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
@@ -216,7 +222,7 @@ describe.skip('events batch - Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {},
+        async (start: number, end: number, index: number | undefined) => {},
         { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
@@ -233,7 +239,7 @@ describe.skip('events batch - Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {},
+        async (start: number, end: number, index: number | undefined) => {},
         { startBlockNumber, endBlockNumber, syncCacheKey: key }
       )
     } catch (err) {
@@ -249,7 +255,7 @@ describe.skip('events batch - Non-Happy Path', () => {
 
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {},
+        async (start: number, end: number, index: number | undefined) => {},
         { startBlockNumber, endBlockNumber }
       )
     } catch (err) {
@@ -261,7 +267,7 @@ describe.skip('events batch - Non-Happy Path', () => {
     endBlockNumber = 100
     try {
       await bridge.eventsBatch(
-        async (start: number, end: number, index: number) => {},
+        async (start: number, end: number, index: number | undefined) => {},
         { startBlockNumber, endBlockNumber }
       )
     } catch (err) {

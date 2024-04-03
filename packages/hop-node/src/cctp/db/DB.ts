@@ -1,5 +1,5 @@
 import { ClassicLevel } from 'classic-level'
-import { getDbPathForNameOrLocation } from './utils'
+import { getDbPathForNameOrLocation } from './utils.js'
 export { type ChainedBatch } from 'classic-level'
 
 interface DatabaseOptions {

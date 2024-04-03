@@ -1,4 +1,4 @@
-import { ChainedBatch, DB, KEY_ENCODING_OPTIONS } from './DB'
+import { ChainedBatch, DB, KEY_ENCODING_OPTIONS } from './DB.js'
 
 type DBValue<T> = T
 
@@ -7,11 +7,11 @@ type DBValue<T> = T
  * Example of an entry in the DB:
  * 0x123 -> DBValue
  * relayed!0x123 -> DBValue
- * 
+ *
  * An ID can only exist in one state subDB at a time.
- * 
+ *
  * Once an object is in a terminal state, the subDB entry is removed
- * but the object itself is not deleted from the top-level DB and 
+ * but the object itself is not deleted from the top-level DB and
  * can be queried by its key.
  */
 
@@ -33,7 +33,7 @@ export class StateMachineDB<T extends string, U> extends DB<T, U> {
     const updatedValue = Object.assign({} as object, value, existingValue)
 
     const batch: ChainedBatch<this, string, DBValue<U>>  = this.batch()
-    
+
     // Always update the value to the top level key
     batch.put(this.encodeKey(key), updatedValue)
 

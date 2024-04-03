@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
-import { PriceFeed } from './PriceFeed'
-import { db } from './Db'
-import { enabledChains, enabledTokens } from './config'
-import { formatUnits } from 'ethers/lib/utils'
-import { getSubgraphUrl } from './utils/getSubgraphUrl'
-import { getTokenDecimals } from './utils/getTokenDecimals'
-import { nearestDate } from './utils/nearestDate'
-import { queryFetch } from './utils/queryFetch'
+import { PriceFeed } from './PriceFeed.js'
+import { db } from './Db.js'
+import { enabledChains, enabledTokens } from './config.js'
+import { formatUnits } from 'ethers/lib/utils.js'
+import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
+import { getTokenDecimals } from './utils/getTokenDecimals.js'
+import { nearestDate } from './utils/nearestDate.js'
+import { queryFetch } from './utils/queryFetch.js'
 
 type Options = {
   regenesis?: boolean

@@ -1,6 +1,6 @@
 import { HopAddresses, Networks } from 'src/config/interfaces'
-import { mainnet as _mainnetAddresses } from '@hop-protocol/core/addresses'
-import { mainnet as _mainnetNetworks } from '@hop-protocol/core/networks'
+import { mainnet as _mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { mainnet as _mainnetNetworks } from '@hop-protocol/sdk/networks'
 
 export const mainnetAddresses: HopAddresses = {
   governance: {

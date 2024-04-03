@@ -5,6 +5,7 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
+  "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
@@ -18,12 +19,11 @@
     "start:bonder:migration": "ts-node src/index.ts --bonder --bonderDays=30 --migrations=[19]",
     "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
-    "lint": "eslint . --ext .ts --fix",
-    "test": "jest test"
+    "lint": "eslint . --config ./eslint.config.mjs --fix",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.338.0",
-    "@hop-protocol/core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
     "@pinata/sdk": "1.1.26",
     "comment-json": "4.2.3",
@@ -35,7 +35,6 @@
     "minimist": "1.2.6",
     "sqlite3": "5.1.7",
     "uuid": "8.3.2",
-    "wait": "0.4.2",
     "lodash": "4.17.21"
   },
   "devDependencies": {

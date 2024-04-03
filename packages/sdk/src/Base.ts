@@ -1,37 +1,42 @@
-import Token from './models/Token'
 import memoize from 'fast-memoize'
-import { Addresses } from '@hop-protocol/core/addresses'
-import { ArbERC20 } from '@hop-protocol/core/contracts'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts'
-import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts'
+import { Addresses } from '@hop-protocol/sdk-core/addresses'
+import { ArbERC20 } from './contracts/index.js'
+import { ArbERC20__factory } from './contracts/index.js'
+import { ArbitrumGlobalInbox } from './contracts/index.js'
+import { ArbitrumGlobalInbox__factory } from './contracts/index.js'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
-import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, NetworkSlug } from './constants'
-import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts'
-import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
-import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts'
-import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts'
-import { L1_xDaiForeignOmniBridge } from '@hop-protocol/core/contracts'
-import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts'
-import { L2_OptimismTokenBridge } from '@hop-protocol/core/contracts'
-import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
-import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts'
-import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts'
-import { L2_xDaiToken } from '@hop-protocol/core/contracts'
-import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts'
-import { Multicall, Balance as MulticallBalance } from './Multicall'
-import { RelayerFee } from './relayerFee'
-import { TChain, TProvider, TToken } from './types'
-import { config, metadata } from './config'
-import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
-import { getMinGasLimit } from './utils/getMinGasLimit'
-import { getMinGasPrice } from './utils/getMinGasPrice'
-import { getProviderFromUrl } from './utils/getProviderFromUrl'
-import { getUrlFromProvider } from './utils/getUrlFromProvider'
-import { parseEther, serializeTransaction } from 'ethers/lib/utils'
-import { promiseTimeout } from './utils/promiseTimeout'
-import { rateLimitRetry } from './utils/rateLimitRetry'
+import {
+  Chain,
+  TokenModel,
+  fetchJsonOrThrow,
+  getMinGasLimit,
+  getMinGasPrice,
+  getProviderFromUrl,
+  getUrlFromProvider,
+  promiseTimeout,
+  rateLimitRetry,
+} from '@hop-protocol/sdk-core'
+import { ChainSlug, Errors, NetworkSlug } from './constants/index.js'
+import { L1_OptimismTokenBridge } from './contracts/index.js'
+import { L1_OptimismTokenBridge__factory } from './contracts/index.js'
+import { L1_PolygonPosRootChainManager } from './contracts/index.js'
+import { L1_PolygonPosRootChainManager__factory } from './contracts/index.js'
+import { L1_xDaiForeignOmniBridge } from './contracts/index.js'
+import { L1_xDaiForeignOmniBridge__factory } from './contracts/index.js'
+import { L2_OptimismTokenBridge } from './contracts/index.js'
+import { L2_OptimismTokenBridge__factory } from './contracts/index.js'
+import { L2_PolygonChildERC20 } from './contracts/index.js'
+import { L2_PolygonChildERC20__factory } from './contracts/index.js'
+import { L2_xDaiToken } from './contracts/index.js'
+import { L2_xDaiToken__factory } from './contracts/index.js'
+import {
+  Multicall,
+  MulticallBalance
+} from '@hop-protocol/sdk-core'
+import { RelayerFee } from './relayerFee/index.js'
+import { TChain, TProvider, TToken } from './types.js'
+import { config, metadata } from './config/index.js'
+import { parseEther, serializeTransaction } from 'ethers/lib/utils.js'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -66,7 +71,7 @@ const getProvider = memoize((network: string, chain: string) => {
 
 const getContractMemo = memoize(
   (
-    factory,
+    factory: any,
     address: string,
     cacheKey: string
   ): ((provider: TProvider) => L1Contract | L2Contract) => {
@@ -783,7 +788,7 @@ export class Base {
     let feeBps = fees[destinationChain.slug] || 0
 
     // Special case for DAI transfers out of Gnosis Chain
-    if (sourceChain.equals(Chain.Gnosis) && token.symbol === Token.XDAI) {
+    if (sourceChain.equals(Chain.Gnosis) && token.symbol === TokenModel.XDAI) {
       feeBps = fees?.[ChainSlug.Gnosis] ?? feeBps
     }
 
@@ -813,7 +818,7 @@ export class Base {
     await this.fetchConfigFromS3()
     destinationChain = this.toChainModel(destinationChain)
     const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
-    if (!isFeeEnabled || tokenSymbol !== Token.ETH) {
+    if (!isFeeEnabled || tokenSymbol !== TokenModel.ETH) {
       return BigNumber.from(0)
     }
 
@@ -1181,5 +1186,3 @@ export class Base {
     return code !== '0x'
   }
 }
-
-export default Base

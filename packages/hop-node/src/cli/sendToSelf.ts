@@ -1,10 +1,10 @@
-import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber, Wallet } from 'ethers'
-import { TxOverrides } from 'src/types'
-import { actionHandler, logger, parseString, root } from './shared'
+import { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import { actionHandler, logger, parseString, root } from './shared/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import {
   config as globalConfig
-} from 'src/config'
+} from '#config/index.js'
 
 root
   .command('send-to-self')

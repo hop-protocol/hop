@@ -17,11 +17,11 @@ import walletConnectModule from '@web3-onboard/walletconnect'
 import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
 import { capitalize } from 'src/utils/capitalize'
 import { chainIdToHex } from 'src/utils/chainIdToHex'
-import { chains as chainMetadata } from '@hop-protocol/core/metadata'
+import { chains as chainMetadata } from '@hop-protocol/sdk/metadata'
 import { ethers } from 'ethers'
 import { l1Network } from 'src/config/networks'
 import { networkSlugToId } from 'src/utils'
-import { networks } from '@hop-protocol/core/networks'
+import { networks } from '@hop-protocol/sdk/networks'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export type Props = {

@@ -5,6 +5,7 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
+  "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
@@ -18,12 +19,11 @@
     "deploy:local": "git stash && yarn build && yarn deploy"
   },
   "dependencies": {
-    "@emotion/react": "11.5.0",
-    "@emotion/styled": "11.3.0",
+    "@emotion/react": "11.10.5",
+    "@emotion/styled": "11.11.0",
     "@ethersproject/abi": "5.7.0",
     "@gnosis.pm/safe-apps-react-sdk": "4.6.2",
     "@gnosis.pm/safe-apps-sdk": "7.8.0",
-    "@hop-protocol/core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
     "@mui/icons-material": "5.15.6",
     "@mui/lab": "5.0.0-alpha.162",
@@ -72,8 +72,8 @@
     "@types/luxon": "3.4.2",
     "@types/pluralize": "0.0.33",
     "@types/qs": "6.9.11",
-    "@types/react": "18.2.43",
-    "@types/react-dom": "18.2.17",
+    "@types/react": "18.2.73",
+    "@types/react-dom": "18.2.19",
     "@types/react-google-recaptcha": "2.1.8",
     "@types/react-table": "7.7.19",
     "@types/styled-components": "5.1.34",

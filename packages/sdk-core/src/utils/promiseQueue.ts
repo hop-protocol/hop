@@ -1,8 +1,4 @@
-// Since p-queue is ESM-only, we need to use require instead of import
-let PQueue: any
-(async() => {
-  PQueue = require('p-queue')
-})();
+import PQueue from 'p-queue'
 
 export type Options = {
   concurrency: number

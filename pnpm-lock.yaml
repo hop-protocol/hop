@@ -2814,9 +2814,9 @@ packages:
       class-validator: 0.14.1
       dotenv: 16.4.1
       ethers: 5.7.2
-      pg: 8.11.4
+      pg: 8.11.5
       reflect-metadata: 0.1.13
-      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.4)
+      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.5)
       typeorm-naming-strategies: 4.1.0(typeorm@0.3.20)
       winston: 3.13.0
     transitivePeerDependencies:
@@ -10547,7 +10547,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001605
-      electron-to-chromium: 1.4.723
+      electron-to-chromium: 1.4.724
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.23.0)
 
@@ -11871,8 +11871,8 @@ packages:
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  /electron-to-chromium@1.4.723:
-    resolution: {integrity: sha512-rxFVtrMGMFROr4qqU6n95rUi9IlfIm+lIAt+hOToy/9r6CDv0XiEcQdC3VP71y1pE5CFTzKV0RvxOGYCPWWHPw==}
+  /electron-to-chromium@1.4.724:
+    resolution: {integrity: sha512-RTRvkmRkGhNBPPpdrgtDKvmOEYTrPlXDfc0J/Nfq5s29tEahAwhiX4mmhNzj6febWMleulxVYPh7QwCSL/EldA==}
 
   /elliptic@6.5.4:
     resolution: {integrity: sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ==}
@@ -18039,8 +18039,8 @@ packages:
     dev: false
     optional: true
 
-  /pg-connection-string@2.6.3:
-    resolution: {integrity: sha512-77FxhhKJQH+xJx6tDqkhhMa0nZvv3U1HYLDQgwZxZafVD583++O5LXn5oo5HaQZ0vXwYcZA1koYAJM3JvD6Gtw==}
+  /pg-connection-string@2.6.4:
+    resolution: {integrity: sha512-v+Z7W/0EO707aNMaAEfiGnGL9sxxumwLl2fJvCQtMn9Fxsg+lPpPkdcyBSv/KFgpGdYkMfn+EI1Or2EHjpgLCA==}
     dev: false
 
   /pg-int8@1.0.1:
@@ -18066,12 +18066,12 @@ packages:
       pg: 8.11.3
     dev: false
 
-  /pg-pool@3.6.2(pg@8.11.4):
+  /pg-pool@3.6.2(pg@8.11.5):
     resolution: {integrity: sha512-Htjbg8BlwXqSBQ9V8Vjtc+vzf/6fVUuak/3/XXKA9oxZprwW3IMDQTGHP+KDmVL7rtd+R1QjbnCFPuTHm3G4hg==}
     peerDependencies:
       pg: '>=8.0'
     dependencies:
-      pg: 8.11.4
+      pg: 8.11.5
     dev: false
 
   /pg-pool@3.6.2(pg@8.7.1):
@@ -18132,7 +18132,7 @@ packages:
     dependencies:
       buffer-writer: 2.0.0
       packet-reader: 1.0.0
-      pg-connection-string: 2.6.3
+      pg-connection-string: 2.6.4
       pg-pool: 3.6.2(pg@8.11.3)
       pg-protocol: 1.6.1
       pg-types: 2.2.0
@@ -18141,8 +18141,8 @@ packages:
       pg-cloudflare: 1.1.1
     dev: false
 
-  /pg@8.11.4:
-    resolution: {integrity: sha512-pWb7JKPxGk1UFbtq7jQ0m3IfPpb7LLACCEyN8/u9DYEom+Q/BSKy+4TRl4+Hh003AOYhppB/z+QK87/hx/bk0w==}
+  /pg@8.11.5:
+    resolution: {integrity: sha512-jqgNHSKL5cbDjFlHyYsCXmQDrfIX/3RsNwYqpd4N0Kt8niLuNoRNH+aazv6cOd43gPh9Y4DjQCtb+X0MH0Hvnw==}
     engines: {node: '>= 8.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
@@ -18150,8 +18150,8 @@ packages:
       pg-native:
         optional: true
     dependencies:
-      pg-connection-string: 2.6.3
-      pg-pool: 3.6.2(pg@8.11.4)
+      pg-connection-string: 2.6.4
+      pg-pool: 3.6.2(pg@8.11.5)
       pg-protocol: 1.6.1
       pg-types: 2.2.0
       pgpass: 1.0.5
@@ -18170,7 +18170,7 @@ packages:
     dependencies:
       buffer-writer: 2.0.0
       packet-reader: 1.0.0
-      pg-connection-string: 2.6.3
+      pg-connection-string: 2.6.4
       pg-pool: 3.6.2(pg@8.7.1)
       pg-protocol: 1.6.1
       pg-types: 2.2.0
@@ -21008,10 +21008,10 @@ packages:
     peerDependencies:
       typeorm: ^0.2.0 || ^0.3.0
     dependencies:
-      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.4)
+      typeorm: 0.3.20(better-sqlite3@8.7.0)(pg@8.11.5)
     dev: false
 
-  /typeorm@0.3.20(better-sqlite3@8.7.0)(pg@8.11.4):
+  /typeorm@0.3.20(better-sqlite3@8.7.0)(pg@8.11.5):
     resolution: {integrity: sha512-sJ0T08dV5eoZroaq9uPKBoNcGslHBR4E4y+EBHs//SiGbblGe7IeduP/IH4ddCcj0qp3PHwDwGnuvqEAnKlq/Q==}
     engines: {node: '>=16.13.0'}
     hasBin: true
@@ -21080,7 +21080,7 @@ packages:
       dotenv: 16.4.1
       glob: 10.3.12
       mkdirp: 2.1.6
-      pg: 8.11.4
+      pg: 8.11.5
       reflect-metadata: 0.2.2
       sha.js: 2.4.11
       tslib: 2.6.2

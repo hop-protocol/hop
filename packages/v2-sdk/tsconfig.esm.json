@@ -3,6 +3,6 @@
   "compilerOptions": {
     "outDir": "dist/esm",
     "module": "ESNext",
-    "moduleResolution": "node"
+    "moduleResolution": "Bundler"
   }
 }

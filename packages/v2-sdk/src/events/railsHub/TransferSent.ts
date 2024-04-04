@@ -1,4 +1,4 @@
-import RailsHubAbi from '../../config/abi/generated/RailsHub.json' assert { type: "json" }
+import RailsHubAbi from '../../config/abi/generated/RailsHub.json'
 import { BigNumber, ethers } from 'ethers'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'

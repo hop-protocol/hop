@@ -1,4 +1,4 @@
-import LiquidityHubAbi from '../../config/abi/generated/LiquidityHub.json' assert { type: "json" }
+import LiquidityHubAbi from '../../config/abi/generated/LiquidityHub.json'
 import { BigNumber, ethers } from 'ethers'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'

@@ -1,4 +1,4 @@
-import SpokeMessageBridgeAbi from '../../config/abi/generated/SpokeMessageBridge.json' assert { type: "json" }
+import SpokeMessageBridgeAbi from '../../config/abi/generated/SpokeMessageBridge.json'
 import { BigNumber, ethers } from 'ethers'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'

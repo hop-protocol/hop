@@ -1,73 +1,82 @@
 {
   "name": "@hop-protocol/v2-sdk",
-  "version": "0.0.0-beta.21",
-  "description": "The Hop Protocol v2 TypeScript SDK",
-  "type": "module",
+  "version": "0.0.1-beta.21",
+  "description": "The Hop Protocol v2 JavaScript SDK",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "hop.js",
+    "abi",
+    "addresses",
+    "config",
+    "contracts",
+    "metadata",
+    "networks",
+    "s3upload"
+  ],
   "scripts": {
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js ./abi ./addresses ./config ./contracts ./metadata ./networks",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "dev": "npm run version && tsc --watch",
+    "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",
-    "build:cjs": "tsc -b ./src/tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
-    "build:esm": "tsc -b ./src/tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/config/contracts/ && sh ./scripts/update_exports.sh",
-    "build:all": "pnpm build:typechain && pnpm build:esm && pnpm build:cjs",
+    "build:esm": "cp scripts/esm_abi_index.ts src/config/abi/index.ts && tsc -b ./src/tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh && cp scripts/esm_abi_index.ts dist/esm/config/abi/index.js",
+    "build:cjs": "cp scripts/cjs_abi_index.ts src/config/abi/index.ts && tsc -b ./src/tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "build:all": "pnpm build:typechain && pnpm build:esm && pnpm build:cjs && pnpm build:toplevel && pnpm build:browser",
     "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
-    "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/config/contracts ./src/config/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
-    "clean": "rimraf dist && rimraf hop.js",
-    "clean:docs": "rimraf docs",
-    "clean:docs-ui": "rimraf docs-ui",
-    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
+    "build:toplevel": "bash -c 'cp -r ./dist/cjs/{abi,addresses,config,contracts,metadata,networks} ./'",
+    "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/config/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
+    "clean:docs": "rm -rf docs",
+    "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --config ./eslint.config.mjs --fix",
-    "version:bump": "npm version prerelease --preid=beta",
-    "publish:latest": "npm publish --tag latest --access public",
-    "publish:beta": "npm publish --tag beta --access public",
-    "publish:next": "npm publish --tag next --access public",
-    "release": "npm run clean && npm test && npm run publish:latest",
-    "docs:markdown": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
-    "docs:concat": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && npx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
-    "docs:ui": "npm run clean:docs-ui && typedoc --out docs-ui src/index.ts",
-    "docs": "npm run docs:ui && npm run docs:markdown"
+    "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
+    "bump": "pnpm version prerelease --preid=beta",
+    "release": "pnpm build && pnpm lint && pnpm test && pnpm bump",
+    "bump-release": "pnpm bump && pnpm release",
+    "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
+    "docs:concat": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && pnpm dlx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
+    "docs:ui": "typedoc --out docs-ui src/index.ts",
+    "docs": "pnpm docs:ui && pnpm docs:markdown"
   },
-  "directories": {},
-  "author": "",
-  "license": "MIT",
   "dependencies": {
+    "@hop-protocol/sdk-core": "workspace:*",
+    "buffer": "6.0.3",
+    "dotenv": "16.4.1",
+    "esbuild": "0.20.0",
+    "ethereum-block-by-date": "1.4.9",
+    "ethers": "5.7.2",
+    "eventemitter3": "5.0.1",
+    "fast-memoize": "2.5.2",
+    "luxon": "3.4.4",
+    "merkletreejs": "0.3.11",
     "@arbitrum/sdk": "2.0.18",
-    "@eth-optimism/contracts": "^0.5.3",
-    "@eth-optimism/message-relayer": "^0.2.18",
-    "@eth-optimism/sdk": "^3.1.4",
+    "@eth-optimism/contracts": "0.5.3",
+    "@eth-optimism/message-relayer": "0.2.18",
+    "@eth-optimism/sdk": "3.1.4",
     "@fxportal/maticjs-fxportal": "1.1.1",
     "@maticnetwork/maticjs": "3.2.0",
     "@maticnetwork/maticjs-ethers": "1.0.2",
-    "dotenv": "^16.0.3",
-    "ethers": "5.7.1",
-    "eventemitter3": "4.0.7",
-    "fast-memoize": "2.5.2",
     "isomorphic-fetch": "3.0.0",
-    "lodash": "^4.17.21",
-    "luxon": "2.5.0",
-    "merkletreejs": "^0.2.32",
-    "p-queue": "8.0.1",
-    "wait": "^0.4.2",
+    "lodash": "4.17.21",
+    "p-queue": "6.6.2",
+    "wait": "0.4.2",
     "web3-utils": "1.7.5"
   },
   "devDependencies": {
+    "@types/luxon": "3.4.2",
     "@types/isomorphic-fetch": "0.0.35",
-    "@types/jest": "^27.0.3",
-    "@types/lodash": "^4.14.190",
-    "@types/luxon": "^1.27.1",
-    "@types/node": "20.11.22",
-    "@types/node-fetch": "2.6.11",
-    "browserify": "^16.5.0",
-    "jest": "^26.6.3",
-    "rimraf": "^3.0.2",
-    "standard": "^12.0.1",
-    "ts-jest": "^26.5.4",
-    "tsify": "^4.0.1",
-    "typedoc": "^0.25.1",
-    "typedoc-plugin-markdown": "^3.16.0",
+    "@types/jest": "27.0.3",
+    "@types/lodash": "4.14.190",
+    "jest": "29.7.0",
+    "ts-jest": "29.1.2",
+    "typedoc": "0.25.7",
+    "typedoc-plugin-markdown": "3.17.1",
     "@typechain/ethers-v5": "10.1.0",
     "typechain": "8.1.0"
+  },
+  "peerDependencies": {
+    "ethers": "^5"
   },
   "imports": {
     "#*": "./dist/esm/*"
@@ -75,7 +84,39 @@
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "default": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.js"
+    },
+    "./config": {
+      "import": "./dist/esm/config/index.js",
+      "require": "./dist/cjs/config/index.js"
+    },
+    "./abi": {
+      "import": "./dist/esm/abi/index.js",
+      "require": "./dist/cjs/abi/index.js"
+    },
+    "./addresses": {
+      "import": "./dist/esm/addresses/index.js",
+      "require": "./dist/cjs/addresses/index.js"
+    },
+    "./contracts": {
+      "import": "./dist/esm/contracts/index.js",
+      "require": "./dist/cjs/contracts/index.js"
+    },
+    "./contracts/*": {
+      "import": "./dist/esm/contracts/*.js",
+      "require": "./dist/cjs/contracts/*.js"
+    },
+    "./metadata": {
+      "import": "./dist/esm/metadata/index.js",
+      "require": "./dist/cjs/metadata/index.js"
+    },
+    "./metadata/tokens": {
+      "import": "./dist/esm/metadata/tokens.js",
+      "require": "./dist/cjs/metadata/tokens.js"
+    },
+    "./networks": {
+      "import": "./dist/esm/networks/index.js",
+      "require": "./dist/cjs/networks/index.js"
     }
   }
 }

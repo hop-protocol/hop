@@ -1,5 +1,6 @@
 data
 *.log
+yarn.lock
 build
 dist
 !third_party/*.tgz
@@ -12,4 +13,18 @@ src/package.json
 docs-ui
 /hop.js
 .prettierrc
-notes.txt
+test/_*
+
+/core
+/abi
+/addresses
+/metadata
+/networks
+/config
+/s3upload
+/index.js
+/version.js
+/index.d.ts
+/version.d.ts
+/contracts
+src/contracts/

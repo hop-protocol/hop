@@ -1,42 +1,42 @@
-# @hop-protocol/v2-sdk
+# Hop v1 SDK
 
-> The Hop Protocol v2 TypesScript SDK
+> The Hop Protocol JavaScript SDK
 
-[![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs-v2.hop.exchange/js-sdk/)
-[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/v2-sdk/master/LICENSE)
-[![dependencies Status](https://david-dm.org/@hop-protocol/v2-sdk/status.svg)](https://david-dm.org/@hop-protocol/v2-sdk)
-[![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fv2-sdk.svg)](https://badge.fury.io/js/%40hop-protocol%2Fv2-sdk)
-[![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@hop-protocol/v2-sdk/latest.svg)](https://bundlephobia.com/result?p=@hop-protocol/v2-sdk@latest)
-
-⚠️ This package is under active development and is subject to change.
+[![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
+[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk/master/LICENSE)
+[![dependencies Status](https://david-dm.org/@hop-protocol/sdk/status.svg)](https://david-dm.org/@hop-protocol/sdk)
+[![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/%40hop-protocol%2Fsdk)
+[![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@hop-protocol/sdk/latest.svg)](https://bundlephobia.com/result?p=@hop-protocol/sdk@latest)
 
 ## Demo
 
-[https://v2-sdk-demo.hop.exchange/](https://v2-sdk-demo.hop.exchange/)
+[https://sdk-demo.hop.exchange/](https://sdk-demo.hop.exchange/)
 
 ## Install
 
 ```bash
-npm install @hop-protocol/v2-sdk
+npm install @hop-protocol/sdk
 ```
 
 ## CDN
 
-[https://cdn.jsdelivr.net/npm/@hop-protocol/v2-sdk@latest/hop.js](jsDelivr CDN)
+[https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js](jsDelivr CDN)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@hop-protocol/v2-sdk@latest/hop.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js"></script>
 ```
 
-[https://unpkg.com/@hop-protocol/v2-sdk@latest/hop.js](unpkg CDN)
+[https://unpkg.com/@hop-protocol/sdk@latest/hop.js](unpkg CDN)
 
 ```html
-<script src="https://unpkg.com/@hop-protocol/v2-sdk@latest/hop.js"></script>
+<script src="https://unpkg.com/@hop-protocol/sdk@latest/hop.js"></script>
 ```
 
 ## Documentation
 
-See [docs-v2.hop.protocol/js-sdk](https://docs-v2.hop.exchange/js-sdk)
+For getting started and examples, see [docs.hop.exchange/v/developer-docs/js-sdk/js-sdk](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
+
+For sdk API reference, see [hop-sdk-docs.netlify.app](https://hop-sdk-docs.netlify.app/)
 
 ## Development
 
@@ -46,16 +46,28 @@ Install dependencies
 npm install
 ```
 
-Run watcher
+Run build watcher
 
 ```bash
 npm run dev
+```
+
+Build sdk
+
+```bash
+npm run build
 ```
 
 Generate documentation
 
 ```bash
 npm run docs
+```
+
+Run github action build locally with [act](https://github.com/nektos/act):
+
+```sh
+(cd ../../ && act --job publish-sdk --workflows .github/workflows/npm_publish_sdk.yml --secret-file=.secrets --verbose)
 ```
 
 ## Test

@@ -1,4 +1,4 @@
-import ERC721BridgeAbi from '../../config/abi/generated/ERC721Bridge.json' assert { type: "json" }
+import ERC721BridgeAbi from '../../config/abi/generated/ERC721Bridge.json'
 import { ERC721Bridge__factory } from '../../config/contracts/factories/generated/ERC721Bridge__factory.js'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'

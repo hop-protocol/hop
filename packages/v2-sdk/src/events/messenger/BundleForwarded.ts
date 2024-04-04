@@ -1,4 +1,4 @@
-import HubMessageBridgeAbi from '../../config/abi/generated/HubMessageBridge.json' assert { type: "json" }
+import HubMessageBridgeAbi from '../../config/abi/generated/HubMessageBridge.json'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
 import { HubMessageBridge__factory } from '../../config/contracts/factories/generated/HubMessageBridge__factory.js'

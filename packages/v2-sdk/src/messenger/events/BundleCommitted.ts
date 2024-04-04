@@ -1,43 +1,48 @@
-import { Event } from '../Event.js'
-import { EventBase } from '../types.js'
+import { BigNumber, ethers } from 'ethers'
+import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers } from 'ethers'
 
 // event from SpokeMessageBridge
-export interface BundleSet extends EventBase {
+export interface BundleCommitted extends EventBase {
   bundleId: string
   bundleRoot: string
-  fromChainId: number
+  bundleFees: BigNumber
+  toChainId: number
+  commitTime: number
 }
 
-export class BundleSetEventFetcher extends Event {
-  override eventName = 'BundleSet'
+export class BundleCommittedEventFetcher extends Event {
+  override eventName = 'BundleCommitted'
 
   getFilter () {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
-    const filter = spokeMessageBridge.filters.BundleSet()
+    const filter = spokeMessageBridge.filters.BundleCommitted()
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<BundleSet[]> {
+  async getEvents (startBlock: number, endBlock: number): Promise<BundleCommitted[]> {
     const filter = this.getFilter()
     return this._getEvents(filter, startBlock, endBlock)
   }
 
-  override toTypedEvent (ethersEvent: any): BundleSet {
+  override toTypedEvent (ethersEvent: any): BundleCommitted {
     const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 
     const bundleId = decoded.args.bundleId.toString()
     const bundleRoot = decoded.args.bundleRoot.toString()
-    const fromChainId = Number(decoded.args.fromChainId.toString())
+    const bundleFees = decoded.args.bundleFees
+    const toChainId = Number(decoded.args.toChainId.toString())
+    const commitTime = Number(decoded.args.commitTime.toString())
 
     return {
       eventName: this.eventName,
       eventLog: ethersEvent,
       bundleId,
       bundleRoot,
-      fromChainId
+      bundleFees,
+      toChainId,
+      commitTime
     }
   }
 }

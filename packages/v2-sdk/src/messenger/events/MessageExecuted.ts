@@ -1,5 +1,4 @@
-import { Event } from '../Event.js'
-import { EventBase } from '../types.js'
+import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 import { ethers } from 'ethers'
 

@@ -1,5 +1,5 @@
 import { EventContext } from './types.js'
-import { EventFetcher, InputFilter } from '../eventFetcher.js'
+import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk-core'
 import { providers } from 'ethers'

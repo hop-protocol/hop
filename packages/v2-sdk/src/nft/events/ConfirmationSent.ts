@@ -1,6 +1,5 @@
 import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
-import { Event } from '../Event.js'
-import { EventBase } from '../types.js'
+import { Event, EventBase } from '#events/index.js'
 import { ethers } from 'ethers'
 
 // event from ERC721Bridge

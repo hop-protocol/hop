@@ -1,5 +1,4 @@
-import { Event } from '../Event.js'
-import { EventBase } from '../types.js'
+import { Event, EventBase } from '#events/index.js'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 import { ethers } from 'ethers'
 

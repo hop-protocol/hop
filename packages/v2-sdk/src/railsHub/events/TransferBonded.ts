@@ -1,10 +1,9 @@
 import { BigNumber, ethers } from 'ethers'
-import { Event } from '../Event.js'
-import { EventBase } from '../types.js'
+import { Event, EventBase } from '#events/index.js'
 import { RailsHub__factory } from '#contracts/factories/RailsHub__factory.js'
 
 // event from RailsHub
-export interface TransferSent extends EventBase {
+export interface TransferBonded extends EventBase {
   transferId: string
   pathId: string
   to: string
@@ -13,33 +12,33 @@ export interface TransferSent extends EventBase {
   totalSent: BigNumber
 }
 
-export class TransferSentEventFetcher extends Event {
-  override eventName = 'TransferSent'
+export class TransferBondedEventFetcher extends Event {
+  override eventName = 'TransferBonded'
 
   getFilter () {
     const railsHub = RailsHub__factory.connect(this.address, this.provider)
-    const filter = railsHub.filters.TransferSent()
+    const filter = railsHub.filters.TransferBonded()
     return filter
   }
 
   getTransferIdFilter (transferId: string) {
     const railsHub = RailsHub__factory.connect(this.address, this.provider)
-    const filter = railsHub.filters.TransferSent(transferId)
+    const filter = railsHub.filters.TransferBonded(transferId)
     return filter
   }
 
   getPathIdFilter (pathId: string) {
     const railsHub = RailsHub__factory.connect(this.address, this.provider)
-    const filter = railsHub.filters.TransferSent(pathId)
+    const filter = railsHub.filters.TransferBonded(pathId)
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<TransferSent[]> {
+  async getEvents (startBlock: number, endBlock: number): Promise<TransferBonded[]> {
     const filter = this.getFilter()
     return this._getEvents(filter, startBlock, endBlock)
   }
 
-  override toTypedEvent (ethersEvent: any): TransferSent {
+  override toTypedEvent (ethersEvent: any): TransferBonded {
     const iface = new ethers.utils.Interface(RailsHub__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

@@ -117,6 +117,30 @@
     "./networks": {
       "import": "./dist/esm/networks/index.js",
       "require": "./dist/cjs/networks/index.js"
+    },
+    "./events": {
+      "import": "./dist/esm/events/index.js",
+      "require": "./dist/cjs/events/index.js"
+    },
+    "./messenger": {
+      "import": "./dist/esm/messenger/index.js",
+      "require": "./dist/cjs/messenger/index.js"
+    },
+    "./railsHub": {
+      "import": "./dist/esm/railsHub/index.js",
+      "require": "./dist/cjs/railHub/index.js"
+    },
+    "./nft": {
+      "import": "./dist/esm/nft/index.js",
+      "require": "./dist/cjs/nft/index.js"
+    },
+    "./gasPriceOracle": {
+      "import": "./dist/esm/gasPriceOracle/index.js",
+      "require": "./dist/cjs/gasPriceOracle/index.js"
+    },
+    "./exitRelayers": {
+      "import": "./dist/esm/exitRelayers/index.js",
+      "require": "./dist/cjs/exitRelayers/index.js"
     }
   }
 }

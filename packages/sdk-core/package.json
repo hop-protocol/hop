@@ -97,7 +97,8 @@
     "docs:concat": "typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && pnpm dlx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
     "docs:ui": "typedoc --out docs-ui src/index.ts",
     "docs": "pnpm docs:ui && pnpm docs:markdown",
-    "docs:update-gitbook": "./scripts/update_gitbook.sh"
+    "docs:update-gitbook": "./scripts/update_gitbook.sh",
+    "upload": "pnpm build:esm && node dist/esm/s3upload/main"
   },
   "dependencies": {
     "@uniswap/sdk-core": "4.2.0",

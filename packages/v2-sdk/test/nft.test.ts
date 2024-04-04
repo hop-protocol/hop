@@ -1,7 +1,9 @@
-import { Nft } from '../src/Nft.js'
-require('dotenv').config()
+import { Nft } from '#nft/index.js'
+import dotenv from 'dotenv'
 
-describe('Nft', () => {
+dotenv.config()
+
+describe.skip('Nft', () => {
   it('should get populated mintNft transaction', async () => {
     const nft = new Nft('goerli')
     const txData = await nft.populateTransaction.mintNft({

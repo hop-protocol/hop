@@ -6,7 +6,8 @@ export type Options = {
 
 export async function promiseQueue (items: any[], cb: any, options: Options) {
   const { concurrency } = options
-  const queue = new PQueue({ concurrency })
+  // TODO debug why PQueue is not being imported correctly when sdk-core is used in v2-sdk
+  const queue = (PQueue as any)?.default ? new (PQueue as any).default({ concurrency }) : new PQueue({ concurrency })
   for (let i = 0; i < items.length; i++) {
     queue.add(async () => cb(items[i], i))
   }

@@ -10,7 +10,7 @@ export interface TokenSent extends EventBase {
   newTokenId: string
 }
 
-export class TokenSentEventFetcher extends Event {
+export class TokenSentEventFetcher extends Event<TokenSent> {
   override eventName = 'TokenSent'
 
   getFilter () {
@@ -21,7 +21,7 @@ export class TokenSentEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<TokenSent[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TokenSent {

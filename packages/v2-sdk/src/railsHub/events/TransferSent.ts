@@ -12,7 +12,7 @@ export interface TransferSent extends EventBase {
   totalSent: BigNumber
 }
 
-export class TransferSentEventFetcher extends Event {
+export class TransferSentEventFetcher extends Event<TransferSent> {
   override eventName = 'TransferSent'
 
   getFilter () {
@@ -35,7 +35,7 @@ export class TransferSentEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<TransferSent[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TransferSent {

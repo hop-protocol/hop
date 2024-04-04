@@ -9,7 +9,7 @@ export interface BundleSet extends EventBase {
   fromChainId: number
 }
 
-export class BundleSetEventFetcher extends Event {
+export class BundleSetEventFetcher extends Event<BundleSet> {
   override eventName = 'BundleSet'
 
   getFilter () {
@@ -20,7 +20,7 @@ export class BundleSetEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<BundleSet[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleSet {

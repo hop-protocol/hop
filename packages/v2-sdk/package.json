@@ -59,7 +59,6 @@
     "@maticnetwork/maticjs-ethers": "1.0.2",
     "isomorphic-fetch": "3.0.0",
     "lodash": "4.17.21",
-    "p-queue": "6.6.2",
     "wait": "0.4.2",
     "web3-utils": "1.7.5"
   },

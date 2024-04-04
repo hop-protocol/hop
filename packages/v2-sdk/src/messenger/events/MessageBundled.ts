@@ -9,7 +9,7 @@ export interface MessageBundled extends EventBase {
   messageId: string
 }
 
-export class MessageBundledEventFetcher extends Event {
+export class MessageBundledEventFetcher extends Event<MessageBundled> {
   override eventName = 'MessageBundled'
 
   getFilter () {
@@ -32,7 +32,7 @@ export class MessageBundledEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<MessageBundled[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageBundled {

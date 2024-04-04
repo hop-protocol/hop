@@ -745,7 +745,7 @@ export class Messenger {
     return this.getMessageSentEventFromTransactionReceipt({ fromChainId, receipt })
   }
 
-  async getMessageBundledEventFromMessageId (input: GetMessageBundledEventFromMessageIdInput) {
+  async getMessageBundledEventFromMessageId (input: GetMessageBundledEventFromMessageIdInput): Promise<MessageBundled> {
     const { fromChainId, messageId } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -764,7 +764,7 @@ export class Messenger {
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = await eventFetcher._getEvents(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
@@ -793,7 +793,7 @@ export class Messenger {
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = await eventFetcher._getEvents(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
@@ -823,7 +823,7 @@ export class Messenger {
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = await eventFetcher._getEvents(filter, fromBlock, toBlock)
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
   }
 
@@ -939,7 +939,7 @@ export class Messenger {
     const filter = eventFetcher.getBundleIdFilter(bundleId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
-    const events = eventFetcher._getEvents(filter, fromBlock, toBlock)
+    const events = eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
     return events
   }
 

@@ -11,7 +11,7 @@ export interface MessageSent extends EventBase {
   data: string
 }
 
-export class MessageSentEventFetcher extends Event {
+export class MessageSentEventFetcher extends Event<MessageSent> {
   override eventName = 'MessageSent'
 
   getFilter () {
@@ -28,7 +28,7 @@ export class MessageSentEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<MessageSent[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageSent {

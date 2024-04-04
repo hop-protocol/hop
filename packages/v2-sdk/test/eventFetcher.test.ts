@@ -1,11 +1,14 @@
-import { EventFetcher } from '../src/eventFetcher.js'
+import { EventFetcher } from '#events/index.js'
 import { getAddress } from 'ethers/lib/utils.js'
 import { providers } from 'ethers'
-require('dotenv').config()
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const rpcUrl = process.env.ETHEREUM_RPC_PROVIDER
+console.log('rpcUrl:', rpcUrl)
 
-describe('EventFetcher', () => {
+describe.only('EventFetcher', () => {
   it('should fetch all events from multiple filters and aggregate filter topics', async () => {
     const provider = new providers.StaticJsonRpcProvider(rpcUrl)
     const eventFetcher = new EventFetcher({

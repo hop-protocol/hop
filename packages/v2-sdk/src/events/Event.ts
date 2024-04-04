@@ -4,7 +4,7 @@ import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk-core'
 import { providers } from 'ethers'
 
-export class Event {
+export class Event<T> {
   provider: providers.Provider
   chainId: number
   batchBlocks: number
@@ -21,7 +21,7 @@ export class Event {
     this.address = address
   }
 
-  async _getEvents (filter: any, fromBlock: number, toBlock?: number) {
+  async getEventsWithFilter(filter: any, fromBlock: number, toBlock?: number): Promise<T[]> {
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
@@ -34,7 +34,7 @@ export class Event {
     return this.populateEvents(events)
   }
 
-  async populateEvents (events: any[]) {
+  async populateEvents<T>(events: any[]): Promise<T[]> {
     events = events.map(x => this.toTypedEvent(x))
     const promiseFns = events.map((event: any) => () => this.addContextToEvent(event, this.chainId))
 
@@ -43,14 +43,14 @@ export class Event {
       populatedEvents.push(await fn())
     }, { concurrency: 20 })
 
-    return populatedEvents
+    return populatedEvents.map((event) => event as T)
   }
 
-  toTypedEvent (ethersEvent: any): any {
+  toTypedEvent (ethersEvent: any): T {
     throw new Error('Not implemented')
   }
 
-  async addContextToEvent (event: any, chainId: number): Promise<any> {
+  async addContextToEvent (event: any, chainId: number): Promise<T> {
     const context = await this.getEventContext(event.eventLog, chainId)
     event.context = context
     return event
@@ -96,7 +96,7 @@ export class Event {
     }
   }
 
-  getChainSlug (chainId: number) {
+  getChainSlug (chainId: number): string {
     const chainSlug = chainSlugMap[chainId]
     if (!chainSlug) {
       throw new Error(`Invalid chain: ${chainId}`)

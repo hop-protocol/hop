@@ -7,7 +7,7 @@ export interface TokenConfirmed extends EventBase {
   tokenId: string
 }
 
-export class TokenConfirmedEventFetcher extends Event {
+export class TokenConfirmedEventFetcher extends Event<TokenConfirmed> {
   override eventName = 'TokenConfirmed'
 
   getFilter () {
@@ -18,7 +18,7 @@ export class TokenConfirmedEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<TokenConfirmed[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TokenConfirmed {

@@ -11,7 +11,7 @@ export interface BundleCommitted extends EventBase {
   commitTime: number
 }
 
-export class BundleCommittedEventFetcher extends Event {
+export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
   override eventName = 'BundleCommitted'
 
   getFilter () {
@@ -22,7 +22,7 @@ export class BundleCommittedEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<BundleCommitted[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleCommitted {

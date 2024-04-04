@@ -13,7 +13,7 @@ export interface BundleReceived extends EventBase {
   relayer: string
 }
 
-export class BundleReceivedEventFetcher extends Event {
+export class BundleReceivedEventFetcher extends Event<BundleReceived> {
   override eventName = 'BundleReceived'
 
   getFilter () {
@@ -24,7 +24,7 @@ export class BundleReceivedEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<BundleReceived[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleReceived {

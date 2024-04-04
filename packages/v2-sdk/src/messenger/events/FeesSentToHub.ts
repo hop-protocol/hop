@@ -7,7 +7,7 @@ export interface FeesSentToHub extends EventBase {
   amount: BigNumber
 }
 
-export class FeesSentToHubEventFetcher extends Event {
+export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
   override eventName = 'FeesSentToHub'
 
   getFilter () {
@@ -18,7 +18,7 @@ export class FeesSentToHubEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<FeesSentToHub[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): FeesSentToHub {

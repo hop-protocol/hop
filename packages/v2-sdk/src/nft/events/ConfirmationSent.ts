@@ -8,7 +8,7 @@ export interface ConfirmationSent extends EventBase {
   toChainId: number
 }
 
-export class ConfirmationSentEventFetcher extends Event {
+export class ConfirmationSentEventFetcher extends Event<ConfirmationSent> {
   override eventName = 'ConfirmationSent'
 
   getFilter () {
@@ -19,7 +19,7 @@ export class ConfirmationSentEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<ConfirmationSent[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): ConfirmationSent {

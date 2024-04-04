@@ -12,7 +12,7 @@ export interface TransferBonded extends EventBase {
   totalSent: BigNumber
 }
 
-export class TransferBondedEventFetcher extends Event {
+export class TransferBondedEventFetcher extends Event<TransferBonded> {
   override eventName = 'TransferBonded'
 
   getFilter () {
@@ -35,7 +35,7 @@ export class TransferBondedEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<TransferBonded[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TransferBonded {

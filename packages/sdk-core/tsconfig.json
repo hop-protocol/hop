@@ -5,5 +5,10 @@
     { "path": "./src/tsconfig.esm.json" },
     { "path": "./src/tsconfig.cjs.json" },
     { "path": "./test" }
-  ]
+  ],
+  "compilerOptions": {
+    "paths": {
+      "#*": ["./src/*"]
+    }
+  }
 }

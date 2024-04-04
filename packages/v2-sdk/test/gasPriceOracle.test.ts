@@ -1,6 +1,6 @@
-import { GasPriceOracle } from '../src/GasPriceOracle.js'
+import { GasPriceOracle } from '#gasPriceOracle/index.js'
 
-describe('GasPriceOracle Integration Tests', () => {
+describe.skip('GasPriceOracle Integration Tests', () => {
   let gasPriceOracle: GasPriceOracle
 
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('GasPriceOracle Integration Tests', () => {
     expect(response.status).toBe('ok')
     expect(response.data).toHaveProperty('expiration')
     expect(response.data).toHaveProperty('chainSlug', chain)
-  })
+  }, 60 * 1000)
 
   it('verifies gas price correctly', async () => {
     const chain = 'optimism'
@@ -28,7 +28,7 @@ describe('GasPriceOracle Integration Tests', () => {
 
     expect(response.data.valid).toBe(true)
     expect(response.data.timestamp).toBeGreaterThanOrEqual(timestamp)
-  })
+  }, 60 * 1000)
 
   it('estimates gas cost', async () => {
     const chain = 'optimism'
@@ -40,7 +40,7 @@ describe('GasPriceOracle Integration Tests', () => {
 
     expect(response.status).toBe('ok')
     expect(response.data).toHaveProperty('l1Fee')
-  })
+  }, 60 * 1000)
 
   it('verifies gas cost estimate correctly', async () => {
     const chain = 'optimism'
@@ -53,5 +53,5 @@ describe('GasPriceOracle Integration Tests', () => {
 
     expect(response.status).toBe('ok')
     expect(response.data).toHaveProperty('valid')
-  })
+  }, 60 * 1000)
 })

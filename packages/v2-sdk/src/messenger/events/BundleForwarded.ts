@@ -10,7 +10,7 @@ export interface BundleForwarded extends EventBase {
   toChainId: number
 }
 
-export class BundleForwardedEventFetcher extends Event {
+export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
   override eventName = 'BundleForwarded'
 
   getFilter () {
@@ -21,7 +21,7 @@ export class BundleForwardedEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<BundleForwarded[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleForwarded {

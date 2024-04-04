@@ -8,7 +8,7 @@ export interface MessageExecuted extends EventBase {
   fromChainId: number
 }
 
-export class MessageExecutedEventFetcher extends Event {
+export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
   override eventName = 'MessageExecuted'
 
   getFilter () {
@@ -27,7 +27,7 @@ export class MessageExecutedEventFetcher extends Event {
 
   async getEvents (startBlock: number, endBlock: number): Promise<MessageExecuted[]> {
     const filter = this.getFilter()
-    return this._getEvents(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageExecuted {

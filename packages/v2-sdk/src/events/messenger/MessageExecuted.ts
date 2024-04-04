@@ -1,7 +1,6 @@
-import SpokeMessageBridgeAbi from '../../config/abi/generated/SpokeMessageBridge.json'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
-import { SpokeMessageBridge__factory } from '../../config/contracts/factories/generated/SpokeMessageBridge__factory.js'
+import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 import { ethers } from 'ethers'
 
 // event from SpokeMessageBridge (MessageExecutor.sol)
@@ -33,7 +32,7 @@ export class MessageExecutedEventFetcher extends Event {
   }
 
   override toTypedEvent (ethersEvent: any): MessageExecuted {
-    const iface = new ethers.utils.Interface(SpokeMessageBridgeAbi)
+    const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 
     const messageId = decoded.args.messageId.toString()

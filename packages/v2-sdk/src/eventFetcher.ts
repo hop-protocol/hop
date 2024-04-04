@@ -1,6 +1,6 @@
 import { Filter } from '@ethersproject/abstract-provider'
 import { getAddress } from 'ethers/lib/utils.js'
-import { promiseQueue } from './promiseQueue.js'
+import { promiseQueue } from '@hop-protocol/sdk-core'
 import { providers } from 'ethers'
 
 const DefaultBatchBlocks = 2000

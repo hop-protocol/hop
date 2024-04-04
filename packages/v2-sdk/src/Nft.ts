@@ -1,5 +1,5 @@
 import { Interface } from 'ethers/lib/utils.js'
-import { getProvider } from './utils/getProvider.js'
+import { getProvider } from '#utils/getProvider.js'
 
 export type MintNftInput = {
   fromChainId: number

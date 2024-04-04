@@ -41,7 +41,8 @@ export {
   shiftBNDecimals,
   WithdrawalProof,
   getCctpDomain,
-  getUSDCSwapParams
+  getUSDCSwapParams,
+  wait
 } from './utils/index.js'
 
 

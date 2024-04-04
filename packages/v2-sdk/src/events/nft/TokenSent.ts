@@ -1,5 +1,4 @@
-import ERC721BridgeAbi from '../../config/abi/generated/ERC721Bridge.json'
-import { ERC721Bridge__factory } from '../../config/contracts/factories/generated/ERC721Bridge__factory.js'
+import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
 import { ethers } from 'ethers'
@@ -27,7 +26,7 @@ export class TokenSentEventFetcher extends Event {
   }
 
   override toTypedEvent (ethersEvent: any): TokenSent {
-    const iface = new ethers.utils.Interface(ERC721BridgeAbi)
+    const iface = new ethers.utils.Interface(ERC721Bridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 
     const toChainId = Number(decoded.args.toChainId.toString())

@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, Contract, Signer, providers } from 'ethers'
-import { ERC20__factory } from './config/contracts/factories/non_generated/ERC20__factory.js'
-import { RailsHub__factory } from './config/contracts/factories/generated/RailsHub__factory.js'
+import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
+import { RailsHub__factory } from '#contracts/factories/RailsHub__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 
 // Constructor input type

@@ -1,8 +1,7 @@
-import RailsHubAbi from '../../config/abi/generated/RailsHub.json'
 import { BigNumber, ethers } from 'ethers'
 import { Event } from '../Event.js'
 import { EventBase } from '../types.js'
-import { RailsHub__factory } from '../../config/contracts/factories/generated/RailsHub__factory.js'
+import { RailsHub__factory } from '#contracts/factories/RailsHub__factory.js'
 
 // event from RailsHub
 export interface TransferSent extends EventBase {
@@ -41,7 +40,7 @@ export class TransferSentEventFetcher extends Event {
   }
 
   override toTypedEvent (ethersEvent: any): TransferSent {
-    const iface = new ethers.utils.Interface(RailsHubAbi)
+    const iface = new ethers.utils.Interface(RailsHub__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 
     const transferId = decoded.args.transferId.toString()

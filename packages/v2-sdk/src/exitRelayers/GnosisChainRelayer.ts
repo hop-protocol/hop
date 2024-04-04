@@ -1,6 +1,6 @@
 import { providers } from 'ethers'
-import { L1_xDaiAMB__factory } from '../config/contracts/factories/non_generated/L1_xDaiAMB__factory.js'
-import { L2_xDaiAMB__factory } from '../config/contracts/factories/non_generated/L2_xDaiAMB__factory.js'
+import { L1_xDaiAMB__factory } from '#contracts/factories/L1_xDaiAMB__factory.js'
+import { L2_xDaiAMB__factory } from '#contracts/factories/L2_xDaiAMB__factory.js'
 import { solidityKeccak256 } from 'ethers/lib/utils.js'
 
 // reference:

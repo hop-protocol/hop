@@ -1,5 +1,16 @@
 import { Interface } from 'ethers/lib/utils.js'
 import { getProvider } from '#utils/getProvider.js'
+import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
+import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
+import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
+import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
+import { goerliAddresses } from '#addresses/index.js'
+
+export type GetEventsInput = {
+  chainId: number
+  fromBlock: number
+  toBlock?: number
+}
 
 export type MintNftInput = {
   fromChainId: number
@@ -57,11 +68,54 @@ export type SendNftWrapperInput = {
   wrapperTokenIdNonce: number
 }
 
+export type GetNftMintPopulatedTxInput = {
+  fromChainId: number,
+  toAddress: string
+  tokenId: string
+}
+
+export type GetNftBurnPopulatedTxInput = {
+  fromChainId: number,
+  tokenId: string
+}
+
+export type GetNftSendPopulatedTxInput = {
+  fromChainId: number,
+  toChainId: number,
+  toAddress: string
+  tokenId: string
+}
+
+export type GetNftMintAndSendPopulatedTxInput = {
+  fromChainId: number,
+  toChainId: number,
+  toAddress: string
+  tokenId: string
+}
+
+export type GetNftConfirmPopulatedTxInput = {
+  fromChainId: number,
+  tokenId: string
+}
+
 export class Nft {
   network: string
+  batchBlocks?: number = 1000
+  contractAddresses: Record<string, any> = {
+    mainnet: {},
+    goerli: goerliAddresses
+  }
 
   constructor (network: string = 'goerli') {
     this.network = network
+  }
+
+  getRpcProvider (chainId: number) {
+    return null as any // TODO
+  }
+
+  private isValidChainId (chainId: number) {
+    return true // TODO
   }
 
   populateTransaction: any = {
@@ -167,5 +221,221 @@ export class Nft {
     }
 
     return txData
+  }
+
+  async getNftConfirmationSentEvents (input: GetEventsInput): Promise<ConfirmationSent[]> {
+    const { chainId, fromBlock, toBlock } = input
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+    if (!fromBlock) {
+      throw new Error('fromBlock is required')
+    }
+    const provider = this.getRpcProvider(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId}`)
+    }
+    const address = this.getNftBridgeContractAddress(chainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId: ${chainId}`)
+    }
+    const eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
+    return eventFetcher.getEvents(fromBlock, toBlock as any)
+  }
+
+  async getNftTokenConfirmedEvents (input: GetEventsInput): Promise<TokenConfirmed[]> {
+    const { chainId, fromBlock, toBlock } = input
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+    if (!fromBlock) {
+      throw new Error('fromBlock is required')
+    }
+    const provider = this.getRpcProvider(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId}`)
+    }
+    const address = this.getNftBridgeContractAddress(chainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId: ${chainId}`)
+    }
+    const eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks as any, address)
+    return eventFetcher.getEvents(fromBlock, toBlock as any)
+  }
+
+  async getNftTokenSentEvents (input: GetEventsInput): Promise<TokenSent[]> {
+    const { chainId, fromBlock, toBlock } = input
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+    if (!fromBlock) {
+      throw new Error('fromBlock is required')
+    }
+    const provider = this.getRpcProvider(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId}`)
+    }
+    const address = this.getNftBridgeContractAddress(chainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId: ${chainId}`)
+    }
+    const eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
+    return eventFetcher.getEvents(fromBlock, toBlock as any)
+  }
+
+  getNftBridgeContractAddress (chainId: number): string {
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+    const address = this.contractAddresses[this.network]?.[chainId]?.nftBridge
+    return address
+  }
+
+  async getNftMintPopulatedTx (input: GetNftMintPopulatedTxInput): Promise<any> {
+    const { fromChainId, toAddress, tokenId } = input
+    if (!this.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+    }
+    if (!toAddress) {
+      throw new Error('toAddress is required')
+    }
+    const provider = this.getRpcProvider(fromChainId)
+    if (!provider) {
+      throw new Error(`Invalid chain: ${fromChainId}`)
+    }
+
+    const address = this.getNftBridgeContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Nft bridge address not found for chainId "${fromChainId}"`)
+    }
+    const nftBridge = ERC721Bridge__factory.connect(address, provider)
+    const txData = await nftBridge.populateTransaction.mint(toAddress, tokenId)
+
+    return {
+      ...txData,
+      chainId: fromChainId
+    }
+  }
+
+  async getNftBurnPopulatedTx (input: GetNftBurnPopulatedTxInput): Promise<any> {
+    const { fromChainId, tokenId } = input
+    if (!this.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+    }
+    if (!tokenId) {
+      throw new Error('tokenId is required')
+    }
+    const provider = this.getRpcProvider(fromChainId)
+    if (!provider) {
+      throw new Error(`Invalid chain: ${fromChainId}`)
+    }
+
+    const address = this.getNftBridgeContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Invalid address: ${fromChainId}`)
+    }
+    const nftBridge = ERC721Bridge__factory.connect(address, provider)
+    const txData = await nftBridge.populateTransaction.burn(tokenId)
+
+    return {
+      ...txData,
+      chainId: fromChainId
+    }
+  }
+
+  async getNftSendPopulatedTx (input: GetNftSendPopulatedTxInput): Promise<any> {
+    const { fromChainId, toChainId, toAddress, tokenId } = input
+    if (!this.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+    }
+    if (!this.isValidChainId(toChainId)) {
+      throw new Error(`Invalid toChainId: ${toChainId}`)
+    }
+    if (fromChainId === toChainId) {
+      throw new Error('fromChainId and toChainId must be different')
+    }
+    if (!toAddress) {
+      throw new Error('toAddress is required')
+    }
+    if (!tokenId) {
+      throw new Error('tokenId is required')
+    }
+    const provider = this.getRpcProvider(fromChainId)
+    if (!provider) {
+      throw new Error(`Invalid chain: ${fromChainId}`)
+    }
+
+    const address = this.getNftBridgeContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Invalid address: ${fromChainId}`)
+    }
+    const nftBridge = ERC721Bridge__factory.connect(address, provider)
+    const txData = await nftBridge.populateTransaction.send(toChainId, toAddress, tokenId)
+
+    return {
+      ...txData,
+      chainId: fromChainId
+    }
+  }
+
+  async getNftMintAndSendPopulatedTx (input: GetNftMintAndSendPopulatedTxInput): Promise<any> {
+    const { fromChainId, toChainId, toAddress, tokenId } = input
+    if (!this.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+    }
+    if (!this.isValidChainId(toChainId)) {
+      throw new Error(`Invalid toChainId: ${toChainId}`)
+    }
+    if (fromChainId === toChainId) {
+      throw new Error('fromChainId and toChainId must be different')
+    }
+    if (!toAddress) {
+      throw new Error('toAddress is required')
+    }
+    if (!tokenId) {
+      throw new Error('tokenId is required')
+    }
+    const provider = this.getRpcProvider(fromChainId)
+    if (!provider) {
+      throw new Error(`Invalid chain: ${fromChainId}`)
+    }
+
+    const address = this.getNftBridgeContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Invalid address: ${fromChainId}`)
+    }
+    const nftBridge = ERC721Bridge__factory.connect(address, provider)
+    const txData = await nftBridge.populateTransaction.mintAndSend(toChainId, toAddress, tokenId)
+
+    return {
+      ...txData,
+      chainId: fromChainId
+    }
+  }
+
+  async getNftConfirmPopulatedTx (input: GetNftConfirmPopulatedTxInput): Promise<any> {
+    const { fromChainId, tokenId } = input
+    if (!this.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+    }
+    if (!tokenId) {
+      throw new Error('tokenId is required')
+    }
+    const provider = this.getRpcProvider(fromChainId)
+    if (!provider) {
+      throw new Error(`Invalid chain: ${fromChainId}`)
+    }
+
+    const address = this.getNftBridgeContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Invalid address: ${fromChainId}`)
+    }
+    const nftBridge = ERC721Bridge__factory.connect(address, provider)
+    const txData = await nftBridge.populateTransaction.confirm(tokenId)
+
+    return {
+      ...txData,
+      chainId: fromChainId
+    }
   }
 }

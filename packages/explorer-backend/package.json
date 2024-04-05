@@ -39,7 +39,7 @@
     "dotenv": "16.0.0",
     "ethers": "5.7.2",
     "express": "4.17.3",
-    "express-rate-limit": "6.4.0",
+    "express-rate-limit": "7.2.0",
     "isomorphic-fetch": "3.0.0",
     "lodash": "4.17.21",
     "luxon": "2.4.0",

@@ -27,7 +27,6 @@ import { getTokenByAddress } from 'src/utils/tokens'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useReducer, useState } from 'react'
 
-// TODO: use typechain
 export const methodToSigHashes = {
   // HopBridgeToken
   approve: '0x095ea7b3',

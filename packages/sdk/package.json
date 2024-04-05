@@ -12,7 +12,7 @@
     "test": "pnpm build:esm && jest",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
-    "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path src/contracts/ && sh ./scripts/update_exports.sh",
+    "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:cjs && pnpm build:esm && pnpm build:browser",
     "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
@@ -31,15 +31,12 @@
   },
   "dependencies": {
     "@hop-protocol/sdk-core": "workspace:*",
-    "buffer": "6.0.3",
     "dotenv": "16.4.1",
     "esbuild": "0.20.0",
-    "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "eventemitter3": "5.0.1",
     "fast-memoize": "2.5.2",
-    "luxon": "3.4.4",
-    "merkletreejs": "0.3.11"
+    "luxon": "3.4.4"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",

@@ -69,14 +69,14 @@
     "dist"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js ./abi ./addresses ./config ./contracts ./metadata ./networks",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js",
     "test": "pnpm build:esm && jest",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:esm": "cp scripts/esm_abi_index.ts src/abi/index.ts && tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh",
     "build:cjs": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:typechain && pnpm build:cjs && pnpm build:esm",
-    "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json && sh ./scripts/ts-nocheck.sh",
+    "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --config ./eslint.config.mjs --fix",

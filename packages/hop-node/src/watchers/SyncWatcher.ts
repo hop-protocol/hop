@@ -82,12 +82,12 @@ class SyncWatcher extends BaseWatcher {
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
   syncFromDate: string
-  customStartBlockNumber!: number
+  customStartBlockNumber: number
   isRelayableChainEnabled: boolean = false
   hopSdk: Hop
   ready: boolean = false
   // Experimental: Websocket support
-  wsProvider!: providers.WebSocketProvider
+  wsProvider: providers.WebSocketProvider
   wsCache: Record<string, any> = {}
 
   constructor (config: Config) {

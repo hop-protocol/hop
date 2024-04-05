@@ -1,8 +1,7 @@
 export default {
   roots: ['test'],
-  extensionsToTreatAsEsm: ['.ts'],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { useESM: true }]
+    '^.+\\.tsx?$': ['ts-jest']
   },
   testEnvironment: 'node',
   moduleNameMapper: {
@@ -12,4 +11,3 @@ export default {
   bail: 1,
   verbose: true
 }
-

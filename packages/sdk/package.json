@@ -17,12 +17,12 @@
   ],
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js ./abi ./addresses ./config ./contracts ./metadata ./networks",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "pnpm build:esm && jest",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
     "build:ts": "tsc",
-    "build:esm": "cp scripts/esm_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh && cp scripts/esm_abi_index.ts dist/esm/abi/index.js",
-    "build:cjs": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -b ./src/tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "build:esm": "cp scripts/esm_abi_index.ts src/abi/index.ts && tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh && cp scripts/esm_abi_index.ts dist/esm/abi/index.js",
+    "build:cjs": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:typechain && pnpm build:esm && pnpm build:cjs && pnpm build:toplevel && pnpm build:browser",
     "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
     "build:toplevel": "bash -c 'cp -r ./dist/cjs/{abi,addresses,config,contracts,metadata,networks} ./'",
@@ -65,7 +65,7 @@
     "ethers": "^5"
   },
   "imports": {
-    "#*": "./dist/esm/*"
+    "#*": "./dist/cjs/*"
   },
   "exports": {
     ".": {

@@ -1,8 +1,8 @@
- {
-  "files": [],
-  "include": [],
-  "references": [
-    { "path": "./src" },
-    { "path": "./test" }
-  ]
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src"]
 }

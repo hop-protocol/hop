@@ -1,18 +1,18 @@
 import {
   AbstractMessageService,
-  IMessageService,
+  type IMessageService,
   MessageDirection
 } from '../../Services/AbstractMessageService.js'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import {
-  IL1ToL2MessageWriter,
-  IL2ToL1MessageWriter,
+  type IL1ToL2MessageWriter,
+  type IL2ToL1MessageWriter,
   L1ToL2MessageStatus,
   L1TransactionReceipt,
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
-import { Overrides, providers } from 'ethers'
+import { type Overrides, providers } from 'ethers'
 
 type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus

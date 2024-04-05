@@ -6,10 +6,10 @@ import getTransferRootId from '#utils/getTransferRootId.js'
 import { BigNumber, providers } from 'ethers'
 import { BondTransferRootDelayBufferSeconds, TxError } from '#constants/index.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from '@hop-protocol/hop-node-core/types'
-import { TransferRoot } from '#db/TransferRootsDb.js'
+import { type TransferRoot } from '#db/TransferRootsDb.js'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import {
   enableEmergencyMode,

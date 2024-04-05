@@ -2,14 +2,14 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
-  BlocklistConfig,
-  SignerConfig,
+  type BlocklistConfig,
+  type SignerConfig,
 } from '@hop-protocol/hop-node-core/config'
 import {
-  Bonders,
-  CommitTransfersConfig,
-  Fees,
-  Routes,
+  type Bonders,
+  type CommitTransfersConfig,
+  type Fees,
+  type Routes,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,

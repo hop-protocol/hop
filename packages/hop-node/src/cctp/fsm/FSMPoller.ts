@@ -4,7 +4,7 @@ import { TransitionDataProvider } from '../cctp/transitionData/TransitionDataPro
 import { wait } from '@hop-protocol/hop-node-core/utils'
 
 // TODO: Not this here
-import { IMessage, MessageState } from '../cctp/MessageManager.js'
+import { type IMessage, MessageState } from '../cctp/MessageManager.js'
 
 // TODO: Remove
 const CREATION_CACHE: Set<string> = new Set()

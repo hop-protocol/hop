@@ -1,4 +1,9 @@
-import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, DbOperations } from './BaseDb.js'
+import BaseDb, {
+  type DateFilterWithKeyPrefix,
+  type DbBatchOperation,
+  type DbGetItemsFilters,
+  DbOperations
+} from './BaseDb.js'
 // @ts-expect-error nearest-date does not have a types file as of 20231227
 import nearest from 'nearest-date'
 import { BigNumber } from 'ethers'

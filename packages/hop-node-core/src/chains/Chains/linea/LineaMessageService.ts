@@ -1,10 +1,10 @@
-import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
-import { BytesLike, CallOverrides, Contract, constants, providers } from 'ethers'
+import { AbstractMessageService, type IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
+import { type BytesLike, type CallOverrides, Contract, constants, providers } from 'ethers'
 import {
-  Message as LineaMessage,
+  type Message as LineaMessage,
   LineaSDK,
-  LineaSDKOptions,
-  Network,
+  type LineaSDKOptions,
+  type Network,
   OnChainMessageStatus
 } from '@consensys/linea-sdk'
 import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'

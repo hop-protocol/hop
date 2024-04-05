@@ -6,7 +6,7 @@ import {
   getMessageTransmitterContract
 } from './utils.js'
 import { Chain, MinPolygonGasPrice, Network } from '@hop-protocol/hop-node-core/constants'
-import { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
+import { type RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import { Signer } from 'ethers'
 import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'

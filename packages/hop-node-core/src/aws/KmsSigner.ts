@@ -1,4 +1,4 @@
-import { AwsSigner, AwsSignerConfig } from './AwsSigner.js'
+import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
 import {
   arrayify,

@@ -1,4 +1,4 @@
-import { AbstractFinalityService, IFinalityService } from '../../Services/AbstractFinalityService.js'
+import { AbstractFinalityService, type IFinalityService } from '../../Services/AbstractFinalityService.js'
 import { AlchemyInclusionService } from '../../Chains/optimism/inclusion/AlchemyInclusionService.js'
 import { FinalityBlockTag } from '../../IChainBridge.js'
 import { providers } from 'ethers'

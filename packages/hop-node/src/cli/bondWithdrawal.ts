@@ -1,5 +1,5 @@
-import { SendBondWithdrawalTxParams } from '#watchers/BondWithdrawalWatcher.js'
-import { Transfer } from '#db/TransfersDb.js'
+import { type SendBondWithdrawalTxParams } from '#watchers/BondWithdrawalWatcher.js'
+import { type Transfer } from '#db/TransfersDb.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher

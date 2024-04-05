@@ -1,6 +1,6 @@
 import getTransfer from './getTransfer.js'
 import getTransferIds from './getTransferIds.js'
-import { Filters } from './shared.js'
+import { type Filters } from './shared.js'
 
 export default async function getTransfers (chain: string, token: string, cb: any, filters: Partial<Filters> = {}): Promise<any[]> {
   const transferIds = await getTransferIds(chain, token, filters)

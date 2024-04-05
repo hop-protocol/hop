@@ -1,8 +1,8 @@
-import { GasBoostTransaction, Options } from './GasBoostTransaction.js'
+import { GasBoostTransaction, type Options } from './GasBoostTransaction.js'
 import { Signer, providers } from 'ethers'
-import { Store } from './Store.js'
+import { type Store } from './Store.js'
 
-export { Options }
+export { type Options }
 
 export class GasBoostTransactionFactory {
   signer: Signer

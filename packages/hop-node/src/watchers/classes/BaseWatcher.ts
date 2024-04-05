@@ -9,15 +9,15 @@ import { BigNumber } from 'ethers'
 import {
   Chain
 } from '@hop-protocol/hop-node-core/constants'
-import { DbSet, getDbSet, isDbSetReady } from '#db/index.js'
+import { type DbSet, getDbSet, isDbSetReady } from '#db/index.js'
 import { EventEmitter } from 'node:events'
 import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
 } from '#constants/index.js'
-import { IBaseWatcher } from './IBaseWatcher.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type IBaseWatcher } from './IBaseWatcher.js'
+import { type L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { Mutex } from 'async-mutex'
 import { Notifier } from '@hop-protocol/hop-node-core/notifier'

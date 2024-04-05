@@ -1,4 +1,4 @@
-import { AwsSigner, AwsSignerConfig } from './AwsSigner.js'
+import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { TextDecoder } from 'node:util'
 import {

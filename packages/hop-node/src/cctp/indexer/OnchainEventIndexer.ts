@@ -1,5 +1,5 @@
 import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { EventFilter, providers, utils } from 'ethers'
+import { type EventFilter, providers, utils } from 'ethers'
 import { type LogWithChainId, OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
 import { chainIdToSlug, chainSlugToId, getRpcProvider, wait } from '@hop-protocol/hop-node-core/utils'
 

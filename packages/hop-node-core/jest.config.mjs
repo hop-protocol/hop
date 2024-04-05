@@ -1,8 +1,7 @@
-import type { JestConfigWithTsJest } from 'ts-jest'
-
-const jestConfig: JestConfigWithTsJest = {
+export default {
   // ESM transformation config
   // https://kulshekhar.github.io/ts-jest/docs/guides/esm-support#examples
+  extensionsToTreatAsEsm: ['.ts'],
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',
@@ -11,10 +10,7 @@ const jestConfig: JestConfigWithTsJest = {
       }
     ]
   },
-  extensionsToTreatAsEsm: ['.ts'],
 
   // Optional
   verbose: true
 }
-
-export default jestConfig

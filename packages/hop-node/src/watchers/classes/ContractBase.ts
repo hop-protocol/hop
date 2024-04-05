@@ -4,13 +4,13 @@ import {
   MinGnosisGasPrice,
   MinPolygonGasPrice,
 } from '@hop-protocol/hop-node-core/constants'
-import { Event } from '@ethersproject/contracts'
+import { type Event } from '@ethersproject/contracts'
 import { EventEmitter } from 'node:events'
 import { FinalityService } from '@hop-protocol/hop-node-core/finality'
 import {
   SyncType
 } from '#constants/index.js'
-import { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import { type TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { getBumpedGasPrice } from '@hop-protocol/hop-node-core/utils'

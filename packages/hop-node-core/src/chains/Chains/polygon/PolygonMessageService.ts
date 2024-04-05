@@ -1,7 +1,7 @@
 import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 import MaticJsDefaults  from '@maticnetwork/maticjs-pos-zkevm'
 import MaticJsEthers from '@maticnetwork/maticjs-ethers'
-import { AbstractMessageService, IMessageService } from '../../Services/AbstractMessageService.js'
+import { AbstractMessageService, type IMessageService } from '../../Services/AbstractMessageService.js'
 import { BigNumber, providers, utils } from 'ethers'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import { defaultAbiCoder } from 'ethers/lib/utils.js'

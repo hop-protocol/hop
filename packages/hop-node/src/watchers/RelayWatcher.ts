@@ -1,9 +1,9 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import { EnforceRelayerFee, RelayTransactionBatchSize, getEnabledNetworks, config as globalConfig } from '#config/index.js'
 import { GasCostTransactionType, TxError } from '#constants/index.js'
-import { IChainBridge } from '@hop-protocol/hop-node-core/chains'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type IChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { type L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import {
   MessageInFlightError,
@@ -12,9 +12,9 @@ import {
   MessageUnknownError
 } from '@hop-protocol/hop-node-core/chains'
 import { NonceTooLowError } from '@hop-protocol/hop-node-core/types'
-import { RelayableTransferRoot, TransferRootRelayProps } from '#db/TransferRootsDb.js'
+import { type RelayableTransferRoot, type TransferRootRelayProps } from '#db/TransferRootsDb.js'
 import { RelayerFeeTooLowError } from '#types/error.js'
-import { Transfer, UnrelayedSentTransfer } from '#db/TransfersDb.js'
+import { type Transfer, type UnrelayedSentTransfer } from '#db/TransfersDb.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
 import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'

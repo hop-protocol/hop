@@ -1,6 +1,6 @@
-import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
+import { AbstractMessageService, type IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
 import {
-  CrossChainMessage,
+  type CrossChainMessage,
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'

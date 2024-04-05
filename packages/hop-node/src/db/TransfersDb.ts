@@ -1,4 +1,4 @@
-import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb.js'
+import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import { BigNumber } from 'ethers'
 import {
   Chain,

@@ -1,4 +1,4 @@
-import { SwapInput } from './types.js'
+import { type SwapInput } from './types.js'
 import { swap as uniswapSwap } from './uniswap/index.js'
 
 export async function swap (dex: string, input: SwapInput) {

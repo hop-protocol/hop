@@ -1,14 +1,19 @@
-import Bridge, { EventCb, EventsBatchOptions } from './Bridge.js'
+import Bridge, { type EventCb, type EventsBatchOptions } from './Bridge.js'
 import L1Bridge from './L1Bridge.js'
 import L2Amm from './L2Amm.js'
 import L2AmmWrapper from './L2AmmWrapper.js'
 import Token from './Token.js'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { ERC20 } from '@hop-protocol/sdk/contracts'
+import { type ERC20 } from '@hop-protocol/sdk/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { L2_Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/sdk/contracts/L2_Bridge'
-import { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import {
+  type L2_Bridge as L2BridgeContract,
+  type TransferFromL1CompletedEvent,
+  type TransferSentEvent,
+  type TransfersCommittedEvent
+} from '@hop-protocol/sdk/contracts/L2_Bridge'
+import { type TxOverrides } from '@hop-protocol/hop-node-core/types'
 import {
   erc20Abi,
   l2AmmWrapperAbi,

@@ -14,7 +14,7 @@ import {
 import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
 import { Notifier } from '#notifier/index.js'
-import { Store } from './Store.js'
+import { type Store } from './Store.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'
 import { bigNumberMin } from '#utils/bigNumberMin.js'
 import {

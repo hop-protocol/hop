@@ -17,10 +17,10 @@ import {
   TenMinutesMs,
   Token
 } from '@hop-protocol/hop-node-core/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { S3Upload } from '@hop-protocol/hop-node-core/aws'
-import { TransferRoot } from '#db/TransferRootsDb.js'
+import { type TransferRoot } from '#db/TransferRootsDb.js'
 
 type Config = {
   chainSlug: string

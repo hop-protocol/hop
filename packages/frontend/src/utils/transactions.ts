@@ -5,7 +5,7 @@ import { BigNumber, providers, utils } from 'ethers'
 import { EventNames } from 'src/utils/constants'
 import { Interface, LogDescription } from '@ethersproject/abi'
 import { TokenModel, TokenSymbol } from '@hop-protocol/sdk'
-import { TransactionReceipt, TransactionResponse } from '@ethersproject/providers'
+import { type TransactionReceipt, type TransactionResponse } from '@ethersproject/providers'
 import {
   contractInterfaces,
   hopBridgeTokenInterface,

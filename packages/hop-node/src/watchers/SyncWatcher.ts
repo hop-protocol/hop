@@ -5,7 +5,7 @@ import MerkleTree from '#utils/MerkleTree.js'
 import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
 import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
-import { BigNumber, Contract, EventFilter, providers } from 'ethers'
+import { BigNumber, Contract, type EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
   ChainPollMultiplier,
@@ -31,28 +31,28 @@ import {
   minEthBonderFeeBn,
   wsEnabledChains
 } from '#config/index.js'
-import { GasCost } from '#db/GasCostDb.js'
-import { GasCostEstimationRes } from './classes/Bridge.js'
+import { type GasCost } from '#db/GasCostDb.js'
+import { type GasCostEstimationRes } from './classes/Bridge.js'
 import { Hop } from '@hop-protocol/sdk'
 import {
-  L1_Bridge as L1BridgeContract,
-  MultipleWithdrawalsSettledEvent,
-  TransferBondChallengedEvent,
-  TransferRootBondedEvent,
-  TransferRootConfirmedEvent,
-  TransferRootSetEvent,
-  TransferSentToL2Event,
-  WithdrawalBondSettledEvent,
-  WithdrawalBondedEvent,
-  WithdrewEvent
+  type L1_Bridge as L1BridgeContract,
+  type MultipleWithdrawalsSettledEvent,
+  type TransferBondChallengedEvent,
+  type TransferRootBondedEvent,
+  type TransferRootConfirmedEvent,
+  type TransferRootSetEvent,
+  type TransferSentToL2Event,
+  type WithdrawalBondSettledEvent,
+  type WithdrawalBondedEvent,
+  type WithdrewEvent
 } from '@hop-protocol/sdk/contracts/L1_Bridge'
 import {
-  L2_Bridge as L2BridgeContract,
-  TransferSentEvent,
-  TransfersCommittedEvent
+  type L2_Bridge as L2BridgeContract,
+  type TransferSentEvent,
+  type TransfersCommittedEvent
 } from '@hop-protocol/sdk/contracts/L2_Bridge'
-import { Transfer } from '#db/TransfersDb.js'
-import { TransferRoot } from '#db/TransferRootsDb.js'
+import { type Transfer } from '#db/TransfersDb.js'
+import { type TransferRoot } from '#db/TransferRootsDb.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getRpcRootProviderName } from '@hop-protocol/hop-node-core/utils'
 import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'

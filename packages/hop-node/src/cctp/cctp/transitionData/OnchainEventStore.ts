@@ -1,8 +1,8 @@
 import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { IDataStore, IOnchainEventStoreRes } from './types.js'
+import { type IDataStore, type IOnchainEventStoreRes } from './types.js'
 import { type LogWithChainId, OnchainEventIndexerDB } from '../../db/OnchainEventIndexerDB.js'
 import { Message } from '../Message.js'
-import { OnchainEventIndexer, RequiredEventFilter } from '../../indexer/OnchainEventIndexer.js'
+import { OnchainEventIndexer, type RequiredEventFilter } from '../../indexer/OnchainEventIndexer.js'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 
 export class OnchainEventStore implements IDataStore {

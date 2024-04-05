@@ -1,4 +1,4 @@
-import { ConnectionInfo } from '@ethersproject/web'
+import { type ConnectionInfo } from '@ethersproject/web'
 import { Provider } from '../provider/index.js'
 import { providers } from 'ethers'
 

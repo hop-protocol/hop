@@ -1,14 +1,20 @@
-import Bridge, { CanonicalTokenConvertOptions, EventCb, EventsBatchOptions } from './Bridge.js'
+import Bridge, { type CanonicalTokenConvertOptions, type EventCb, type EventsBatchOptions } from './Bridge.js'
 import Token from './Token.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain, Network, Token as TokenEnum } from '@hop-protocol/hop-node-core/constants'
-import { ERC20 } from '@hop-protocol/sdk/contracts'
+import { type ERC20 } from '@hop-protocol/sdk/contracts'
 import { GasCostTransactionType, RelayableChains } from '#constants/index.js'
 import { Hop } from '@hop-protocol/sdk'
-import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/sdk/contracts/L1_Bridge'
-import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
-import { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import {
+  type L1_Bridge as L1BridgeContract,
+  type TransferBondChallengedEvent,
+  type TransferRootBondedEvent,
+  type TransferRootConfirmedEvent,
+  type TransferSentToL2Event
+} from '@hop-protocol/sdk/contracts/L1_Bridge'
+import { type L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/sdk/abi'
 import { config as globalConfig } from '#config/index.js'

@@ -1,5 +1,5 @@
 import BaseDb from './BaseDb.js'
-import { MarshalledTx } from '@hop-protocol/hop-node-core/gasboost'
+import { type MarshalledTx } from '@hop-protocol/hop-node-core/gasboost'
 
 class GasBoostDb extends BaseDb<MarshalledTx> {
   async update (key: string, data: MarshalledTx): Promise<void> {

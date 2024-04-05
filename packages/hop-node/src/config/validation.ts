@@ -1,8 +1,8 @@
 import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import {
-  Config,
-  FileConfig,
+  type Config,
+  type FileConfig,
   Watchers,
   getAllChains,
   getAllTokens,

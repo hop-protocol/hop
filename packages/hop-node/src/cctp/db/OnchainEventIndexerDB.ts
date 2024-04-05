@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { ChainedBatch, DB } from './DB.js'
+import { type ChainedBatch, DB } from './DB.js'
 import { Message } from '../cctp/Message.js'
 import { getDefaultStartBlockNumber } from './utils.js'
 import { providers } from 'ethers'

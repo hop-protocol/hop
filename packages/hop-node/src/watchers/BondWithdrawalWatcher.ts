@@ -25,15 +25,15 @@ import {
   SyncType,
   TxError
 } from '#constants/index.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { type L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import {
   NonceTooLowError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync,
 } from '@hop-protocol/hop-node-core/types'
-import { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
+import { type Transfer, type UnbondedSentTransfer } from '#db/TransfersDb.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'

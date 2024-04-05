@@ -1,7 +1,7 @@
 import { ArbitrumBridge } from '../Chains/arbitrum/ArbitrumBridge.js'
 import { Chain } from '#constants/index.js'
 import { GnosisBridge } from '../Chains/gnosis/GnosisBridge.js'
-import { IChainBridge } from '../IChainBridge.js'
+import { type IChainBridge } from '../IChainBridge.js'
 import { LineaBridge } from '../Chains/linea/LineaBridge.js'
 import { OptimismBridge } from '../Chains/optimism/OptimismBridge.js'
 import { PolygonBridge } from '../Chains/polygon/PolygonBridge.js'

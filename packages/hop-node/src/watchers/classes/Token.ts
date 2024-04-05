@@ -1,6 +1,6 @@
 import ContractBase from './ContractBase.js'
 import { BigNumber, constants, ethers, providers } from 'ethers'
-import { ERC20 } from '@hop-protocol/sdk/contracts'
+import { type ERC20 } from '@hop-protocol/sdk/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 
 export default class Token extends ContractBase {

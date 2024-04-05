@@ -367,6 +367,7 @@ class IncompleteSettlementsWatcher {
       // TODO: get transfer sent amount
       const amount = BigNumber.from(0)
       const rootHash = this.transferIdRootHashes[transferId]
+      if (!rootHash) continue
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
 

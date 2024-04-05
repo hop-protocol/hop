@@ -117,8 +117,9 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   }
 
   async #fetchSequencerBatchDeliveredEvents (startBlockNumber: number, endBlockNumber: number): Promise<any[]> {
+    // TODO: Better ts handling
     return this.#sequencerInboxContract.queryFilter(
-      this.#sequencerInboxContract.filters.SequencerBatchDelivered(),
+      this.#sequencerInboxContract.filters.SequencerBatchDelivered!(),
       startBlockNumber,
       endBlockNumber
     )

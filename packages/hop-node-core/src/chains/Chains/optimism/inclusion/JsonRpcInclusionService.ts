@@ -48,7 +48,7 @@ export class JsonRpcInclusionService extends AbstractOptimismInclusionService im
 
     // Get num blocks from l1 origin tx to expected checkpoint of safe l2 tx
     const timestampDiff: number = safeL2Block.timestamp - l1OriginTimestamp
-    const numL1BlocksAfterOriginTx = Math.floor(Math.floor(timestampDiff) / AvgBlockTimeSeconds[Chain.Ethereum]) + 1
+    const numL1BlocksAfterOriginTx = Math.floor(Math.floor(timestampDiff) / AvgBlockTimeSeconds[Chain.Ethereum]!) + 1
     const expectedCheckpointBlock = l1OriginBlockNum + numL1BlocksAfterOriginTx
 
     // Some variance may exist so get multiple blocks
@@ -107,7 +107,7 @@ export class JsonRpcInclusionService extends AbstractOptimismInclusionService im
 
     // If the includedL1BlockNumber is still too large, decrement until it is not
     // This may happen if proposals on L1 are missed
-    const numL2BlocksPerL1Block = AvgBlockTimeSeconds[Chain.Ethereum] / AvgBlockTimeSeconds[this.chainSlug]
+    const numL2BlocksPerL1Block = AvgBlockTimeSeconds[Chain.Ethereum]! / AvgBlockTimeSeconds[this.chainSlug]!
     while (includedL1BlockNumber > l1BlockNumber) {
       const numL2BlocksToDecrement = (includedL1BlockNumber - l1BlockNumber) * numL2BlocksPerL1Block
       l2BlockNumber -= numL2BlocksToDecrement

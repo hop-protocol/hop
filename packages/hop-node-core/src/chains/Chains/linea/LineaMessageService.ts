@@ -75,7 +75,12 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     if (!messages?.length) {
       throw new Error('could not find messages for tx hash')
     }
-    return messages[messageIndex]
+
+    const message: LineaMessage | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   protected async getMessageStatus (message: LineaMessage, messageDirection: MessageDirection): Promise<OnChainMessageStatus> {

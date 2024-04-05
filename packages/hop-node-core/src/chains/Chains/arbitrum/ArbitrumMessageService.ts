@@ -48,7 +48,11 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       throw new Error('could not find messages for tx hash')
     }
 
-    return messages[messageIndex]
+    const message: Message | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   async #getL2ToL1Message (txHash: string, messageIndex: number): Promise<Message> {
@@ -62,7 +66,11 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       throw new Error('could not find messages for tx hash')
     }
 
-    return messages[messageIndex]
+    const message: Message | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   protected async getMessageStatus (message: Message, messageDirection: MessageDirection): Promise<MessageStatus> {

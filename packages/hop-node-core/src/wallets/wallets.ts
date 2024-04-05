@@ -16,8 +16,9 @@ const cache: Record<string, Signer> = {}
 
 const constructSigner = (network: string, privateKey: string): Signer => {
   const cacheKey = `${network}`
-  if (cache[cacheKey]) {
-    return cache[cacheKey]
+  const cachedValue = cache[cacheKey]
+  if (cachedValue) {
+    return cachedValue
   }
 
   const provider = getRpcProvider(network)

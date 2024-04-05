@@ -66,8 +66,8 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     const sdkNetwork = polygonSdkNetwork[l1Network]
     const sdkVersion = polygonSdkVersion[l1Network]
     await this.zkEvmClient.init({
-      network: sdkNetwork,
-      version: sdkVersion,
+      network: sdkNetwork!,
+      version: sdkVersion!,
       parent: {
         provider: this.l1Wallet,
         defaultConfig: {

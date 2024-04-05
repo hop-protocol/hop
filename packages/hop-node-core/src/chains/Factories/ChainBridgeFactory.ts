@@ -27,5 +27,5 @@ export function createChainBridgeInstance (chainSlug: Chain): IChainBridge {
   if (!chainBridgeMap[chainSlug]) {
     throw new Error(`Chain ${chainSlug} is not supported`)
   }
-  return new chainBridgeMap[chainSlug](chainSlug)
+  return new chainBridgeMap[chainSlug]!(chainSlug)
 }

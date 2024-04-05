@@ -6,7 +6,7 @@ export { type Options }
 
 export class GasBoostTransactionFactory {
   signer: Signer
-  store: Store
+  store!: Store
   options: Partial<Options> = {}
 
   constructor (signer: Signer, store?: Store, options: Partial<Options> = {}) {

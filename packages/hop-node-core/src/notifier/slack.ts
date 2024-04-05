@@ -8,9 +8,9 @@ type MessageOptions = {
 
 export class SlackClient implements Notifier {
   private static readonly instance: SlackClient
-  client: WebClient
-  channel: string
-  label: string
+  private readonly client!: WebClient
+  private readonly channel!: string
+  private readonly label!: string
 
   constructor (label: string = '') {
     if (!slackAuthToken) {

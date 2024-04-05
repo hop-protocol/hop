@@ -67,9 +67,9 @@ export const OneWeekSeconds = 7 * 24 * 60 * 60
 export const OneWeekMs = OneWeekSeconds * 1000
 
 export const TotalBlocks = {
-  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Ethereum]),
-  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Polygon]),
-  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Gnosis])
+  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Ethereum]!),
+  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Polygon]!),
+  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Gnosis]!)
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95

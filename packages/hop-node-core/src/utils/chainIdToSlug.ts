@@ -5,8 +5,9 @@ const cache: Record<string, Chain> = {}
 
 export const chainIdToSlug = (chainId: string | number): Chain => {
   const cacheKey = chainId?.toString()
-  if (cache[cacheKey]) {
-    return cache[cacheKey]
+  const cachedValue = cache[cacheKey]
+  if (cachedValue) {
+    return cachedValue
   }
   if (!globalConfig.networks) {
     throw new Error('networks not found')

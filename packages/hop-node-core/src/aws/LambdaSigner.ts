@@ -20,8 +20,8 @@ const enum ActionTypes {
 }
 
 export class LambdaSigner extends AwsSigner {
-  config: LambdaSignerConfig
-  address: string
+  config!: LambdaSignerConfig
+  address!: string
   client: LambdaClient
   lambdaFunctionName: string
 

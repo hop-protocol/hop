@@ -8,8 +8,9 @@ export const getRpcProviderFromUrl = (
   rpcUrl: string
 ): providers.Provider => {
   const cacheKey = rpcUrl
-  if (cache[cacheKey]) {
-    return cache[cacheKey]
+  const cachedValue = cache[cacheKey]
+  if (cachedValue) {
+    return cachedValue
   }
   const options: ConnectionInfo = {
     url: rpcUrl,

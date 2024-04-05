@@ -119,7 +119,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   rebroadcastIndex: number = 0 // number of times transaction has been rebroadcasted
   inflightItems: InflightItem[] = []
   signer: Signer
-  store: Store
+  store!: Store
   logger: Logger
   notifier: Notifier
   chainSlug: string
@@ -127,23 +127,23 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   createdAt: number
   txHash?: string
   receipt?: providers.TransactionReceipt
-  private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
+  private _is1559Supported!: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
   logId: string
 
   reorgConfirmationBlocks: number = 1
   originalTxParams: providers.TransactionRequest
-  _events: any[] // implemented by EventEmitter
+  _events!: any[] // implemented by EventEmitter
 
   type?: number
 
   // these properties are required by ethers TransactionResponse interface
-  from: string // type 0 and 2 tx required property
-  to: string // type 0 and 2 tx required property
-  data: string // type 0 and 2 tx required property
-  value: BigNumber // type 0 and 2 tx required property
-  nonce: number // type 0 and 2 tx required property
-  gasLimit: BigNumber // type 0 and 2 tx required property
+  from!: string // type 0 and 2 tx required property
+  to!: string // type 0 and 2 tx required property
+  data!: string // type 0 and 2 tx required property
+  value!: BigNumber // type 0 and 2 tx required property
+  nonce!: number // type 0 and 2 tx required property
+  gasLimit!: BigNumber // type 0 and 2 tx required property
   gasPrice?: BigNumber // type 0 tx required property
   maxFeePerGas?: BigNumber // type 2 tx required property
   maxPriorityFeePerGas?: BigNumber // type 2 tx required property
@@ -787,7 +787,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
         if (i === 1) {
           let shouldCheck = true
           if (enoughFundsCheckCache[this.chainSlug]) {
-            shouldCheck = enoughFundsCheckCache[this.chainSlug] + cacheTimeMs < Date.now()
+            shouldCheck = enoughFundsCheckCache[this.chainSlug]! + cacheTimeMs < Date.now()
           }
           if (shouldCheck) {
             this.logger.debug(`tx index ${i}: checking for enough funds`)

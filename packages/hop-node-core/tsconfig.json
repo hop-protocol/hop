@@ -4,7 +4,11 @@
     "rootDir": "./src",
     "outDir": "./dist",
 
+    // More strict and explicit settings for ESM node projects
     "verbatimModuleSyntax": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["src"]
 }

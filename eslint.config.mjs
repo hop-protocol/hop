@@ -13,8 +13,7 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        // Explicitly require all modules being linted to have tsconfig.eslint.json
-        project: ['./tsconfig.eslint.json'],
+        project: ['./tsconfig.eslint.json', './packages/*/tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -101,9 +100,9 @@ export default tseslint.config(
       'n/no-process-exit': 0,
     },
     ignores: [
-      'node_modules',
-      'build',
-      'dist'
+      'node_modules/**',
+      'build/**',
+      'dist/**'
     ]
   }
 )

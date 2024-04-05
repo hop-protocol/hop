@@ -57,7 +57,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   constructor (chainSlug: string) {
     super(chainSlug)
 
-    const polygonNetwork: string = polygonChainSlugs[this.networkSlug]
+    const polygonNetwork: string = polygonChainSlugs[this.networkSlug]!
     this.apiUrl = `https://proof-generator.polygon.technology/api/v1/${polygonNetwork}/block-included`
 
     maticJsDefault.use(Web3ClientPlugin)
@@ -81,8 +81,8 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     const sdkNetwork = polygonSdkNetwork[l1Network]
     const sdkVersion = polygonSdkVersion[l1Network]
     await this.maticClient.init({
-      network: sdkNetwork,
-      version: sdkVersion,
+      network: sdkNetwork!,
+      version: sdkVersion!,
       parent: {
         provider: this.l1Wallet,
         defaultConfig: {

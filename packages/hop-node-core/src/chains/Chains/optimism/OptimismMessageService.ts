@@ -46,7 +46,11 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
-    return messages[messageIndex]
+    const message: CrossChainMessage | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   protected async getMessageStatus (message: CrossChainMessage): Promise<MessageStatus> {

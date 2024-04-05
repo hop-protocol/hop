@@ -15,9 +15,9 @@ update_file() {
 }
 
 # Define file paths
-FILE_PATH_1="./dist/esm/contracts/index.js"
-FILE_PATH_2="./dist/esm/contracts/factories/index.js"
-FILE_PATH_3="./dist/esm/contracts/index.d.ts"
+FILE_PATH_1="./src/contracts/index.ts"
+FILE_PATH_2="./src/contracts/factories/index.ts"
+FILE_PATH_3="./src/contracts/index.ts"
 
 # Update FILE_PATH_1 if it exists
 if [ -f "$FILE_PATH_1" ]; then

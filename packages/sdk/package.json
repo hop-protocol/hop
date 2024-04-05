@@ -12,11 +12,10 @@
     "test": "pnpm build:esm && jest",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",
-    "build:esm": "cp scripts/esm_abi_index.ts src/abi/index.ts && tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path dist/esm/contracts/ && sh ./scripts/update_exports.sh && cp scripts/esm_abi_index.ts dist/esm/abi/index.js",
-    "build:cjs": "cp scripts/cjs_abi_index.ts src/abi/index.ts && tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
-    "build:all": "pnpm build:typechain && pnpm build:esm && pnpm build:cjs && pnpm build:browser",
+    "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json && npx --yes fix-esm-import-path src/contracts/ && sh ./scripts/update_exports.sh",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
+    "build:all": "pnpm build:cjs && pnpm build:esm && pnpm build:browser",
     "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
-    "build:typechain": "typechain --target=ethers-v5 --out-dir=./src/contracts ./src/abi/**/*.json",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --config ./eslint.config.mjs --fix",
@@ -47,15 +46,13 @@
     "jest": "29.7.0",
     "ts-jest": "29.1.2",
     "typedoc": "0.25.7",
-    "typedoc-plugin-markdown": "3.17.1",
-    "@typechain/ethers-v5": "10.1.0",
-    "typechain": "8.1.0"
+    "typedoc-plugin-markdown": "3.17.1"
   },
   "peerDependencies": {
     "ethers": "^5"
   },
   "imports": {
-    "#*": "./dist/esm/*"
+    "#*": "./dist/cjs/*"
   },
   "exports": {
     ".": {

@@ -20,7 +20,7 @@ type Config = {
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
+  override siblingWatchers!: { [chainId: string]: SettleBondedWithdrawalWatcher }
 
   constructor (config: Config) {
     super({

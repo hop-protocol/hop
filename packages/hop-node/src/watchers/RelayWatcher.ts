@@ -37,7 +37,7 @@ type SendTransferRelayTxParams = {
 }
 
 class RelayWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: RelayWatcher }
+  override siblingWatchers!: { [chainId: string]: RelayWatcher }
   private readonly relayTransactionBatchSize: number = RelayTransactionBatchSize
 
   constructor (config: Config) {

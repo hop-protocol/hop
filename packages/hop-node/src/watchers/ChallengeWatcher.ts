@@ -14,7 +14,7 @@ type Config = {
 }
 
 class ChallengeWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: ChallengeWatcher }
+  override siblingWatchers!: { [chainId: string]: ChallengeWatcher }
 
   constructor (config: Config) {
     super({

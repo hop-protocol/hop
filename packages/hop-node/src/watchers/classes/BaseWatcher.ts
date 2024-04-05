@@ -58,14 +58,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   chainSlug: string
   tokenSymbol: string
 
-  bridge: L2Bridge | L1Bridge
-  siblingWatchers: { [chainId: string]: any }
-  syncWatcher: SyncWatcher
-  availableLiquidityWatcher: AvailableLiquidityWatcher
+  bridge!: L2Bridge | L1Bridge
+  siblingWatchers!: { [chainId: string]: any }
+  syncWatcher!: SyncWatcher
+  availableLiquidityWatcher!: AvailableLiquidityWatcher
   metrics = new Metrics()
   dryMode: boolean = false
-  tag: string
-  prefix: string
+  tag!: string
+  prefix!: string
   mutex: Mutex
 
   constructor (config: Config) {

@@ -34,7 +34,7 @@ export type SendBondTransferRootTxParams = {
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
+  override siblingWatchers!: { [chainId: string]: BondTransferRootWatcher }
 
   constructor (config: Config) {
     super({

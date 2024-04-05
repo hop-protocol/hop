@@ -55,8 +55,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   private readonly pollTimeSec: number = 15 * 60
   private readonly cacheTimeSec: number = 30
   private lastCacheTimestampSec: Record<string, number> = {}
-  s3Upload: S3Upload
-  s3Namespace: S3Upload
+  s3Upload!: S3Upload
+  s3Namespace!: S3Upload
 
   constructor (config: Config) {
     super({

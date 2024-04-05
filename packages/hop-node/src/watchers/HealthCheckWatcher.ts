@@ -216,9 +216,9 @@ export type Config = {
 export class HealthCheckWatcher {
   tokens: string[] = getEnabledTokens()
   logger: Logger = new Logger('HealthCheckWatcher')
-  s3Upload: S3Upload
-  s3Filename: string
-  cacheFile: string
+  s3Upload!: S3Upload
+  s3Filename!: string
+  cacheFile!: string
   days: number = 1 // days back to check for
   offsetDays: number = 0
   pollIntervalSeconds: number = 30 * 60
@@ -274,8 +274,8 @@ export class HealthCheckWatcher {
     invalidChainBalance: true
   }
 
-  lastUnsyncedSubgraphNotificationSentAt: number
-  lastLowOsResourceNotificationSentAt: number
+  lastUnsyncedSubgraphNotificationSentAt!: number
+  lastLowOsResourceNotificationSentAt!: number
 
   constructor (config: Config) {
     const { days, offsetDays, s3Upload, s3Namespace, cacheFile, enabledChecks } = config

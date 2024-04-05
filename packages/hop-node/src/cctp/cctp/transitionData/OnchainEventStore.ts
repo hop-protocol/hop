@@ -6,7 +6,8 @@ import { OnchainEventIndexer, type RequiredEventFilter } from '../../indexer/Onc
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 
 export class OnchainEventStore implements IDataStore {
-  readonly #indexer: OnchainEventIndexer
+  // TODO: No !
+  readonly #indexer!: OnchainEventIndexer
 
   constructor(chains: Chain[]) {
     // TODO: Not sure if DB init makes sense at this level. However, one level

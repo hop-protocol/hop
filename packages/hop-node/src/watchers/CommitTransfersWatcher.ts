@@ -23,7 +23,7 @@ type Config = {
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
+  override siblingWatchers!: { [chainId: string]: CommitTransfersWatcher }
   minThresholdAmounts: {[chain: string]: BigNumber} = {}
   commitTxSentAt: { [chainId: number]: number } = {}
 

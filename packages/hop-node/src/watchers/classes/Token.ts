@@ -6,7 +6,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 export default class Token extends ContractBase {
   tokenContract: ERC20
   isEth: boolean
-  _decimals: number
+  _decimals!: number
 
   constructor (tokenContract: ERC20) {
     super(tokenContract)

@@ -22,8 +22,8 @@ import {
 import { config as globalConfig } from '#config/index.js'
 
 export default class L2Bridge extends Bridge {
-  ammWrapper: L2AmmWrapper
-  amm: L2Amm
+  ammWrapper!: L2AmmWrapper
+  amm!: L2Amm
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
   TransferFromL1Completed: string = 'TransferFromL1Completed'

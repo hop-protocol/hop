@@ -29,7 +29,7 @@
     "dev": "pnpm start",
     "test": "pnpm build && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "tsc -p ./tsconfig.json",
-    "lint": "eslint . --config ./eslint.config.mjs"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@eth-optimism/sdk": "3.1.4",

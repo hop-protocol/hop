@@ -1,15 +1,20 @@
-module.exports = {
+import baseConfig from '../../eslint.config.mjs'
+import tseslint from 'typescript-eslint'
+
+import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import reactPlugin from 'eslint-plugin-react'
+
+export default tseslint.config({
   extends: [
-    '../../.eslintrc.js',
-    'plugin:react-hooks/recommended',
-    'plugin:react/recommended'
+    ...baseConfig
   ],
-  parserOptions: {
-    ecmaFeatures: {
-      jsx: true
-    }
+  ignores: [
+    "dist"
+  ],
+  plugins: {
+    'react-hooks': reactHooksPlugin,
+    react: reactPlugin
   },
-  plugins: ['react'],
   rules: {
     'react-hooks/exhaustive-deps': 'off',
     'react-hooks/rules-of-hooks': 'off',
@@ -24,10 +29,5 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx']
       }
     ]
-  },
-  settings: {
-    react: {
-      version: 'detect'
-    }
   }
-}
+})

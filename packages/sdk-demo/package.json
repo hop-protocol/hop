@@ -12,7 +12,7 @@
     "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
     "dev": "pnpm start",
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --fix",
     "preview": "vite preview"
   },
   "dependencies": {

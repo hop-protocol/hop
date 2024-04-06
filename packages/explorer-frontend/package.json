@@ -10,7 +10,7 @@
     "dev:local:goerli": "NEXT_PUBLIC_LOCAL=true NEXT_PUBLIC_NETWORK=goerli next dev",
     "build": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "next lint --fix"
+    "lint": "eslint . --fix"
   },
   "engines": {
     "node": ">=14",

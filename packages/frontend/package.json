@@ -11,7 +11,7 @@
     "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
     "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
     "dev": "pnpm start",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --fix",
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
     "preview": "vite preview",
     "deploy": "pnpm dlx --yes netlify-cli deploy --prod",

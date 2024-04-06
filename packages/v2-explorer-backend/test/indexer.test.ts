@@ -1,4 +1,4 @@
-import { Indexer } from '../src/indexer'
+import { Indexer } from '#indexer/index.js'
 
 describe('Indexer', () => {
   it('should sync events to db', async () => {

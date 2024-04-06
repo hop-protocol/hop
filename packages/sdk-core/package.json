@@ -69,7 +69,7 @@
     "dist"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo hop.js",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "pnpm build:esm && jest",
     "dev": "pnpm version && tsc --watch",
     "build": "pnpm version && pnpm build:all",

@@ -1,7 +1,7 @@
-import wait from 'wait'
-import { Worker } from '../worker'
-import { actionHandler, parseBool, parseNumber, root } from './shared'
-import { server } from '../server'
+import { wait } from '#utils/wait.js'
+import { Worker } from '#worker/index.js'
+import { actionHandler, parseBool, parseNumber, root } from './shared/index.js'
+import { server } from '#server/index.js'
 
 export const workerProgram = root
   .command('worker')

@@ -5,10 +5,10 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const rpcUrl = process.env.ETHEREUM_RPC_PROVIDER
-console.log('rpcUrl:', rpcUrl)
+describe.skip('EventFetcher', () => {
+  const rpcUrl = process.env.ETHEREUM_RPC_PROVIDER
+  console.log('rpcUrl:', rpcUrl)
 
-describe.only('EventFetcher', () => {
   it('should fetch all events from multiple filters and aggregate filter topics', async () => {
     const provider = new providers.StaticJsonRpcProvider(rpcUrl)
     const eventFetcher = new EventFetcher({

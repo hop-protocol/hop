@@ -95,7 +95,8 @@ interface WithdrawAllInput {
 
 // getWithdrawableBalance input type
 interface WithdrawBalanceInput {
-  path: Path
+  pathId?: string
+  path?: Path
   recipient: string
   timeWindow: number
 }
@@ -150,6 +151,12 @@ export class RailsHub extends StakingRegistry {
     return new RailsHub({ provider: this.provider, signer })
   }
 
+  async getSignerAddress () {
+    if (this.signer) {
+      return this.signer.getAddress()
+    }
+  }
+
   async getTransferSentEvents (input: TransferEventInput) {
     const { startBlock, endBlock } = input
     const contract = this.getRailsHubContract()
@@ -172,6 +179,24 @@ export class RailsHub extends StakingRegistry {
     }
     const contract = RailsHub__factory.connect(this.address, this.signer || this.provider)
     return contract
+  }
+
+  async getPathId (input: GetPathIdInput) {
+    const { chainId0, token0, chainId1, token1 } = input
+    const contract = this.getRailsHubContract()
+    return contract.getPathId(chainId0, token0, chainId1, token1)
+  }
+
+  async getPathInfo (input: GetPathInfoInput) {
+    const { pathId } = input
+    const contract = this.getRailsHubContract()
+    return contract.getPathInfo(pathId)
+  }
+
+  async getFee (input: GetFeeInput) {
+    const { pathId } = input
+    const contract = this.getRailsHubContract()
+    return contract.getFee(pathId)
   }
 
   async send (input: SendInput) {
@@ -225,6 +250,24 @@ export class RailsHub extends StakingRegistry {
     return contract.postClaim(pathId, transferId, head, totalSent)
   }
 
+  async getWithdrawableBalance (input: WithdrawBalanceInput) {
+    const { pathId, recipient, timeWindow } = input
+    if (!pathId) {
+      throw new Error('pathId not set')
+    }
+    const path = await this.getPathInfo({ pathId })
+    return this.#getWithdrawableBalance({ path, recipient, timeWindow })
+  }
+
+  async #getWithdrawableBalance (input: WithdrawBalanceInput) {
+    const { path, recipient, timeWindow } = input
+    if (!path) {
+      throw new Error('pathInfo not set')
+    }
+    const contract = this.getRailsHubContract()
+    return contract.getWithdrawableBalance(path, recipient, timeWindow)
+  }
+
   async withdrawClaim (input: WithdrawInput) {
     const { pathId, amount, timeWindow } = input
     const contract = this.getRailsHubContract()
@@ -237,34 +280,10 @@ export class RailsHub extends StakingRegistry {
     return contract.withdrawAll(pathId, timeWindow)
   }
 
-  async getWithdrawableBalance (input: WithdrawBalanceInput) {
-    const { path, recipient, timeWindow } = input
-    const contract = this.getRailsHubContract()
-    return contract.getWithdrawableBalance(path, recipient, timeWindow)
-  }
-
   async getTransferId (input: GetTransferIdInput) {
     const { pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
     const contract = this.getRailsHubContract()
     return contract.getTransferId(pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint)
-  }
-
-  async getPathId (input: GetPathIdInput) {
-    const { chainId0, token0, chainId1, token1 } = input
-    const contract = this.getRailsHubContract()
-    return contract.getPathId(chainId0, token0, chainId1, token1)
-  }
-
-  async getPathInfo (input: GetPathInfoInput) {
-    const { pathId } = input
-    const contract = this.getRailsHubContract()
-    return contract.getPathInfo(pathId)
-  }
-
-  async getFee (input: GetFeeInput) {
-    const { pathId } = input
-    const contract = this.getRailsHubContract()
-    return contract.getFee(pathId)
   }
 
   async getHopTokenAddress () {
@@ -330,12 +349,6 @@ export class RailsHub extends StakingRegistry {
     const unstakeTx = await this._unstakeHop({ role, amount })
     await unstakeTx.wait()
     return this.withdraw({ role, staker })
-  }
-
-  async getSignerAddress () {
-    if (this.signer) {
-      return this.signer.getAddress()
-    }
   }
 
   calcAmountOutMin (input: CalcAmountOutMinInput): BigNumber {

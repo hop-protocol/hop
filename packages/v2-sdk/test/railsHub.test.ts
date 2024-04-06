@@ -1,0 +1,195 @@
+import { RailsHub } from '#railsHub/index.js'
+import { getAddress, parseUnits } from 'ethers/lib/utils.js'
+import { providers, Wallet } from 'ethers'
+import dotenv from 'dotenv'
+
+dotenv.config()
+
+describe.skip('RailsHub', () => {
+  const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
+  const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
+  const signer = new Wallet(process.env.PRIVATE_KEY!)
+  const address = '0xTODO'
+  const railsHub = new RailsHub({
+    provider,
+    signer,
+    address
+  })
+  it.skip('TODO should get signer address', async () => {
+    const address = await railsHub.getSignerAddress()
+    expect(address).toBeDefined()
+  })
+  it.skip('TODO should fetch TransferSent events', async () => {
+    const startBlock = 0
+    const endBlock = 1000
+    const events = await railsHub.getTransferSentEvents({
+      startBlock,
+      endBlock
+    })
+
+    expect(events.length).toBe(1)
+  })
+  it.skip('TODO should fetch TransferBonded events', async () => {
+    const startBlock = 0
+    const endBlock = 1000
+    const events = await railsHub.getTransferBondedEvents({
+      startBlock,
+      endBlock
+    })
+
+    expect(events.length).toBe(1)
+  })
+  it.skip('TODO should get RailsHub contract instance', async () => {
+    const contract = await railsHub.getRailsHubContract()
+    expect(contract).toBeDefined()
+  })
+  it.skip('TODO should get pathId', async () => {
+    const pathId = await railsHub.getPathId({
+      chainId0: 1,
+      token0: '0xTODO',
+      chainId1: 2,
+      token1: '0xTODO'
+    })
+    expect(pathId).toBe('')
+  })
+  it.skip('TODO should get pathInfo', async () => {
+    const pathId = '0xTODO'
+    const pathInfo = await railsHub.getPathInfo({
+      pathId
+    })
+    expect(pathInfo.token).toBe('')
+  })
+  it.skip('TODO should get fee for pathId', async () => {
+    const pathId = '0xTODO'
+    const fee = await railsHub.getFee({
+      pathId
+    })
+    expect(fee).toBeDefined()
+  })
+  it.skip('TODO should initiate a token transfer', async () => {
+    const pathId = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const to = '0xTODO'
+    const minAmountOut = '0'
+    const attestedCheckpoint = '0xTODO'
+    const tx = await railsHub.send({
+      pathId,
+      amount,
+      to,
+      minAmountOut,
+      attestedCheckpoint
+    })
+    expect(tx.hash).toBeDefined()
+  })
+  it.skip('TODO should initiate a bond', async () => {
+    const pathId = '0xTODO'
+    const to = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const minAmountOut = '0'
+    const checkpoint = '0xTODO'
+    const totalSent = '0'
+    const nonce = '0xTODO'
+    const attestedCheckpoint = '0xTODO'
+    const tx = await railsHub.bond({
+      pathId,
+      to,
+      amount,
+      minAmountOut,
+      checkpoint,
+      totalSent,
+      nonce,
+      attestedCheckpoint
+    })
+    expect(tx.hash).toBeDefined()
+  })
+  it.skip('TODO should post claim', async () => {
+    const pathId = '0xTODO'
+    const transferId = '0xTODO'
+    const head = '0xTODO'
+    const totalSent = parseUnits('1', 18)
+    const tx = await railsHub.postClaim({
+      pathId,
+      transferId,
+      head,
+      totalSent
+    })
+    expect(tx.hash).toBeDefined()
+  })
+  it.skip('TODO should get withdrawable balance', async () => {
+    const pathId = '0xTODO'
+    const recipient = '0xTODO'
+    const timeWindow = 1
+    const balance = await railsHub.getWithdrawableBalance({
+      pathId,
+      recipient,
+      timeWindow
+    })
+    expect(balance).toBeDefined()
+  })
+  it.skip('TODO should withdraw claim', async () => {
+    const pathId = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const timeWindow = 1
+    const tx = await railsHub.withdrawClaim({
+      pathId,
+      amount,
+      timeWindow
+    })
+    expect(tx.hash).toBeDefined()
+  })
+  it.skip('TODO should withdraw all claims', async () => {
+    const pathId = '0xTODO'
+    const timeWindow = 1
+    const tx = await railsHub.withdrawAllClaims({
+      pathId,
+      timeWindow
+    })
+    expect(tx.hash).toBeDefined()
+  })
+  it.skip('TODO should get HOP token address', async () => {
+    const address = await railsHub.getHopTokenAddress()
+    expect(address).toBeDefined()
+  })
+  it.skip('TODO should get min bonder stake', async () => {
+    const amount = await railsHub.getMinBonderStake()
+    expect(amount).toBeDefined()
+  })
+  it.skip('TODO should get HOP balance', async () => {
+    const address = '0xTODO'
+    const balance = await railsHub.getHopBalance(address)
+    expect(balance).toBeDefined()
+  })
+  it.skip('TODO should get HOP token contract', async () => {
+    const contract = await railsHub.getHopTokenContract()
+    expect(contract).toBeDefined()
+  })
+  it.skip('TODO should stake HOP', async () => {
+    const role = '0xTODO'
+    const staker = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const tx = await railsHub.stakeHop({
+      role,
+      staker,
+      amount
+    })
+    expect(tx.hash).toBeDefined()
+  })
+  it.skip('TODO should unstake HOP', async () => {
+    const role = '0xTODO'
+    const amount = parseUnits('1', 18)
+    const tx = await railsHub.unstakeHop({
+      role,
+      amount
+    })
+    expect(tx.hash).toBeDefined()
+  })
+  it.skip('TODO should calc amountOutMin', async () => {
+    const amountOut = parseUnits('1', 18)
+    const slippageTolerance = 0.01
+    const amountOutMin = await railsHub.calcAmountOutMin({
+      amountOut,
+      slippageTolerance
+    })
+    expect(amountOutMin).toBeDefined()
+  })
+})

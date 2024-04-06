@@ -1,4 +1,4 @@
-import getTransferId from 'src/utils/getTransferId'
+import getTransferId from '#utils/getTransferId.js'
 import { BigNumber } from 'ethers'
 
 describe('getTransferId', () => {

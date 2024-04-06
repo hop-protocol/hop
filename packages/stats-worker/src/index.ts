@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import Worker from './worker'
+import Worker from './worker.js'
 import minimist from 'minimist'
 
 const argv = minimist(process.argv.slice(2))

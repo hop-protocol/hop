@@ -1,5 +1,5 @@
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import { Chain } from 'src/constants'
+import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 
 test('getBlockNumberFromDate', async () => {
   const timestamp = 1668139733

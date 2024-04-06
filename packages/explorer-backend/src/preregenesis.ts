@@ -17,7 +17,7 @@ export async function getPreRegenesisBondEvent (transferId: string, token: strin
     return
   }
 
-  const contract = new Contract(bridgeAddress, bridgeAbi, provider)
+  const contract = new Contract(bridgeAddress, bridgeAbi, provider as any)
   const logs = await contract.queryFilter(
     contract.filters.WithdrawalBonded(transferId)
   )

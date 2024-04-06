@@ -1,19 +1,19 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
-import L1MessengerWrapper from './classes/L1MessengerWrapper'
-import contracts from 'src/contracts'
-import getChainBridge from 'src/chains/getChainBridge'
-import getTransferCommitted from 'src/theGraph/getTransferCommitted'
-import getTransferRootId from 'src/utils/getTransferRootId'
+import BaseWatcher from './classes/BaseWatcher.js'
+import L1Bridge from './classes/L1Bridge.js'
+import L1MessengerWrapper from './classes/L1MessengerWrapper.js'
+import contracts from '#contracts/index.js'
+import getTransferCommitted from '#theGraph/getTransferCommitted.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs } from 'src/constants'
-import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
-import { IChainBridge } from 'src/chains/IChainBridge'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
-import { config as globalConfig } from 'src/config'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChallengePeriodMs } from '#constants/index.js'
+import { ExitableTransferRoot } from '#db/TransferRootsDb.js'
+import { IChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/sdk/contracts'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { getEnabledNetworks, config as globalConfig } from '#config/index.js'
 
 type Config = {
   chainSlug: string
@@ -109,6 +109,11 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(this.chainSlug)) {
+      logger.warn(`chain ${this.chainSlug} is not enabled`)
+      return
+    }
     const chainBridge: IChainBridge = getChainBridge(this.chainSlug as Chain)
     if (!chainBridge) {
       logger.warn(`chainBridge for ${this.chainSlug} is not implemented yet`)

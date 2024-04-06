@@ -1,12 +1,12 @@
-import isL1ChainId from 'src/utils/isL1ChainId'
-import { SendBondWithdrawalTxParams } from 'src/watchers/BondWithdrawalWatcher'
-import { Transfer } from 'src/db/TransfersDb'
-import { WatcherNotFoundError } from './shared/utils'
+import { SendBondWithdrawalTxParams } from '#watchers/BondWithdrawalWatcher.js'
+import { Transfer } from '#db/TransfersDb.js'
+import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
+import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
 
-import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('bond-withdrawal')

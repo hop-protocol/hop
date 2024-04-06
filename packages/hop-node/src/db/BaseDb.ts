@@ -1,16 +1,16 @@
-import DatabaseMigrator from './DatabaseMigrator'
-import Logger from 'src/logger'
+import DatabaseMigrator from './DatabaseMigrator.js'
+import _ from 'lodash'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
 // @ts-expect-error level-party does not have a types file as of 20231227
 import level from 'level-party'
 import os from 'node:os'
 import path from 'node:path'
 import sub from 'subleveldown'
 import { EventEmitter } from 'node:events'
-import { Migration } from 'src/db/migrations'
-import { config as globalConfig } from 'src/config'
-import { isEqual } from 'lodash'
+import { Migration } from './migrations.js'
+import { config as globalConfig } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
-import { normalizeDbValue } from './utils'
+import { normalizeDbValue } from './utils.js'
 const dbMap: { [key: string]: any } = {}
 
 export enum DbOperations {
@@ -211,7 +211,7 @@ abstract class BaseDb<T> extends EventEmitter {
 
   protected async upsert (key: string, value: T): Promise<void> {
     const dbValue = await this.get(key) ?? {} as T
-    if (isEqual(dbValue, value)) {
+    if (_.isEqual(dbValue, value)) {
       const logMsg = 'New value is the same as existing value. Skipping write.'
       this.#logDbOperation(DbOperations.Upsert, { key, value, logMsg })
       return

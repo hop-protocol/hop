@@ -1,4 +1,4 @@
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
+import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
 
 describe.skip('Health Checker', () => {
   const days = 2

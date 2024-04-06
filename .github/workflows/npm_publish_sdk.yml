@@ -12,6 +12,7 @@ on:
 
 jobs:
   publish-sdk:
+    needs: [call-sdk-core-publish-workflow]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     defaults:
@@ -45,12 +46,12 @@ jobs:
       - name: Install local packages and dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/core install && pnpm --filter @hop-protocol/sdk install
+        run: pnpm --filter @hop-protocol/sdk-core install && pnpm --filter @hop-protocol/sdk install
 
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/core build && pnpm --filter @hop-protocol/sdk build 
+        run: pnpm --filter @hop-protocol/sdk-core build && pnpm --filter @hop-protocol/sdk build
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
@@ -58,3 +59,11 @@ jobs:
         run: pnpm --filter @hop-protocol/sdk publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  call-sdk-core-publish-workflow:
+    name: Publish NPM SDK Core Package If Necessary
+    uses: ./.github/workflows/npm_publish_sdk_core.yml
+    with:
+      environment: production
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

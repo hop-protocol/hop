@@ -63,6 +63,7 @@ for (const network in chainNetworks) {
   const relayerFeeEnabled = (config as any)[network].relayerFeeEnabled
   const relayerFeeWei = (config as any)[network].relayerFeeWei
   const bridgeDeprecated = (config as any)[network].bridgeDeprecated
+  const defaultSendGasLimit = (config as any)[network].defaultSendGasLimit
 
   sdkConfig[network] = {
     addresses,
@@ -72,7 +73,8 @@ for (const network in chainNetworks) {
     destinationFeeGasPriceMultiplier,
     relayerFeeEnabled,
     relayerFeeWei,
-    bridgeDeprecated
+    bridgeDeprecated,
+    defaultSendGasLimit
   }
 }
 

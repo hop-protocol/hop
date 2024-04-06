@@ -159,7 +159,7 @@ export class RailsHub extends StakingRegistry {
 
   async getTransferSentEvents (input: TransferEventInput) {
     const { startBlock, endBlock } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     const filter = contract.filters.TransferSent()
     const events = await contract.queryFilter(filter, startBlock, endBlock)
     return events
@@ -167,13 +167,13 @@ export class RailsHub extends StakingRegistry {
 
   async getTransferBondedEvents (input: TransferEventInput) {
     const { startBlock, endBlock } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     const filter = contract.filters.TransferBonded()
     const events = await contract.queryFilter(filter, startBlock, endBlock)
     return events
   }
 
-  getRailsHubContract (): Contract {
+  async getRailsHubContract (): Promise<Contract> {
     if (!this.address) {
       throw new Error('RailsHub address not set')
     }
@@ -183,19 +183,19 @@ export class RailsHub extends StakingRegistry {
 
   async getPathId (input: GetPathIdInput) {
     const { chainId0, token0, chainId1, token1 } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.getPathId(chainId0, token0, chainId1, token1)
   }
 
   async getPathInfo (input: GetPathInfoInput) {
     const { pathId } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.getPathInfo(pathId)
   }
 
   async getFee (input: GetFeeInput) {
     const { pathId } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.getFee(pathId)
   }
 
@@ -215,7 +215,7 @@ export class RailsHub extends StakingRegistry {
 
   async #send (input: SendInput) {
     const { pathId, to, amount, minAmountOut, attestedCheckpoint } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     const value = 0
     return contract.send(pathId, to, amount, minAmountOut, attestedCheckpoint, {
       value
@@ -240,13 +240,13 @@ export class RailsHub extends StakingRegistry {
 
   async #bond (input: BondInput) {
     const { pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.bond(pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint)
   }
 
   async postClaim (input: PostClaimInput) {
     const { pathId, transferId, head, totalSent } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.postClaim(pathId, transferId, head, totalSent)
   }
 
@@ -264,35 +264,35 @@ export class RailsHub extends StakingRegistry {
     if (!path) {
       throw new Error('pathInfo not set')
     }
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.getWithdrawableBalance(path, recipient, timeWindow)
   }
 
   async withdrawClaim (input: WithdrawInput) {
     const { pathId, amount, timeWindow } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.withdraw(pathId, amount, timeWindow)
   }
 
   async withdrawAllClaims (input: WithdrawAllInput) {
     const { pathId, timeWindow } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.withdrawAll(pathId, timeWindow)
   }
 
   async getTransferId (input: GetTransferIdInput) {
     const { pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.getTransferId(pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint)
   }
 
   async getHopTokenAddress () {
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.hopToken()
   }
 
   async getMinBonderStake () {
-    const contract = this.getRailsHubContract()
+    const contract = await this.getRailsHubContract()
     return contract.minBonderStake()
   }
 

@@ -240,11 +240,11 @@ export class Messenger {
     return '' // TODO
   }
 
-  private isValidChainId (chainId: number) {
+  isValidChainId (chainId: number) {
     return true // TODO
   }
 
-  private isValidTxHash (txHash: string): boolean {
+  isValidTxHash (txHash: string): boolean {
     return txHash.slice(0, 2) === '0x' && txHash.length === 66
   }
 
@@ -416,7 +416,7 @@ export class Messenger {
     return eventFetcher.getEvents(fromBlock, toBlock as any)
   }
 
-  async hasAuctionStarted (input: HasAuctionStartedInput): Promise<boolean> {
+  async getHasAuctionStarted (input: HasAuctionStartedInput): Promise<boolean> {
     const { fromChainId, bundleCommittedEvent } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -465,7 +465,7 @@ export class Messenger {
     const { timestamp: blockTimestamp } = await provider.getBlock('latest')
     const spokeExitTime = await this.getSpokeExitTime({ fromChainId, toChainId })
     const relayWindowStart = commitTime + spokeExitTime
-    const relayWindow = this.getRelayWindowHours() * 60 * 60
+    const relayWindow = await this.getRelayWindowHours() * 60 * 60
     const relayReward = (blockTimestamp - relayWindowStart) * feesCollected / relayWindow
     return relayReward
   }
@@ -482,7 +482,7 @@ export class Messenger {
     return Number(formatUnits(estimatedTxCost, 9))
   }
 
-  async shouldAttemptForwardMessage (input: ShouldAttemptForwardMessageInput): Promise<boolean> {
+  async getShouldAttemptForwardMessage (input: ShouldAttemptForwardMessageInput): Promise<boolean> {
     const { fromChainId, bundleCommittedEvent } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -490,7 +490,7 @@ export class Messenger {
     const estimatedTxCost = await this.getEstimatedTxCostForForwardMessage({ chainId: fromChainId })
     const relayReward = await this.getRelayReward({ fromChainId, bundleCommittedEvent })
     const txOk = relayReward > estimatedTxCost
-    const timeOk = await this.hasAuctionStarted({ fromChainId, bundleCommittedEvent })
+    const timeOk = await this.getHasAuctionStarted({ fromChainId, bundleCommittedEvent })
     const shouldAttempt = txOk && timeOk
     return shouldAttempt
   }
@@ -633,7 +633,7 @@ export class Messenger {
   }
 
   // reference: https://github.com/hop-protocol/contracts-v2/blob/cdc3377d6a1f964554ba0e6e1fef0b504d43fc6a/contracts/bridge/FeeDistributor/FeeDistributor.sol#L42
-  getRelayWindowHours (): number {
+  async getRelayWindowHours (): Promise<number> {
     return 12
   }
 
@@ -953,7 +953,7 @@ export class Messenger {
     return messageIds
   }
 
-  getMerkleProofForMessageId (input: GetMerkleProofForMessageIdInput) {
+  async getMerkleProofForMessageId (input: GetMerkleProofForMessageIdInput) {
     const { messageIds, targetMessageId } = input
     if (!targetMessageId) {
       throw new Error('targetMessageId is required')
@@ -980,7 +980,7 @@ export class Messenger {
 
     const { treeIndex, bundleId } = await this.getMessageBundledEventFromMessageId({ fromChainId, messageId })
     const messageIds = await this.getMessageIdsForBundleId({ fromChainId, bundleId })
-    const siblings = this.getMerkleProofForMessageId({ messageIds, targetMessageId: messageId })
+    const siblings = await this.getMerkleProofForMessageId({ messageIds, targetMessageId: messageId })
     const totalLeaves = messageIds.length
 
     return {
@@ -1005,7 +1005,7 @@ export class Messenger {
     const { treeIndex, bundleId } = await this.getMessageBundledEventFromTransactionHash({ fromChainId, transactionHash }) as any
     const targetMessageId = await this.getMessageIdFromTransactionHash({ fromChainId, transactionHash })
     const messageIds = await this.getMessageIdsForBundleId({ fromChainId, bundleId })
-    const siblings = this.getMerkleProofForMessageId({ messageIds, targetMessageId })
+    const siblings = await this.getMerkleProofForMessageId({ messageIds, targetMessageId })
     const totalLeaves = messageIds.length
 
     return {
@@ -1088,7 +1088,7 @@ export class Messenger {
   }
 
   async getIsMessageIdRelayed (input: GetIsMessageIdRelayedInput): Promise<boolean> {
-    const { messageId, fromChainId, toChainId } = input
+    const { fromChainId, toChainId, messageId } = input
     if (!messageId) {
       throw new Error('messageId is required')
     }

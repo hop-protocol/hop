@@ -186,7 +186,7 @@ describe.skip('RailsHub', () => {
   it.skip('TODO should calc amountOutMin', async () => {
     const amountOut = parseUnits('1', 18)
     const slippageTolerance = 0.01
-    const amountOutMin = await railsHub.calcAmountOutMin({
+    const amountOutMin = railsHub.calcAmountOutMin({
       amountOut,
       slippageTolerance
     })

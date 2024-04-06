@@ -1349,6 +1349,9 @@ export class HopBridge extends Base {
   ) : Promise<BigNumber> {
     try {
       const timeStart = Date.now()
+      if (this.getShouldUseCctpBridge()) {
+        return BigNumber.from(0)
+      }
       const [gasLimit, { data, to }] = await Promise.all([
         this.estimateBondWithdrawalGasLimit(sourceChain, destinationChain),
         this.populateBondWithdrawalTx(sourceChain, destinationChain)

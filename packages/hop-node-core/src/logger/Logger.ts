@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import { DateTime } from 'luxon'
 
 type Options = {
   tag?: string
@@ -101,7 +100,7 @@ export class Logger {
   }
 
   get timestamp (): string {
-    return DateTime.now().toISO()
+    return (new Date()).toISOString()
   }
 
   headers (logLevelEnum: LogLevels): string[] {

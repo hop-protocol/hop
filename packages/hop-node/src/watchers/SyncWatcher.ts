@@ -1,18 +1,15 @@
 import BaseWatcher from './classes/BaseWatcher.js'
-import L1Bridge from './classes/L1Bridge.js'
-import L2Bridge from './classes/L2Bridge.js'
 import MerkleTree from '#utils/MerkleTree.js'
 import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
 import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
-import { BigNumber, Contract, type EventFilter, providers } from 'ethers'
+import { BigNumber, type EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
   ChainPollMultiplier,
   DoesRootProviderSupportWs,
   GasCostTransactionType,
-  RelayableChains,
-  RootProviderName,
+  RelayableChains
 } from '#constants/index.js'
 import {
   Chain,
@@ -31,28 +28,7 @@ import {
   minEthBonderFeeBn,
   wsEnabledChains
 } from '#config/index.js'
-import { type GasCost } from '#db/GasCostDb.js'
-import { type GasCostEstimationRes } from './classes/Bridge.js'
 import { Hop } from '@hop-protocol/sdk'
-import {
-  type L1_Bridge as L1BridgeContract,
-  type MultipleWithdrawalsSettledEvent,
-  type TransferBondChallengedEvent,
-  type TransferRootBondedEvent,
-  type TransferRootConfirmedEvent,
-  type TransferRootSetEvent,
-  type TransferSentToL2Event,
-  type WithdrawalBondSettledEvent,
-  type WithdrawalBondedEvent,
-  type WithdrewEvent
-} from '@hop-protocol/sdk/contracts/L1_Bridge'
-import {
-  type L2_Bridge as L2BridgeContract,
-  type TransferSentEvent,
-  type TransfersCommittedEvent
-} from '@hop-protocol/sdk/contracts/L2_Bridge'
-import { type Transfer } from '#db/TransfersDb.js'
-import { type TransferRoot } from '#db/TransferRootsDb.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getRpcRootProviderName } from '@hop-protocol/hop-node-core/utils'
 import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
@@ -62,6 +38,31 @@ import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
 import { promiseTimeout } from '@hop-protocol/hop-node-core/utils'
 import { wait } from '@hop-protocol/hop-node-core/utils'
+import type L1Bridge from './classes/L1Bridge.js'
+import type L2Bridge from './classes/L2Bridge.js'
+import type { Contract} from 'ethers'
+import type { GasCost } from '#db/GasCostDb.js'
+import type { GasCostEstimationRes } from './classes/Bridge.js'
+import type {
+  L1_Bridge as L1BridgeContract,
+  MultipleWithdrawalsSettledEvent,
+  TransferBondChallengedEvent,
+  TransferRootBondedEvent,
+  TransferRootConfirmedEvent,
+  TransferRootSetEvent,
+  TransferSentToL2Event,
+  WithdrawalBondSettledEvent,
+  WithdrawalBondedEvent,
+  WithdrewEvent
+} from '@hop-protocol/sdk/contracts/L1_Bridge'
+import type {
+  L2_Bridge as L2BridgeContract,
+  TransferSentEvent,
+  TransfersCommittedEvent
+} from '@hop-protocol/sdk/contracts/L2_Bridge'
+import type { RootProviderName } from '#constants/index.js'
+import type { Transfer } from '#db/TransfersDb.js'
+import type { TransferRoot } from '#db/TransferRootsDb.js'
 
 type Config = {
   chainSlug: string

@@ -3,7 +3,6 @@ import getBondedWithdrawal from '#theGraph/getBondedWithdrawal.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
 import getTransferSent from '#theGraph/getTransferSent.js'
 import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
@@ -17,6 +16,7 @@ import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/sdk/abi'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
 import { wait } from '@hop-protocol/hop-node-core/utils'
+import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 
 type Options = {
   token?: string

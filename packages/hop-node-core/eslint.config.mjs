@@ -6,6 +6,12 @@ export default tseslint.config({
     ...baseConfig,
   ],
   ignores: [
-    "dist"
-  ]
+    'dist'
+  ],
+  rules: {
+    // Explicit type handling with for strict ESM packages using verbatimModuleSyntax
+    '@typescript-eslint/no-import-type-side-effects': 'error',
+    '@typescript-eslint/consistent-type-imports': 'error',
+    '@typescript-eslint/consistent-type-exports': 'error'
+  }
 })

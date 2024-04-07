@@ -3,23 +3,24 @@ import L1Bridge from './L1Bridge.js'
 import L2Amm from './L2Amm.js'
 import L2AmmWrapper from './L2AmmWrapper.js'
 import Token from './Token.js'
-import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { type ERC20 } from '@hop-protocol/sdk/contracts'
+import { Contract } from 'ethers'
 import { Hop } from '@hop-protocol/sdk'
-import {
-  type L2_Bridge as L2BridgeContract,
-  type TransferFromL1CompletedEvent,
-  type TransferSentEvent,
-  type TransfersCommittedEvent
-} from '@hop-protocol/sdk/contracts/L2_Bridge'
-import { type TxOverrides } from '@hop-protocol/hop-node-core/types'
 import {
   erc20Abi,
   l2AmmWrapperAbi,
   swapAbi as saddleSwapAbi
 } from '@hop-protocol/sdk/abi'
 import { config as globalConfig } from '#config/index.js'
+import type { BigNumber, providers } from 'ethers'
+import type { ERC20 } from '@hop-protocol/sdk/contracts'
+import type {
+  L2_Bridge as L2BridgeContract,
+  TransferFromL1CompletedEvent,
+  TransferSentEvent,
+  TransfersCommittedEvent
+} from '@hop-protocol/sdk/contracts/L2_Bridge'
+import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
 
 export default class L2Bridge extends Bridge {
   ammWrapper!: L2AmmWrapper

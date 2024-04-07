@@ -1,18 +1,18 @@
 import { APIEventStore } from './ApiEventStore.js'
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import {
-  type IAPIEventStoreRes,
-  type IDataStore,
-  type IGetStoreDataRes,
-  type IOnchainEventStoreRes,
-  type ITransitionDataProvider
+import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type {
+  IAPIEventStoreRes,
+  IDataStore,
+  IGetStoreDataRes,
+  IOnchainEventStoreRes,
+  ITransitionDataProvider
 } from './types.js'
 import { type IMessage, MessageState } from '../MessageManager.js'
-import { type LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
+import type { LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
 import { Message } from '../Message.js'
 import { OnchainEventStore } from './OnchainEventStore.js'
-import { type RequiredFilter } from '../../indexer/OnchainEventIndexer.js'
+import type { RequiredFilter } from '../../indexer/OnchainEventIndexer.js'
 import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getTimestampFromBlockNumberMs } from './utils.js'
 

@@ -1,7 +1,7 @@
 import { AbstractFinalityService, type IFinalityService } from '../../Services/AbstractFinalityService.js'
 import { AlchemyInclusionService } from '../../Chains/optimism/inclusion/AlchemyInclusionService.js'
 import { FinalityBlockTag } from '../../IChainBridge.js'
-import { providers } from 'ethers'
+import type { providers } from 'ethers'
 
 export class OptimismFinalityService extends AbstractFinalityService implements IFinalityService {
   readonly #inclusionService: AlchemyInclusionService

@@ -1,13 +1,14 @@
-import { BigNumber, providers, utils } from 'ethers'
+import type { Signer, providers} from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import {
   CCTP_DOMAIN_MAP,
   getAttestationUrl,
   getHopCCTPContract,
   getMessageTransmitterContract
 } from './utils.js'
-import { Chain, MinPolygonGasPrice, Network } from '@hop-protocol/hop-node-core/constants'
-import { type RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
-import { Signer } from 'ethers'
+import type { Network } from '@hop-protocol/hop-node-core/constants'
+import { Chain, MinPolygonGasPrice } from '@hop-protocol/hop-node-core/constants'
+import type { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
 

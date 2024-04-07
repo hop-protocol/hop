@@ -6,6 +6,6 @@ export default tseslint.config({
     ...baseConfig,
   ],
   ignores: [
-    "dist"
+    'dist'
   ]
 })

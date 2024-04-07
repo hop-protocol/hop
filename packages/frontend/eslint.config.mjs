@@ -9,7 +9,7 @@ export default tseslint.config({
     ...baseConfig
   ],
   ignores: [
-    "dist"
+    'dist'
   ],
   plugins: {
     'react-hooks': reactHooksPlugin,
@@ -24,7 +24,7 @@ export default tseslint.config({
     'react/no-unescaped-entities': 'off',
     'react/prop-types': 'off',
     'react/jsx-filename-extension': [
-      2,
+      'error',
       {
         extensions: ['.js', '.jsx', '.ts', '.tsx']
       }

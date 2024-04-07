@@ -2,10 +2,6 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
-  type BlocklistConfig,
-  type SignerConfig,
-} from '@hop-protocol/hop-node-core/config'
-import {
   type Bonders,
   type CommitTransfersConfig,
   type Fees,
@@ -35,6 +31,7 @@ import { getAddress } from 'ethers/lib/utils.js'
 import { getParameter } from '@hop-protocol/hop-node-core/aws'
 import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
 import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
+import type { BlocklistConfig, SignerConfig } from '@hop-protocol/hop-node-core/config'
 
 const logger = new Logger('config')
 

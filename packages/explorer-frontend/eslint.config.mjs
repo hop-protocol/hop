@@ -6,8 +6,8 @@ export default tseslint.config({
     ...baseConfig,
   ],
   ignores: [
-    "dist/**",
-    "public/**",
-    ".next"
+    'dist/**',
+    'public/**',
+    '.next'
   ]
 })

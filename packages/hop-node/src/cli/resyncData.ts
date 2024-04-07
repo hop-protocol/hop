@@ -1,10 +1,10 @@
-import L2Bridge from '#watchers/classes/L2Bridge.js'
 import getTransferSent from '#theGraph/getTransferSent.js'
-import { type L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
+import type L2Bridge from '#watchers/classes/L2Bridge.js'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 
 import getTransferCommitted from '#theGraph/getTransferCommitted.js'
 import getTransferRootId from '#utils/getTransferRootId.js'

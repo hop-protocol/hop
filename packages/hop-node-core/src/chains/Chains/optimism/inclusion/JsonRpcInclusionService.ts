@@ -1,8 +1,8 @@
 import { AbstractOptimismInclusionService } from '../../../Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
 import { AvgBlockTimeSeconds, Chain } from '#constants/index.js'
-import { type BlockWithTransactions } from '@ethersproject/abstract-provider'
-import { type IInclusionService } from '../../../Services/AbstractInclusionService.js'
-import { providers } from 'ethers'
+import type { BlockWithTransactions } from '@ethersproject/abstract-provider'
+import type { IInclusionService } from '../../../Services/AbstractInclusionService.js'
+import type { providers } from 'ethers'
 
 export class JsonRpcInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
   async getL1InclusionTx (l2TxHash: string): Promise<providers.TransactionReceipt | undefined> {

@@ -25,7 +25,6 @@ root
 export async function main (source: any) {
   let { token, chain, endTimestamp } = source
 
-  let abc = 1
   const shouldLogData = isCliCall()
 
   if (!endTimestamp) {

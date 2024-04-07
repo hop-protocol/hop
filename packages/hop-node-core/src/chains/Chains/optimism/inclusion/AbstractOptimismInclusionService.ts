@@ -1,9 +1,8 @@
 import zlib from 'node:zlib'
 import { AbstractInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from '#constants/index.js'
-import { Contract, providers } from 'ethers'
+import { Contract } from 'ethers'
 import { Derive, type Frame } from './Derive.js'
-import { NetworkSlug } from '@hop-protocol/sdk/networks'
 import {
   OptimismAddresses,
   type OptimismCanonicalAddresses,
@@ -11,6 +10,8 @@ import {
 } from '../../../Chains/optimism/OptimismAddresses.js'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
+import type { NetworkSlug } from '@hop-protocol/sdk/networks'
+import type { providers } from 'ethers'
 
 interface Channel {
   transactionHashes: string[]

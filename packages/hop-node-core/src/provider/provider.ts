@@ -1,23 +1,23 @@
 import fs from 'node:fs'
-import { BigNumber, type BigNumberish } from '@ethersproject/bignumber'
-import {
-  type Block,
-  type BlockTag,
-  type BlockWithTransactions,
-  type Provider as EthersProvider,
-  type Filter,
-  type FilterByBlockHash,
-  type Log,
-  type TransactionReceipt,
-  type TransactionRequest,
-  type TransactionResponse
-} from '@ethersproject/abstract-provider'
-import { type ConnectionInfo } from '@ethersproject/web'
-import { type Deferrable } from '@ethersproject/properties'
-import { type Network } from '@ethersproject/networks'
 import { monitorProviderCalls } from '#config/index.js'
 import { providers } from 'ethers'
 import { rateLimitRetry } from '#utils/rateLimitRetry.js'
+import type { BigNumber, BigNumberish } from '@ethersproject/bignumber'
+import type {
+  Block,
+  BlockTag,
+  BlockWithTransactions,
+  Provider as EthersProvider,
+  Filter,
+  FilterByBlockHash,
+  Log,
+  TransactionReceipt,
+  TransactionRequest,
+  TransactionResponse
+} from '@ethersproject/abstract-provider'
+import type { ConnectionInfo } from '@ethersproject/web'
+import type { Deferrable } from '@ethersproject/properties'
+import type { Network } from '@ethersproject/networks'
 
 const inMemoryMonitor = false
 const calls: Record<string, any> = {}

@@ -1,9 +1,9 @@
-import { AssetSymbol } from '@hop-protocol/sdk/config'
 import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/sdk/networks'
 import { RpcProviderSlug } from '@hop-protocol/sdk/metadata'
 import { chains } from '@hop-protocol/sdk/metadata'
 import { networks } from '@hop-protocol/sdk/networks'
 import { tokens } from '@hop-protocol/sdk/metadata'
+import type { AssetSymbol } from '@hop-protocol/sdk/config'
 
 export { Network, Chain, Token, NativeChainToken }
 

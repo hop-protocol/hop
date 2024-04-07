@@ -2,14 +2,6 @@ import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
 import { type Addresses, type Bonders, type Bridges, addresses as coreAddresses } from '@hop-protocol/sdk/addresses'
-import { AssetSymbol, type Bps, config as coreConfig } from '@hop-protocol/sdk/config'
-import {
-  type BlocklistConfig,
-  type MetricsConfig,
-  type SignerConfig,
-  type Tokens
-} from '@hop-protocol/hop-node-core/config'
-import { type BonderConfig } from './types.js'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -29,21 +21,28 @@ import {
   setCoreNetworkRedundantRpcUrls,
   setCoreNetworkRpcUrl,
 } from '@hop-protocol/hop-node-core/config'
-import {
-  DefaultBondThreshold,
-  SyncType
-} from '#constants/index.js'
-import { type Tokens as Metadata } from '@hop-protocol/sdk/metadata'
+import { DefaultBondThreshold } from '#constants/index.js'
 import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
+import { config as coreConfig } from '@hop-protocol/sdk/config'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
 import { parseEther } from 'ethers/lib/utils.js'
+import type { AssetSymbol, Bps } from '@hop-protocol/sdk/config'
+import type {
+  BlocklistConfig,
+  MetricsConfig,
+  SignerConfig,
+  Tokens
+} from '@hop-protocol/hop-node-core/config'
+import type { BonderConfig } from './types.js'
+import type { Tokens as Metadata } from '@hop-protocol/sdk/metadata'
+import type { SyncType } from '#constants/index.js'
 
 loadEnv()
 
 // TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
 export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
-const dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const defaultDbPath = path.resolve(dirname, '../../db_data')
 // const defaultDbPath = path.resolve(__dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'

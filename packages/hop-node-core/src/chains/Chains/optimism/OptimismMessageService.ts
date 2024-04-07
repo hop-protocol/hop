@@ -7,7 +7,7 @@ import {
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { config as globalConfig } from '#config/index.js'
 import { networkSlugToId } from '#utils/networkSlugToId.js'
-import { providers } from 'ethers'
+import type { providers } from 'ethers'
 
 export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus> implements IMessageService {
   readonly #csm: CrossChainMessenger

@@ -1,6 +1,4 @@
 import BaseWatcher from './classes/BaseWatcher.js'
-import L1Bridge from './classes/L1Bridge.js'
-import L2Bridge from './classes/L2Bridge.js'
 import { BigNumber } from 'ethers'
 import {
   BondTransferRootChains
@@ -17,10 +15,14 @@ import {
   TenMinutesMs,
   Token
 } from '@hop-protocol/hop-node-core/constants'
-import { type L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { type L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { S3Upload } from '@hop-protocol/hop-node-core/aws'
-import { type TransferRoot } from '#db/TransferRootsDb.js'
+import type L1Bridge from './classes/L1Bridge.js'
+import type L2Bridge from './classes/L2Bridge.js'
+import type {
+  L1_Bridge as L1BridgeContract,
+  L2_Bridge as L2BridgeContract
+} from '@hop-protocol/sdk/contracts'
+import type { TransferRoot } from '#db/TransferRootsDb.js'
 
 type Config = {
   chainSlug: string

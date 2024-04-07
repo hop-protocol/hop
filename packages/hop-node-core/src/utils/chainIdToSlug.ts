@@ -1,5 +1,5 @@
-import { Chain } from '#constants/index.js'
 import { config as globalConfig } from '#config/index.js'
+import type { Chain } from '#constants/index.js'
 
 const cache: Record<string, Chain> = {}
 

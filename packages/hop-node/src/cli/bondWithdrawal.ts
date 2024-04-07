@@ -1,10 +1,10 @@
-import { type SendBondWithdrawalTxParams } from '#watchers/BondWithdrawalWatcher.js'
-import { type Transfer } from '#db/TransfersDb.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
 import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
+import type { SendBondWithdrawalTxParams } from '#watchers/BondWithdrawalWatcher.js'
+import type { Transfer } from '#db/TransfersDb.js'
 
 import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared/index.js'
 

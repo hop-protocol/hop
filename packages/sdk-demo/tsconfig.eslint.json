@@ -6,7 +6,8 @@
   "include": [
     "src",
     "test",
-    "eslint.config.js",
-    "jest.config.js"
+    "eslint.config.mjs",
+    "jest.config.mjs",
+    "vite.config.ts"
   ]
 }

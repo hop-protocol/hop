@@ -12,7 +12,7 @@ import {
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
-import { type Overrides, providers } from 'ethers'
+import type { Overrides, providers } from 'ethers'
 
 type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus

@@ -1,5 +1,5 @@
 import { FinalityStrategy } from '../FinalityStrategy.js'
-import { type IFinalityStrategy } from '../IFinalityStrategy.js'
+import type { IFinalityStrategy } from '../IFinalityStrategy.js'
 
 /**
  * As of 20240325, PolygonZK chain has been unstable and unreliable. The chain tends to have

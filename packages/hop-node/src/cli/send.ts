@@ -3,12 +3,12 @@ import L2Bridge from '#watchers/classes/L2Bridge.js'
 import Token from '#watchers/classes/Token.js'
 import contracts from '#contracts/index.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
-import { type CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
 import { Chain, nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
-import { type TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { formatEther, parseEther } from 'ethers/lib/utils.js'
+import type { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
+import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
 
 root
   .command('send')

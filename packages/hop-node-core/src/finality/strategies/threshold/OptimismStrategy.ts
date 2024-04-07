@@ -1,6 +1,6 @@
 import { FinalityBlockTag } from '#chains/IChainBridge.js'
 import { FinalityStrategy } from '../FinalityStrategy.js'
-import { type IFinalityStrategy } from '../IFinalityStrategy.js'
+import type { IFinalityStrategy } from '../IFinalityStrategy.js'
 
 export class OptimismStrategy extends FinalityStrategy implements IFinalityStrategy {
   override getSafeBlockNumber = async (): Promise<number> => {

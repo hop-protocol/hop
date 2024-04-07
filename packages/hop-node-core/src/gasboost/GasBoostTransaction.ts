@@ -1,4 +1,4 @@
-import { BigNumber, Signer, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import {
   Chain,
   InitialTxGasPriceMultiplier,
@@ -14,7 +14,6 @@ import {
 import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
 import { Notifier } from '#notifier/index.js'
-import { type Store } from './Store.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'
 import { bigNumberMin } from '#utils/bigNumberMin.js'
 import {
@@ -32,6 +31,8 @@ import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import { getRpcUrl } from '#utils/getRpcUrl.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
+import type { Signer, providers } from 'ethers'
+import type { Store } from './Store.js'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string

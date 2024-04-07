@@ -4,13 +4,14 @@ import { MemoryStore } from './MemoryStore.js'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from '#types/error.js'
 import { Notifier } from '#notifier/index.js'
-import { Signer, providers } from 'ethers'
-import { type Store } from './Store.js'
+import { Signer } from 'ethers'
 import { defineReadOnly } from 'ethers/lib/utils.js'
 import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import { hostname, setLatestNonceOnStart } from '#config/index.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
+import type { Store } from './Store.js'
+import type { providers } from 'ethers'
 
 export class GasBoostSigner extends Signer {
   store!: Store

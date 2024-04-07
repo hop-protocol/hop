@@ -6,7 +6,7 @@ export default tseslint.config({
     ...baseConfig,
   ],
   ignores: [
-    "dist",
-    "hop.js"
+    'dist',
+    'hop.js'
   ]
 })

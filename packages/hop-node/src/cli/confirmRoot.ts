@@ -1,11 +1,11 @@
-import { type ConfirmRootsData } from '#watchers/ConfirmRootsWatcher.js'
-import { type IChainBridge } from '@hop-protocol/hop-node-core/chains'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared/index.js'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
 import { getConfirmRootsWatcher } from '#watchers/watchers.js'
 import { getEnabledNetworks } from '#config/index.js'
+import type { ConfirmRootsData } from '#watchers/ConfirmRootsWatcher.js'
+import type { IChainBridge } from '@hop-protocol/hop-node-core/chains'
 
 root
   .command('confirm-root')

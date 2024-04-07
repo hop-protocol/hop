@@ -1,4 +1,4 @@
-import { type IAPIEventStoreRes, type IDataStore } from './types.js'
+import type { IAPIEventStoreRes, IDataStore } from './types.js'
 import { Message } from '../Message.js'
 
 export class APIEventStore implements IDataStore {

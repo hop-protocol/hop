@@ -1,4 +1,4 @@
-import { type CallOverrides, type Event as EthersEvent } from 'ethers'
+import type { CallOverrides, Event as EthersEvent } from 'ethers'
 
 export type Event = EthersEvent & {
   blockNumber?: number

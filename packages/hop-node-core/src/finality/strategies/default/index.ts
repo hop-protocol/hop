@@ -7,7 +7,7 @@ import { PolygonStrategy } from './PolygonStrategy.js'
 import { PolygonZkStrategy } from './PolygonZkStrategy.js'
 
 import { Chain } from '#constants/index.js'
-import { type Strategies } from '../IFinalityStrategy.js'
+import type { Strategies } from '../IFinalityStrategy.js'
 
 export const DefaultStrategiesMap: Strategies = {
   [Chain.Ethereum]: EthereumStrategy,

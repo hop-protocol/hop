@@ -1,11 +1,13 @@
-import {
-  type ChainServices,
-  FinalityBlockTag,
-  type IChainBridge
+import type {
+  ChainServices,
+  IChainBridge
 } from './IChainBridge.js'
-import { type IFinalityService } from './Services/AbstractFinalityService.js'
-import { type IMessageService } from './Services/AbstractMessageService.js'
-import { providers } from 'ethers'
+import type {
+  FinalityBlockTag
+} from './IChainBridge.js'
+import type { IFinalityService } from './Services/AbstractFinalityService.js'
+import type { IMessageService } from './Services/AbstractMessageService.js'
+import type { providers } from 'ethers'
 
 type ChainBridgeParams = {
   chainSlug: string

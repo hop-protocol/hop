@@ -6,10 +6,10 @@ import BaseDb, {
 } from './BaseDb.js'
 // @ts-expect-error nearest-date does not have a types file as of 20231227
 import nearest from 'nearest-date'
-import { BigNumber } from 'ethers'
-import { GasCostTransactionType } from '#constants/index.js'
 import { OneHourMs, OneHourSeconds } from '@hop-protocol/hop-node-core/constants'
 import { wait } from '@hop-protocol/hop-node-core/utils'
+import type { BigNumber } from 'ethers'
+import type { GasCostTransactionType } from '#constants/index.js'
 
 const varianceSeconds = 20 * 60
 

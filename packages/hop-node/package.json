@@ -27,7 +27,7 @@
     "clean:db": "rm -rf ./db_data",
     "start": "node ./dist/cli/cli.js",
     "dev": "pnpm start",
-    "test": "pnpm build && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "build": "tsc -p ./tsconfig.json",
     "lint": "eslint ."
   },

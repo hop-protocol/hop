@@ -84,7 +84,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
-    "test": "pnpm build && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "build": "tsc -p ./tsconfig.json",
     "lint": "eslint ."
   },

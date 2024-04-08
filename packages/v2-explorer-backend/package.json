@@ -21,7 +21,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "test:db": "jest test/db.test.ts",
     "test:indexer": "jest test/indexer.test.ts",
     "start": "ts-node ./src/cli/index.ts",

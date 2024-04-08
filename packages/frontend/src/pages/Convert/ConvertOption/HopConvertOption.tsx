@@ -1,4 +1,5 @@
 import ConvertOption, { SendData } from './ConvertOption'
+import { ChainSlug } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import React, { ReactNode } from 'react'
 import { BigNumber, BigNumberish, Signer } from 'ethers'
@@ -110,13 +111,18 @@ class HopConvertOption extends ConvertOption {
     let estimatedReceived = amountIn
     let warning : any
 
-    if (estimatedReceived && totalFee?.gt(estimatedReceived)) {
-      warning = 'Bonder fee greater than estimated received'
-    }
-
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
+
+      // note: bypass liquidity check since USDC.e out of gnosis to ethereum (deprecated token route) will have to go through the 7 day exit time.
+      if (token.symbol === 'hUSDC.e' && sourceNetwork.slug === ChainSlug.Gnosis && destNetwork.slug === ChainSlug.Ethereum) {
+        warning = ''
+      }
+    }
+
+    if (estimatedReceived && totalFee?.gt(estimatedReceived)) {
+      warning = 'Bonder fee greater than estimated received'
     }
 
     if (amountIn.gte(totalFee)) {

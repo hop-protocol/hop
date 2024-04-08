@@ -299,7 +299,7 @@ export function usePools () {
                 bridge.getSaddleSwapReserves(pool.chain.slug),
                 lpToken.totalSupply(),
                 stableCoins.has(pool.token.symbol) ? Promise.resolve(1) : bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
-              ]));
+              ]))
             }
 
             if (lpBalance.gt(0)) {

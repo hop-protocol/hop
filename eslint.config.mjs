@@ -30,12 +30,10 @@ export default tseslint.config(
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/no-base-to-string': 'off',
-      'avoidEscape': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
       'camelcase': 'off',
-      'no-async-promise-executor': 'off',
       'no-unreachable-loop': 'off',
       'no-unused-vars': 'off',
-      'no-constant-condition': 'off',
 
       /**
        * Explicit warn
@@ -53,6 +51,13 @@ export default tseslint.config(
       'no-empty': ['error', { 'allowEmptyCatch': true }],
       'no-new': 'error',
       'prefer-const': ['error', { 'destructuring': 'all' }],
+      'no-constructor-return': 'error',
+      'no-self-compare': 'error',
+      'no-extra-bind': 'error',
+      'no-new-func': 'error',
+      'no-new-wrappers': 'error',
+      'no-throw-literal': 'error',
+      '@typescript-eslint/adjacent-overload-signatures': 'error',
       'n/no-new-require': 'error',
       'n/no-path-concat': 'error',
       // Note: for @typescript-eslint/return-await', you must disable the base rule as it can report incorrect errors
@@ -62,6 +67,7 @@ export default tseslint.config(
       // This rule removes the semicolon.
       // https://eslint.style/guide/why
       '@stylistic/semi': ['error', 'never', { 'beforeStatementContinuationChars': 'never'}],
+      'no-constant-condition': ['error', { 'checkLoops': false }],
 
       /**
        * Custom
@@ -73,18 +79,12 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-redundant-type-constituents': 'off',
 
       // Set to 'warn' or 'error over time as codebase is cleaned up. Possibly add options
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
-      // Could be a 'warn' but --fix does not correctly indent
-      'no-else-return': 'off',
-      // Could be a 'warn' but erroneously fixes nested items. Nesting is user error but still not worth the hassle
-      // https://github.com/eslint/eslint/issues/3400
-      'no-lonely-if': 'off',
       // Nice to have but need to clean up first
       '@typescript-eslint/no-unnecessary-condition': 'off',
       // Remove when ethers v6 is used and we do not import entire ethers paths
@@ -108,6 +108,7 @@ export default tseslint.config(
       // Remove when we have more graceful shutdown logic
       'n/no-process-exit': 'off',
     },
+    // Explicitly include all files that should be linted
     files: [
       '**/*.{ts,mts,cts,tsx}',
       'eslint.config.mjs',
@@ -117,7 +118,8 @@ export default tseslint.config(
   // Official recommendation is to have a separate object with ignores
   // https://github.com/eslint/eslint/issues/17400#issuecomment-1646543502
   {
-    // Ignore all files that are not TS except for lint and jest config
+    // Ignore all files that are not TS except for lint and jest config.
+    // This is needed since .js files are included by default.
     ignores: [
       '**/*.{js,mjs,cjs,jsx,d.ts}',
       '!eslint.config.mjs',

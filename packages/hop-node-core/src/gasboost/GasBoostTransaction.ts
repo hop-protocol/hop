@@ -740,7 +740,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
-        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice}, maxPriorityFeePerGas: ${priorityFeePerGasCap}). cannot boost`
+        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice.toString()}, maxPriorityFeePerGas: ${priorityFeePerGasCap.toString()}). cannot boost`
         this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
         this.logger.warn(warnMsg)
         this.emit(State.MaxGasPriceReached, gasFeeData.gasPrice, this.boostIndex)

@@ -2,10 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist",
-
-    // More strict and explicit settings for ESM node projects
-    "strictNullChecks": true
+    "outDir": "./dist"
   },
   "include": ["src"]
 }

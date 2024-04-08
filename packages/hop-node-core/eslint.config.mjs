@@ -25,7 +25,6 @@ export default tseslint.config(
       'unusedImports/no-unused-imports': 'error',
       '@typescript-eslint/no-redundant-type-constituents': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
 
       /**
        *  Clean up and enable

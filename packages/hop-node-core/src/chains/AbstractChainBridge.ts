@@ -21,10 +21,6 @@ export abstract class AbstractChainBridge implements IChainBridge {
   constructor (params: ChainBridgeParams) {
     const { chainSlug, chainServices } = params
 
-    // let ab = 333
-    // console.log(ab)
-    // const abc = 123
-
     if (!chainSlug) {
       throw new Error('chainSlug not set')
     }

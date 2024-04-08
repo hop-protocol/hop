@@ -3,22 +3,22 @@ import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsHub__factory } from '#contracts/factories/RailsHub__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 
-// Constructor input type
 interface RailsHubConstructorInput {
   provider?: providers.Provider
   signer?: Signer
   address?: string
 }
 
-// getTransferSentEvents and getTransferBondedEvents input type
-interface TransferEventInput {
+interface TransferSentEventInput {
   startBlock: number
   endBlock: number
 }
 
-// SendBondPostClaimInput
+interface TransferBondEventInput {
+  startBlock: number
+  endBlock: number
+}
 
-// Path struct type
 interface Path {
   pathId: string
   chainId: number
@@ -27,7 +27,6 @@ interface Path {
   counterpartChainId: number
 }
 
-// getPathId input type
 interface GetPathIdInput {
   chainId0: number
   token0: string
@@ -35,12 +34,10 @@ interface GetPathIdInput {
   token1: string
 }
 
-// getPathInfo input type
 interface GetPathInfoInput {
   pathId: string
 }
 
-// send input type
 interface SendInput {
   pathId: string
   to: string
@@ -49,7 +46,6 @@ interface SendInput {
   attestedCheckpoint: string
 }
 
-// bond input type
 interface BondInput {
   pathId: string
   checkpoint: string
@@ -61,7 +57,6 @@ interface BondInput {
   attestedCheckpoint: string
 }
 
-// postClaim input type
 interface PostClaimInput {
   pathId: string
   transferId: string
@@ -69,7 +64,6 @@ interface PostClaimInput {
   totalSent: BigNumberish
 }
 
-// getTransferId input type
 interface GetTransferIdInput {
   pathId: string
   to: string
@@ -80,20 +74,17 @@ interface GetTransferIdInput {
   attestedCheckpoint: string
 }
 
-// withdraw input type
 interface WithdrawInput {
   pathId: string
   amount: BigNumberish
   timeWindow: number
 }
 
-// withdrawAll input type
 interface WithdrawAllInput {
   pathId: string
   timeWindow: number
 }
 
-// getWithdrawableBalance input type
 interface WithdrawBalanceInput {
   pathId?: string
   path?: Path
@@ -101,25 +92,19 @@ interface WithdrawBalanceInput {
   timeWindow: number
 }
 
-// getFee input type
 interface GetFeeInput {
   pathId: string
 }
 
-// getTokenBusInfo input type
-interface GetTokenBusInfoInput {
-  tokenBusId: string
-}
-
 interface StakeHopInput {
-  role: string;
-  staker?: string; // Ethereum address format
-  amount: BigNumberish; // Can be a number, string, BigNumber, etc.
+  role: string
+  staker?: string
+  amount: BigNumberish
 }
 
 interface UnstakeHopInput {
-  role: string;
-  amount: BigNumberish; // Can be a number, string, BigNumber, etc.
+  role: string
+  amount: BigNumberish
 }
 
 interface CalcAmountOutMinInput {
@@ -139,12 +124,19 @@ export class RailsHub extends StakingRegistry {
       signer,
       address
     })
-    this.provider = provider as any
-    this.signer = signer as any
-    if (!this.provider && this.signer) {
-      this.provider = this.signer.provider as any
+    if (provider) {
+      this.provider = provider
     }
-    this.address = address as any
+    if (signer) {
+      this.signer = signer
+    }
+    if (!this.provider && this.signer?.provider) {
+      this.provider = this.signer.provider
+    }
+    if (!address) {
+      throw new Error('address is required')
+    }
+    this.address = address
   }
 
   override connect (signer: Signer) {
@@ -157,7 +149,7 @@ export class RailsHub extends StakingRegistry {
     }
   }
 
-  async getTransferSentEvents (input: TransferEventInput) {
+  async getTransferSentEvents (input: TransferSentEventInput) {
     const { startBlock, endBlock } = input
     const contract = await this.getRailsHubContract()
     const filter = contract.filters.TransferSent()
@@ -165,7 +157,7 @@ export class RailsHub extends StakingRegistry {
     return events
   }
 
-  async getTransferBondedEvents (input: TransferEventInput) {
+  async getTransferBondedEvents (input: TransferBondEventInput) {
     const { startBlock, endBlock } = input
     const contract = await this.getRailsHubContract()
     const filter = contract.filters.TransferBonded()
@@ -181,25 +173,25 @@ export class RailsHub extends StakingRegistry {
     return contract
   }
 
-  async getPathId (input: GetPathIdInput) {
+  async getPathId (input: GetPathIdInput): Promise<string> {
     const { chainId0, token0, chainId1, token1 } = input
     const contract = await this.getRailsHubContract()
     return contract.getPathId(chainId0, token0, chainId1, token1)
   }
 
-  async getPathInfo (input: GetPathInfoInput) {
+  async getPathInfo (input: GetPathInfoInput): Promise<Path> {
     const { pathId } = input
     const contract = await this.getRailsHubContract()
     return contract.getPathInfo(pathId)
   }
 
-  async getFee (input: GetFeeInput) {
+  async getFee (input: GetFeeInput): Promise<BigNumber> {
     const { pathId } = input
     const contract = await this.getRailsHubContract()
     return contract.getFee(pathId)
   }
 
-  async send (input: SendInput) {
+  async send (input: SendInput): Promise<providers.TransactionResponse> {
     const { pathId, amount } = input
     const path = await this.getPathInfo({ pathId })
     const tokenAddress = path.token
@@ -213,7 +205,7 @@ export class RailsHub extends StakingRegistry {
     return this.#send(input)
   }
 
-  async #send (input: SendInput) {
+  async #send (input: SendInput): Promise<providers.TransactionResponse> {
     const { pathId, to, amount, minAmountOut, attestedCheckpoint } = input
     const contract = await this.getRailsHubContract()
     const value = 0
@@ -222,7 +214,7 @@ export class RailsHub extends StakingRegistry {
     })
   }
 
-  async bond (input: BondInput) {
+  async bond (input: BondInput): Promise<providers.TransactionResponse> {
     const { pathId, amount } = input
 
     const path = await this.getPathInfo({ pathId })
@@ -238,19 +230,19 @@ export class RailsHub extends StakingRegistry {
     return this.#bond(input)
   }
 
-  async #bond (input: BondInput) {
+  async #bond (input: BondInput): Promise<providers.TransactionResponse> {
     const { pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
     const contract = await this.getRailsHubContract()
     return contract.bond(pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint)
   }
 
-  async postClaim (input: PostClaimInput) {
+  async postClaim (input: PostClaimInput): Promise<providers.TransactionResponse> {
     const { pathId, transferId, head, totalSent } = input
     const contract = await this.getRailsHubContract()
     return contract.postClaim(pathId, transferId, head, totalSent)
   }
 
-  async getWithdrawableBalance (input: WithdrawBalanceInput) {
+  async getWithdrawableBalance (input: WithdrawBalanceInput): Promise<BigNumber> {
     const { pathId, recipient, timeWindow } = input
     if (!pathId) {
       throw new Error('pathId not set')
@@ -259,7 +251,7 @@ export class RailsHub extends StakingRegistry {
     return this.#getWithdrawableBalance({ path, recipient, timeWindow })
   }
 
-  async #getWithdrawableBalance (input: WithdrawBalanceInput) {
+  async #getWithdrawableBalance (input: WithdrawBalanceInput): Promise<BigNumber> {
     const { path, recipient, timeWindow } = input
     if (!path) {
       throw new Error('pathInfo not set')
@@ -268,35 +260,35 @@ export class RailsHub extends StakingRegistry {
     return contract.getWithdrawableBalance(path, recipient, timeWindow)
   }
 
-  async withdrawClaim (input: WithdrawInput) {
+  async withdrawClaim (input: WithdrawInput): Promise<providers.TransactionResponse> {
     const { pathId, amount, timeWindow } = input
     const contract = await this.getRailsHubContract()
     return contract.withdraw(pathId, amount, timeWindow)
   }
 
-  async withdrawAllClaims (input: WithdrawAllInput) {
+  async withdrawAllClaims (input: WithdrawAllInput): Promise<providers.TransactionResponse> {
     const { pathId, timeWindow } = input
     const contract = await this.getRailsHubContract()
     return contract.withdrawAll(pathId, timeWindow)
   }
 
-  async getTransferId (input: GetTransferIdInput) {
+  async getTransferId (input: GetTransferIdInput): Promise<string> {
     const { pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
     const contract = await this.getRailsHubContract()
     return contract.getTransferId(pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint)
   }
 
-  async getHopTokenAddress () {
+  async getHopTokenAddress (): Promise<string> {
     const contract = await this.getRailsHubContract()
     return contract.hopToken()
   }
 
-  async getMinBonderStake () {
+  async getMinBonderStake (): Promise<BigNumber> {
     const contract = await this.getRailsHubContract()
     return contract.minBonderStake()
   }
 
-  async getHopBalance (address?: string) {
+  async getHopBalance (address?: string): Promise<BigNumber> {
     if (!address) {
       address = await this.getSignerAddress()
     }
@@ -307,13 +299,13 @@ export class RailsHub extends StakingRegistry {
     return contract.balanceOf(address)
   }
 
-  async getHopTokenContract () {
+  async getHopTokenContract (): Promise<Contract> {
     const hopTokenAddress = await this.getHopTokenAddress()
     const contract = ERC20__factory.connect(hopTokenAddress, this.provider)
     return contract
   }
 
-  async stakeHop (input: StakeHopInput) {
+  async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {
     let { role, staker, amount } = input
     if (!staker) {
       staker = await this.getSignerAddress()
@@ -337,9 +329,12 @@ export class RailsHub extends StakingRegistry {
     return this._stakeHop({ role, staker, amount })
   }
 
-  async unstakeHop (input: UnstakeHopInput) {
+  async unstakeHop (input: UnstakeHopInput): Promise<providers.TransactionResponse> {
     const { role, amount } = input
-    const staker = await this.getSignerAddress() as any
+    const staker = await this.getSignerAddress()
+    if (!staker) {
+      throw new Error('Staker address not set')
+    }
     const balance = await this.getWithdrawableStakeBalance({ role, staker })
 
     if (balance.lt(amount)) {

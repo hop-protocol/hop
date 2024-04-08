@@ -3,7 +3,6 @@ import stylistic from '@stylistic/eslint-plugin'
 import tseslint from 'typescript-eslint'
 
 import nodePlugin from 'eslint-plugin-n'
-import sortImports from 'eslint-plugin-sort-imports-es6-autofix'
 import unusedImports from 'eslint-plugin-unused-imports'
 
 export default tseslint.config(
@@ -15,12 +14,11 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         project: ['./tsconfig.eslint.json', './packages/*/tsconfig.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
+        tsconfigRootDir: import.meta.dirname
+      }
     },
     plugins: {
       unusedImports,
-      sortImports,
       '@stylistic': stylistic
     },
     rules: {
@@ -44,11 +42,6 @@ export default tseslint.config(
        */
       // Can be removed if verbatimModuleSyntax is set for all packages
       'unusedImports/no-unused-imports': 'warn',
-      'sortImports/sort-imports-es6': ['warn', {
-        ignoreCase: false,
-        ignoreMemberSort: false,
-        memberSyntaxSortOrder: ['none', 'single', 'multiple', 'all']
-      }],
 
       /**
        * Explicit error
@@ -115,10 +108,20 @@ export default tseslint.config(
       // Remove when we have more graceful shutdown logic
       'n/no-process-exit': 'off',
     },
+    files: [
+      '**/*.{ts,mts,cts,tsx}',
+      'eslint.config.mjs',
+      'jest.config.mjs'
+    ]
+  },
+  // Official recommendation is to have a separate object with ignores
+  // https://github.com/eslint/eslint/issues/17400#issuecomment-1646543502
+  {
+    // Ignore all files that are not TS except for lint and jest config
     ignores: [
-      'node_modules/**',
-      'build/**',
-      'dist/**'
+      '**/*.{js,mjs,cjs,jsx,d.ts}',
+      '!eslint.config.mjs',
+      '!jest.config.mjs'
     ]
   }
 )

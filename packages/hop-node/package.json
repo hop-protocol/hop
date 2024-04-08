@@ -25,7 +25,8 @@
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf ./db_data",
-    "start": "node ./dist/cli/cli.js",
+    "start": "tsx ./src/cli/cli.ts",
+    "watch": "tsc --watch",
     "dev": "pnpm start",
     "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "build": "tsc -p ./tsconfig.json",
@@ -60,6 +61,7 @@
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.4.2",
     "@types/pidusage": "2.0.5",
-    "@types/subleveldown": "4.1.4"
+    "@types/subleveldown": "4.1.4",
+    "tsx": "4.7.2"
   }
 }

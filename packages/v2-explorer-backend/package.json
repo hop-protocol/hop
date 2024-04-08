@@ -24,7 +24,8 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "test:db": "jest test/db.test.ts",
     "test:indexer": "jest test/indexer.test.ts",
-    "start": "ts-node ./src/cli/index.ts",
+    "start": "tsx ./src/cli/index.ts",
+    "watch": "tsc --watch",
     "dev": "pnpm start",
     "start:worker": "node ./dist/cli worker --server",
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
@@ -62,6 +63,6 @@
     "@types/subleveldown": "4.1.0",
     "@types/supertest": "2.0.15",
     "@types/uuid": "9.0.6",
-    "ts-node": "10.9.2"
+    "tsx": "4.7.2"
   }
 }

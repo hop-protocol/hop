@@ -9,15 +9,16 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
-    "start": "ts-node src/index.ts",
-    "start:yields": "ts-node src/index.ts --yields",
-    "start:prices": "ts-node src/index.ts --prices",
-    "start:volume": "ts-node src/index.ts --volume",
-    "start:tvl": "ts-node src/index.ts --tvl",
-    "start:amm": "ts-node src/index.ts --amm --ammDays=7",
-    "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
-    "start:bonder:migration": "ts-node src/index.ts --bonder --bonderDays=30 --migrations=[19]",
-    "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
+    "start": "tsx src/index.ts",
+    "start:yields": "tsx src/index.ts --yields",
+    "start:prices": "tsx src/index.ts --prices",
+    "start:volume": "tsx src/index.ts --volume",
+    "start:tvl": "tsx src/index.ts --tvl",
+    "start:amm": "tsx src/index.ts --amm --ammDays=7",
+    "start:bonder": "tsx src/index.ts --bonder --bonderDays=30",
+    "start:bonder:migration": "tsx src/index.ts --bonder --bonderDays=30 --migrations=[19]",
+    "start:bonderProfit": "tsx src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
+    "watch": "tsc --watch",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "eslint . --fix",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
@@ -45,7 +46,7 @@
     "@types/minimist": "1.2.5",
     "@types/sqlite3": "3.1.11",
     "@types/uuid": "8.3.3",
-    "ts-node": "10.9.2"
+    "tsx": "4.7.2"
   },
   "//": "Required for pnpm deploy command in Dockerfile",
   "files": [

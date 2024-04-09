@@ -1,6 +1,8 @@
 {
   "name": "@hop-protocol/v2-explorer-frontend",
   "version": "0.0.0",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "dependencies": {

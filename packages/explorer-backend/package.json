@@ -16,8 +16,9 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "private": true,
   "devDependencies": {
     "@types/cors": "2.8.13",
     "@types/express": "4.17.13",

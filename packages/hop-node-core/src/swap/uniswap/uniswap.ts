@@ -73,7 +73,6 @@ async function getPool (poolContract: Contract) {
     immutables.token0,
     poolContract.provider
   )
-
   const token1 = getToken(
     immutables.token1,
     poolContract.provider
@@ -113,7 +112,6 @@ async function getPool (poolContract: Contract) {
       }
     ]
   )
-
   return pool
 }
 
@@ -177,6 +175,7 @@ const addresses: any = {
   }
 }
 
+// eslint-disable-next-line max-lines-per-function
 export async function swap (config: SwapInput) {
   let { chain, fromToken, toToken, amount, max, slippage, recipient, deadline, dryMode } = config
 

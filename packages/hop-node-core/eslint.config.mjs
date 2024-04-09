@@ -74,10 +74,11 @@ export default tseslint.config(
       // Complexity rules
       'complexity': 'error',
       'max-depth': 'error',
-      // 'max-params': 'error',
       'max-statements-per-line': 'error',
       'max-nested-callbacks': 'error',
-      // 'max-lines': 'error',
+      'max-lines-per-function': 'error',
+      'max-statements': 'error',
+
 
       // Other rules
       // '@typescript-eslint/strict-boolean-expressions': 'error',

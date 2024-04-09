@@ -768,23 +768,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
 
-        const payload: providers.TransactionRequest = {
-          type: this.type,
-          to: this.to,
-          data: this.data,
-          value: this.value,
-          nonce: this.nonce,
-          gasLimit: this.gasLimit,
-          chainId: this.chainId
-        }
-
-        if (gasFeeData.gasPrice != null) {
-          payload.gasPrice = gasFeeData.gasPrice
-        } else {
-          payload.maxFeePerGas = gasFeeData.maxFeePerGas
-          payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
-        }
-
+        const payload: providers.TransactionRequest = this.#getSendTxRequest(gasFeeData)
         if (i === 1) {
           let shouldCheck = true
           if (enoughFundsCheckCache[this.chainSlug]) {
@@ -815,38 +799,64 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
         }
       } catch (err: any) {
         this.logger.debug(`tx index ${i} error: ${err.message}`)
-
-        const {
-          nonceTooLow,
-          estimateGasFailed,
-          isAlreadyKnown,
-          isFeeTooLow,
-          serverError,
-          kmsSignerError
-        } = this.parseErrorString(err.message)
-
-        // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
-        if (nonceTooLow) {
-          this.logger.error(`nonce ${this.nonce} too low`)
-          throw new NonceTooLowError('NonceTooLow')
-        } else if (estimateGasFailed && !serverError) {
-          this.logger.error('estimateGas failed')
-          throw new EstimateGasError('EstimateGasError')
-        }
-
-        if (kmsSignerError) {
-          throw new KmsSignerError('KmsSignerError')
-        }
-
-        const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
-        if (shouldRetry) {
-          continue
-        }
-        if (estimateGasFailed) {
-          throw new EstimateGasError('EstimateGasError')
-        }
+        const { shouldRetry } = this.#handleSendTxError(err)
+        if (shouldRetry) continue
         throw err
       }
+    }
+  }
+
+  #getSendTxRequest (gasFeeData: Partial<GasFeeData>): providers.TransactionRequest {
+    const payload: providers.TransactionRequest = {
+      type: this.type,
+      to: this.to,
+      data: this.data,
+      value: this.value,
+      nonce: this.nonce,
+      gasLimit: this.gasLimit,
+      chainId: this.chainId
+    }
+
+    if (gasFeeData.gasPrice != null) {
+      payload.gasPrice = gasFeeData.gasPrice
+    } else {
+      payload.maxFeePerGas = gasFeeData.maxFeePerGas
+      payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
+    }
+    return payload
+  }
+
+  #handleSendTxError (err: Error): any {
+    const {
+      nonceTooLow,
+      estimateGasFailed,
+      isAlreadyKnown,
+      isFeeTooLow,
+      serverError,
+      kmsSignerError
+    } = this.parseErrorString(err.message)
+
+    // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
+    if (nonceTooLow) {
+      this.logger.error(`nonce ${this.nonce} too low`)
+      throw new NonceTooLowError('NonceTooLow')
+    } else if (estimateGasFailed && !serverError) {
+      this.logger.error('estimateGas failed')
+      throw new EstimateGasError('EstimateGasError')
+    }
+
+    if (kmsSignerError) {
+      throw new KmsSignerError('KmsSignerError')
+    }
+
+    const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
+    if (shouldRetry) {
+      return {
+        shouldRetry: true
+      }
+    }
+    if (estimateGasFailed) {
+      throw new EstimateGasError('EstimateGasError')
     }
   }
 

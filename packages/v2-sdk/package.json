@@ -105,6 +105,10 @@
       "import": "./dist/esm/contracts/*.js",
       "require": "./dist/cjs/contracts/*.js"
     },
+    "./common": {
+      "import": "./dist/esm/common/index.js",
+      "require": "./dist/cjs/common/index.js"
+    },
     "./metadata": {
       "import": "./dist/esm/metadata/index.js",
       "require": "./dist/cjs/metadata/index.js"

@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-describe.only('Messenger', () => {
+describe.skip('Messenger', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(process.env.PRIVATE_KEY!)

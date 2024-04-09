@@ -66,6 +66,11 @@ export type ExitBundleInput = {
   signer: Signer
 }
 
+export type RouteData = {
+  messageFee: BigNumber
+  maxBundleMessages: number
+}
+
 type GetIsL2TxHashExitedInput = {
   fromChainId: number
   transactionHash: string
@@ -215,6 +220,15 @@ export type GetRelayFeeInput = {
   toChainId: number,
   toAddress: string,
   toCalldata: string
+}
+
+export type RelayMessageData = {
+  fromChainId: number
+  toAddress: string
+  fromAddress: string
+  toCalldata: string
+  toChainId: number
+  bundleProof: BundleProof
 }
 
 export class Messenger {
@@ -579,7 +593,7 @@ export class Messenger {
     return tx
   }
 
-  async getIsL2TxHashExited (input: GetIsL2TxHashExitedInput): Promise<any> {
+  async getIsL2TxHashExited (input: GetIsL2TxHashExitedInput): Promise<boolean> {
     const { fromChainId, transactionHash } = input
 
     const l1Provider = this.getRpcProvider(this.l1ChainId)
@@ -595,7 +609,7 @@ export class Messenger {
     return exitRelayer.getIsL2TxHashExited(transactionHash)
   }
 
-  async getSendMessagePopulatedTx (input: GetSendMessagePopulatedTxInput): Promise<any> {
+  async getSendMessagePopulatedTx (input: GetSendMessagePopulatedTxInput): Promise<providers.TransactionRequest> {
     let { fromChainId, toChainId, toAddress, toCalldata = '0x' } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -637,7 +651,7 @@ export class Messenger {
     return 12
   }
 
-  async getRouteData (input: GetRouteDataInput) {
+  async getRouteData (input: GetRouteDataInput): Promise<RouteData> {
     const { fromChainId, toChainId } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -659,7 +673,7 @@ export class Messenger {
     }
   }
 
-  async getMessageFee (input: GetMessageFeeInput) {
+  async getMessageFee (input: GetMessageFeeInput): Promise<BigNumber> {
     const { fromChainId, toChainId } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -674,7 +688,7 @@ export class Messenger {
     return routeData.messageFee
   }
 
-  async getMaxBundleMessageCount (input: GetMaxBundleMessageCountInput) {
+  async getMaxBundleMessageCount (input: GetMaxBundleMessageCountInput): Promise<number> {
     const { fromChainId, toChainId } = input
     if (fromChainId === toChainId) {
       throw new Error('fromChainId and toChainId must be different')
@@ -683,7 +697,7 @@ export class Messenger {
     return routeData.maxBundleMessages
   }
 
-  async getIsBundleSet (input: GetIsBundleSetInput) {
+  async getIsBundleSet (input: GetIsBundleSetInput): Promise<boolean> {
     const { fromChainId, toChainId, bundleId } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -708,7 +722,7 @@ export class Messenger {
     return BigNumber.from(entity.root).gt(0) && Number(entity.fromChainId.toString()) === fromChainId
   }
 
-  async getMessageSentEventFromTransactionReceipt (input: GetMessageSentEventFromTransactionReceiptInput) {
+  async getMessageSentEventFromTransactionReceipt (input: GetMessageSentEventFromTransactionReceiptInput): Promise<MessageSent | null> {
     const { fromChainId, receipt } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -732,7 +746,7 @@ export class Messenger {
     return null
   }
 
-  async getMessageSentEventFromTransactionHash (input: GetMessageSentEventFromTransactionHashInput) {
+  async getMessageSentEventFromTransactionHash (input: GetMessageSentEventFromTransactionHashInput): Promise<MessageSent | null> {
     const { fromChainId, transactionHash } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -768,7 +782,7 @@ export class Messenger {
     return events?.[0] ?? null
   }
 
-  async getMessageSentEventFromMessageId (input: GetMessageSentEventFromMessageIdInput) {
+  async getMessageSentEventFromMessageId (input: GetMessageSentEventFromMessageIdInput): Promise<MessageSent> {
     const { fromChainId, messageId } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -798,7 +812,7 @@ export class Messenger {
   }
 
   // note: this is broken because messageId is not indexed in event
-  async getMessageExecutedEventFromMessageId (input: GetMessageExecutedEventFromMessageIdInput) {
+  async getMessageExecutedEventFromMessageId (input: GetMessageExecutedEventFromMessageIdInput): Promise<MessageExecuted | null>{
     const { fromChainId, toChainId, messageId } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -827,7 +841,7 @@ export class Messenger {
     return events?.[0] ?? null
   }
 
-  async getMessageBundledEventFromTransactionHash (input: GetMessageBundledEventFromTransactionHashInput) {
+  async getMessageBundledEventFromTransactionHash (input: GetMessageBundledEventFromTransactionHashInput): Promise<MessageBundled | null> {
     const { fromChainId, transactionHash } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -852,7 +866,7 @@ export class Messenger {
     return null
   }
 
-  async getMessageIdFromTransactionHash (input: GetMessageIdFromTransactionHashInput) {
+  async getMessageIdFromTransactionHash (input: GetMessageIdFromTransactionHashInput): Promise<string> {
     const { fromChainId, transactionHash } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -1016,7 +1030,7 @@ export class Messenger {
     }
   }
 
-  async getRelayMessageDataFromTransactionHash (input: GetRelayMessageDataFromTransactionHashInput) {
+  async getRelayMessageDataFromTransactionHash (input: GetRelayMessageDataFromTransactionHashInput): Promise<RelayMessageData> {
     const { fromChainId, transactionHash } = input
 
     const event = await this.getMessageSentEventFromTransactionHash({ fromChainId, transactionHash }) as any
@@ -1036,7 +1050,7 @@ export class Messenger {
     }
   }
 
-  async getRelayMessagePopulatedTx (input: GetRelayMessagePopulatedTxInput) {
+  async getRelayMessagePopulatedTx (input: GetRelayMessagePopulatedTxInput): Promise<providers.TransactionRequest> {
     const { fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof } = input
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -1105,7 +1119,7 @@ export class Messenger {
     return !!event
   }
 
-  async getRelayFee (input: GetRelayFeeInput) {
+  async getRelayFee (input: GetRelayFeeInput): Promise<BigNumber> {
     const {
       fromChainId,
       toChainId,
@@ -1120,7 +1134,7 @@ export class Messenger {
       toCalldata
     })
     const timestamp: any = undefined
-    const txData = populatedTx.data
+    const txData = (populatedTx.data ?? '0x').toString()
     const chain = this.getChainSlug(toChainId)
     const provider = this.getRpcProvider(toChainId)
     const gasLimit = await provider.estimateGas(populatedTx)

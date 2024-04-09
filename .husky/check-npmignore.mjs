@@ -23,7 +23,6 @@ exec('git diff --cached --name-only', (error, stdout, stderr) => {
   }
 
   const stagedFiles = stdout.split('\n')
-  console.log(stagedFiles)
   for (const stagedFile of stagedFiles) {
     if (stagedFile.includes('.npmignore')) {
       console.error('You are trying to commit .npmignore. Please reconsider if this is necessary.')

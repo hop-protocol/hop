@@ -1,6 +1,6 @@
-import '../../utils/loadEnvFile'
-import fs from 'fs'
-import path from 'path'
+import '#utils/loadEnvFile.js'
+import fs from 'node:fs'
+import path from 'node:path'
 import { Command } from 'commander'
 
 export const program = new Command()

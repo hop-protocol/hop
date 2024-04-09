@@ -18,7 +18,7 @@ import {
   txReducer,
 } from 'src/utils/transactions'
 import { TToken } from '@hop-protocol/sdk'
-import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { type TransactionResponse } from '@ethersproject/abstract-provider'
 import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getAllProviders } from 'src/utils/getProvider'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
@@ -27,7 +27,6 @@ import { getTokenByAddress } from 'src/utils/tokens'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useReducer, useState } from 'react'
 
-// TODO: use typechain
 export const methodToSigHashes = {
   // HopBridgeToken
   approve: '0x095ea7b3',

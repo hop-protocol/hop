@@ -1,4 +1,4 @@
-import { Controller } from '../src/controller'
+import { Controller } from '#controller/index.js'
 
 // note: this requires worker to have indexed events
 

@@ -186,7 +186,7 @@ describe.skip('WithdrawalProof', () => {
     const transferId = '0xbc24dd151ced6ad0d725c753b513a2164e669868faeebea8224dd0b92e751df7'
     const wp = new WithdrawalProof('mainnet', transferId)
     await wp.generateProof()
-    await wp.checkWithdrawable()
+    wp.checkWithdrawable()
     console.log(wp.transfer)
     expect(wp.transfer).toBeTruthy()
   }, 10 * 1000)

@@ -4,7 +4,7 @@ import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
 import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
 import getTransferRootSet from '#theGraph/getTransferRootSet.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
-import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
+import { BigNumber, utils as ethersUtils } from 'ethers'
 import {
   Chain,
   Token
@@ -18,6 +18,7 @@ import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
+import type { Contract, providers } from 'ethers'
 
 import { getRecentUnrelayedL1ToL2Transfers } from './shared/utils.js'
 

@@ -1,13 +1,13 @@
-import { Chain } from '#constants/index.js'
 import { FinalityStrategies } from './strategies/index.js'
 import {
   FinalityStrategyType,
-  IFinalityStrategy,
-  Strategies,
-  Strategy
+  type IFinalityStrategy,
+  type Strategies,
+  type Strategy
 } from './strategies/IFinalityStrategy.js'
-import { IFinalityService } from './IFinalityService.js'
-import { providers } from 'ethers'
+import type { Chain } from '#constants/index.js'
+import type { IFinalityService } from './IFinalityService.js'
+import type { providers } from 'ethers'
 
 export class FinalityService implements IFinalityService {
   private readonly strategy: IFinalityStrategy

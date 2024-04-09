@@ -1,4 +1,4 @@
-import { AwsSigner, AwsSignerConfig } from './AwsSigner.js'
+import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
 import {
   arrayify,
@@ -8,13 +8,13 @@ import {
   serializeTransaction
 } from 'ethers/lib/utils.js'
 import { awsAccessKeyId, awsSecretAccessKey } from '#config/index.js'
-import { providers } from 'ethers'
+import type { providers } from 'ethers'
 
 type KmsSignerConfig = AwsSignerConfig
 
 export class KmsSigner extends AwsSigner {
-  config: KmsSignerConfig
-  address: string
+  config!: KmsSignerConfig
+  address!: string
   client: KMSClient
 
   constructor (config: KmsSignerConfig, provider?: providers.Provider) {

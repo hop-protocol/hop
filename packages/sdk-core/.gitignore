@@ -16,7 +16,6 @@ docs-ui
 test/_*
 
 /core
-/abi
 /addresses
 /metadata
 /networks
@@ -27,4 +26,3 @@ test/_*
 /index.d.ts
 /version.d.ts
 /contracts
-src/contracts/

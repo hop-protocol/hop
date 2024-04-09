@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { app } from '../src/server'
+import { app } from '#server/index.js'
 
 describe('Server', () => {
   it('/v1/explorer', async () => {

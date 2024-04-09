@@ -1,6 +1,6 @@
-import { ConnectionInfo } from '@ethersproject/web'
 import { Provider } from '../provider/index.js'
-import { providers } from 'ethers'
+import type { ConnectionInfo } from '@ethersproject/web'
+import type { providers } from 'ethers'
 
 const cache: Record<string, providers.Provider> = {}
 
@@ -8,8 +8,9 @@ export const getRpcProviderFromUrl = (
   rpcUrl: string
 ): providers.Provider => {
   const cacheKey = rpcUrl
-  if (cache[cacheKey]) {
-    return cache[cacheKey]
+  const cachedValue = cache[cacheKey]
+  if (cachedValue) {
+    return cachedValue
   }
   const options: ConnectionInfo = {
     url: rpcUrl,

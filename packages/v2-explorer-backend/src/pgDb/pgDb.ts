@@ -1,14 +1,14 @@
 import minimist from 'minimist'
 import pgp from 'pg-promise'
-import { BundleCommitted } from './events/BundleCommitted'
-import { BundleForwarded } from './events/BundleForwarded'
-import { BundleReceived } from './events/BundleReceived'
-import { BundleSet } from './events/BundleSet'
-import { FeesSentToHub } from './events/FeesSentToHub'
-import { MessageBundled } from './events/MessageBundled'
-import { MessageExecuted } from './events/MessageExecuted'
-import { MessageSent } from './events/MessageSent'
-import { postgresConfig } from '../config'
+import { BundleCommitted } from './events/BundleCommitted.js'
+import { BundleForwarded } from './events/BundleForwarded.js'
+import { BundleReceived } from './events/BundleReceived.js'
+import { BundleSet } from './events/BundleSet.js'
+import { FeesSentToHub } from './events/FeesSentToHub.js'
+import { MessageBundled } from './events/MessageBundled.js'
+import { MessageExecuted } from './events/MessageExecuted.js'
+import { MessageSent } from './events/MessageSent.js'
+import { postgresConfig } from '#config/index.js'
 
 const argv = minimist(process.argv.slice(2))
 

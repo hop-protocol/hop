@@ -1,7 +1,7 @@
 import wallets from '#wallets/index.js'
 import { AbstractService } from '../Services/AbstractService.js'
 import { Chain } from '#constants/index.js'
-import { Signer, providers } from 'ethers'
+import type { Signer, providers } from 'ethers'
 
 export class MessageUnknownError extends Error {}
 export class MessageInFlightError extends Error {}

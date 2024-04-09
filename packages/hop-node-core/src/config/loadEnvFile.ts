@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import dotenv, { type DotenvConfigOptions } from 'dotenv'
 import fs from 'node:fs'
 import minimist from 'minimist'

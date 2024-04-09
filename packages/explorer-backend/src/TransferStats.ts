@@ -770,7 +770,7 @@ export class TransferStats {
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
     }
     for (const [i, chain] of enabledChains.entries()) {
       events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
@@ -790,7 +790,7 @@ export class TransferStats {
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Bonds`] = enabledChainBonds[i];
+      events[`${chain}Bonds`] = enabledChainBonds[i]
     }
 
     for (const [i, chain] of enabledChains.entries()) {
@@ -911,7 +911,7 @@ export class TransferStats {
 
     const bondedWithdrawals :any = {}
     for (const [i, chain] of fetchBondedWithdrawalsChains.entries()) {
-      bondedWithdrawals[chain] = enabledChainBondedWithdrawals[i];
+      bondedWithdrawals[chain] = enabledChainBondedWithdrawals[i]
     }
 
     console.log('querying fetchWithdrews')
@@ -925,7 +925,7 @@ export class TransferStats {
 
     const withdrews :any = {}
     for (const [i, chain] of fetchWithdrewsChains.entries()) {
-      withdrews[chain] = enabledChainWithdrews[i];
+      withdrews[chain] = enabledChainWithdrews[i]
     }
 
     console.log('querying fetchTransferFromL1Completeds with startTime', startTime, 'endTime', endTime, (endTime-startTime)/60)
@@ -939,7 +939,7 @@ export class TransferStats {
 
     const fromL1CompletedsMap :any = {}
     for (const [i, chain] of fetchFromL1CompletedsChains.entries()) {
-      fromL1CompletedsMap[chain] = enabledChainFromL1Completeds[i];
+      fromL1CompletedsMap[chain] = enabledChainFromL1Completeds[i]
     }
 
     const bondsMap :any = {}
@@ -958,7 +958,7 @@ export class TransferStats {
 
     const messageReceiveds :any = {}
     for (const [i, chain] of fetchMessageReceivedsChains.entries()) {
-      messageReceiveds[chain] = enabledMessageReceiveds[i];
+      messageReceiveds[chain] = enabledMessageReceiveds[i]
     }
 
     for (const x of data) {
@@ -1255,7 +1255,7 @@ export class TransferStats {
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
     }
 
     for (const [i, chain] of enabledChains.entries()) {

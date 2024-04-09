@@ -87,6 +87,12 @@ The ABI file should be a simple JSON file with only the contract ABI ([example](
 npm i -g typechain@8.1.0 && npm i -g @typechain/ethers-v5@10.1.0
 typechain --target=ethers-v5 --out-dir=<OUT_DIR> <ABI_FILE>.json
 
+# Update imports at <OUT_DIR>/<CONTRACT>.ts. Add `.js` to the `from "./common"` import
+from "./common.js"
+
+# Update imports at <OUT_DIR>/factories/<CONTRACT>__factory.ts. Add `.js` to the `from "./<CONTRACT>"` import
+from "../<CONTRACT>.js"
+
 # Move relevant files
 mv <OUT_DIR>/<CONTRACT>.ts <SDK_DIR>/src/contracts/
 mv <OUT_DIR>/factories/<CONTRACT>__factory.ts <SDK_DIR>/src/contracts/factories

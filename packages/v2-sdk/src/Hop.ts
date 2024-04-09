@@ -23,7 +23,7 @@ import { TransferBondedEventFetcher } from '#railsHub/events/TransferBonded.js'
 import { TransferSentEventFetcher } from '#railsHub/events/TransferSent.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { getProvider } from '#utils/getProvider.js'
-import { goerliAddresses } from '#addresses/index.js'
+import { addresses } from '#addresses/index.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
 
 const cache : Record<string, any> = {}
@@ -59,10 +59,7 @@ export class Hop {
   eventFetcher: EventFetcher
   network: string
   batchBlocks?: number
-  contractAddresses: Record<string, any> = {
-    mainnet: {},
-    goerli: goerliAddresses
-  }
+  contractAddresses: Record<string, any> = addresses
 
   providers: Record<string, any> = {}
   l1ChainId : number

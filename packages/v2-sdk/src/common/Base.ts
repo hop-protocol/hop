@@ -19,7 +19,7 @@ export class Base {
   signer: Signer
   gasPriceMultiplier: number = 0
 
-  public chainProviders: ChainProviders = {}
+  chainProviders: ChainProviders = {}
 
   constructor (config: BaseConfig) {
     if (!config.network) {
@@ -88,7 +88,7 @@ export class Base {
     }
   }
 
-  public getProviderForChainId (chainId: BigNumberish): Provider {
+  getProviderForChainId (chainId: BigNumberish): Provider {
     chainId = chainId.toString()
     if (!this.chainProviders[chainId]) {
       throw new Error(`provider not set for chain "${chainId}"`)
@@ -113,12 +113,12 @@ export class Base {
     return code !== '0x'
   }
 
-  public async getBumpedGasPrice (provider: Provider, percent: number): Promise<BigNumber> {
+  async getBumpedGasPrice (provider: Provider, percent: number): Promise<BigNumber> {
     const gasPrice = await this.getGasPrice(provider)
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
-  public async getSignerOrProvider (
+  async getSignerOrProvider (
     chainId: BigNumberish,
     signer: Signer = this.signer
   ): Promise<Signer | Provider> {
@@ -149,7 +149,7 @@ export class Base {
     }
   }
 
-  public async txOverrides (sourceChainId: BigNumberish, destinationChainId: BigNumberish): Promise<any> {
+  async txOverrides (sourceChainId: BigNumberish, destinationChainId: BigNumberish): Promise<any> {
     sourceChainId = sourceChainId.toString()
     destinationChainId = destinationChainId.toString()
     const txOptions: any = {}

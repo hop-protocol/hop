@@ -10,10 +10,10 @@ describe.skip('Messenger', () => {
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(process.env.PRIVATE_KEY!)
   const address = '0xTODO'
-  const messenger = new Messenger()
+  const messenger = new Messenger({ network: 'goerli' })
   it.skip('TODO should get rpc provider', async () => {
     const chainId = 1
-    const provider = messenger.getRpcProvider(chainId)
+    const provider = messenger.getProviderForChainId(chainId)
     expect(provider).toBeDefined()
   })
   it.skip('TODO should get spokeMessageBridge contract address', async () => {

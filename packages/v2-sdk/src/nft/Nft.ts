@@ -4,7 +4,7 @@ import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/Conf
 import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
 import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
 import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
-import { goerliAddresses } from '#addresses/index.js'
+import { addresses } from '#addresses/index.js'
 
 export type GetEventsInput = {
   chainId: number
@@ -101,10 +101,7 @@ export type GetNftConfirmPopulatedTxInput = {
 export class Nft {
   network: string
   batchBlocks?: number = 1000
-  contractAddresses: Record<string, any> = {
-    mainnet: {},
-    goerli: goerliAddresses
-  }
+  contractAddresses: Record<string, any> = addresses
 
   constructor (network: string = 'goerli') {
     this.network = network

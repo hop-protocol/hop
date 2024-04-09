@@ -205,8 +205,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      'src': path.resolve(__dirname, './src'),
-      'stream': 'stream-browserify',
+      'src': path.resolve(__dirname, './src')
     },
   },
 })

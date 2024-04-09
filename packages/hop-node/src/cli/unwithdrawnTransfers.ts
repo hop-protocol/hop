@@ -1,6 +1,6 @@
 import getTransferRootSet from '#theGraph/getTransferRootSet.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { Chain, OneHourSeconds } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import {
@@ -8,7 +8,7 @@ import {
   parseString,
   root
 } from './shared/index.js'
-import { bridgeAbi } from '@hop-protocol/sdk/abi'
+import { Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
@@ -63,7 +63,7 @@ export async function main (source: any) {
   )
 
   const provider = getRpcProvider(destinationChain)!
-  const contract = new Contract(bridgeAddress, bridgeAbi, provider)
+  const contract = Bridge__factory.connect(bridgeAddress, provider)
   let amountUnwithdrawnTotal: BigNumber = BigNumber.from('0')
   for (const transferRootToChain of transferRootsToChain) {
     const rootHash = transferRootToChain.rootHash

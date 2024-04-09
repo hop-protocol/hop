@@ -6,7 +6,7 @@ import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-c
 import { Logger } from '#logger/index.js'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
 import type { SwapInput } from '../types.js'
@@ -116,11 +116,7 @@ async function getPool (poolContract: Contract) {
 }
 
 function getToken (address: string, provider: any) {
-  return new Contract(
-    address,
-    erc20Abi,
-    provider
-  )
+  return ERC20__factory.connect(address, provider)
 }
 
 const addresses: any = {

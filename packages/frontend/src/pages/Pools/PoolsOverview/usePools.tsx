@@ -3,13 +3,12 @@ import { Multicall } from '@hop-protocol/sdk'
 import { addresses, hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { checkIsPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { commafy, toPercentDisplay } from 'src/utils'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { findNetworkBySlug } from 'src/utils/networks'
 import { formatTokenDecimalString } from 'src/utils/format'
 import { formatUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { stableCoins } from 'src/utils/constants'
-import { stakingRewardsAbi } from '@hop-protocol/sdk/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useState } from 'react'
 import { usePoolStats } from 'src/pages/Pools/usePoolStats'
@@ -234,7 +233,7 @@ export function usePools () {
 
             const balancesOpts: any = []
             balancesOpts.push({
-              abi: erc20Abi,
+              abi: ERC20__factory.abi,
               method: 'balanceOf',
               address: lpTokenAddress,
               tokenSymbol,
@@ -243,13 +242,13 @@ export function usePools () {
             if (stakingContractAddress) {
               const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'balanceOf',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
               })
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'earned',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
@@ -257,13 +256,13 @@ export function usePools () {
             }
             if (hopStakingContractAddress) {
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'balanceOf',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'
               })
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'earned',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'

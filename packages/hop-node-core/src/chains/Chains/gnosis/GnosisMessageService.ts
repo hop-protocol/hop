@@ -1,10 +1,9 @@
 import assert from 'node:assert'
 import { AbstractMessageService, type IMessageService } from '../../Services/AbstractMessageService.js'
 import { Chain } from '#constants/index.js'
-import { Contract } from 'ethers'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import { GnosisAddresses, type GnosisCanonicalAddresses } from '../../Chains/gnosis/GnosisAddresses.js'
-import { l1xDaiAmbAbi, l2xDaiAmbAbi } from '@hop-protocol/sdk/abi'
+import { L1_xDaiAMB__factory, L2_xDaiAMB__factory } from '@hop-protocol/sdk/contracts'
 import { solidityKeccak256 } from 'ethers/lib/utils.js'
 import type { L1_xDaiAMB } from '@hop-protocol/sdk/contracts'
 import type { L2_xDaiAMB } from '@hop-protocol/sdk/contracts'
@@ -32,8 +31,8 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
 
     const l1AmbAddress = gnosisAddresses.l1AmbAddress
     const l2AmbAddress = gnosisAddresses.l2AmbAddress
-    this.#l1Amb = new Contract(l1AmbAddress, l1xDaiAmbAbi, this.l1Wallet) as L1_xDaiAMB
-    this.#l2Amb = new Contract(l2AmbAddress, l2xDaiAmbAbi, this.l2Wallet) as L2_xDaiAMB
+    this.#l1Amb = L1_xDaiAMB__factory.connect(l1AmbAddress, this.l1Wallet) as L1_xDaiAMB
+    this.#l2Amb = L2_xDaiAMB__factory.connect(l2AmbAddress, this.l2Wallet) as L2_xDaiAMB
   }
 
   override async relayL1ToL2Message (l1TxHash: string): Promise<providers.TransactionResponse> {

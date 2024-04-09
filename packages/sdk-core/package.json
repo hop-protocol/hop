@@ -40,10 +40,6 @@
       "import": "./dist/esm/utils/index.js",
       "require": "./dist/cjs/utils/index.js"
     },
-    "./abi": {
-      "import": "./dist/esm/abi/index.js",
-      "require": "./dist/cjs/abi/index.js"
-    },
     "./addresses": {
       "import": "./dist/esm/addresses/index.js",
       "require": "./dist/cjs/addresses/index.js"

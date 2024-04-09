@@ -4,13 +4,12 @@ import L2Amm from './L2Amm.js'
 import L2AmmWrapper from './L2AmmWrapper.js'
 import Token from './Token.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { Contract } from 'ethers'
 import { Hop } from '@hop-protocol/sdk'
 import {
-  erc20Abi,
-  l2AmmWrapperAbi,
-  swapAbi as saddleSwapAbi
-} from '@hop-protocol/sdk/abi'
+  ERC20__factory,
+  L2_AmmWrapper__factory,
+  Swap__factory
+} from '@hop-protocol/sdk/contracts'
 import { config as globalConfig } from '#config/index.js'
 import type { BigNumber, providers } from 'ethers'
 import type { ERC20 } from '@hop-protocol/sdk/contracts'
@@ -34,18 +33,16 @@ export default class L2Bridge extends Bridge {
 
     const addresses = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]
     if (addresses?.l2AmmWrapper) {
-      const ammWrapperContract = new Contract(
+      const ammWrapperContract = L2_AmmWrapper__factory.connect(
         addresses.l2AmmWrapper,
-        l2AmmWrapperAbi,
         this.bridgeContract.signer
       )
       this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
     }
 
     if (addresses?.l2SaddleSwap) {
-      const ammContract = new Contract(
+      const ammContract = Swap__factory.connect(
         addresses.l2SaddleSwap,
-        saddleSwapAbi,
         this.bridgeContract.signer
       )
       this.amm = new L2Amm(ammContract)
@@ -62,9 +59,8 @@ export default class L2Bridge extends Bridge {
 
   canonicalToken = async (): Promise<Token> => {
     const tokenAddress = await this.ammWrapper.contract.l2CanonicalToken()
-    const tokenContract = new Contract(
+    const tokenContract = ERC20__factory.connect(
       tokenAddress,
-      erc20Abi,
       this.bridgeContract.signer
     ) as ERC20
     return new Token(tokenContract)
@@ -72,9 +68,8 @@ export default class L2Bridge extends Bridge {
 
   hToken = async (): Promise<Token> => {
     const tokenAddress = await this.l2BridgeContract.hToken()
-    const tokenContract = new Contract(
+    const tokenContract = ERC20__factory.connect(
       tokenAddress,
-      erc20Abi,
       this.bridgeContract.signer
     ) as ERC20
     return new Token(tokenContract)

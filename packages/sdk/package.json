@@ -58,10 +58,6 @@
       "import": "./dist/esm/config/index.js",
       "require": "./dist/cjs/config/index.js"
     },
-    "./abi": {
-      "import": "./dist/esm/abi/index.js",
-      "require": "./dist/cjs/abi/index.js"
-    },
     "./addresses": {
       "import": "./dist/esm/addresses/index.js",
       "require": "./dist/cjs/addresses/index.js"

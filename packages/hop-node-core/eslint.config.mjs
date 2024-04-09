@@ -77,7 +77,7 @@ export default tseslint.config(
       'max-statements-per-line': 'error',
       'max-nested-callbacks': 'error',
       'max-lines-per-function': 'error',
-      'max-statements': 'error',
+      // 'max-statements': 'error',
 
 
       // Other rules

@@ -113,7 +113,6 @@
     "chalk": "4.1.2",
     "dotenv": "16.4.1",
     "ethers": "5.7.2",
-    "fast-memoize": "2.5.2",
     "keythereum": "1.2.0",
     "minimist": "1.2.8",
     "p-queue": "8.0.1",

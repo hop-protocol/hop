@@ -37,7 +37,6 @@
     "@ethersproject/hdnode": "5.0.9",
     "@hop-protocol/hop-node-core": "workspace:*",
     "@hop-protocol/sdk": "workspace:*",
-    "asn1.js": "5.4.1",
     "async-mutex": "0.4.1",
     "chalk": "4.1.2",
     "classic-level": "1.4.1",

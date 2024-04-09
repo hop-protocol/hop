@@ -92,7 +92,6 @@
     "dotenv": "16.4.1",
     "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
-    "eventemitter3": "5.0.1",
     "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
     "p-queue": "6.6.2"

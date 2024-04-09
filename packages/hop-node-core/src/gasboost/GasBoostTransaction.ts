@@ -756,6 +756,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.emit(State.Boosted, tx, this.boostIndex)
   }
 
+  // eslint-disable-next-line max-lines-per-function
   private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<TransactionRequestWithHash> {
     const maxRetries = 10
     let i = 0
@@ -800,7 +801,9 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       } catch (err: any) {
         this.logger.debug(`tx index ${i} error: ${err.message}`)
         const { shouldRetry } = this.#handleSendTxError(err)
-        if (shouldRetry) continue
+        if (shouldRetry  && i < maxRetries) {
+          continue
+        }
         throw err
       }
     }
@@ -849,7 +852,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       throw new KmsSignerError('KmsSignerError')
     }
 
-    const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
+    const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError)
     if (shouldRetry) {
       return {
         shouldRetry: true

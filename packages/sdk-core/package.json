@@ -163,7 +163,7 @@
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "test": "pnpm build:esm && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "dev": "pnpm version && tsc --watch",
-    "build": "pnpm version && pnpm build:all",
+    "build": "tshy",
     "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:cjs && pnpm build:esm",
@@ -198,7 +198,7 @@
     "typedoc-plugin-markdown": "3.17.1",
     "@aws-sdk/client-s3": "3.338.0",
     "@aws-sdk/types": "3.485.0",
-    "tshy":"1.13.1"
+    "tshy": "1.13.1"
   },
   "peerDependencies": {
     "ethers": "^5"

@@ -7,7 +7,7 @@ export type Options = {
 export async function promiseQueue (items: any[], cb: any, options: Options) {
   await Promise.all(items.map(async (item, i) => {
     await cb(item, i)
-  }
+  }))
   // const { concurrency } = options
   // const queue = new PQueue({ concurrency })
   // for (let i = 0; i < items.length; i++) {

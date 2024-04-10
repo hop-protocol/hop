@@ -27,3 +27,4 @@ test/_*
 /version.d.ts
 /contracts
 .npmignore
+.tshy

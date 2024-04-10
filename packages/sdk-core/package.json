@@ -98,7 +98,6 @@
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",
-    "esbuild": "0.20.0",
     "typedoc": "0.25.7",
     "typedoc-plugin-markdown": "3.17.1",
     "@aws-sdk/client-s3": "3.338.0",

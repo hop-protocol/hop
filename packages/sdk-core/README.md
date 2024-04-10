@@ -105,10 +105,6 @@ export { <CONTRACT>__factory } from "./<CONTRACT>__factory.js"
 export { <CONTRACT>__factory } from "./<CONTRACT>__factory.js"
 ```
 
-typechain --target=ethers-v5 --out-dir=./output ./ERC20.json
-
-
-
 ## License
 
 [MIT](LICENSE)

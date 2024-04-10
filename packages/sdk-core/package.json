@@ -26,6 +26,7 @@
     "#*": "./src/*"
   },
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "types": "./dist/esm/index.d.ts",

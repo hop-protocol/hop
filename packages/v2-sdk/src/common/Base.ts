@@ -195,8 +195,12 @@ export class Base {
     return gasPrice
   })
 
-  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish): Promise<any> {
-    chainId = chainId.toString()
+  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId): Promise<any> {
+    chainId = chainId?.toString()
+
+    if (!chainId) {
+      throw new Error('chainId is required in sendTransaction')
+    }
 
     if (!transactionRequest.to) {
       throw new Error('tx "to" address is required')

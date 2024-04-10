@@ -176,7 +176,7 @@ describe.skip('Messenger', () => {
     const fromChainId = 1
     const bundleCommittedEvent: any = {}
     const bundleCommittedTransactionHash = '0xTODO'
-    const populatedTx = await messenger.getBundleExitPopulatedTx({
+    const populatedTx = await messenger.populateTransaction.bundleExit({
       fromChainId,
       bundleCommittedEvent,
       bundleCommittedTransactionHash
@@ -209,7 +209,7 @@ describe.skip('Messenger', () => {
     const toChainId = 2
     const toAddress = '0xTODO'
     const toCalldata = '0xTODO'
-    const populatedTx = await messenger.getSendMessagePopulatedTx({
+    const populatedTx = await messenger.populateTransaction.sendMessage({
       fromChainId,
       toChainId,
       toAddress,
@@ -421,7 +421,7 @@ describe.skip('Messenger', () => {
     const toAddress = '0xTODO'
     const toCalldata = '0x'
     const bundleProof: any = {}
-    const populatedTx = await messenger.getRelayMessagePopulatedTx({
+    const populatedTx = await messenger.populateTransaction.relayMessage({
       fromChainId,
       toChainId,
       fromAddress,

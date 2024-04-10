@@ -1,7 +1,9 @@
+import { Base } from '#common/index.js'
 import { Contract, Signer, ethers, providers } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 
 interface StakingRegistryConstructorInput {
+  network: string
   provider?: providers.Provider
   signer?: Signer
   address?: string
@@ -19,18 +21,18 @@ interface GetWithdrawableEthInput {
   address: string; // Ethereum address format
 }
 
-interface _StakeHopInput {
+interface RegistryStakeHopInput {
   role: string;
   staker: string; // Ethereum address format
   amount: ethers.BigNumberish; // Can be a number, string, BigNumber, etc.
 }
 
-interface _UnstakeHopInput {
+interface RegistryUnstakeHopInput {
   role: string;
   amount: ethers.BigNumberish; // Can be a number, string, BigNumber, etc.
 }
 
-interface WithdrawInput {
+interface RegistryWithdrawInput {
   role: string;
   staker: string; // Ethereum address format
 }
@@ -105,12 +107,14 @@ interface GetChallengeIdInput {
   slashingData: string; // assuming slashingData is a bytes-like string
 }
 
-export class StakingRegistry {
+export class StakingRegistry extends Base {
   provider: providers.Provider
-  signer: Signer
   address: string
 
-  constructor (input: StakingRegistryConstructorInput = {}) {
+  constructor (input: StakingRegistryConstructorInput) {
+    super({
+      network: input.network
+    })
     const { provider, signer, address } = input
     this.provider = provider as any
     this.signer = signer as any
@@ -121,7 +125,7 @@ export class StakingRegistry {
   }
 
   connect (signer: Signer) {
-    return new StakingRegistry({ provider: this.provider, signer, address: this.address })
+    return new StakingRegistry({ network: this.network, provider: this.provider, signer, address: this.address })
   }
 
   getStakingRegistryContract (): Contract {
@@ -170,22 +174,40 @@ export class StakingRegistry {
     return contract.getWithdrawableEth(address)
   }
 
-  protected async _stakeHop (input: _StakeHopInput) {
+  async registryStakeHopPopulatedTx (input: RegistryStakeHopInput) {
     const { role, staker } = input
     const contract = this.getStakingRegistryContract()
-    return contract.stakeHop(role, staker)
+    const txData = await contract.populateTransaction.stakeHop(role, staker)
+    return txData
   }
 
-  async _unstakeHop (input: _UnstakeHopInput) {
+  async registryUnstakeHopPopulatedTx (input: RegistryUnstakeHopInput) {
     const { role, amount } = input
     const contract = this.getStakingRegistryContract()
-    return contract.unstakeHop(role, amount)
+    const txData = await contract.populateTransaction.unstakeHop(role, amount)
+    return txData
   }
 
-  async withdraw (input: WithdrawInput) {
+  async registryWithdrawPopulatedTx (input: RegistryWithdrawInput) {
     const { role, staker } = input
     const contract = this.getStakingRegistryContract()
-    return contract.withdraw(role, staker)
+    const txData = await contract.populateTransaction.withdraw(role, staker)
+    return txData
+  }
+
+  async registryStakeHop (input: RegistryStakeHopInput) {
+    const populatedTx = await this.registryStakeHopPopulatedTx(input)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async registryUnstakeHop (input: RegistryUnstakeHopInput) {
+    const populatedTx = await this.registryUnstakeHopPopulatedTx(input)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async registryWithdraw (input: RegistryWithdrawInput) {
+    const populatedTx = await this.registryWithdrawPopulatedTx(input)
+    return this.sendTransaction(populatedTx)
   }
 
   async createChallenge (input: CreateChallengeInput) {

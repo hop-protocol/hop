@@ -520,50 +520,6 @@ export class Messenger extends Base {
     return shouldAttempt
   }
 
-  async getBundleExitPopulatedTx (input: GetBundleExitPopulatedTxInput): Promise<any> {
-    let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash } = input
-    if (!this.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId: ${fromChainId}`)
-    }
-    if (bundleCommittedTransactionHash) {
-      if (!this.isValidTxHash(bundleCommittedTransactionHash)) {
-        throw new Error(`Invalid transaction hash: ${bundleCommittedTransactionHash}`)
-      }
-    } else if (bundleCommittedEvent) {
-      const { eventLog, context } = bundleCommittedEvent
-      bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
-    }
-    if (!bundleCommittedTransactionHash) {
-      throw new Error('expected bundle comitted transaction hash')
-    }
-
-    const l1Provider = this.getProviderForChainId(this.l1ChainId)
-    const l2Provider = this.getProviderForChainId(fromChainId)
-    let exitRelayer : ExitRelayer | undefined = undefined
-    if ([420, 10].includes(fromChainId)) {
-      const { OptimismRelayer } = await import('#exitRelayers/OptimismRelayer.js')
-      exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
-    } else if ([421613, 42161, 42170].includes(fromChainId)) {
-      // const { ArbitrumRelayer } = await import('#exitRelayers/ArbitrumRelayer.js')
-      // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
-    } else if ([80001, 137].includes(fromChainId)) {
-      // const { PolygonRelayer } = await import('#exitRelayers/PolygonRelayer.js')
-      // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
-    } else if ([100].includes(fromChainId)) {
-      // const { GnosisChainRelayer } = await import('#exitRelayers/GnosisChainRelayer.js')
-      // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
-    }
-    if (!exitRelayer) {
-      throw new Error(`Exit relayer not found for chainId "${fromChainId}"`)
-    }
-    const txData = await exitRelayer.getExitPopulatedTx(bundleCommittedTransactionHash)
-
-    return {
-      ...txData,
-      chainId: fromChainId
-    }
-  }
-
   async exitBundle (input: ExitBundleInput): Promise<any> {
     let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash, signer } = input
     if (!this.isValidChainId(fromChainId)) {
@@ -620,41 +576,140 @@ export class Messenger extends Base {
     return exitRelayer.getIsL2TxHashExited(transactionHash)
   }
 
-  async getSendMessagePopulatedTx (input: GetSendMessagePopulatedTxInput): Promise<providers.TransactionRequest> {
-    let { fromChainId, toChainId, toAddress, toCalldata = '0x' } = input
-    if (!this.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId: ${fromChainId}`)
-    }
-    if (!this.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId: ${toChainId}`)
-    }
-    if (fromChainId === toChainId) {
-      throw new Error('fromChainId and toChainId must be different')
-    }
-    if (!toAddress) {
-      throw new Error('toAddress is required')
-    }
-    if (!toCalldata) {
-      toCalldata = '0x'
-    }
-    const provider = this.getProviderForChainId(fromChainId)
-    if (!provider) {
-      throw new Error(`Invalid chain: ${fromChainId}`)
-    }
-
-    const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
-    if (!address) {
-      throw new Error(`Invalid address: ${fromChainId}`)
-    }
-    const spokeMessageBridge = SpokeMessageBridge__factory.connect(address, provider)
-    const txData = await spokeMessageBridge.populateTransaction.dispatchMessage(toChainId, toAddress, toCalldata)
-    const value = await this.getMessageFee({ fromChainId, toChainId })
-
+  get populateTransaction() {
     return {
-      ...txData,
-      chainId: fromChainId,
-      value: value.toString()
+      sendMessage: async (input: GetSendMessagePopulatedTxInput): Promise<providers.TransactionRequest> => {
+        let { fromChainId, toChainId, toAddress, toCalldata = '0x' } = input
+        if (!this.isValidChainId(fromChainId)) {
+          throw new Error(`Invalid fromChainId: ${fromChainId}`)
+        }
+        if (!this.isValidChainId(toChainId)) {
+          throw new Error(`Invalid toChainId: ${toChainId}`)
+        }
+        if (fromChainId === toChainId) {
+          throw new Error('fromChainId and toChainId must be different')
+        }
+        if (!toAddress) {
+          throw new Error('toAddress is required')
+        }
+        if (!toCalldata) {
+          toCalldata = '0x'
+        }
+        const provider = this.getProviderForChainId(fromChainId)
+        if (!provider) {
+          throw new Error(`Invalid chain: ${fromChainId}`)
+        }
+
+        const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
+        if (!address) {
+          throw new Error(`Invalid address: ${fromChainId}`)
+        }
+        const spokeMessageBridge = SpokeMessageBridge__factory.connect(address, provider)
+        const txData = await spokeMessageBridge.populateTransaction.dispatchMessage(toChainId, toAddress, toCalldata)
+        const value = await this.getMessageFee({ fromChainId, toChainId })
+
+        return {
+          ...txData,
+          chainId: fromChainId,
+          value: value.toString()
+        }
+      },
+
+      relayMessage: async (input: GetRelayMessagePopulatedTxInput): Promise<providers.TransactionRequest> => {
+        const { fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof } = input
+        if (!this.isValidChainId(fromChainId)) {
+          throw new Error(`Invalid fromChainId: ${fromChainId}`)
+        }
+        if (!this.isValidChainId(toChainId)) {
+          throw new Error(`Invalid toChainId: ${toChainId}`)
+        }
+        const provider = this.getProviderForChainId(toChainId)
+        if (!provider) {
+          throw new Error(`Invalid chain: ${toChainId}`)
+        }
+
+        const address = this.getHubMessageBridgeContractAddress(toChainId)
+        if (!address) {
+          throw new Error(`Invalid chain: ${toChainId}`)
+        }
+
+        const hubMessageBridge = HubMessageBridge__factory.connect(address, provider)
+        const txData = await hubMessageBridge.populateTransaction.executeMessage(
+          fromChainId,
+          fromAddress,
+          toAddress,
+          toCalldata,
+          bundleProof
+        )
+
+        return {
+          ...txData,
+          chainId: toChainId
+        }
+      },
+
+      bundleExit: async (input: GetBundleExitPopulatedTxInput): Promise<any> => {
+        let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash } = input
+        if (!this.isValidChainId(fromChainId)) {
+          throw new Error(`Invalid fromChainId: ${fromChainId}`)
+        }
+        if (bundleCommittedTransactionHash) {
+          if (!this.isValidTxHash(bundleCommittedTransactionHash)) {
+            throw new Error(`Invalid transaction hash: ${bundleCommittedTransactionHash}`)
+          }
+        } else if (bundleCommittedEvent) {
+          const { eventLog, context } = bundleCommittedEvent
+          bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
+        }
+        if (!bundleCommittedTransactionHash) {
+          throw new Error('expected bundle comitted transaction hash')
+        }
+
+        const l1Provider = this.getProviderForChainId(this.l1ChainId)
+        const l2Provider = this.getProviderForChainId(fromChainId)
+        let exitRelayer : ExitRelayer | undefined = undefined
+        if ([420, 10].includes(fromChainId)) {
+          const { OptimismRelayer } = await import('#exitRelayers/OptimismRelayer.js')
+          exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
+        } else if ([421613, 42161, 42170].includes(fromChainId)) {
+          // const { ArbitrumRelayer } = await import('#exitRelayers/ArbitrumRelayer.js')
+          // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
+        } else if ([80001, 137].includes(fromChainId)) {
+          // const { PolygonRelayer } = await import('#exitRelayers/PolygonRelayer.js')
+          // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
+        } else if ([100].includes(fromChainId)) {
+          // const { GnosisChainRelayer } = await import('#exitRelayers/GnosisChainRelayer.js')
+          // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
+        }
+        if (!exitRelayer) {
+          throw new Error(`Exit relayer not found for chainId "${fromChainId}"`)
+        }
+        const txData = await exitRelayer.getExitPopulatedTx(bundleCommittedTransactionHash)
+
+        return {
+          ...txData,
+          chainId: fromChainId
+        }
+      }
     }
+  }
+
+  async sendMessage (input: GetSendMessagePopulatedTxInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.sendMessage(input)
+    const tx = await this.sendTransaction(populatedTx)
+    return tx
+  }
+
+  async relayMessage (input: GetRelayMessagePopulatedTxInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.relayMessage(input)
+    const tx = await this.sendTransaction(populatedTx)
+    return tx
+  }
+
+  async bundleExit (input: GetBundleExitPopulatedTxInput): Promise<any> {
+    const populatedTx = await this.populateTransaction.bundleExit(input)
+    const tx = await this.sendTransaction(populatedTx)
+    return tx
   }
 
   // reference: https://github.com/hop-protocol/contracts-v2/blob/cdc3377d6a1f964554ba0e6e1fef0b504d43fc6a/contracts/bridge/FeeDistributor/FeeDistributor.sol#L42
@@ -1061,39 +1116,6 @@ export class Messenger extends Base {
     }
   }
 
-  async getRelayMessagePopulatedTx (input: GetRelayMessagePopulatedTxInput): Promise<providers.TransactionRequest> {
-    const { fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof } = input
-    if (!this.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId: ${fromChainId}`)
-    }
-    if (!this.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId: ${toChainId}`)
-    }
-    const provider = this.getProviderForChainId(toChainId)
-    if (!provider) {
-      throw new Error(`Invalid chain: ${toChainId}`)
-    }
-
-    const address = this.getHubMessageBridgeContractAddress(toChainId)
-    if (!address) {
-      throw new Error(`Invalid chain: ${toChainId}`)
-    }
-
-    const hubMessageBridge = HubMessageBridge__factory.connect(address, provider)
-    const txData = await hubMessageBridge.populateTransaction.executeMessage(
-      fromChainId,
-      fromAddress,
-      toAddress,
-      toCalldata,
-      bundleProof
-    )
-
-    return {
-      ...txData,
-      chainId: toChainId
-    }
-  }
-
   async getMessageCalldata (input: GetMessageCalldataInput): Promise<string> {
     const { fromChainId, messageId } = input
     if (!this.isValidChainId(fromChainId)) {
@@ -1138,7 +1160,7 @@ export class Messenger extends Base {
       toCalldata
     } = input
 
-    const populatedTx = await this.getSendMessagePopulatedTx({
+    const populatedTx = await this.populateTransaction.sendMessage({
       fromChainId,
       toChainId,
       toAddress,

@@ -1,13 +1,25 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.2-beta.10",
+  "version": "0.0.2-beta.9",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "tshy": {
     "exports": {
       "./package.json": "./package.json",
-      ".": "./src/index.js"
+      ".": "./src/index.js",
+      "./config": "./src/config/index.js",
+      "./constants": "./src/constants/index.js",
+      "./models": "./src/models/index.js",
+      "./multicall": "./src/multicall/index.js",
+      "./priceFeed": "./src/priceFeed/index.js",
+      "./provider": "./src/provider/index.js",
+      "./utils": "./src/utils/index.js",
+      "./addresses": "./src/addresses/index.js",
+      "./contracts": "./src/contracts/index.js",
+      "./metadata": "./src/metadata/index.js",
+      "./metadata/tokens": "./src/metadata/tokens.js",
+      "./networks": "./src/networks/index.js"
     }
   },
   "imports": {
@@ -23,6 +35,126 @@
       "require": {
         "types": "./dist/commonjs/index.d.ts",
         "default": "./dist/commonjs/index.js"
+      }
+    },
+    "./config": {
+      "import": {
+        "types": "./dist/esm/config/index.d.ts",
+        "default": "./dist/esm/config/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/config/index.d.ts",
+        "default": "./dist/commonjs/config/index.js"
+      }
+    },
+    "./constants": {
+      "import": {
+        "types": "./dist/esm/constants/index.d.ts",
+        "default": "./dist/esm/constants/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/constants/index.d.ts",
+        "default": "./dist/commonjs/constants/index.js"
+      }
+    },
+    "./models": {
+      "import": {
+        "types": "./dist/esm/models/index.d.ts",
+        "default": "./dist/esm/models/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/models/index.d.ts",
+        "default": "./dist/commonjs/models/index.js"
+      }
+    },
+    "./multicall": {
+      "import": {
+        "types": "./dist/esm/multicall/index.d.ts",
+        "default": "./dist/esm/multicall/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/multicall/index.d.ts",
+        "default": "./dist/commonjs/multicall/index.js"
+      }
+    },
+    "./priceFeed": {
+      "import": {
+        "types": "./dist/esm/priceFeed/index.d.ts",
+        "default": "./dist/esm/priceFeed/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/priceFeed/index.d.ts",
+        "default": "./dist/commonjs/priceFeed/index.js"
+      }
+    },
+    "./provider": {
+      "import": {
+        "types": "./dist/esm/provider/index.d.ts",
+        "default": "./dist/esm/provider/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/provider/index.d.ts",
+        "default": "./dist/commonjs/provider/index.js"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/esm/utils/index.d.ts",
+        "default": "./dist/esm/utils/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/utils/index.d.ts",
+        "default": "./dist/commonjs/utils/index.js"
+      }
+    },
+    "./addresses": {
+      "import": {
+        "types": "./dist/esm/addresses/index.d.ts",
+        "default": "./dist/esm/addresses/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/addresses/index.d.ts",
+        "default": "./dist/commonjs/addresses/index.js"
+      }
+    },
+    "./contracts": {
+      "import": {
+        "types": "./dist/esm/contracts/index.d.ts",
+        "default": "./dist/esm/contracts/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/contracts/index.d.ts",
+        "default": "./dist/commonjs/contracts/index.js"
+      }
+    },
+    "./metadata": {
+      "import": {
+        "types": "./dist/esm/metadata/index.d.ts",
+        "default": "./dist/esm/metadata/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/metadata/index.d.ts",
+        "default": "./dist/commonjs/metadata/index.js"
+      }
+    },
+    "./metadata/tokens": {
+      "import": {
+        "types": "./dist/esm/metadata/tokens.d.ts",
+        "default": "./dist/esm/metadata/tokens.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/metadata/tokens.d.ts",
+        "default": "./dist/commonjs/metadata/tokens.js"
+      }
+    },
+    "./networks": {
+      "import": {
+        "types": "./dist/esm/networks/index.d.ts",
+        "default": "./dist/esm/networks/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/networks/index.d.ts",
+        "default": "./dist/commonjs/networks/index.js"
       }
     }
   },

@@ -180,7 +180,7 @@
     "docs": "pnpm docs:ui && pnpm docs:markdown",
     "docs:update-gitbook": "./scripts/update_gitbook.sh",
     "upload": "pnpm build:esm && node dist/esm/s3upload/main",
-    "prepare": "TSHY_VERBOSE=2 npx tshy"
+    "prepare": "tshy"
   },
   "dependencies": {
     "@uniswap/sdk-core": "4.2.0",
@@ -197,7 +197,8 @@
     "typedoc": "0.25.7",
     "typedoc-plugin-markdown": "3.17.1",
     "@aws-sdk/client-s3": "3.338.0",
-    "@aws-sdk/types": "3.485.0"
+    "@aws-sdk/types": "3.485.0",
+    "tshy":"1.13.1"
   },
   "peerDependencies": {
     "ethers": "^5"

@@ -1,22 +1,18 @@
+import { Base, BaseConfig } from '#common/index.js'
 import { BigNumber, BigNumberish, Contract, Signer, providers } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsHub__factory } from '#contracts/factories/RailsHub__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
-
-interface RailsHubConstructorInput {
-  network: string
-  provider?: providers.Provider
-  signer?: Signer
-  address?: string
-  chainId?: BigNumberish
-}
+import { addresses } from '#addresses/index.js'
 
 interface TransferSentEventInput {
+  chainId: BigNumberish
   startBlock: number
   endBlock: number
 }
 
 interface TransferBondEventInput {
+  chainId: BigNumberish
   startBlock: number
   endBlock: number
 }
@@ -37,10 +33,12 @@ interface GetPathIdInput {
 }
 
 interface GetPathInfoInput {
+  chainId: BigNumberish
   pathId: string
 }
 
 interface SendInput {
+  chainId: BigNumberish
   pathId: string
   to: string
   amount: BigNumberish
@@ -49,6 +47,7 @@ interface SendInput {
 }
 
 interface BondInput {
+  chainId: BigNumberish
   pathId: string
   checkpoint: string
   to: string
@@ -60,6 +59,7 @@ interface BondInput {
 }
 
 interface PostClaimInput {
+  chainId: BigNumberish
   pathId: string
   transferId: string
   head: string
@@ -67,6 +67,7 @@ interface PostClaimInput {
 }
 
 interface GetTransferIdInput {
+  chainId: BigNumberish
   pathId: string
   to: string
   adjustedAmount: BigNumberish
@@ -77,17 +78,20 @@ interface GetTransferIdInput {
 }
 
 interface WithdrawInput {
+  chainId: BigNumberish
   pathId: string
   amount: BigNumberish
   timeWindow: number
 }
 
 interface WithdrawAllInput {
+  chainId: BigNumberish
   pathId: string
   timeWindow: number
 }
 
 interface WithdrawBalanceInput {
+  chainId: BigNumberish
   pathId?: string
   path?: Path
   recipient: string
@@ -95,21 +99,25 @@ interface WithdrawBalanceInput {
 }
 
 interface GetFeeInput {
+  chainId: BigNumberish
   pathId: string
 }
 
 interface StakeHopInput {
+  chainId: BigNumberish
   role: string
   staker?: string
   amount: BigNumberish
 }
 
 interface UnstakeHopInput {
+  chainId: BigNumberish
   role: string
   amount: BigNumberish
 }
 
 interface WithdrawHopInput {
+  chainId: BigNumberish
   role: string
 }
 
@@ -118,99 +126,72 @@ interface CalcAmountOutMinInput {
   slippageTolerance: number
 }
 
-export class RailsHub extends StakingRegistry {
-  override provider: providers.Provider
-  override signer: Signer
-  override address : string
-  chainId: string
+export type RailsHubConstructorInput = BaseConfig & {}
 
+export class RailsHub extends StakingRegistry {
   constructor (input: RailsHubConstructorInput) {
-    const { network, provider, signer, address, chainId } = input
+    const { network, signer, contractAddresses } = input
     super({
       network,
-      provider,
       signer,
-      address
+      contractAddresses
     })
-    if (provider) {
-      this.provider = provider
-    }
-    if (signer) {
-      this.signer = signer
-    }
-    if (!this.provider && this.signer?.provider) {
-      this.provider = this.signer.provider
-    }
-    if (!address) {
-      throw new Error('address is required')
-    }
-    this.address = address
-    if (chainId) {
-      this.chainId = chainId.toString()
-    }
-
-    if (!this.chainId) {
-      throw new Error('chainId is required')
-    }
   }
 
   override connect (signer: Signer) {
-    return new RailsHub({ network: this.network, provider: this.provider, signer })
-  }
-
-  async getSignerAddress () {
-    if (this.signer) {
-      return this.signer.getAddress()
-    }
+    return new RailsHub({ network: this.network, signer, contractAddresses: this.contractAddresses })
   }
 
   async getTransferSentEvents (input: TransferSentEventInput) {
-    const { startBlock, endBlock } = input
-    const contract = await this.getRailsHubContract()
+    const { chainId, startBlock, endBlock } = input
+    const contract = await this.getRailsHubContract(chainId)
     const filter = contract.filters.TransferSent()
     const events = await contract.queryFilter(filter, startBlock, endBlock)
     return events
   }
 
   async getTransferBondedEvents (input: TransferBondEventInput) {
-    const { startBlock, endBlock } = input
-    const contract = await this.getRailsHubContract()
+    const { chainId, startBlock, endBlock } = input
+    const contract = await this.getRailsHubContract(chainId)
     const filter = contract.filters.TransferBonded()
     const events = await contract.queryFilter(filter, startBlock, endBlock)
     return events
   }
 
-  async getRailsHubContract (): Promise<Contract> {
-    if (!this.address) {
-      throw new Error('RailsHub address not set')
-    }
-    const contract = RailsHub__factory.connect(this.address, this.signer || this.provider)
+  async getRailsHubAddress (chainId: BigNumberish): Promise<string> {
+    return this.getConfigAddress(chainId, 'railsHub')
+  }
+
+  async getRailsHubContract (chainId: BigNumberish): Promise<Contract> {
+    const address = await this.getRailsHubAddress(chainId)
+    const provider = this.getProviderForChainId(chainId)
+    const contract = RailsHub__factory.connect(address, provider)
     return contract
   }
 
   async getPathId (input: GetPathIdInput): Promise<string> {
     const { chainId0, token0, chainId1, token1 } = input
-    const contract = await this.getRailsHubContract()
+    const contract = await this.getRailsHubContract(chainId0)
     return contract.getPathId(chainId0, token0, chainId1, token1)
   }
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {
-    const { pathId } = input
-    const contract = await this.getRailsHubContract()
+    const { chainId, pathId } = input
+    const contract = await this.getRailsHubContract(chainId)
     return contract.getPathInfo(pathId)
   }
 
   async getFee (input: GetFeeInput): Promise<BigNumber> {
-    const { pathId } = input
-    const contract = await this.getRailsHubContract()
+    const { chainId, pathId } = input
+    const contract = await this.getRailsHubContract(chainId)
     return contract.getFee(pathId)
   }
 
   get populateTransaction() {
     return {
       send: async (input: SendInput): Promise<providers.TransactionRequest> => {
-        const { pathId, to, amount, minAmountOut, attestedCheckpoint } = input
-        const contract = await this.getRailsHubContract()
+        const { chainId, pathId, to, amount, minAmountOut, attestedCheckpoint } = input
+        const contract = await this.getRailsHubContract(chainId)
         const value = 0
         const txData = await contract.populateTransaction.send(pathId, to, amount, minAmountOut, attestedCheckpoint, {
           value
@@ -218,160 +199,166 @@ export class RailsHub extends StakingRegistry {
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       sendApproval: async (input: SendInput): Promise<providers.TransactionRequest> => {
-        const { pathId, amount } = input
-        const path = await this.getPathInfo({ pathId })
+        const { chainId, pathId, amount } = input
+        const path = await this.getPathInfo({ chainId, pathId })
         const tokenAddress = path.token
         const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
-        const txData = await tokenContract.populateTransaction.approve(this.address, amount)
+        const address = this.getRailsHubAddress(chainId)
+        const txData = await tokenContract.populateTransaction.approve(address, amount)
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       bond: async (input: BondInput): Promise<providers.TransactionRequest> => {
-        const { pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
-        const contract = await this.getRailsHubContract()
+        const { chainId, pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
+        const contract = await this.getRailsHubContract(chainId)
         const txData = await contract.populateTransaction.bond(pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint)
 
         return {
           ...txData,
-          chainId: Number(this.chainId),
+          chainId: Number(chainId),
         }
       },
 
       bondApproval: async (input: BondInput): Promise<providers.TransactionRequest> => {
-        const { pathId, amount } = input
-        const path = await this.getPathInfo({ pathId })
+        const { chainId, pathId, amount } = input
+        const path = await this.getPathInfo({ chainId, pathId })
         const tokenAddress = path.token
         const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
-        const txData = await tokenContract.populateTransaction.approve(this.address, amount)
+        const address = this.getRailsHubAddress(chainId)
+        const txData = await tokenContract.populateTransaction.approve(address, amount)
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       postClaim: async (input: PostClaimInput): Promise<providers.TransactionRequest> => {
-        const { pathId, transferId, head, totalSent } = input
-        const contract = await this.getRailsHubContract()
+        const { chainId, pathId, transferId, head, totalSent } = input
+        const contract = await this.getRailsHubContract(chainId)
         const txData = await contract.populateTransaction.postClaim(pathId, transferId, head, totalSent)
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       withdrawClaim: async (input: WithdrawInput): Promise<providers.TransactionRequest> => {
-        const { pathId, amount, timeWindow } = input
-        const contract = await this.getRailsHubContract()
+        const { chainId, pathId, amount, timeWindow } = input
+        const contract = await this.getRailsHubContract(chainId)
         const txData = await contract.populateTransaction.withdraw(pathId, amount, timeWindow)
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       withdrawAllClaims: async (input: WithdrawAllInput): Promise<providers.TransactionRequest> => {
-        const { pathId, timeWindow } = input
-        const contract = await this.getRailsHubContract()
+        const { chainId, pathId, timeWindow } = input
+        const contract = await this.getRailsHubContract(chainId)
         const txData = await contract.withdrawAll(pathId, timeWindow)
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       stakeHopApproval: async (input: StakeHopInput): Promise<providers.TransactionRequest> => {
-        let { role, staker, amount } = input
+        let { chainId, role, staker, amount } = input
         if (!staker) {
-          staker = await this.getSignerAddress()
-        }
-        const hopTokenContract = await this.getHopTokenContract()
-        const txData = await hopTokenContract.populateTransaction.approve(this.address, amount)
-        return {
-          ...txData,
-          chainId: Number(this.chainId)
-        }
-      },
-
-      stakeHop: async (input: StakeHopInput): Promise<providers.TransactionRequest> => {
-        let { role, staker, amount } = input
-        if (!staker) {
-          staker = await this.getSignerAddress()
+          staker = (await this.getSignerAddress()) as string
         }
         if (!staker) {
           throw new Error('Staker address not set')
         }
-        const minRequired = await this.getMinHopStakeForRole({ role })
-        const balance = await this.getHopBalance(staker)
+        const hopTokenContract = await this.getHopTokenContract(chainId)
+        const address = this.getRailsHubAddress(chainId)
+        const txData = await hopTokenContract.populateTransaction.approve(address, amount)
+        return {
+          ...txData,
+          chainId: Number(chainId)
+        }
+      },
+
+      stakeHop: async (input: StakeHopInput): Promise<providers.TransactionRequest> => {
+        let { chainId, role, staker, amount } = input
+        if (!staker) {
+          staker = (await this.getSignerAddress()) as string
+        }
+        if (!staker) {
+          throw new Error('Staker address not set')
+        }
+        const minRequired = await this.getMinHopStakeForRole({ chainId, role })
+        const balance = await this.getHopBalance(chainId, staker)
 
         if (balance.lt(amount)) {
           throw new Error(`Insufficient balance to stake ${amount.toString()} HOP`)
         }
 
-        const hopTokenContract = await this.getHopTokenContract()
+        const hopTokenContract = await this.getHopTokenContract(chainId)
         if (balance.lt(minRequired)) {
           throw new Error(`Insufficient balance to stake ${minRequired.toString()} HOP`)
         }
 
-        const txData = await this.registryStakeHopPopulatedTx({ role, staker, amount })
+        const txData = await this.registryStakeHopPopulatedTx({ chainId, role, staker, amount })
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       unstakeHop: async (input: UnstakeHopInput): Promise<providers.TransactionRequest> => {
-        const { role, amount } = input
+        const { chainId, role, amount } = input
         const staker = await this.getSignerAddress()
         if (!staker) {
           throw new Error('Staker address not set')
         }
-        const balance = await this.getWithdrawableStakeBalance({ role, staker })
+        const balance = await this.getWithdrawableStakeBalance({ chainId, role, staker })
 
         if (balance.lt(amount)) {
           throw new Error('Insufficient balance to unstake')
         }
 
-        const txData = await this.registryUnstakeHopPopulatedTx({ role, amount })
+        const txData = await this.registryUnstakeHopPopulatedTx({ chainId, role, amount })
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       },
 
       withdrawHop: async (input: WithdrawHopInput): Promise<providers.TransactionRequest> => {
-        const { role } = input
+        const { chainId, role } = input
         const staker = await this.getSignerAddress()
         if (!staker) {
           throw new Error('Staker address not set')
         }
-        const txData = await this.registryWithdrawPopulatedTx({ role, staker })
+        const txData = await this.registryWithdrawPopulatedTx({ chainId, role, staker })
 
         return {
           ...txData,
-          chainId: Number(this.chainId)
+          chainId: Number(chainId)
         }
       }
     }
   }
 
   async send (input: SendInput): Promise<providers.TransactionResponse> {
-    const { pathId, amount } = input
-    const path = await this.getPathInfo({ pathId })
+    const { chainId, pathId, amount } = input
+    const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
     const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
     const signerAddress = (await this.getSignerAddress()) as string
@@ -379,7 +366,9 @@ export class RailsHub extends StakingRegistry {
     if (balance.lt(amount)) {
       throw new Error('Insufficient balance ')
     }
-    const approved = await tokenContract.allowance(signerAddress, this.address)
+
+    const address = await this.getRailsHubAddress(chainId)
+    const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')
     }
@@ -390,9 +379,9 @@ export class RailsHub extends StakingRegistry {
   }
 
   async bond (input: BondInput): Promise<providers.TransactionResponse> {
-    const { pathId, amount } = input
+    const { chainId, pathId, amount } = input
 
-    const path = await this.getPathInfo({ pathId })
+    const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
     const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
     const signerAddress = (await this.getSignerAddress()) as string
@@ -401,7 +390,8 @@ export class RailsHub extends StakingRegistry {
       throw new Error('Insufficient balance')
     }
 
-    const approved = await tokenContract.allowance(signerAddress, this.address)
+    const address = await this.getRailsHubAddress(chainId)
+    const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')
     }
@@ -441,53 +431,54 @@ export class RailsHub extends StakingRegistry {
   }
 
   async getWithdrawableBalance (input: WithdrawBalanceInput): Promise<BigNumber> {
-    const { pathId, recipient, timeWindow } = input
+    const { chainId, pathId, recipient, timeWindow } = input
     if (!pathId) {
       throw new Error('pathId not set')
     }
-    const path = await this.getPathInfo({ pathId })
-    return this.#getWithdrawableBalance({ path, recipient, timeWindow })
+    const path = await this.getPathInfo({ chainId, pathId })
+    return this.#getWithdrawableBalance({ chainId, path, recipient, timeWindow })
   }
 
   async #getWithdrawableBalance (input: WithdrawBalanceInput): Promise<BigNumber> {
-    const { path, recipient, timeWindow } = input
+    const { chainId, path, recipient, timeWindow } = input
     if (!path) {
       throw new Error('pathInfo not set')
     }
-    const contract = await this.getRailsHubContract()
+    const contract = await this.getRailsHubContract(chainId)
     return contract.getWithdrawableBalance(path, recipient, timeWindow)
   }
 
   async getTransferId (input: GetTransferIdInput): Promise<string> {
-    const { pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
-    const contract = await this.getRailsHubContract()
+    const { chainId, pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
+    const contract = await this.getRailsHubContract(chainId)
     return contract.getTransferId(pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint)
   }
 
-  async getHopTokenAddress (): Promise<string> {
-    const contract = await this.getRailsHubContract()
+  async getHopTokenAddress (chainId: BigNumberish): Promise<string> {
+    const contract = await this.getRailsHubContract(chainId)
     return contract.hopToken()
   }
 
-  async getMinBonderStake (): Promise<BigNumber> {
-    const contract = await this.getRailsHubContract()
+  async getMinBonderStake (chainId: BigNumberish): Promise<BigNumber> {
+    const contract = await this.getRailsHubContract(chainId)
     return contract.minBonderStake()
   }
 
-  async getHopBalance (address?: string): Promise<BigNumber> {
+  async getHopBalance (chainId: BigNumberish, address?: string | null): Promise<BigNumber> {
     if (!address) {
       address = await this.getSignerAddress()
     }
     if (!address) {
       throw new Error('Address not set')
     }
-    const contract = await this.getHopTokenContract()
+    const contract = await this.getHopTokenContract(chainId)
     return contract.balanceOf(address)
   }
 
-  async getHopTokenContract (): Promise<Contract> {
-    const hopTokenAddress = await this.getHopTokenAddress()
-    const contract = ERC20__factory.connect(hopTokenAddress, this.provider)
+  async getHopTokenContract (chainId: BigNumberish): Promise<Contract> {
+    const hopTokenAddress = await this.getHopTokenAddress(chainId)
+    const provider = this.getProviderForChainId(chainId)
+    const contract = ERC20__factory.connect(hopTokenAddress, provider)
     return contract
   }
 

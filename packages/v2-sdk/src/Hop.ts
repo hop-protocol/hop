@@ -1,3 +1,4 @@
+import { Base } from '#common/index.js'
 import { BigNumber, Signer, providers } from 'ethers'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
@@ -23,13 +24,17 @@ import { TransferBondedEventFetcher } from '#railsHub/events/TransferBonded.js'
 import { TransferSentEventFetcher } from '#railsHub/events/TransferSent.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { getProvider } from '#utils/getProvider.js'
-import { addresses } from '#addresses/index.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
+import { addresses } from '#addresses/index.js'
+import { Messenger } from '#messenger/index.js'
+import { RailsHub } from '#railsHub/index.js'
+import { Nft } from '#nft/index.js'
 
 const cache : Record<string, any> = {}
 
 export type Options = {
   batchBlocks?: number,
+  signer?: Signer
   contractAddresses?: Record<string, any> // TODO: types
 }
 
@@ -55,79 +60,38 @@ export type ConnectTargetsInput = {
   signer: Signer
 }
 
-export class Hop {
+export class Hop extends Base {
   eventFetcher: EventFetcher
-  network: string
   batchBlocks?: number
-  contractAddresses: Record<string, any> = addresses
 
   providers: Record<string, any> = {}
-  l1ChainId : number
   gasPriceOracle: GasPriceOracle
+  messenger: Messenger
+  railsHub: RailsHub
+  nft: Nft
 
   constructor (network: string = 'goerli', options?: Options) {
-    if (!['mainnet', 'goerli'].includes(network)) {
+    super({ network, signer: options?.signer })
+    if (!['mainnet', 'goerli', 'sepolia'].includes(network)) {
       throw new Error(`Invalid network: ${network}`)
     }
-    this.network = network
 
-    if (this.network === 'mainnet') {
-      this.l1ChainId = 1
-    } else if (this.network === 'goerli') {
-      this.l1ChainId = 5
-    }
+    this.network = network
 
     if (options?.batchBlocks) {
       this.batchBlocks = options.batchBlocks
     }
 
-    if (options?.contractAddresses) {
-      this.contractAddresses[network] = options.contractAddresses
-    }
-
     const url = 'https://v2-gas-price-oracle-goerli.hop.exchange'
     this.gasPriceOracle = new GasPriceOracle(url)
+
+    this.messenger = new Messenger({ network, signer: this.signer, contractAddresses: this.contractAddresses })
+    this.railsHub = new RailsHub({ network, signer: this.signer, contractAddresses: this.contractAddresses })
+    this.nft = new Nft({ network, signer: this.signer, contractAddresses: this.contractAddresses })
   }
 
   get version () {
     return '' // TODO
-  }
-
-  getRpcProvider (chainId: number) {
-    if (this.providers[chainId]) {
-      return this.providers[chainId]
-    }
-
-    return getProvider(this.network, chainId)
-  }
-
-  setRpcProviders (providers: Record<string, any>) {
-    for (const chainId in providers) {
-      this.setRpcProvider(Number(chainId), providers[chainId])
-    }
-  }
-
-  setRpcProvider (chainId: number, provider: any) {
-    if (typeof provider === 'string') {
-      provider = new providers.StaticJsonRpcProvider(provider)
-    }
-    this.providers[chainId] = provider
-  }
-
-  getSpokeMessageBridgeContractAddress (chainId: number): string {
-    if (!chainId) {
-      throw new Error('chainId is required')
-    }
-    const address = this.contractAddresses[this.network]?.[chainId]?.spokeCoreMessenger
-    return address
-  }
-
-  getHubMessageBridgeContractAddress (chainId: number): string {
-    if (!chainId) {
-      throw new Error('chainId is required')
-    }
-    const address = this.contractAddresses[this.network]?.[chainId]?.hubCoreMessenger
-    return address
   }
 
   async getEvents (input: GetGeneralEventsInput): Promise<any[]> {
@@ -138,7 +102,7 @@ export class Hop {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getRpcProvider(chainId)
+    const provider = this.getProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -173,79 +137,79 @@ export class Hop {
     const map : any = {}
     for (const eventName of eventNames) {
       if (eventName === 'BundleCommitted') {
-        const address = this.getSpokeMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'BundleForwared') {
-        const address = this.getHubMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getHubMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'BundleReceived') {
-        const address = this.getHubMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getHubMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'BundleSet') {
-        const address = this.getSpokeMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'FeesSentToHub') {
-        const address = this.getSpokeMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'MessageBundled') {
-        const address = this.getSpokeMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'MessageExecuted') {
-        const address = this.getSpokeMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'MessageSent') {
-        const address = this.getSpokeMessageBridgeContractAddress(chainId)
+        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'ConfirmationSent') { // nft
-        const address = this.getNftBridgeContractAddress(chainId)
+        const address = await this.getNftBridgeContractAddress(chainId)
         const _eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TokenConfirmed') { // nft
-        const address = this.getNftBridgeContractAddress(chainId)
+        const address = await this.getNftBridgeContractAddress(chainId)
         const _eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TokenSent') { // nft
-        const address = this.getNftBridgeContractAddress(chainId)
+        const address = await this.getNftBridgeContractAddress(chainId)
         const _eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TransferSent') { // RailsHub
-        const address = this.getRailsHubContractAddress(chainId)
+        const address = await this.getRailsHubContractAddress(chainId)
         const _eventFetcher = new TransferSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TransferBonded') { // RailsHub
-        const address = this.getRailsHubContractAddress(chainId)
+        const address = await this.getRailsHubContractAddress(chainId)
         const _eventFetcher = new TransferBondedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
@@ -278,50 +242,14 @@ export class Hop {
     ]
   }
 
-  async getBlock (chainId: number, blockNumber: number): Promise<any> {
-    const cacheKey = `${chainId}-${blockNumber}`
-    if (cache[cacheKey]) {
-      return cache[cacheKey]
-    }
-    const provider = this.getRpcProvider(chainId)
-    const block = await provider.getBlock(blockNumber)
-    cache[cacheKey] = block
-    return block
-  }
-
-  getChainSlug (chainId: number) {
-    const chainSlug = chainSlugMap[chainId]
-    if (!chainSlug) {
-      throw new Error(`Invalid chain: ${chainId}`)
-    }
-    return chainSlug
-  }
-
-  getContractAddresses () {
-    return this.contractAddresses[this.network]
-  }
-
-  setContractAddresses (contractAddresses: any) {
-    this.contractAddresses[this.network] = contractAddresses
-  }
-
   getSupportedChainIds (): number[] {
     const keys = Object.keys(this.contractAddresses[this.network])
     return keys.map((chainId: string) => Number(chainId))
   }
 
-  private isValidChainId (chainId: number) {
-    if (!chainId) {
-      throw new Error('chainId is required')
-    }
-
-    const chainIds = new Set(Object.keys(this.contractAddresses[this.network]).map((chainId: string) => Number(chainId)))
-    return chainIds.has(chainId)
-  }
-
   async connectTargets (input: ConnectTargetsInput): Promise<any> {
     const { hubChainId, spokeChainId, target1, target2, signer } = input
-    const provider = this.getRpcProvider(hubChainId)
+    const provider = this.getProviderForChainId(hubChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${hubChainId}`)
     }
@@ -339,19 +267,11 @@ export class Hop {
     return { connectorAddress }
   }
 
-  getRailsHubContractAddress (chainId: number): string {
-    if (!chainId) {
-      throw new Error('chainId is required')
-    }
-    const address = this.contractAddresses[this.network]?.[chainId]?.railsHub
-    return address
+  async getRailsHubContractAddress (chainId: number): Promise<string> {
+    return this.railsHub.getRailsHubAddress(chainId)
   }
 
-  getNftBridgeContractAddress (chainId: number): string {
-    if (!chainId) {
-      throw new Error('chainId is required')
-    }
-    const address = this.contractAddresses[this.network]?.[chainId]?.nftBridge
-    return address
+  async getNftBridgeContractAddress (chainId: number): Promise<string> {
+    return this.nft.getNftBridgeContractAddress(chainId)
   }
 }

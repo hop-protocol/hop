@@ -1,5 +1,9 @@
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { getProviderFromUrl, rateLimitRetry, networks } from '@hop-protocol/sdk-core'
+import { addresses } from '#addresses/index.js'
+import { chainSlugMap } from '#utils/chainSlugMap.js'
+
+const cache : Record<string, any> = {}
 
 type Provider = providers.Provider
 
@@ -7,17 +11,20 @@ export type ChainProviders = {
   [key: string]: providers.Provider
 }
 
-type BaseConfig = {
+export type BaseConfig = {
   network: string
   signer?: Signer
   gasPriceMultiplier?: number
   chainProviders?: ChainProviders
+  contractAddresses?: Record<string, any>
 }
 
 export class Base {
   network: string
   signer: Signer
   gasPriceMultiplier: number = 0
+  contractAddresses: Record<string, any>
+  l1ChainId: number
 
   chainProviders: ChainProviders = {}
 
@@ -31,6 +38,22 @@ export class Base {
     }
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
     this.chainProviders = config.chainProviders || this.getDefaultChainProviders()
+
+    this.contractAddresses = addresses[this.network]
+
+    if (config.contractAddresses) {
+      this.contractAddresses = config.contractAddresses
+    }
+
+    this.l1ChainId = this.network === 'mainnet' ? 1 : 5
+  }
+
+  getContractAddresses () {
+    return this.contractAddresses
+  }
+
+  setContractAddresses (contractAddresses: any) {
+    this.contractAddresses = contractAddresses
   }
 
   getDefaultChainProviders (): ChainProviders {
@@ -47,14 +70,25 @@ export class Base {
     this.signer = signer
   }
 
-  // Note: this is implemented in subclasses
-  isValidChain (chainId: BigNumberish): boolean {
-    return true
+  isValidChainId (chainId: BigNumberish) {
+    return this.contractAddresses[chainId?.toString()] != null
+  }
+
+  isValidTxHash (txHash: string): boolean {
+    return txHash.slice(0, 2) === '0x' && txHash.length === 66
+  }
+
+  getChainSlug (chainId: number) {
+    const chainSlug = chainSlugMap[chainId]
+    if (!chainSlug) {
+      throw new Error(`Invalid chain: ${chainId}`)
+    }
+    return chainSlug
   }
 
   setChainProvider (chainId: BigNumberish, provider: Provider): void {
     chainId = chainId.toString()
-    if (!this.isValidChain(chainId)) {
+    if (!this.isValidChainId(chainId)) {
       throw new Error(
         `unsupported chain "${chainId}" for network ${this.network}`
       )
@@ -64,7 +98,7 @@ export class Base {
 
   setChainProviders (chainProviders: ChainProviders): void {
     for (const chainId in chainProviders) {
-      if (!this.isValidChain(chainId)) {
+      if (!this.isValidChainId(chainId)) {
         throw new Error(
           `unsupported chain "${chainId}" for network ${this.network}`
         )
@@ -77,7 +111,7 @@ export class Base {
 
   setChainProviderUrls (chainProviders: Record<string, string>): void {
     for (const chainId in chainProviders) {
-      if (!this.isValidChain(chainId)) {
+      if (!this.isValidChainId(chainId)) {
         throw new Error(
           `unsupported chain "${chainId}" for network ${this.network}`
         )
@@ -86,6 +120,14 @@ export class Base {
         this.chainProviders[chainId] = getProviderFromUrl(chainProviders[chainId])
       }
     }
+  }
+
+  getConfigAddress (chainId: BigNumberish, key: string): string {
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+    const address = this.contractAddresses?.[chainId?.toString()]?.[key]
+    return address
   }
 
   getProviderForChainId (chainId: BigNumberish): Provider {
@@ -116,6 +158,14 @@ export class Base {
   async getBumpedGasPrice (provider: Provider, percent: number): Promise<BigNumber> {
     const gasPrice = await this.getGasPrice(provider)
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+  }
+
+  async getSignerAddress (): Promise<string | null> {
+    if (this.signer) {
+      return this.signer.getAddress()
+    }
+
+    return null
   }
 
   async getSignerOrProvider (
@@ -210,11 +260,31 @@ export class Base {
       throw new Error('signer provider is required')
     }
 
-    const contractExists = await this.getContractExists(transactionRequest.to, this.signer.provider)
+    if (!this.signer) {
+      throw new Error('signer is required')
+    }
+
+    const signer = await this.getSignerOrProvider(chainId)
+    if (!(Signer.isSigner(signer) && signer.provider)) {
+      throw new Error(`signer not connected to required chain "${chainId}"`)
+    }
+
+    const contractExists = await this.getContractExists(transactionRequest.to, signer.provider)
     if (!contractExists) {
       throw new Error(`Contract "${transactionRequest.to}" does not exist on chain "${chainId}"`)
     }
 
-    return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
+    return signer.sendTransaction({ ...transactionRequest, chainId } as any)
+  }
+
+  async getBlock (chainId: number, blockNumber: number): Promise<any> {
+    const cacheKey = `${chainId}-${blockNumber}`
+    if (cache[cacheKey]) {
+      return cache[cacheKey]
+    }
+    const provider = this.getProviderForChainId(chainId)
+    const block = await provider.getBlock(blockNumber)
+    cache[cacheKey] = block
+    return block
   }
 }

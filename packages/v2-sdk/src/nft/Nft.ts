@@ -1,3 +1,4 @@
+import { Base, BaseConfig } from '#common/index.js'
 import { Interface } from 'ethers/lib/utils.js'
 import { getProvider } from '#utils/getProvider.js'
 import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
@@ -98,58 +99,52 @@ export type GetNftConfirmPopulatedTxInput = {
   tokenId: string
 }
 
-export class Nft {
-  network: string
+export type NftConfig = BaseConfig & {}
+
+export class Nft extends Base {
   batchBlocks?: number = 1000
-  contractAddresses: Record<string, any> = addresses
 
-  constructor (network: string = 'goerli') {
-    this.network = network
+  constructor (config: NftConfig) {
+    super({ network: config.network, signer: config.signer, contractAddresses: config.contractAddresses })
   }
 
-  getRpcProvider (chainId: number) {
-    return null as any // TODO
-  }
+  get populateTransaction() {
+    return {
+      getProviderForChainId: (chainId: number) => {
+        return getProvider('goerli', chainId)
+      },
 
-  private isValidChainId (chainId: number) {
-    return true // TODO
-  }
+      mintNft: (input: MintNftInput) => {
+        const { contractAddress, fromChainId, recipient, tokenId } = input
+        const ABI = [
+          'function safeMint(address to, uint256 tokenId)'
+        ]
 
-  populateTransaction: any = {
-    getRpcProvider (chainId: number) {
-      return getProvider('goerli', chainId)
-    },
+        const iface = new Interface(ABI)
+        const data = iface.encodeFunctionData('safeMint', [recipient, tokenId])
+        const txData = {
+          to: contractAddress,
+          data
+        }
 
-    mintNft (input: MintNftInput) {
-      const { contractAddress, fromChainId, recipient, tokenId } = input
-      const ABI = [
-        'function safeMint(address to, uint256 tokenId)'
-      ]
+        return txData
+      },
 
-      const iface = new Interface(ABI)
-      const data = iface.encodeFunctionData('safeMint', [recipient, tokenId])
-      const txData = {
-        to: contractAddress,
-        data
+      approveNft: (input: ApproveNftInput) => {
+        const { contractAddress, fromChainId, spender, tokenId } = input
+        const ABI = [
+          'function approve(address spender, uint256 tokenId)'
+        ]
+
+        const iface = new Interface(ABI)
+        const data = iface.encodeFunctionData('approve', [spender, tokenId])
+        const txData = {
+          to: contractAddress,
+          data
+        }
+
+        return txData
       }
-
-      return txData
-    },
-
-    approveNft (input: ApproveNftInput) {
-      const { contractAddress, fromChainId, spender, tokenId } = input
-      const ABI = [
-        'function approve(address spender, uint256 tokenId)'
-      ]
-
-      const iface = new Interface(ABI)
-      const data = iface.encodeFunctionData('approve', [spender, tokenId])
-      const txData = {
-        to: contractAddress,
-        data
-      }
-
-      return txData
     }
   }
 
@@ -228,7 +223,7 @@ export class Nft {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getRpcProvider(chainId)
+    const provider = this.getProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -248,7 +243,7 @@ export class Nft {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getRpcProvider(chainId)
+    const provider = this.getProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -268,7 +263,7 @@ export class Nft {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getRpcProvider(chainId)
+    const provider = this.getProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -281,11 +276,7 @@ export class Nft {
   }
 
   getNftBridgeContractAddress (chainId: number): string {
-    if (!chainId) {
-      throw new Error('chainId is required')
-    }
-    const address = this.contractAddresses[this.network]?.[chainId]?.nftBridge
-    return address
+    return this.getConfigAddress(chainId, 'nftBridge')
   }
 
   async getNftMintPopulatedTx (input: GetNftMintPopulatedTxInput): Promise<any> {
@@ -296,7 +287,7 @@ export class Nft {
     if (!toAddress) {
       throw new Error('toAddress is required')
     }
-    const provider = this.getRpcProvider(fromChainId)
+    const provider = this.getProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -322,7 +313,7 @@ export class Nft {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getRpcProvider(fromChainId)
+    const provider = this.getProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -357,7 +348,7 @@ export class Nft {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getRpcProvider(fromChainId)
+    const provider = this.getProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -392,7 +383,7 @@ export class Nft {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getRpcProvider(fromChainId)
+    const provider = this.getProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -418,7 +409,7 @@ export class Nft {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getRpcProvider(fromChainId)
+    const provider = this.getProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }

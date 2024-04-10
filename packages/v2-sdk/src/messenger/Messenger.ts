@@ -1,4 +1,4 @@
-import { Base } from '#common/index.js'
+import { Base, BaseConfig } from '#common/index.js'
 import { BigNumber, Signer, providers } from 'ethers'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
@@ -233,52 +233,25 @@ export type RelayMessageData = {
   bundleProof: BundleProof
 }
 
-export type MessengerConfig = {
-  network: string
-  contractAddresses?: Record<string, any>
-}
+export type MessengerConfig = BaseConfig & {}
 
 export class Messenger extends Base {
   batchBlocks?: number = 1000
-  l1ChainId: number = 1
   gasPriceOracle: GasPriceOracle
-  contractAddresses: Record<string, any>
 
   constructor(config: MessengerConfig) {
-    super({ network: config.network })
+    super({ network: config.network, signer: config.signer, contractAddresses: config.contractAddresses })
 
     const url = 'https://v2-gas-price-oracle-goerli.hop.exchange'
     this.gasPriceOracle = new GasPriceOracle(url)
-
-    this.contractAddresses = addresses[this.network]
-
-    if (config.contractAddresses) {
-      this.contractAddresses = config.contractAddresses
-    }
   }
 
   getSpokeMessageBridgeContractAddress (chainId: number): string {
-    return this.contractAddresses[chainId].spokeCoreMessenger
+    return this.getConfigAddress(chainId, 'spokeCoreMessenger')
   }
 
   getHubMessageBridgeContractAddress (chainId: number): string {
-    return this.contractAddresses[chainId].hubCoreMessenger
-  }
-
-  isValidChainId (chainId: number) {
-    return this.contractAddresses[chainId] != null
-  }
-
-  isValidTxHash (txHash: string): boolean {
-    return txHash.slice(0, 2) === '0x' && txHash.length === 66
-  }
-
-  getChainSlug (chainId: number) {
-    const chainSlug = chainSlugMap[chainId]
-    if (!chainSlug) {
-      throw new Error(`Invalid chain: ${chainId}`)
-    }
-    return chainSlug
+    return this.getConfigAddress(chainId, 'hubCoreMessenger')
   }
 
   async getBundleCommittedEvents (input: GetEventsInput): Promise<BundleCommitted[]> {

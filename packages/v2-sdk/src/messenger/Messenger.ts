@@ -73,7 +73,7 @@ export type RouteData = {
   maxBundleMessages: number
 }
 
-type GetIsL2TxHashExitedInput = {
+export type GetIsL2TxHashExitedInput = {
   fromChainId: number
   transactionHash: string
 }

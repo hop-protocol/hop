@@ -2,118 +2,118 @@ import { Base, BaseConfig } from '#common/index.js'
 import { Contract, Signer, ethers, providers, BigNumberish } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 
-interface MinHopStakeForRoleInput {
+export type MinHopStakeForRoleInput = {
   chainId: BigNumberish
-  role: string; // assuming 'role' should be a string that will be converted to bytes32
+  role: string
 }
 
-interface GetChallengesInput {
+export type GetChallengesInput = {
   chainId: BigNumberish
-  challengeId: string; // assuming 'challengeId' is a string representing a number or a bytes-like value
+  challengeId: string
 }
 
-interface GetWithdrawableEthInput {
+export type GetWithdrawableEthInput = {
   chainId: BigNumberish
-  address: string; // Ethereum address format
+  address: string
 }
 
-interface RegistryStakeHopInput {
-  chainId: BigNumberish
-  role: string;
-  staker: string; // Ethereum address format
-  amount: ethers.BigNumberish; // Can be a number, string, BigNumber, etc.
-}
-
-interface RegistryUnstakeHopInput {
+export type RegistryStakeHopInput = {
   chainId: BigNumberish
   role: string;
-  amount: ethers.BigNumberish; // Can be a number, string, BigNumber, etc.
+  staker: string
+  amount: BigNumberish
 }
 
-interface RegistryWithdrawInput {
+export type RegistryUnstakeHopInput = {
+  chainId: BigNumberish
+  role: string
+  amount: ethers.BigNumberish
+}
+
+export type RegistryWithdrawInput = {
   chainId: BigNumberish
   role: string;
-  staker: string; // Ethereum address format
+  staker: string
 }
 
-interface CreateChallengeInput {
+export type CreateChallengeInput = {
+  chainId: BigNumberish
+  staker: string
+  role: string
+  penalty: BigNumberish
+  slashingData: string
+  challengeEth: BigNumberish // Ether value to send with the transaction
+}
+
+export type AddToChallengeInput = {
+  chainId: BigNumberish
+  staker: string
+  challenger: string
+  role: string
+  penalty: BigNumberish
+  slashingData: string
+  additionalEth: BigNumberish // Additional Ether value for the challenge
+}
+
+export type AddToAppealInput = {
+  chainId: BigNumberish
+  staker: string
+  challenger: string
+  role: string
+  penalty: BigNumberish
+  slashingData: string
+  appealEth: BigNumberish // Ether value for the appeal
+}
+
+export type OptimisticallySettleChallengeInput = {
   chainId: BigNumberish
   staker: string;
+  challenger: string
   role: string;
-  penalty: ethers.BigNumberish;
-  slashingData: string; // assuming slashingData is a bytes-like string
-  challengeEth: ethers.BigNumberish; // Ether value to send with the transaction
+  penalty: ethers.BigNumberish
+  slashingData: string // assuming slashingData is a bytes-like string
 }
 
-interface AddToChallengeInput {
-  chainId: BigNumberish
-  staker: string;
-  challenger: string;
-  role: string;
-  penalty: ethers.BigNumberish;
-  slashingData: string; // assuming slashingData is a bytes-like string
-  additionalEth: ethers.BigNumberish; // Additional Ether value for the challenge
-}
-
-interface AddToAppealInput {
-  chainId: BigNumberish
-  staker: string;
-  challenger: string;
-  role: string;
-  penalty: ethers.BigNumberish;
-  slashingData: string; // assuming slashingData is a bytes-like string
-  appealEth: ethers.BigNumberish; // Ether value for the appeal
-}
-
-interface OptimisticallySettleChallengeInput {
-  chainId: BigNumberish
-  staker: string;
-  challenger: string;
-  role: string;
-  penalty: ethers.BigNumberish;
-  slashingData: string; // assuming slashingData is a bytes-like string
-}
-
-interface AcceptSlashInput {
+export type AcceptSlashInput = {
   chainId: BigNumberish
   challenger: string;
   role: string;
-  penalty: ethers.BigNumberish;
-  slashingData: string; // assuming slashingData is a bytes-like string
-  slashEth: ethers.BigNumberish; // Ether value to send with the transaction
+  penalty: BigNumberish
+  slashingData: string
+  slashEth: BigNumberish
 }
 
-interface ForceSettleChallengeInput {
+export type ForceSettleChallengeInput = {
   chainId: BigNumberish
-  challengeId: string; // assuming 'challengeId' is a string representing a number or a bytes-like value
-  challengeWon: boolean;
+  challengeId: string
+  challengeWon: boolean
 }
 
-interface IsStakedInput {
-  chainId: BigNumberish
-  role: string;
-  staker: string; // Ethereum address format
-}
-
-interface GetStakedBalanceInput {
+export type IsStakedInput = {
   chainId: BigNumberish
   role: string;
-  staker: string; // Ethereum address format
+  staker: string
 }
 
-interface GetWithdrawableBalanceInput {
+export type GetStakedBalanceInput = {
   chainId: BigNumberish
-  role: string;
-  staker: string; // Ethereum address format
+  role: string
+  staker: string
 }
 
-interface GetChallengeIdInput {
+export type GetWithdrawableBalanceInput = {
+  chainId: BigNumberish
+  role: string
+  staker: string
+}
+
+export type GetChallengeIdInput = {
   chainId: BigNumberish
   role: string;
-  staker: string; // Ethereum address format
-  penalty: ethers.BigNumberish;
-  challenger: string; // Ethereum address format
-  slashingData: string; // assuming slashingData is a bytes-like string
+  staker: string
+  penalty: BigNumberish;
+  challenger: string
+  slashingData: string
 }
 
 export type StakingRegistryConstructorInput = BaseConfig & {}

@@ -5,19 +5,19 @@ import { RailsHub__factory } from '#contracts/factories/RailsHub__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 import { addresses } from '#addresses/index.js'
 
-interface TransferSentEventInput {
+export type TransferSentEventInput = {
   chainId: BigNumberish
   startBlock: number
   endBlock: number
 }
 
-interface TransferBondEventInput {
+export type TransferBondEventInput = {
   chainId: BigNumberish
   startBlock: number
   endBlock: number
 }
 
-interface Path {
+export type Path = {
   pathId: string
   chainId: number
   token: string
@@ -25,19 +25,19 @@ interface Path {
   counterpartChainId: number
 }
 
-interface GetPathIdInput {
+export type GetPathIdInput = {
   chainId0: number
   token0: string
   chainId1: number
   token1: string
 }
 
-interface GetPathInfoInput {
+export type GetPathInfoInput = {
   chainId: BigNumberish
   pathId: string
 }
 
-interface SendInput {
+export type SendInput = {
   chainId: BigNumberish
   pathId: string
   to: string
@@ -46,7 +46,7 @@ interface SendInput {
   attestedCheckpoint: string
 }
 
-interface BondInput {
+export type BondInput = {
   chainId: BigNumberish
   pathId: string
   checkpoint: string
@@ -58,7 +58,7 @@ interface BondInput {
   attestedCheckpoint: string
 }
 
-interface PostClaimInput {
+export type PostClaimInput = {
   chainId: BigNumberish
   pathId: string
   transferId: string
@@ -66,7 +66,7 @@ interface PostClaimInput {
   totalSent: BigNumberish
 }
 
-interface GetTransferIdInput {
+export type GetTransferIdInput = {
   chainId: BigNumberish
   pathId: string
   to: string
@@ -77,20 +77,20 @@ interface GetTransferIdInput {
   attestedCheckpoint: string
 }
 
-interface WithdrawInput {
+export type WithdrawInput = {
   chainId: BigNumberish
   pathId: string
   amount: BigNumberish
   timeWindow: number
 }
 
-interface WithdrawAllInput {
+export type WithdrawAllInput = {
   chainId: BigNumberish
   pathId: string
   timeWindow: number
 }
 
-interface WithdrawBalanceInput {
+export type WithdrawBalanceInput = {
   chainId: BigNumberish
   pathId?: string
   path?: Path
@@ -98,30 +98,30 @@ interface WithdrawBalanceInput {
   timeWindow: number
 }
 
-interface GetFeeInput {
+export type GetFeeInput = {
   chainId: BigNumberish
   pathId: string
 }
 
-interface StakeHopInput {
+export type StakeHopInput = {
   chainId: BigNumberish
   role: string
   staker?: string
   amount: BigNumberish
 }
 
-interface UnstakeHopInput {
+export type UnstakeHopInput = {
   chainId: BigNumberish
   role: string
   amount: BigNumberish
 }
 
-interface WithdrawHopInput {
+export type WithdrawHopInput = {
   chainId: BigNumberish
   role: string
 }
 
-interface CalcAmountOutMinInput {
+export type CalcAmountOutMinInput = {
   amountOut: BigNumberish,
   slippageTolerance: number
 }
@@ -207,7 +207,8 @@ export class RailsHub extends StakingRegistry {
         const { chainId, pathId, amount } = input
         const path = await this.getPathInfo({ chainId, pathId })
         const tokenAddress = path.token
-        const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
+        const provider = this.getProviderForChainId(chainId)
+        const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const address = this.getRailsHubAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
 
@@ -232,7 +233,8 @@ export class RailsHub extends StakingRegistry {
         const { chainId, pathId, amount } = input
         const path = await this.getPathInfo({ chainId, pathId })
         const tokenAddress = path.token
-        const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
+        const provider = this.getProviderForChainId(chainId)
+        const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const address = this.getRailsHubAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
 
@@ -360,7 +362,8 @@ export class RailsHub extends StakingRegistry {
     const { chainId, pathId, amount } = input
     const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
-    const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
+    const provider = this.getProviderForChainId(chainId)
+    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const signerAddress = (await this.getSignerAddress()) as string
     const balance = await tokenContract.balanceOf(signerAddress)
     if (balance.lt(amount)) {
@@ -383,7 +386,8 @@ export class RailsHub extends StakingRegistry {
 
     const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
-    const tokenContract = ERC20__factory.connect(tokenAddress, this.signer)
+    const provider = this.getProviderForChainId(chainId)
+    const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const signerAddress = (await this.getSignerAddress()) as string
     const balance = await tokenContract.balanceOf(signerAddress)
     if (balance.lt(amount)) {

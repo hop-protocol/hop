@@ -1,5 +1,5 @@
 import { Base } from '#common/index.js'
-import { BigNumber, Signer, providers } from 'ethers'
+import { BigNumberish, BigNumber, Signer, providers } from 'ethers'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
@@ -27,7 +27,7 @@ import { getProvider } from '#utils/getProvider.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
 import { addresses } from '#addresses/index.js'
 import { Messenger } from '#messenger/index.js'
-import { RailsHub } from '#railsHub/index.js'
+import { RailsHub, GetPathInfoInput, Path } from '#railsHub/index.js'
 import { Nft } from '#nft/index.js'
 
 const cache : Record<string, any> = {}
@@ -58,6 +58,15 @@ export type ConnectTargetsInput = {
   target1: string
   target2: string
   signer: Signer
+}
+
+type SendTokensInput = {
+  chainId: BigNumberish
+  pathId: string
+  to: string
+  amount: BigNumberish
+  minAmountOut: BigNumberish
+  attestedCheckpoint: string
 }
 
 export class Hop extends Base {
@@ -94,6 +103,7 @@ export class Hop extends Base {
     return '' // TODO
   }
 
+  // used by v2-explorer backend
   async getEvents (input: GetGeneralEventsInput): Promise<any[]> {
     let { eventName, eventNames, chainId, fromBlock, toBlock } = input
     if (!chainId) {
@@ -229,6 +239,7 @@ export class Hop extends Base {
     return decoded
   }
 
+  // used by v2-explorer backend
   getEventNames (): string[] {
     return [
       'BundleCommitted',
@@ -247,6 +258,7 @@ export class Hop extends Base {
     return keys.map((chainId: string) => Number(chainId))
   }
 
+  // used by connector demo
   async connectTargets (input: ConnectTargetsInput): Promise<any> {
     const { hubChainId, spokeChainId, target1, target2, signer } = input
     const provider = this.getProviderForChainId(hubChainId)
@@ -273,5 +285,14 @@ export class Hop extends Base {
 
   async getNftBridgeContractAddress (chainId: number): Promise<string> {
     return this.nft.getNftBridgeContractAddress(chainId)
+  }
+
+  async sendTokens (input: SendTokensInput): Promise<any> {
+    const tx = await this.railsHub.send(input)
+    return tx
+  }
+
+  async getPathInfo (input: GetPathInfoInput): Promise<Path> {
+    return this.railsHub.getPathInfo(input)
   }
 }

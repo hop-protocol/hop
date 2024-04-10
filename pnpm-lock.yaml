@@ -688,9 +688,6 @@ importers:
       '@types/luxon':
         specifier: 3.4.2
         version: 3.4.2
-      esbuild:
-        specifier: 0.20.0
-        version: 0.20.0
       typedoc:
         specifier: 0.25.7
         version: 0.25.7(typescript@5.3.3)

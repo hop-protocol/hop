@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.2-beta.5",
+  "version": "0.0.2-beta.6",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",

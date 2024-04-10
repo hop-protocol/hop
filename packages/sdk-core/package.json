@@ -7,19 +7,7 @@
   "tshy": {
     "exports": {
       "./package.json": "./package.json",
-      ".": "./src/index.js",
-      "./config": "./src/config/index.js",
-      "./constants": "./src/constants/index.js",
-      "./models": "./src/models/index.js",
-      "./multicall": "./src/multicall/index.js",
-      "./priceFeed": "./src/priceFeed/index.js",
-      "./provider": "./src/provider/index.js",
-      "./utils": "./src/utils/index.js",
-      "./addresses": "./src/addresses/index.js",
-      "./contracts": "./src/contracts/index.js",
-      "./metadata": "./src/metadata/index.js",
-      "./metadata/tokens": "./src/metadata/tokens.js",
-      "./networks": "./src/networks/index.js"
+      ".": "./src/index.js"
     }
   },
   "imports": {

@@ -6,6 +6,7 @@
   "license": "MIT",
   "tshy": {
     "exports": {
+      "./package.json": "./package.json",
       ".": "./src/index.js",
       "./config": "./src/config/index.js",
       "./constants": "./src/constants/index.js",
@@ -190,15 +191,14 @@
     "ethers": "5.7.2",
     "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
-    "p-queue": "6.6.2"
+    "tshy": "1.13.1"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",
     "typedoc": "0.25.7",
     "typedoc-plugin-markdown": "3.17.1",
     "@aws-sdk/client-s3": "3.338.0",
-    "@aws-sdk/types": "3.485.0",
-    "tshy": "1.13.1"
+    "@aws-sdk/types": "3.485.0"
   },
   "peerDependencies": {
     "ethers": "^5"

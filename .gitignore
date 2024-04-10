@@ -32,3 +32,4 @@ secrets.json
 
 pgdata
 /*.txt
+.npmignore

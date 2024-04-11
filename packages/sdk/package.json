@@ -55,7 +55,7 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/esm/index.js",
+        "types": "./dist/esm/index.d.ts",
         "default": "./dist/esm/index.js"
       },
       "require": {
@@ -65,7 +65,7 @@
     },
     "./addresses": {
       "import": {
-        "types": "./dist/esm/addresses/index.js",
+        "types": "./dist/esm/addresses/index.d.ts",
         "default": "./dist/esm/addresses/index.js"
       },
       "require": {
@@ -75,7 +75,7 @@
     },
     "./config": {
       "import": {
-        "types": "./dist/esm/config/index.js",
+        "types": "./dist/esm/config/index.d.ts",
         "default": "./dist/esm/config/index.js"
       },
       "require": {
@@ -85,7 +85,7 @@
     },
     "./contracts": {
       "import": {
-        "types": "./dist/esm/contracts/index.js",
+        "types": "./dist/esm/contracts/index.d.ts",
         "default": "./dist/esm/contracts/index.js"
       },
       "require": {
@@ -95,7 +95,7 @@
     },
     "./contracts/*": {
       "import": {
-        "types": "./dist/esm/contracts/*.js",
+        "types": "./dist/esm/contracts/*.d.ts",
         "default": "./dist/esm/contracts/*.js"
       },
       "require": {
@@ -105,7 +105,7 @@
     },
     "./metadata": {
       "import": {
-        "types": "./dist/esm/metadata/index.js",
+        "types": "./dist/esm/metadata/index.d.ts",
         "default": "./dist/esm/metadata/index.js"
       },
       "require": {
@@ -115,7 +115,7 @@
     },
     "./metadata/tokens": {
       "import": {
-        "types": "./dist/esm/metadata/tokens.js",
+        "types": "./dist/esm/metadata/tokens.d.ts",
         "default": "./dist/esm/metadata/tokens.js"
       },
       "require": {
@@ -125,7 +125,7 @@
     },
     "./networks": {
       "import": {
-        "types": "./dist/esm/networks/index.js",
+        "types": "./dist/esm/networks/index.d.ts",
         "default": "./dist/esm/networks/index.js"
       },
       "require": {

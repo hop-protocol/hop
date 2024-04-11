@@ -192,6 +192,7 @@
   "homepage": "https://hop.exchange",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hop-protocol/hop.git"
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/sdk-core"
   }
 }

@@ -4,8 +4,6 @@
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
-  "module": "dist/esm/index.js",
-  "main": "dist/cjs/index.js",
   "imports": {
     "#*": {
       "import": "./dist/esm/*",
@@ -23,6 +21,16 @@
         "default": "./dist/cjs/index.js"
       }
     },
+    "./addresses": {
+      "import": {
+        "types": "./dist/esm/addresses/index.d.ts",
+        "default": "./dist/esm/addresses/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/addresses/index.d.ts",
+        "default": "./dist/cjs/addresses/index.js"
+      }
+    },
     "./config": {
       "import": {
         "types": "./dist/esm/config/index.d.ts",
@@ -33,14 +41,14 @@
         "default": "./dist/cjs/config/index.js"
       }
     },
-    "./addresses": {
+    "./constants": {
       "import": {
-        "types": "./dist/esm/addresses/index.d.ts",
-        "default": "./dist/esm/addresses/index.js"
+        "types": "./dist/esm/constants/index.d.ts",
+        "default": "./dist/esm/constants/index.js"
       },
       "require": {
-        "types": "./dist/cjs/addresses/index.d.ts",
-        "default": "./dist/cjs/addresses/index.js"
+        "types": "./dist/cjs/constants/index.d.ts",
+        "default": "./dist/cjs/constants/index.js"
       }
     },
     "./contracts": {
@@ -73,6 +81,26 @@
         "default": "./dist/cjs/metadata/tokens.js"
       }
     },
+    "./models": {
+      "import": {
+        "types": "./dist/esm/models/index.d.ts",
+        "default": "./dist/esm/models/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/models/index.d.ts",
+        "default": "./dist/cjs/models/index.js"
+      }
+    },
+    "./multicall": {
+      "import": {
+        "types": "./dist/esm/multicall/index.d.ts",
+        "default": "./dist/esm/multicall/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/multicall/index.d.ts",
+        "default": "./dist/cjs/multicall/index.js"
+      }
+    },
     "./networks": {
       "import": {
         "types": "./dist/esm/networks/index.d.ts",
@@ -81,6 +109,36 @@
       "require": {
         "types": "./dist/cjs/networks/index.d.ts",
         "default": "./dist/cjs/networks/index.js"
+      }
+    },
+    "./priceFeed": {
+      "import": {
+        "types": "./dist/esm/priceFeed/index.d.ts",
+        "default": "./dist/esm/priceFeed/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/priceFeed/index.d.ts",
+        "default": "./dist/cjs/priceFeed/index.js"
+      }
+    },
+    "./provider": {
+      "import": {
+        "types": "./dist/esm/provider/index.d.ts",
+        "default": "./dist/esm/provider/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/provider/index.d.ts",
+        "default": "./dist/cjs/provider/index.js"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/esm/utils/index.d.ts",
+        "default": "./dist/esm/utils/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/utils/index.d.ts",
+        "default": "./dist/cjs/utils/index.js"
       }
     }
   },

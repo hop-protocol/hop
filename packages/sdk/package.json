@@ -54,36 +54,84 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    },
-    "./config": {
-      "import": "./dist/esm/config/index.js",
-      "require": "./dist/cjs/config/index.js"
+      "import": {
+        "types": "./dist/esm/index.js",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     },
     "./addresses": {
-      "import": "./dist/esm/addresses/index.js",
-      "require": "./dist/cjs/addresses/index.js"
+      "import": {
+        "types": "./dist/esm/addresses/index.js",
+        "default": "./dist/esm/addresses/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/addresses/i,ndex.d.ts",
+        "default": "./dist/cjs/addresses/index.js"
+      }
+    },
+    "./config": {
+      "import": {
+        "types": "./dist/esm/config/index.js",
+        "default": "./dist/esm/config/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/config/inde,x.d.ts",
+        "default": "./dist/cjs/config/index.js"
+      }
     },
     "./contracts": {
-      "import": "./dist/esm/contracts/index.js",
-      "require": "./dist/cjs/contracts/index.js"
+      "import": {
+        "types": "./dist/esm/contracts/index.js",
+        "default": "./dist/esm/contracts/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/contracts/i,ndex.d.ts",
+        "default": "./dist/cjs/contracts/index.js"
+      }
     },
     "./contracts/*": {
-      "import": "./dist/esm/contracts/*.js",
-      "require": "./dist/cjs/contracts/*.js"
+      "import": {
+        "types": "./dist/esm/contracts/*.js",
+        "default": "./dist/esm/contracts/*.js"
+      },
+      "require": {
+        "types": "./dist/cjs/contracts/*,.d.ts",
+        "default": "./dist/cjs/contracts/*.js"
+      }
     },
     "./metadata": {
-      "import": "./dist/esm/metadata/index.js",
-      "require": "./dist/cjs/metadata/index.js"
+      "import": {
+        "types": "./dist/esm/metadata/index.js",
+        "default": "./dist/esm/metadata/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/metadata/in,dex.d.ts",
+        "default": "./dist/cjs/metadata/index.js"
+      }
     },
     "./metadata/tokens": {
-      "import": "./dist/esm/metadata/tokens.js",
-      "require": "./dist/cjs/metadata/tokens.js"
+      "import": {
+        "types": "./dist/esm/metadata/tokens.js",
+        "default": "./dist/esm/metadata/tokens.js"
+      },
+      "require": {
+        "types": "./dist/cjs/metadata/to,kens.d.ts",
+        "default": "./dist/cjs/metadata/tokens.js"
+      }
     },
     "./networks": {
-      "import": "./dist/esm/networks/index.js",
-      "require": "./dist/cjs/networks/index.js"
+      "import": {
+        "types": "./dist/esm/networks/index.js",
+        "default": "./dist/esm/networks/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/networks/in,dex.d.ts",
+        "default": "./dist/cjs/networks/index.js"
+      }
     }
   }
 }

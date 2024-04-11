@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.2-beta.27",
+  "version": "0.0.2-beta.28",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -184,8 +184,7 @@
     "typedoc": "0.25.7",
     "typedoc-plugin-markdown": "3.17.1",
     "@aws-sdk/client-s3": "3.338.0",
-    "@aws-sdk/types": "3.485.0",
-    "esbuild": "0.20.0"
+    "@aws-sdk/types": "3.485.0"
   },
   "peerDependencies": {
     "ethers": "^5"

@@ -188,5 +188,10 @@
   },
   "peerDependencies": {
     "ethers": "^5"
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git"
   }
 }

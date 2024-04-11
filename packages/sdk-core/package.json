@@ -177,7 +177,12 @@
     "ethers": "5.7.2",
     "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
-    "p-queue": "6.6.2"
+    "p-queue": "6.6.2",
+    "@ethersproject/providers": "5.7.2",
+    "@ethersproject/abi": "5.7.0",
+    "@ethersproject/bignumber": "5.7.0",
+    "@ethersproject/abstract-provider": "5.7.0",
+    "@ethersproject/networks": "5.7.1"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",

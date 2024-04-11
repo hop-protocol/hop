@@ -1,0 +1,48 @@
+import { BigNumber, ethers } from 'ethers'
+import { Event, EventBase } from '#events/index.js'
+import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
+
+// event from HubERC5164ConnectorFactory
+export interface ConnectorDeployed extends EventBase {
+  connector: string
+  target: string
+  counterpartChainId: number
+  counterpartConnector: string
+  counterpartTarget: string
+}
+
+export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
+  override eventName = 'ConnectorDeployed'
+
+  getFilter () {
+    const contract = HubERC5164ConnectorFactory__factory.connect(this.address, this.provider)
+    const filter = contract.filters.ConnectorDeployed()
+    return filter
+  }
+
+  async getEvents (startBlock: number, endBlock: number): Promise<ConnectorDeployed[]> {
+    const filter = this.getFilter()
+    return this.getEventsWithFilter(filter, startBlock, endBlock)
+  }
+
+  override toTypedEvent (ethersEvent: any): ConnectorDeployed {
+    const iface = new ethers.utils.Interface(HubERC5164ConnectorFactory__factory.abi)
+    const decoded = iface.parseLog(ethersEvent)
+
+    const connector = decoded.args.connector.toString()
+    const target = decoded.args.target.toString()
+    const counterpartChainId = Number(decoded.args.counterpartChainId.toString())
+    const counterpartConnector = decoded.args.counterpartConnector.toString()
+    const counterpartTarget = decoded.args.counterpartTarget.toString()
+
+    return {
+      eventName: this.eventName,
+      eventLog: ethersEvent,
+      connector,
+      target,
+      counterpartChainId,
+      counterpartConnector,
+      counterpartTarget
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { HubConnector } from '#messenger/index.js'
+import { HubConnector } from 'hubConnector/index.js'
 import { getAddress, parseUnits } from 'ethers/lib/utils.js'
 import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'

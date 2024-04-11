@@ -27,7 +27,7 @@ import { getProvider } from '#utils/getProvider.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
 import { addresses } from '#addresses/index.js'
 import { Messenger } from '#messenger/index.js'
-import { HubConnector, ConnectTargetsInput } from '#messenger/HubConnector.js'
+import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsHub, GetPathInfoInput, Path } from '#railsHub/index.js'
 import { Nft } from '#nft/index.js'
 

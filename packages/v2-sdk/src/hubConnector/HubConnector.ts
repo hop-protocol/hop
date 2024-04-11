@@ -2,6 +2,13 @@ import { Base, BaseConfig } from '#common/index.js'
 import { BigNumberish, BigNumber, Signer, providers } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
+import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
+
+export type GetEventsInput = {
+  chainId: number
+  fromBlock: number
+  toBlock?: number
+}
 
 export type ConnectTargetsInput = {
   hubChainId: number
@@ -14,6 +21,8 @@ export type ConnectTargetsInput = {
 export type HubConnectorConfig = BaseConfig & {}
 
 export class HubConnector extends Base {
+  batchBlocks?: number = 1000
+
   constructor (config: HubConnectorConfig) {
     super(config)
   }
@@ -61,5 +70,25 @@ export class HubConnector extends Base {
 
   async getHubConnectorContractAddress (chainId: BigNumberish): Promise<string> {
     return this.getConfigAddress(chainId, 'hubConnectorFactory')
+  }
+
+  async getConnectorDeployedEvents (input: GetEventsInput): Promise<ConnectorDeployed[]> {
+    const { chainId, fromBlock, toBlock } = input
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+    if (!fromBlock) {
+      throw new Error('fromBlock is required')
+    }
+    const provider = this.getProviderForChainId(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId}`)
+    }
+    const address = await this.getHubConnectorContractAddress(chainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId: ${chainId}`)
+    }
+    const eventFetcher = new ConnectorDeployedEventFetcher(provider, chainId, this.batchBlocks as any, address)
+    return eventFetcher.getEvents(fromBlock, toBlock as any)
   }
 }

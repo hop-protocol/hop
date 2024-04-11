@@ -129,6 +129,10 @@
       "import": "./dist/esm/messenger/index.js",
       "require": "./dist/cjs/messenger/index.js"
     },
+    "./hubConnector": {
+      "import": "./dist/esm/hubConnector/index.js",
+      "require": "./dist/cjs/hubConnector/index.js"
+    },
     "./railsHub": {
       "import": "./dist/esm/railsHub/index.js",
       "require": "./dist/cjs/railHub/index.js"

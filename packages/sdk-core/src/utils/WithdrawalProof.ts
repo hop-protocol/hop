@@ -3,12 +3,12 @@ import { chainIdToSlug } from './chainIdToSlug.js'
 import { getSubgraphChains } from './getSubgraphChains.js'
 import { getSubgraphUrl } from './getSubgraphUrl.js'
 import { getTokenDecimals } from './getTokenDecimals.js'
-import { keccak256 } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 
 class MerkleTree extends MerkleTreeJS {
   constructor (leaves: string[]) {
-    super(leaves, keccak256, {
-      fillDefaultHash: () => keccak256(Buffer.alloc(32))
+    super(leaves, utils.keccak256, {
+      fillDefaultHash: () => utils.keccak256(Buffer.alloc(32))
     })
   }
 }

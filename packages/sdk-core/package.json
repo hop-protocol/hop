@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.2-beta.24",
+  "version": "0.0.2-beta.26",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -92,6 +92,16 @@
       "require": {
         "types": "./dist/cjs/models/index.d.ts",
         "default": "./dist/cjs/models/index.js"
+      }
+    },
+    "./multicall": {
+      "import": {
+        "types": "./dist/esm/multicall/index.d.ts",
+        "default": "./dist/esm/multicall/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/multicall/index.d.ts",
+        "default": "./dist/cjs/multicall/index.js"
       }
     },
     "./networks": {

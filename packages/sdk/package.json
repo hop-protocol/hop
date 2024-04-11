@@ -47,7 +47,10 @@
     "ethers": "^5"
   },
   "imports": {
-    "#*": "./dist/cjs/*"
+    "#*": {
+      "import": "./dist/esm/*",
+      "require": "./dist/cjs/*"
+    }
   },
   "exports": {
     ".": {

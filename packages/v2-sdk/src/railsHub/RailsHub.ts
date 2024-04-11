@@ -158,12 +158,12 @@ export class RailsHub extends StakingRegistry {
     return events
   }
 
-  async getRailsHubAddress (chainId: BigNumberish): Promise<string> {
+  async getRailsHubContractAddress (chainId: BigNumberish): Promise<string> {
     return this.getConfigAddress(chainId, 'railsHub')
   }
 
   async getRailsHubContract (chainId: BigNumberish): Promise<Contract> {
-    const address = await this.getRailsHubAddress(chainId)
+    const address = await this.getRailsHubContractAddress(chainId)
     const provider = this.getProviderForChainId(chainId)
     const contract = RailsHub__factory.connect(address, provider)
     return contract
@@ -209,7 +209,7 @@ export class RailsHub extends StakingRegistry {
         const tokenAddress = path.token
         const provider = this.getProviderForChainId(chainId)
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-        const address = this.getRailsHubAddress(chainId)
+        const address = this.getRailsHubContractAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
 
         return {
@@ -235,7 +235,7 @@ export class RailsHub extends StakingRegistry {
         const tokenAddress = path.token
         const provider = this.getProviderForChainId(chainId)
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-        const address = this.getRailsHubAddress(chainId)
+        const address = this.getRailsHubContractAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
 
         return {
@@ -286,7 +286,7 @@ export class RailsHub extends StakingRegistry {
           throw new Error('Staker address not set')
         }
         const hopTokenContract = await this.getHopTokenContract(chainId)
-        const address = this.getRailsHubAddress(chainId)
+        const address = this.getRailsHubContractAddress(chainId)
         const txData = await hopTokenContract.populateTransaction.approve(address, amount)
         return {
           ...txData,
@@ -370,7 +370,7 @@ export class RailsHub extends StakingRegistry {
       throw new Error('Insufficient balance ')
     }
 
-    const address = await this.getRailsHubAddress(chainId)
+    const address = await this.getRailsHubContractAddress(chainId)
     const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')
@@ -394,7 +394,7 @@ export class RailsHub extends StakingRegistry {
       throw new Error('Insufficient balance')
     }
 
-    const address = await this.getRailsHubAddress(chainId)
+    const address = await this.getRailsHubContractAddress(chainId)
     const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')

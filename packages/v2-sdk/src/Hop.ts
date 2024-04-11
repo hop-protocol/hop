@@ -27,6 +27,7 @@ import { getProvider } from '#utils/getProvider.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
 import { addresses } from '#addresses/index.js'
 import { Messenger } from '#messenger/index.js'
+import { HubConnector, ConnectTargetsInput } from '#messenger/HubConnector.js'
 import { RailsHub, GetPathInfoInput, Path } from '#railsHub/index.js'
 import { Nft } from '#nft/index.js'
 
@@ -52,14 +53,6 @@ export type GetGeneralEventsInput = {
   toBlock?: number
 }
 
-export type ConnectTargetsInput = {
-  hubChainId: number
-  spokeChainId: number
-  target1: string
-  target2: string
-  signer: Signer
-}
-
 type SendTokensInput = {
   chainId: BigNumberish
   pathId: string
@@ -78,6 +71,7 @@ export class Hop extends Base {
   messenger: Messenger
   railsHub: RailsHub
   nft: Nft
+  hubConnector: HubConnector
 
   constructor (network: string = 'goerli', options?: Options) {
     super({ network, signer: options?.signer })
@@ -95,6 +89,7 @@ export class Hop extends Base {
     this.gasPriceOracle = new GasPriceOracle(url)
 
     this.messenger = new Messenger({ network, signer: this.signer, contractAddresses: this.contractAddresses })
+    this.hubConnector = new HubConnector({ network, signer: this.signer, contractAddresses: this.contractAddresses })
     this.railsHub = new RailsHub({ network, signer: this.signer, contractAddresses: this.contractAddresses })
     this.nft = new Nft({ network, signer: this.signer, contractAddresses: this.contractAddresses })
   }
@@ -258,29 +253,12 @@ export class Hop extends Base {
     return keys.map((chainId: string) => Number(chainId))
   }
 
-  // used by connector demo
-  async connectTargets (input: ConnectTargetsInput): Promise<any> {
-    const { hubChainId, spokeChainId, target1, target2, signer } = input
-    const provider = this.getProviderForChainId(hubChainId)
-    if (!provider) {
-      throw new Error(`Provider not found for chainId: ${hubChainId}`)
-    }
-    const address = this.contractAddresses[this.network]?.[hubChainId]?.hubConnectorFactory
-    if (!address) {
-      throw new Error('address not found for hub connector factory')
-    }
-    const factory = HubERC5164ConnectorFactory__factory.connect(address, signer)
-    const tx = await (factory as any).deployConnectors(hubChainId, target1, spokeChainId, target2)
-    const receipt = await tx.wait()
-    const event = receipt.events?.find(
-      (event: any) => event.event === 'ConnectorDeployed'
-    )
-    const connectorAddress = getAddress(event?.args?.connector)
-    return { connectorAddress }
+  async getHubConnectorContractAddress (chainId: number): Promise<string> {
+    return this.hubConnector.getHubConnectorContractAddress(chainId)
   }
 
   async getRailsHubContractAddress (chainId: number): Promise<string> {
-    return this.railsHub.getRailsHubAddress(chainId)
+    return this.railsHub.getRailsHubContractAddress(chainId)
   }
 
   async getNftBridgeContractAddress (chainId: number): Promise<string> {
@@ -294,5 +272,11 @@ export class Hop extends Base {
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {
     return this.railsHub.getPathInfo(input)
+  }
+
+  async connectTargets (input: ConnectTargetsInput): Promise<{tx: providers.TransactionResponse, connectorAddress: string}> {
+    const tx = await this.hubConnector.connectTargets(input)
+    const connectorAddress = await this.hubConnector.getConnectorAddressFromTx(tx)
+    return { tx, connectorAddress }
   }
 }

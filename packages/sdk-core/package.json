@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.2-beta.23",
+  "version": "0.0.2-beta.24",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -94,16 +94,6 @@
         "default": "./dist/cjs/models/index.js"
       }
     },
-    "./multicall": {
-      "import": {
-        "types": "./dist/esm/multicall/index.d.ts",
-        "default": "./dist/esm/multicall/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/multicall/index.d.ts",
-        "default": "./dist/cjs/multicall/index.js"
-      }
-    },
     "./networks": {
       "import": {
         "types": "./dist/esm/networks/index.d.ts",
@@ -180,12 +170,7 @@
     "ethers": "5.7.2",
     "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
-    "p-queue": "6.6.2",
-    "@ethersproject/providers": "5.7.2",
-    "@ethersproject/abi": "5.7.0",
-    "@ethersproject/bignumber": "5.7.0",
-    "@ethersproject/abstract-provider": "5.7.0",
-    "@ethersproject/networks": "5.7.1"
+    "p-queue": "6.6.2"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",

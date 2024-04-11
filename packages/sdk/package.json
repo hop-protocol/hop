@@ -69,7 +69,7 @@
         "default": "./dist/esm/addresses/index.js"
       },
       "require": {
-        "types": "./dist/cjs/addresses/i,ndex.d.ts",
+        "types": "./dist/cjs/addresses/index.d.ts",
         "default": "./dist/cjs/addresses/index.js"
       }
     },
@@ -79,7 +79,7 @@
         "default": "./dist/esm/config/index.js"
       },
       "require": {
-        "types": "./dist/cjs/config/inde,x.d.ts",
+        "types": "./dist/cjs/config/index.d.ts",
         "default": "./dist/cjs/config/index.js"
       }
     },
@@ -89,7 +89,7 @@
         "default": "./dist/esm/contracts/index.js"
       },
       "require": {
-        "types": "./dist/cjs/contracts/i,ndex.d.ts",
+        "types": "./dist/cjs/contracts/index.d.ts",
         "default": "./dist/cjs/contracts/index.js"
       }
     },
@@ -99,7 +99,7 @@
         "default": "./dist/esm/contracts/*.js"
       },
       "require": {
-        "types": "./dist/cjs/contracts/*,.d.ts",
+        "types": "./dist/cjs/contracts/*.d.ts",
         "default": "./dist/cjs/contracts/*.js"
       }
     },
@@ -109,7 +109,7 @@
         "default": "./dist/esm/metadata/index.js"
       },
       "require": {
-        "types": "./dist/cjs/metadata/in,dex.d.ts",
+        "types": "./dist/cjs/metadata/index.d.ts",
         "default": "./dist/cjs/metadata/index.js"
       }
     },
@@ -119,7 +119,7 @@
         "default": "./dist/esm/metadata/tokens.js"
       },
       "require": {
-        "types": "./dist/cjs/metadata/to,kens.d.ts",
+        "types": "./dist/cjs/metadata/tokens.d.ts",
         "default": "./dist/cjs/metadata/tokens.js"
       }
     },
@@ -129,7 +129,7 @@
         "default": "./dist/esm/networks/index.js"
       },
       "require": {
-        "types": "./dist/cjs/networks/in,dex.d.ts",
+        "types": "./dist/cjs/networks/index.d.ts",
         "default": "./dist/cjs/networks/index.js"
       }
     }

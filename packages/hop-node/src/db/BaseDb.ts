@@ -7,10 +7,10 @@ import os from 'node:os'
 import path from 'node:path'
 import sub from 'subleveldown'
 import { EventEmitter } from 'node:events'
-import { Migration } from './migrations.js'
 import { config as globalConfig } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
 import { normalizeDbValue } from './utils.js'
+import type { Migration } from './migrations.js'
 const dbMap: { [key: string]: any } = {}
 
 export enum DbOperations {

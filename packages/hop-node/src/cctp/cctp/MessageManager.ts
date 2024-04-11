@@ -1,5 +1,5 @@
 import wallets from '@hop-protocol/hop-node-core/wallets'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { Chain } from '@hop-protocol/hop-node-core/constants'
 import { FSMPoller } from '../fsm/FSMPoller.js'
 import { Message } from './Message.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'

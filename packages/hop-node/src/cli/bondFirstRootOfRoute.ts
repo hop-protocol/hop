@@ -1,4 +1,3 @@
-import L1Bridge from '#watchers/classes/L1Bridge.js'
 import MerkleTree from '#utils/MerkleTree.js'
 import getTransferRoot from '#theGraph/getTransferRoot.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
@@ -7,6 +6,7 @@ import { actionHandler, parseString, root } from './shared/index.js'
 import {
   getBondTransferRootWatcher
 } from '#watchers/watchers.js'
+import type L1Bridge from '#watchers/classes/L1Bridge.js'
 
 root
   .command('bond-first-root-of-route')

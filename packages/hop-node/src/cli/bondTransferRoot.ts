@@ -1,8 +1,8 @@
-import { SendBondTransferRootTxParams } from '#watchers/BondTransferRootWatcher.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import {
   getBondTransferRootWatcher
 } from '#watchers/watchers.js'
+import type { SendBondTransferRootTxParams } from '#watchers/BondTransferRootWatcher.js'
 
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared/index.js'
 

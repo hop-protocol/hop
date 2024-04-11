@@ -3,9 +3,9 @@ import React, { FC, ReactNode, createContext, useContext, useEffect, useState } 
 import Token from 'src/models/Token'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { L1_NETWORK } from 'src/utils/constants'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20Mintable__factory } from '@hop-protocol/sdk/contracts'
 import { formatError } from 'src/utils/format'
 import { getTokenDecimals } from 'src/utils/tokens'
 import { l1Network } from 'src/config/networks'
@@ -97,7 +97,7 @@ const FaucetContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const recipient = await signer.getAddress()
       const tokenDecimals = getTokenDecimals(tokenSymbol)
       const parsedAmount = parseUnits(mintAmount, tokenDecimals)
-      const contract = new Contract(address, erc20Abi, signer)
+      const contract = ERC20Mintable__factory.connect(address, signer)
 
       const txOptions: any = {}
       if (['USDT', 'DAI', 'UNI', 'HOP'].includes(tokenSymbol)) {

@@ -1,11 +1,11 @@
-import L1Bridge from '#watchers/classes/L1Bridge.js'
-import L2Bridge from '#watchers/classes/L2Bridge.js'
-import { BigNumber } from 'ethers'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, logger, parseNumber, parseString, root } from './shared/index.js'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
+import type L1Bridge from '#watchers/classes/L1Bridge.js'
+import type L2Bridge from '#watchers/classes/L2Bridge.js'
+import type { BigNumber } from 'ethers'
 
 root
   .command('unstake')

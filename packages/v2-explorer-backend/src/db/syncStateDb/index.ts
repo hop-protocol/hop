@@ -1,1 +1,1 @@
-export * from './SyncStateDb'
+export * from './SyncStateDb.js'

@@ -14,7 +14,7 @@ import {
 } from './config.js'
 import { createObjectCsvWriter } from 'csv-writer'
 import { db } from './Db.js'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { fileURLToPath } from 'url'
 import {
   formatEther,
@@ -785,13 +785,12 @@ class BonderStats {
                   const tokenAddress =
                     bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
                   const hTokenAddress = bridgeMap.l2HopBridgeToken
-                  const tokenContract = new Contract(
+                  const tokenContract = ERC20__factory.connect(
                     tokenAddress,
-                    erc20Abi,
                     archiveProvider
                   )
                   const hTokenContract = hTokenAddress
-                    ? new Contract(hTokenAddress, erc20Abi, archiveProvider)
+                    ? ERC20__factory.connect(hTokenAddress, archiveProvider)
                     : null
 
                   console.log(
@@ -941,9 +940,8 @@ class BonderStats {
 
                   if (chain === 'arbitrum') {
                     const wethAddress = wethAddresses[chain]
-                    const wethContract = new Contract(
+                    const wethContract = ERC20__factory.connect(
                       wethAddress,
-                      erc20Abi,
                       provider
                     )
 

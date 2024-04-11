@@ -1,21 +1,14 @@
-/**
- * This setup is recommended for modern projects that have multiple packages at the root
- * (i.e. src and test). This allows for full TS compatability in and between all packages,
- * including autocompletions and intellisense.
- *
- * The important piece is that teach package is its own TS project and uses references
- * to access the build of the other packages.
- * 
- * TS Docs: https://www.typescriptlang.org/docs/handbook/project-references.html#guidance
- * RS Repo (implements this): https://github.com/microsoft/TypeScript/tree/main
- * Best SE Answer: https://stackoverflow.com/a/55000497/10378715
- * Thorough discussion: https://github.com/Microsoft/vscode/issues/12463
- */
 {
-  "files": [],
-  "include": [],
-  "references": [
-    { "path": "./src" },
-    { "path": "./test" }
-  ]
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // More strict and explicit settings for ESM node projects
+    "verbatimModuleSyntax": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["src"]
 }

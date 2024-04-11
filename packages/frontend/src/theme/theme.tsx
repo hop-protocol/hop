@@ -8,7 +8,7 @@ boxShadowsLight,
 overridesDark,
 overridesLight,
 } from 'src/theme/overrides'
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
 import { palette as paletteDark } from 'src/theme/dark'
 import { palette as paletteLight } from 'src/theme/light'
 import { typographyOptions } from 'src/theme/typography'

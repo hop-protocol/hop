@@ -1,12 +1,23 @@
 import fs from 'node:fs'
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
-import { ConnectionInfo } from '@ethersproject/web'
-import { Deferrable } from '@ethersproject/properties'
-import { Network } from '@ethersproject/networks'
 import { monitorProviderCalls } from '#config/index.js'
 import { providers } from 'ethers'
 import { rateLimitRetry } from '#utils/rateLimitRetry.js'
+import type { BigNumber, BigNumberish } from '@ethersproject/bignumber'
+import type {
+  Block,
+  BlockTag,
+  BlockWithTransactions,
+  Provider as EthersProvider,
+  Filter,
+  FilterByBlockHash,
+  Log,
+  TransactionReceipt,
+  TransactionRequest,
+  TransactionResponse
+} from '@ethersproject/abstract-provider'
+import type { ConnectionInfo } from '@ethersproject/web'
+import type { Deferrable } from '@ethersproject/properties'
+import type { Network } from '@ethersproject/networks'
 
 const inMemoryMonitor = false
 const calls: Record<string, any> = {}
@@ -121,7 +132,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
 
   override getTransactionReceipt = rateLimitRetry(async (transactionHash: string | Promise<string>): Promise<TransactionReceipt> => {
     if (process.env.TX_RECEIPT_TRACE) {
-      console.trace(`getTransactionReceipt ${transactionHash}`)
+      console.trace(`getTransactionReceipt ${transactionHash as string}`)
     }
     return super.getTransactionReceipt(transactionHash)
   })

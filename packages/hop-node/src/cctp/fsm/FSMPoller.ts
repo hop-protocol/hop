@@ -1,10 +1,10 @@
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { Chain } from '@hop-protocol/hop-node-core/constants'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { TransitionDataProvider } from '../cctp/transitionData/TransitionDataProvider.js'
 import { wait } from '@hop-protocol/hop-node-core/utils'
 
 // TODO: Not this here
-import { IMessage, MessageState } from '../cctp/MessageManager.js'
+import type { IMessage, MessageState } from '../cctp/MessageManager.js'
 
 // TODO: Remove
 const CREATION_CACHE: Set<string> = new Set()

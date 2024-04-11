@@ -1,10 +1,10 @@
 import BaseWatcher from './classes/BaseWatcher.js'
-import L1Bridge from './classes/L1Bridge.js'
-import { ChallengeableTransferRoot } from '#db/TransferRootsDb.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Notifier } from '@hop-protocol/hop-node-core/notifier'
 import { hostname } from '@hop-protocol/hop-node-core/config'
+import type L1Bridge from './classes/L1Bridge.js'
+import type { ChallengeableTransferRoot } from '#db/TransferRootsDb.js'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 
 type Config = {
   chainSlug: string
@@ -14,7 +14,7 @@ type Config = {
 }
 
 class ChallengeWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: ChallengeWatcher }
+  override siblingWatchers!: { [chainId: string]: ChallengeWatcher }
 
   constructor (config: Config) {
     super({

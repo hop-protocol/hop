@@ -1,5 +1,4 @@
 import L2Bridge from '#watchers/classes/L2Bridge.js'
-import Token from '#watchers/classes/Token.js'
 import contracts from '#contracts/index.js'
 import isHToken from '#utils/isHToken.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
@@ -9,6 +8,7 @@ import { TokenIndex } from '#constants/index.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
 import { swap as dexSwap } from '@hop-protocol/hop-node-core/swap'
 import { getCanonicalTokenSymbol } from '@hop-protocol/hop-node-core/utils'
+import type Token from '#watchers/classes/Token.js'
 
 root
   .command('swap')

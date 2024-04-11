@@ -2,11 +2,11 @@ import pluralize from 'pluralize'
 
 export function transferTimeDisplay(medianTimeEstimateSeconds?: number | null, fixedTimeEstimateSeconds?: number | null): string {
   // Determine the valid time estimate or default to 0
-  let seconds = 0;
+  let seconds = 0
   if (medianTimeEstimateSeconds != null && medianTimeEstimateSeconds > 0) {
-    seconds = medianTimeEstimateSeconds;
+    seconds = medianTimeEstimateSeconds
   } else if (fixedTimeEstimateSeconds != null && fixedTimeEstimateSeconds > 0) {
-    seconds = fixedTimeEstimateSeconds;
+    seconds = fixedTimeEstimateSeconds
   }
 
   // Return empty string for no time or zero seconds

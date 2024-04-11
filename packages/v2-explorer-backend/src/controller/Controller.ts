@@ -1,10 +1,10 @@
 import { BigNumber } from 'ethers'
 import { DateTime } from 'luxon'
-import { db } from '../db'
-import { formatUnits } from 'ethers/lib/utils'
-import { getTransactionHashExplorerUrl } from 'src/utils/getTransactionHashExplorerUrl'
-import { pgDb } from '../pgDb'
-import { truncateString } from '../utils/truncateString'
+import { db } from '#db/index.js'
+import { formatUnits } from 'ethers/lib/utils.js'
+import { getTransactionHashExplorerUrl } from '#utils/getTransactionHashExplorerUrl.js'
+import { pgDb } from '#pgDb/index.js'
+import { truncateString } from '#utils/truncateString.js'
 
 type EventsResult = {
   items: any[]

@@ -1,1 +1,1 @@
-export { db } from './db'
+export { db } from './db.js'

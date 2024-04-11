@@ -1,3 +1,3 @@
-import { AbstractFinalityService, IFinalityService } from '../../Services/AbstractFinalityService.js'
+import { AbstractFinalityService, type IFinalityService } from '../../Services/AbstractFinalityService.js'
 
 export class GnosisFinalityService extends AbstractFinalityService implements IFinalityService {}

@@ -1,6 +1,6 @@
 import makeRequest from './makeRequest.js'
 import { DateTime } from 'luxon'
-import { Filters, normalizeEntity } from './shared.js'
+import { type Filters, normalizeEntity } from './shared.js'
 import { MaxInt32 } from '#constants/index.js'
 
 export default async function getTransferIds (

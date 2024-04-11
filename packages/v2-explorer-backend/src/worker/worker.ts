@@ -1,5 +1,5 @@
 // import { Hop } from '@hop-protocol/v2-sdk'
-import { Indexer } from '../indexer'
+import { Indexer } from '#indexer/index.js'
 import { goerliAddresses } from '@hop-protocol/v2-core/addresses'
 
 export type Options = {

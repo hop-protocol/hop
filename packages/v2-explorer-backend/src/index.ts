@@ -1,1 +1,1 @@
-export { Worker } from './worker'
+export { Worker } from '#worker/index.js'

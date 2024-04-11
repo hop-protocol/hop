@@ -1,17 +1,24 @@
-import Bridge, { CanonicalTokenConvertOptions, EventCb, EventsBatchOptions } from './Bridge.js'
+import Bridge, { type CanonicalTokenConvertOptions, type EventCb, type EventsBatchOptions } from './Bridge.js'
 import Token from './Token.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
-import { BigNumber, Contract, constants, providers } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { Chain, Network, Token as TokenEnum } from '@hop-protocol/hop-node-core/constants'
-import { ERC20 } from '@hop-protocol/sdk/contracts'
 import { GasCostTransactionType, RelayableChains } from '#constants/index.js'
 import { Hop } from '@hop-protocol/sdk'
-import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/sdk/contracts/L1_Bridge'
-import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
-import { TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { erc20Abi, l1Erc20BridgeAbi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory,  L1_ERC20_Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { config as globalConfig } from '#config/index.js'
+import type { ERC20 } from '@hop-protocol/sdk/contracts'
+import type {
+  L1_Bridge as L1BridgeContract,
+  TransferBondChallengedEvent,
+  TransferRootBondedEvent,
+  TransferRootConfirmedEvent,
+  TransferSentToL2Event
+} from '@hop-protocol/sdk/contracts/L1_Bridge'
+import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import type { providers } from 'ethers'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
@@ -25,13 +32,12 @@ export default class L1Bridge extends Bridge {
   }
 
   static fromAddress (address: string): L1Bridge {
-    const contract = new Contract(
+    const contract = L1_ERC20_Bridge__factory.connect(
       address,
-      l1Erc20BridgeAbi,
       wallets.get(Chain.Ethereum)
     )
 
-    return new L1Bridge(contract as L1BridgeContract)
+    return new L1Bridge(contract as unknown as L1BridgeContract)
   }
 
   getTransferBond = async (transferRootId: string) => {
@@ -159,9 +165,8 @@ export default class L1Bridge extends Bridge {
 
   async l1CanonicalToken (): Promise<Token> {
     const tokenAddress = await (this.l1BridgeContract as L1ERC20BridgeContract).l1CanonicalToken()
-    const tokenContract = new Contract(
+    const tokenContract = ERC20__factory.connect(
       tokenAddress,
-      erc20Abi,
       this.l1BridgeContract.signer
     ) as ERC20
     return new Token(tokenContract)

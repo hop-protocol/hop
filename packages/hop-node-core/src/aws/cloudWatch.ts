@@ -61,23 +61,9 @@ export async function getLogStreams (config: Partial<Config>) {
 export async function getLogs (config: Partial<Config>, cb: any) {
   let { logGroup, logStream, filterPattern, startTime, endTime } = config
   const cloudwatch = new CloudWatchLogsClient({ region: awsRegion })
-  const getLatestLogStream = async (): Promise<any> => {
-    const params = {
-      logGroupName: logGroup,
-      descending: true,
-      orderBy: 'LastEventTime',
-      limit: 5
-    }
-    const command = new DescribeLogStreamsCommand(params)
-    const data = await cloudwatch.send(command)
-    if (!data?.logStreams) {
-      throw new Error('no log streams found')
-    }
-    return data?.logStreams?.[0]?.logStreamName
-  }
 
   if (!logStream) {
-    logStream = await getLatestLogStream()
+    logStream = await getLatestLogStream(logGroup!, cloudwatch)
   }
 
   if (!logStream) {
@@ -116,4 +102,19 @@ export async function getLogs (config: Partial<Config>, cb: any) {
       break
     }
   }
+}
+
+const getLatestLogStream = async (logGroup: string, cloudwatch: CloudWatchLogsClient): Promise<any> => {
+  const params = {
+    logGroupName: logGroup,
+    descending: true,
+    orderBy: 'LastEventTime',
+    limit: 5
+  }
+  const command = new DescribeLogStreamsCommand(params)
+  const data = await cloudwatch.send(command)
+  if (!data?.logStreams) {
+    throw new Error('no log streams found')
+  }
+  return data?.logStreams?.[0]?.logStreamName
 }

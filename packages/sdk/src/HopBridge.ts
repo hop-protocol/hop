@@ -675,12 +675,14 @@ export class HopBridge extends Base {
       throw new Error('Invalid sendHToken option')
     }
 
+    const isHTokenSend = true
     let defaultBonderFee = BigNumber.from(0)
     if (!sourceChain.isL1) {
       defaultBonderFee = await this.getTotalFee(
         tokenAmount,
         sourceChain,
-        destinationChain
+        destinationChain,
+        isHTokenSend
       )
     }
 
@@ -820,7 +822,7 @@ export class HopBridge extends Base {
       destinationTxFeeData,
       feeBps
     ] = await Promise.all([
-      this.getDestinationTransactionFeeData(sourceChain, destinationChain),
+      this.getDestinationTransactionFeeData(sourceChain, destinationChain, isHTokenSend),
       this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain)
     ])
 
@@ -928,9 +930,9 @@ export class HopBridge extends Base {
       this.calcToHTokenAmount(amountIn, sourceChain, isHTokenSend),
       this.getAmountOut(amountInNoSlippage, sourceChain, destinationChain),
       this.getBonderFeeRelative(amountIn, sourceChain, destinationChain, isHTokenSend),
-      this.getDestinationTransactionFeeData(sourceChain, destinationChain),
+      this.getDestinationTransactionFeeData(sourceChain, destinationChain, isHTokenSend),
       this.getFeeBps(this.tokenSymbol, sourceChain, destinationChain),
-      !sourceChain?.isL1 ? this.getFrontendAvailableLiquidity(sourceChain, destinationChain) : Promise.resolve(null)
+      !sourceChain?.isL1 ? this.getFrontendAvailableLiquidity(sourceChain, destinationChain, isHTokenSend) : Promise.resolve(null)
     ])
 
     const {
@@ -1146,12 +1148,14 @@ export class HopBridge extends Base {
   public async getTotalFee (
     amountIn: BigNumberish,
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
   ): Promise<BigNumber> {
     const { totalFee } = await this.getSendData(
       amountIn,
       sourceChain,
-      destinationChain
+      destinationChain,
+      isHTokenSend
     )
 
     return totalFee
@@ -1183,24 +1187,25 @@ export class HopBridge extends Base {
 
   public async getDestinationTransactionFee (
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const { destinationTxFee } = await this.getDestinationTransactionFeeData(sourceChain, destinationChain)
+    const { destinationTxFee } = await this.getDestinationTransactionFeeData(sourceChain, destinationChain, isHTokenSend)
     return destinationTxFee
   }
 
   public async getDestinationTransactionFeeData (
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
   ): Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    // TODO
-    if (this.getShouldUseCctpBridge()) {
+    if (this.getShouldUseCctpBridge({isHTokenSend})) {
       const canonicalToken = this.toCanonicalToken('USDC', this.network, sourceChain)
       const chainNativeToken = this.getChainNativeToken(destinationChain)
       const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, destinationTxGasLimit] = await Promise.all([
@@ -1344,6 +1349,9 @@ export class HopBridge extends Base {
   ) : Promise<BigNumber> {
     try {
       const timeStart = Date.now()
+      if (this.getShouldUseCctpBridge()) {
+        return BigNumber.from(0)
+      }
       const [gasLimit, { data, to }] = await Promise.all([
         this.estimateBondWithdrawalGasLimit(sourceChain, destinationChain),
         this.populateBondWithdrawalTx(sourceChain, destinationChain)
@@ -1622,13 +1630,14 @@ export class HopBridge extends Base {
    */
   public async getFrontendAvailableLiquidity (
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
   ): Promise<BigNumber> {
     if (!(this.isSupportedAsset(sourceChain) && this.isSupportedAsset(destinationChain))) {
       return BigNumber.from(0)
     }
 
-    if (this.getShouldUseCctpBridge()) {
+    if (this.getShouldUseCctpBridge({isHTokenSend})) {
       return this.#getAvailableLiquidityCctp(sourceChain)
     }
 

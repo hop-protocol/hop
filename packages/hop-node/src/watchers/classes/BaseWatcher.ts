@@ -1,23 +1,16 @@
-import AvailableLiquidityWatcher from '../AvailableLiquidityWatcher.js'
-import Bridge from './Bridge.js'
 import L1Bridge from './L1Bridge.js'
 import L2Bridge from './L2Bridge.js'
 import Metrics from './Metrics.js'
-import SyncWatcher from '../SyncWatcher.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
-import { BigNumber } from 'ethers'
 import {
   Chain
 } from '@hop-protocol/hop-node-core/constants'
-import { DbSet, getDbSet, isDbSetReady } from '#db/index.js'
+import { type DbSet, getDbSet, isDbSetReady } from '#db/index.js'
 import { EventEmitter } from 'node:events'
 import {
   GasCostTransactionType,
   MaxReorgCheckBackoffIndex
 } from '#constants/index.js'
-import { IBaseWatcher } from './IBaseWatcher.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { Mutex } from 'async-mutex'
 import { Notifier } from '@hop-protocol/hop-node-core/notifier'
@@ -36,6 +29,13 @@ import {
 } from '@hop-protocol/hop-node-core/config'
 import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
 import { wait } from '@hop-protocol/hop-node-core/utils'
+import type AvailableLiquidityWatcher from '../AvailableLiquidityWatcher.js'
+import type Bridge from './Bridge.js'
+import type SyncWatcher from '../SyncWatcher.js'
+import type { BigNumber } from 'ethers'
+import type { IBaseWatcher } from './IBaseWatcher.js'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 
 const mutexes: Record<string, Mutex> = {}
 export type BridgeContract = L1BridgeContract | L2BridgeContract

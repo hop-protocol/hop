@@ -1,5 +1,5 @@
-import { BaseType } from './BaseType'
-import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from './context'
+import { BaseType } from './BaseType.js'
+import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface MessageExecuted extends BaseType {

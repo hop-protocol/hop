@@ -1,6 +1,6 @@
-import { BaseType } from './BaseType'
+import { BaseType } from './BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from './context'
+import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface FeesSentToHub extends BaseType {

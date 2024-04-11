@@ -7,7 +7,7 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
   const logPrefix = `ratelimitRetry-${id}`
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
-    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000) // eslint-disable-line
+    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)  
     const showDebugLogs = false
     while (true) {
       try {

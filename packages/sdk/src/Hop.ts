@@ -61,7 +61,7 @@ export class Hop extends Base {
    *const hop = new Hop('mainnet', signer)
    *```
    */
-  // eslint-disable-next-line no-useless-constructor
+   
   constructor (
     networkOrOptionsObject: string | BaseConstructorOptions,
     signer?: TProvider,

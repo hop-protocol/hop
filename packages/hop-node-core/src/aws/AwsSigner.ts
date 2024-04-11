@@ -1,4 +1,4 @@
-import { BigNumber, Signer, providers } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import {
   getAddress as checksumAddress,
   defineReadOnly,
@@ -11,6 +11,7 @@ import {
   serializeTransaction,
   splitSignature
 } from 'ethers/lib/utils.js'
+import type { providers } from 'ethers'
 // @ts-expect-error asn1.js does not have a types file as of 20231227
 import asn1 from 'asn1.js'
 

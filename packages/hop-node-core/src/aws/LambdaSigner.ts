@@ -1,4 +1,4 @@
-import { AwsSigner, AwsSignerConfig } from './AwsSigner.js'
+import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { TextDecoder } from 'node:util'
 import {
@@ -8,7 +8,7 @@ import {
   serializeTransaction
 } from 'ethers/lib/utils.js'
 import { awsAccessKeyId, awsSecretAccessKey } from '#config/index.js'
-import { providers } from 'ethers'
+import type { providers } from 'ethers'
 
 type LambdaSignerConfig = AwsSignerConfig & {
   lambdaFunctionName: string
@@ -20,8 +20,8 @@ const enum ActionTypes {
 }
 
 export class LambdaSigner extends AwsSigner {
-  config: LambdaSignerConfig
-  address: string
+  config!: LambdaSignerConfig
+  address!: string
   client: LambdaClient
   lambdaFunctionName: string
 

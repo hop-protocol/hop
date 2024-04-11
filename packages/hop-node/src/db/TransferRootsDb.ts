@@ -1,5 +1,4 @@
-import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb.js'
-import { BigNumber } from 'ethers'
+import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import {
   BondTransferRootChains,
   ChallengePeriodMs,
@@ -17,6 +16,7 @@ import { TxRetryDelayMs } from '#config/index.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
 import { transferRootsMigrations } from './migrations.js'
+import type { BigNumber } from 'ethers'
 
 interface BaseTransferRoot {
   bondBlockNumber?: number
@@ -200,7 +200,6 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
     }
 
     return (
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.commitTxBlockNumber ||
@@ -209,7 +208,6 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
       !!(item.confirmTxHash && !item.confirmedAt) ||
       !!(item.rootSetBlockNumber && !item.rootSetTimestamp) ||
       !!(item.sourceChainId && !item.transferIds)
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
 

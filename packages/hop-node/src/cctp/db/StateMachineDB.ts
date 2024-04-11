@@ -1,4 +1,4 @@
-import { ChainedBatch, DB, KEY_ENCODING_OPTIONS } from './DB.js'
+import { type ChainedBatch, DB, KEY_ENCODING_OPTIONS } from './DB.js'
 
 type DBValue<T> = T
 

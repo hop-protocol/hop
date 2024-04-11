@@ -1,7 +1,7 @@
-/* eslint-disable */
+ 
 import dotenv from 'dotenv'
-import os from 'os'
-import { TextDecoder, TextEncoder } from 'util'
+import os from 'node:os'
+import { TextDecoder, TextEncoder } from 'node:util'
 global.TextEncoder = TextEncoder
 dotenv.config()
 

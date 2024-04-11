@@ -11,9 +11,11 @@ import { wait } from './wait.js'
 const _logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
+// eslint-disable-next-line max-lines-per-function
 export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
   const id = `${process.hrtime.bigint()}`
   const logger = _logger.create({ id })
+  // eslint-disable-next-line max-lines-per-function
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
     const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)
@@ -27,33 +29,24 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         return result
       } catch (err) {
         const errMsg = err.message
-        const revertErrorRegex = /revert/i
-        const oversizedDataRegex = /oversized data/i
-        const bridgeContractErrorRegex = /BRG:/
-        const nonceTooLowErrorRegex = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i
-        const estimateGasFailedErrorRegex = /eth_estimateGas/i
-        const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
-        const feeTooLowErrorRegex = /(FeeTooLowToCompete|transaction underpriced)/
+        const {
+          isRateLimitError,
+          isTimeoutError,
+          isConnectionError,
+          isBadResponseError,
+          isOversizedDataError,
+          isBridgeContractError,
+          isNonceTooLowErrorError,
+          isEstimateGasFailedError,
+          isAlreadyKnownError,
+          isFeeTooLowError,
+          isCallLookupRevertError
+        } = parseErrMessage(errMsg)
 
-        // this invalid opcode error occurs when doing an on-chain lookup on a nested mapping where the index doesn't exist.
-        // it doesn't necessary mean there's an error, only that the value at the index hasn't been set yet.
-        // for example, l2Bridge.pendingTransferIdsForChainId(...)
-        const isCallLookupRevertErrorRegex = /(missing revert data in call exception|invalid opcode|CALL_EXCEPTION)/
-
-        const isRateLimitError = isFetchRateLimitError(errMsg)
-        const isTimeoutError = isFetchTimeoutError(errMsg)
-        const isConnectionError = isFetchConnectionError(errMsg)
-        const isBadResponseError = isFetchBadResponseError(errMsg)
-        const isOversizedDataError = oversizedDataRegex.test(errMsg)
-        const isBridgeContractError = bridgeContractErrorRegex.test(errMsg)
-        const isNonceTooLowErrorError = nonceTooLowErrorRegex.test(errMsg)
-        const isEstimateGasFailedError = estimateGasFailedErrorRegex.test(errMsg)
-        const isAlreadyKnownError = alreadyKnownErrorRegex.test(errMsg)
-        const isFeeTooLowError = feeTooLowErrorRegex.test(errMsg)
-        const isCallLookupRevertError = isCallLookupRevertErrorRegex.test(errMsg)
 
         // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
         // so we want to exclude server connection errors from actual contract call revert errors.
+        const revertErrorRegex = /revert/i
         const isRevertError = revertErrorRegex.test(errMsg) && !isConnectionError && !isTimeoutError
 
         const shouldNotRetryErrors = (isOversizedDataError || isBridgeContractError || isNonceTooLowErrorError || isEstimateGasFailedError || isAlreadyKnownError || isFeeTooLowError || isCallLookupRevertError)
@@ -90,5 +83,33 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         await wait(delayMs)
       }
     }
+  }
+}
+
+function parseErrMessage (errMsg: string): any {
+  const oversizedDataRegex = /oversized data/i
+  const bridgeContractErrorRegex = /BRG:/
+  const nonceTooLowErrorRegex = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i
+  const estimateGasFailedErrorRegex = /eth_estimateGas/i
+  const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
+  const feeTooLowErrorRegex = /(FeeTooLowToCompete|transaction underpriced)/
+
+  // this invalid opcode error occurs when doing an on-chain lookup on a nested mapping where the index doesn't exist.
+  // it doesn't necessary mean there's an error, only that the value at the index hasn't been set yet.
+  // for example, l2Bridge.pendingTransferIdsForChainId(...)
+  const isCallLookupRevertErrorRegex = /(missing revert data in call exception|invalid opcode|CALL_EXCEPTION)/
+
+  return {
+    isRateLimitError: isFetchRateLimitError(errMsg),
+    isTimeoutError: isFetchTimeoutError(errMsg),
+    isConnectionError: isFetchConnectionError(errMsg),
+    isBadResponseError: isFetchBadResponseError(errMsg),
+    isOversizedDataError: oversizedDataRegex.test(errMsg),
+    isBridgeContractError: bridgeContractErrorRegex.test(errMsg),
+    isNonceTooLowErrorError: nonceTooLowErrorRegex.test(errMsg),
+    isEstimateGasFailedError: estimateGasFailedErrorRegex.test(errMsg),
+    isAlreadyKnownError: alreadyKnownErrorRegex.test(errMsg),
+    isFeeTooLowError: feeTooLowErrorRegex.test(errMsg),
+    isCallLookupRevertError: isCallLookupRevertErrorRegex.test(errMsg)
   }
 }

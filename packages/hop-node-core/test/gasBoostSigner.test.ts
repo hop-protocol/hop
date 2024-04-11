@@ -11,6 +11,7 @@ function expectDefined<T> (arg: T): asserts arg is NonNullable<T> {
   expect(arg).toBeDefined()
 }
 
+// eslint-disable-next-line max-lines-per-function
 describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('gnosis')

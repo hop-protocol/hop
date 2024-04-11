@@ -1,6 +1,6 @@
-import path from 'path'
-import { exec } from 'child_process'
-import { workerProgram } from 'src/cli/worker'
+import path from 'node:path'
+import { exec } from 'node:child_process'
+import { workerProgram } from '#cli/worker.js'
 
 async function cli (args: any, cwd: any = '.'): Promise<any> {
   return new Promise(resolve => {

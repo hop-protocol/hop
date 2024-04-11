@@ -1,4 +1,4 @@
-import { dbPath as _configDbPath } from '../config'
+import { dbPath as _configDbPath } from '#config/index.js'
 
 let configDbPath = _configDbPath
 const instances: Record<string, any> = {}

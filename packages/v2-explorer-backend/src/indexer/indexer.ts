@@ -1,9 +1,9 @@
-import wait from 'wait'
+import { wait } from '#utils/wait.js'
 // import { Hop } from '@hop-protocol/v2-sdk'
-import { SyncStateDb } from '../db/syncStateDb'
-import { db } from '../db'
-import { dbPath } from 'src/config'
-import { pgDb } from '../pgDb'
+import { SyncStateDb } from '#db/syncStateDb/index.js'
+import { db } from '#db/index.js'
+import { dbPath } from '#config/index.js'
+import { pgDb } from '#pgDb/index.js'
 
 type StartBlocks = {
   [chainId: string]: number

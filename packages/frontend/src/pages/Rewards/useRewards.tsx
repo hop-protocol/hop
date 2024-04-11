@@ -4,7 +4,7 @@ import useQueryParams from 'src/hooks/useQueryParams'
 import { BigNumber, Contract } from 'ethers'
 import { DateTime } from 'luxon'
 import { ShardedMerkleTree } from './merkle'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { findNetworkBySlug, networkIdToSlug } from 'src/utils/networks'
 import { formatError } from 'src/utils/format'
 import { getAddress } from 'ethers/lib/utils'
@@ -66,7 +66,7 @@ export const useRewards = (props: Props) => {
     try {
       if (contract) {
         const tokenAddress = await contract.rewardsToken()
-        return new Contract(tokenAddress, erc20Abi, contract.provider)
+        return ERC20__factory.connect(tokenAddress, contract.provider)
       }
     } catch (err: any) {
       if (!/noNetwork/.test(err.message)) {

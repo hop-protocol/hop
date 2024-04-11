@@ -1,4 +1,4 @@
-FROM node:20.10.0-slim AS base
+FROM node:20.12.1-slim AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"

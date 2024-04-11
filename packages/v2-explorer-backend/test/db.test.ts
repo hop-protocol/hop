@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { BundleCommittedEventsDb } from '../src/db/eventsDb/BundleCommittedEventsDb'
+import { BundleCommittedEventsDb } from '#db/eventsDb/BundleCommittedEventsDb.js'
 
 describe('BundleCommittedEventsDb', () => {
   it('should put, get, and update data', async () => {

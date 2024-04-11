@@ -4,10 +4,10 @@ import CircularProgress from '@mui/material/CircularProgress'
 import CloseIcon from '@mui/icons-material/Close'
 import CropSquare from '@mui/icons-material/CropSquare'
 import React, { useEffect, useState } from 'react'
-import Step from '@mui/material/Step';
-import StepIcon from '@mui/material/StepIcon';
-import StepLabel from '@mui/material/StepLabel';
-import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step'
+import StepIcon from '@mui/material/StepIcon'
+import StepLabel from '@mui/material/StepLabel'
+import Stepper from '@mui/material/Stepper'
 import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 import { Button } from 'src/components/Button'

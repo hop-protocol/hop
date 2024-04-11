@@ -1,5 +1,4 @@
 import OsWatcher from '#watchers/OsWatcher.js'
-import { AssetSymbol } from '@hop-protocol/sdk/config'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
@@ -19,6 +18,7 @@ import { printHopArt } from './shared/art.js'
 import {
   startWatchers
 } from '#watchers/watchers.js'
+import type { AssetSymbol } from '@hop-protocol/sdk/config'
 
 root
   .description('Start Hop node')

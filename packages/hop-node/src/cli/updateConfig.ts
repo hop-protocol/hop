@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import objectDepth from '#utils/objectDepth.js'
 import path from 'node:path'
 import {
-  FileConfig,
+  type FileConfig,
   getEnabledNetworks,
   isValidChain,
   isValidToken,

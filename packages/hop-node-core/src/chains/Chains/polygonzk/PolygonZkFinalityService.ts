@@ -1,4 +1,4 @@
-import { AbstractFinalityService, IFinalityService } from './../../Services/AbstractFinalityService.js'
+import { AbstractFinalityService, type IFinalityService } from './../../Services/AbstractFinalityService.js'
 
 /**
  * As of 20240325, PolygonZK chain has been unstable and unreliable. The chain tends to have

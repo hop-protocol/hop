@@ -1,5 +1,5 @@
 import { Chain, Network, Token } from '@hop-protocol/hop-node-core/constants'
-import { Signer, providers } from 'ethers'
+import type { Signer, providers } from 'ethers'
 
 import wallets from '@hop-protocol/hop-node-core/wallets'
 import {

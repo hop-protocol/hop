@@ -1,1 +1,1 @@
-export * from './pgDb'
+export * from './pgDb.js'

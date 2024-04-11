@@ -1,6 +1,6 @@
-import { BaseType } from './BaseType'
+import { BaseType } from './BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from './context'
+import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface BundleCommitted extends BaseType {

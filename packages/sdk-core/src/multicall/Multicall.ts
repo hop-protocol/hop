@@ -1,8 +1,8 @@
-import { Contract, constants, providers } from 'ethers'
+import { constants, providers } from 'ethers'
 import { Interface, defaultAbiCoder, formatUnits } from 'ethers/lib/utils.js'
-import { Multicall3 } from '#abi/index.js'
+import { Multicall3__factory } from '#contracts/index.js'
 import { PriceFeedFromS3 } from '#priceFeed/index.js'
-import { erc20Abi } from '#abi/index.js'
+import { ERC20__factory } from '#contracts/index.js'
 import { getTokenDecimals } from '#utils/index.js'
 import { sdkConfig } from '#config/index.js'
 
@@ -122,13 +122,14 @@ export class Multicall {
       const calldata = contractInterface.encodeFunctionData(method, args)
       return {
         target: address,
+        allowFailure: false,
         callData: calldata
       }
     })
 
     let results : any
     if (multicallAddress) {
-      const multicallContract = new Contract(multicallAddress, Multicall3, provider)
+      const multicallContract = Multicall3__factory.connect(multicallAddress, provider)
       results = await multicallContract.callStatic.aggregate3(calls)
     } else {
       results = await Promise.all(calls.map(async ({ target, callData }: any) => {
@@ -167,18 +168,19 @@ export class Multicall {
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const tokenAddresses : GetMulticallBalanceOptions[] | TokenAddress = Array.isArray(opts) ? opts : this.getTokenAddressesForChain(chainSlug)
 
-    const calls = tokenAddresses.map(({ address, abi, method }: GetMulticallBalanceOptions) => {
-      const tokenContract = new Contract(address!, abi ?? erc20Abi, provider)
-      const balanceMethod = method ?? 'balanceOf'
+    const calls = await Promise.all(tokenAddresses.map(async ({ address, method }: GetMulticallBalanceOptions) => {
+      const tokenContract = ERC20__factory.connect(address!, provider)
+      const balanceTx = await tokenContract.populateTransaction.balanceOf(this.accountAddress!)
       return {
-        target: address,
-        callData: tokenContract.interface.encodeFunctionData(balanceMethod, [this.accountAddress])
+        target: address!,
+        allowFailure: false,
+        callData: balanceTx.data!
       }
-    })
+    }))
 
     let results: any
     if (multicallAddress) {
-      const multicallContract = new Contract(multicallAddress, Multicall3, provider)
+      const multicallContract = Multicall3__factory.connect(multicallAddress, provider)
       results = await multicallContract.callStatic.aggregate3(calls)
     } else {
       results = await Promise.all(calls.map(async ({ target, callData }: any) => {

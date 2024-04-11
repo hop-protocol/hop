@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import level from 'level'
 import sub from 'subleveldown'
 import { Mutex } from 'async-mutex'

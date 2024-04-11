@@ -1,6 +1,8 @@
 {
   "name": "@hop-protocol/explorer-frontend",
   "version": "0.0.0",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
@@ -10,7 +12,7 @@
     "dev:local:goerli": "NEXT_PUBLIC_LOCAL=true NEXT_PUBLIC_NETWORK=goerli next dev",
     "build": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "next lint --fix"
+    "lint": "eslint . --fix"
   },
   "engines": {
     "node": ">=14",
@@ -29,7 +31,7 @@
     "dayjs": "1.11.7",
     "ethers": "5.6.2",
     "lodash": "4.17.21",
-    "luxon": "2.3.1",
+    "luxon": "2.5.2",
     "next": "14.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -38,7 +40,7 @@
   },
   "devDependencies": {
     "@types/lodash": "4.14.181",
-    "@types/luxon": "2.3.1",
+    "@types/luxon": "2.3.2",
     "@types/node": "17.0.23",
     "@types/react": "18.2.73",
     "@types/react-dom": "18.2.19",

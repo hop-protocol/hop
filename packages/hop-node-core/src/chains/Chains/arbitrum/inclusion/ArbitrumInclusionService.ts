@@ -1,8 +1,9 @@
-import { AbstractInclusionService, IInclusionService } from '../../../Services/AbstractInclusionService.js'
-import { ArbitrumAddresses, ArbitrumCanonicalAddresses, ArbitrumSuperchainSlugs } from '../../../Chains/arbitrum/ArbitrumAddresses.js'
-import { BigNumber, Contract, providers } from 'ethers'
-import { NetworkSlug } from '@hop-protocol/sdk/networks'
+import { AbstractInclusionService, type IInclusionService } from '../../../Services/AbstractInclusionService.js'
+import { ArbitrumAddresses, type ArbitrumCanonicalAddresses, type ArbitrumSuperchainSlugs } from '../../../Chains/arbitrum/ArbitrumAddresses.js'
+import { BigNumber, Contract } from 'ethers'
 import { getRpcUrl } from '#utils/getRpcUrl.js'
+import type { NetworkSlug } from '@hop-protocol/sdk/networks'
+import type { providers } from 'ethers'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
@@ -117,8 +118,9 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   }
 
   async #fetchSequencerBatchDeliveredEvents (startBlockNumber: number, endBlockNumber: number): Promise<any[]> {
+    // TODO: Better ts handling
     return this.#sequencerInboxContract.queryFilter(
-      this.#sequencerInboxContract.filters.SequencerBatchDelivered(),
+      this.#sequencerInboxContract.filters.SequencerBatchDelivered!(),
       startBlockNumber,
       endBlockNumber
     )

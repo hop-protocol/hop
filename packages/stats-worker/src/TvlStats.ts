@@ -4,7 +4,7 @@ import { DateTime } from 'luxon'
 import { PriceFeed } from './PriceFeed.js'
 import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config.js'
 import { db } from './Db.js'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { formatUnits } from 'ethers/lib/utils.js'
 import { getTokenDecimals } from './utils/getTokenDecimals.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
@@ -136,9 +136,8 @@ class TvlStats {
                   return
                 }
                 const spender = config.l2SaddleSwap ?? config.l1Bridge
-                const tokenContract = new Contract(
+                const tokenContract = ERC20__factory.connect(
                   tokenAddress,
-                  erc20Abi,
                   archiveProvider
                 )
 

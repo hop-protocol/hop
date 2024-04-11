@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit'
-import { ipRateLimitReqPerSec, ipRateLimitWindowMs } from '../config'
+import { ipRateLimitReqPerSec, ipRateLimitWindowMs } from '#config/index.js'
 
 export const ipRateLimitMiddleware = rateLimit({
   windowMs: ipRateLimitWindowMs,

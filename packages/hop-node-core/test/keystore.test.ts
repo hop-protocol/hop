@@ -1,6 +1,7 @@
 import { entropyToMnemonic } from '#keystore/index.js'
 import { generateKeystore, recoverKeystore } from '#keystore/index.js'
 
+// eslint-disable-next-line max-lines-per-function
 describe('keystore', () => {
   it('generateKeystore - with passphrase', async () => {
     const privateKey =

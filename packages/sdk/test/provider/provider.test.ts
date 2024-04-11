@@ -1,6 +1,6 @@
 import { FallbackProvider } from '@hop-protocol/sdk-core'
 import { Hop } from '#index.js'
-import { Network } from '@ethersproject/networks'
+import { type Network } from '@ethersproject/networks'
 import { providers } from 'ethers'
 
 export interface IProvider extends providers.Provider {

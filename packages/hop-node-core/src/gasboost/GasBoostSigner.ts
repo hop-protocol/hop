@@ -1,30 +1,31 @@
-import { GasBoostTransactionFactory, Options } from './GasBoostTransactionFactory.js'
+import { GasBoostTransactionFactory, type Options } from './GasBoostTransactionFactory.js'
 import { Logger } from '#logger/index.js'
 import { MemoryStore } from './MemoryStore.js'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from '#types/error.js'
 import { Notifier } from '#notifier/index.js'
-import { Signer, providers } from 'ethers'
-import { Store } from './Store.js'
+import { Signer } from 'ethers'
 import { defineReadOnly } from 'ethers/lib/utils.js'
 import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import { hostname, setLatestNonceOnStart } from '#config/index.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
+import type { Store } from './Store.js'
+import type { providers } from 'ethers'
 
 export class GasBoostSigner extends Signer {
-  store: Store
+  store!: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0
   chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
-  pollMs: number
+  pollMs!: number
   logger: Logger
   notifier: Notifier
   mutex: Mutex
   ready: boolean = false
-  options: Partial<Options>
+  options!: Partial<Options>
   private _count: number = 0
 
   constructor (signer: Signer, store: Store = new MemoryStore(), options: Partial<Options> = {}) {

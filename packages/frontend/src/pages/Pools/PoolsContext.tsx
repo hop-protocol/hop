@@ -15,13 +15,12 @@ import { Multicall, Token } from '@hop-protocol/sdk'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, findMatchingBridge, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { l2Networks } from 'src/config/networks'
 import { stableCoins } from 'src/utils/constants'
-import { stakingRewardsAbi } from '@hop-protocol/sdk/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
 import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
@@ -395,7 +394,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         const balancesOpts: any = []
         balancesOpts.push({
-          abi: erc20Abi,
+          abi: ERC20__factory.abi,
           method: 'balanceOf',
           address: lpTokenAddress,
           tokenSymbol,
@@ -404,7 +403,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         if (stakingContractAddress) {
           const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
           balancesOpts.push({
-            abi: stakingRewardsAbi,
+            abi: StakingRewards__factory.abi,
             method: 'balanceOf',
             address: stakingContractAddress,
             tokenSymbol: stakingContractRewardToken
@@ -412,7 +411,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
         if (hopStakingContractAddress) {
           balancesOpts.push({
-            abi: stakingRewardsAbi,
+            abi: StakingRewards__factory.abi,
             method: 'balanceOf',
             address: hopStakingContractAddress,
             tokenSymbol: 'HOP'

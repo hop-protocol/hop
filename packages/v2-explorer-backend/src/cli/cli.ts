@@ -1,7 +1,6 @@
-import '../moduleAlias'
-import { program } from './shared'
+import { program } from './shared/index.js'
 
-import './worker'
+import './worker.js'
 
 program.version(process.env.GIT_REV ?? '')
 program.parse(process.argv)

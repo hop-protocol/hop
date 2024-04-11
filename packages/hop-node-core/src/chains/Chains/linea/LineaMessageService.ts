@@ -1,13 +1,14 @@
-import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
-import { BytesLike, CallOverrides, Contract, constants, providers } from 'ethers'
+import { AbstractMessageService, type IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
 import {
-  Message as LineaMessage,
+  type Message as LineaMessage,
   LineaSDK,
-  LineaSDKOptions,
-  Network,
+  type LineaSDKOptions,
+  type Network,
   OnChainMessageStatus
 } from '@consensys/linea-sdk'
+import { constants } from 'ethers'
 import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
+import type { BytesLike, CallOverrides, Contract, providers } from 'ethers'
 
 // TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
@@ -75,7 +76,12 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
     if (!messages?.length) {
       throw new Error('could not find messages for tx hash')
     }
-    return messages[messageIndex]
+
+    const message: LineaMessage | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   protected async getMessageStatus (message: LineaMessage, messageDirection: MessageDirection): Promise<OnChainMessageStatus> {

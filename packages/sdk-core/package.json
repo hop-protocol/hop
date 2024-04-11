@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.2-beta.21",
+  "version": "0.0.2-beta.22",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -157,7 +157,7 @@
     "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:cjs && pnpm build:esm && pnpm build:browser",
-    "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
+    "build:browser": "esbuild dist/esm/index.js --bundle --minify --platform=browser --outfile=hop.js",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --fix",

@@ -1,11 +1,12 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.2-beta.19",
+  "version": "0.0.2-beta.20",
   "description": "The Hop Protocol JavaScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "module": "dist/esm/index.js",
   "main": "dist/cjs/index.js",
+  "browser": "dist/cjs/index.js",
   "imports": {
     "#*": {
       "import": "./dist/esm/*",
@@ -145,7 +146,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "hop.js"
   ],
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./tsconfig.esm.tsbuildinfo ./tsconfig.cjs.tsbuildinfo",
@@ -154,7 +156,8 @@
     "build": "pnpm version && pnpm build:all",
     "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
-    "build:all": "pnpm build:cjs && pnpm build:esm",
+    "build:all": "pnpm build:cjs && pnpm build:esm && pnpm build:browser",
+    "build:browser": "esbuild dist/cjs/index.js --bundle --minify --platform=browser --outfile=hop.js",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --fix",
@@ -189,7 +192,8 @@
     "typedoc": "0.25.7",
     "typedoc-plugin-markdown": "3.17.1",
     "@aws-sdk/client-s3": "3.338.0",
-    "@aws-sdk/types": "3.485.0"
+    "@aws-sdk/types": "3.485.0",
+    "esbuild": "0.20.0"
   },
   "peerDependencies": {
     "ethers": "^5"

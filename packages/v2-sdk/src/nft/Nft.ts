@@ -1,5 +1,6 @@
 import { Base, BaseConfig } from '#common/index.js'
 import { Interface } from 'ethers/lib/utils.js'
+import { Signer } from 'ethers'
 import { getProvider } from '#utils/getProvider.js'
 import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
 import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
@@ -106,6 +107,10 @@ export class Nft extends Base {
 
   constructor (config: NftConfig) {
     super({ network: config.network, signer: config.signer, contractAddresses: config.contractAddresses })
+  }
+
+  override connect (signer: Signer) {
+    return new Nft({ network: this.network, signer, contractAddresses: this.contractAddresses })
   }
 
   get populateTransaction() {

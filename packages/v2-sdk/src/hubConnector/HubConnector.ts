@@ -15,7 +15,6 @@ export type ConnectTargetsInput = {
   spokeChainId: number
   target1: string
   target2: string
-  signer: Signer
 }
 
 export type HubConnectorConfig = BaseConfig & {}
@@ -25,6 +24,10 @@ export class HubConnector extends Base {
 
   constructor (config: HubConnectorConfig) {
     super(config)
+  }
+
+  override connect (signer: Signer) {
+    return new HubConnector({ network: this.network, signer, contractAddresses: this.contractAddresses })
   }
 
   get populateTransaction() {

@@ -1,17 +1,158 @@
 import { Base } from '#common/Base.js'
 import { getAddress } from 'ethers/lib/utils.js'
-import { providers } from 'ethers'
+import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
-describe.only('Base', () => {
-  it('should get default providers', async () => {
-    const base = new Base({
-      network: 'mainnet'
-    })
-    const providers = base.chainProviders
+describe.skip('Base', () => {
+  const base = new Base({
+    network: 'mainnet'
+  })
+  it('should get contract addresses', () => {
+    const addresses = base.getContractAddresses()
+    console.log(addresses)
+    expect(addresses).toBeDefined()
+  })
+  it('should set contract addresses', () => {
+    let addresses = base.getContractAddresses()
+    addresses['99999'] = {
+      chainId: 99999,
+      startBlock: 0,
+      spokeCoreMessenger: '',
+      connector: '',
+      railsHub: ''
+    }
+    base.setContractAddresses(addresses)
+    addresses = base.getContractAddresses()
+    console.log(addresses)
+    expect(addresses['99999']).toBeDefined()
+  })
+  it('should get default chain provider', () => {
+    const chainId = 1
+    const providers = base.getDefaultChainProvider(chainId)
+    // console.log(provider)
+    expect(providers).toBeDefined()
+  })
+  it('should get default chain providers', () => {
+    const providers = base.getDefaultChainProviders()
     // console.log(providers)
     expect(providers).toBeDefined()
+  })
+  it('should connect signer', () => {
+    expect(base.signer).toBeUndefined()
+    const privateKey = process.env.PRIVATE_KEY!
+    const signer = new Wallet(privateKey)
+    const baseWithSigner = base.connect(signer)
+    expect(baseWithSigner.signer).toBeDefined()
+  })
+  it('should return boolean if chain id valid', () => {
+    expect(base.isValidChainId(1)).toBe(true)
+    expect(base.isValidChainId(222222)).toBe(false)
+  })
+  it('should return boolean if tx hash is valid', () => {
+    expect(base.isValidTxHash('0x'+'1'.repeat(64))).toBe(true)
+    expect(base.isValidTxHash('0x')).toBe(false)
+  })
+  it('should get chain slug from chain id', () => {
+    expect(base.getChainSlug(1)).toBe('ethereum')
+  })
+  it('should set chain provider', () => {
+    base.setChainProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
+    expect(base.getProviderForChainId('1')).toBeDefined()
+  })
+  it('should set chain providerUrl', () => {
+    base.setChainProviderUrl('1', 'http://localhost:8545')
+    expect(base.getProviderForChainId('1')).toBeDefined()
+  })
+  it('should set chain providers', () => {
+    base.setChainProviders({
+      '1': new providers.StaticJsonRpcProvider('http://localhost:8545')
+    })
+    expect(base.getProviderForChainId('1')).toBeDefined()
+  })
+  it('should set chain provider urls', () => {
+    base.setChainProviderUrls({
+      '1': 'http://localhost:8545'
+    })
+    expect(base.getProviderForChainId('1')).toBeDefined()
+  })
+  it('should get provider for chain id', () => {
+    expect(base.getProviderForChainId('1')).toBeDefined()
+  })
+  it('should get config address', () => {
+    const address = base.getConfigAddress('1', 'hubCoreMessenger')
+    console.log(address)
+    expect(address).toBeDefined()
+  })
+  it('should return boolean if contract address exists on chain', async () => {
+    const address = '0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc'
+    const chainId = 1
+    const provider = base.getDefaultChainProvider(chainId)
+    const exists = await base.getContractExists(address, provider)
+    console.log(exists)
+    expect(exists).toBeDefined()
+  })
+  it('should get bumped gas price', async () => {
+    const chainId = 1
+    const provider = base.getDefaultChainProvider(chainId)
+    const percent = 0.20
+    const gasPrice = await base.getBumpedGasPrice(provider, percent)
+    console.log(gasPrice)
+    expect(gasPrice).toBeDefined()
+  })
+  it('should get signer', async () => {
+    const privateKey = process.env.PRIVATE_KEY!
+    const signer = await base.connect(new Wallet(privateKey)).getSigner()
+    console.log(signer)
+    expect(signer).toBeDefined()
+  })
+  it('should get signer address', async () => {
+    const privateKey = process.env.PRIVATE_KEY!
+    const signer = new Wallet(privateKey)
+    const address = await base.connect(signer).getSignerAddress()
+    console.log(address)
+    expect(address).toBeDefined()
+  })
+  it('should get signer or provider given chain id', async () => {
+    const chainId = 1
+    const provider = await base.getSignerOrProvider(1)
+    console.log(provider)
+    expect(provider).toBeDefined()
+  })
+  it('should get tx overrides', async () => {
+    const fromChainId = 1
+    const toChainId = 10
+    const txOverrides = await base.getTxOverrides(fromChainId, toChainId)
+    console.log(txOverrides)
+    expect(txOverrides).toBeDefined()
+  })
+  it('should estimate gas', async () => {
+    const tx = {
+      to: '0x'+ '1'.repeat(40),
+      value: 0,
+    }
+    const chainId = 1
+    const provider = await base.getDefaultChainProvider(1)
+    const gas = await base.estimateGas(provider, tx)
+    console.log(gas)
+    expect(gas).toBeDefined()
+  })
+  it('should get gas price', async () => {
+    const provider = await base.getSignerOrProvider(1)
+    const gasPrice = await base.getGasPrice(provider)
+    console.log(gasPrice)
+    expect(gasPrice).toBeDefined()
+  })
+  it.skip('should send transaction', async () => {
+    const txRequest = {
+      to: '0x'+ '1'.repeat(40),
+      value: 0,
+      chainId: 1
+    }
+    const chainId = 1
+    const signer = await base.getSigner()
+    const tx = await base.sendTransaction(txRequest)
+    expect(tx.hash).toBeDefined()
   })
 })

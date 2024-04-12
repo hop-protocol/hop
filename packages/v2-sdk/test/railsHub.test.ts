@@ -11,18 +11,18 @@ describe.skip('RailsHub', () => {
   const signer = new Wallet(process.env.PRIVATE_KEY!)
   const address = '0xTODO'
   const railsHub = new RailsHub({
-    provider,
-    signer,
-    address
+    network: 'mainnet'
   })
   it.skip('TODO should get signer address', async () => {
     const address = await railsHub.getSignerAddress()
     expect(address).toBeDefined()
   })
   it.skip('TODO should fetch TransferSent events', async () => {
+    const chainId = 1
     const startBlock = 0
     const endBlock = 1000
     const events = await railsHub.getTransferSentEvents({
+      chainId,
       startBlock,
       endBlock
     })
@@ -30,9 +30,11 @@ describe.skip('RailsHub', () => {
     expect(events.length).toBe(1)
   })
   it.skip('TODO should fetch TransferBonded events', async () => {
+    const chainId = 1
     const startBlock = 0
     const endBlock = 1000
     const events = await railsHub.getTransferBondedEvents({
+      chainId,
       startBlock,
       endBlock
     })
@@ -40,7 +42,8 @@ describe.skip('RailsHub', () => {
     expect(events.length).toBe(1)
   })
   it.skip('TODO should get RailsHub contract instance', async () => {
-    const contract = await railsHub.getRailsHubContract()
+    const chainId = 1
+    const contract = await railsHub.getRailsHubContract(chainId)
     expect(contract).toBeDefined()
   })
   it.skip('TODO should get pathId', async () => {
@@ -53,26 +56,32 @@ describe.skip('RailsHub', () => {
     expect(pathId).toBe('')
   })
   it.skip('TODO should get pathInfo', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const pathInfo = await railsHub.getPathInfo({
+      chainId,
       pathId
     })
     expect(pathInfo.token).toBe('')
   })
   it.skip('TODO should get fee for pathId', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const fee = await railsHub.getFee({
+      chainId,
       pathId
     })
     expect(fee).toBeDefined()
   })
   it.skip('TODO should initiate a token transfer', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const amount = parseUnits('1', 18)
     const to = '0xTODO'
     const minAmountOut = '0'
     const attestedCheckpoint = '0xTODO'
     const tx = await railsHub.send({
+      chainId,
       pathId,
       amount,
       to,
@@ -82,6 +91,7 @@ describe.skip('RailsHub', () => {
     expect(tx.hash).toBeDefined()
   })
   it.skip('TODO should initiate a bond', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const to = '0xTODO'
     const amount = parseUnits('1', 18)
@@ -91,6 +101,7 @@ describe.skip('RailsHub', () => {
     const nonce = '0xTODO'
     const attestedCheckpoint = '0xTODO'
     const tx = await railsHub.bond({
+      chainId,
       pathId,
       to,
       amount,
@@ -103,11 +114,13 @@ describe.skip('RailsHub', () => {
     expect(tx.hash).toBeDefined()
   })
   it.skip('TODO should post claim', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const transferId = '0xTODO'
     const head = '0xTODO'
     const totalSent = parseUnits('1', 18)
     const tx = await railsHub.postClaim({
+      chainId,
       pathId,
       transferId,
       head,
@@ -116,10 +129,12 @@ describe.skip('RailsHub', () => {
     expect(tx.hash).toBeDefined()
   })
   it.skip('TODO should get withdrawable balance', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const recipient = '0xTODO'
     const timeWindow = 1
     const balance = await railsHub.getWithdrawableBalance({
+      chainId,
       pathId,
       recipient,
       timeWindow
@@ -127,10 +142,12 @@ describe.skip('RailsHub', () => {
     expect(balance).toBeDefined()
   })
   it.skip('TODO should withdraw claim', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const amount = parseUnits('1', 18)
     const timeWindow = 1
     const tx = await railsHub.withdrawClaim({
+      chainId,
       pathId,
       amount,
       timeWindow
@@ -138,36 +155,44 @@ describe.skip('RailsHub', () => {
     expect(tx.hash).toBeDefined()
   })
   it.skip('TODO should withdraw all claims', async () => {
+    const chainId = 1
     const pathId = '0xTODO'
     const timeWindow = 1
     const tx = await railsHub.withdrawAllClaims({
+      chainId,
       pathId,
       timeWindow
     })
     expect(tx.hash).toBeDefined()
   })
   it.skip('TODO should get HOP token address', async () => {
-    const address = await railsHub.getHopTokenAddress()
+    const chainId = 1
+    const address = await railsHub.getHopTokenAddress(chainId)
     expect(address).toBeDefined()
   })
   it.skip('TODO should get min bonder stake', async () => {
-    const amount = await railsHub.getMinBonderStake()
+    const chainId = 1
+    const amount = await railsHub.getMinBonderStake(chainId)
     expect(amount).toBeDefined()
   })
   it.skip('TODO should get HOP balance', async () => {
+    const chainId = 1
     const address = '0xTODO'
-    const balance = await railsHub.getHopBalance(address)
+    const balance = await railsHub.getHopBalance(chainId, address)
     expect(balance).toBeDefined()
   })
   it.skip('TODO should get HOP token contract', async () => {
-    const contract = await railsHub.getHopTokenContract()
+    const chainId = 1
+    const contract = await railsHub.getHopTokenContract(chainId)
     expect(contract).toBeDefined()
   })
   it.skip('TODO should stake HOP', async () => {
+    const chainId = 1
     const role = '0xTODO'
     const staker = '0xTODO'
     const amount = parseUnits('1', 18)
     const tx = await railsHub.stakeHop({
+      chainId,
       role,
       staker,
       amount
@@ -175,9 +200,11 @@ describe.skip('RailsHub', () => {
     expect(tx.hash).toBeDefined()
   })
   it.skip('TODO should unstake HOP', async () => {
+    const chainId = 1
     const role = '0xTODO'
     const amount = parseUnits('1', 18)
     const tx = await railsHub.unstakeHop({
+      chainId,
       role,
       amount
     })

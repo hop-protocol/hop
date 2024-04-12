@@ -3,8 +3,6 @@ import { getProviderFromUrl, rateLimitRetry, networks } from '@hop-protocol/sdk-
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 
-const cache : Record<string, any> = {}
-
 type Provider = providers.Provider
 
 export type ChainProviders = {
@@ -56,18 +54,32 @@ export class Base {
     this.contractAddresses = contractAddresses
   }
 
+  getDefaultChainProvider (chainId: BigNumberish): providers.Provider {
+    chainId = chainId.toString()
+    const defaultProviders: ChainProviders = {}
+    for (const chainSlug in (networks as any)[this.network]) {
+      const item = (networks as any)[this.network][chainSlug]
+      if (item.networkId?.toString() === chainId) {
+        return getProviderFromUrl(item.publicRpcUrl)
+      }
+    }
+
+    throw new Error(`no default provider found for chainId "${chainId}"`)
+  }
+
   getDefaultChainProviders (): ChainProviders {
     const defaultProviders: ChainProviders = {}
     for (const chainSlug in (networks as any)[this.network]) {
       const item = (networks as any)[this.network][chainSlug]
-      defaultProviders[item.networkId] = getProviderFromUrl(item.publicRpcUrl)
+      defaultProviders[item.networkId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
     }
 
     return defaultProviders
   }
 
-  setSigner (signer: Signer): void {
+  connect (signer: Signer): Base {
     this.signer = signer
+    return this
   }
 
   isValidChainId (chainId: BigNumberish) {
@@ -103,10 +115,18 @@ export class Base {
           `unsupported chain "${chainId}" for network ${this.network}`
         )
       }
-      if (chainProviders[chainId]) {
-        this.chainProviders[chainId] = chainProviders[chainId]
-      }
+      this.chainProviders[chainId?.toString()] = chainProviders[chainId]
     }
+  }
+
+  setChainProviderUrl (chainId: BigNumberish, url: string): void {
+    chainId = chainId.toString()
+    if (!this.isValidChainId(chainId)) {
+      throw new Error(
+        `unsupported chain "${chainId}" for network ${this.network}`
+      )
+    }
+    this.chainProviders[chainId] = getProviderFromUrl(url)
   }
 
   setChainProviderUrls (chainProviders: Record<string, string>): void {
@@ -116,9 +136,7 @@ export class Base {
           `unsupported chain "${chainId}" for network ${this.network}`
         )
       }
-      if (chainProviders[chainId]) {
-        this.chainProviders[chainId] = getProviderFromUrl(chainProviders[chainId])
-      }
+      this.chainProviders[chainId?.toString()] = getProviderFromUrl(chainProviders[chainId])
     }
   }
 
@@ -160,6 +178,10 @@ export class Base {
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
+  getSigner (): Signer | null {
+    return this.signer ?? null
+  }
+
   async getSignerAddress (): Promise<string | null> {
     if (this.signer) {
       return this.signer.getAddress()
@@ -199,11 +221,11 @@ export class Base {
     }
   }
 
-  async txOverrides (sourceChainId: BigNumberish, destinationChainId: BigNumberish): Promise<any> {
-    sourceChainId = sourceChainId.toString()
-    destinationChainId = destinationChainId.toString()
+  async getTxOverrides (fromChainId: BigNumberish, toChainId: BigNumberish): Promise<any> {
+    fromChainId = fromChainId.toString()
+    toChainId = toChainId.toString()
     const txOptions: any = {}
-    const provider = await this.getSignerOrProvider(sourceChainId)
+    const provider = await this.getSignerOrProvider(fromChainId)
     if (this.gasPriceMultiplier > 0) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
         provider as Provider,
@@ -275,16 +297,5 @@ export class Base {
     }
 
     return signer.sendTransaction({ ...transactionRequest, chainId } as any)
-  }
-
-  async getBlock (chainId: number, blockNumber: number): Promise<any> {
-    const cacheKey = `${chainId}-${blockNumber}`
-    if (cache[cacheKey]) {
-      return cache[cacheKey]
-    }
-    const provider = this.getProviderForChainId(chainId)
-    const block = await provider.getBlock(blockNumber)
-    cache[cacheKey] = block
-    return block
   }
 }

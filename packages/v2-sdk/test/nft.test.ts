@@ -9,7 +9,7 @@ describe.skip('Nft', () => {
     const txData = await nft.populateTransaction.mintNft({
       contractAddress: '0xEe2B218b9cB28389fABcf8EA1E656C06ECe519Ed',
       fromChainId: 5,
-      tokenId: 1337,
+      tokenId: '1337',
       recipient: '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
     })
 

@@ -246,6 +246,10 @@ export class Messenger extends Base {
     this.gasPriceOracle = new GasPriceOracle(url)
   }
 
+  override connect (signer: Signer) {
+    return new Messenger({ network: this.network, signer, contractAddresses: this.contractAddresses })
+  }
+
   getSpokeMessageBridgeContractAddress (chainId: number): string {
     return this.getConfigAddress(chainId, 'spokeCoreMessenger')
   }

@@ -121,6 +121,13 @@ export type WithdrawHopInput = {
   role: string
 }
 
+export type GetCheckpointInput = {
+  chainId: BigNumberish
+  previousCheckpoint: string
+  transferId: string
+  totalSent: BigNumber
+}
+
 export type CalcAmountOutMinInput = {
   amountOut: BigNumberish,
   slippageTolerance: number
@@ -484,6 +491,18 @@ export class RailsHub extends StakingRegistry {
     const provider = this.getProviderForChainId(chainId)
     const contract = ERC20__factory.connect(hopTokenAddress, provider)
     return contract
+  }
+
+  // TODO
+  async getHead (input: GetCheckpointInput): Promise<string> {
+    return ''
+  }
+
+  // TODO
+  async getCheckpoint (input: GetCheckpointInput): Promise<string> {
+    const { chainId, previousCheckpoint, transferId, totalSent } = input
+    const contract = await this.getRailsHubContract(chainId)
+    return contract.getCheckpoint(previousCheckpoint, transferId, totalSent)
   }
 
   calcAmountOutMin (input: CalcAmountOutMinInput): BigNumber {

@@ -127,7 +127,7 @@ export class StakingRegistry extends Base {
     })
   }
 
-  connect (signer: Signer) {
+  override connect (signer: Signer) {
     return new StakingRegistry({ network: this.network, signer, contractAddresses: this.contractAddresses })
   }
 

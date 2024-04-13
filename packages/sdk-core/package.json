@@ -175,12 +175,10 @@
     "dotenv": "16.4.1",
     "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
-    "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
     "p-queue": "6.6.2"
   },
   "devDependencies": {
-    "@types/luxon": "3.4.2",
     "typedoc": "0.25.7",
     "typedoc-plugin-markdown": "3.17.1",
     "@aws-sdk/client-s3": "3.338.0",

@@ -18,7 +18,7 @@ import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/uti
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { addresses } from '#addresses/index.js'
 
-export type GetEventsInput = {
+type GetEventsInput = {
   chainId: number
   fromBlock: number
   toBlock?: number
@@ -518,16 +518,16 @@ export class Messenger extends Base {
     const l2Provider = this.getProviderForChainId(fromChainId)
     let exitRelayer : ExitRelayer | undefined = undefined
     if ([420, 10].includes(fromChainId)) {
-      const { OptimismRelayer } = await import('#exitRelayers/OptimismRelayer.js')
+      const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
       exitRelayer = new OptimismRelayer(this.network, signer, l2Provider)
     } else if ([421613, 42161, 42170].includes(fromChainId)) {
-      // const { ArbitrumRelayer } = await import('#exitRelayers/ArbitrumRelayer.js')
+      // const { ArbitrumRelayer } = await import('../exitRelayers/ArbitrumRelayer.js')
       // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
     } else if ([80001, 137].includes(fromChainId)) {
-      // const { PolygonRelayer } = await import('#exitRelayers/PolygonRelayer.js')
+      // const { PolygonRelayer } = await import('../exitRelayers/PolygonRelayer.js')
       // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
     } else if ([100].includes(fromChainId)) {
-      // const { GnosisChainRelayer } = await import('#exitRelayers/GnosisChainRelayer.js')
+      // const { GnosisChainRelayer } = await import('../exitRelayers/GnosisChainRelayer.js')
       // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
     }
     if (!exitRelayer) {
@@ -544,7 +544,7 @@ export class Messenger extends Base {
     const l2Provider = this.getProviderForChainId(fromChainId)
     let exitRelayer : ExitRelayer
     if ([420, 10].includes(fromChainId)) {
-      const { OptimismRelayer } = await import('#exitRelayers/OptimismRelayer.js')
+      const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
       exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
     } else {
       throw new Error(`Exit relayer not found for chainId "${fromChainId}"`)
@@ -646,16 +646,16 @@ export class Messenger extends Base {
         const l2Provider = this.getProviderForChainId(fromChainId)
         let exitRelayer : ExitRelayer | undefined = undefined
         if ([420, 10].includes(fromChainId)) {
-          const { OptimismRelayer } = await import('#exitRelayers/OptimismRelayer.js')
+          const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
           exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
         } else if ([421613, 42161, 42170].includes(fromChainId)) {
-          // const { ArbitrumRelayer } = await import('#exitRelayers/ArbitrumRelayer.js')
+          // const { ArbitrumRelayer } = await import('../exitRelayers/ArbitrumRelayer.js')
           // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
         } else if ([80001, 137].includes(fromChainId)) {
-          // const { PolygonRelayer } = await import('#exitRelayers/PolygonRelayer.js')
+          // const { PolygonRelayer } = await import('../exitRelayers/PolygonRelayer.js')
           // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
         } else if ([100].includes(fromChainId)) {
-          // const { GnosisChainRelayer } = await import('#exitRelayers/GnosisChainRelayer.js')
+          // const { GnosisChainRelayer } = await import('../exitRelayers/GnosisChainRelayer.js')
           // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
         }
         if (!exitRelayer) {

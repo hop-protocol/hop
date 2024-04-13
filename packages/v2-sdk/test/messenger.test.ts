@@ -11,11 +11,6 @@ describe.skip('Messenger', () => {
   const signer = new Wallet(process.env.PRIVATE_KEY!)
   const address = '0xTODO'
   const messenger = new Messenger({ network: 'goerli' })
-  it.skip('TODO should get rpc provider', async () => {
-    const chainId = 1
-    const provider = messenger.getProviderForChainId(chainId)
-    expect(provider).toBeDefined()
-  })
   it.skip('TODO should get spokeMessageBridge contract address', async () => {
     const chainId = 1
     const address = messenger.getSpokeMessageBridgeContractAddress(chainId)
@@ -25,21 +20,6 @@ describe.skip('Messenger', () => {
     const chainId = 1
     const address = messenger.getHubMessageBridgeContractAddress(chainId)
     expect(address).toBeDefined()
-  })
-  it.skip('TODO should get isValidChainId', async () => {
-    const chainId = 1
-    const valid = messenger.isValidChainId(chainId)
-    expect(valid).toBeTruthy()
-  })
-  it.skip('TODO should get isValidTxHash', async () => {
-    const txHash = '0xTODO'
-    const valid = messenger.isValidTxHash(txHash)
-    expect(valid).toBeTruthy()
-  })
-  it.skip('TODO should get chainSlug', async () => {
-    const chainId = 1
-    const chainSlug = messenger.getChainSlug(1)
-    expect(chainSlug).toBe('ethereum')
   })
   it.skip('TODO should get BundleCommitted events', async () => {
     const chainId = 1

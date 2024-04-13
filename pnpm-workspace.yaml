@@ -8,7 +8,7 @@ packages:
   - 'packages/sdk'
   - 'packages/sdk-core'
   - 'packages/sdk-demo'
-  # - 'packages/v2-sdk'
+  - 'packages/v2-sdk'
   # - 'packages/v2-sdk-demo'
   - 'packages/stats-worker'
   - 'packages/v2-explorer-backend'

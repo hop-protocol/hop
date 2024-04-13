@@ -1,19 +1,2 @@
-export default {
-  roots: ['test'],
-  extensionsToTreatAsEsm: ['.ts'],
-  transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      useESM: true,
-      diagnostics: true,
-      tsconfig: 'tsconfig.esm.json'
-    }]
-  },
-  testEnvironment: 'node',
-  moduleNameMapper: {
-    '^src/(.*)$': '<rootDir>/src/$1'
-  },
-  setupFiles: [],
-  bail: 1,
-  verbose: true
-}
-
+import baseConfig from '../../jest.config.esm.mjs'
+export default baseConfig

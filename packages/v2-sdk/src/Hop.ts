@@ -33,13 +33,13 @@ import { Nft } from '#nft/index.js'
 
 const cache : Record<string, any> = {}
 
-export type Options = {
+export type HopConstructorInput = {
   batchBlocks?: number,
   signer?: Signer
   contractAddresses?: Record<string, any> // TODO: types
 }
 
-export type GetEventsInput = {
+type GetEventsInput = {
   chainId: number
   fromBlock: number
   toBlock?: number
@@ -73,7 +73,7 @@ export class Hop extends Base {
   nft: Nft
   hubConnector: HubConnector
 
-  constructor (network: string = 'goerli', options?: Options) {
+  constructor (network: string = 'goerli', options?: HopConstructorInput) {
     super({ network, signer: options?.signer })
     if (!['mainnet', 'goerli', 'sepolia'].includes(network)) {
       throw new Error(`Invalid network: ${network}`)

@@ -1,14 +1,14 @@
 {
-  "files": [],
-  "include": [],
-  "references": [
-    { "path": "./src/tsconfig.esm.json" },
-    { "path": "./src/tsconfig.cjs.json" },
-    { "path": "./test" }
-  ],
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
-      "#*": ["./src/*"]
+      "#*": ["./src/*"] // this makes jests tests work
     }
-  }
+  },
+  "include": [
+    "src",
+    "src/**/*.json" // Required to include JSON files specifically
+  ]
 }

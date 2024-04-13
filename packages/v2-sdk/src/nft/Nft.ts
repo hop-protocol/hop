@@ -8,7 +8,7 @@ import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
 import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
 import { addresses } from '#addresses/index.js'
 
-export type GetEventsInput = {
+type GetEventsInput = {
   chainId: number
   fromBlock: number
   toBlock?: number

@@ -62,5 +62,16 @@
     "@types/pidusage": "2.0.5",
     "@types/subleveldown": "4.1.4",
     "tsx": "4.7.2"
-  }
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/hop-node"
+  },
+  "keywords": [
+    "hop",
+    "hop-protocol",
+    "ethereum"
+  ]
 }

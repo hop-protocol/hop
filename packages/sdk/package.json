@@ -133,5 +133,16 @@
         "default": "./dist/cjs/networks/index.js"
       }
     }
-  }
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/sdk"
+  },
+  "keywords": [
+    "hop",
+    "hop-protocol",
+    "ethereum"
+  ]
 }

@@ -127,5 +127,16 @@
     "@types/prompt": "1.1.8",
     "@types/uuid": "9.0.8",
     "eslint-plugin-jest": "28.2.0"
-  }
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/hop-node-core"
+  },
+  "keywords": [
+    "hop",
+    "hop-protocol",
+    "ethereum"
+  ]
 }

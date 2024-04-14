@@ -166,7 +166,6 @@
   "dependencies": {
     "@uniswap/sdk-core": "4.2.0",
     "@uniswap/v3-sdk": "3.11.0",
-    "dotenv": "16.4.1",
     "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "merkletreejs": "0.3.11",

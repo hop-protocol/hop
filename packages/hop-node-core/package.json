@@ -111,7 +111,6 @@
     "async-mutex": "0.4.1",
     "bip39": "3.1.0",
     "chalk": "4.1.2",
-    "dotenv": "16.4.1",
     "ethers": "5.7.2",
     "keythereum": "1.2.0",
     "minimist": "1.2.8",

@@ -42,7 +42,6 @@
     "classic-level": "1.4.1",
     "commander": "6.2.1",
     "console-clear": "1.1.1",
-    "dotenv": "16.4.1",
     "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "level-party": "5.1.1",

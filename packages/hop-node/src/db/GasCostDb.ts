@@ -38,7 +38,7 @@ class GasCostDb extends BaseDb<GasCost> {
     this.startPrunePoller()
   }
 
-  private async startPrunePoller () {
+  private async startPrunePoller (): Promise<never> {
     while (true) {
       try {
         await this.prune()

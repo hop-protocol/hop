@@ -4,7 +4,6 @@
 
 [![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
 [![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk/master/LICENSE)
-[![dependencies Status](https://david-dm.org/@hop-protocol/sdk/status.svg)](https://david-dm.org/@hop-protocol/sdk)
 [![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/%40hop-protocol%2Fsdk)
 [![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@hop-protocol/sdk/latest.svg)](https://bundlephobia.com/result?p=@hop-protocol/sdk@latest)
 
@@ -15,18 +14,18 @@
 ## Install
 
 ```bash
-npm install @hop-protocol/sdk
+pnpm install @hop-protocol/sdk
 ```
 
 ## CDN
 
-[https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js](jsDelivr CDN)
+[jsDelivr CDN](https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js)
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js"></script>
 ```
 
-[https://unpkg.com/@hop-protocol/sdk@latest/hop.js](unpkg CDN)
+[unpkg CDN](https://unpkg.com/@hop-protocol/sdk@latest/hop.js)
 
 ```html
 <script src="https://unpkg.com/@hop-protocol/sdk@latest/hop.js"></script>
@@ -43,25 +42,25 @@ For sdk API reference, see [hop-sdk-docs.netlify.app](https://hop-sdk-docs.netli
 Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 Run build watcher
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Build sdk
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 Generate documentation
 
 ```bash
-npm run docs
+pnpm run docs
 ```
 
 Run github action build locally with [act](https://github.com/nektos/act):
@@ -73,7 +72,7 @@ Run github action build locally with [act](https://github.com/nektos/act):
 ## Test
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## License

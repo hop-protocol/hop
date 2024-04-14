@@ -1,67 +1,25 @@
-# Hop v1 SDK
+# Hop SDK Core
 
-> The Hop Protocol JavaScript SDK
+> This code is shared across Hop TypeScript SDKs.
 
-[![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
-[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk/master/LICENSE)
-[![dependencies Status](https://david-dm.org/@hop-protocol/sdk/status.svg)](https://david-dm.org/@hop-protocol/sdk)
-[![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/%40hop-protocol%2Fsdk)
-[![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@hop-protocol/sdk/latest.svg)](https://bundlephobia.com/result?p=@hop-protocol/sdk@latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk-core/master/LICENSE)
+[![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk-core.svg)](https://badge.fury.io/js/@hop-protocol%2Fsdk-core.svg)
 
-## Demo
-
-[https://sdk-demo.hop.exchange/](https://sdk-demo.hop.exchange/)
-
-## Install
-
-```bash
-npm install @hop-protocol/sdk
-```
-
-## CDN
-
-[https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js](jsDelivr CDN)
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js"></script>
-```
-
-[https://unpkg.com/@hop-protocol/sdk@latest/hop.js](unpkg CDN)
-
-```html
-<script src="https://unpkg.com/@hop-protocol/sdk@latest/hop.js"></script>
-```
-
-## Documentation
-
-For getting started and examples, see [docs.hop.exchange/v/developer-docs/js-sdk/js-sdk](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
-
-For sdk API reference, see [hop-sdk-docs.netlify.app](https://hop-sdk-docs.netlify.app/)
+> [!NOTE]
+> This package is only meant to be used by the Hop TypeScript SDKs. We recommend installing one of the Hop SDKs if you want access to functionality in this package.
 
 ## Development
 
 Install dependencies
 
 ```bash
-npm install
-```
-
-Run build watcher
-
-```bash
-npm run dev
+pnpm install
 ```
 
 Build sdk
 
 ```bash
-npm run build
-```
-
-Generate documentation
-
-```bash
-npm run docs
+pnpm build
 ```
 
 Run github action build locally with [act](https://github.com/nektos/act):
@@ -73,7 +31,7 @@ Run github action build locally with [act](https://github.com/nektos/act):
 ## Test
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## Adding New Contracts

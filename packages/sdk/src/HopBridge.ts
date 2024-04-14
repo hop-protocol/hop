@@ -35,7 +35,17 @@ import { L2_Bridge__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
 import { Token } from './Token.js'
 import { bondableChains, metadata } from './config/index.js'
-import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, keccak256, parseEther, parseUnits, solidityPack } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
+
+const {
+  getAddress: checksumAddress,
+  defaultAbiCoder,
+  formatUnits,
+  keccak256,
+  parseEther,
+  parseUnits,
+  solidityPack
+} = utils
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0

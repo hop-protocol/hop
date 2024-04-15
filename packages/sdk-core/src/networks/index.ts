@@ -5,5 +5,19 @@ import { networks as sepolia } from './sepolia.js'
 const networks = { goerli, sepolia, mainnet }
 export { goerli, sepolia, mainnet, networks }
 
-export * from './types.js'
-export * from './enums.js'
+export {
+  Network,
+  Networks
+} from './types.js'
+
+export {
+  NetworkSlug,
+  ChainId,
+  ChainName,
+  ChainSlug,
+  Slug,
+  CanonicalToken,
+  WrappedToken,
+  NativeChainToken,
+  HToken
+} from './enums.js'

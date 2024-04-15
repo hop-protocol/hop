@@ -632,6 +632,9 @@ importers:
       luxon:
         specifier: 3.4.4
         version: 3.4.4
+      merkletreejs:
+        specifier: 0.3.11
+        version: 0.3.11
     devDependencies:
       '@types/luxon':
         specifier: 3.4.2
@@ -660,9 +663,6 @@ importers:
       ethers:
         specifier: 5.7.2
         version: 5.7.2
-      merkletreejs:
-        specifier: 0.3.11
-        version: 0.3.11
       p-queue:
         specifier: 6.6.2
         version: 6.6.2

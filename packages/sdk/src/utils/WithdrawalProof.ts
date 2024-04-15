@@ -1,8 +1,5 @@
 import { MerkleTree as MerkleTreeJS } from 'merkletreejs'
-import { chainIdToSlug } from './chainIdToSlug.js'
-import { getSubgraphChains } from './getSubgraphChains.js'
-import { getSubgraphUrl } from './getSubgraphUrl.js'
-import { getTokenDecimals } from './getTokenDecimals.js'
+import { chainIdToSlug, getSubgraphChains, getSubgraphUrl, getTokenDecimals } from '@hop-protocol/sdk-core'
 import { utils } from 'ethers'
 
 class MerkleTree extends MerkleTreeJS {

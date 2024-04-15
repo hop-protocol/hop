@@ -52,8 +52,7 @@ export {
   promiseTimeout,
   rateLimitRetry,
   serializeQueryParams,
-  shiftBNDecimals,
-  WithdrawalProof
+  shiftBNDecimals
 } from '@hop-protocol/sdk-core'
 
 if (typeof window !== 'undefined') {

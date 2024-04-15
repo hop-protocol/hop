@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.628",
+  "version": "0.0.1-beta.629",
   "description": "The v1 Hop Protocol TypeScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -37,7 +37,8 @@
     "ethers": "5.7.2",
     "eventemitter3": "5.0.1",
     "fast-memoize": "2.5.2",
-    "luxon": "3.4.4"
+    "luxon": "3.4.4",
+    "merkletreejs": "0.3.11"
   },
   "devDependencies": {
     "@types/luxon": "3.4.2",
@@ -133,6 +134,16 @@
       "require": {
         "types": "./dist/cjs/networks/index.d.ts",
         "default": "./dist/cjs/networks/index.js"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/esm/utils/index.d.ts",
+        "default": "./dist/esm/utils/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/utils/index.d.ts",
+        "default": "./dist/cjs/utils/index.js"
       }
     }
   },

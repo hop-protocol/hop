@@ -1,6 +1,6 @@
 # v1 Hop Node
 
-> Hop node for bonding transfers
+> V1 Hop Node for bonding transfers
 
 > [!NOTE]
 > This package is only meant to be used by other Hop Node packages. We recommend installing one of the Hop Node packages if you want access to functionality in this package.

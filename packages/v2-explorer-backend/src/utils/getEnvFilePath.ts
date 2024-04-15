@@ -3,9 +3,11 @@ import minimist from 'minimist'
 import path from 'node:path'
 
 export function getEnvFilePath (): string | undefined {
+  const defaultEnvFilePath = path.resolve(process.cwd(), '.env')
+
   const argv = minimist(process.argv.slice(2))
   if (typeof argv.env !== 'string') {
-    return
+    return defaultEnvFilePath
   }
 
   const envFilePath = path.resolve(argv.env)
@@ -14,6 +16,5 @@ export function getEnvFilePath (): string | undefined {
     process.exit(1)
   }
 
-  const defaultEnvFilePath = path.resolve(process.cwd(), '.env')
   return envFilePath ?? defaultEnvFilePath
 }

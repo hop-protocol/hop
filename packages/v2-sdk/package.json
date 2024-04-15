@@ -130,14 +130,14 @@
         "default": "./dist/cjs/common/index.js"
       }
     },
-    "./networks_": {
+    "./networks": {
       "import": {
-        "types": "./dist/esm/networks_/index.d.ts",
-        "default": "./dist/esm/networks_/index.js"
+        "types": "./dist/esm/networks/index.d.ts",
+        "default": "./dist/esm/networks/index.js"
       },
       "require": {
-        "types": "./dist/cjs/networks_/index.d.ts",
-        "default": "./dist/cjs/networks_/index.js"
+        "types": "./dist/cjs/networks/index.d.ts",
+        "default": "./dist/cjs/networks/index.js"
       }
     },
     "./events": {

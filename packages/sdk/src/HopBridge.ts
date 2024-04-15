@@ -24,7 +24,7 @@ import {
 import { CCTPMessageTransmitter__factory } from './contracts/index.js'
 import { CCTPTokenMessenger__factory } from './contracts/index.js'
 import { CCTPTokenMinter__factory } from './contracts/index.js'
-import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, WithdrawalProof, chainIdToSlug, fetchJsonOrThrow, getUSDCSwapParams, getCctpDomain } from '@hop-protocol/sdk-core'
+import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, chainIdToSlug, fetchJsonOrThrow, getUSDCSwapParams, getCctpDomain } from '@hop-protocol/sdk-core'
 import { L1_Bridge } from './contracts/index.js'
 import { L1_ERC20_Bridge__factory } from './contracts/index.js'
 import { L1_HomeAMBNativeToErc20__factory } from './contracts/index.js'
@@ -34,8 +34,19 @@ import { L2_Bridge } from './contracts/index.js'
 import { L2_Bridge__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
 import { Token } from './Token.js'
+import { WithdrawalProof } from '#utils/WithdrawalProof.js'
 import { bondableChains, metadata } from './config/index.js'
-import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, keccak256, parseEther, parseUnits, solidityPack } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
+
+const {
+  getAddress: checksumAddress,
+  defaultAbiCoder,
+  formatUnits,
+  keccak256,
+  parseEther,
+  parseUnits,
+  solidityPack
+} = utils
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0

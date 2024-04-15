@@ -1,6 +1,5 @@
 import { getUSDCSwapParams } from '#utils/uniswap.js'
-import { parseUnits } from 'ethers/lib/utils'
-import { providers } from 'ethers'
+import { providers, utils } from 'ethers'
 
 describe('uniswap', () => {
   it.skip('getUSDCSwapParams - mainnet optimism', async () => {
@@ -8,7 +7,7 @@ describe('uniswap', () => {
     const { swapParams, quotedAmountOutFormatted } = await getUSDCSwapParams({
       network: 'mainnet',
       chainId: 420,
-      amountIn: parseUnits('10', 6),
+      amountIn: utils.parseUnits('10', 6),
       provider,
       recipient: '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69',
       getQuote: true
@@ -23,7 +22,7 @@ describe('uniswap', () => {
     const { swapParams, quotedAmountOutFormatted } = await getUSDCSwapParams({
       network: 'sepolia',
       chainId: 11155111,
-      amountIn: parseUnits('0.001', 6),
+      amountIn: utils.parseUnits('0.001', 6),
       provider,
       recipient: '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69',
       getQuote: true
@@ -38,7 +37,7 @@ describe('uniswap', () => {
     const { swapParams, quotedAmountOutFormatted } = await getUSDCSwapParams({
       network: 'goerli',
       chainId: 5,
-      amountIn: parseUnits('10', 6),
+      amountIn: utils.parseUnits('10', 6),
       provider,
       recipient: '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69',
       getQuote: true

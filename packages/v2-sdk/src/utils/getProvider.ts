@@ -1,4 +1,4 @@
-import { goerliNetworks, mainnetNetworks } from '#networks_/index.js'
+import { goerliNetworks, mainnetNetworks } from '#networks/index.js'
 import { providers } from 'ethers'
 
 export function getProvider (network: string, chainId: number) {

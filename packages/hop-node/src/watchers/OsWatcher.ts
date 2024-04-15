@@ -36,7 +36,7 @@ class OsWatcher {
     ])
   }
 
-  async pollStats () {
+  async pollStats (): Promise<never> {
     while (true) {
       try {
         await this.logCpuMemory()

@@ -1,10 +1,7 @@
 import L1Bridge from '#watchers/classes/L1Bridge.js'
 import contracts from '#contracts/index.js'
-import dotenv from 'dotenv'
 import expectDefined from './utils/expectDefined.js'
 import { config as globalConfig } from '#config/index.js'
-
-dotenv.config()
 
 const token = 'USDC'
 const network = 'ethereum'

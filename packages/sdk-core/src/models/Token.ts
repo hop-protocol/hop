@@ -1,5 +1,5 @@
 import { CanonicalToken, TokenSymbol } from '#constants/index.js'
-import { getAddress } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { sdkMetadata } from '#config/index.js'
 
 export class TokenModel {
@@ -40,7 +40,7 @@ export class TokenModel {
       this.chainId = Number(chainId)
     }
     if (address) {
-      this.address = getAddress(address)
+      this.address = utils.getAddress(address)
     }
     if (symbol) {
       this.symbol = symbol

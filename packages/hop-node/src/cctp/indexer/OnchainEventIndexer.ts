@@ -49,7 +49,7 @@ export class OnchainEventIndexer {
    */
 
 
-  #initPoller = async (chain: Chain) => {
+  #initPoller = async (chain: Chain): Promise<never> => {
     try {
       while (true) {
         await this.#syncEvents(chain)

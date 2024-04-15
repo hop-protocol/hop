@@ -14,8 +14,8 @@ import {
   envNetwork,
   getCoreConfig,
   getCoreNetworkConfig,
+  getEnvFilePath,
   isTestMode,
-  loadEnv,
   setCoreBonderPrivateKey,
   setCoreNetworkMaxGasPrice,
   setCoreNetworkRedundantRpcUrls,
@@ -37,8 +37,12 @@ import type {
 import type { BonderConfig } from './types.js'
 import type { Tokens as Metadata } from '@hop-protocol/sdk/metadata'
 import type { SyncType } from '#constants/index.js'
+import { loadEnvFile } from 'node:process'
 
-loadEnv()
+const envFilePath = getEnvFilePath()
+if (envFilePath) {
+  loadEnvFile(envFilePath)
+}
 
 // TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
 export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false

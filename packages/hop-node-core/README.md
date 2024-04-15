@@ -2,7 +2,8 @@
 
 > Core functions of the Hop node.
 
-This package is not expected to be used in isolation, but only as part of other Hop Node packages.
+> [!NOTE]
+> This package is not expected to be used in isolation, but only as part of other Hop Node packages.
 
 ## Testing
 

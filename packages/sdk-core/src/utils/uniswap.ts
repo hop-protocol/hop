@@ -1,9 +1,8 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pool, Route, TICK_SPACINGS, TickMath, Trade, encodeRouteToPath, nearestUsableTick } from '@uniswap/v3-sdk'
 import { UniswapQuoterV2__factory, UniswapV3Pool__factory,  ERC20__factory } from '#contracts/index.js'
 import { chainIdToSlug } from './chainIdToSlug.js'
-import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 
 type TickSpacing = 100 | 500 | 3000 | 10000
 
@@ -221,8 +220,8 @@ export async function getUSDCSwapParams(options: any) {
       path: encodeRouteToPath(route, exactOutput),
       recipient: recipient,
       // deadline: deadline.toString(),
-      amountIn: parseUnits(trade.inputAmount.toExact(), fromTokenDecimals).toString(),
-      amountOutMinimum: parseUnits(trade.minimumAmountOut(slippageTolerance).toExact(), toTokenDecimals).toString(),
+      amountIn: utils.parseUnits(trade.inputAmount.toExact(), fromTokenDecimals).toString(),
+      amountOutMinimum: utils.parseUnits(trade.minimumAmountOut(slippageTolerance).toExact(), toTokenDecimals).toString(),
   }
 
   let quotedAmountOut : any
@@ -248,7 +247,7 @@ export async function getUSDCSwapParams(options: any) {
         amountIn.toString()
       )
 
-      quotedAmountOutFormatted = formatUnits(quotedAmountOut, toTokenDecimals)
+      quotedAmountOutFormatted = utils.formatUnits(quotedAmountOut, toTokenDecimals)
     }
   }
 

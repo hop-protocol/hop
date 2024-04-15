@@ -9,13 +9,13 @@ Thank you for your interest in contributing to the Hop frontend!🐰
 Before running anything, you'll need to install the dependencies:
 
 ```sh
-yarn install
+pnpm --filter @hop-protocol/frontend install
 ```
 
 ### Running the interface locally
 
 ```sh
-yarn dev
+pnpm --filter @hop-protocol/frontend dev
 ```
 
 Navigate to [http://localhost:3000].
@@ -23,7 +23,7 @@ Navigate to [http://localhost:3000].
 ### Creating a production build
 
 ```sh
-yarn build
+pnpm --filter @hop-protocol/frontend build
 ```
 
 ### Guidelines

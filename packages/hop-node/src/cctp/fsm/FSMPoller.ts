@@ -53,7 +53,7 @@ export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
     }
   }
 
-  async #initCreationPoller(): Promise<void> {
+  async #initCreationPoller(): Promise<never> {
     // TODO: more explicit err handling
     try {
       while (true) {
@@ -68,7 +68,7 @@ export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
   }
 
 
-  async #initStatePoller(state: T): Promise<void> {
+  async #initStatePoller(state: T): Promise<never> {
     // TODO: more explicit err handling
     try {
       while (true) {

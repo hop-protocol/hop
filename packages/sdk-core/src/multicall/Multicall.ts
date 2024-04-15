@@ -1,5 +1,4 @@
-import { constants, providers } from 'ethers'
-import { Interface, defaultAbiCoder, formatUnits } from 'ethers/lib/utils.js'
+import { constants, providers, utils } from 'ethers'
 import { Multicall3__factory } from '#contracts/index.js'
 import { PriceFeedFromS3 } from '#priceFeed/index.js'
 import { ERC20__factory } from '#contracts/index.js'
@@ -118,7 +117,7 @@ export class Multicall {
     const provider = this.getProvider(chainSlug)
     const multicallAddress = this.getMulticallAddressForChain(chainSlug)
     const calls = options.map(({ address, abi, method, args }: any) => {
-      const contractInterface = new Interface(abi)
+      const contractInterface = new utils.Interface(abi)
       const calldata = contractInterface.encodeFunctionData(method, args)
       return {
         target: address,
@@ -144,12 +143,12 @@ export class Multicall {
         returnData = data.returnData
       }
       const { abi, method } = options[index]
-      const contractInterface = new Interface(abi)
+      const contractInterface = new utils.Interface(abi)
       for (const key in contractInterface.functions) {
         const _method = key.split('(')[0]
         if (_method === method) {
           const returnTypes = contractInterface?.functions[key]?.outputs?.map((output: any) => output.type)
-          const returnValues = defaultAbiCoder.decode(returnTypes!, returnData)
+          const returnValues = utils.defaultAbiCoder.decode(returnTypes!, returnData)
           return returnValues
         }
       }
@@ -196,9 +195,9 @@ export class Multicall {
       }
       const { tokenSymbol, address, tokenDecimals } = tokenAddresses[index]
       try {
-        const balance = defaultAbiCoder.decode(['uint256'], returnData)[0]
+        const balance = utils.defaultAbiCoder.decode(['uint256'], returnData)[0]
         const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol!)
-        const balanceFormatted = Number(formatUnits(balance, _tokenDecimals))
+        const balanceFormatted = Number(utils.formatUnits(balance, _tokenDecimals))
         const tokenPrice = opts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol!) // don't fetch usd price if using custom abi
         const balanceUsd = tokenPrice ? balanceFormatted * tokenPrice : null
         return {

@@ -1,5 +1,5 @@
 import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
-import { BigNumber, BigNumberish, constants } from 'ethers'
+import { BigNumber, BigNumberish, constants, utils } from 'ethers'
 import {
   Chain
 } from '@hop-protocol/sdk-core'
@@ -7,7 +7,6 @@ import { SecondsInDay, TokenIndex, TokenSymbol } from './constants/index.js'
 import { Swap__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
-import { formatUnits } from 'ethers/lib/utils.js'
 import {
   getBlockNumberFromDate,
   rateLimitRetry,
@@ -366,7 +365,7 @@ export class AMM extends Base {
     const data = await saddleSwap.swapStorage()
     const poolFeePrecision = 10
     const swapFee = data.swapFee
-    return Number(formatUnits(swapFee.toString(), poolFeePrecision))
+    return Number(utils.formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
   public async getYieldStatsForDay (unixTimestamp: number, days: number = 1): Promise<any> {
@@ -434,10 +433,10 @@ export class AMM extends Base {
 
     const totalLiquidity = reserve0.add(reserve1)
     const totalLiquidityFormatted = Number(
-      formatUnits(totalLiquidity, decimals)
+      utils.formatUnits(totalLiquidity, decimals)
     )
-    const totalFeesFormatted = Number(formatUnits(totalFees, decimals))
-    const totalVolumeFormatted = Number(formatUnits(totalVolume, decimals))
+    const totalFeesFormatted = Number(utils.formatUnits(totalFees, decimals))
+    const totalVolumeFormatted = Number(utils.formatUnits(totalVolume, decimals))
 
     return { totalFeesFormatted, totalLiquidityFormatted, totalVolume, totalVolumeFormatted }
   }

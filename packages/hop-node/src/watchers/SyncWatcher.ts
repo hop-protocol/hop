@@ -202,7 +202,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async pollSync () {
+  async pollSync (): Promise<never> {
     this.logger.debug('starting pollSync')
     while (true) {
       try {

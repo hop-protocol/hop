@@ -1,6 +1,10 @@
-import dotenv from 'dotenv'
+import { loadEnvFile } from 'node:process'
+import { getEnvFilePath } from '@hop-protocol/hop-node-core/config'
 
-dotenv.config()
+const envFilePath = getEnvFilePath()
+if (envFilePath) {
+  loadEnvFile(envFilePath)
+}
 
 export const privateKey = process.env.TEST_USER_PRIVATE_KEY
 export const mnemonic = process.env.TEST_MNEMONIC

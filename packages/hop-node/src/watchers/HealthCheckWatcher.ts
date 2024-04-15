@@ -322,7 +322,7 @@ export class HealthCheckWatcher {
     }
   }
 
-  async start () {
+  async start (): Promise<never> {
     while (true) {
       try {
         await this.poll()

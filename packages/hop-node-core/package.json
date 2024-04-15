@@ -78,7 +78,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=20.12.1",
+    "node": ">=20.12.2",
     "pnpm": ">=8"
   },
   "scripts": {
@@ -111,7 +111,6 @@
     "async-mutex": "0.4.1",
     "bip39": "3.1.0",
     "chalk": "4.1.2",
-    "dotenv": "16.4.1",
     "ethers": "5.7.2",
     "keythereum": "1.2.0",
     "minimist": "1.2.8",
@@ -127,5 +126,16 @@
     "@types/prompt": "1.1.8",
     "@types/uuid": "9.0.8",
     "eslint-plugin-jest": "28.2.0"
-  }
+  },
+  "homepage": "https://hop.exchange",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hop-protocol/hop.git",
+    "directory": "packages/hop-node-core"
+  },
+  "keywords": [
+    "hop",
+    "hop-protocol",
+    "ethereum"
+  ]
 }

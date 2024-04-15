@@ -1,3 +1,1 @@
-import { tokens } from '@hop-protocol/sdk-core/metadata/tokens'
-
-export { tokens }
+export * from '@hop-protocol/sdk-core/metadata/tokens'

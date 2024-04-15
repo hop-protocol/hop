@@ -1,7 +1,8 @@
-import '../../utils/loadEnvFile'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { Command } from 'commander'
+import { getEnvFilePath } from '#utils/getEnvFilePath.js'
+import { loadEnvFile } from 'node:process'
 
 export const program = new Command()
 
@@ -9,6 +10,11 @@ export const root = program
   .option('--env <path>', 'Environment variables file', parseString)
 
 export function actionHandler (fn: Function) {
+  const envFilePath = getEnvFilePath()
+  if (envFilePath) {
+    loadEnvFile(envFilePath)
+  }
+
   return async (source: any = {}) => {
     try {
       if (!source.skipMain) {

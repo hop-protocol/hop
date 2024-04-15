@@ -8,13 +8,13 @@ import RelayWatcher from './RelayWatcher.js'
 import SettleBondedWithdrawalWatcher from './SettleBondedWithdrawalWatcher.js'
 import SyncWatcher from './SyncWatcher.js'
 import contracts from '#contracts/index.js'
-import { BridgeContract } from './classes/BaseWatcher.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { MetricsServer } from '@hop-protocol/hop-node-core/metrics'
 import { Watchers, getAllChains, getAllTokens, config as globalConfig } from '#config/index.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import type { BridgeContract } from './classes/BaseWatcher.js'
 
 const logger = new Logger('config')
 

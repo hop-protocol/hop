@@ -1,7 +1,7 @@
 import ContractBase from './ContractBase.js'
 import getTokenMetadataByAddress from '#utils/getTokenMetadataByAddress.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
-import { BigNumber, Contract, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import {
   Chain,
   Token
@@ -9,20 +9,13 @@ import {
 import {
   CoingeckoApiKey
 } from '@hop-protocol/hop-node-core/config'
-import { DbSet, getDbSet } from '#db/index.js'
-import { Event } from '@hop-protocol/hop-node-core/types'
+import { type DbSet, getDbSet } from '#db/index.js'
 import {
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from '#constants/index.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/sdk/contracts/Bridge'
 import { PriceFeed } from '@hop-protocol/sdk'
-import { State } from '#db/SyncStateDb.js'
-import { TxOverrides } from '@hop-protocol/hop-node-core/types'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils.js'
 import {
@@ -31,6 +24,20 @@ import {
 } from '#config/index.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import type { Contract, providers } from 'ethers'
+import type { Event } from '@hop-protocol/hop-node-core/types'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
+import type {
+  MultipleWithdrawalsSettledEvent,
+  TransferRootSetEvent,
+  WithdrawalBondSettledEvent,
+  WithdrawalBondedEvent,
+  WithdrewEvent
+} from '@hop-protocol/sdk/contracts/Bridge'
+import type { State } from '#db/SyncStateDb.js'
+import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -734,7 +741,7 @@ export default class Bridge extends ContractBase {
     } else if (isInitialSync) {
       end = syncBlockNumber
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
-    } else if (isSync || isCustomSync) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+    } else if (isSync || isCustomSync) {
       end = Math.max(syncBlockNumber, state?.latestBlockSynced ?? 0)
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {

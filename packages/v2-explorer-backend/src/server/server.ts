@@ -1,9 +1,9 @@
 import cors from 'cors'
 import express, { Express } from 'express'
-import { Controller } from '../controller'
-import { ipRateLimitMiddleware } from './rateLimit'
-import { port } from '../config'
-import { responseCache } from './responseCache'
+import { Controller } from '#controller/index.js'
+import { ipRateLimitMiddleware } from './rateLimit.js'
+import { port } from '#config/index.js'
+import { responseCache } from './responseCache.js'
 
 export const app : Express = express()
 

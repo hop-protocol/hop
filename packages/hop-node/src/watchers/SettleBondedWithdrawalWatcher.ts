@@ -1,13 +1,14 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import MerkleTree from '#utils/MerkleTree.js'
 import wallets from '@hop-protocol/hop-node-core/wallets'
-import { BigNumber, Contract, providers } from 'ethers'
 import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
-import { WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
+import { Contract } from 'ethers'
+import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
+import type { BigNumber, providers } from 'ethers'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 
 export class BatchExecuteError extends Error {}
 
@@ -20,7 +21,7 @@ type Config = {
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
+  override siblingWatchers!: { [chainId: string]: SettleBondedWithdrawalWatcher }
 
   constructor (config: Config) {
     super({

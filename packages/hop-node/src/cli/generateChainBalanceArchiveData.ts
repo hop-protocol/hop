@@ -1,15 +1,11 @@
 import { BigNumber } from 'ethers'
-import {
-  Chain,
-  Token
-} from '@hop-protocol/hop-node-core/constants'
-import {
-  ChainBalanceArchiveData
-} from '#constants/index.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainBalanceArchiveData } from '#constants/index.js'
 import { actionHandler, parseString, root } from './shared/index.js'
 import { getHistoricalUnrelayedL1ToL2Transfers } from './shared/utils.js'
 import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers.js'
 import { config as globalConfig } from '#config/index.js'
+import type { Token } from '@hop-protocol/hop-node-core/constants'
 
 root
   .command('generate-chain-balance-archive-data')

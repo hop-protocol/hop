@@ -1,10 +1,10 @@
 import { AbstractOptimismInclusionService } from '../../../Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
-import { IInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { RootProviderName } from '#constants/index.js'
 import { getRpcRootProviderName } from '#utils/getRpcRootProviderName.js'
 import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
-import { providers } from 'ethers'
 import { wait } from '#utils/wait.js'
+import type { IInclusionService } from '../../../Services/AbstractInclusionService.js'
+import type { providers } from 'ethers'
 
 interface GetInclusionTxHashes {
   destChainProvider: providers.Provider
@@ -16,8 +16,8 @@ interface GetInclusionTxHashes {
 
 export class AlchemyInclusionService extends AbstractOptimismInclusionService implements IInclusionService {
   readonly #maxNumL1BlocksWithoutInclusion: number = 50
-  #isInitialized: boolean
-  #ready: boolean
+  #isInitialized!: boolean
+  #ready!: boolean
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -105,14 +105,14 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
 
     const startBlockNumber = l1BlockNumber - this.#maxNumL1BlocksWithoutInclusion
     const inclusionTxHashes: string[] = await this.#getL2ToL1InclusionTxHashes(startBlockNumber, l1BlockNumber)
-    return this.l1Provider.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1])
+    return this.l1Provider.getTransactionReceipt(inclusionTxHashes[inclusionTxHashes.length - 1]!)
   }
 
   async getLatestL2TxFromL1ChannelTx (l1InclusionTx: string): Promise<providers.TransactionReceipt | undefined> {
     if (!(await this.#isReadyAndInitialized())) return
 
     const { transactionHashes } = await this.getL2TxHashesInChannel(l1InclusionTx)
-    const latestL2TxHash: string = transactionHashes?.[transactionHashes.length - 1]
+    const latestL2TxHash: string | undefined = transactionHashes?.[transactionHashes.length - 1]
     if (!latestL2TxHash) {
       this.logger.error(`no L2 tx found for L1 inclusion tx ${l1InclusionTx}`)
       return

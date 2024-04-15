@@ -1,13 +1,13 @@
-import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
+import { AbstractMessageService, type IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
 import {
-  CrossChainMessage,
+  type CrossChainMessage,
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { config as globalConfig } from '#config/index.js'
 import { networkSlugToId } from '#utils/networkSlugToId.js'
-import { providers } from 'ethers'
+import type { providers } from 'ethers'
 
 export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus> implements IMessageService {
   readonly #csm: CrossChainMessenger
@@ -46,7 +46,11 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
-    return messages[messageIndex]
+    const message: CrossChainMessage | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   protected async getMessageStatus (message: CrossChainMessage): Promise<MessageStatus> {

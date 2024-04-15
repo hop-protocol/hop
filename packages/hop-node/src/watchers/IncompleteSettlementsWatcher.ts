@@ -3,20 +3,20 @@ import getBondedWithdrawal from '#theGraph/getBondedWithdrawal.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
 import getTransferSent from '#theGraph/getTransferSent.js'
 import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
-import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { type L1BridgeProps, type L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { formatUnits } from 'ethers/lib/utils.js'
 import { getEnabledTokens } from '#config/index.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/sdk/abi'
+import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
 import { wait } from '@hop-protocol/hop-node-core/utils'
+import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 
 type Options = {
   token?: string
@@ -265,7 +265,7 @@ class IncompleteSettlementsWatcher {
     if (!config) {
       throw new Error(`Could not find bridge config for ${token} on ${chain}`)
     }
-    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? l1BridgeAbi : l2BridgeAbi, provider)
+    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? L1_Bridge__factory.abi : L2_Bridge__factory.abi, provider)
     return contract
   }
 

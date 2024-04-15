@@ -1,10 +1,10 @@
 import MaticJs from '@maticnetwork/maticjs-pos-zkevm'
 import MaticJsEthers from '@maticnetwork/maticjs-ethers'
-import { AbstractMessageService, IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
+import { AbstractMessageService, type IMessageService, MessageDirection } from '../../Services/AbstractMessageService.js'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
-import { providers } from 'ethers'
 import { wait } from '#utils/wait.js'
 import * as MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
+import type { providers } from 'ethers'
 
 const { ZkEvmClient, setProofApi } = MaticJs
 const { default: maticJsDefault } = MaticJsDefaults
@@ -66,8 +66,8 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
     const sdkNetwork = polygonSdkNetwork[l1Network]
     const sdkVersion = polygonSdkVersion[l1Network]
     await this.zkEvmClient.init({
-      network: sdkNetwork,
-      version: sdkVersion,
+      network: sdkNetwork!,
+      version: sdkVersion!,
       parent: {
         provider: this.l1Wallet,
         defaultConfig: {

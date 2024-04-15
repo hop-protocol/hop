@@ -1,12 +1,12 @@
-import { GasBoostTransaction, Options } from './GasBoostTransaction.js'
-import { Signer, providers } from 'ethers'
-import { Store } from './Store.js'
+import { GasBoostTransaction, type Options } from './GasBoostTransaction.js'
+import type { Signer, providers } from 'ethers'
+import type { Store } from './Store.js'
 
-export { Options }
+export { type Options }
 
 export class GasBoostTransactionFactory {
   signer: Signer
-  store: Store
+  store!: Store
   options: Partial<Options> = {}
 
   constructor (signer: Signer, store?: Store, options: Partial<Options> = {}) {

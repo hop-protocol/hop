@@ -1,0 +1,1 @@
+node .husky/check-npmignore.mjs

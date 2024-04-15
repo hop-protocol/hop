@@ -1,12 +1,13 @@
-import { Chain } from '#constants/index.js'
-import { IChainBridge } from './IChainBridge.js'
 import { createChainBridgeInstance } from './Factories/ChainBridgeFactory.js'
+import type { Chain } from '#constants/index.js'
+import type { IChainBridge } from './IChainBridge.js'
 
 const chainBridgeInstances: Record<string, IChainBridge> = {}
 
 export function getChainBridge (chainSlug: Chain): IChainBridge {
-  if (chainBridgeInstances?.[chainSlug]) {
-    return chainBridgeInstances[chainSlug]
+  const instance = chainBridgeInstances?.[chainSlug]
+  if (instance) {
+    return instance
   }
 
   const chainBridge: IChainBridge = createChainBridgeInstance(chainSlug)

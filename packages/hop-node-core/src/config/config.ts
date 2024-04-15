@@ -7,10 +7,14 @@ import {
 import { type Metadata, metadata as coreMetadata } from '@hop-protocol/sdk/metadata'
 import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { execSync } from 'node:child_process'
-import { loadEnv } from './loadEnvFile.js'
-import { normalizeEnvVarNumber } from './utils/normalizeEnvVarNumber.js'
+import { getEnvFilePath, normalizeEnvVarNumber } from './utils.js'
+import { loadEnvFile } from 'node:process'
 
-loadEnv()
+
+const envFilePath = getEnvFilePath()
+if (envFilePath) {
+  loadEnvFile(envFilePath)
+}
 
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
@@ -33,7 +37,6 @@ export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_M
 export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
-export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 

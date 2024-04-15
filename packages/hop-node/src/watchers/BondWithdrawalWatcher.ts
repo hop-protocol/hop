@@ -1,8 +1,7 @@
 import BaseWatcher from './classes/BaseWatcher.js'
-import L2Bridge from './classes/L2Bridge.js'
 import contracts from '#contracts/index.js'
 import getTransferId from '#utils/getTransferId.js'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
@@ -25,15 +24,11 @@ import {
   SyncType,
   TxError
 } from '#constants/index.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
 import {
   NonceTooLowError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync,
 } from '@hop-protocol/hop-node-core/types'
-import { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
@@ -43,6 +38,14 @@ import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/utils'
 import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
 import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+import type L2Bridge from './classes/L2Bridge.js'
+import type {
+  L1_Bridge as L1BridgeContract,
+L2_Bridge as L2BridgeContract
+} from '@hop-protocol/sdk/contracts'
+import type { Logger } from '@hop-protocol/hop-node-core/logger'
+import type { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
+import type { providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -67,7 +70,7 @@ export type SendBondWithdrawalTxParams = {
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  override siblingWatchers!: { [chainId: string]: BondWithdrawalWatcher }
   // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
   private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
 

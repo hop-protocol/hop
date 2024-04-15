@@ -7,16 +7,13 @@ import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
 import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
 import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
 import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, stableCoins } from '@hop-protocol/hop-node-core/constants'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import { DateTime } from 'luxon'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { Notifier } from '@hop-protocol/hop-node-core/notifier'
 import { RelayableChains } from '#constants/index.js'
-import { Routes } from '@hop-protocol/sdk/addresses'
 import { S3Upload } from '@hop-protocol/hop-node-core/aws'
-import { TransferBondChallengedEvent } from '@hop-protocol/sdk/contracts/L1_Bridge'
 import { appTld, hostname } from '@hop-protocol/hop-node-core/config'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel } from '#config/index.js'
@@ -28,6 +25,10 @@ import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { getUnbondedTransfers } from '#theGraph/getUnbondedTransfers.js'
 import { wait } from '@hop-protocol/hop-node-core/utils'
+import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import type { Routes } from '@hop-protocol/sdk/addresses'
+import type { TransferBondChallengedEvent } from '@hop-protocol/sdk/contracts/L1_Bridge'
+import type { providers } from 'ethers'
 
 type LowBonderBalance = {
   bridge: string
@@ -216,9 +217,9 @@ export type Config = {
 export class HealthCheckWatcher {
   tokens: string[] = getEnabledTokens()
   logger: Logger = new Logger('HealthCheckWatcher')
-  s3Upload: S3Upload
-  s3Filename: string
-  cacheFile: string
+  s3Upload!: S3Upload
+  s3Filename!: string
+  cacheFile!: string
   days: number = 1 // days back to check for
   offsetDays: number = 0
   pollIntervalSeconds: number = 30 * 60
@@ -274,8 +275,8 @@ export class HealthCheckWatcher {
     invalidChainBalance: true
   }
 
-  lastUnsyncedSubgraphNotificationSentAt: number
-  lastLowOsResourceNotificationSentAt: number
+  lastUnsyncedSubgraphNotificationSentAt!: number
+  lastLowOsResourceNotificationSentAt!: number
 
   constructor (config: Config) {
     const { days, offsetDays, s3Upload, s3Namespace, cacheFile, enabledChecks } = config
@@ -321,7 +322,7 @@ export class HealthCheckWatcher {
     }
   }
 
-  async start () {
+  async start (): Promise<never> {
     while (true) {
       try {
         await this.poll()

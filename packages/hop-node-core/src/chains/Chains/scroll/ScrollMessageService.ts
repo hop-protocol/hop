@@ -1,5 +1,5 @@
-import { AbstractMessageService, IMessageService } from '../../Services/AbstractMessageService.js'
-import { providers } from 'ethers'
+import { AbstractMessageService, type IMessageService } from '../../Services/AbstractMessageService.js'
+import type { providers } from 'ethers'
 
 type Message = string
 type MessageStatus = string

@@ -21,7 +21,7 @@ export class CacheService {
     ) {
       return
     }
-    return this.#cache[cacheKey].value
+    return this.#cache[cacheKey]!.value
   }
 
   #doesCacheExist (cacheKey: string): boolean {
@@ -35,7 +35,7 @@ export class CacheService {
     }
 
     const now = Date.now()
-    const lastTimestampMs = this.#cache[cacheKey].lastTimestampMs
+    const lastTimestampMs = this.#cache[cacheKey]!.lastTimestampMs
     return now - lastTimestampMs > this.#expirationTimeMs
   }
 }

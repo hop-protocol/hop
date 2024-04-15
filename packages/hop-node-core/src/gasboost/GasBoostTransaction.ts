@@ -1,4 +1,4 @@
-import { BigNumber, Signer, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import {
   Chain,
   InitialTxGasPriceMultiplier,
@@ -14,7 +14,6 @@ import {
 import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
 import { Notifier } from '#notifier/index.js'
-import { Store } from './Store.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'
 import { bigNumberMin } from '#utils/bigNumberMin.js'
 import {
@@ -32,6 +31,8 @@ import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import { getRpcUrl } from '#utils/getRpcUrl.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
+import type { Signer, providers } from 'ethers'
+import type { Store } from './Store.js'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -119,7 +120,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   rebroadcastIndex: number = 0 // number of times transaction has been rebroadcasted
   inflightItems: InflightItem[] = []
   signer: Signer
-  store: Store
+  store!: Store
   logger: Logger
   notifier: Notifier
   chainSlug: string
@@ -127,23 +128,23 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   createdAt: number
   txHash?: string
   receipt?: providers.TransactionReceipt
-  private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
+  private _is1559Supported!: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
   logId: string
 
   reorgConfirmationBlocks: number = 1
   originalTxParams: providers.TransactionRequest
-  _events: any[] // implemented by EventEmitter
+  _events!: any[] // implemented by EventEmitter
 
   type?: number
 
   // these properties are required by ethers TransactionResponse interface
-  from: string // type 0 and 2 tx required property
-  to: string // type 0 and 2 tx required property
-  data: string // type 0 and 2 tx required property
-  value: BigNumber // type 0 and 2 tx required property
-  nonce: number // type 0 and 2 tx required property
-  gasLimit: BigNumber // type 0 and 2 tx required property
+  from!: string // type 0 and 2 tx required property
+  to!: string // type 0 and 2 tx required property
+  data!: string // type 0 and 2 tx required property
+  value!: BigNumber // type 0 and 2 tx required property
+  nonce!: number // type 0 and 2 tx required property
+  gasLimit!: BigNumber // type 0 and 2 tx required property
   gasPrice?: BigNumber // type 0 tx required property
   maxFeePerGas?: BigNumber // type 2 tx required property
   maxPriorityFeePerGas?: BigNumber // type 2 tx required property
@@ -739,7 +740,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
-        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice}, maxPriorityFeePerGas: ${priorityFeePerGasCap}). cannot boost`
+        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice.toString()}, maxPriorityFeePerGas: ${priorityFeePerGasCap.toString()}). cannot boost`
         this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
         this.logger.warn(warnMsg)
         this.emit(State.MaxGasPriceReached, gasFeeData.gasPrice, this.boostIndex)
@@ -755,6 +756,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.emit(State.Boosted, tx, this.boostIndex)
   }
 
+  // eslint-disable-next-line max-lines-per-function
   private async _sendTransaction (gasFeeData: Partial<GasFeeData>): Promise<TransactionRequestWithHash> {
     const maxRetries = 10
     let i = 0
@@ -767,27 +769,11 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
 
-        const payload: providers.TransactionRequest = {
-          type: this.type,
-          to: this.to,
-          data: this.data,
-          value: this.value,
-          nonce: this.nonce,
-          gasLimit: this.gasLimit,
-          chainId: this.chainId
-        }
-
-        if (gasFeeData.gasPrice != null) {
-          payload.gasPrice = gasFeeData.gasPrice
-        } else {
-          payload.maxFeePerGas = gasFeeData.maxFeePerGas
-          payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
-        }
-
+        const payload: providers.TransactionRequest = this.#getSendTxRequest(gasFeeData)
         if (i === 1) {
           let shouldCheck = true
           if (enoughFundsCheckCache[this.chainSlug]) {
-            shouldCheck = enoughFundsCheckCache[this.chainSlug] + cacheTimeMs < Date.now()
+            shouldCheck = enoughFundsCheckCache[this.chainSlug]! + cacheTimeMs < Date.now()
           }
           if (shouldCheck) {
             this.logger.debug(`tx index ${i}: checking for enough funds`)
@@ -814,38 +800,66 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
         }
       } catch (err: any) {
         this.logger.debug(`tx index ${i} error: ${err.message}`)
-
-        const {
-          nonceTooLow,
-          estimateGasFailed,
-          isAlreadyKnown,
-          isFeeTooLow,
-          serverError,
-          kmsSignerError
-        } = this.parseErrorString(err.message)
-
-        // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
-        if (nonceTooLow) {
-          this.logger.error(`nonce ${this.nonce} too low`)
-          throw new NonceTooLowError('NonceTooLow')
-        } else if (estimateGasFailed && !serverError) {
-          this.logger.error('estimateGas failed')
-          throw new EstimateGasError('EstimateGasError')
-        }
-
-        if (kmsSignerError) {
-          throw new KmsSignerError('KmsSignerError')
-        }
-
-        const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
-        if (shouldRetry) {
+        const { shouldRetry } = this.#handleSendTxError(err)
+        if (shouldRetry  && i < maxRetries) {
           continue
-        }
-        if (estimateGasFailed) {
-          throw new EstimateGasError('EstimateGasError')
         }
         throw err
       }
+    }
+  }
+
+  #getSendTxRequest (gasFeeData: Partial<GasFeeData>): providers.TransactionRequest {
+    const payload: providers.TransactionRequest = {
+      type: this.type,
+      to: this.to,
+      data: this.data,
+      value: this.value,
+      nonce: this.nonce,
+      gasLimit: this.gasLimit,
+      chainId: this.chainId
+    }
+
+    if (gasFeeData.gasPrice != null) {
+      payload.gasPrice = gasFeeData.gasPrice
+    } else {
+      payload.maxFeePerGas = gasFeeData.maxFeePerGas
+      payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
+    }
+    return payload
+  }
+
+  #handleSendTxError (err: Error): any {
+    const {
+      nonceTooLow,
+      estimateGasFailed,
+      isAlreadyKnown,
+      isFeeTooLow,
+      serverError,
+      kmsSignerError
+    } = this.parseErrorString(err.message)
+
+    // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
+    if (nonceTooLow) {
+      this.logger.error(`nonce ${this.nonce} too low`)
+      throw new NonceTooLowError('NonceTooLow')
+    } else if (estimateGasFailed && !serverError) {
+      this.logger.error('estimateGas failed')
+      throw new EstimateGasError('EstimateGasError')
+    }
+
+    if (kmsSignerError) {
+      throw new KmsSignerError('KmsSignerError')
+    }
+
+    const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError)
+    if (shouldRetry) {
+      return {
+        shouldRetry: true
+      }
+    }
+    if (estimateGasFailed) {
+      throw new EstimateGasError('EstimateGasError')
     }
   }
 

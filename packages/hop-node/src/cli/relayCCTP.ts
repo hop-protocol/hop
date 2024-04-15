@@ -1,8 +1,8 @@
 import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber } from 'ethers'
 import { Message } from '#cctp/cctp/Message.js'
-import { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
 import { chainIdToSlug, chainSlugToId, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import type { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
 
 import { actionHandler, parseString, parseStringArray, root } from './shared/index.js'
 

@@ -12,7 +12,7 @@
     "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
     "dev": "pnpm start",
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --fix",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -38,9 +38,9 @@
     "@types/styled-system": "5.1.22",
     "@vitejs/plugin-react": "4.2.1",
     "buffer": "6.0.3",
-    "eslint-plugin-react": "7.21.5",
-    "eslint-plugin-react-hooks": "4.2.0",
-    "vite": "5.0.8",
+    "eslint-plugin-react": "7.33.2",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "vite": "5.0.13",
     "vite-plugin-svgr": "4.2.0"
   }
 }

@@ -1,5 +1,5 @@
-import { BigNumber } from 'ethers'
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils.js'
+import type { BigNumber } from 'ethers'
 
 const getTransferSentToL2TransferId = (
   chainId: number,

@@ -9,3 +9,4 @@ src/scripts
 *.log
 .build-info.json
 test-db
+.npmignore

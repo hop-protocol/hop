@@ -1,9 +1,9 @@
-import { AssetSymbol } from '@hop-protocol/sdk/config'
 import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/sdk/networks'
 import { RpcProviderSlug } from '@hop-protocol/sdk/metadata'
 import { chains } from '@hop-protocol/sdk/metadata'
 import { networks } from '@hop-protocol/sdk/networks'
 import { tokens } from '@hop-protocol/sdk/metadata'
+import type { AssetSymbol } from '@hop-protocol/sdk/config'
 
 export { Network, Chain, Token, NativeChainToken }
 
@@ -67,9 +67,9 @@ export const OneWeekSeconds = 7 * 24 * 60 * 60
 export const OneWeekMs = OneWeekSeconds * 1000
 
 export const TotalBlocks = {
-  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Ethereum]),
-  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Polygon]),
-  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Gnosis])
+  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Ethereum]!),
+  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Polygon]!),
+  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Gnosis]!)
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95

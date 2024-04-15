@@ -1,5 +1,5 @@
 import { Logger } from '#logger/index.js'
-import { Metric, Registry, collectDefaultMetrics } from 'prom-client'
+import { type Metric, Registry, collectDefaultMetrics } from 'prom-client'
 import { metrics } from './metrics.js'
 
 export class MetricsServer {

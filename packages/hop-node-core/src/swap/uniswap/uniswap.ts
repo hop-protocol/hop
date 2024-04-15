@@ -1,15 +1,15 @@
 import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
 import wallets from '#wallets/index.js'
-import { BigNumber, Contract, constants } from 'ethers'
+import { BigNumber, Contract, type Signer, constants } from 'ethers'
 import { Chain } from '#constants/index.js'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { Logger } from '#logger/index.js'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
-import { SwapInput } from '../types.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
+import type { SwapInput } from '../types.js'
 
 const logger = new Logger({
   tag: 'Uniswap'
@@ -73,7 +73,6 @@ async function getPool (poolContract: Contract) {
     immutables.token0,
     poolContract.provider
   )
-
   const token1 = getToken(
     immutables.token1,
     poolContract.provider
@@ -113,16 +112,11 @@ async function getPool (poolContract: Contract) {
       }
     ]
   )
-
   return pool
 }
 
 function getToken (address: string, provider: any) {
-  return new Contract(
-    address,
-    erc20Abi,
-    provider
-  )
+  return ERC20__factory.connect(address, provider)
 }
 
 const addresses: any = {
@@ -177,6 +171,7 @@ const addresses: any = {
   }
 }
 
+// eslint-disable-next-line max-lines-per-function
 export async function swap (config: SwapInput) {
   let { chain, fromToken, toToken, amount, max, slippage, recipient, deadline, dryMode } = config
 
@@ -217,48 +212,10 @@ export async function swap (config: SwapInput) {
   )
 
   const pool = await getPool(poolContract)
-  const token0 = getToken(
-    pool.token0.address,
-    wallet
-  )
 
   logger.debug('got pool information')
 
-  const token1 = getToken(
-    pool.token1.address,
-    wallet
-  )
-
-  let sourceToken = token0
-  let routeToken0: any = pool.token0
-  let routeToken1: any = pool.token1
-
-  const token0Symbol = await token0.symbol()
-  const ethNativeChains: string[] = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
-  const isToken0ETH = ethNativeChains.includes(chain) && ['ETH', 'WETH'].includes(token0Symbol)
-  const isToken0MATIC = chain === Chain.Polygon && ['MATIC', 'WMATIC'].includes(token0Symbol)
-  const isToken0Native = isToken0ETH || isToken0MATIC
-  if (isToken0Native) {
-    sourceToken = token1
-    const tmp = routeToken0
-    routeToken0 = routeToken1
-    routeToken1 = tmp
-  }
-
-  if (ethNativeChains.includes(chain) && toToken === 'ETH') {
-    routeToken1 = Ether.onChain(chainSlugToId(chain))
-  }
-
-  if (chain === Chain.Polygon && toToken === 'MATIC') {
-    if (pool.token0.symbol === 'WMATIC') {
-      routeToken1 = pool.token0
-    } else if (pool.token1.symbol === 'WMATIC') {
-      routeToken1 = pool.token1
-    } else {
-      routeToken1 = Ether.onChain(chainSlugToId(chain))
-    }
-  }
-
+  const { sourceToken, routeToken0, routeToken1 } = await getTokenSwapTokens(pool, wallet, chain, toToken)
   const sender = await wallet.getAddress()
   const balance = await sourceToken.balanceOf(sender)
   const decimals = Number((await sourceToken.decimals()).toString())
@@ -326,4 +283,55 @@ export async function swap (config: SwapInput) {
     data: calldata,
     value
   })
+}
+
+async function getTokenSwapTokens(pool: Pool, wallet: Signer, chain: string, toToken: string) {
+  const token0 = getToken(
+    pool.token0.address,
+    wallet
+  )
+
+  logger.debug('got pool information')
+
+  const token1 = getToken(
+    pool.token1.address,
+    wallet
+  )
+
+  let sourceToken = token0
+  let routeToken0: any = pool.token0
+  let routeToken1: any = pool.token1
+
+  const token0Symbol = await token0.symbol()
+  const ethNativeChains: string[] = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
+  const isToken0ETH = ethNativeChains.includes(chain) && ['ETH', 'WETH'].includes(token0Symbol)
+  const isToken0MATIC = chain === Chain.Polygon && ['MATIC', 'WMATIC'].includes(token0Symbol)
+  const isToken0Native = isToken0ETH || isToken0MATIC
+  if (isToken0Native) {
+    sourceToken = token1
+    const tmp = routeToken0
+    routeToken0 = routeToken1
+    routeToken1 = tmp
+  }
+
+  // routeToken1 = getRouteToken1(chain, toToken, routeToken1, pool)
+  if (ethNativeChains.includes(chain) && toToken === 'ETH') {
+    routeToken1 = Ether.onChain(chainSlugToId(chain))
+  }
+
+  if (chain === Chain.Polygon && toToken === 'MATIC') {
+    if (pool.token0.symbol === 'WMATIC') {
+      routeToken1 = pool.token0
+    } else if (pool.token1.symbol === 'WMATIC') {
+      routeToken1 = pool.token1
+    } else {
+      routeToken1 = Ether.onChain(chainSlugToId(chain))
+    }
+  }
+
+  return {
+    sourceToken,
+    routeToken0,
+    routeToken1
+  }
 }

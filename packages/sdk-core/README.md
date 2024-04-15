@@ -2,7 +2,7 @@
 
 > This code is shared across Hop TypeScript SDKs.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk-core/master/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/sdkcore/master/LICENSE)
 [![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk-core.svg)](https://badge.fury.io/js/@hop-protocol%2Fsdk-core.svg)
 
 > [!NOTE]

@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.629",
+  "version": "0.0.1-beta.630",
   "description": "The v1 Hop Protocol TypeScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@hop-protocol/sdk-core": "workspace:*",
+    "buffer": "6.0.3",
     "dotenv": "16.4.1",
     "ethers": "5.7.2",
     "eventemitter3": "5.0.1",

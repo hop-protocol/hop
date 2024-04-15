@@ -1,11 +1,12 @@
 import { MerkleTree as MerkleTreeJS } from 'merkletreejs'
 import { chainIdToSlug, getSubgraphChains, getSubgraphUrl, getTokenDecimals } from '@hop-protocol/sdk-core'
 import { utils } from 'ethers'
+import buffer from 'buffer'
 
 class MerkleTree extends MerkleTreeJS {
   constructor (leaves: string[]) {
     super(leaves, utils.keccak256, {
-      fillDefaultHash: () => utils.keccak256(Buffer.alloc(32))
+      fillDefaultHash: () => utils.keccak256(buffer.Buffer.alloc(32))
     })
   }
 }

@@ -24,7 +24,6 @@
     "build:esm": "tsc -p ./tsconfig.esm.json && echo '{\"type\": \"module\", \"imports\": { \"#*\": \"./*\" }}' > dist/esm/package.json",
     "build:cjs": "tsc -p ./tsconfig.cjs.json && echo '{\"type\": \"commonjs\", \"imports\": { \"#*\": \"./*\" }}' > dist/cjs/package.json",
     "build:all": "pnpm build:cjs && pnpm build:esm",
-    "build:toplevel": "bash -c 'cp -r ./dist/cjs/{addresses,config,metadata,networks} ./'",
     "clean:docs": "rm -rf docs",
     "clean:docs-ui": "rm -rf docs-ui",
     "lint": "eslint . --config ./eslint.config.mjs --fix",

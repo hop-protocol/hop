@@ -45,11 +45,11 @@ export type Fees = {
   [key in AssetSymbol]: Partial<Bps>
 }
 
-type RelayerFeeWei = {
+export type RelayerFeeWei = {
   [key in ChainSlug]: string
 }
 
-type RelayerFeeEnabled = {
+export type RelayerFeeEnabled = {
   [key in ChainSlug]: boolean
 }
 

@@ -1,6 +1,6 @@
 # Hop v1 SDK
 
-> The Hop Protocol JavaScript SDK
+> The Hop Protocol TypeScript SDK
 
 [![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk/master/LICENSE)

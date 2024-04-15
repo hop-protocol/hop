@@ -1,11 +1,14 @@
 {
   "name": "@hop-protocol/sdk-core",
   "version": "0.0.4",
-  "description": "The Hop Protocol JavaScript SDK",
+  "description": "The shared code for Hop Protocol TypeScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "module": "dist/esm/index.js",
   "main": "dist/cjs/index.js",
+  "files": [
+    "dist"
+  ],
   "imports": {
     "#*": {
       "import": "./dist/esm/*",
@@ -144,9 +147,6 @@
       }
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo ./tsconfig.esm.tsbuildinfo ./tsconfig.cjs.tsbuildinfo",
     "test": "pnpm build:esm && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",

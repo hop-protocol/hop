@@ -12,25 +12,27 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   sdk: Hop
 }
 
 export function SetRpcProviders (props: Props) {
+  const cacheKey = 'setRpcProviders'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [configString, setConfigString] = useState(() => {
     try {
-      const cached = localStorage.getItem('setRpcProviders:configStringi')
+      const cached = localStorage.getItem(`${cacheKey}:configString`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
     return JSON.stringify({
-      5: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213',
-      420: 'https://goerli.optimism.io'
+      84532: 'https://sepolia.base.org',
+      11155111: 'https://sepolia.infura.io/v3/84842078b09946638c03157f83405213',
     }, null, 2)
   })
   const [loading, setLoading] = useState(false)
@@ -39,7 +41,7 @@ export function SetRpcProviders (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('setRpcProviders:configString', configString)
+      localStorage.setItem(`${cacheKey}:configString`, configString)
     } catch (err: any) {
       console.error(err)
     }
@@ -53,7 +55,7 @@ export function SetRpcProviders (props: Props) {
       setResult('')
 
       const config = JSON.parse(configString)
-      sdk.setRpcProviders(config)
+      sdk.setChainRpcProviderUrls(config)
       setResult('set')
     } catch (err: any) {
       console.error(err)
@@ -68,8 +70,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 async function main() {
   const rpcProviders = ${configString}
 
-  const hop = new Hop('goerli')
-  hop.setRpcProviders(rpcProviders)
+  const hop = new Hop({ network: '${network}' })
+  hop.setChainRpcProviderUrls(rpcProviders)
 }
 
 main().catch(console.error)

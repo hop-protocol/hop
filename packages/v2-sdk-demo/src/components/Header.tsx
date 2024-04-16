@@ -5,6 +5,7 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import { useHistory, useLocation } from 'react-router-dom'
 import { makeStyles } from '@mui/styles'
+import { network } from '../config'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {
@@ -59,15 +60,15 @@ export function Header () {
           </Box>
           <Box ml={2}>
             <Typography variant="subtitle1">
-              Goerli
+              {network}
             </Typography>
           </Box>
         </Box>
         <Box ml={4} className={styles.tabs}>
           <Tabs value={currentTab} onChange={handleTabChange}>
             <Tab label="Home" value="home" />
-            <Tab label="Connector Demo" value="tutorial" />
-            <Tab label="Connector Hardhat Tutorial" value="hardhat-tutorial" />
+            {/* <Tab label="Connector Demo" value="tutorial" /> */}
+            {/* <Tab label="Connector Hardhat Tutorial" value="hardhat-tutorial" /> */}
           </Tabs>
         </Box>
       </Box>

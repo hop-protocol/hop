@@ -35,5 +35,15 @@ export const networks: Networks = {
     explorerUrls: ['https://sepolia-optimism.etherscan.io'],
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     isRollup: true
+  },
+  base: {
+    name: chains.base.name,
+    image: chains.base.image,
+    networkId: 84532,
+    publicRpcUrl: 'https://base-sepolia.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://sepolia.basescan.org'],
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    isRollup: true
   }
 }

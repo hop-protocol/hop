@@ -1,4 +1,4 @@
-import { mainnet, goerli } from '@hop-protocol/sdk-core/networks'
+import { mainnet, sepolia } from '@hop-protocol/sdk-core/networks'
 
 export type Network = {
   name: string
@@ -11,9 +11,8 @@ export type Network = {
 }
 
 export type Networks = Record<string, Network>
-
-export const mainnetNetworks : Networks = {}
-export const goerliNetworks : Networks = {}
+const mainnetNetworks: Record<string, Network> = {}
+const sepoliaNetworks: Record<string, Network> = {}
 
 for (const key in mainnet) {
   const network = (mainnet as any)[key]
@@ -28,9 +27,9 @@ for (const key in mainnet) {
   }
 }
 
-for (const key in goerli) {
-  const network = (goerli as any)[key]
-  goerliNetworks[network.networkId] = {
+for (const key in sepolia) {
+  const network = (sepolia as any)[key]
+  sepoliaNetworks[network.networkId] = {
     name: network.name,
     chainId: network.networkId,
     publicRpcUrl: network.publicRpcUrl,
@@ -39,4 +38,9 @@ for (const key in goerli) {
     nativeBridgeUrl: network.nativeBridgeUrl,
     waitConfirmations: network.waitConfirmations
   }
+}
+
+export const networks: Record<string, Record<string, Network>> = {
+  mainnet: mainnetNetworks,
+  sepolia: sepoliaNetworks
 }

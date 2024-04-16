@@ -15,6 +15,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { AbiMethodForm } from './AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   signer?: Signer
@@ -24,30 +25,31 @@ type Props = {
 }
 
 export function SendMessage (props: Props) {
+  const cacheKey = 'sendMessage'
   const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('sendMessage:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [toChainId, setToChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('sendMessage:toChainId')
+      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '5'
+    return defaultChainIds.to
   })
   const [toAddress, setToAddress] = useState(() => {
     try {
-      const cached = localStorage.getItem('sendMessage:toAddress')
+      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
       if (cached) {
         return cached
       }
@@ -56,7 +58,7 @@ export function SendMessage (props: Props) {
   })
   const [toCalldata, setToCalldata] = useState(() => {
     try {
-      const cached = localStorage.getItem('sendMessage:toCalldata')
+      const cached = localStorage.getItem(`${cacheKey}:toCalldata`)
       if (cached) {
         return cached
       }
@@ -71,7 +73,7 @@ export function SendMessage (props: Props) {
   const [error, setError] = useState('')
   const [abiString, setAbiString] = useState(() => {
     try {
-      const cached = localStorage.getItem('sendMessage:abiString')
+      const cached = localStorage.getItem(`${cacheKey}:abiString`)
       if (cached) {
         return cached
       }
@@ -81,7 +83,7 @@ export function SendMessage (props: Props) {
   const [showAbiHelper, setShowAbiHelper] = useState(false)
   const [selectedAbiMethod, setSelectedAbiMethod] = useState(() => {
     try {
-      const cached = localStorage.getItem('sendMessage:selectedAbiMethod')
+      const cached = localStorage.getItem(`${cacheKey}:selectedAbiMethod`)
       if (cached) {
         return cached
       }
@@ -108,7 +110,7 @@ export function SendMessage (props: Props) {
   }, [abiJson, selectedAbiMethod])
 
   const provider = useMemo(() => {
-    return sdk.getRpcProvider(Number(fromChainId))
+    return sdk.getRpcProviderForChainId(Number(fromChainId))
   }, [sdk, fromChainId])
 
   const abiOptions = useMemo(() => {
@@ -130,7 +132,7 @@ export function SendMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('sendMessage:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -138,7 +140,7 @@ export function SendMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('sendMessage:toChainId', toChainId)
+      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -146,7 +148,7 @@ export function SendMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('sendMessage:toAddress', toAddress)
+      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
     } catch (err: any) {
       console.error(err)
     }
@@ -154,7 +156,7 @@ export function SendMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('sendMessage:toCalldata', toCalldata)
+      localStorage.setItem(`${cacheKey}:toCalldata`, toCalldata)
     } catch (err: any) {
       console.error(err)
     }
@@ -162,7 +164,7 @@ export function SendMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('sendMessage:abiString', abiString)
+      localStorage.setItem(`${cacheKey}:abiString`, abiString)
     } catch (err: any) {
       console.error(err)
     }
@@ -170,7 +172,7 @@ export function SendMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('sendMessage:selectedAbiMethod', selectedAbiMethod)
+      localStorage.setItem(`${cacheKey}:selectedAbiMethod`, selectedAbiMethod)
     } catch (err: any) {
       console.error(err)
     }
@@ -184,7 +186,7 @@ export function SendMessage (props: Props) {
       toCalldata
     }
     console.log('args', args)
-    const txData = await sdk.getSendMessagePopulatedTx(args)
+    const txData = await sdk.messenger.populateTransaction.sendMessage(args)
     return txData
   }
 
@@ -198,7 +200,7 @@ export function SendMessage (props: Props) {
       setLoading(true)
       const txData = await getSendTxData()
       setTxData(JSON.stringify(txData, null, 2))
-      const fee = await sdk.getMessageFee({ fromChainId: Number(fromChainId), toChainId: Number(toChainId) })
+      const fee = await sdk.messenger.getMessageFee({ fromChainId: Number(fromChainId), toChainId: Number(toChainId) })
       if (!populateTxDataOnly) {
         if (!signer) {
           throw new Error('No signer')
@@ -211,7 +213,7 @@ export function SendMessage (props: Props) {
         setTxHash(tx.hash)
 
         const receipt = await tx.wait()
-        const { messageId } = await sdk.getMessageSentEventFromTransactionReceipt({ fromChainId: Number(fromChainId), receipt })
+        const { messageId } = await sdk.messenger.getMessageSentEventFromTransactionReceipt({ fromChainId: Number(fromChainId), receipt })
         setMessageId(messageId)
       }
     } catch (err: any) {
@@ -235,8 +237,8 @@ async function main() {
   const toAddress = "${toAddress}"
   const toCalldata = ${toCalldata ? `"${toCalldata}"` : 'undefined'}
 
-  const hop = new Hop('goerli')
-  const txData = await hop.getSendMessagePopulatedTx({
+  const hop = new Hop({ network: '${network}' })
+  const txData = await hop.messenger.populateTransaction.sendMessage({
     fromChainId,
     toChainId,
     toAddress,
@@ -246,7 +248,7 @@ async function main() {
   'console.log(txData)'
   ) : (
   `
-  const fee = await hop.getMessageFee(fromChainId, toChainId)
+  const fee = await hop.messenger.getMessageFee({ fromChainId, toChainId })
   const provider = new ethers.providers.Web3Provider(
     window.ethereum
   )
@@ -289,14 +291,14 @@ main().catch(console.error)
                 {/*
                 <TextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />
                 */}
-                <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
                   <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain where the message should be received</em></small></label>
                 </Box>
                 {/*<TextField fullWidth placeholder="5" value={toChainId} onChange={event => setToChainId(event.target.value)} />*/}
-                <ChainSelect value={toChainId} chains={['420', '5']} onChange={value => setToChainId(value)} />
+                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>

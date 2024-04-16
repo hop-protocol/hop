@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 describe.skip('Nft', () => {
-  it('should get populated mintNft transaction', async () => {
+  it.skip('should get populated mintNft transaction', async () => {
     const nft = new Nft({ network: 'goerli' })
     const txData = await nft.populateTransaction.mintNft({
       contractAddress: '0xEe2B218b9cB28389fABcf8EA1E656C06ECe519Ed',

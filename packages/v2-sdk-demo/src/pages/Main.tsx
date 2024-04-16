@@ -25,6 +25,7 @@ import { SetRpcProviders } from '../components/SetRpcProviders'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { useStyles } from '../components/useStyles'
 import { useWeb3 } from '../hooks/useWeb3'
+import { network } from '../config'
 
 export function Main () {
   // const { sdk, connected, safe } = useSafeAppsSDK()
@@ -35,7 +36,7 @@ export function Main () {
   const [success, setSuccess] = useState('')
   const [balance, setBalance] = useState('-')
   const [sdk, setSdk] = useState(() => {
-    return new Hop('goerli')
+    return new Hop({ network })
   })
 
   useEffect(() => {
@@ -71,7 +72,10 @@ export function Main () {
   const showAccountInfo = false
 
   const components = [
-    <RailsHubSend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <SetContractAddresses sdk={sdk} />,
+    <GetContractAddresses sdk={sdk} />,
+    <SetRpcProviders sdk={sdk} />,
+    // <RailsHubSend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <SendMessage signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <GetBundleProof sdk={sdk} />,
     <RelayMessage signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
@@ -79,11 +83,8 @@ export function Main () {
     <GetMessageIdFromTxHash sdk={sdk} />,
     <GetMessageCalldata sdk={sdk} />,
     <GetMessageSentEvent sdk={sdk} />,
-    <GetEvents sdk={sdk} />,
     <GetMessageFee sdk={sdk} />,
-    <SetContractAddresses sdk={sdk} />,
-    <GetContractAddresses sdk={sdk} />,
-    <SetRpcProviders sdk={sdk} />
+    <GetEvents sdk={sdk} />,
   ]
 
   return (

@@ -7,38 +7,40 @@ import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { HighlightedButton } from './HighlightedButton'
 import { ChainSelect } from './ChainSelect'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   sdk: Hop
 }
 
 export function GetMessageFee (props: Props) {
+  const cacheKey = 'getMessageFee'
   const { sdk } = props
   const styles = useStyles()
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageFee:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [toChainId, setToChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageFee:toChainId')
+      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '5'
+    return defaultChainIds.to
   })
   const [copied, setCopied] = useState(false)
   const [output, setOutput] = useState('')
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageFee:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -46,7 +48,7 @@ export function GetMessageFee (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageFee:toChainId', toChainId)
+      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -60,7 +62,7 @@ export function GetMessageFee (props: Props) {
         toChainId: Number(toChainId),
       }
       console.log(args)
-      const fee = await sdk?.getMessageFee(args)
+      const fee = await sdk.messenger.getMessageFee(args)
       setOutput(fee.toString())
     } catch (err: any) {
       console.error(err)
@@ -71,11 +73,11 @@ export function GetMessageFee (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const hop = new Hop('goerli')
+  const hop = new Hop({ network: '${network}' })
   const fromChainId = ${fromChainId || 'undefined'}
   const toChainId = ${toChainId || 'undefined'}
 
-  const fee = await hop.getMessageFee({
+  const fee = await hop.messenger.getMessageFee({
     fromChainId,
     toChainId
   })
@@ -108,14 +110,14 @@ main().catch(console.error)
                 <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message will be sent from</em></small></label>
               </Box>
               {/*<TextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
-              <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+              <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>
               <Box mb={1}>
                 <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain for the message</em></small></label>
               </Box>
               {/*<TextField fullWidth placeholder="5" value={toChainId} onChange={event => setToChainId(event.target.value)} />*/}
-              <ChainSelect value={toChainId} chains={['420', '5']} onChange={value => setToChainId(value)} />
+              <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
             </Box>
             <Box mb={2} display="flex" justifyContent="center">
               <HighlightedButton fullWidth type="submit" variant="contained" size="large">Get</HighlightedButton>

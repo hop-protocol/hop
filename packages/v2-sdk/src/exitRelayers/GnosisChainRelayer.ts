@@ -12,7 +12,7 @@ export class GnosisChainRelayer {
   l1AmbAddress: string
   l2AmbAddress: string
 
-  constructor (network: string = 'goerli', l1Provider: providers.Provider, l2Provider: providers.Provider) {
+  constructor (network: string = 'mainnet', l1Provider: providers.Provider, l2Provider: providers.Provider) {
     // TODO: set this addresses
     if (network === 'mainnet') {
       this.l1AmbAddress = ''

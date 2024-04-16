@@ -28,14 +28,14 @@ describe.skip('Base', () => {
     console.log(addresses)
     expect(addresses['99999']).toBeDefined()
   })
-  it('should get default chain provider', () => {
+  it('should get default chain rpc provider', () => {
     const chainId = 1
-    const providers = base.getDefaultChainProvider(chainId)
+    const providers = base.getDefaultChainRpcProvider(chainId)
     // console.log(provider)
     expect(providers).toBeDefined()
   })
-  it('should get default chain providers', () => {
-    const providers = base.getDefaultChainProviders()
+  it('should get default chain rpc providers', () => {
+    const providers = base.getDefaultChainRpcProviders()
     // console.log(providers)
     expect(providers).toBeDefined()
   })
@@ -57,28 +57,28 @@ describe.skip('Base', () => {
   it('should get chain slug from chain id', () => {
     expect(base.getChainSlug(1)).toBe('ethereum')
   })
-  it('should set chain provider', () => {
-    base.setChainProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
-    expect(base.getProviderForChainId('1')).toBeDefined()
+  it('should set chain rpc provider', () => {
+    base.setChainRpcProvider('1', new providers.StaticJsonRpcProvider('http://localhost:8545'))
+    expect(base.getRpcProviderForChainId('1')).toBeDefined()
   })
-  it('should set chain providerUrl', () => {
-    base.setChainProviderUrl('1', 'http://localhost:8545')
-    expect(base.getProviderForChainId('1')).toBeDefined()
+  it('should set chain rpc provider url', () => {
+    base.setChainRpcProviderUrl('1', 'http://localhost:8545')
+    expect(base.getRpcProviderForChainId('1')).toBeDefined()
   })
-  it('should set chain providers', () => {
-    base.setChainProviders({
+  it('should set chain rpc providers', () => {
+    base.setChainRpcProviders({
       '1': new providers.StaticJsonRpcProvider('http://localhost:8545')
     })
-    expect(base.getProviderForChainId('1')).toBeDefined()
+    expect(base.getRpcProviderForChainId('1')).toBeDefined()
   })
-  it('should set chain provider urls', () => {
-    base.setChainProviderUrls({
+  it('should set chain rpc provider urls', () => {
+    base.setChainRpcProviderUrls({
       '1': 'http://localhost:8545'
     })
-    expect(base.getProviderForChainId('1')).toBeDefined()
+    expect(base.getRpcProviderForChainId('1')).toBeDefined()
   })
-  it('should get provider for chain id', () => {
-    expect(base.getProviderForChainId('1')).toBeDefined()
+  it('should get rpc provider for chain id', () => {
+    expect(base.getRpcProviderForChainId('1')).toBeDefined()
   })
   it('should get config address', () => {
     const address = base.getConfigAddress('1', 'hubCoreMessenger')
@@ -88,14 +88,14 @@ describe.skip('Base', () => {
   it('should return boolean if contract address exists on chain', async () => {
     const address = '0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc'
     const chainId = 1
-    const provider = base.getDefaultChainProvider(chainId)
+    const provider = base.getDefaultChainRpcProvider(chainId)
     const exists = await base.getContractExists(address, provider)
     console.log(exists)
     expect(exists).toBeDefined()
   })
   it('should get bumped gas price', async () => {
     const chainId = 1
-    const provider = base.getDefaultChainProvider(chainId)
+    const provider = base.getDefaultChainRpcProvider(chainId)
     const percent = 0.20
     const gasPrice = await base.getBumpedGasPrice(provider, percent)
     console.log(gasPrice)
@@ -133,7 +133,7 @@ describe.skip('Base', () => {
       value: 0,
     }
     const chainId = 1
-    const provider = await base.getDefaultChainProvider(1)
+    const provider = await base.getDefaultChainRpcProvider(1)
     const gas = await base.estimateGas(provider, tx)
     console.log(gas)
     expect(gas).toBeDefined()

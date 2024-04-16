@@ -137,7 +137,7 @@ export class StakingRegistry extends Base {
 
   getStakingRegistryContract (chainId: BigNumberish): Contract {
     const address = this.getStakingRegistryAddress(chainId)
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     const contract = StakingRegistry__factory.connect(address, provider)
     return contract
   }

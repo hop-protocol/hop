@@ -34,6 +34,7 @@ import { Nft } from '#nft/index.js'
 const cache : Record<string, any> = {}
 
 export type HopConstructorInput = {
+  network: string
   batchBlocks?: number,
   signer?: Signer
   contractAddresses?: Record<string, any> // TODO: types
@@ -73,9 +74,13 @@ export class Hop extends Base {
   nft: Nft
   hubConnector: HubConnector
 
-  constructor (network: string = 'goerli', options?: HopConstructorInput) {
+  constructor (options?: HopConstructorInput) {
+    if (!options) {
+      throw new Error('options is required')
+    }
+    const { network } = options
     super({ network, signer: options?.signer })
-    if (!['mainnet', 'goerli', 'sepolia'].includes(network)) {
+    if (!['mainnet', 'sepolia'].includes(network)) {
       throw new Error(`Invalid network: ${network}`)
     }
 
@@ -85,8 +90,7 @@ export class Hop extends Base {
       this.batchBlocks = options.batchBlocks
     }
 
-    const url = 'https://v2-gas-price-oracle-goerli.hop.exchange'
-    this.gasPriceOracle = new GasPriceOracle(url)
+    this.gasPriceOracle = new GasPriceOracle(this.network)
 
     this.messenger = new Messenger({ network, signer: this.signer, contractAddresses: this.contractAddresses })
     this.hubConnector = new HubConnector({ network, signer: this.signer, contractAddresses: this.contractAddresses })
@@ -107,7 +111,7 @@ export class Hop extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -236,16 +240,7 @@ export class Hop extends Base {
 
   // used by v2-explorer backend
   getEventNames (): string[] {
-    return [
-      'BundleCommitted',
-      'BundleForwarded',
-      'BundleReceived',
-      'BundleSet',
-      'FeesSentToHub',
-      'MessageBundled',
-      'MessageExecuted',
-      'MessageSent'
-    ]
+    return this.messenger.getEventNames()
   }
 
   getSupportedChainIds (): number[] {

@@ -11,6 +11,7 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   signer?: Signer
@@ -20,21 +21,22 @@ type Props = {
 }
 
 export function ExitBundle (props: Props) {
+  const cacheKey = 'exitBundle'
   const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('exitBundle:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [bundleCommittedTxHash, setBundleCommittedTxHash] = useState(() => {
     try {
-      const cached = localStorage.getItem('exitBundle:bundleCommittedTxHash')
+      const cached = localStorage.getItem(`${cacheKey}:bundleCommittedTxHash`)
       if (cached) {
         return cached
       }
@@ -49,7 +51,7 @@ export function ExitBundle (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('exitBundle:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -57,7 +59,7 @@ export function ExitBundle (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('exitBundle:bundleCommittedTxHash', bundleCommittedTxHash)
+      localStorage.setItem(`${cacheKey}:bundleCommittedTxHash`, bundleCommittedTxHash)
     } catch (err: any) {
       console.error(err)
     }
@@ -111,8 +113,8 @@ async function main() {
   const fromChainId = ${fromChainId || 'undefined'}
   const bundleCommittedTransactionHash = "${bundleCommittedTxHash}"
 
-  const hop = new Hop('goerli')
-  const txData = await hop.getBundleExitPopulatedTx({
+  const hop = new Hop({ network: '${network}' })
+  const txData = await hop.populateTransaction.bundleExit({
     fromChainId,
     bundleCommittedTransactionHash
   })
@@ -156,7 +158,7 @@ main().catch(console.error)
                 <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message route</em></small></label>
               </Box>
               {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
-              <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+              <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>
               <Box mb={1}>

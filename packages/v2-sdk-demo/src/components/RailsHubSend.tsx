@@ -15,6 +15,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { AbiMethodForm } from './AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   signer?: Signer
@@ -24,21 +25,22 @@ type Props = {
 }
 
 export function RailsHubSend (props: Props) {
+  const cacheKey = 'railsHubSend'
   const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('railsHubSend:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [toChainId, setToChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('railsHubSend:toChainId')
+      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
       if (cached) {
         return cached
       }
@@ -47,7 +49,7 @@ export function RailsHubSend (props: Props) {
   })
   const [toAddress, setToAddress] = useState(() => {
     try {
-      const cached = localStorage.getItem('railsHubSend:toAddress')
+      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
       if (cached) {
         return cached
       }
@@ -56,7 +58,7 @@ export function RailsHubSend (props: Props) {
   })
   const [toCalldata, setToCalldata] = useState(() => {
     try {
-      const cached = localStorage.getItem('railsHubSend:toCalldata')
+      const cached = localStorage.getItem(`${cacheKey}:toCalldata`)
       if (cached) {
         return cached
       }
@@ -71,7 +73,7 @@ export function RailsHubSend (props: Props) {
   const [error, setError] = useState('')
   const [abiString, setAbiString] = useState(() => {
     try {
-      const cached = localStorage.getItem('railsHubSend:abiString')
+      const cached = localStorage.getItem(`${cacheKey}:abiString`)
       if (cached) {
         return cached
       }
@@ -81,7 +83,7 @@ export function RailsHubSend (props: Props) {
   const [showAbiHelper, setShowAbiHelper] = useState(false)
   const [selectedAbiMethod, setSelectedAbiMethod] = useState(() => {
     try {
-      const cached = localStorage.getItem('railsHubSend:selectedAbiMethod')
+      const cached = localStorage.getItem(`${cacheKey}:selectedAbiMethod`)
       if (cached) {
         return cached
       }
@@ -108,7 +110,7 @@ export function RailsHubSend (props: Props) {
   }, [abiJson, selectedAbiMethod])
 
   const provider = useMemo(() => {
-    return sdk.getRpcProvider(Number(fromChainId))
+    return sdk.getRpcProviderForChainId(Number(fromChainId))
   }, [sdk, fromChainId])
 
   const abiOptions = useMemo(() => {
@@ -130,7 +132,7 @@ export function RailsHubSend (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('railsHubSend:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -138,7 +140,7 @@ export function RailsHubSend (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('railsHubSend:toChainId', toChainId)
+      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -203,7 +205,7 @@ async function main() {
   const toAddress = "${toAddress}"
   const toCalldata = ${toCalldata ? `"${toCalldata}"` : 'undefined'}
 
-  const hop = new Hop('goerli')
+  const hop = new Hop({ network: '${network}' )
   const txData = await hop.getSendMessagePopulatedTx({
     fromChainId,
     toChainId,
@@ -257,14 +259,14 @@ main().catch(console.error)
                 {/*
                 <TextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />
                 */}
-                <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
                   <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain where the message should be received</em></small></label>
                 </Box>
                 {/*<TextField fullWidth placeholder="5" value={toChainId} onChange={event => setToChainId(event.target.value)} />*/}
-                <ChainSelect value={toChainId} chains={['420', '5']} onChange={value => setToChainId(value)} />
+                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>

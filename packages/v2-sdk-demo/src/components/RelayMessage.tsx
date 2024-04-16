@@ -12,6 +12,7 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   signer?: Signer
@@ -21,30 +22,31 @@ type Props = {
 }
 
 export function RelayMessage (props: Props) {
+  const cacheKey = 'relayMessage'
   const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('relayMessage:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [toChainId, setToChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('relayMessage:toChainId')
+      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '5'
+    return defaultChainIds.to
   })
   const [fromAddress, setFromAddress] = useState(() => {
     try {
-      const cached = localStorage.getItem('relayMessage:fromAddress')
+      const cached = localStorage.getItem(`${cacheKey}:fromAddress`)
       if (cached) {
         return cached
       }
@@ -53,7 +55,7 @@ export function RelayMessage (props: Props) {
   })
   const [toAddress, setToAddress] = useState(() => {
     try {
-      const cached = localStorage.getItem('relayMessage:toAddress')
+      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
       if (cached) {
         return cached
       }
@@ -62,7 +64,7 @@ export function RelayMessage (props: Props) {
   })
   const [toCalldata, setToCalldata] = useState(() => {
     try {
-      const cached = localStorage.getItem('relayMessage:toCalldata')
+      const cached = localStorage.getItem(`${cacheKey}:toCalldata`)
       if (cached) {
         return cached
       }
@@ -72,7 +74,7 @@ export function RelayMessage (props: Props) {
   const [txData, setTxData] = useState('')
   const [bundleProof, setBundleProof] = useState(() => {
     try {
-      const cached = localStorage.getItem('relayMessage:bundleProof')
+      const cached = localStorage.getItem(`${cacheKey}:bundleProof`)
       if (cached) {
         return cached
       }
@@ -86,7 +88,7 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('relayMessage:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -94,7 +96,7 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('relayMessage:toChainId', toChainId)
+      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -102,7 +104,7 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('relayMessage:fromAddress', fromAddress)
+      localStorage.setItem(`${cacheKey}:fromAddress`, fromAddress)
     } catch (err: any) {
       console.error(err)
     }
@@ -110,7 +112,7 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('relayMessage:toAddress', toAddress)
+      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
     } catch (err: any) {
       console.error(err)
     }
@@ -118,7 +120,7 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('relayMessage:toCalldata', toCalldata)
+      localStorage.setItem(`${cacheKey}:toCalldata`, toCalldata)
     } catch (err: any) {
       console.error(err)
     }
@@ -126,7 +128,7 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('relayMessage:bundleProof', bundleProof)
+      localStorage.setItem(`${cacheKey}:bundleProof`, bundleProof)
     } catch (err: any) {
       console.error(err)
     }
@@ -145,7 +147,7 @@ export function RelayMessage (props: Props) {
       bundleProof: JSON.parse(bundleProof.trim())
     }
     console.log('args', args)
-    const txData = await sdk.getRelayMessagePopulatedTx(args)
+    const txData = await sdk.populateTransaction.relayMessage(args)
     return txData
   }
 
@@ -200,8 +202,8 @@ async function main() {
   const toCalldata = "${toCalldata}"
   const bundleProof = ${_bundleProof}
 
-  const hop = new Hop('goerli')
-  const txData = await hop.getRelayMessagePopulatedTx({
+  const hop = new Hop({ network: '${network}' })
+  const txData = await hop.populateTransaction.relayMessage({
     fromChainId,
     toChainId,
     fromAddress,
@@ -250,14 +252,14 @@ main().catch(console.error)
                   <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message was sent from</em></small></label>
                 </Box>
                 {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
-                <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
                   <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain specified for the message</em></small></label>
                 </Box>
                 {/*<CustomTextField fullWidth placeholder="5" value={toChainId} onChange={event => setToChainId(event.target.value)} />*/}
-                <ChainSelect value={toChainId} chains={['420', '5']} onChange={value => setToChainId(value)} />
+                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>

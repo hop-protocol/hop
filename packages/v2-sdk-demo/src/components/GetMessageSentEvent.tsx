@@ -9,27 +9,29 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   sdk: Hop
 }
 
 export function GetMessageSentEvent (props: Props) {
+  const cacheKey = 'getMessageSentEvent'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageSentEvent:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [messageId, setMessageId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageSentEvent:messageId')
+      const cached = localStorage.getItem(`${cacheKey}:messageId`)
       if (cached) {
         return cached
       }
@@ -42,7 +44,7 @@ export function GetMessageSentEvent (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageSentEvent:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -50,7 +52,7 @@ export function GetMessageSentEvent (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageSentEvent:messageId', messageId)
+      localStorage.setItem(`${cacheKey}:messageId`, messageId)
     } catch (err: any) {
       console.error(err)
     }
@@ -69,7 +71,7 @@ export function GetMessageSentEvent (props: Props) {
       }
 
       console.log('args', args)
-      const event = await sdk.getMessageSentEventFromMessageId(args)
+      const event = await sdk.messenger.getMessageSentEventFromMessageId(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -85,8 +87,8 @@ async function main() {
   const fromChainId = ${fromChainId || 'undefined'}
   const messageId = "${messageId}"
 
-  const hop = new Hop('goerli')
-  const event = await hop.getMessageSentEventFromMessageId({
+  const hop = new Hop({ network: '${network}' })
+  const event = await hop.messenger.getMessageSentEventFromMessageId({
     fromChainId,
     messageId
   })
@@ -119,7 +121,7 @@ main().catch(console.error)
                 <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message</em></small></label>
               </Box>
               {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
-              <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+              <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>
               <Box mb={1}>

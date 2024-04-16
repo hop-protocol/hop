@@ -6,6 +6,7 @@ import { Syntax } from './Syntax'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { HighlightedButton } from './HighlightedButton'
+import { network } from '../config'
 
 type Props = {
   sdk: Hop
@@ -31,7 +32,7 @@ export function GetContractAddresses (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const hop = new Hop('goerli')
+  const hop = new Hop({ network: '${network}' })
   const contractAddresses = await hop.getContractAddresses()
   console.log(contractAddresses)
 }

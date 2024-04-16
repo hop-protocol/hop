@@ -57,8 +57,8 @@ export class GasPriceOracle {
       this.baseURL = networkOrBaseURL
     }
 
-    if (networkOrBaseURL === 'goerli') {
-      const url = 'https://v2-gas-price-oracle-goerli.hop.exchange'
+    if (networkOrBaseURL === 'sepolia') {
+      const url = 'https://v2-gas-price-oracle-sepolia.hop.exchange'
       this.baseURL = url
     }
   }

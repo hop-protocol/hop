@@ -9,27 +9,29 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   sdk: Hop
 }
 
 export function GetMessageIdFromTxHash (props: Props) {
+  const cacheKey = 'getMessageIdFromTxHash'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageIdFromTxHash:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [messageSentTransactionHash, setMessageSentTransactionHash] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageIdFromTxHash:messageSentTransactionHash')
+      const cached = localStorage.getItem(`${cacheKey}:messageSentTransactionHash`)
       if (cached) {
         return cached
       }
@@ -42,7 +44,7 @@ export function GetMessageIdFromTxHash (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageIdFromTxHash:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -50,7 +52,7 @@ export function GetMessageIdFromTxHash (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageIdFromTxHash:messageSentTransactionHash', messageSentTransactionHash)
+      localStorage.setItem(`${cacheKey}:messageSentTransactionHash`, messageSentTransactionHash)
     } catch (err: any) {
       console.error(err)
     }
@@ -69,7 +71,7 @@ export function GetMessageIdFromTxHash (props: Props) {
       }
 
       console.log('args', args)
-      const messageId = await sdk.getMessageIdFromTransactionHash(args)
+      const messageId = await sdk.messenger.getMessageIdFromTransactionHash(args)
       setMessageId(messageId)
     } catch (err: any) {
       console.error(err)
@@ -85,8 +87,8 @@ async function main() {
   const fromChainId = ${fromChainId || 'undefined'}
   const transactionHash = "${messageSentTransactionHash}"
 
-  const hop = new Hop('goerli')
-  const messageId = await hop.getMessageIdFromTransactionHash({
+  const hop = new Hop({ network: '${network}' })
+  const messageId = await hop.messenger.getMessageIdFromTransactionHash({
     fromChainId,
     transactionHash
   })
@@ -119,7 +121,7 @@ main().catch(console.error)
                 <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message</em></small></label>
               </Box>
               {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
-              <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+              <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>
               <Box mb={1}>

@@ -115,10 +115,6 @@ export class Nft extends Base {
 
   get populateTransaction() {
     return {
-      getProviderForChainId: (chainId: number) => {
-        return getProvider('goerli', chainId)
-      },
-
       mintNft: (input: MintNftInput) => {
         const { contractAddress, fromChainId, recipient, tokenId } = input
         const ABI = [
@@ -228,7 +224,7 @@ export class Nft extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -248,7 +244,7 @@ export class Nft extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -268,7 +264,7 @@ export class Nft extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -292,7 +288,7 @@ export class Nft extends Base {
     if (!toAddress) {
       throw new Error('toAddress is required')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -318,7 +314,7 @@ export class Nft extends Base {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -353,7 +349,7 @@ export class Nft extends Base {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -388,7 +384,7 @@ export class Nft extends Base {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -414,7 +410,7 @@ export class Nft extends Base {
     if (!tokenId) {
       throw new Error('tokenId is required')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }

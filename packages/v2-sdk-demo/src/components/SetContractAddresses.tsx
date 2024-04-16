@@ -12,18 +12,20 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network } from '../config'
 
 type Props = {
   sdk: Hop
 }
 
 export function SetContractAddresses (props: Props) {
+  const cacheKey = 'setContractAddresses'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [configString, setConfigString] = useState(() => {
     try {
-      const cached = localStorage.getItem('setContractAddresses:configStringi')
+      const cached = localStorage.getItem(`${cacheKey}:configString`)
       if (cached) {
         return cached
       }
@@ -36,7 +38,7 @@ export function SetContractAddresses (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('setContractAddresses:configString', configString)
+      localStorage.setItem(`${cacheKey}:configString`, configString)
     } catch (err: any) {
       console.error(err)
     }
@@ -65,7 +67,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 async function main() {
   const contractAddresses = ${configString}
 
-  const hop = new Hop('goerli')
+  const hop = new Hop({ network: '${network}' })
   hop.setContractAddresses(contractAddresses)
 }
 

@@ -9,27 +9,29 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   sdk: Hop
 }
 
 export function GetEvents (props: Props) {
+  const cacheKey = 'getEvents'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [chainId, setChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getEvents:chainId')
+      const cached = localStorage.getItem(`${cacheKey}:chainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [startBlock, setStartBlock] = useState(() => {
     try {
-      const cached = localStorage.getItem('getEvents:startBlock')
+      const cached = localStorage.getItem(`${cacheKey}:startBlock`)
       if (cached) {
         return cached
       }
@@ -38,7 +40,7 @@ export function GetEvents (props: Props) {
   })
   const [endBlock, setEndBlock] = useState(() => {
     try {
-      const cached = localStorage.getItem('getEvents:endBlock')
+      const cached = localStorage.getItem(`${cacheKey}:endBlock`)
       if (cached) {
         return cached
       }
@@ -48,11 +50,11 @@ export function GetEvents (props: Props) {
   const [events, setEvents] = useState('')
   const [loading, setLoading] = useState(false)
   const eventNames = useMemo(() => {
-    return sdk?.getEventNames() ?? []
+    return sdk?.messenger.getEventNames() ?? []
   }, [sdk])
   const [selectedEventNames, setSelectedEventNames] = useState<string[]>(() => {
     try {
-      const cached = localStorage.getItem('getEvents:selectedEventNames')
+      const cached = localStorage.getItem(`${cacheKey}:selectedEventNames`)
       if (cached) {
         return JSON.parse(cached)
       }
@@ -63,7 +65,7 @@ export function GetEvents (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getEvents:selectedEventNames', JSON.stringify(selectedEventNames))
+      localStorage.setItem(`${cacheKey}:selectedEventNames`, JSON.stringify(selectedEventNames))
     } catch (err: any) {
       console.error(err)
     }
@@ -71,7 +73,7 @@ export function GetEvents (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getEvents:chainId', chainId)
+      localStorage.setItem(`${cacheKey}:chainId`, chainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -79,7 +81,7 @@ export function GetEvents (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getEvents:startBlock', startBlock)
+      localStorage.setItem(`${cacheKey}:startBlock`, startBlock)
     } catch (err: any) {
       console.error(err)
     }
@@ -87,7 +89,7 @@ export function GetEvents (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getEvents:endBlock', endBlock)
+      localStorage.setItem(`${cacheKey}:endBlock`, endBlock)
     } catch (err: any) {
       console.error(err)
     }
@@ -96,7 +98,7 @@ export function GetEvents (props: Props) {
   async function getEvents() {
     let _startBlock = Number(startBlock)
     let _endBlock = Number(endBlock)
-    const provider = sdk.getRpcProvider(Number(chainId))
+    const provider = sdk.getRpcProviderForChainId(Number(chainId))
     const latestBlock = await provider.getBlockNumber()
     if (latestBlock) {
       if (!endBlock) {
@@ -148,8 +150,8 @@ async function main() {
   const fromBlock = ${startBlock || 'undefined'}
   const toBlock = ${endBlock || 'undefined'}
 
-  const hop = new Hop('goerli')
-  const events = await hop.getEvents({
+  const hop = new Hop({ network: '${network}' )
+  const events = await hop.messenger.getEvents({
     eventNames,
     chainId,
     fromBlock,
@@ -197,7 +199,7 @@ main().catch(console.error)
                   <label>Chain ID <small><em>(number)</em></small></label>
                 </Box>
                 {/*<CustomTextField fullWidth placeholder="420" value={chainId} onChange={event => setChainId(event.target.value)} />*/}
-                <ChainSelect value={chainId} chains={['420', '5']} onChange={value => setChainId(value)} />
+                <ChainSelect value={chainId} chains={chainIds} onChange={value => setChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>

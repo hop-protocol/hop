@@ -171,7 +171,7 @@ export class RailsHub extends StakingRegistry {
 
   async getRailsHubContract (chainId: BigNumberish): Promise<Contract> {
     const address = await this.getRailsHubContractAddress(chainId)
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     const contract = RailsHub__factory.connect(address, provider)
     return contract
   }
@@ -214,7 +214,7 @@ export class RailsHub extends StakingRegistry {
         const { chainId, pathId, amount } = input
         const path = await this.getPathInfo({ chainId, pathId })
         const tokenAddress = path.token
-        const provider = this.getProviderForChainId(chainId)
+        const provider = this.getRpcProviderForChainId(chainId)
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const address = this.getRailsHubContractAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
@@ -240,7 +240,7 @@ export class RailsHub extends StakingRegistry {
         const { chainId, pathId, amount } = input
         const path = await this.getPathInfo({ chainId, pathId })
         const tokenAddress = path.token
-        const provider = this.getProviderForChainId(chainId)
+        const provider = this.getRpcProviderForChainId(chainId)
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
         const address = this.getRailsHubContractAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
@@ -369,7 +369,7 @@ export class RailsHub extends StakingRegistry {
     const { chainId, pathId, amount } = input
     const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const signerAddress = (await this.getSignerAddress()) as string
     const balance = await tokenContract.balanceOf(signerAddress)
@@ -393,7 +393,7 @@ export class RailsHub extends StakingRegistry {
 
     const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const signerAddress = (await this.getSignerAddress()) as string
     const balance = await tokenContract.balanceOf(signerAddress)
@@ -488,7 +488,7 @@ export class RailsHub extends StakingRegistry {
 
   async getHopTokenContract (chainId: BigNumberish): Promise<Contract> {
     const hopTokenAddress = await this.getHopTokenAddress(chainId)
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     const contract = ERC20__factory.connect(hopTokenAddress, provider)
     return contract
   }

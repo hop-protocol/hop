@@ -6,7 +6,7 @@ export class ArbitrumRelayer {
   l1Provider: any
   l2Provider: any
 
-  constructor (network: string = 'goerli', l1Provider: providers.Provider, l2Provider: providers.Provider) {
+  constructor (network: string = 'mainnet', l1Provider: providers.Provider, l2Provider: providers.Provider) {
     this.network = network
     this.l1Provider = l1Provider
     this.l2Provider = l2Provider

@@ -242,8 +242,7 @@ export class Messenger extends Base {
   constructor(config: MessengerConfig) {
     super({ network: config.network, signer: config.signer, contractAddresses: config.contractAddresses })
 
-    const url = 'https://v2-gas-price-oracle-goerli.hop.exchange'
-    this.gasPriceOracle = new GasPriceOracle(url)
+    this.gasPriceOracle = new GasPriceOracle(this.network)
   }
 
   override connect (signer: Signer) {
@@ -266,7 +265,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -286,7 +285,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -306,7 +305,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -326,7 +325,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -346,7 +345,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -366,7 +365,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -386,7 +385,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -406,7 +405,7 @@ export class Messenger extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
@@ -436,7 +435,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(toChainId)) {
       throw new Error(`Invalid toChainId: ${toChainId}`)
     }
-    const provider = this.getProviderForChainId(toChainId)
+    const provider = this.getRpcProviderForChainId(toChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${toChainId}`)
     }
@@ -458,7 +457,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${fromChainId}`)
     }
@@ -474,7 +473,7 @@ export class Messenger extends Base {
 
   async getEstimatedTxCostForForwardMessage (input: GetEstimatedTxCostForForwardMessageInput): Promise<number> {
     const { chainId } = input
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Invalid chain: ${chainId}`)
     }
@@ -514,8 +513,8 @@ export class Messenger extends Base {
       throw new Error('expected bundle comitted transaction hash')
     }
 
-    const l1Provider = this.getProviderForChainId(this.l1ChainId)
-    const l2Provider = this.getProviderForChainId(fromChainId)
+    const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
+    const l2Provider = this.getRpcProviderForChainId(fromChainId)
     let exitRelayer : ExitRelayer | undefined = undefined
     if ([420, 10].includes(fromChainId)) {
       const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
@@ -540,8 +539,8 @@ export class Messenger extends Base {
   async getIsL2TxHashExited (input: GetIsL2TxHashExitedInput): Promise<boolean> {
     const { fromChainId, transactionHash } = input
 
-    const l1Provider = this.getProviderForChainId(this.l1ChainId)
-    const l2Provider = this.getProviderForChainId(fromChainId)
+    const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
+    const l2Provider = this.getRpcProviderForChainId(fromChainId)
     let exitRelayer : ExitRelayer
     if ([420, 10].includes(fromChainId)) {
       const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
@@ -572,7 +571,7 @@ export class Messenger extends Base {
         if (!toCalldata) {
           toCalldata = '0x'
         }
-        const provider = this.getProviderForChainId(fromChainId)
+        const provider = this.getRpcProviderForChainId(fromChainId)
         if (!provider) {
           throw new Error(`Invalid chain: ${fromChainId}`)
         }
@@ -600,7 +599,7 @@ export class Messenger extends Base {
         if (!this.isValidChainId(toChainId)) {
           throw new Error(`Invalid toChainId: ${toChainId}`)
         }
-        const provider = this.getProviderForChainId(toChainId)
+        const provider = this.getRpcProviderForChainId(toChainId)
         if (!provider) {
           throw new Error(`Invalid chain: ${toChainId}`)
         }
@@ -642,8 +641,8 @@ export class Messenger extends Base {
           throw new Error('expected bundle comitted transaction hash')
         }
 
-        const l1Provider = this.getProviderForChainId(this.l1ChainId)
-        const l2Provider = this.getProviderForChainId(fromChainId)
+        const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
+        const l2Provider = this.getRpcProviderForChainId(fromChainId)
         let exitRelayer : ExitRelayer | undefined = undefined
         if ([420, 10].includes(fromChainId)) {
           const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
@@ -705,7 +704,7 @@ export class Messenger extends Base {
     if (fromChainId === toChainId) {
       throw new Error('fromChainId and toChainId must be different')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(address, provider)
     const routeData = await spokeMessageBridge.routeData(toChainId)
@@ -748,7 +747,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(toChainId)) {
       throw new Error(`Invalid toChainId: ${toChainId}`)
     }
-    const provider = this.getProviderForChainId(toChainId)
+    const provider = this.getRpcProviderForChainId(toChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${toChainId}`)
     }
@@ -770,7 +769,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -794,7 +793,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -807,7 +806,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -836,7 +835,7 @@ export class Messenger extends Base {
     if (!messageId) {
       throw new Error('messageId is required')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -866,7 +865,7 @@ export class Messenger extends Base {
     if (!messageId) {
       throw new Error('messageId is required')
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${toChainId}`)
     }
@@ -889,7 +888,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -984,7 +983,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -1026,7 +1025,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -1053,7 +1052,7 @@ export class Messenger extends Base {
     if (!this.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    const provider = this.getProviderForChainId(fromChainId)
+    const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${fromChainId}`)
     }
@@ -1146,9 +1145,22 @@ export class Messenger extends Base {
     const timestamp: any = undefined
     const txData = (populatedTx.data ?? '0x').toString()
     const chain = this.getChainSlug(toChainId)
-    const provider = this.getProviderForChainId(toChainId)
+    const provider = this.getRpcProviderForChainId(toChainId)
     const gasLimit = await provider.estimateGas(populatedTx)
     const feeData = await this.gasPriceOracle.estimateGasCost(chain, timestamp, gasLimit.toNumber(), txData)
     return parseEther(feeData.data.gasCost)
+  }
+
+  getEventNames (): string[] {
+    return [
+      'BundleCommitted',
+      'BundleForwarded',
+      'BundleReceived',
+      'BundleSet',
+      'FeesSentToHub',
+      'MessageBundled',
+      'MessageExecuted',
+      'MessageSent'
+    ]
   }
 }

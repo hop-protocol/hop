@@ -34,7 +34,7 @@ export class HubConnector extends Base {
     return {
       connectTargets: async (input: ConnectTargetsInput): Promise<providers.TransactionRequest> => {
         const { hubChainId, spokeChainId, target1, target2 } = input
-        const provider = this.getProviderForChainId(hubChainId)
+        const provider = this.getRpcProviderForChainId(hubChainId)
         if (!provider) {
           throw new Error(`Provider not found for chainId: ${hubChainId}`)
         }
@@ -83,7 +83,7 @@ export class HubConnector extends Base {
     if (!fromBlock) {
       throw new Error('fromBlock is required')
     }
-    const provider = this.getProviderForChainId(chainId)
+    const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }

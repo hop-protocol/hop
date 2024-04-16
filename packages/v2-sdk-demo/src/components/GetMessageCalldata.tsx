@@ -9,27 +9,29 @@ import { Syntax } from './Syntax'
 import { ChainSelect } from './ChainSelect'
 import { useStyles } from './useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
   sdk: Hop
 }
 
 export function GetMessageCalldata (props: Props) {
+  const cacheKey = 'getMessageCalldata'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageCalldata:fromChainId')
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return '420'
+    return defaultChainIds.from
   })
   const [messageId, setMessageId] = useState(() => {
     try {
-      const cached = localStorage.getItem('getMessageCalldata:messageId')
+      const cached = localStorage.getItem(`${cacheKey}:messageId`)
       if (cached) {
         return cached
       }
@@ -42,7 +44,7 @@ export function GetMessageCalldata (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageCalldata:fromChainId', fromChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
@@ -50,7 +52,7 @@ export function GetMessageCalldata (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('getMessageCalldata:messageId', messageId)
+      localStorage.setItem(`${cacheKey}:messageId`, messageId)
     } catch (err: any) {
       console.error(err)
     }
@@ -69,7 +71,7 @@ export function GetMessageCalldata (props: Props) {
       }
 
       console.log('args', args)
-      const calldata = await sdk.getMessageCalldata(args)
+      const calldata = await sdk.messenger.getMessageCalldata(args)
       setCalldata(calldata)
     } catch (err: any) {
       console.error(err)
@@ -85,8 +87,8 @@ async function main() {
   const fromChainId = ${fromChainId || 'undefined'}
   const messageId = "${messageId}"
 
-  const hop = new Hop('goerli')
-  const calldata = await hop.getMessageCalldata({
+  const hop = new Hop({ network: '${network}' })
+  const calldata = await hop.messenger.getMessageCalldata({
     fromChainId,
     messageId
   })
@@ -119,7 +121,7 @@ main().catch(console.error)
                 <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message</em></small></label>
               </Box>
               {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
-              <ChainSelect value={fromChainId} chains={['420', '5']} onChange={value => setFromChainId(value)} />
+              <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>
               <Box mb={1}>

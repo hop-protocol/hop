@@ -8,7 +8,7 @@ export class OptimismRelayer {
   l2Provider: any
   csm: CrossChainMessenger
 
-  constructor (network: string = 'goerli', l1Provider: providers.Provider | Signer, l2Provider: providers.Provider) {
+  constructor (network: string = 'mainnet', l1Provider: providers.Provider | Signer, l2Provider: providers.Provider) {
     this.network = network
     this.l1Provider = l1Provider
     this.l2Provider = l2Provider
@@ -59,7 +59,7 @@ export class OptimismRelayer {
     messageStatus = await this.csm.getMessageStatus(l2TxHash)
     if (messageStatus === MessageStatus.IN_CHALLENGE_PERIOD) {
       console.log('message is in challenge period')
-      // challenge period is a few seconds on goerli, 7 days in production
+      // challenge period is a few seconds on testnet, 7 days in production
       const challengePeriod = await this.csm.getChallengePeriodSeconds()
       const latestBlock = await this.csm.l1Provider.getBlock('latest')
       const resolved = await this.csm.toCrossChainMessage(l2TxHash)

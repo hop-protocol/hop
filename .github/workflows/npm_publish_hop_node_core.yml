@@ -32,7 +32,11 @@ jobs:
         id: check_version
         working-directory: packages/hop-node-core
         run: |
-          echo "VERSION_MISMATCH=true" >> $GITHUB_ENV
+          CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+          LOCAL_VERSION=$(jq -r '.version' package.json)
+          if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
+            echo "VERSION_MISMATCH=true" >> $GITHUB_ENV
+          fi
 
       - name: Install global dependencies
         if: env.VERSION_MISMATCH == 'true'

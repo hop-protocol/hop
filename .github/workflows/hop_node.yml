@@ -51,11 +51,3 @@ jobs:
             docker tag app $DOCKER_IMAGE:latest
             docker push $DOCKER_IMAGE:latest
           fi
-
-  call-hop-node-core-publish-workflow:
-    name: Publish NPM Hop Node Core Package If Necessary
-    uses: ./.github/workflows/npm_publish_hop_node_core.yml
-    with:
-      environment: production
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

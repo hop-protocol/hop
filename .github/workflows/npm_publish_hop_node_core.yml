@@ -60,7 +60,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  call-sdk-core-publish-workflow:
+  call-sdk-publish-workflow:
     name: Publish SDK Core Package If Necessary
     uses: ./.github/workflows/npm_publish_sdk.yml
     with:

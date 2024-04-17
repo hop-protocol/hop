@@ -11,7 +11,6 @@ on:
 
 jobs:
   build-hop-node:
-    needs: [call-hop-node-core-publish-workflow]
     runs-on: ubuntu-latest
     environment: production
     env:

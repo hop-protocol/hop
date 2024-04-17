@@ -1,4 +1,4 @@
-import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import type { BigNumber } from 'ethers'
 
 const getTransferSentToL2TransferId = (
@@ -15,7 +15,7 @@ const getTransferSentToL2TransferId = (
   // transferSentTxHash and logIndex are required for uniqueness since there is no nonce from L1 to L2
   const types = ['uint256', 'address', 'uint256', 'uint256', 'uint256', 'address', 'uint256', 'bytes32', 'uint256']
   const values = [chainId, recipient, amount, amountOutMin, deadline, relayer, relayerFee, transferSentTxHash, logIndex]
-  return keccak256(defaultAbiCoder.encode(types, values))
+  return utils.keccak256(utils.defaultAbiCoder.encode(types, values))
 }
 
 export default getTransferSentToL2TransferId

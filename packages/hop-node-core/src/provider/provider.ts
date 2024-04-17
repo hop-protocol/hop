@@ -1,5 +1,3 @@
-import fs from 'node:fs'
-import { monitorProviderCalls } from '#config/index.js'
 import { providers } from 'ethers'
 import { rateLimitRetry } from '#utils/rateLimitRetry.js'
 import type { BigNumber, BigNumberish } from '@ethersproject/bignumber'
@@ -22,12 +20,6 @@ import type { Network } from '@ethersproject/networks'
 const inMemoryMonitor = false
 const calls: Record<string, any> = {}
 
-if (monitorProviderCalls) {
-  setInterval(() => {
-    fs.writeFileSync('provider_calls.json', JSON.stringify(calls, null, 2))
-  }, 5 * 1000)
-}
-
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
 export class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
 
@@ -37,40 +29,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
   }
 
   override async perform (method: string, params: any): Promise<any> {
-    this.#monitorRequest(method, params)
     return super.perform(method, params)
-  }
-
-  #monitorRequest (method: string, params: any) {
-    if (!monitorProviderCalls) {
-      return
-    }
-    const host = this.connection.url
-    if (inMemoryMonitor) {
-      if (!calls[host]) {
-        calls[host] = {}
-      }
-      if (!calls[host][method]) {
-        calls[host][method] = {}
-      }
-      if (!calls[host][method][JSON.stringify(params)]) {
-        calls[host][method][JSON.stringify(params)] = 0
-      }
-      calls[host][method][JSON.stringify(params)]++
-    }
-  }
-
-  #trackStackTrace (label: string, stackTrace: string | undefined) {
-    const trace = this.#parseStackTrace(stackTrace)
-    const filtered = trace.filter(x => x.includes('watchers'))[0]
-    console.log('TRACE', label, filtered)
-  }
-
-  #parseStackTrace (stackTrace: string | undefined): string[] {
-    if (!stackTrace) {
-      return []
-    }
-    return stackTrace?.toString().split('\n').filter(x => x.trim().startsWith('at ')).map(x => x.trim().replace(/.*at /g, ''))
   }
 
   // Network

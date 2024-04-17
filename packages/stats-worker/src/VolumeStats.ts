@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import { PriceFeed } from './PriceFeed.js'
 import { db } from './Db.js'
 import { enabledChains, enabledTokens } from './config.js'
-import { formatUnits } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
 import { getTokenDecimals } from './utils/getTokenDecimals.js'
 import { nearestDate } from './utils/nearestDate.js'
@@ -120,7 +120,7 @@ class VolumeStats {
         const timestamp = item.date
         const token = item.token
         const decimals = getTokenDecimals(token)
-        const formattedAmount = Number(formatUnits(amount, decimals))
+        const formattedAmount = Number(utils.formatUnits(amount, decimals))
         if (!prices[token]) {
           console.log('not found', token)
           return

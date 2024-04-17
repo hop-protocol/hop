@@ -8,10 +8,12 @@ WORKDIR /app
 
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
-// TODO: No core
-RUN pnpm --filter=@hop-protocol/sdk build
-RUN pnpm --filter=@hop-protocol/hop-node build
-RUN pnpm --filter=@hop-protocol/hop-node deploy --prod /prod/app
+
+RUN pnpm --filter=sdk-core build
+RUN pnpm --filter=sdk build
+RUN pnpm --filter=hop-node-core build
+RUN pnpm --filter=hop-node build
+RUN pnpm --filter=hop-node deploy --prod /prod/app
 
 FROM base
 COPY --from=build /prod/app /prod/app

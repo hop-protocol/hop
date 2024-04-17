@@ -1,5 +1,5 @@
 import { loadEnvFile } from 'node:process'
-import { getEnvFilePath } from '@hop-protocol/hop-node-core/config'
+import { getEnvFilePath } from '#utils/getEnvFilePath.js'
 
 const envFilePath = getEnvFilePath()
 if (envFilePath) {

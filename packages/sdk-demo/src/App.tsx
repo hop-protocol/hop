@@ -12,8 +12,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/sdk'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { formatEther } from 'ethers/lib/utils'
-import { providers } from 'ethers'
+import { providers, utils } from 'ethers'
 import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useInterval } from 'usehooks-ts'
 
@@ -262,7 +261,7 @@ function App () {
   }
 
   const isConnected = !!signer
-  const nativeTokenBalanceFormatted = address && nativeTokenBalance ? Number(formatEther(nativeTokenBalance)).toFixed(4) : '-'
+  const nativeTokenBalanceFormatted = address && nativeTokenBalance ? Number(utils.formatEther(nativeTokenBalance)).toFixed(4) : '-'
   const tokenBalanceFormatted = address && tokenBalance ? bridge.formatUnits(tokenBalance).toFixed(4) : '-'
   const totalFeeFormatted = estimate && amount ? `${bridge.formatUnits(estimate.totalFee).toFixed(4)} ${tokenSymbol}` : '-'
   const estimatedReceivedFormatted = estimate && amount ? `${bridge.formatUnits(estimate.estimatedReceived).toFixed(4)} ${tokenSymbol}` : '-'

@@ -1,9 +1,8 @@
 import Address from 'src/models/Address'
 import shuffle from 'lodash/shuffle'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { claimChainId, delegatesJsonUrl } from 'src/pages/Claim/config'
 import { commafy } from 'src/utils/commafy'
-import { formatUnits } from 'ethers/lib/utils'
 import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { getVotes } from './claims'
@@ -104,7 +103,7 @@ export function useDelegates() {
             .then((votes: BigNumber) => {
               votesCache[delegateAddress] = votes
               delegate.votes = votesCache[delegateAddress]
-              const votesFormatted = delegate.votes!.gt(0) ? `${commafy(Number(formatUnits(delegate.votes!.toString(), 18)), 4)} votes` : '0 votes'
+              const votesFormatted = delegate.votes!.gt(0) ? `${commafy(Number(utils.formatUnits(delegate.votes!.toString(), 18)), 4)} votes` : '0 votes'
               delegate.votesFormatted = votesFormatted
               setDelegates([...cached])
             })

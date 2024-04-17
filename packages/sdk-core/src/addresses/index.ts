@@ -5,4 +5,21 @@ import { addresses as sepolia } from './sepolia.js'
 const addresses = { goerli, sepolia, mainnet }
 
 export { goerli, sepolia, mainnet, addresses }
-export * from './types.js'
+
+export {
+  L1BridgeProps,
+  L2BridgeProps,
+  PolygonBaseBridgeProps,
+  PolygonBridgeProps,
+  GnosisBaseBridgeProps,
+  GnosisBridgeProps,
+  BridgeChains,
+  USDCL1BridgeBase,
+  USDCL2BridgeBase,
+  USDCBridge,
+  Bridges,
+  Routes,
+  Bonders,
+  RewardsContracts,
+  Addresses
+} from './types.js'

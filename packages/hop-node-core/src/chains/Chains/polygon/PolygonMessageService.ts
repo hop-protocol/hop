@@ -4,7 +4,6 @@ import MaticJsEthers from '@maticnetwork/maticjs-ethers'
 import { AbstractMessageService, type IMessageService } from '../../Services/AbstractMessageService.js'
 import { BigNumber, utils } from 'ethers'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
-import { defaultAbiCoder } from 'ethers/lib/utils.js'
 import { wait } from '#utils/wait.js'
 import type { providers} from 'ethers'
 
@@ -166,7 +165,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
 
     // Get the rootTunnel from the messengerProxy
     // function fxRootTunnel() view returns (address)
-    messengerProxyAddress = defaultAbiCoder.decode(['address'], messengerProxyAddress)[0]
+    messengerProxyAddress = utils.defaultAbiCoder.decode(['address'], messengerProxyAddress)[0]
     const fxRootTunnelSelector = '0x7f1e9cb0'
     const rootTunnelAddress = await this.l2Wallet.provider!.call({
       to: messengerProxyAddress,
@@ -176,7 +175,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
     if (!rootTunnelAddress) {
       throw new Error(`root tunnel address not found for ${l2TxHash}`)
     }
-    return defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
+    return utils.defaultAbiCoder.decode(['address'], rootTunnelAddress)[0]
   }
 
   protected async getMessage (txHash: string): Promise<PolygonMessage> {

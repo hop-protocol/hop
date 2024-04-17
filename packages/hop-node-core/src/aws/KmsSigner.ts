@@ -1,13 +1,7 @@
 import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
-import {
-  arrayify,
-  hashMessage,
-  keccak256,
-  resolveProperties,
-  serializeTransaction
-} from 'ethers/lib/utils.js'
 import { awsAccessKeyId, awsSecretAccessKey } from '#config/index.js'
+import { utils } from 'ethers'
 import type { providers } from 'ethers'
 
 type KmsSignerConfig = AwsSignerConfig
@@ -47,21 +41,21 @@ export class KmsSigner extends AwsSigner {
   }
 
   async signMessage (msg: Buffer | string): Promise<string> {
-    const hash = hashMessage(msg)
+    const hash = utils.hashMessage(msg)
     return this._signDigest(hash)
   }
 
   async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
     const normalizedTransaction = this.normalizeTransaction(transaction)
-    const unsignedTx: any = await resolveProperties(normalizedTransaction)
-    const serializedTx = serializeTransaction(unsignedTx)
-    const hash = keccak256(serializedTx)
+    const unsignedTx: any = await utils.resolveProperties(normalizedTransaction)
+    const serializedTx = utils.serializeTransaction(unsignedTx)
+    const hash = utils.keccak256(serializedTx)
     const txSig: string = await this._signDigest(hash)
-    return serializeTransaction(unsignedTx, txSig)
+    return utils.serializeTransaction(unsignedTx, txSig)
   }
 
   private async _signDigest (digest: Buffer | string): Promise<string> {
-    const msg = Buffer.from(arrayify(digest))
+    const msg = Buffer.from(utils.arrayify(digest))
     const signature: Buffer = await this._getSig(msg)
     return this.getJoinedSignature(msg, signature)
   }

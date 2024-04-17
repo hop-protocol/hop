@@ -1,8 +1,7 @@
 import ContractBase from './ContractBase.js'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { Hop } from '@hop-protocol/sdk'
-import { formatUnits } from 'ethers/lib/utils.js'
 import { getTokenMetadata } from '@hop-protocol/hop-node-core/utils'
 import { config as globalConfig } from '#config/index.js'
 import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
@@ -58,7 +57,7 @@ export default class L2AmmWrapper extends ContractBase {
     }
 
     if (totalFee.gt(amount)) {
-      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(totalFee, tokenDecimals)}`)
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${utils.formatUnits(totalFee, tokenDecimals)}`)
     }
 
     const overrides: TxOverrides = {

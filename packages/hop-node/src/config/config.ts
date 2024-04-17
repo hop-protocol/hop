@@ -25,7 +25,7 @@ import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/netwo
 import { config as coreConfig } from '@hop-protocol/sdk/config'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
-import { parseEther } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import type { AssetSymbol, Bps } from '@hop-protocol/sdk/config'
 import type {
   BlocklistConfig,
@@ -65,7 +65,7 @@ export const RelayTransactionBatchSize = BondWithdrawalBatchSize
 export const defaultConfigDir = `${os.homedir()}/.hop`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
-export const minEthBonderFeeBn = parseEther('0.00001')
+export const minEthBonderFeeBn = utils.parseEther('0.00001')
 export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []

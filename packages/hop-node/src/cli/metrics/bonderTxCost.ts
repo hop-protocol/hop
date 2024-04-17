@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { CoingeckoApiKey } from '@hop-protocol/hop-node-core/config'
 import { actionHandler, parseString, root } from '../shared/index.js'
 import {
@@ -9,7 +9,6 @@ import {
   tokenDataForYear,
   tokenDecimals
 } from '../metrics/sharedMetrics.js'
-import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
 import { nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
@@ -107,13 +106,13 @@ async function getGasCost (chain: string, txHash: string): Promise<number> {
 
   // Get bond gas data
   // Pre-bedrock Optimism had a fixed gasPrice of 0.001 Gwei
-  const gasPrice = receipt.effectiveGasPrice || parseUnits('0.001', 'gwei')
+  const gasPrice = receipt.effectiveGasPrice || utils.parseUnits('0.001', 'gwei')
   const gasUsed = receipt.gasUsed
   const l1GasCost = await getL1GasCost(chain, txHash)
   const gasCost = (BigNumber.from(gasUsed).mul(gasPrice)).add(l1GasCost)
 
   const decimals = tokenDecimals[nativeToken]
-  const gasCostFormatted: string = formatUnits(gasCost, decimals)
+  const gasCostFormatted: string = utils.formatUnits(gasCost, decimals)
   const nativeTokenPriceUsd = await getPriceByTimestamp(nativeToken, block.timestamp)
   return Number(gasCostFormatted) * nativeTokenPriceUsd
 }

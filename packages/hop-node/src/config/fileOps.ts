@@ -27,7 +27,7 @@ import {
   setSyncConfig
 } from './config.js'
 import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
-import { getAddress } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getParameter } from '@hop-protocol/hop-node-core/aws'
 import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
 import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
@@ -277,7 +277,7 @@ export async function setGlobalConfigFromConfigFile (
       for (const address in config.blocklist.addresses) {
         try {
           delete config.blocklist.addresses[address]
-          config.blocklist.addresses[getAddress(address).toLowerCase()] = true
+          config.blocklist.addresses[utils.getAddress(address).toLowerCase()] = true
         } catch (err) {
           throw new Error(`blocklist address "${address}" is invalid`)
         }

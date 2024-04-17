@@ -4,7 +4,7 @@ import { Chain } from '#constants/index.js'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import { GnosisAddresses, type GnosisCanonicalAddresses } from '../../Chains/gnosis/GnosisAddresses.js'
 import { L1_xDaiAMB__factory, L2_xDaiAMB__factory } from '@hop-protocol/sdk/contracts'
-import { solidityKeccak256 } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import type { L1_xDaiAMB } from '@hop-protocol/sdk/contracts'
 import type { L2_xDaiAMB } from '@hop-protocol/sdk/contracts'
 import type { NetworkSlug } from '@hop-protocol/sdk/networks'
@@ -64,7 +64,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
   }
 
   #getMessageHash (message: string): string {
-    return solidityKeccak256(['bytes'], [message])
+    return utils.solidityKeccak256(['bytes'], [message])
   }
 
   #strip0x (value: string): string {

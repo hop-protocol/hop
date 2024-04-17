@@ -30,7 +30,7 @@ import {
   RedundantProviderOutOfSync,
 } from '@hop-protocol/hop-node-core/types'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
@@ -454,7 +454,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
     const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
     if (amountWithinThreshold.lt(0)) {
-      this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${formatUnits(inFlightAmount, decimals)})`)
+      this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${utils.formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${utils.formatUnits(inFlightAmount, decimals)})`)
       return finalizedTransfers
     }
 
@@ -483,7 +483,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // Is there enough overall credit to bond
       const enoughCredit = availableLiquidityPerChain[destinationChainId].gte(amount)
       if (!enoughCredit) {
-        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${formatUnits(amount, decimals)}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${utils.formatUnits(amount, decimals)}`)
         continue
       }
 
@@ -497,7 +497,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // If the transfer has not been finalized, is it within the bond threshold
       const isWithinBondThreshold = amount.lte(remainingAmountWithinThreshold)
       if (!isWithinBondThreshold) {
-        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${formatUnits(amount, decimals)}, remainingAmountWithinThreshold:, ${formatUnits(remainingAmountWithinThreshold, decimals)}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${utils.formatUnits(amount, decimals)}, remainingAmountWithinThreshold:, ${utils.formatUnits(remainingAmountWithinThreshold, decimals)}`)
         continue
       } else {
         remainingAmountWithinThreshold = remainingAmountWithinThreshold.sub(amount)
@@ -549,7 +549,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return BigNumber.from(0)
     }
 
-    const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
+    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 

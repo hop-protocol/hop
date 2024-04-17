@@ -1,10 +1,10 @@
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
-import { keccak256 } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
-    super(leaves, keccak256, {
-      fillDefaultHash: () => keccak256(Buffer.alloc(32))
+    super(leaves, utils.keccak256, {
+      fillDefaultHash: () => utils.keccak256(Buffer.alloc(32))
     })
   }
 }

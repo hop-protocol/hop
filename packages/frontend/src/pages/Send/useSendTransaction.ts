@@ -1,11 +1,10 @@
 import EventEmitter from 'eventemitter3'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber, Signer, utils } from 'ethers'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { createTransaction } from 'src/utils/createTransaction'
-import { getAddress } from 'ethers/lib/utils'
 import { getBonderFeeWithId } from 'src/utils'
 import { isGoerli } from 'src/config'
 import { useEffect, useMemo, useState } from 'react'
@@ -107,7 +106,7 @@ export function useSendTransaction (props: any) {
 
       try {
         if (customRecipient) {
-          getAddress(customRecipient) // attempts to checksum
+          utils.getAddress(customRecipient) // attempts to checksum
         }
       } catch (err) {
         throw new Error('Custom recipient address is invalid')

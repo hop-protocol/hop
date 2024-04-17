@@ -1,11 +1,10 @@
 import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
-import { BigNumber, Contract, constants, providers } from 'ethers'
+import { BigNumber, Contract, constants, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { PriceFeed } from './PriceFeed.js'
 import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config.js'
 import { db } from './Db.js'
 import { ERC20__factory } from '@hop-protocol/sdk/contracts'
-import { formatUnits } from 'ethers/lib/utils.js'
 import { getTokenDecimals } from './utils/getTokenDecimals.js'
 import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { nearestDate } from './utils/nearestDate.js'
@@ -195,7 +194,7 @@ class TvlStats {
                   console.log('balance', balance, blockTag)
                   const decimals = getTokenDecimals(token)
                   const formattedAmount = Number(
-                    formatUnits(balance.toString(), decimals)
+                    utils.formatUnits(balance.toString(), decimals)
                   )
 
                   const dates = prices[token].reverse().map((x: any) => x[0])

@@ -3,13 +3,12 @@ import React, { FC, ReactNode, createContext, useContext, useEffect, useState } 
 import Token from 'src/models/Token'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { L1_NETWORK } from 'src/utils/constants'
 import { ERC20Mintable__factory } from '@hop-protocol/sdk/contracts'
 import { formatError } from 'src/utils/format'
 import { getTokenDecimals } from 'src/utils/tokens'
 import { l1Network } from 'src/config/networks'
-import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { toTokenDisplay } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -96,12 +95,12 @@ const FaucetContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
       setMinting(true)
       const recipient = await signer.getAddress()
       const tokenDecimals = getTokenDecimals(tokenSymbol)
-      const parsedAmount = parseUnits(mintAmount, tokenDecimals)
+      const parsedAmount = utils.parseUnits(mintAmount, tokenDecimals)
       const contract = ERC20Mintable__factory.connect(address, signer)
 
       const txOptions: any = {}
       if (['USDT', 'DAI', 'UNI', 'HOP'].includes(tokenSymbol)) {
-        const oneEth = parseEther('1')
+        const oneEth = utils.parseEther('1')
         const tokenRates = {
           USDT: BigNumber.from('2000000000'),
           DAI: BigNumber.from('2000000000000000000000'),

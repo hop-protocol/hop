@@ -24,7 +24,7 @@ import {
   hostname
 } from '#config/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getBumpedBN } from '#utils/getBumpedBN.js'
 import { getBumpedGasPrice } from '#utils/getBumpedGasPrice.js'
 import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
@@ -193,7 +193,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       this.type = tx.type
     }
     if (tx.data) {
-      this.data = hexlify(tx.data)
+      this.data = utils.hexlify(tx.data)
     }
     if (tx.value) {
       this.value = BigNumber.from(tx.value)
@@ -887,9 +887,9 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
 
     const gasPrice = gasFeeData.gasPrice ?? gasFeeData.maxFeePerGas
     const gasCost = gasLimit.mul(gasPrice!)
-    const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
-    const formattedGasCost = formatUnits(gasCost, 18)
-    const formattedEthBalance = formatUnits(ethBalance, 18)
+    const warnEthBalance = utils.parseUnits((this.warnEthBalance || 0).toString(), 18)
+    const formattedGasCost = utils.formatUnits(gasCost, 18)
+    const formattedEthBalance = utils.formatUnits(ethBalance, 18)
     if (ethBalance.lt(gasCost)) {
       const errMsg = `insufficient ETH funds to cover gas cost. Need ${formattedGasCost}, have ${formattedEthBalance}`
       this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
@@ -937,11 +937,11 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   }
 
   private parseGwei (value: number) {
-    return parseUnits(value.toString(), 9)
+    return utils.parseUnits(value.toString(), 9)
   }
 
   private formatGwei (value: BigNumber) {
-    return formatUnits(value.toString(), 9)
+    return utils.formatUnits(value.toString(), 9)
   }
 
   private getGasFeeDataAsString (gasFeeData: Partial<GasFeeData> = this) {

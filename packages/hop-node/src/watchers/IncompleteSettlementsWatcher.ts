@@ -3,13 +3,12 @@ import getBondedWithdrawal from '#theGraph/getBondedWithdrawal.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
 import getTransferSent from '#theGraph/getTransferSent.js'
 import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, Contract, utils } from 'ethers'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import { type L1BridgeProps, type L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { formatUnits } from 'ethers/lib/utils.js'
 import { getEnabledTokens } from '#config/index.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
@@ -393,9 +392,9 @@ class IncompleteSettlementsWatcher {
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
-      const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
+      const totalAmountFormatted = Number(utils.formatUnits(_totalAmount, tokenDecimals))
       const diff = totalAmount.sub(settledTotalAmount).toString()
-      const diffFormatted = Number(formatUnits(diff, tokenDecimals))
+      const diffFormatted = Number(utils.formatUnits(diff, tokenDecimals))
       const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
       let unsettledTransfers: any[] = []
       let unsettledTransferBonders: string[] = []
@@ -490,7 +489,7 @@ class IncompleteSettlementsWatcher {
           return
         }
         const { amount } = await getTransferSent(sourceChain, transferId)
-        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        const amountFormatted = Number(utils.formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: false,
           transferId,
@@ -505,7 +504,7 @@ class IncompleteSettlementsWatcher {
       const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
       if (bondedWithdrawalAmount.gt(0)) {
         const amount = bondedWithdrawalAmount.toString()
-        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        const amountFormatted = Number(utils.formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: true,
           transferId,

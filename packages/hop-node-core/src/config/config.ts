@@ -7,16 +7,8 @@ import {
 import { type Metadata, metadata as coreMetadata } from '@hop-protocol/sdk/metadata'
 import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { execSync } from 'node:child_process'
-import { getEnvFilePath, normalizeEnvVarNumber } from './utils.js'
-import { loadEnvFile } from 'node:process'
+import { normalizeEnvVarNumber } from './utils.js'
 
-
-const envFilePath = getEnvFilePath()
-if (envFilePath) {
-  loadEnvFile(envFilePath)
-}
-
-const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const hostname = process.env.HOSTNAME ?? os.hostname()
 export const slackChannel = process.env.SLACK_CHANNEL
@@ -148,7 +140,7 @@ export type CoreConfig = {
 
 export const config: CoreConfig = {
   tokens: {},
-  bonderPrivateKey: bonderPrivateKey ?? '',
+  bonderPrivateKey: '',
   metrics: {
     enabled: false
   },

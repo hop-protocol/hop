@@ -48,6 +48,7 @@
     "lodash": "4.17.21",
     "luxon": "3.4.4",
     "merkletreejs": "0.3.11",
+    "minimist": "1.2.8",
     "mkdirp": "3.0.1",
     "nearest-date": "1.0.1",
     "pidusage": "3.0.2",
@@ -58,6 +59,7 @@
     "@types/ethereum-block-by-date": "1.4.1",
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.4.2",
+    "@types/minimist": "1.2.5",
     "@types/pidusage": "2.0.5",
     "@types/subleveldown": "4.1.4",
     "tsx": "4.7.2"

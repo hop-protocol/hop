@@ -471,6 +471,9 @@ importers:
       merkletreejs:
         specifier: 0.3.11
         version: 0.3.11
+      minimist:
+        specifier: 1.2.8
+        version: 1.2.8
       mkdirp:
         specifier: 3.0.1
         version: 3.0.1
@@ -496,6 +499,9 @@ importers:
       '@types/luxon':
         specifier: 3.4.2
         version: 3.4.2
+      '@types/minimist':
+        specifier: 1.2.5
+        version: 1.2.5
       '@types/pidusage':
         specifier: 2.0.5
         version: 2.0.5
@@ -577,9 +583,6 @@ importers:
       keythereum:
         specifier: 1.2.0
         version: 1.2.0
-      minimist:
-        specifier: 1.2.8
-        version: 1.2.8
       p-queue:
         specifier: 8.0.1
         version: 8.0.1
@@ -599,9 +602,6 @@ importers:
       '@types/keythereum':
         specifier: 1.2.4
         version: 1.2.4
-      '@types/minimist':
-        specifier: 1.2.5
-        version: 1.2.5
       '@types/prompt':
         specifier: 1.1.8
         version: 1.1.8

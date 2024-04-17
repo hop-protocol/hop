@@ -20,7 +20,7 @@ pnpm build
 Test with the pnpm script.
 
 ```sh
-pnpm --filter @hop-protocol/hop-node-core test
+pnpm --filter hop-node-core test
 ```
 
 ## License

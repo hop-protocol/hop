@@ -21,7 +21,7 @@ pnpm install
 pnpm build
 
 # Run the client
-pnpm --filter @hop-protocol/hop-node dev
+pnpm --filter hop-node dev
 ```
 
 For complete instructions and required config, see [https://docs.hop.exchange/v/developer-docs/hop-node/running-a-hop-bonder](https://docs.hop.exchange/v/developer-docs/hop-node/running-a-hop-bonder).

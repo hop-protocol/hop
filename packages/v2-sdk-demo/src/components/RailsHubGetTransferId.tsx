@@ -24,8 +24,8 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsHubSend (props: Props) {
-  const cacheKey = 'railsHubSend'
+export function RailsHubGetTransferId (props: Props) {
+  const cacheKey = 'railsHubGetTransferId'
   const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -56,9 +56,9 @@ export function RailsHubSend (props: Props) {
     } catch (err: any) {}
     return ''
   })
-  const [amount, setAmount] = useState(() => {
+  const [adjustedAmount, setAdjustedAmount] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:amount`)
+      const cached = localStorage.getItem(`${cacheKey}:adjustedAmount`)
       if (cached) {
         return cached
       }
@@ -74,6 +74,24 @@ export function RailsHubSend (props: Props) {
     } catch (err: any) {}
     return ''
   })
+  const [totalSent, setTotalSent] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:totalSent`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
+  const [nonce, setNonce] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:nonce`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
   const [attestedCheckpoint, setAttestedCheckpoint] = useState(() => {
     try {
       const cached = localStorage.getItem(`${cacheKey}:attestedCheckpoint`)
@@ -83,11 +101,13 @@ export function RailsHubSend (props: Props) {
     } catch (err: any) {}
     return ''
   })
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [txHash, setTxHash] = useState('')
+  const [transferId, setTransferId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const provider = useMemo(() => {
+    return sdk.getRpcProviderForChainId(Number(fromChainId))
+  }, [sdk, fromChainId])
 
   useEffect(() => {
     try {
@@ -115,11 +135,11 @@ export function RailsHubSend (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:amount`, amount)
+      localStorage.setItem(`${cacheKey}:adjustedAmount`, adjustedAmount)
     } catch (err: any) {
       console.error(err)
     }
-  }, [amount])
+  }, [adjustedAmount])
 
   useEffect(() => {
     try {
@@ -131,47 +151,48 @@ export function RailsHubSend (props: Props) {
 
   useEffect(() => {
     try {
+      localStorage.setItem(`${cacheKey}:totalSent`, totalSent)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [totalSent])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${cacheKey}:nonce`, nonce)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [nonce])
+
+  useEffect(() => {
+    try {
       localStorage.setItem(`${cacheKey}:attestedCheckpoint`, attestedCheckpoint)
     } catch (err: any) {
       console.error(err)
     }
   }, [attestedCheckpoint])
 
-  async function getSendTxData() {
-    const args = {
-      chainId: Number(fromChainId),
-      pathId,
-      to: toAddress,
-      amount,
-      minAmountOut,
-      attestedCheckpoint
-    }
-    console.log('args', args)
-    const txData = await sdk.railsHub.populateTransaction.send(args)
-    return txData
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
       setError('')
-      setTxData('')
-      setTxHash('')
+      setTransferId('')
       setLoading(true)
-      const txData = await getSendTxData()
-      setTxData(JSON.stringify(txData, null, 2))
-      const fee = await sdk.railsHub.getFee({ chainId: Number(fromChainId), pathId })
-      if (!populateTxDataOnly) {
-        if (!signer) {
-          throw new Error('No signer')
-        }
-        await checkConnectedNetworkId(Number(fromChainId))
-        const tx = await signer.sendTransaction({
-          ...txData,
-          value: fee
-        })
-        setTxHash(tx.hash)
+      const args = {
+        chainId: Number(fromChainId),
+        pathId,
+        to: toAddress,
+        adjustedAmount,
+        minAmountOut,
+        totalSent,
+        nonce,
+        attestedCheckpoint
       }
+
+      console.log('args', args)
+      const transferId = await sdk.railsHub.getTransferId(args)
+      setTransferId(transferId)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -180,46 +201,30 @@ export function RailsHubSend (props: Props) {
   }
 
   const code = `
-${populateTxDataOnly ? `
 import { Hop } from '@hop-protocol/v2-sdk'
-`.trim() : `
-import { Hop } from '@hop-protocol/v2-sdk'
-import { ethers } from 'ethers'
-`.trim()}
 
 async function main() {
   const chainId = ${fromChainId || 'undefined'}
   const pathId = "${pathId}"
   const to = "${toAddress}"
-  const amount = "${amount}"
+  const adjustedAmount = "${adjustedAmount}"
   const minAmountOut = "${minAmountOut}"
+  const totalSent = "${totalSent}"
+  const nonce = "${nonce}"
   const attestedCheckpoint = "${attestedCheckpoint}"
 
-  const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsHub.populateTransaction.send({
+  const hop = new Hop({ network: '${network}' })
+  const fee = await hop.railsHub.getTransferID({
     chainId,
     pathId,
     to,
-    amount,
+    adjustedAmount,
     minAmountOut,
+    totalSent,
+    nonce,
     attestedCheckpoint
   })
-  ${populateTxDataOnly ? (
-  'console.log(txData)'
-  ) : (
-  `
-  const fee = await hop.railsHub.getFee({ chainId, pathId })
-  const provider = new ethers.providers.Web3Provider(
-    window.ethereum
-  )
-  const signer = provider.getSigner()
-  const tx = await signer.sendTransaction({
-    ...txData,
-    value: fee
-  })
-  console.log(tx)
-  `.trim()
-  )}
+  console.log(fee)
 }
 
 main().catch(console.error)
@@ -235,10 +240,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Send</Typography>
+        <Typography variant="h5">Rails Hub - Get Transfer ID</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Send tokens to a destination chain</Typography>
+        <Typography variant="subtitle1">Get Rails Hub Transfer ID</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -246,59 +251,55 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
+                  <label>Chain ID <small><em>(number)</em></small> <small><em>Chain to get fee for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
-
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID<small><em>(hex)</em></small> <small><em>Path ID to use</em></small></label>
+                  <label>Path ID<small><em>(hex)</em></small> <small><em>The path ID hex string</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setPathId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
               </Box>
-
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>Recipient at the destination</em></small></label>
+                  <label>To<small><em>(address)</em></small> <small><em>To address</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={event => setToAddress(event.target.value)} />
               </Box>
-
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Amount<small><em>(uint256)</em></small> <small><em>Amount to send</em></small></label>
+                  <label>Adjusted Amount<small><em>(uint256)</em></small> <small><em>Adjusted amount</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={adjustedAmount} onChange={event => setAdjustedAmount(event.target.value)} />
               </Box>
-
               <Box mb={2}>
                 <Box mb={1}>
                   <label>Min Amount Out<small><em>(uint256)</em></small> <small><em>Min amount out</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={minAmountOut} onChange={(event: any) => setMinAmountOut(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={minAmountOut} onChange={event => setMinAmountOut(event.target.value)} />
               </Box>
-
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Attested checkpoint<small><em>(hex)</em></small> <small><em>Attested checkpoint to use</em></small></label>
+                  <label>Total Sent<small><em>(uint256)</em></small> <small><em>Total sent value</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={(event: any) => setAttestedCheckpoint(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={event => setTotalSent(event.target.value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Nonce<small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={nonce} onChange={event => setNonce(event.target.value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Attested checkpoint<small><em>(bytes32)</em></small> <small><em>Attested checkpoint hex string</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={event => setAttestedCheckpoint(event.target.value)} />
               </Box>
 
-              <Box mb={2}>
-                <Box>
-                  <Checkbox onChange={(event: any) => setPopulateTxDataOnly(event.target.checked)} checked={populateTxDataOnly} />
-                  <label>Populate Tx Only</label>
-                </Box>
-              </Box>
               <Box mb={2} display="flex" justifyContent="center">
-                {!signer && (
-                  <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
-                )}
-                {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Send'}</HighlightedButton>
-                )}
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Transfer ID</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -307,28 +308,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!txHash && (
+          {!!transferId && (
             <Box mb={4}>
-              <Alert severity="success">Tx hash: {txHash}</Alert>
-            </Box>
-          )}
-          {!!txData && (
-            <Box>
-              <Box mb={2}>
-                <Typography variant="body1">Output</Typography>
-              </Box>
-              <pre style={{
-                maxWidth: '500px',
-                overflow: 'auto'
-              }}>
-                {txData}
-              </pre>
-              <CopyToClipboard text={txData}
-                onCopy={handleCopy}>
-                <Typography variant="body2" style={{ cursor: 'pointer' }}>
-                  {copied ? 'Copied!' : 'Copy to clipboard'}
-                </Typography>
-              </CopyToClipboard>
+              <Alert severity="info">{transferId}</Alert>
             </Box>
           )}
         </Box>

@@ -78,8 +78,8 @@ class SyncWatcher extends BaseWatcher {
   sourceChainInitialSyncCompleted: boolean = false
   initialSyncCompleted: boolean = false
   syncIntervalMs: number
-  // Five minutes is granular enough. Any lower results in excessive redundant DB writes.
-  gasCostPollMs: number = FiveMinutesMs
+  // Ten minutes is granular enough. Any lower results in excessive redundant DB writes.
+  gasCostPollMs: number = FiveMinutesMs * 2
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
   syncFromDate: string

@@ -30,7 +30,6 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
-export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs

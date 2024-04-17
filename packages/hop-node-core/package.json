@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/hop-node-core",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "The Hop Node Core pakcage for Hop Protocol",
   "author": "Authereum Labs, Inc.",
   "type": "module",

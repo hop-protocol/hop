@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk-core",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "The shared code for Hop Protocol TypeScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",

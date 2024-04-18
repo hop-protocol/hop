@@ -53,7 +53,7 @@ export function SetRpcProviders (props: Props) {
       setResult('')
 
       const config = JSON.parse(configString)
-      sdk.setRpcProviders(config)
+      sdk.setChainRpcProviders(config)
       setResult('set')
     } catch (err: any) {
       console.error(err)

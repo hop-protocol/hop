@@ -147,7 +147,7 @@ export function RelayMessage (props: Props) {
       bundleProof: JSON.parse(bundleProof.trim())
     }
     console.log('args', args)
-    const txData = await sdk.populateTransaction.relayMessage(args)
+    const txData = await sdk.messenger.populateTransaction.relayMessage(args)
     return txData
   }
 

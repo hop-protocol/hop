@@ -71,7 +71,7 @@ export function ExitBundle (props: Props) {
       bundleCommittedTransactionHash: bundleCommittedTxHash
     }
     console.log('args', args)
-    const txData = await sdk.getBundleExitPopulatedTx(args)
+    const txData = await sdk.messenger.populateTransaction.bundleExit(args)
     return txData
   }
 

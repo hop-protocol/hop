@@ -167,8 +167,8 @@ export function Tutorial () {
       if (!greetingTxOnOptimism) {
         return false
       }
-      const sdk = new Hop('goerli')
-      const isExited = await sdk.getIsL2TxHashExited({
+      const sdk = new Hop({ network: 'goerli' })
+      const isExited = await sdk.messenger.getIsL2TxHashExited({
         transactionHash: greetingTxOnOptimism,
         fromChainId: 420
       })
@@ -329,7 +329,8 @@ export function Tutorial () {
     const signer = await getSignerOrRequestWallet()
     await checkConnectedNetworkIdOrThrow(5)
 
-    const sdk = new Hop('goerli', {
+    const sdk = new Hop({
+      network: 'goerli',
       contractAddresses: {
         5: {
           hubConnectorFactory: hubConnectorFactoryOnGoerliAddress
@@ -337,14 +338,15 @@ export function Tutorial () {
       }
     })
 
-    const { connectorAddress } = await sdk.connectTargets({
+    const tx = await sdk.hubConnector.connect(signer).connectTargets({
       hubChainId: 5,
       spokeChainId: 420,
       target1: greeterAddressOnGoerli,
-      target2: greeterAddressOnOptimism,
-      signer
+      target2: greeterAddressOnOptimism
     })
 
+    const receipt = await tx.wait()
+    const connectorAddress = await sdk.hubConnector.getConnectorAddressFromReceipt(receipt)
     return connectorAddress
   }
 
@@ -414,7 +416,8 @@ export function Tutorial () {
       throw new Error('greeting message is required')
     }
 
-    const sdk = new Hop('goerli', {
+    const sdk = new Hop({
+      network: 'goerli',
       contractAddresses: {
         5: {
           startBlock: 8818888,
@@ -430,7 +433,7 @@ export function Tutorial () {
       }
     })
 
-    const messageFee1 = await sdk.getMessageFee({
+    const messageFee1 = await sdk.messenger.getMessageFee({
       fromChainId: chainId,
       toChainId: chainId === 5 ? 420 : 5
     })
@@ -497,7 +500,8 @@ export function Tutorial () {
     const signer = await getSignerOrRequestWallet()
     await checkConnectedNetworkIdOrThrow(5)
 
-    const sdk = new Hop('goerli', {
+    const sdk = new Hop({
+      network: 'goerli',
       contractAddresses: {
         5: {
           startBlock: 8818888,
@@ -521,9 +525,9 @@ export function Tutorial () {
       fromAddress,
       toCalldata,
       toChainId
-    } = await sdk.getRelayMessageDataFromTransactionHash({ fromChainId, transactionHash: greetingTxOnOptimism })
+    } = await sdk.messenger.getRelayMessageDataFromTransactionHash({ fromChainId, transactionHash: greetingTxOnOptimism })
 
-    const txData = await sdk.getRelayMessagePopulatedTx({ fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof })
+    const txData = await sdk.messenger.populateTransaction.relayMessage({ fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof })
     if (!txData) {
       throw new Error('expected txData')
     }
@@ -856,10 +860,10 @@ greater.setConnector(connectorAddress)
         <Box mb={2}>
           <Syntax
           code={`
-const messageStatus = await hopSdk.getMessageStatus(txHash)
+const messageStatus = await hopSdk.messenger.getMessageStatus(txHash)
 
 if (messageStatus === MessageStatus.READY_TO_EXECUTE) {
-  cont tx = await hopSdk.executeMessage(txHash)
+  cont tx = await hopSdk.messenger.executeMessage(txHash)
   const rcpt = await tx.wait()
 }
           `.trim()}

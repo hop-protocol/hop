@@ -18,15 +18,12 @@ import MenuItem from '@mui/material/MenuItem'
 import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
-  signer?: Signer
   sdk: Hop
-  checkConnectedNetworkId: any
-  requestWallet: any
 }
 
 export function RailsHubGetPathId (props: Props) {
   const cacheKey = 'railsHubGetPathId'
-  const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
+  const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {

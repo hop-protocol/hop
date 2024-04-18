@@ -18,15 +18,12 @@ import MenuItem from '@mui/material/MenuItem'
 import { network, defaultChainIds, chainIds } from '../config'
 
 type Props = {
-  signer?: Signer
   sdk: Hop
-  checkConnectedNetworkId: any
-  requestWallet: any
 }
 
 export function RailsHubGetPathInfo (props: Props) {
   const cacheKey = 'railsHubGetPathInfo'
-  const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
+  const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
@@ -162,7 +159,7 @@ main().catch(console.error)
                 wordBreak: 'break-all',
                 whiteSpace: 'pre-wrap',
                 overflow: 'auto'
-              }}>{output}</pre>
+              }}>{pathInfo}</pre>
               <CopyToClipboard text={pathInfo}
                 onCopy={handleCopy}>
                 <Typography variant="body2" style={{ cursor: 'pointer' }}>

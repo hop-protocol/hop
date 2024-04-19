@@ -7,16 +7,8 @@ import {
 import { type Metadata, metadata as coreMetadata } from '@hop-protocol/sdk/metadata'
 import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { execSync } from 'node:child_process'
-import { getEnvFilePath, normalizeEnvVarNumber } from './utils.js'
-import { loadEnvFile } from 'node:process'
+import { normalizeEnvVarNumber } from './utils.js'
 
-
-const envFilePath = getEnvFilePath()
-if (envFilePath) {
-  loadEnvFile(envFilePath)
-}
-
-const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const hostname = process.env.HOSTNAME ?? os.hostname()
 export const slackChannel = process.env.SLACK_CHANNEL
@@ -38,7 +30,6 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
-export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
@@ -148,7 +139,7 @@ export type CoreConfig = {
 
 export const config: CoreConfig = {
   tokens: {},
-  bonderPrivateKey: bonderPrivateKey ?? '',
+  bonderPrivateKey: '',
   metrics: {
     enabled: false
   },

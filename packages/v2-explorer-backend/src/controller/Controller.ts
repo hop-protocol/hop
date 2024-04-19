@@ -1,7 +1,6 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { db } from '#db/index.js'
-import { formatUnits } from 'ethers/lib/utils.js'
 import { getTransactionHashExplorerUrl } from '#utils/getTransactionHashExplorerUrl.js'
 import { pgDb } from '#pgDb/index.js'
 import { truncateString } from '#utils/truncateString.js'
@@ -69,7 +68,7 @@ export class Controller {
         item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
       }
       if (item.bundleFees) {
-        item.bundleFeesDisplay = formatUnits(item.bundleFees, 18)
+        item.bundleFeesDisplay = utils.formatUnits(item.bundleFees, 18)
       }
       if (item.context?.blockTimestamp) {
         item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
@@ -140,7 +139,7 @@ export class Controller {
         item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
       }
       if (item.bundleFees) {
-        item.bundleFeesDisplay = formatUnits(item.bundleFees, 18)
+        item.bundleFeesDisplay = utils.formatUnits(item.bundleFees, 18)
       }
       if (item.context?.blockTimestamp) {
         item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()

@@ -1,6 +1,6 @@
 import logger from 'src/logger'
 import { getEnsAddress, getEnsAvatar, getEnsName } from 'src/utils/ens'
-import { isAddress } from 'ethers/lib/utils'
+import { utils } from 'ethers'
 import { useEffect, useState } from 'react'
 
 export function useEns(addressOrEnsName?: string) {
@@ -19,7 +19,7 @@ export function useEns(addressOrEnsName?: string) {
       }
 
       try {
-        if (isAddress(addressOrEnsName)) {
+        if (utils.isAddress(addressOrEnsName)) {
           const _ensName = await getEnsName(addressOrEnsName)
           setEnsName(_ensName)
           setEnsAddress(addressOrEnsName)

@@ -8,7 +8,7 @@ import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
 import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
 import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, stableCoins } from '@hop-protocol/hop-node-core/constants'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { Notifier } from '@hop-protocol/hop-node-core/notifier'
@@ -17,7 +17,6 @@ import { S3Upload } from '@hop-protocol/hop-node-core/aws'
 import { appTld, hostname } from '@hop-protocol/hop-node-core/config'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel } from '#config/index.js'
-import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils.js'
 import { getInvalidBondWithdrawals } from '#theGraph/getInvalidBondWithdrawals.js'
 import { getNameservers } from '#utils/getNameservers.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
@@ -229,24 +228,24 @@ export class HealthCheckWatcher {
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day
   lowBalanceThresholds: Record<string, BigNumber> = {
-    [NativeChainToken.ETH]: parseEther('0.5'),
-    [NativeChainToken.XDAI]: parseEther('10'),
-    [NativeChainToken.MATIC]: parseEther('10')
+    [NativeChainToken.ETH]: utils.parseEther('0.5'),
+    [NativeChainToken.XDAI]: utils.parseEther('10'),
+    [NativeChainToken.MATIC]: utils.parseEther('10')
   }
 
   cacheTimestamps: Record<string, any> = {}
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
-    USDC: parseUnits('2951000', 6),
-    USDT: parseUnits('120000', 6),
-    DAI: parseUnits('1500000', 18),
-    ETH: parseUnits('7949', 18),
-    MATIC: parseUnits('766730', 18),
-    HOP: parseUnits('4500000', 18),
-    SNX: parseUnits('200000', 18),
-    sUSD: parseUnits('500000', 18),
-    rETH: parseUnits('550', 18),
-    MAGIC: parseUnits('1000000', 18)
+    USDC: utils.parseUnits('2951000', 6),
+    USDT: utils.parseUnits('120000', 6),
+    DAI: utils.parseUnits('1500000', 18),
+    ETH: utils.parseUnits('7949', 18),
+    MATIC: utils.parseUnits('766730', 18),
+    HOP: utils.parseUnits('4500000', 18),
+    SNX: utils.parseUnits('200000', 18),
+    sUSD: utils.parseUnits('500000', 18),
+    rETH: utils.parseUnits('550', 18),
+    MAGIC: utils.parseUnits('1000000', 18)
   }
 
   bonderLowLiquidityThreshold: number = 0.1
@@ -588,7 +587,7 @@ export class HealthCheckWatcher {
           chain: Chain.Ethereum,
           nativeToken: NativeChainToken.ETH,
           amount: ethBalance.toString(),
-          amountFormatted: Number(formatEther(ethBalance.toString()))
+          amountFormatted: Number(utils.formatEther(ethBalance.toString()))
         })
       }
 
@@ -599,7 +598,7 @@ export class HealthCheckWatcher {
           chain: Chain.Gnosis,
           nativeToken: NativeChainToken.XDAI,
           amount: xdaiBalance.toString(),
-          amountFormatted: Number(formatEther(xdaiBalance.toString()))
+          amountFormatted: Number(utils.formatEther(xdaiBalance.toString()))
         })
       }
 
@@ -610,7 +609,7 @@ export class HealthCheckWatcher {
           chain: Chain.Polygon,
           nativeToken: NativeChainToken.MATIC,
           amount: maticBalance.toString(),
-          amountFormatted: Number(formatEther(maticBalance.toString()))
+          amountFormatted: Number(utils.formatEther(maticBalance.toString()))
         })
       }
     }
@@ -652,12 +651,12 @@ export class HealthCheckWatcher {
       }
 
       const tokenDecimals = getTokenDecimals(token)!
-      const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
-      const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
-      const oneToken = parseUnits('1', tokenDecimals)
-      const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
+      const availableLiquidityFormatted = Number(utils.formatUnits(availableLiquidity, tokenDecimals))
+      const totalLiquidityFormatted = Number(utils.formatUnits(totalLiquidity, tokenDecimals))
+      const oneToken = utils.parseUnits('1', tokenDecimals)
+      const thresholdPercent = utils.parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
       const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
-      const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
+      const thresholdAmountFormatted = Number(utils.formatUnits(thresholdAmount, tokenDecimals))
       if (availableLiquidity.lt(thresholdAmount) && availableLiquidity.gt(0)) {
         result.push({
           bridge: token,
@@ -872,7 +871,7 @@ export class HealthCheckWatcher {
           const transferRootId = event.args.transferRootId.toString()
           const originalAmount = event.args.originalAmount.toString()
           const tokenDecimals = getTokenDecimals(token)!
-          const originalAmountFormatted = Number(formatUnits(originalAmount, tokenDecimals))
+          const originalAmountFormatted = Number(utils.formatUnits(originalAmount, tokenDecimals))
           const data = {
             token,
             transactionHash,

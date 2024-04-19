@@ -3,7 +3,7 @@ import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { BigNumber } from 'ethers'
 import { ChainSlug, Hop, Token } from '@hop-protocol/sdk'
-import { formatUnits } from 'ethers/lib/utils'
+import { utils } from 'ethers'
 import { getDefaultSendGasLimit } from 'src/utils/getDefaultSendGasLimit'
 import { useApp } from 'src/contexts/AppContext'
 import { useCallback, useState } from 'react'
@@ -62,7 +62,7 @@ async function estimateGasCost(fromNetwork: Network, toNetwork: Network | null, 
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
     const gasCost = (estimatedGasLimit.add(bufferGas)).mul(gasPrice)
-    console.log('gasCost estimate:', formatUnits(gasCost.toString(), 18), 'gasPrice', formatUnits(gasPrice.toString(), 9), 'gasLimit:', estimatedGasLimit.toString())
+    console.log('gasCost estimate:', utils.formatUnits(gasCost.toString(), 18), 'gasPrice', utils.formatUnits(gasPrice.toString(), 9), 'gasLimit:', estimatedGasLimit.toString())
     return gasCost
   } catch (err) {
     logger.error('estimateGasCost error:', err)

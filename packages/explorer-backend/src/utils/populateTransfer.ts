@@ -5,7 +5,7 @@ import { chainSlugToName } from './chainSlugToName'
 import { explorerLinkAddress } from './explorerLinkAddress'
 import { explorerLinkTx } from './explorerLinkTx'
 import { formatCurrency } from './formatCurrency'
-import { formatUnits } from 'ethers/lib/utils'
+import { utils } from 'ethers'
 import { getChainLogo } from './getChainLogo'
 import { getTokenDecimals } from './getTokenDecimals'
 import { getTokenLogo } from './getTokenLogo'
@@ -172,10 +172,10 @@ export function populateTransfer (item: any, prices?: Record<string, any>) {
   if (item.token) {
     const decimals = getTokenDecimals(item.token)
     if (!item.amountFormatted && item.amount) {
-      item.amountFormatted = Number(formatUnits(item.amount, decimals))
+      item.amountFormatted = Number(utils.formatUnits(item.amount, decimals))
     }
     if (!item.bonderFeeFormatted) {
-      item.bonderFeeFormatted = item.bonderFee ? Number(formatUnits(item.bonderFee, decimals)) : 0
+      item.bonderFeeFormatted = item.bonderFee ? Number(utils.formatUnits(item.bonderFee, decimals)) : 0
     }
   }
   if (!item.amountDisplay && item.amountFormatted != null) {

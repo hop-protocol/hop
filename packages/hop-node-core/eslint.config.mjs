@@ -23,7 +23,7 @@ export default tseslint.config(
       '@typescript-eslint/restrict-template-expressions': 'error',
       '@typescript-eslint/no-base-to-string': 'error',
       'unusedImports/no-unused-imports': 'error',
-      '@typescript-eslint/no-redundant-type-constituents': 'error',
+      // '@typescript-eslint/no-redundant-type-constituents': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
 
       /**

@@ -1,13 +1,12 @@
 import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
 import wallets from '#wallets/index.js'
-import { BigNumber, Contract, type Signer, constants } from 'ethers'
+import { BigNumber, Contract, type Signer, constants, utils } from 'ethers'
 import { Chain } from '#constants/index.js'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { Logger } from '#logger/index.js'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { ERC20__factory } from '@hop-protocol/sdk/contracts'
-import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
 import type { SwapInput } from '../types.js'
 
@@ -223,9 +222,9 @@ export async function swap (config: SwapInput) {
   let parsedAmount: BigNumber
   if (max) {
     parsedAmount = balance
-    amount = Number(formatUnits(parsedAmount, decimals))
+    amount = Number(utils.formatUnits(parsedAmount, decimals))
   } else {
-    parsedAmount = parseUnits(amount.toString(), decimals)
+    parsedAmount = utils.parseUnits(amount.toString(), decimals)
   }
 
   logger.debug('getting trade route')

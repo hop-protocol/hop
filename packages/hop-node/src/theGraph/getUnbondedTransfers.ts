@@ -4,7 +4,7 @@ import makeRequest from './makeRequest.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { formatUnits } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { padHex } from '#utils/padHex.js'
 
@@ -670,8 +670,8 @@ function populateTransfer (x: any, i: number) {
   x.receiveStatusUnknown = x.sourceChain === 1 && !x.bonded && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 5)
 
   const decimals = getTokenDecimals(x.token)
-  x.formattedAmount = Number(formatUnits(x.amount, decimals))
-  x.formattedBonderFee = x.bonderFee ? Number(formatUnits(x.bonderFee, decimals)) : 0
+  x.formattedAmount = Number(utils.formatUnits(x.amount, decimals))
+  x.formattedBonderFee = x.bonderFee ? Number(utils.formatUnits(x.bonderFee, decimals)) : 0
 
   return x
 }

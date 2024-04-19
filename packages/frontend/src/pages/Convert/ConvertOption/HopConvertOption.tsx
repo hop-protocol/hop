@@ -2,12 +2,11 @@ import ConvertOption, { SendData } from './ConvertOption'
 import { ChainSlug } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import React, { ReactNode } from 'react'
-import { BigNumber, BigNumberish, Signer } from 'ethers'
+import { BigNumber, BigNumberish, Signer, utils } from 'ethers'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { RelayableChains } from 'src/utils/constants'
-import { getAddress } from 'ethers/lib/utils'
 import { getBonderFeeWithId, toTokenDisplay } from 'src/utils'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
@@ -57,7 +56,7 @@ class HopConvertOption extends ConvertOption {
 
     try {
       if (customRecipient) {
-        getAddress(customRecipient) // attempts to checksum
+        utils.getAddress(customRecipient) // attempts to checksum
       }
     } catch (err) {
       throw new Error('Custom recipient address is invalid')

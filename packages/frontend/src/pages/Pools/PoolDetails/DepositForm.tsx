@@ -4,11 +4,10 @@ import TokenWrapper from 'src/components/TokenWrapper'
 import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 import { BalanceText } from 'src/pages/Pools/components/BalanceText'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { Button } from 'src/components/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { InputField } from 'src/pages/Pools/components/InputField'
-import { formatUnits } from 'ethers/lib/utils'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { sanitizeNumericalString } from 'src/utils'
 
@@ -88,14 +87,14 @@ export function DepositForm(props: Props) {
 
   function handleBalance0Max (value: BigNumber) {
     try {
-      setToken0Amount(formatUnits(value, tokenDecimals))
+      setToken0Amount(utils.formatUnits(value, tokenDecimals))
     } catch (err) {
     }
   }
 
   function handleBalance1Max (value: BigNumber) {
     try {
-      setToken1Amount(formatUnits(value, tokenDecimals))
+      setToken1Amount(utils.formatUnits(value, tokenDecimals))
     } catch (err) {
     }
   }

@@ -1,13 +1,12 @@
 import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import useQueryParams from 'src/hooks/useQueryParams'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, Contract, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { ShardedMerkleTree } from './merkle'
 import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { findNetworkBySlug, networkIdToSlug } from 'src/utils/networks'
 import { formatError } from 'src/utils/format'
-import { getAddress } from 'ethers/lib/utils'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { getTokenImage } from 'src/utils/tokens'
 import { isGoerli, isMainnet, reactAppNetwork } from 'src/config'
@@ -414,7 +413,7 @@ export const useRewards = (props: Props) => {
           setClaimRecipient(address?.address)
         }
       } else {
-        const recipient = getAddress(inputValue)
+        const recipient = utils.getAddress(inputValue)
         setClaimRecipient(recipient)
       }
     } catch (err) {

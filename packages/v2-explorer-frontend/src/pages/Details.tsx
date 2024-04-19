@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { SiteWrapper } from '../components/SiteWrapper'
-import { formatEther, formatUnits } from 'ethers/lib/utils'
+import { utils } from 'ethers'
 // import { ExplorerEvents } from '../components/ExplorerEvents'
 import Box from '@mui/material/Box'
 import CheckIcon from '@mui/icons-material/Check'
@@ -80,7 +80,7 @@ export function Details () {
         ])
         if (tx) {
           setTxValue(tx?.value?.toString())
-          setTxValueFormatted(`${formatEther(tx?.value?.toString())} ETH`)
+          setTxValueFormatted(`${utils.formatEther(tx?.value?.toString())} ETH`)
           setGasLimit(tx?.gasLimit?.toString())
           setNonce(tx?.nonce?.toString())
           if (receipt) {
@@ -90,7 +90,7 @@ export function Details () {
             setSourceTxTo(receipt?.to?.toString())
             if ((tx as any)?.gasPrice) {
               setGasPrice((tx as any)?.gasPrice?.toString())
-              setGasPriceFormatted(`${formatUnits((tx as any)?.gasPrice?.toString(), 9)} gwei`)
+              setGasPriceFormatted(`${utils.formatUnits((tx as any)?.gasPrice?.toString(), 9)} gwei`)
             }
           }
         }

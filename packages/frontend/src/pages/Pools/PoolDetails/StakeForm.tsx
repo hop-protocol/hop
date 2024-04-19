@@ -7,11 +7,10 @@ import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 import { BalanceText } from 'src/pages/Pools/components/BalanceText'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { Button } from 'src/components/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { InputField } from 'src/pages/Pools/components/InputField'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { sanitizeNumericalString } from 'src/utils'
 import { useStaking } from 'src/pages/Pools/useStaking'
@@ -81,7 +80,7 @@ export function StakeForm(props: Props) {
   function handleUnstakedClick (value: BigNumber) {
     try {
       setParsedAmount(value)
-      const _amount = formatUnits(value.toString(), 18)
+      const _amount = utils.formatUnits(value.toString(), 18)
       setAmount(_amount)
     } catch (err) {
     }
@@ -91,7 +90,7 @@ export function StakeForm(props: Props) {
     try {
       value = sanitizeNumericalString(value)
       setAmount(value)
-      const _parsedAmount = parseUnits(value || '0', 18)
+      const _parsedAmount = utils.parseUnits(value || '0', 18)
       setParsedAmount(_parsedAmount)
     } catch (err) {
       console.error(err)

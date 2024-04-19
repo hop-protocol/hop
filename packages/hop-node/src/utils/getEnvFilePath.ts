@@ -1,6 +1,6 @@
 import fs from 'node:fs'
-import minimist from 'minimist'
 import path from 'node:path'
+import minimist from 'minimist'
 
 export function getEnvFilePath (): string | undefined {
   const argv = minimist(process.argv.slice(2))

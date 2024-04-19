@@ -6,7 +6,7 @@ import React, { ChangeEvent, useEffect, useState } from 'react'
 import SelectOption from 'src/components/selects/SelectOption'
 import Typography from '@mui/material/Typography'
 import { BalanceText } from 'src/pages/Pools/components/BalanceText'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { Button } from 'src/components/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { InputField } from 'src/pages/Pools/components/InputField'
@@ -14,7 +14,6 @@ import { SelectChangeEvent } from '@mui/material/Select'
 import { Slider } from 'src/components/slider'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 import { commafy, formatTokenDecimalString, sanitizeNumericalString } from 'src/utils'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 type Props = {
   calculatePriceImpact: any
@@ -77,7 +76,7 @@ export function WithdrawForm(props: any) {
 
   useEffect(() => {
     const value = Number(amount)
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const sliderValue = 100 / (_balance / value)
     setAmountSliderValue(sliderValue)
   }, [amount])
@@ -88,7 +87,7 @@ export function WithdrawForm(props: any) {
 
   useEffect(() => {
     try {
-      setAmountBN(parseUnits((amount || 0).toString(), tokenDecimals))
+      setAmountBN(utils.parseUnits((amount || 0).toString(), tokenDecimals))
     } catch (err) {
     }
   }, [amount])
@@ -138,8 +137,8 @@ export function WithdrawForm(props: any) {
     if (!token1AmountBn) {
       return
     }
-    const _amount0 = Number(formatUnits(token0AmountBn, tokenDecimals))
-    const _amount1 = Number(formatUnits(token1AmountBn, tokenDecimals))
+    const _amount0 = Number(utils.formatUnits(token0AmountBn, tokenDecimals))
+    const _amount1 = Number(utils.formatUnits(token1AmountBn, tokenDecimals))
     const _amount0Percent = _amount0 * percent / 100
     const _amount1Percent = _amount1 * percent / 100
     const amount0 = commafy(_amount0Percent.toFixed(5), 5)
@@ -156,7 +155,7 @@ export function WithdrawForm(props: any) {
   }
 
   function handleAmountSliderChange (percent: number) {
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const _amount = (_balance ?? 0) * (percent / 100)
     setAmount(_amount.toFixed(5))
     if (percent === 100) {
@@ -165,7 +164,7 @@ export function WithdrawForm(props: any) {
   }
 
   function handleMaxClick (_value: BigNumber) {
-    setAmount(formatUnits(_value.toString(), tokenDecimals))
+    setAmount(utils.formatUnits(_value.toString(), tokenDecimals))
     setAmountBN(_value)
   }
 

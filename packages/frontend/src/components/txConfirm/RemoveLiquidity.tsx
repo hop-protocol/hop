@@ -5,12 +5,11 @@ import SelectOption from 'src/components/selects/SelectOption'
 import Typography from '@mui/material/Typography'
 import logger from 'src/logger'
 import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { Button } from 'src/components/Button'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { NetworkTokenEntity, commafy } from 'src/utils'
 import { Slider } from 'src/components/slider'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles((theme: any) => ({
@@ -98,8 +97,8 @@ const RemoveLiquidity = (props: Props) => {
   }
 
   const updateDisplayAmount = (percent: number = amountPercent) => {
-    const _amount0 = Number(formatUnits(token0.amount, tokenDecimals))
-    const _amount1 = Number(formatUnits(token1.amount, tokenDecimals))
+    const _amount0 = Number(utils.formatUnits(token0.amount, tokenDecimals))
+    const _amount1 = Number(utils.formatUnits(token1.amount, tokenDecimals))
     const amount0 = commafy((_amount0 * (percent / 100)).toFixed(5), 5)
     const amount1 = commafy((_amount1 * (percent / 100)).toFixed(5), 5)
     const display = `${amount0} ${token0.token.symbol} + ${amount1} ${token1.token.symbol}`
@@ -112,7 +111,7 @@ const RemoveLiquidity = (props: Props) => {
   }
 
   const handleAmountSliderChange = (percent: number) => {
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const _amount = (_balance ?? 0) * (percent / 100)
     setAmount(_amount.toFixed(5))
     if (percent === 100) {
@@ -133,7 +132,7 @@ const RemoveLiquidity = (props: Props) => {
 
   const handleAmountChange = (_amount: string) => {
     const value = Number(_amount)
-    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _balance = Number(utils.formatUnits(maxBalance, tokenDecimals))
     const sliderValue = 100 / (_balance / value)
     setAmount(_amount)
     setAmountSliderValue(sliderValue)
@@ -144,7 +143,7 @@ const RemoveLiquidity = (props: Props) => {
   }, [])
 
   useEffect(() => {
-    setAmountBN(parseUnits((amount || 0).toString(), tokenDecimals))
+    setAmountBN(utils.parseUnits((amount || 0).toString(), tokenDecimals))
   }, [amount])
 
   useEffect(() => {

@@ -1,17 +1,23 @@
-import { actionHandler, root } from './shared/index.js'
+import { actionHandler, parseString, root } from './shared/index.js'
 
 import { wait } from '@hop-protocol/hop-node-core/utils'
-
 root
   .command('refresh-api-stats')
   .description('Refresh API stats')
+  .option('--start-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD', parseString)
   .action(actionHandler(main))
 
 async function main (source: any) {
+  const { startDate } = source
   //Config
   const numPages = 2
   const waitTimeMs = 2000
-  const startDate = '2024-04-03'
+
+  if (!startDate) {
+    throw new Error('startDate is required')
+  }
+
+  console.log(`Refreshing API stats from ${startDate}`)
 
   // Fetch pending transfers
   const apiBaseUrl = 'https://explorer-api.hop.exchange'
@@ -37,7 +43,7 @@ async function main (source: any) {
   // Fetch transfer details to refresh
   for (const transferId of pendingTransferIds) {
     console.log(`Refreshing transfer ${transferId}`)
-    const transferQueryUrl = `${apiBaseUrl}/v1/transfers?transferId=${transferId}`
+    const transferQueryUrl = `${apiBaseUrl}/v1/transfers?transferId=${transferId}&refresh=true`
     await fetch(transferQueryUrl)
     await wait(waitTimeMs)
   }

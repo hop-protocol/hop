@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { formatUnits } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { networks } from '@hop-protocol/sdk/networks'
 import type { ChainSlug } from '@hop-protocol/sdk/config'
@@ -50,10 +50,10 @@ export function normalizeEntity (x: any) {
 
   // TODO: use correct decimal places for future assets
   if (x.amount) {
-    x.formattedAmount = formatUnits(x.amount, decimals)
+    x.formattedAmount = utils.formatUnits(x.amount, decimals)
   }
   if (x.bonderFee) {
-    x.formattedBonderFee = formatUnits(x.bonderFee, decimals)
+    x.formattedBonderFee = utils.formatUnits(x.bonderFee, decimals)
   }
 
   x.blockNumber = Number(x.blockNumber)

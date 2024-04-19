@@ -6,7 +6,7 @@ import {
 } from '#config/index.js'
 import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
-import { computeAddress } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { main as enableCCTP } from './shared/cctp.js'
 import {
   gitRev,
@@ -138,7 +138,7 @@ async function main (source: any) {
     if (!globalConfig.bonderPrivateKey.startsWith('0x')) {
       privateKey = '0x' + privateKey
     }
-    const bonderPublicAddress = computeAddress(privateKey)
+    const bonderPublicAddress = utils.computeAddress(privateKey)
     logger.info('Bonder public address:', bonderPublicAddress)
   }
 

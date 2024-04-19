@@ -9,7 +9,7 @@ import { EthAddress } from 'src/components/ui/EthAddress'
 import { ExternalLink } from 'src/components/Link'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { StyledButton } from 'src/components/Button/StyledButton'
-import { getAddress } from 'ethers/lib/utils'
+import { utils } from 'ethers'
 import { useClaim } from 'src/pages/Claim/useClaim'
 import { useDistribution } from 'src/pages/Airdrop/AirdropPreview/useDistribution'
 import { useNavigate } from 'react-router-dom'
@@ -41,7 +41,7 @@ export function AirdropPreview() {
 
   async function handleAddressChange(_address: string) {
     try {
-      setAirdropAddress(getAddress(_address))
+      setAirdropAddress(utils.getAddress(_address))
     } catch (err) {
       console.error(err)
       setAirdropAddress('')

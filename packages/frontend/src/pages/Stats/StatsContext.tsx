@@ -2,10 +2,9 @@ import Network from 'src/models/Network'
 import React, { FC, ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react'
 import Token from 'src/models/Token'
 import logger from 'src/logger'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { CanonicalToken, HToken } from '@hop-protocol/sdk'
 import { findNetworkBySlug } from 'src/utils'
-import { formatEther, formatUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { retryPromise } from 'src/utils/retryPromise'
 import { useApp } from 'src/contexts/AppContext'
@@ -172,8 +171,8 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       return
     }
     const reserves = await bridge.getSaddleSwapReserves(selectedNetwork.slug)
-    const reserve0 = Number(formatUnits(reserves[0].toString(), decimals))
-    const reserve1 = Number(formatUnits(reserves[1].toString(), decimals))
+    const reserve0 = Number(utils.formatUnits(reserves[0].toString(), decimals))
+    const reserve1 = Number(utils.formatUnits(reserves[1].toString(), decimals))
     const id = `${selectedNetwork.slug}-${token0.symbol}-${token1.symbol}`
 
     return {
@@ -263,15 +262,15 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       bonder,
       token,
       network: selectedNetwork,
-      credit: Number(formatUnits(credit.toString(), token.decimals)),
-      debit: Number(formatUnits(totalDebit.toString(), token.decimals)),
-      availableLiquidity: Number(formatUnits(availableLiquidity.toString(), token.decimals)),
-      pendingAmount: Number(formatUnits(pendingAmount.toString(), token.decimals)),
-      virtualDebt: Number(formatUnits(virtualDebt.toString(), token.decimals)),
+      credit: Number(utils.formatUnits(credit.toString(), token.decimals)),
+      debit: Number(utils.formatUnits(totalDebit.toString(), token.decimals)),
+      availableLiquidity: Number(utils.formatUnits(availableLiquidity.toString(), token.decimals)),
+      pendingAmount: Number(utils.formatUnits(pendingAmount.toString(), token.decimals)),
+      virtualDebt: Number(utils.formatUnits(virtualDebt.toString(), token.decimals)),
       totalAmount: Number(
-        formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
+        utils.formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
       ),
-      availableNative: Number(formatEther(nativeBalance.toString())),
+      availableNative: Number(utils.formatEther(nativeBalance.toString())),
     }
   }
 
@@ -350,7 +349,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const id = `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`
     const contract = await bridge.getBridgeContract(sourceNetwork.slug)
     const pendingAmount = await contract.pendingAmountForChainId(destinationNetwork.networkId)
-    const formattedPendingAmount = Number(formatUnits(pendingAmount, token.decimals))
+    const formattedPendingAmount = Number(utils.formatUnits(pendingAmount, token.decimals))
     const al = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
       destinationNetwork.slug
@@ -432,7 +431,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
 
     const balance = await bridge.getEthBalance(slug, address)
-    const formattedBalance: number = Number(formatEther(balance))
+    const formattedBalance: number = Number(utils.formatEther(balance))
 
     const n = findNetworkBySlug(slug)
     return {
@@ -517,7 +516,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     for (let i = 0; i < Number(numTimeSlots); i++) {
       const timeSlot: number = Number(currentTimeSlot.sub(i))
       const amount: BigNumber = await bridge.timeSlotToAmountBonded(timeSlot, bonder)
-      amountBonded.push(Number(formatUnits(amount.toString(), token.decimals)))
+      amountBonded.push(Number(utils.formatUnits(amount.toString(), token.decimals)))
     }
 
     const timeElapsedInSlot: number = currentTime % Number(timeSlotSize)

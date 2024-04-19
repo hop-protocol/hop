@@ -1,11 +1,5 @@
 /*
-import { BigNumber } from 'ethers'
-import {
-  parseUnits,
-  formatEther,
-  parseEther,
-  formatUnits
-} from 'ethers/lib/utils'
+import { BigNumber, utils } from 'ethers'
 import BonderBalanceStats from 'src/BonderBalanceStats'
 
 const data: any = {
@@ -428,33 +422,33 @@ const data: any = {
 }
 
 const initialAggregateBalances: any = {
-  USDC: parseUnits('6026000', 6),
-  USDT: parseUnits('2121836', 6),
-  DAI: parseUnits('5000000', 18),
-  ETH: parseUnits('3984', 18),
-  MATIC: parseUnits('731948.94', 18)
+  USDC: utils.parseUnits('6026000', 6),
+  USDT: utils.parseUnits('2121836', 6),
+  DAI: utils.parseUnits('5000000', 18),
+  ETH: utils.parseUnits('3984', 18),
+  MATIC: utils.parseUnits('731948.94', 18)
 }
 
 const initialAggregateNativeBalances: any = {
   USDC: {
-    ethereum: parseUnits('14', 18)
+    ethereum: utils.parseUnits('14', 18)
   }
 }
 
 const initialUnstakedAmounts: any = {
-  USDC: parseUnits('0', 6),
-  USDT: parseUnits('0', 6),
-  DAI: parseUnits('0', 18),
-  ETH: parseEther('0'),
-  MATIC: parseUnits('0', 18)
+  USDC: utils.parseUnits('0', 6),
+  USDT: utils.parseUnits('0', 6),
+  DAI: utils.parseUnits('0', 18),
+  ETH: utils.parseEther('0'),
+  MATIC: utils.parseUnits('0', 18)
 }
 
 const restakedProfits: any = {
-  USDC: parseUnits('11988.7', 6),
-  USDT: parseUnits('0', 6),
-  DAI: parseUnits('0', 18),
-  ETH: parseEther('10'),
-  MATIC: parseUnits('0', 18)
+  USDC: utils.parseUnits('11988.7', 6),
+  USDT: utils.parseUnits('0', 6),
+  DAI: utils.parseUnits('0', 18),
+  ETH: utils.parseEther('10'),
+  MATIC: utils.parseUnits('0', 18)
 }
 
 const prices: any = {

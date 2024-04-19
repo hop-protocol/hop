@@ -1,7 +1,7 @@
 import ContractBase from './ContractBase.js'
 import getTokenMetadataByAddress from '#utils/getTokenMetadataByAddress.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import {
   Chain,
   Token
@@ -17,7 +17,6 @@ import {
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
-import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils.js'
 import {
   getNetworkCustomSyncType,
   config as globalConfig
@@ -572,19 +571,19 @@ export default class Bridge extends ContractBase {
     if (!value) {
       return 0
     }
-    return Number(formatUnits(value?.toString() ?? '', this.tokenDecimals))
+    return Number(utils.formatUnits(value?.toString() ?? '', this.tokenDecimals))
   }
 
   parseUnits (value: string | number) {
-    return parseUnits(value.toString(), this.tokenDecimals)
+    return utils.parseUnits(value.toString(), this.tokenDecimals)
   }
 
   formatEth (value: BigNumber) {
-    return Number(formatUnits(value.toString(), 18))
+    return Number(utils.formatUnits(value.toString(), 18))
   }
 
   parseEth (value: string | number) {
-    return parseUnits(value.toString(), 18)
+    return utils.parseUnits(value.toString(), 18)
   }
 
   protected async mapEventsBatch<E extends Event, R> (
@@ -855,7 +854,7 @@ export default class Bridge extends ContractBase {
       minBonderFeeUsd = 0.10
     }
     const tokenDecimals = getTokenDecimals(tokenSymbol)
-    let minBonderFeeAbsolute = parseUnits(
+    let minBonderFeeAbsolute = utils.parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
     )
@@ -927,7 +926,7 @@ export default class Bridge extends ContractBase {
       try {
         const txType = 0
         const tx = {
-          value: parseEther('0'),
+          value: utils.parseEther('0'),
           gasPrice,
           gasLimit,
           to,
@@ -952,7 +951,7 @@ export default class Bridge extends ContractBase {
       priceUsdWei: nativeTokenPriceUsdWei
     } = await this.getGasCostTokenValues(chainNativeTokenSymbol)
 
-    const multiplier = parseEther('1')
+    const multiplier = utils.parseEther('1')
     const rate = (nativeTokenPriceUsdWei.mul(multiplier)).div(tokenPriceUsdWei)
     const exponent = nativeTokenDecimals - tokenDecimals
 
@@ -979,7 +978,7 @@ export default class Bridge extends ContractBase {
     if (typeof priceUsd !== 'number') {
       throw new Error('expected price to be number type')
     }
-    const priceUsdWei = parseEther(priceUsd.toString())
+    const priceUsdWei = utils.parseEther(priceUsd.toString())
     return {
       decimals,
       priceUsd,

@@ -1,6 +1,6 @@
 import Db, { getInstance } from './Db'
 import wait from 'wait'
-import { BigNumber, ethers, providers } from 'ethers'
+import { BigNumber, ethers, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
 import { cache } from './cache'
@@ -23,7 +23,6 @@ import {
   fetchTransferSentsForTransferId,
   fetchWithdrews
 } from './theGraph'
-import { formatUnits } from 'ethers/lib/utils'
 import { getPreRegenesisBondEvent } from './preregenesis'
 import { getPriceHistory } from './price'
 import { getProxyAddress } from './utils/getProxyAddress'
@@ -412,7 +411,7 @@ export class TransferStats {
       if (amount.gt(0)) {
         const amountReceived = amount.toString()
         const decimals = getTokenDecimals(item.token)
-        const amountReceivedFormatted = Number(formatUnits(amountReceived, decimals))
+        const amountReceivedFormatted = Number(utils.formatUnits(amountReceived, decimals))
         return { amountReceived, amountReceivedFormatted }
       }
 
@@ -1372,10 +1371,10 @@ export class TransferStats {
           if (token) {
             const decimals = getTokenDecimals(token)
             if (amount) {
-              amountFormatted = Number(formatUnits(amount, decimals))
+              amountFormatted = Number(utils.formatUnits(amount, decimals))
             }
             if (bonderFee) {
-              bonderFeeFormatted = Number(formatUnits(bonderFee, decimals))
+              bonderFeeFormatted = Number(utils.formatUnits(bonderFee, decimals))
             }
           }
         }

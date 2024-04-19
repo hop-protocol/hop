@@ -9,8 +9,5 @@
       "src/*": ["./src/*"]
     }
   },
-  "include": [
-    "src",
-    "src/**/*.json" // Required to include JSON files specifically
-  ]
+  "include": ["src"]
 }

@@ -8,9 +8,9 @@ WORKDIR /app
 
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
-# RUN pnpm --filter=@hop-protocol/v2-sdk build
-RUN pnpm --filter=@hop-protocol/v2-explorer-backend build
-RUN pnpm --filter=@hop-protocol/v2-explorer-backend deploy --prod /prod/app
+# RUN pnpm --filter=v2-sdk build
+RUN pnpm --filter=v2-explorer-backend build
+RUN pnpm --filter=v2-explorer-backend deploy --prod /prod/app
 
 FROM base
 COPY --from=build /prod/app /prod/app

@@ -1,16 +1,4 @@
-import { BigNumber, Signer } from 'ethers'
-import {
-  getAddress as checksumAddress,
-  defineReadOnly,
-  hashMessage,
-  joinSignature,
-  keccak256,
-  parseTransaction,
-  recoverAddress,
-  resolveProperties,
-  serializeTransaction,
-  splitSignature
-} from 'ethers/lib/utils.js'
+import { BigNumber, Signer, utils } from 'ethers'
 import type { providers } from 'ethers'
 // @ts-expect-error asn1.js does not have a types file as of 20231227
 import asn1 from 'asn1.js'
@@ -53,7 +41,7 @@ export abstract class AwsSigner extends Signer {
       throw new Error('awsKeyId is required')
     }
     this.awsKeyId = awsKeyId
-    defineReadOnly(this, 'provider', provider)
+    utils.defineReadOnly(this, 'provider', provider)
   }
 
   get keyId () {
@@ -61,32 +49,32 @@ export abstract class AwsSigner extends Signer {
   }
 
   recoverAddressFromSig (msg: Buffer | string, signature: string): string {
-    const msgHash = hashMessage(msg)
-    const { r, s, v } = splitSignature(signature)
-    return recoverAddress(msgHash, { r, s, v })
+    const msgHash = utils.hashMessage(msg)
+    const { r, s, v } = utils.splitSignature(signature)
+    return utils.recoverAddress(msgHash, { r, s, v })
   }
 
   async recoverAddressFromTxSig (transaction: providers.TransactionRequest, signature: string): Promise<string> {
-    const unsignedTx: any = await resolveProperties(transaction)
-    const serializedTx = serializeTransaction(unsignedTx)
-    const hash = keccak256(serializedTx)
+    const unsignedTx: any = await utils.resolveProperties(transaction)
+    const serializedTx = utils.serializeTransaction(unsignedTx)
+    const hash = utils.keccak256(serializedTx)
 
     // Parse signature
-    const parsedTransaction = parseTransaction(signature)
+    const parsedTransaction = utils.parseTransaction(signature)
     const { r, s, v } = parsedTransaction
     if (!r || !s || !v) {
       throw new Error('signature is invalid. r, s, and v are required')
     }
 
-    return recoverAddress(hash, { r, s, v })
+    return utils.recoverAddress(hash, { r, s, v })
   }
 
   getEthereumAddress (publicKey: Buffer): string {
     const res = EcdsaPubKey.decode(publicKey, 'der')
     const pubKeyBuffer = res.pubKey.data.slice(1)
-    const pubKeyHash = keccak256(pubKeyBuffer)
+    const pubKeyHash = utils.keccak256(pubKeyBuffer)
     const address = `0x${pubKeyHash.slice(-40)}`
-    return checksumAddress(address)
+    return utils.getAddress(address)
   }
 
   normalizeTransaction (transaction: providers.TransactionRequest): providers.TransactionRequest {
@@ -100,17 +88,17 @@ export abstract class AwsSigner extends Signer {
   async getJoinedSignature (msg: Buffer, signature: Buffer): Promise<string> {
     const { r, s } = this.getSigRs(signature)
     const { v } = await this.getSigV(msg, { r, s })
-    const joinedSignature = joinSignature({ r, s, v })
+    const joinedSignature = utils.joinSignature({ r, s, v })
     return joinedSignature
   }
 
   async getSigV (msgHash: Buffer, { r, s }: { r: string, s: string }) {
     const address = await this.getAddress()
     let v = 27
-    let recovered = recoverAddress(msgHash, { r, s, v })
+    let recovered = utils.recoverAddress(msgHash, { r, s, v })
     if (!this.addressEquals(recovered, address)) {
       v = 28
-      recovered = recoverAddress(msgHash, { r, s, v })
+      recovered = utils.recoverAddress(msgHash, { r, s, v })
     }
     if (!this.addressEquals(recovered, address)) {
       throw new Error('signature is invalid. recovered address does not match')

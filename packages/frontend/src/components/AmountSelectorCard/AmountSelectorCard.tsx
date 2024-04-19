@@ -5,11 +5,10 @@ import React, { ChangeEvent, FC, useCallback, useMemo } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import clsx from 'clsx'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { LargeTextField } from 'src/components/LargeTextField'
 import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
-import { formatUnits, parseEther } from 'ethers/lib/utils'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 
 type AmountSelectorProps = {
@@ -72,7 +71,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   const balanceDisplay = useMemo(() => {
     let label: string = ''
     if (token && balance) {
-      label = formatUnits(balance, token?.decimals)
+      label = utils.formatUnits(balance, token?.decimals)
       label = commafy(label, decimalPlaces)
     }
     return label
@@ -81,7 +80,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   const secondaryBalanceDisplay = useMemo(() => {
     let label: string = ''
     if (secondaryToken && secondaryBalance) {
-      label = formatUnits(secondaryBalance, secondaryToken?.decimals)
+      label = utils.formatUnits(secondaryBalance, secondaryToken?.decimals)
       label = commafy(label, decimalPlaces)
     }
     return label
@@ -110,7 +109,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       }
       if (maxButtonLeaveSmallAmount) {
         const tokenSymbol = options?.token?.symbol
-        const smallAmount = tokenSymbol === 'XDAI' || tokenSymbol === 'MATIC' ? parseEther('1') : parseEther('0.001')
+        const smallAmount = tokenSymbol === 'XDAI' || tokenSymbol === 'MATIC' ? utils.parseEther('1') : utils.parseEther('0.001')
         if (tokenSymbol === 'XDAI' || tokenSymbol === 'MATIC' || tokenSymbol === 'ETH') {
           if (totalAmount.gt(smallAmount)) {
             // leave a little bit of native token for gas
@@ -118,10 +117,10 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
           }
         }
       }
-      return formatUnits(totalAmount, selectedToken.decimals)
+      return utils.formatUnits(totalAmount, selectedToken.decimals)
     }
 
-    return formatUnits(balance, selectedToken.decimals)
+    return utils.formatUnits(balance, selectedToken.decimals)
   }
 
   const handleMaxClick = useCallback(async () => {
@@ -129,7 +128,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       return
     }
 
-    let maxValue = formatUnits(balance, token.decimals)
+    let maxValue = utils.formatUnits(balance, token.decimals)
 
     if (token?.isNativeToken && methodName) {
       const opts = {
@@ -149,7 +148,7 @@ export const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       return
     }
 
-    let maxValue = formatUnits(secondaryBalance, secondaryToken.decimals)
+    let maxValue = utils.formatUnits(secondaryBalance, secondaryToken.decimals)
 
     if (secondaryToken?.isNativeToken && methodName) {
       const opts = {

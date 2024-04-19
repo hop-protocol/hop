@@ -5,11 +5,10 @@ import React, { ChangeEvent, FC, useMemo } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import logger from 'src/logger'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { LargeTextField } from 'src/components/LargeTextField'
 import { NetworkSelector } from 'src/components/NetworkSelector'
 import { Token } from '@hop-protocol/sdk'
-import { formatUnits } from 'ethers/lib/utils'
 import { toTokenDisplay } from 'src/utils'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 
@@ -101,7 +100,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
       totalAmount = BigNumber.from(0)
     }
 
-    const maxValue = formatUnits(totalAmount, token.decimals)
+    const maxValue = utils.formatUnits(totalAmount, token.decimals)
     onChange(maxValue)
   }
 

@@ -1176,8 +1176,12 @@ export class Base {
       throw new Error('chain is required')
     }
 
-    chain = this.toChainModel(chain)
-    const code = await chain.provider!.getCode(address)
+    const signer = await this.getSignerOrProvider(chain)
+    if (!(Signer.isSigner(signer) && signer.provider)) {
+      throw new Error('signer provider is missing')
+    }
+
+    const code = await (signer as Signer).provider!.getCode(address)
     if (!code) {
       return false
     }

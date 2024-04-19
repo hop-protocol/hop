@@ -1278,17 +1278,23 @@ class SyncWatcher extends BaseWatcher {
     }
 
     logger.debug(`found transfer ids for transfer root hash ${transferRootHash}`, JSON.stringify(transferIds))
+    console.log('settleDebug000', transferRootId)
     const tree = new MerkleTree(transferIds)
+    console.log('settleDebug111', transferRootId)
     const computedTransferRootHash = tree.getHexRoot()
+    console.log('settleDebug222', transferRootId)
     if (computedTransferRootHash !== transferRootHash) {
+      console.log('settleDebug333', transferRootId)
       logger.warn(`computed root doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. IDs: ${JSON.stringify(transferIds)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 
+    console.log('settleDebug444', transferRootId)
     await this.db.transferRoots.update(transferRootId, {
       transferIds
     })
+    console.log('settleDebug555', transferRootId)
   }
 
   async checkTransferIdsForRoot (dbTransferRoot: TransferRoot): Promise<string[] | undefined> {

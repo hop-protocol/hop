@@ -1,14 +1,9 @@
-import { AwsSigner, AwsSignerConfig } from './AwsSigner.js'
+import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { TextDecoder } from 'node:util'
-import {
-  arrayify,
-  keccak256,
-  resolveProperties,
-  serializeTransaction
-} from 'ethers/lib/utils.js'
 import { awsAccessKeyId, awsSecretAccessKey } from '#config/index.js'
-import { providers } from 'ethers'
+import { utils } from 'ethers'
+import type { providers } from 'ethers'
 
 type LambdaSignerConfig = AwsSignerConfig & {
   lambdaFunctionName: string
@@ -20,8 +15,8 @@ const enum ActionTypes {
 }
 
 export class LambdaSigner extends AwsSigner {
-  config: LambdaSignerConfig
-  address: string
+  config!: LambdaSignerConfig
+  address!: string
   client: LambdaClient
   lambdaFunctionName: string
 
@@ -64,15 +59,15 @@ export class LambdaSigner extends AwsSigner {
 
   async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
     const normalizedTransaction = this.normalizeTransaction(transaction)
-    const unsignedTx: any = await resolveProperties(normalizedTransaction)
-    const serializedTx = serializeTransaction(unsignedTx)
-    const hash = keccak256(serializedTx)
+    const unsignedTx: any = await utils.resolveProperties(normalizedTransaction)
+    const serializedTx = utils.serializeTransaction(unsignedTx)
+    const hash = utils.keccak256(serializedTx)
     const txSig: string = await this._signDigest(hash, normalizedTransaction)
-    return serializeTransaction(unsignedTx, txSig)
+    return utils.serializeTransaction(unsignedTx, txSig)
   }
 
   private async _signDigest (digest: Buffer | string, transaction?: providers.TransactionRequest): Promise<string> {
-    const msg = Buffer.from(arrayify(digest))
+    const msg = Buffer.from(utils.arrayify(digest))
     const signature: Buffer = await this._getSig(msg, transaction)
     if (signature.length === 0) {
       throw new Error('Error signing message')

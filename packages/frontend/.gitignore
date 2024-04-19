@@ -43,3 +43,4 @@ dist-ssr
 _archive
 
 yarn.lock
+.npmignore

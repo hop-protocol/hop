@@ -1,6 +1,6 @@
-import { Notifier } from './interfaces.js'
 import { WebClient } from '@slack/web-api'
 import { slackAuthToken, slackChannel, slackErrorChannel, slackInfoChannel, slackLogChannel, slackSuccessChannel, slackUsername, slackWarnChannel } from '#config/index.js'
+import type { Notifier } from './interfaces.js'
 
 type MessageOptions = {
   channel: string
@@ -8,9 +8,9 @@ type MessageOptions = {
 
 export class SlackClient implements Notifier {
   private static readonly instance: SlackClient
-  client: WebClient
-  channel: string
-  label: string
+  private readonly client!: WebClient
+  private readonly channel!: string
+  private readonly label!: string
 
   constructor (label: string = '') {
     if (!slackAuthToken) {

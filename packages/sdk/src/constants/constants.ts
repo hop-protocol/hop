@@ -9,9 +9,9 @@ export enum TokenIndex {
 
 export enum BondTransferGasLimit {
   Ethereum = '165000',
-  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+   
   Optimism = '350000',
-  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+   
   Arbitrum = '2500000',
   // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   Nova = '2500000',

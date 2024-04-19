@@ -1,4 +1,3 @@
-export * from './abi/index.js'
 import { Hop } from './Hop.js'
 export { Hop }
 export { HopBridge } from './HopBridge.js'
@@ -53,8 +52,7 @@ export {
   promiseTimeout,
   rateLimitRetry,
   serializeQueryParams,
-  shiftBNDecimals,
-  WithdrawalProof
+  shiftBNDecimals
 } from '@hop-protocol/sdk-core'
 
 if (typeof window !== 'undefined') {

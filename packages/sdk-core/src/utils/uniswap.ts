@@ -1,10 +1,8 @@
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pool, Route, TICK_SPACINGS, TickMath, Trade, encodeRouteToPath, nearestUsableTick } from '@uniswap/v3-sdk'
-import { UniswapQuoterV2Abi, erc20Abi } from '#abi/index.js'
-import { UniswapV3Pool } from '#abi/index.js'
+import { UniswapQuoterV2__factory, UniswapV3Pool__factory,  ERC20__factory } from '#contracts/index.js'
 import { chainIdToSlug } from './chainIdToSlug.js'
-import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
 
 type TickSpacing = 100 | 500 | 3000 | 10000
 
@@ -165,8 +163,8 @@ export async function getUSDCSwapParams(options: any) {
 
   const tokens = addresses?.[network]?.[chain]?.tokens
 
-  const fromTokenContract = new Contract(tokens[0], erc20Abi, provider)
-  const toTokenContract = new Contract(tokens[1], erc20Abi, provider)
+  const fromTokenContract = ERC20__factory.connect(tokens[0], provider)
+  const toTokenContract = ERC20__factory.connect(tokens[1], provider)
 
   const fromTokenDecimals = await fromTokenContract.decimals()
   const toTokenDecimals = await toTokenContract.decimals()
@@ -176,7 +174,7 @@ export async function getUSDCSwapParams(options: any) {
   const tokenB = new Token(chainId, tokens[1], toTokenDecimals, toToken)
 
   // Create a pool
-  const poolContract = new Contract(poolAddress, UniswapV3Pool, provider)
+  const poolContract = UniswapV3Pool__factory.connect(poolAddress, provider)
 
   // Fetch pool details
   const [token0, token1, feeTier, liquidity, slot0] = await Promise.all([
@@ -187,21 +185,22 @@ export async function getUSDCSwapParams(options: any) {
     poolContract.slot0(),
   ])
 
-  const sqrtPriceX96 = slot0[0]
+  const sqrtPriceX96 = slot0[0].toString()
   const tick =  slot0[1]
+  const liquidityStr = liquidity.toString()
 
   // Trade.exactIn doesn't seem to work unless ticks are specified
   // see https://github.com/Uniswap/v3-sdk/issues/52
-  const pool = new Pool(tokenA, tokenB, feeTier, sqrtPriceX96, liquidity, tick, [
+  const pool = new Pool(tokenA, tokenB, feeTier, sqrtPriceX96, liquidityStr, tick, [
     {
       index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeTier as TickSpacing]),
-      liquidityNet: liquidity,
-      liquidityGross: liquidity
+      liquidityNet: liquidityStr,
+      liquidityGross: liquidityStr
     },
     {
       index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeTier as TickSpacing]),
-      liquidityNet: BigNumber.from(liquidity).mul(-1).toString(),
-      liquidityGross: liquidity
+      liquidityNet: BigNumber.from(liquidityStr).mul(-1).toString(),
+      liquidityGross: liquidityStr
     }
   ])
 
@@ -221,8 +220,8 @@ export async function getUSDCSwapParams(options: any) {
       path: encodeRouteToPath(route, exactOutput),
       recipient: recipient,
       // deadline: deadline.toString(),
-      amountIn: parseUnits(trade.inputAmount.toExact(), fromTokenDecimals).toString(),
-      amountOutMinimum: parseUnits(trade.minimumAmountOut(slippageTolerance).toExact(), toTokenDecimals).toString(),
+      amountIn: utils.parseUnits(trade.inputAmount.toExact(), fromTokenDecimals).toString(),
+      amountOutMinimum: utils.parseUnits(trade.minimumAmountOut(slippageTolerance).toExact(), toTokenDecimals).toString(),
   }
 
   let quotedAmountOut : any
@@ -233,11 +232,7 @@ export async function getUSDCSwapParams(options: any) {
       quotedAmountOut = BigNumber.from(0)
       quotedAmountOutFormatted = '0'
     } else {
-      const quoterContract = new Contract(
-        quoter,
-        UniswapQuoterV2Abi,
-        provider
-      )
+      const quoterContract = UniswapQuoterV2__factory.connect(quoter, provider)
 
       // const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
       //   token0,
@@ -252,7 +247,7 @@ export async function getUSDCSwapParams(options: any) {
         amountIn.toString()
       )
 
-      quotedAmountOutFormatted = formatUnits(quotedAmountOut, toTokenDecimals)
+      quotedAmountOutFormatted = utils.formatUnits(quotedAmountOut, toTokenDecimals)
     }
   }
 

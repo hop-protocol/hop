@@ -1,9 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { BigNumber } from 'ethers'
 import { Command } from 'commander'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
+import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
 import {
   config as globalConfig,
   parseConfigFile,
@@ -11,6 +10,7 @@ import {
   validateConfigFileStructure,
   validateConfigValues
 } from '#config/index.js'
+import type { BigNumber } from 'ethers'
 
 export const logger = new Logger('config')
 export const program = new Command()

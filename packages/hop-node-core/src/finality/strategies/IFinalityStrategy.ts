@@ -1,5 +1,5 @@
-import { Chain } from '#constants/index.js'
-import { providers } from 'ethers'
+import type { Chain } from '#constants/index.js'
+import type { providers } from 'ethers'
 
 export enum FinalityStrategyType {
   Bonder = 'bonder',

@@ -1,15 +1,7 @@
 import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
-import { Addresses, Bonders, Bridges, addresses as coreAddresses } from '@hop-protocol/sdk/addresses'
-import { AssetSymbol, Bps, config as coreConfig } from '@hop-protocol/sdk/config'
-import {
-  type BlocklistConfig,
-  type MetricsConfig,
-  type SignerConfig,
-  type Tokens
-} from '@hop-protocol/hop-node-core/config'
-import { BonderConfig } from './types.js'
+import { type Addresses, type Bonders, type Bridges, addresses as coreAddresses } from '@hop-protocol/sdk/addresses'
 import {
   Chain,
   DefaultBatchBlocks,
@@ -23,27 +15,43 @@ import {
   getCoreConfig,
   getCoreNetworkConfig,
   isTestMode,
-  loadEnv,
   setCoreBonderPrivateKey,
   setCoreNetworkMaxGasPrice,
   setCoreNetworkRedundantRpcUrls,
   setCoreNetworkRpcUrl,
 } from '@hop-protocol/hop-node-core/config'
-import {
-  DefaultBondThreshold,
-  SyncType
-} from '#constants/index.js'
-import { Tokens as Metadata } from '@hop-protocol/sdk/metadata'
-import { Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
+import { DefaultBondThreshold } from '#constants/index.js'
+import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
+import { config as coreConfig } from '@hop-protocol/sdk/config'
 import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
 import { normalizeEnvVarNumber } from '@hop-protocol/hop-node-core/config'
-import { parseEther } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
+import type { AssetSymbol, Bps } from '@hop-protocol/sdk/config'
+import type {
+  BlocklistConfig,
+  MetricsConfig,
+  SignerConfig,
+  Tokens
+} from '@hop-protocol/hop-node-core/config'
+import type { BonderConfig } from './types.js'
+import type { Tokens as Metadata } from '@hop-protocol/sdk/metadata'
+import type { SyncType } from '#constants/index.js'
+import { loadEnvFile } from 'node:process'
+import { getEnvFilePath } from '#utils/getEnvFilePath.js'
 
-loadEnv()
+const envFilePath = getEnvFilePath()
+if (envFilePath) {
+  loadEnvFile(envFilePath)
+}
+
+const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
+if (bonderPrivateKey) {
+  setCoreBonderPrivateKey(bonderPrivateKey)
+}
 
 // TODO: Normalize bool. This will be true if CCTP_ENABLED is set to anything
 export const CCTPEnabled = !!process.env.CCTP_ENABLED ?? false
-const dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const defaultDbPath = path.resolve(dirname, '../../db_data')
 // const defaultDbPath = path.resolve(__dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
@@ -57,7 +65,7 @@ export const RelayTransactionBatchSize = BondWithdrawalBatchSize
 export const defaultConfigDir = `${os.homedir()}/.hop`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
-export const minEthBonderFeeBn = parseEther('0.00001')
+export const minEthBonderFeeBn = utils.parseEther('0.00001')
 export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
@@ -403,6 +411,6 @@ export const getConfigBonderForRoute = (token: string, sourceChain: string, dest
   return bonder
 }
 
-export { Bonders }
+export { type Bonders }
 export * from './validation.js'
 export * from './fileOps.js'

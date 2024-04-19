@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { chainSlugToId } from './utils/chainSlugToId'
 import { explorerLinkAddress } from './utils/explorerLinkAddress'
-import { formatUnits } from 'ethers/lib/utils'
+import { utils } from 'ethers'
 import { getColor } from './utils/getColor'
 import { getTokenDecimals } from './utils/getTokenDecimals'
 import { integrationPartnerImage } from './utils/integrationPartnerImage'
@@ -36,7 +36,7 @@ export function populateData (x: any, i: number) {
   }
 
   if (x.amountOutMin && x.token) {
-    x.amountOutMinFormatted = Number(formatUnits(x.amountOutMin, getTokenDecimals(x.token)))
+    x.amountOutMinFormatted = Number(utils.formatUnits(x.amountOutMin, getTokenDecimals(x.token)))
   }
 
   if (typeof x.bonded !== 'boolean') {

@@ -5,7 +5,19 @@ import { config as sepolia } from './sepolia.js'
 const config = { goerli, sepolia, mainnet }
 
 export { goerli, sepolia, mainnet, config }
-export * from './types.js'
+export {
+  ChainSlug,
+  AssetSymbol,
+  FinalityState,
+  Bps,
+  Fees,
+  RelayerFeeWei,
+  RelayerFeeEnabled,
+  BridgeDeprecated,
+  TotalStake,
+  DefaultSendGasLimit,
+  Config
+} from './types.js'
 
 // ---
 
@@ -59,6 +71,7 @@ for (const network in chainNetworks) {
   const addresses = (chainAddresses as any)[network].bridges
   const bonders = (chainAddresses as any)[network].bonders
   const bonderFeeBps = (config as any)[network].bonderFeeBps
+  const bonderTotalStake = (config as any)[network].bonderTotalStake
   const destinationFeeGasPriceMultiplier = (config as any)[network].destinationFeeGasPriceMultiplier
   const relayerFeeEnabled = (config as any)[network].relayerFeeEnabled
   const relayerFeeWei = (config as any)[network].relayerFeeWei
@@ -70,6 +83,7 @@ for (const network in chainNetworks) {
     chains,
     bonders,
     bonderFeeBps,
+    bonderTotalStake,
     destinationFeeGasPriceMultiplier,
     relayerFeeEnabled,
     relayerFeeWei,

@@ -63,26 +63,28 @@ export class Derive {
     return frames
   }
 
+  // This method is meant to mimic the OP implementation
+  // eslint-disable-next-line max-lines-per-function
   async #unmarshalBinary (buf: Buffer): Promise<UnmarshalBinaryRes> {
     let offset: number = 0
 
-    if (buf.length < offset + this.#DataLengths.ChannelIDLength) {
+    if (buf.length < offset + this.#DataLengths.ChannelIDLength!) {
       throw new Error('reading channel_id: unexpected EOF')
     }
-    const channelId: string = buf.subarray(offset, offset + this.#DataLengths.ChannelIDLength).toString('hex')
-    offset += this.#DataLengths.ChannelIDLength
+    const channelId: string = buf.subarray(offset, offset + this.#DataLengths.ChannelIDLength!).toString('hex')
+    offset += this.#DataLengths.ChannelIDLength!
 
-    if (buf.length < offset + this.#DataLengths.FrameNumberLength) {
+    if (buf.length < offset + this.#DataLengths.FrameNumberLength!) {
       throw new Error('reading frameNumber: unexpected EOF')
     }
     const frameNumber: number = buf.readUInt16BE(offset)
-    offset += this.#DataLengths.FrameNumberLength
+    offset += this.#DataLengths.FrameNumberLength!
 
-    if (buf.length < offset + this.#DataLengths.FrameDataLength) {
+    if (buf.length < offset + this.#DataLengths.FrameDataLength!) {
       throw new Error('reading frameDataLength: unexpected EOF')
     }
     const frameLength: number = buf.readUInt32BE(offset)
-    offset += this.#DataLengths.FrameDataLength
+    offset += this.#DataLengths.FrameDataLength!
 
     if (frameLength > this.#MaxFrameLen) {
       throw new Error(`frameDataLength is too large: ${frameLength}`)
@@ -94,11 +96,11 @@ export class Derive {
     const data = buf.subarray(offset, offset + frameLength)
     offset += frameLength
 
-    if (buf.length < offset + this.#DataLengths.IsLastLength) {
+    if (buf.length < offset + this.#DataLengths.IsLastLength!) {
       throw new Error('reading isLast: unexpected EOF')
     }
     const isLastByte = buf.readUInt8(offset)
-    offset += this.#DataLengths.IsLastLength
+    offset += this.#DataLengths.IsLastLength!
 
     let isLast: boolean
     if (isLastByte === 0) {

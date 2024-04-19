@@ -2,14 +2,10 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
-  BlocklistConfig,
-  SignerConfig,
-} from '@hop-protocol/hop-node-core/config'
-import {
-  Bonders,
-  CommitTransfersConfig,
-  Fees,
-  Routes,
+  type Bonders,
+  type CommitTransfersConfig,
+  type Fees,
+  type Routes,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,
@@ -31,10 +27,11 @@ import {
   setSyncConfig
 } from './config.js'
 import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
-import { getAddress } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getParameter } from '@hop-protocol/hop-node-core/aws'
 import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
 import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
+import type { BlocklistConfig, SignerConfig } from '@hop-protocol/hop-node-core/config'
 
 const logger = new Logger('config')
 
@@ -280,7 +277,7 @@ export async function setGlobalConfigFromConfigFile (
       for (const address in config.blocklist.addresses) {
         try {
           delete config.blocklist.addresses[address]
-          config.blocklist.addresses[getAddress(address).toLowerCase()] = true
+          config.blocklist.addresses[utils.getAddress(address).toLowerCase()] = true
         } catch (err) {
           throw new Error(`blocklist address "${address}" is invalid`)
         }

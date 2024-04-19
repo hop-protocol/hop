@@ -2,11 +2,10 @@ import Network from 'src/models/Network'
 import React, { FC, ReactNode, createContext, useContext, useMemo, useState } from 'react'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber, Signer, utils } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
 import { defaultL2Network } from 'src/config/networks'
 import { formatError } from 'src/utils'
-import { parseUnits } from 'ethers/lib/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useQuery } from 'react-query'
 import { useTransactionReplacement } from 'src/hooks'
@@ -132,7 +131,7 @@ const TokenWrapperContextProvider: FC<{ children: ReactNode }> = ({ children }) 
       if (!Number(amount)) {
         throw new Error('amount is required')
       }
-      const parsedAmount = parseUnits(amount, canonicalToken.decimals)
+      const parsedAmount = utils.parseUnits(amount, canonicalToken.decimals)
       if (parsedAmount.gt(data?.canonicalBalance)) {
         throw new Error('not enough balance')
       }
@@ -195,7 +194,7 @@ const TokenWrapperContextProvider: FC<{ children: ReactNode }> = ({ children }) 
       if (!Number(amount)) {
         throw new Error('amount is required')
       }
-      const parsedAmount = parseUnits(amount, wrappedToken.decimals)
+      const parsedAmount = utils.parseUnits(amount, wrappedToken.decimals)
       if (parsedAmount.gt(data?.wrappedBalance)) {
         throw new Error('not enough balance')
       }

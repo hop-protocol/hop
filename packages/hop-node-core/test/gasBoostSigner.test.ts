@@ -3,7 +3,7 @@ import { GasBoostTransaction } from '#gasboost/GasBoostTransaction.js'
 import { MemoryStore } from '#gasboost/MemoryStore.js'
 import { Wallet } from 'ethers'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { parseUnits } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { wait } from '#utils/wait.js'
 
 const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000001'
@@ -11,6 +11,7 @@ function expectDefined<T> (arg: T): asserts arg is NonNullable<T> {
   expect(arg).toBeDefined()
 }
 
+// eslint-disable-next-line max-lines-per-function
 describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('gnosis')
@@ -232,7 +233,7 @@ describe('GasBoostTransaction', () => {
     let gTx = new GasBoostTransaction(tx, signer, store)
 
     let maxGasPrice = gTx.getMaxGasPrice()
-    let expectedMaxGasPrice = parseUnits('90', 9)
+    let expectedMaxGasPrice = utils.parseUnits('90', 9)
     expect(maxGasPrice).toEqual(expectedMaxGasPrice)
 
     const optimismProvider = getRpcProvider('optimism')
@@ -242,7 +243,7 @@ describe('GasBoostTransaction', () => {
     gTx = new GasBoostTransaction(tx, optimismSigner, store)
 
     maxGasPrice = gTx.getMaxGasPrice()
-    expectedMaxGasPrice = parseUnits('500', 9)
+    expectedMaxGasPrice = utils.parseUnits('500', 9)
     expect(maxGasPrice).toEqual(expectedMaxGasPrice)
   })
 })

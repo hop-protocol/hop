@@ -1,5 +1,5 @@
 import getTransferId from './getTransferId.js'
-import { defaultAbiCoder } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 
 const getTransferIdFromCalldata = (data: string, destinationChainId: number) => {
   if (!data || !destinationChainId) {
@@ -17,7 +17,7 @@ const getTransferIdFromCalldata = (data: string, destinationChainId: number) => 
     return
   }
   data = data.replace('0x', '')
-  const decoded = defaultAbiCoder.decode(types, `0x${data}`)
+  const decoded = utils.defaultAbiCoder.decode(types, `0x${data}`)
   if (!decoded) {
     return
   }

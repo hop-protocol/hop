@@ -1,6 +1,3 @@
-import L1Bridge from '#watchers/classes/L1Bridge.js'
-import L2Bridge from '#watchers/classes/L2Bridge.js'
-import Token from '#watchers/classes/Token.js'
 import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, logger, parseString, root } from './shared/index.js'
@@ -8,6 +5,9 @@ import { constants } from 'ethers'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
+import type L1Bridge from '#watchers/classes/L1Bridge.js'
+import type L2Bridge from '#watchers/classes/L2Bridge.js'
+import type Token from '#watchers/classes/Token.js'
 
 root
   .command('stake-status')

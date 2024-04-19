@@ -1,6 +1,7 @@
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { EventFilter, providers, utils } from 'ethers'
-import { type LogWithChainId, OnchainEventIndexerDB } from '#cctp/db/OnchainEventIndexerDB.js'
+import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { EventFilter, providers} from 'ethers'
+import { utils } from 'ethers'
+import type { OnchainEventIndexerDB, LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
 import { chainIdToSlug, chainSlugToId, getRpcProvider, wait } from '@hop-protocol/hop-node-core/utils'
 
 export type RequiredEventFilter = Required<EventFilter>
@@ -48,7 +49,7 @@ export class OnchainEventIndexer {
    */
 
 
-  #initPoller = async (chain: Chain) => {
+  #initPoller = async (chain: Chain): Promise<never> => {
     try {
       while (true) {
         await this.#syncEvents(chain)

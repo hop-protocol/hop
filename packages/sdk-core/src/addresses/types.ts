@@ -55,21 +55,21 @@ export type BridgeChains = Partial<{
     polygonzk: L2BridgeProps
   }>
 
-type USDCL1BridgeBase = {
+export type USDCL1BridgeBase = {
   l1CanonicalToken: string
   cctpL1Bridge?: string
   cctpMessageTransmitter?: string
   cctpBridgeDeployedBlockNumber?: number
 }
 
-type USDCL2BridgeBase = {
+export type USDCL2BridgeBase = {
   l2CanonicalToken: string
   cctpL2Bridge?: string
   cctpMessageTransmitter?: string
   cctpBridgeDeployedBlockNumber?: number
 }
 
-type USDCBridge = Partial<{
+export type USDCBridge = Partial<{
   ethereum: USDCL1BridgeBase
   arbitrum: USDCL2BridgeBase
   optimism: USDCL2BridgeBase

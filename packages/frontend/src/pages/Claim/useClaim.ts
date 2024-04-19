@@ -3,7 +3,6 @@ import { BigNumber, providers, utils } from 'ethers'
 import { claimChainId } from 'src/pages/Claim/config'
 import { claimTokens, correctClaimChain, fetchClaim, getAirdropSupply, getContractBalance, getMerkleRoot, getVotes } from 'src/pages/Claim/claims'
 import { formatError } from 'src/utils/format'
-import { formatUnits, getAddress, isAddress } from 'ethers/lib/utils'
 import { getProvider, getProviderByNetworkName } from 'src/utils/getProvider'
 import { isMainnet } from 'src/config'
 import { networkIdToSlug } from 'src/utils/networks'
@@ -113,7 +112,7 @@ export function useClaim() {
           return setDelegate(initialDelegate)
         }
 
-        if (isAddress(inputValue?.toLowerCase())) {
+        if (utils.isAddress(inputValue?.toLowerCase())) {
           let votes = BigNumber.from(0)
           try {
             votes = await getVotes(claimProvider, inputValue)
@@ -122,9 +121,9 @@ export function useClaim() {
           }
           return setDelegate({
             ensName: ensName ?? '',
-            address: new Address(getAddress(inputValue.toLowerCase())),
+            address: new Address(utils.getAddress(inputValue.toLowerCase())),
             votes: votes,
-            votesFormatted: formatUnits(votes.toString(), 18),
+            votesFormatted: utils.formatUnits(votes.toString(), 18),
             avatar: ensAvatar ?? '',
             infoUrl: '',
             info: '',
@@ -142,7 +141,7 @@ export function useClaim() {
             ensName,
             address: new Address(ensAddress),
             votes: votes,
-            votesFormatted: formatUnits(votes.toString(), 18),
+            votesFormatted: utils.formatUnits(votes.toString(), 18),
             avatar: ensAvatar ?? '',
             infoUrl: '',
             info: ''
@@ -291,8 +290,8 @@ export function useClaim() {
       if (contractBalance.eq(0) || airdropSupply.eq(0) || !_delegate?.votes || delegate.votes?.eq(0)) {
         return false
       }
-      const totalSupply = Number(formatUnits(airdropSupply.toString(), 18))
-      const allDelegatedVotes = Number(formatUnits(airdropSupply.sub(contractBalance).toString(), 18))
+      const totalSupply = Number(utils.formatUnits(airdropSupply.toString(), 18))
+      const allDelegatedVotes = Number(utils.formatUnits(airdropSupply.sub(contractBalance).toString(), 18))
 
       const minTotalThreshold = 0.01 // 1%
       const isMinMet = (totalSupply / allDelegatedVotes) > minTotalThreshold
@@ -300,7 +299,7 @@ export function useClaim() {
         return false
       }
 
-      const newAmount = Number(formatUnits(_delegate.votes.add(claimableTokens).toString(), 18))
+      const newAmount = Number(utils.formatUnits(_delegate.votes.add(claimableTokens).toString(), 18))
       const diff = newAmount / allDelegatedVotes
       const threshold = 0.05 // 5%
       const tooMany = diff > threshold

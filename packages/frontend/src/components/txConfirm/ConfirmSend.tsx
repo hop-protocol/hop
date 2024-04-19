@@ -121,9 +121,9 @@ const ConfirmSend = (props: Props) => {
         </Box>
       )}
       <Box mb={2} display="flex" flexDirection="column" alignItems="center" textAlign="center">
-        <Box style={{ maxWidth: '200px' }}>
+        <Box style={{ maxWidth: '350px' }}>
         <Typography variant="body2" color="textSecondary">
-          Please make sure your wallet is connected to the <strong>{source.network.name}</strong> network.
+          Please make sure your wallet is connected to the <strong>{source.network.name}</strong> network, otherwise it can result in loss of funds.
         </Typography>
         </Box>
       </Box>

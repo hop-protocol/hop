@@ -93,9 +93,9 @@ describe.skip('RailsGateway', () => {
   it.skip('TODO should initiate a bond', async () => {
     const chainId = 1
     const pathId = '0xTODO'
+    const checkpoint = '0xTODO'
     const to = '0xTODO'
     const amount = parseUnits('1', 18)
-    const minAmountOut = '0'
     const checkpoint = '0xTODO'
     const totalSent = '0'
     const nonce = '0xTODO'
@@ -103,9 +103,9 @@ describe.skip('RailsGateway', () => {
     const tx = await railsGateway.bond({
       chainId,
       pathId,
+      checkpoint,
       to,
       amount,
-      minAmountOut,
       checkpoint,
       totalSent,
       nonce,

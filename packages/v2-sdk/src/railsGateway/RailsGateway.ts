@@ -48,11 +48,10 @@ export type SendInput = {
 
 export type BondInput = {
   chainId: BigNumberish
-  pathId: string
   checkpoint: string
+  pathId: string
   to: string
   amount: BigNumberish
-  minAmountOut: BigNumberish
   totalSent: BigNumberish
   nonce: BigNumberish
   attestedCheckpoint: string
@@ -64,6 +63,19 @@ export type PostClaimInput = {
   transferId: string
   head: string
   totalSent: BigNumberish
+}
+
+export type RemoveClaimInput = {
+  chainId: BigNumberish
+  pathId: string
+  checkpoint: string
+  nonce: BigNumberish
+}
+
+export type ConfirmCheckpointInput = {
+  chainId: BigNumberish
+  pathId: string
+  checkpoint: string
 }
 
 export type GetTransferIdInput = {
@@ -226,9 +238,9 @@ export class RailsGateway extends StakingRegistry {
       },
 
       bond: async (input: BondInput): Promise<providers.TransactionRequest> => {
-        const { chainId, pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
+        const { chainId, pathId, checkpoint, to, amount, totalSent, nonce, attestedCheckpoint } = input
         const contract = await this.getRailsGatewayContract(chainId)
-        const txData = await contract.populateTransaction.bond(pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint)
+        const txData = await contract.populateTransaction.bond(pathId, checkpoint, to, amount, totalSent, nonce, attestedCheckpoint)
 
         return {
           ...txData,
@@ -262,6 +274,17 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
+      removeClaim: async (input: RemoveClaimInput): Promise<providers.TransactionRequest> => {
+        const { chainId, pathId, checkpoint, nonce } = input
+        const contract = await this.getRailsGatewayContract(chainId)
+        const txData = await contract.populateTransaction.removeClaim(pathId, checkpoint, nonce)
+
+        return {
+          ...txData,
+          chainId: Number(chainId)
+        }
+      },
+
       withdrawClaim: async (input: WithdrawInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, amount, timeWindow } = input
         const contract = await this.getRailsGatewayContract(chainId)
@@ -277,6 +300,17 @@ export class RailsGateway extends StakingRegistry {
         const { chainId, pathId, timeWindow } = input
         const contract = await this.getRailsGatewayContract(chainId)
         const txData = await contract.withdrawAll(pathId, timeWindow)
+
+        return {
+          ...txData,
+          chainId: Number(chainId)
+        }
+      },
+
+      confirmCheckpoint: async (input: ConfirmCheckpointInput): Promise<providers.TransactionRequest> => {
+        const { chainId, pathId, checkpoint } = input
+        const contract = await this.getRailsGatewayContract(chainId)
+        const txData = await contract.populateTransaction.confirmCheckpoint(pathId, checkpoint)
 
         return {
           ...txData,
@@ -416,6 +450,16 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
+  async removeClaim (input: RemoveClaimInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.removeClaim(input)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async confirmCheckpoint (input: ConfirmCheckpointInput): Promise<providers.TransactionResponse> {
+    const populatedTx = await this.populateTransaction.confirmCheckpoint(input)
+    return this.sendTransaction(populatedTx)
+  }
+
   async withdrawClaim (input: WithdrawInput): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.withdrawClaim(input)
     return this.sendTransaction(populatedTx)
@@ -424,6 +468,16 @@ export class RailsGateway extends StakingRegistry {
   async withdrawAllClaims (input: WithdrawAllInput): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.withdrawAllClaims(input)
     return this.sendTransaction(populatedTx)
+  }
+
+  async getLatestClaim (chainId: BigNumberish, pathId: string): Promise<string> {
+    const contract = await this.getRailsGatewayContract(chainId)
+    return contract.getLatestClaim(pathId)
+  }
+
+  async getIsCheckpointValid (chainId: BigNumberish, checkpoint: string): Promise<boolean> {
+    const contract = await this.getRailsGatewayContract(chainId)
+    return contract.isCheckpointValid(checkpoint)
   }
 
   async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {
@@ -491,18 +545,6 @@ export class RailsGateway extends StakingRegistry {
     const provider = this.getRpcProviderForChainId(chainId)
     const contract = ERC20__factory.connect(hopTokenAddress, provider)
     return contract
-  }
-
-  // TODO
-  async getHead (input: GetCheckpointInput): Promise<string> {
-    return ''
-  }
-
-  // TODO
-  async getCheckpoint (input: GetCheckpointInput): Promise<string> {
-    const { chainId, previousCheckpoint, transferId, totalSent } = input
-    const contract = await this.getRailsGatewayContract(chainId)
-    return contract.getCheckpoint(previousCheckpoint, transferId, totalSent)
   }
 
   calcAmountOutMin (input: CalcAmountOutMinInput): BigNumber {

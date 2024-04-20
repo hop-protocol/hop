@@ -17,6 +17,7 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
 
   getFilter () {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    // TODO: remove 'as any' once event is added to contract
     const filter = (railsGateway.filters as any).TransferBonded()
     return filter
   }

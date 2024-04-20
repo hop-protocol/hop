@@ -21,8 +21,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsHubGetFee (props: Props) {
-  const cacheKey = 'railsHubGetFee'
+export function RailsGatewayGetFee (props: Props) {
+  const cacheKey = 'railsGatewayGetFee'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -79,7 +79,7 @@ export function RailsHubGetFee (props: Props) {
         pathId
       }
       console.log('args', args)
-      const fee = await sdk.railsHub.getFee(args)
+      const fee = await sdk.railsGateway.getFee(args)
       setFee(fee?.toString())
     } catch (err: any) {
       console.error(err)
@@ -96,7 +96,7 @@ async function main() {
   const pathId = "${pathId}"
 
   const hop = new Hop({ network: '${network}' })
-  const fee = await hop.railsHub.getFee({
+  const fee = await hop.railsGateway.getFee({
     chainId,
     pathId
   })

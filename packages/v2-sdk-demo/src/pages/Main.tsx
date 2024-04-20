@@ -10,11 +10,11 @@ import { providers } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { SendMessage } from '../components/SendMessage'
-import { RailsHubSend } from '../components/RailsHubSend'
-import { RailsHubGetPathInfo } from '../components/RailsHubGetPathInfo'
-import { RailsHubGetPathId } from '../components/RailsHubGetPathId'
-import { RailsHubGetFee } from '../components/RailsHubGetFee'
-import { RailsHubGetTransferId } from '../components/RailsHubGetTransferId'
+import { RailsGatewaySend } from '../components/RailsGatewaySend'
+import { RailsGatewayGetPathInfo } from '../components/RailsGatewayGetPathInfo'
+import { RailsGatewayGetPathId } from '../components/RailsGatewayGetPathId'
+import { RailsGatewayGetFee } from '../components/RailsGatewayGetFee'
+import { RailsGatewayGetTransferId } from '../components/RailsGatewayGetTransferId'
 import { RelayMessage } from '../components/RelayMessage'
 import { ExitBundle } from '../components/ExitBundle'
 import { GetBundleProof } from '../components/GetBundleProof'
@@ -76,11 +76,11 @@ export function Main () {
   const showAccountInfo = false
 
   const components = [
-    <RailsHubGetPathId sdk={sdk} />,
-    <RailsHubGetPathInfo sdk={sdk} />,
-    <RailsHubGetFee sdk={sdk} />,
-    <RailsHubGetTransferId sdk={sdk} />,
-    <RailsHubSend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <RailsGatewayGetPathId sdk={sdk} />,
+    <RailsGatewayGetPathInfo sdk={sdk} />,
+    <RailsGatewayGetFee sdk={sdk} />,
+    <RailsGatewayGetTransferId sdk={sdk} />,
+    <RailsGatewaySend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <SetContractAddresses sdk={sdk} />,
     <GetContractAddresses sdk={sdk} />,
     <SetRpcProviders sdk={sdk} />,

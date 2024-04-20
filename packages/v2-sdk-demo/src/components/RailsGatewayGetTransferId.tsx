@@ -21,8 +21,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsHubGetTransferId (props: Props) {
-  const cacheKey = 'railsHubGetTransferId'
+export function RailsGatewayGetTransferId (props: Props) {
+  const cacheKey = 'railsGatewayGetTransferId'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -188,7 +188,7 @@ export function RailsHubGetTransferId (props: Props) {
       }
 
       console.log('args', args)
-      const transferId = await sdk.railsHub.getTransferId(args)
+      const transferId = await sdk.railsGateway.getTransferId(args)
       setTransferId(transferId)
     } catch (err: any) {
       console.error(err)
@@ -211,7 +211,7 @@ async function main() {
   const attestedCheckpoint = "${attestedCheckpoint}"
 
   const hop = new Hop({ network: '${network}' })
-  const fee = await hop.railsHub.getTransferID({
+  const fee = await hop.railsGateway.getTransferID({
     chainId,
     pathId,
     to,

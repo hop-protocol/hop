@@ -21,8 +21,8 @@ type Props = {
   sdk: Hop
 }
 
-export function RailsHubGetPathInfo (props: Props) {
-  const cacheKey = 'railsHubGetPathInfo'
+export function RailsGatewayGetPathInfo (props: Props) {
+  const cacheKey = 'railsGatewayGetPathInfo'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -80,7 +80,7 @@ export function RailsHubGetPathInfo (props: Props) {
       }
 
       console.log('args', args)
-      const pathInfo = await sdk.railsHub.getPathInfo(args)
+      const pathInfo = await sdk.railsGateway.getPathInfo(args)
       setPathInfo(JSON.stringify(pathInfo, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -97,7 +97,7 @@ async function main() {
   const pathId = "${pathId}"
 
   const hop = new Hop({ network: '${network}' })
-  const pathInfo = await hop.railsHub.getPathInfo({
+  const pathInfo = await hop.railsGateway.getPathInfo({
     chainId,
     pathId
   })

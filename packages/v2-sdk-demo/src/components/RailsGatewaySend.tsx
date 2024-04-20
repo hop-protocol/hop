@@ -24,8 +24,8 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsHubSend (props: Props) {
-  const cacheKey = 'railsHubSend'
+export function RailsGatewaySend (props: Props) {
+  const cacheKey = 'railsGatewaySend'
   const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -147,7 +147,7 @@ export function RailsHubSend (props: Props) {
       attestedCheckpoint
     }
     console.log('args', args)
-    const txData = await sdk.railsHub.populateTransaction.send(args)
+    const txData = await sdk.railsGateway.populateTransaction.send(args)
     return txData
   }
 
@@ -160,7 +160,7 @@ export function RailsHubSend (props: Props) {
       setLoading(true)
       const txData = await getSendTxData()
       setTxData(JSON.stringify(txData, null, 2))
-      const fee = await sdk.railsHub.getFee({ chainId: Number(fromChainId), pathId })
+      const fee = await sdk.railsGateway.getFee({ chainId: Number(fromChainId), pathId })
       if (!populateTxDataOnly) {
         if (!signer) {
           throw new Error('No signer')
@@ -196,7 +196,7 @@ async function main() {
   const attestedCheckpoint = "${attestedCheckpoint}"
 
   const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsHub.populateTransaction.send({
+  const txData = await hop.railsGateway.populateTransaction.send({
     chainId,
     pathId,
     to,
@@ -208,7 +208,7 @@ async function main() {
   'console.log(txData)'
   ) : (
   `
-  const fee = await hop.railsHub.getFee({ chainId, pathId })
+  const fee = await hop.railsGateway.getFee({ chainId, pathId })
   const provider = new ethers.providers.Web3Provider(
     window.ethereum
   )

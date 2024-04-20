@@ -169,14 +169,14 @@
         "default": "./dist/cjs/hubConnector/index.js"
       }
     },
-    "./railsHub": {
+    "./railsGateway": {
       "import": {
-        "types": "./dist/esm/railsHub/index.d.ts",
-        "default": "./dist/esm/railsHub/index.js"
+        "types": "./dist/esm/railsGateway/index.d.ts",
+        "default": "./dist/esm/railsGateway/index.js"
       },
       "require": {
-        "types": "./dist/cjs/railsHub/index.d.ts",
-        "default": "./dist/cjs/railsHub/index.js"
+        "types": "./dist/cjs/railsGateway/index.d.ts",
+        "default": "./dist/cjs/railsGateway/index.js"
       }
     },
     "./nft": {

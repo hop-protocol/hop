@@ -21,7 +21,7 @@ describe.skip('Base', () => {
       startBlock: 0,
       spokeCoreMessenger: '',
       connector: '',
-      railsHub: ''
+      railsGateway: ''
     }
     base.setContractAddresses(addresses)
     addresses = base.getContractAddresses()

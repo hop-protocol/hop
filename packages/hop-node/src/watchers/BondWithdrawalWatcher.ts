@@ -73,6 +73,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   override siblingWatchers!: { [chainId: string]: BondWithdrawalWatcher }
   // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
   private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
+  // Disable specific routes if something goes wrong
+  #localEmergencyDryMode: Record<number, boolean> = {}
 
   constructor (config: Config) {
     super({
@@ -223,7 +225,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode || globalConfig.emergencyDryMode) {
+    if (this.dryMode || this.#localEmergencyDryMode?.[sourceChainId]) {
       logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondWithdrawalWatcher`)
       return
     }
@@ -368,8 +370,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
       if (err instanceof PossibleReorgDetected) {
-        logger.error('possible reorg detected. turning off writes.')
-        enableEmergencyMode()
+        logger.error(`possible reorg detected. turning off writes for source chain ${sourceChainId}`)
+        this.#localEmergencyDryMode[sourceChainId] = true
       }
 
       throw err

@@ -1,27 +1,27 @@
-import { RailsHub } from '#railsHub/index.js'
+import { RailsGateway } from '#railsGateway/index.js'
 import { getAddress, parseUnits } from 'ethers/lib/utils.js'
 import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
-describe.skip('RailsHub', () => {
+describe.skip('RailsGateway', () => {
   const ethereumRpcUrl = process.env.ETHEREUM_RPC_PROVIDER!
   const provider = new providers.StaticJsonRpcProvider(ethereumRpcUrl)
   const signer = new Wallet(process.env.PRIVATE_KEY!)
   const address = '0xTODO'
-  const railsHub = new RailsHub({
+  const railsGateway = new RailsGateway({
     network: 'mainnet'
   })
   it.skip('TODO should get signer address', async () => {
-    const address = await railsHub.getSignerAddress()
+    const address = await railsGateway.getSignerAddress()
     expect(address).toBeDefined()
   })
   it.skip('TODO should fetch TransferSent events', async () => {
     const chainId = 1
     const startBlock = 0
     const endBlock = 1000
-    const events = await railsHub.getTransferSentEvents({
+    const events = await railsGateway.getTransferSentEvents({
       chainId,
       startBlock,
       endBlock
@@ -33,7 +33,7 @@ describe.skip('RailsHub', () => {
     const chainId = 1
     const startBlock = 0
     const endBlock = 1000
-    const events = await railsHub.getTransferBondedEvents({
+    const events = await railsGateway.getTransferBondedEvents({
       chainId,
       startBlock,
       endBlock
@@ -41,13 +41,13 @@ describe.skip('RailsHub', () => {
 
     expect(events.length).toBe(1)
   })
-  it.skip('TODO should get RailsHub contract instance', async () => {
+  it.skip('TODO should get RailsGateway contract instance', async () => {
     const chainId = 1
-    const contract = await railsHub.getRailsHubContract(chainId)
+    const contract = await railsGateway.getRailsGatewayContract(chainId)
     expect(contract).toBeDefined()
   })
   it.skip('TODO should get pathId', async () => {
-    const pathId = await railsHub.getPathId({
+    const pathId = await railsGateway.getPathId({
       chainId0: 1,
       token0: '0xTODO',
       chainId1: 2,
@@ -58,7 +58,7 @@ describe.skip('RailsHub', () => {
   it.skip('TODO should get pathInfo', async () => {
     const chainId = 1
     const pathId = '0xTODO'
-    const pathInfo = await railsHub.getPathInfo({
+    const pathInfo = await railsGateway.getPathInfo({
       chainId,
       pathId
     })
@@ -67,7 +67,7 @@ describe.skip('RailsHub', () => {
   it.skip('TODO should get fee for pathId', async () => {
     const chainId = 1
     const pathId = '0xTODO'
-    const fee = await railsHub.getFee({
+    const fee = await railsGateway.getFee({
       chainId,
       pathId
     })
@@ -80,7 +80,7 @@ describe.skip('RailsHub', () => {
     const to = '0xTODO'
     const minAmountOut = '0'
     const attestedCheckpoint = '0xTODO'
-    const tx = await railsHub.send({
+    const tx = await railsGateway.send({
       chainId,
       pathId,
       amount,
@@ -100,7 +100,7 @@ describe.skip('RailsHub', () => {
     const totalSent = '0'
     const nonce = '0xTODO'
     const attestedCheckpoint = '0xTODO'
-    const tx = await railsHub.bond({
+    const tx = await railsGateway.bond({
       chainId,
       pathId,
       to,
@@ -119,7 +119,7 @@ describe.skip('RailsHub', () => {
     const transferId = '0xTODO'
     const head = '0xTODO'
     const totalSent = parseUnits('1', 18)
-    const tx = await railsHub.postClaim({
+    const tx = await railsGateway.postClaim({
       chainId,
       pathId,
       transferId,
@@ -133,7 +133,7 @@ describe.skip('RailsHub', () => {
     const pathId = '0xTODO'
     const recipient = '0xTODO'
     const timeWindow = 1
-    const balance = await railsHub.getWithdrawableBalance({
+    const balance = await railsGateway.getWithdrawableBalance({
       chainId,
       pathId,
       recipient,
@@ -146,7 +146,7 @@ describe.skip('RailsHub', () => {
     const pathId = '0xTODO'
     const amount = parseUnits('1', 18)
     const timeWindow = 1
-    const tx = await railsHub.withdrawClaim({
+    const tx = await railsGateway.withdrawClaim({
       chainId,
       pathId,
       amount,
@@ -158,7 +158,7 @@ describe.skip('RailsHub', () => {
     const chainId = 1
     const pathId = '0xTODO'
     const timeWindow = 1
-    const tx = await railsHub.withdrawAllClaims({
+    const tx = await railsGateway.withdrawAllClaims({
       chainId,
       pathId,
       timeWindow
@@ -167,23 +167,23 @@ describe.skip('RailsHub', () => {
   })
   it.skip('TODO should get HOP token address', async () => {
     const chainId = 1
-    const address = await railsHub.getHopTokenAddress(chainId)
+    const address = await railsGateway.getHopTokenAddress(chainId)
     expect(address).toBeDefined()
   })
   it.skip('TODO should get min bonder stake', async () => {
     const chainId = 1
-    const amount = await railsHub.getMinBonderStake(chainId)
+    const amount = await railsGateway.getMinBonderStake(chainId)
     expect(amount).toBeDefined()
   })
   it.skip('TODO should get HOP balance', async () => {
     const chainId = 1
     const address = '0xTODO'
-    const balance = await railsHub.getHopBalance(chainId, address)
+    const balance = await railsGateway.getHopBalance(chainId, address)
     expect(balance).toBeDefined()
   })
   it.skip('TODO should get HOP token contract', async () => {
     const chainId = 1
-    const contract = await railsHub.getHopTokenContract(chainId)
+    const contract = await railsGateway.getHopTokenContract(chainId)
     expect(contract).toBeDefined()
   })
   it.skip('TODO should stake HOP', async () => {
@@ -191,7 +191,7 @@ describe.skip('RailsHub', () => {
     const role = '0xTODO'
     const staker = '0xTODO'
     const amount = parseUnits('1', 18)
-    const tx = await railsHub.stakeHop({
+    const tx = await railsGateway.stakeHop({
       chainId,
       role,
       staker,
@@ -203,7 +203,7 @@ describe.skip('RailsHub', () => {
     const chainId = 1
     const role = '0xTODO'
     const amount = parseUnits('1', 18)
-    const tx = await railsHub.unstakeHop({
+    const tx = await railsGateway.unstakeHop({
       chainId,
       role,
       amount
@@ -213,7 +213,7 @@ describe.skip('RailsHub', () => {
   it.skip('TODO should calc amountOutMin', async () => {
     const amountOut = parseUnits('1', 18)
     const slippageTolerance = 0.01
-    const amountOutMin = railsHub.calcAmountOutMin({
+    const amountOutMin = railsGateway.calcAmountOutMin({
       amountOut,
       slippageTolerance
     })

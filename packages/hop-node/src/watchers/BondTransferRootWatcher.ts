@@ -7,7 +7,6 @@ import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { PossibleReorgDetected, RedundantProviderOutOfSync } from '@hop-protocol/hop-node-core/types'
 import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import {
-  enableEmergencyMode,
   config as globalConfig
 } from '#config/index.js'
 import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
@@ -214,10 +213,6 @@ class BondTransferRootWatcher extends BaseWatcher {
           rootBondBackoffIndex
         })
         return
-      }
-      if (err instanceof PossibleReorgDetected) {
-        logger.error('possible reorg detected. turning off writes.')
-        enableEmergencyMode()
       }
       throw err
     }

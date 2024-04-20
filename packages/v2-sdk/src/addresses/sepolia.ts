@@ -5,13 +5,13 @@ export const addresses = {
     hubCoreMessenger: '',
     spokeCoreMessenger: '',
     ethFeeDistributor: '',
-    railsHub: ''
+    railsGateway: ''
   },
   84532: {
     chainId: 84532,
     startBlock: 0,
     spokeCoreMessenger: '',
     connector: '',
-    railsHub: ''
+    railsGateway: ''
   }
 }

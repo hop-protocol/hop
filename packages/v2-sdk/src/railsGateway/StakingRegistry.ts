@@ -132,7 +132,7 @@ export class StakingRegistry extends Base {
   }
 
   getStakingRegistryAddress (chainId: BigNumberish): string {
-    return this.getConfigAddress(chainId, 'railsHub')
+    return this.getConfigAddress(chainId, 'railsGateway')
   }
 
   getStakingRegistryContract (chainId: BigNumberish): Contract {

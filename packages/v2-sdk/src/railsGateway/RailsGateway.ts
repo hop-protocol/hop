@@ -1,7 +1,7 @@
 import { Base, BaseConfig } from '#common/index.js'
 import { BigNumber, BigNumberish, Contract, Signer, providers } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
-import { RailsHub__factory } from '#contracts/factories/RailsHub__factory.js'
+import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 import { addresses } from '#addresses/index.js'
 
@@ -133,10 +133,10 @@ export type CalcAmountOutMinInput = {
   slippageTolerance: number
 }
 
-export type RailsHubConstructorInput = BaseConfig & {}
+export type RailsGatewayConstructorInput = BaseConfig & {}
 
-export class RailsHub extends StakingRegistry {
-  constructor (input: RailsHubConstructorInput) {
+export class RailsGateway extends StakingRegistry {
+  constructor (input: RailsGatewayConstructorInput) {
     const { network, signer, contractAddresses } = input
     super({
       network,
@@ -146,12 +146,12 @@ export class RailsHub extends StakingRegistry {
   }
 
   override connect (signer: Signer) {
-    return new RailsHub({ network: this.network, signer, contractAddresses: this.contractAddresses })
+    return new RailsGateway({ network: this.network, signer, contractAddresses: this.contractAddresses })
   }
 
   async getTransferSentEvents (input: TransferSentEventInput) {
     const { chainId, startBlock, endBlock } = input
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     const filter = contract.filters.TransferSent()
     const events = await contract.queryFilter(filter, startBlock, endBlock)
     return events
@@ -159,38 +159,38 @@ export class RailsHub extends StakingRegistry {
 
   async getTransferBondedEvents (input: TransferBondEventInput) {
     const { chainId, startBlock, endBlock } = input
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     const filter = contract.filters.TransferBonded()
     const events = await contract.queryFilter(filter, startBlock, endBlock)
     return events
   }
 
-  async getRailsHubContractAddress (chainId: BigNumberish): Promise<string> {
-    return this.getConfigAddress(chainId, 'railsHub')
+  async getRailsGatewayContractAddress (chainId: BigNumberish): Promise<string> {
+    return this.getConfigAddress(chainId, 'railsGateway')
   }
 
-  async getRailsHubContract (chainId: BigNumberish): Promise<Contract> {
-    const address = await this.getRailsHubContractAddress(chainId)
+  async getRailsGatewayContract (chainId: BigNumberish): Promise<Contract> {
+    const address = await this.getRailsGatewayContractAddress(chainId)
     const provider = this.getRpcProviderForChainId(chainId)
-    const contract = RailsHub__factory.connect(address, provider)
+    const contract = RailsGateway__factory.connect(address, provider)
     return contract
   }
 
   async getPathId (input: GetPathIdInput): Promise<string> {
     const { chainId0, token0, chainId1, token1 } = input
-    const contract = await this.getRailsHubContract(chainId0)
+    const contract = await this.getRailsGatewayContract(chainId0)
     return contract.getPathId(chainId0, token0, chainId1, token1)
   }
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {
     const { chainId, pathId } = input
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     return contract.getPathInfo(pathId)
   }
 
   async getFee (input: GetFeeInput): Promise<BigNumber> {
     const { chainId, pathId } = input
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     return contract.getFee(pathId)
   }
 
@@ -198,7 +198,7 @@ export class RailsHub extends StakingRegistry {
     return {
       send: async (input: SendInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, to, amount, minAmountOut, attestedCheckpoint } = input
-        const contract = await this.getRailsHubContract(chainId)
+        const contract = await this.getRailsGatewayContract(chainId)
         const value = 0
         const txData = await contract.populateTransaction.send(pathId, to, amount, minAmountOut, attestedCheckpoint, {
           value
@@ -216,7 +216,7 @@ export class RailsHub extends StakingRegistry {
         const tokenAddress = path.token
         const provider = this.getRpcProviderForChainId(chainId)
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-        const address = this.getRailsHubContractAddress(chainId)
+        const address = this.getRailsGatewayContractAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
 
         return {
@@ -227,7 +227,7 @@ export class RailsHub extends StakingRegistry {
 
       bond: async (input: BondInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
-        const contract = await this.getRailsHubContract(chainId)
+        const contract = await this.getRailsGatewayContract(chainId)
         const txData = await contract.populateTransaction.bond(pathId, to, amount, minAmountOut, totalSent, nonce, attestedCheckpoint)
 
         return {
@@ -242,7 +242,7 @@ export class RailsHub extends StakingRegistry {
         const tokenAddress = path.token
         const provider = this.getRpcProviderForChainId(chainId)
         const tokenContract = ERC20__factory.connect(tokenAddress, provider)
-        const address = this.getRailsHubContractAddress(chainId)
+        const address = this.getRailsGatewayContractAddress(chainId)
         const txData = await tokenContract.populateTransaction.approve(address, amount)
 
         return {
@@ -253,7 +253,7 @@ export class RailsHub extends StakingRegistry {
 
       postClaim: async (input: PostClaimInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, transferId, head, totalSent } = input
-        const contract = await this.getRailsHubContract(chainId)
+        const contract = await this.getRailsGatewayContract(chainId)
         const txData = await contract.populateTransaction.postClaim(pathId, transferId, head, totalSent)
 
         return {
@@ -264,7 +264,7 @@ export class RailsHub extends StakingRegistry {
 
       withdrawClaim: async (input: WithdrawInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, amount, timeWindow } = input
-        const contract = await this.getRailsHubContract(chainId)
+        const contract = await this.getRailsGatewayContract(chainId)
         const txData = await contract.populateTransaction.withdraw(pathId, amount, timeWindow)
 
         return {
@@ -275,7 +275,7 @@ export class RailsHub extends StakingRegistry {
 
       withdrawAllClaims: async (input: WithdrawAllInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, timeWindow } = input
-        const contract = await this.getRailsHubContract(chainId)
+        const contract = await this.getRailsGatewayContract(chainId)
         const txData = await contract.withdrawAll(pathId, timeWindow)
 
         return {
@@ -293,7 +293,7 @@ export class RailsHub extends StakingRegistry {
           throw new Error('Staker address not set')
         }
         const hopTokenContract = await this.getHopTokenContract(chainId)
-        const address = this.getRailsHubContractAddress(chainId)
+        const address = this.getRailsGatewayContractAddress(chainId)
         const txData = await hopTokenContract.populateTransaction.approve(address, amount)
         return {
           ...txData,
@@ -377,7 +377,7 @@ export class RailsHub extends StakingRegistry {
       throw new Error('Insufficient balance ')
     }
 
-    const address = await this.getRailsHubContractAddress(chainId)
+    const address = await this.getRailsGatewayContractAddress(chainId)
     const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')
@@ -401,7 +401,7 @@ export class RailsHub extends StakingRegistry {
       throw new Error('Insufficient balance')
     }
 
-    const address = await this.getRailsHubContractAddress(chainId)
+    const address = await this.getRailsGatewayContractAddress(chainId)
     const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')
@@ -455,23 +455,23 @@ export class RailsHub extends StakingRegistry {
     if (!path) {
       throw new Error('pathInfo not set')
     }
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     return contract.getWithdrawableBalance(path, recipient, timeWindow)
   }
 
   async getTransferId (input: GetTransferIdInput): Promise<string> {
     const { chainId, pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint } = input
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     return contract.getTransferId(pathId, to, adjustedAmount, minAmountOut, totalSent, nonce, attestedCheckpoint)
   }
 
   async getHopTokenAddress (chainId: BigNumberish): Promise<string> {
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     return contract.hopToken()
   }
 
   async getMinBonderStake (chainId: BigNumberish): Promise<BigNumber> {
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     return contract.minBonderStake()
   }
 
@@ -501,7 +501,7 @@ export class RailsHub extends StakingRegistry {
   // TODO
   async getCheckpoint (input: GetCheckpointInput): Promise<string> {
     const { chainId, previousCheckpoint, transferId, totalSent } = input
-    const contract = await this.getRailsHubContract(chainId)
+    const contract = await this.getRailsGatewayContract(chainId)
     return contract.getCheckpoint(previousCheckpoint, transferId, totalSent)
   }
 

@@ -1,5 +1,5 @@
 export * from './Hop.js'
-export * from './railsHub/index.js'
+export * from './railsGateway/index.js'
 export * from './nft/index.js'
 export * from './events/index.js'
 export * from './gasPriceOracle/index.js'

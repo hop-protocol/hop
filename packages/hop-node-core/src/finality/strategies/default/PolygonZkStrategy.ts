@@ -12,9 +12,9 @@ import type { IFinalityStrategy } from '../IFinalityStrategy.js'
 
 export class PolygonZkStrategy extends FinalityStrategy implements IFinalityStrategy {
   override getSafeBlockNumber = async (): Promise<number> => {
-    // Somewhat arbitrary, about 25 minutes
+    // Somewhat arbitrary, about 30 minutes
     // Approximately 1/2 the time to full finality
-    const confirmations = 512
+    const confirmations = 600
     return this.getProbabilisticBlockNumber(confirmations)
   }
 }

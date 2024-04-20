@@ -20,15 +20,15 @@ import { MessageSent, MessageSentEventFetcher } from '#messenger/events/MessageS
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
 import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
-import { TransferBondedEventFetcher } from '#railsHub/events/TransferBonded.js'
-import { TransferSentEventFetcher } from '#railsHub/events/TransferSent.js'
+import { TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
+import { TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { getProvider } from '#utils/getProvider.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
 import { addresses } from '#addresses/index.js'
 import { Messenger } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
-import { RailsHub, GetPathInfoInput, Path } from '#railsHub/index.js'
+import { RailsGateway, GetPathInfoInput, Path } from '#railsGateway/index.js'
 import { Nft } from '#nft/index.js'
 
 const cache : Record<string, any> = {}
@@ -70,7 +70,7 @@ export class Hop extends Base {
   providers: Record<string, any> = {}
   gasPriceOracle: GasPriceOracle
   messenger: Messenger
-  railsHub: RailsHub
+  railsGateway: RailsGateway
   nft: Nft
   hubConnector: HubConnector
 
@@ -94,7 +94,7 @@ export class Hop extends Base {
 
     this.messenger = new Messenger({ network, signer: this.signer, contractAddresses: this.contractAddresses })
     this.hubConnector = new HubConnector({ network, signer: this.signer, contractAddresses: this.contractAddresses })
-    this.railsHub = new RailsHub({ network, signer: this.signer, contractAddresses: this.contractAddresses })
+    this.railsGateway = new RailsGateway({ network, signer: this.signer, contractAddresses: this.contractAddresses })
     this.nft = new Nft({ network, signer: this.signer, contractAddresses: this.contractAddresses })
   }
 
@@ -211,14 +211,14 @@ export class Hop extends Base {
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
-      } else if (eventName === 'TransferSent') { // RailsHub
-        const address = await this.getRailsHubContractAddress(chainId)
+      } else if (eventName === 'TransferSent') { // RailsGateway
+        const address = await this.getRailsGatewayContractAddress(chainId)
         const _eventFetcher = new TransferSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
-      } else if (eventName === 'TransferBonded') { // RailsHub
-        const address = await this.getRailsHubContractAddress(chainId)
+      } else if (eventName === 'TransferBonded') { // RailsGateway
+        const address = await this.getRailsGatewayContractAddress(chainId)
         const _eventFetcher = new TransferBondedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
@@ -252,8 +252,8 @@ export class Hop extends Base {
     return this.hubConnector.getHubConnectorContractAddress(chainId)
   }
 
-  async getRailsHubContractAddress (chainId: number): Promise<string> {
-    return this.railsHub.getRailsHubContractAddress(chainId)
+  async getRailsGatewayContractAddress (chainId: number): Promise<string> {
+    return this.railsGateway.getRailsGatewayContractAddress(chainId)
   }
 
   async getNftBridgeContractAddress (chainId: number): Promise<string> {
@@ -261,12 +261,12 @@ export class Hop extends Base {
   }
 
   async sendTokens (input: SendTokensInput): Promise<any> {
-    const tx = await this.railsHub.send(input)
+    const tx = await this.railsGateway.send(input)
     return tx
   }
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {
-    return this.railsHub.getPathInfo(input)
+    return this.railsGateway.getPathInfo(input)
   }
 
   async connectTargets (input: ConnectTargetsInput): Promise<{tx: providers.TransactionResponse, connectorAddress: string}> {

@@ -677,6 +677,8 @@ export class HealthCheckWatcher {
 
     let result = await getUnbondedTransfers(this.days, this.offsetDays)
     result = result.map(item => {
+      // Ignore deprecated USDC transfers
+      if (item.token === 'USDC') return
       return {
         sourceChain: item.sourceChainSlug,
         destinationChain: item.destinationChainSlug,

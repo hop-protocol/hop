@@ -6,7 +6,7 @@ import { BigNumber, utils as ethersUtils } from 'ethers'
 import { Chain, MinPolygonGasPrice, nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
 import { TokenIndex } from '#constants/index.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
-import { swap as dexSwap } from '@hop-protocol/hop-node-core/swap'
+import { swap as dexSwap } from '#swap/index.js'
 import { getCanonicalTokenSymbol } from '@hop-protocol/hop-node-core/utils'
 import type Token from '#watchers/classes/Token.js'
 

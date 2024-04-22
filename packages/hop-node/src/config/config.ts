@@ -14,7 +14,6 @@ import {
   envNetwork,
   getCoreConfig,
   getCoreNetworkConfig,
-  isTestMode,
   setCoreBonderPrivateKey,
   setCoreNetworkMaxGasPrice,
   setCoreNetworkRedundantRpcUrls,
@@ -29,7 +28,6 @@ import { utils } from 'ethers'
 import type { AssetSymbol, Bps } from '@hop-protocol/sdk/config'
 import type {
   BlocklistConfig,
-  MetricsConfig,
   SignerConfig,
   Tokens
 } from '@hop-protocol/hop-node-core/config'
@@ -55,7 +53,7 @@ const dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const defaultDbPath = path.resolve(dirname, '../../db_data')
 // const defaultDbPath = path.resolve(__dirname, '../../db_data')
 export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
-export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
+export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL
 
 // This value must be longer than the longest chain's finality
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
@@ -73,6 +71,8 @@ export const wsEnabledChains = process.env.WS_ENABLED_CHAINS?.split(',') ?? []
 export const BondThreshold = normalizeEnvVarNumber(process.env.BOND_THRESHOLD) ?? DefaultBondThreshold
 // TODO: Normalize bool. This will be true if ENFORCE_RELAYER_FEE is set to anything
 export const EnforceRelayerFee = !!process.env.ENFORCE_RELAYER_FEE ?? false
+export const isTestMode = !!process.env.TEST_MODE
+export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
 // available liquidity watcher to have up-to-date info
@@ -103,6 +103,11 @@ export type Fees = Record<string, Bps>
 export type Routes = Record<string, Record<string, boolean>>
 export type CommitTransfersConfig = {
   minThresholdAmount: Record<string, Record<string, Record<string, any>>>
+}
+
+export type MetricsConfig = {
+  enabled: boolean
+  port?: number
 }
 
 export type Config = CoreConfig & {
@@ -239,6 +244,9 @@ export const config: Config = {
   },
   commitTransfers: {
     minThresholdAmount: {}
+  },
+  metrics: {
+    enabled: false
   },
 }
 

@@ -1,4 +1,4 @@
-import { Logger } from '#logger/index.js'
+import { Logger } from '@hop-node-core/logger'
 import { type Metric, Registry, collectDefaultMetrics } from 'prom-client'
 import { metrics } from './metrics.js'
 

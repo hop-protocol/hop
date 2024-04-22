@@ -54,6 +54,6 @@ jobs:
 
       - name: Publish package
         working-directory: .
-        run: git status && pnpm --filter sdk-core publish --access public --dry-run
+        run: git status && pnpm --filter sdk-core publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

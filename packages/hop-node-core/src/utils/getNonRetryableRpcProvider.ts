@@ -1,8 +1,17 @@
-import { getNonRetryableRpcProviderFromUrl } from './getNonRetryableRpcProviderFromUrl.js'
 import { getRpcUrl } from './getRpcUrl.js'
+import { providers } from 'ethers'
 import type { providers } from 'ethers'
 
+const cache: Record<string, providers.Provider> = {}
 export const getNonRetryableRpcProvider = (network: string): providers.Provider => {
   const rpcUrl = getRpcUrl(network)
-  return getNonRetryableRpcProviderFromUrl(rpcUrl)
+  const cacheKey = rpcUrl
+  const cachedValue = cache[cacheKey]
+  if (cachedValue) {
+    return cachedValue
+  }
+
+  const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
+  cache[cacheKey] = provider
+  return provider
 }

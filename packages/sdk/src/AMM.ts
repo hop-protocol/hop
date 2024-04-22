@@ -8,10 +8,10 @@ import { Swap__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import {
-  getBlockNumberFromDate,
   rateLimitRetry,
   shiftBNDecimals
 } from '@hop-protocol/sdk-core'
+import { getBlockNumberFromDate } from './utils/index.js'
 
 export type AmmConstructorOptions = {
   tokenSymbol?: TokenSymbol,

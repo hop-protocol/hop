@@ -21,10 +21,7 @@ export {
 export {
   chainIdToSlug,
   fetchJsonOrThrow,
-  getBlockNumberFromDate,
   getChainSlugFromName,
-  getEtherscanApiKey,
-  getEtherscanApiUrl,
   getLpFeeBps,
   getMinGasLimit,
   getMinGasPrice,

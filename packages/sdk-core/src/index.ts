@@ -44,7 +44,28 @@ export {
   wait
 } from './utils/index.js'
 
-export * as addresses from './addresses/index.js'
+export {
+  goerli,
+  sepolia,
+  mainnet,
+  addresses,
+  L1BridgeProps,
+  L2BridgeProps,
+  PolygonBaseBridgeProps,
+  PolygonBridgeProps,
+  GnosisBaseBridgeProps,
+  GnosisBridgeProps,
+  BridgeChains,
+  USDCL1BridgeBase,
+  USDCL2BridgeBase,
+  USDCBridge,
+  Bridges,
+  Routes,
+  Bonders,
+  RewardsContracts,
+  Addresses
+} from './addresses/index.js'
+
 export * as config from './config/index.js'
 export * as contracts from './contracts/index.js'
 export * as metadata from './metadata/index.js'

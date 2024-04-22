@@ -41,7 +41,7 @@ jobs:
       - name: Install global dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: npm install -g pnpm@latest only-allow@latest
+        run: npm install -g pnpm@8.15.7 only-allow@1.2.1
 
       - name: Install local packages and dependencies
         if: env.VERSION_MISMATCH == 'true'

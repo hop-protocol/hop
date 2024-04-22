@@ -1,38 +1,38 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import wallets from 'src/wallets'
+import wallets from '@hop-protocol/hop-node-core/wallets'
 import { BigNumber } from 'ethers'
-import { Message } from 'src/cctp/cctp/Message'
-import { RequiredFilter } from 'src/cctp/indexer/OnchainEventIndexer'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { Message } from '#cctp/cctp/Message.js'
+import { chainIdToSlug, chainSlugToId, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import type { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
 
-import { actionHandler, parseString, root } from './shared'
+import { actionHandler, parseString, parseStringArray, root } from './shared/index.js'
 
 root
   .command('relay-cctp')
   .description('Relay a CCTP message')
   .option('--chain <slug>', 'Source chain', parseString)
-  .option('--tx-hash <hash>', 'Tx hash', parseString)
+  .option('--tx-hashes <hash, ...>', 'Comma-separated tx hashes', parseStringArray)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, txHash } = source
+  const { chain, txHashes } = source
 
   if (!chain) {
     throw new Error('Chain not found')
   }
-  if (!txHash) {
-    throw new Error('Tx hash not found')
+  if (!txHashes?.length) {
+    throw new Error('Tx hashes not found')
   }
 
-  const message = await getMessageFromTxHash(chain, txHash)
-  const destinationChain = await getDestinationChainFromTxHash(chain, txHash)
+  for (const txHash of txHashes) {
+    const message = await getMessageFromTxHash(chain, txHash)
+    const destinationChain = await getDestinationChainFromTxHash(chain, txHash)
 
-  const wallet = wallets.get(destinationChain)
-  const messageHash = Message.getMessageHashFromMessage(message)
-  const attestation = await Message.fetchAttestation(messageHash)
-  const tx = await Message.relayMessage(wallet , message, attestation)
-  console.log(`Relayed message to ${destinationChain} with tx ${tx.transactionHash}`)
+    const wallet = wallets.get(destinationChain)
+    const messageHash = Message.getMessageHashFromMessage(message)
+    const attestation = await Message.fetchAttestation(messageHash)
+    const tx = await Message.relayMessage(wallet , message, attestation)
+    console.log(`Relayed message to ${destinationChain} with tx ${tx.transactionHash}`)
+  }
 }
 
 // TODO: Get from Message

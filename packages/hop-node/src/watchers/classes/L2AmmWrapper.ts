@@ -1,13 +1,13 @@
-import ContractBase from './ContractBase'
-import getTokenMetadata from 'src/utils/getTokenMetadata'
-import isL1ChainId from 'src/utils/isL1ChainId'
-import { BigNumber, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import ContractBase from './ContractBase.js'
+import { BigNumber, utils } from 'ethers'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { Hop } from '@hop-protocol/sdk'
-import { TxOverrides } from 'src/types'
-import { formatUnits } from 'ethers/lib/utils'
-import { config as globalConfig } from 'src/config'
-import { isNativeToken } from 'src/utils/isNativeToken'
+import { getTokenMetadata } from '@hop-protocol/hop-node-core/utils'
+import { config as globalConfig } from '#config/index.js'
+import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
+import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
+import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import type { providers } from 'ethers'
 
 export default class L2AmmWrapper extends ContractBase {
   decodeSwapAndSendData (data: string): any {
@@ -57,7 +57,7 @@ export default class L2AmmWrapper extends ContractBase {
     }
 
     if (totalFee.gt(amount)) {
-      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(totalFee, tokenDecimals)}`)
+      throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${utils.formatUnits(totalFee, tokenDecimals)}`)
     }
 
     const overrides: TxOverrides = {

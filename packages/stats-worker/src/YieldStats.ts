@@ -1,16 +1,15 @@
-import { BigNumber, FixedNumber, constants } from 'ethers'
+import { BigNumber, FixedNumber, constants, utils } from 'ethers'
 import {
   Bridges,
   RewardsContracts,
   mainnet as mainnetAddresses
-} from '@hop-protocol/core/addresses'
+} from '@hop-protocol/sdk/addresses'
 import {
   ERC20__factory,
   StakingRewards__factory
-} from '@hop-protocol/core/contracts'
+} from '@hop-protocol/sdk/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { coingeckoApiKey, rpcUrls } from './config'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { coingeckoApiKey, rpcUrls } from './config.js'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
@@ -229,7 +228,7 @@ class YieldStats {
           }
         }
 
-        const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
+        const stakingContracts = this.stakingRewardsContracts?.[token === 'USDC' ? 'USDC.e' : token]?.[chain]
         if (stakingContracts && stakingContracts.length > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
           if (!yieldData.stakingRewards[token]) { yieldData.stakingRewards[token] = {} }
@@ -581,7 +580,7 @@ class YieldStats {
       .mul(precision)
       .div(stakedTotal18d.mul(tokenUsdPriceBn))
 
-    const rate = Number(formatUnits(rateBn.toString(), TOTAL_AMOUNTS_DECIMALS))
+    const rate = Number(utils.formatUnits(rateBn.toString(), TOTAL_AMOUNTS_DECIMALS))
     const apr = rate * oneYearDays
     const apy = (1 + rate) ** oneYearDays - 1
 
@@ -598,7 +597,7 @@ class YieldStats {
 
   amountToBN (amount: string | number, decimals: number = 18) {
     const fixedAmount = this.fixedDecimals(amount.toString(), decimals)
-    return parseUnits(fixedAmount || '0', decimals)
+    return utils.parseUnits(fixedAmount || '0', decimals)
   }
 
   fixedDecimals (amount: string, decimals: number = 18) {

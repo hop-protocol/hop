@@ -1,28 +1,22 @@
-import BaseWatcher from './classes/BaseWatcher'
-import L1Bridge from './classes/L1Bridge'
-import L2Bridge from './classes/L2Bridge'
-import MerkleTree from 'src/utils/MerkleTree'
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getRpcRootProviderName from 'src/utils/getRpcRootProviderName'
-import getRpcUrl from 'src/utils/getRpcUrl'
-import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
-import isL1ChainId from 'src/utils/isL1ChainId'
-import wait from 'src/utils/wait'
-import wallets from 'src/wallets'
-import { BigNumber, Contract, EventFilter, providers } from 'ethers'
+import BaseWatcher from './classes/BaseWatcher.js'
+import MerkleTree from '#utils/MerkleTree.js'
+import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
+import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
+import wallets from '@hop-protocol/hop-node-core/wallets'
+import { BigNumber, type EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
-  Chain,
   ChainPollMultiplier,
   DoesRootProviderSupportWs,
-  FiveMinutesMs,
   GasCostTransactionType,
+  RelayableChains
+} from '#constants/index.js'
+import {
+  Chain,
+  FiveMinutesMs,
   OneWeekMs,
-  RelayableChains,
-  RootProviderName,
   TenMinutesMs
-} from 'src/constants'
+} from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
 import {
   EnforceRelayerFee,
@@ -33,11 +27,23 @@ import {
   config as globalConfig,
   minEthBonderFeeBn,
   wsEnabledChains
-} from 'src/config'
-import { GasCost } from 'src/db/GasCostDb'
-import { GasCostEstimationRes } from './classes/Bridge'
+} from '#config/index.js'
 import { Hop } from '@hop-protocol/sdk'
-import {
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcRootProviderName } from '@hop-protocol/hop-node-core/utils'
+import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
+import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
+import { isDbSetReady } from '#db/index.js'
+import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
+import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+import { promiseTimeout } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core/utils'
+import type L1Bridge from './classes/L1Bridge.js'
+import type L2Bridge from './classes/L2Bridge.js'
+import type { Contract} from 'ethers'
+import type { GasCost } from '#db/GasCostDb.js'
+import type { GasCostEstimationRes } from './classes/Bridge.js'
+import type {
   L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
   TransferBondChallengedEvent,
@@ -48,18 +54,15 @@ import {
   WithdrawalBondSettledEvent,
   WithdrawalBondedEvent,
   WithdrewEvent
-} from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import {
+} from '@hop-protocol/sdk/contracts/L1_Bridge'
+import type {
   L2_Bridge as L2BridgeContract,
   TransferSentEvent,
   TransfersCommittedEvent
-} from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Transfer } from 'src/db/TransfersDb'
-import { TransferRoot } from 'src/db/TransferRootsDb'
-import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { isDbSetReady } from 'src/db'
-import { promiseQueue } from 'src/utils/promiseQueue'
-import { promiseTimeout } from 'src/utils/promiseTimeout'
+} from '@hop-protocol/sdk/contracts/L2_Bridge'
+import type { RootProviderName } from '#constants/index.js'
+import type { Transfer } from '#db/TransfersDb.js'
+import type { TransferRoot } from '#db/TransferRootsDb.js'
 
 type Config = {
   chainSlug: string
@@ -199,7 +202,7 @@ class SyncWatcher extends BaseWatcher {
     }
   }
 
-  async pollSync () {
+  async pollSync (): Promise<never> {
     this.logger.debug('starting pollSync')
     while (true) {
       try {
@@ -1275,17 +1278,23 @@ class SyncWatcher extends BaseWatcher {
     }
 
     logger.debug(`found transfer ids for transfer root hash ${transferRootHash}`, JSON.stringify(transferIds))
+    console.log('settleDebug000', transferRootId)
     const tree = new MerkleTree(transferIds)
+    console.log('settleDebug111', transferRootId)
     const computedTransferRootHash = tree.getHexRoot()
+    console.log('settleDebug222', transferRootId)
     if (computedTransferRootHash !== transferRootHash) {
+      console.log('settleDebug333', transferRootId)
       logger.warn(`computed root doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. IDs: ${JSON.stringify(transferIds)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 
+    console.log('settleDebug444', transferRootId)
     await this.db.transferRoots.update(transferRootId, {
       transferIds
     })
+    console.log('settleDebug555', transferRootId)
   }
 
   async checkTransferIdsForRoot (dbTransferRoot: TransferRoot): Promise<string[] | undefined> {

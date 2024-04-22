@@ -1,7 +1,7 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import { Chain, Network } from 'src/constants'
-import { Contract, utils } from 'ethers' 
-import { config as globalConfig } from 'src/config'
+import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
+import { Contract, utils } from 'ethers'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { config as globalConfig } from '#config/index.js'
 
 export function getAttestationUrl (messageHash: string): string {
   const attestationUrlSubdomain = globalConfig.network === Network.Mainnet ? 'iris-api' : 'iris-api-sandbox'
@@ -28,7 +28,7 @@ export const FinalityTimeForChainIdMs: Record<string, Partial<Record<Chain, numb
 
 export function getFinalityTimeFromChainIdMs (chainId: number): number {
   const chainSlug = chainIdToSlug(chainId)
-  return FinalityTimeForChainIdMs[globalConfig.network][chainSlug]!
+  return (FinalityTimeForChainIdMs as any)[globalConfig.network][chainSlug]!
 }
 
 // Remove all this in favor of the contract instance from the SDK when available

@@ -1,12 +1,12 @@
-import { KmsSigner } from 'src/aws/KmsSigner'
-import { LambdaSigner } from 'src/aws/LambdaSigner'
-import { actionHandler, parseBool, root } from './shared'
-import { formatEther, parseEther } from 'ethers/lib/utils'
+import { KmsSigner } from '@hop-protocol/hop-node-core/aws'
+import { LambdaSigner } from '@hop-protocol/hop-node-core/aws'
+import { actionHandler, parseBool, root } from './shared/index.js'
+import { utils } from 'ethers'
 import {
   getEnabledNetworks,
   config as globalConfig
-} from 'src/config'
-import { getRpcProvider } from 'src/utils/getRpcProvider'
+} from '#config/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 
 root
   .command('verify-aws-signer')
@@ -67,9 +67,9 @@ async function main (source: any) {
 
       // If the bonder does not have funds on the chain, skip
       const balance = await provider.getBalance(address)
-      const minBalance = parseEther('0.003')
+      const minBalance = utils.parseEther('0.003')
       if (balance.lte(minBalance)) {
-        console.log(`Skipping ${chain} because ${address} has too few funds (${formatEther(balance)} ETH)`)
+        console.log(`Skipping ${chain} because ${address} has too few funds (${utils.formatEther(balance)} ETH)`)
         continue
       }
 

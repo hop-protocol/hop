@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Reintroduce `strict` defaults that were disabled at root
+    "strictPropertyInitialization": true,
+    // Enabled stricter import and export type syntax
+    "verbatimModuleSyntax": true,
+    // Add slightly stricter type checking for indexed access
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["src"]
+}

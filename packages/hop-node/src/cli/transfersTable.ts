@@ -1,7 +1,7 @@
 import chalk from 'chalk'
-import getTransfer from 'src/theGraph/getTransfer'
-import getTransfers from 'src/theGraph/getTransfers'
-import { actionHandler, parseBool, parseString, root } from './shared'
+import getTransfer from '#theGraph/getTransfer.js'
+import getTransfers from '#theGraph/getTransfers.js'
+import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 
 root
   .command('transfers-table')

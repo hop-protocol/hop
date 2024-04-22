@@ -1,10 +1,10 @@
-import getTransferRootsCount from 'src/theGraph/getTransferRootsCount'
-import { Chain } from 'src/constants'
-import { actionHandler, root } from './shared'
+import getTransferRootsCount from '#theGraph/getTransferRootsCount.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { actionHandler, root } from './shared/index.js'
 import {
   getEnabledNetworks,
   getEnabledTokens
-} from 'src/config'
+} from '#config/index.js'
 
 root
   .command('transfer-roots-count')

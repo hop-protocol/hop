@@ -1,12 +1,12 @@
-import ContractBase from './ContractBase'
-import { BigNumber, constants, ethers, providers } from 'ethers'
-import { ERC20 } from '@hop-protocol/core/contracts'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import ContractBase from './ContractBase.js'
+import { constants, ethers, utils } from 'ethers'
+import type { BigNumber, providers } from 'ethers'
+import type { ERC20 } from '@hop-protocol/sdk/contracts'
 
 export default class Token extends ContractBase {
   tokenContract: ERC20
   isEth: boolean
-  _decimals: number
+  _decimals!: number
 
   constructor (tokenContract: ERC20) {
     super(tokenContract)
@@ -84,10 +84,10 @@ export default class Token extends ContractBase {
   }
 
   async formatUnits (value: BigNumber) {
-    return Number(formatUnits(value.toString(), await this.decimals()))
+    return Number(utils.formatUnits(value.toString(), await this.decimals()))
   }
 
   async parseUnits (value: string | number) {
-    return parseUnits(value.toString(), await this.decimals())
+    return utils.parseUnits(value.toString(), await this.decimals())
   }
 }

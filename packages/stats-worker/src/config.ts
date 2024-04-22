@@ -1,13 +1,12 @@
 import 'dotenv/config'
-import { getDefaultRpcUrl } from './utils/getDefaultRpcProvider'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { getDefaultRpcUrl } from './utils/getDefaultRpcProvider.js'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 
 export const pinataApiKey = process.env.PINATA_API_KEY
 export const pinataSecretApiKey = process.env.PINATA_SECRET_API_KEY
 export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION
-export const awsProfile = process.env.AWS_PROFILE
 export const dbPath = process.env.SQLITE3_DB ?? './sqlite3.db'
 export const coingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''
 

@@ -1,12 +1,11 @@
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import Chain from './models/Chain'
-import TokenModel from './models/Token'
-import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
-import { ERC20__factory } from '@hop-protocol/core/contracts'
-import { TAmount, TChain } from './types'
-import { TokenSymbol, WrappedToken } from './constants'
-import { WETH9__factory } from '@hop-protocol/core/contracts'
-import { chains as chainMetadata } from '@hop-protocol/core/metadata'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
+import { BigNumber, Contract, Signer, ethers, providers, utils } from 'ethers'
+import { Chain, TokenModel } from '@hop-protocol/sdk-core'
+import { ERC20__factory } from './contracts/index.js'
+import { TAmount, TChain } from './types.js'
+import { TokenSymbol, WrappedToken } from './constants/index.js'
+import { WETH9__factory } from './contracts/index.js'
+import { chains as chainMetadata } from '@hop-protocol/sdk-core/metadata'
 
 export type TokenConstructorOptions = {
   chain: TChain,
@@ -21,7 +20,7 @@ export type TokenConstructorOptions = {
  * Class reprensenting ERC20 Token
  * @namespace Token
  */
-class Token extends Base {
+export class Token extends Base {
   public readonly address: string
   public readonly decimals: number
   public readonly name: string
@@ -78,7 +77,7 @@ class Token extends Base {
       throw new Error(`address is required for Token ${symbol} on Chain ${chain?.slug}`)
     }
 
-    this.address = ethers.utils.getAddress(address)
+    this.address = utils.getAddress(address)
     this.decimals = decimals!
     this._symbol = symbol!
     this.name = name!
@@ -416,5 +415,3 @@ class Token extends Base {
     return this.imageUrl
   }
 }
-
-export default Token

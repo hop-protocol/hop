@@ -5,14 +5,15 @@
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
   "private": true,
-  "main": "dist/src/index.js",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
-    "start": "node dist/src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/index.js",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "build": "tsc",
-    "lint": "eslint . --ext .ts --fix"
+    "lint": "eslint . --fix"
   },
   "dependencies": {
     "@hop-protocol/sdk": "workspace:*",

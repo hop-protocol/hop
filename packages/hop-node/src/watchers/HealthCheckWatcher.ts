@@ -1,31 +1,33 @@
-import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher'
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import Logger from 'src/logger'
-import OsWatcher from 'src/watchers/OsWatcher'
-import S3Upload from 'src/aws/s3Upload'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import contracts from 'src/contracts'
+import IncompleteSettlementsWatcher from './IncompleteSettlementsWatcher.js'
+import L1Bridge from './classes/L1Bridge.js'
+import OsWatcher from './OsWatcher.js'
+import contracts from '#contracts/index.js'
 import fs from 'node:fs'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
-import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
-import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
-import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
-import wait from 'src/utils/wait'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
-import { BigNumber, providers } from 'ethers'
+import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
+import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
+import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
+import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
+import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, stableCoins } from '@hop-protocol/hop-node-core/constants'
+import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
-import { Notifier } from 'src/notifier'
-import { Routes } from '@hop-protocol/core/addresses'
-import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { appTld, expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
-import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
-import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
-import { getNameservers } from 'src/utils/getNameservers'
-import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
-import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { RelayableChains } from '#constants/index.js'
+import { S3Upload } from '@hop-protocol/hop-node-core/aws'
+import { appTld, hostname } from '@hop-protocol/hop-node-core/config'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { expectedNameservers, getEnabledTokens, config as globalConfig, healthCheckerWarnSlackChannel } from '#config/index.js'
+import { getInvalidBondWithdrawals } from '#theGraph/getInvalidBondWithdrawals.js'
+import { getNameservers } from '#utils/getNameservers.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import { getUnbondedTransfers } from '#theGraph/getUnbondedTransfers.js'
+import { wait } from '@hop-protocol/hop-node-core/utils'
+import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import type { Routes } from '@hop-protocol/sdk/addresses'
+import type { TransferBondChallengedEvent } from '@hop-protocol/sdk/contracts/L1_Bridge'
+import type { providers } from 'ethers'
 
 type LowBonderBalance = {
   bridge: string
@@ -214,9 +216,9 @@ export type Config = {
 export class HealthCheckWatcher {
   tokens: string[] = getEnabledTokens()
   logger: Logger = new Logger('HealthCheckWatcher')
-  s3Upload: S3Upload
-  s3Filename: string
-  cacheFile: string
+  s3Upload!: S3Upload
+  s3Filename!: string
+  cacheFile!: string
   days: number = 1 // days back to check for
   offsetDays: number = 0
   pollIntervalSeconds: number = 30 * 60
@@ -226,24 +228,24 @@ export class HealthCheckWatcher {
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day
   lowBalanceThresholds: Record<string, BigNumber> = {
-    [NativeChainToken.ETH]: parseEther('0.5'),
-    [NativeChainToken.XDAI]: parseEther('10'),
-    [NativeChainToken.MATIC]: parseEther('10')
+    [NativeChainToken.ETH]: utils.parseEther('0.5'),
+    [NativeChainToken.XDAI]: utils.parseEther('10'),
+    [NativeChainToken.MATIC]: utils.parseEther('10')
   }
 
   cacheTimestamps: Record<string, any> = {}
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
-    USDC: parseUnits('2951000', 6),
-    USDT: parseUnits('120000', 6),
-    DAI: parseUnits('1500000', 18),
-    ETH: parseUnits('7949', 18),
-    MATIC: parseUnits('766730', 18),
-    HOP: parseUnits('4500000', 18),
-    SNX: parseUnits('200000', 18),
-    sUSD: parseUnits('500000', 18),
-    rETH: parseUnits('550', 18),
-    MAGIC: parseUnits('1000000', 18)
+    USDC: utils.parseUnits('2951000', 6),
+    USDT: utils.parseUnits('120000', 6),
+    DAI: utils.parseUnits('1500000', 18),
+    ETH: utils.parseUnits('7949', 18),
+    MATIC: utils.parseUnits('766730', 18),
+    HOP: utils.parseUnits('4500000', 18),
+    SNX: utils.parseUnits('200000', 18),
+    sUSD: utils.parseUnits('500000', 18),
+    rETH: utils.parseUnits('550', 18),
+    MAGIC: utils.parseUnits('1000000', 18)
   }
 
   bonderLowLiquidityThreshold: number = 0.1
@@ -272,8 +274,8 @@ export class HealthCheckWatcher {
     invalidChainBalance: true
   }
 
-  lastUnsyncedSubgraphNotificationSentAt: number
-  lastLowOsResourceNotificationSentAt: number
+  lastUnsyncedSubgraphNotificationSentAt!: number
+  lastLowOsResourceNotificationSentAt!: number
 
   constructor (config: Config) {
     const { days, offsetDays, s3Upload, s3Namespace, cacheFile, enabledChecks } = config
@@ -319,7 +321,7 @@ export class HealthCheckWatcher {
     }
   }
 
-  async start () {
+  async start (): Promise<never> {
     while (true) {
       try {
         await this.poll()
@@ -585,7 +587,7 @@ export class HealthCheckWatcher {
           chain: Chain.Ethereum,
           nativeToken: NativeChainToken.ETH,
           amount: ethBalance.toString(),
-          amountFormatted: Number(formatEther(ethBalance.toString()))
+          amountFormatted: Number(utils.formatEther(ethBalance.toString()))
         })
       }
 
@@ -596,7 +598,7 @@ export class HealthCheckWatcher {
           chain: Chain.Gnosis,
           nativeToken: NativeChainToken.XDAI,
           amount: xdaiBalance.toString(),
-          amountFormatted: Number(formatEther(xdaiBalance.toString()))
+          amountFormatted: Number(utils.formatEther(xdaiBalance.toString()))
         })
       }
 
@@ -607,7 +609,7 @@ export class HealthCheckWatcher {
           chain: Chain.Polygon,
           nativeToken: NativeChainToken.MATIC,
           amount: maticBalance.toString(),
-          amountFormatted: Number(formatEther(maticBalance.toString()))
+          amountFormatted: Number(utils.formatEther(maticBalance.toString()))
         })
       }
     }
@@ -649,12 +651,12 @@ export class HealthCheckWatcher {
       }
 
       const tokenDecimals = getTokenDecimals(token)!
-      const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
-      const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
-      const oneToken = parseUnits('1', tokenDecimals)
-      const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
+      const availableLiquidityFormatted = Number(utils.formatUnits(availableLiquidity, tokenDecimals))
+      const totalLiquidityFormatted = Number(utils.formatUnits(totalLiquidity, tokenDecimals))
+      const oneToken = utils.parseUnits('1', tokenDecimals)
+      const thresholdPercent = utils.parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
       const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
-      const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
+      const thresholdAmountFormatted = Number(utils.formatUnits(thresholdAmount, tokenDecimals))
       if (availableLiquidity.lt(thresholdAmount) && availableLiquidity.gt(0)) {
         result.push({
           bridge: token,
@@ -675,6 +677,8 @@ export class HealthCheckWatcher {
 
     let result = await getUnbondedTransfers(this.days, this.offsetDays)
     result = result.map(item => {
+      // Ignore deprecated USDC transfers
+      if (item.token === 'USDC') return
       return {
         sourceChain: item.sourceChainSlug,
         destinationChain: item.destinationChainSlug,
@@ -869,7 +873,7 @@ export class HealthCheckWatcher {
           const transferRootId = event.args.transferRootId.toString()
           const originalAmount = event.args.originalAmount.toString()
           const tokenDecimals = getTokenDecimals(token)!
-          const originalAmountFormatted = Number(formatUnits(originalAmount, tokenDecimals))
+          const originalAmountFormatted = Number(utils.formatUnits(originalAmount, tokenDecimals))
           const data = {
             token,
             transactionHash,
@@ -998,8 +1002,7 @@ export class HealthCheckWatcher {
 
     const missingTransfers: any[] = []
     for (const chain of RelayableChains.L1_TO_L2) {
-      // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
-      const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes * 2 })
+      const endDateWithBuffer = endDate.plus({ minutes: this.healthCheckFinalityTimeMinutes })
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
 
@@ -1097,20 +1100,21 @@ export class HealthCheckWatcher {
 
   async getLowOsResources (): Promise<LowOsResource[]> {
     const lowOsResources: LowOsResource[] = []
-    const {
-      usedSizeGb: diskUsed,
-      totalSizeGb: diskTotal,
-      usedPercent: diskPercent
-    } = await OsWatcher.getDiskUsage()
+    // TODO: check-disk-space package was giving problems so this is temp removed
+    // const {
+    //   usedSizeGb: diskUsed,
+    //   totalSizeGb: diskTotal,
+    //   usedPercent: diskPercent
+    // } = await OsWatcher.getDiskUsage()
 
-    if (diskPercent > 95) {
-      lowOsResources.push({
-        kind: 'disk',
-        used: diskUsed,
-        total: diskTotal,
-        percent: diskPercent
-      })
-    }
+    // if (diskPercent > 95) {
+    //   lowOsResources.push({
+    //     kind: 'disk',
+    //     used: diskUsed,
+    //     total: diskTotal,
+    //     percent: diskPercent
+    //   })
+    // }
 
     const {
       cpuPercent,

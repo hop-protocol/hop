@@ -1,10 +1,10 @@
-import MerkleTree from '../src/utils/MerkleTree'
-import { getSyncWatcher } from '../src/watchers/watchers'
+import MerkleTree from '#utils/MerkleTree.js'
+import { getSyncWatcher } from '#watchers/watchers.js'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from 'src/config'
-import { promiseQueue } from '../src/utils/promiseQueue'
+} from '#config/index.js'
+import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
 
 // known to cause getLogs issues with alchemy
 /*

@@ -1,12 +1,18 @@
-import { APIEventStore } from './ApiEventStore'
-import { Chain } from 'src/constants'
+import { APIEventStore } from './ApiEventStore.js'
+import type { Chain } from '@hop-protocol/hop-node-core/constants'
 import { EventEmitter } from 'node:events'
-import { IAPIEventStoreRes, IDataStore, IGetStoreDataRes, IOnchainEventStoreRes, ITransitionDataProvider } from './types'
-import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB'
-import { Message } from '../Message'
-import { MessageState } from '../MessageManager'
-import { OnchainEventStore } from './OnchainEventStore'
-import { getTimestampFromBlockNumberMs } from './utils'
+import type {
+  IAPIEventStoreRes,
+  IDataStore,
+  IGetStoreDataRes,
+  IOnchainEventStoreRes,
+  ITransitionDataProvider
+} from './types.js'
+import type { LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
+import { MessageState } from '../MessageManager.js'
+import { Message } from '../Message.js'
+import { OnchainEventStore } from './OnchainEventStore.js'
+import { getTimestampFromBlockNumberMs } from './utils.js'
 
 export enum Event {
   Initialization = 'initialization'

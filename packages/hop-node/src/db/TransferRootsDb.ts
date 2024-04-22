@@ -1,20 +1,23 @@
-import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
-import { BigNumber } from 'ethers'
+import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import {
   BondTransferRootChains,
-  Chain,
   ChallengePeriodMs,
-  OneWeekMs,
   RelayWaitTimeMs,
   RelayableChains,
   RootSetSettleDelayMs,
-  TenMinutesMs,
   TxError
-} from 'src/constants'
-import { TxRetryDelayMs } from 'src/config'
-import { transferRootsMigrations } from './migrations'
+} from '#constants/index.js'
+import {
+  Chain,
+  OneWeekMs,
+  TenMinutesMs
+} from '@hop-protocol/hop-node-core/constants'
+import { TxRetryDelayMs } from '#config/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
+import { transferRootsMigrations } from './migrations.js'
+import type { BigNumber } from 'ethers'
+import { Mutex } from 'async-mutex'
 
 interface BaseTransferRoot {
   bondBlockNumber?: number
@@ -198,7 +201,6 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
     }
 
     return (
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.commitTxBlockNumber ||
@@ -207,7 +209,6 @@ class SubDbIncompletes extends BaseDb<TransferRoot> {
       !!(item.confirmTxHash && !item.confirmedAt) ||
       !!(item.rootSetBlockNumber && !item.rootSetTimestamp) ||
       !!(item.sourceChainId && !item.transferIds)
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
 
@@ -249,6 +250,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes
   subDbRootHashes: SubDbRootHashes
+  #updateMutex: Mutex = new Mutex()
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace, transferRootsMigrations)
@@ -274,17 +276,26 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
     return true
   }
 
+  /**
+   * There is no way to natively update with LevelDB so we use a mutex to ensure that writes that occur at the same time
+   * do not overwrite each other by reading stale data.
+   * 
+   * One case where this can happen is the bonding of a transferRoot on L1. The root is bonded and set in the same
+   * tx. If the event indexers for those two events are in sync, they will be seen at the same time.
+   */
   async update (transferRootId: string, transferRoot: UpdateTransferRoot): Promise<void> {
-    const item = await this.get(transferRootId) ?? {} as TransferRoot
-    const updatedValue: TransferRoot = this.getUpdatedValue(item, transferRoot as TransferRoot)
-    updatedValue.transferRootId = transferRootId
+    await this.#updateMutex.runExclusive(async () => {
+      const item = await this.get(transferRootId) ?? {} as TransferRoot
+      const updatedValue: TransferRoot = this.getUpdatedValue(item, transferRoot as TransferRoot)
+      updatedValue.transferRootId = transferRootId
 
-    await Promise.all([
-      this.subDbRootHashes.update(transferRootId, updatedValue),
-      this.subDbTimestamps.update(transferRootId, updatedValue),
-      this.subDbIncompletes.update(transferRootId, updatedValue),
-      this.put(transferRootId, updatedValue)
-    ])
+      await Promise.all([
+        this.subDbRootHashes.update(transferRootId, updatedValue),
+        this.subDbTimestamps.update(transferRootId, updatedValue),
+        this.subDbIncompletes.update(transferRootId, updatedValue),
+        this.put(transferRootId, updatedValue)
+      ])
+    })
   }
 
   async getByTransferRootId (transferRootId: string): Promise<TransferRoot | null> {

@@ -1,17 +1,17 @@
-import '../moduleAlias'
-import BaseWatcher from './classes/BaseWatcher'
-import L2Bridge from './classes/L2Bridge'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
+import BaseWatcher from './classes/BaseWatcher.js'
 import { BigNumber } from 'ethers'
-import { Chain, ChainPollMultiplier } from 'src/constants'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainPollMultiplier } from '#constants/index.js'
 import {
   TxRetryDelayMs,
   getEnabledNetworks,
   config as globalConfig,
   pendingCountCommitThreshold
-} from 'src/config'
+} from '#config/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import type L2Bridge from './classes/L2Bridge.js'
+import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
+import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
 
 type Config = {
   chainSlug: string
@@ -23,7 +23,7 @@ type Config = {
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: CommitTransfersWatcher }
+  override siblingWatchers!: { [chainId: string]: CommitTransfersWatcher }
   minThresholdAmounts: {[chain: string]: BigNumber} = {}
   commitTxSentAt: { [chainId: number]: number } = {}
 

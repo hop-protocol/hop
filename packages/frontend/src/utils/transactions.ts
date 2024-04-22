@@ -5,7 +5,7 @@ import { BigNumber, providers, utils } from 'ethers'
 import { EventNames } from 'src/utils/constants'
 import { Interface, LogDescription } from '@ethersproject/abi'
 import { TokenModel, TokenSymbol } from '@hop-protocol/sdk'
-import { TransactionReceipt, TransactionResponse } from '@ethersproject/providers'
+import { type TransactionReceipt, type TransactionResponse } from '@ethersproject/providers'
 import {
   contractInterfaces,
   hopBridgeTokenInterface,
@@ -150,22 +150,22 @@ export interface TxDetails {
 }
 
 const getHopTxInfo = (response: TransactionResponse): {methodSig: string, data: string} => {
-  const txMethodSig = response.data.slice(0, 10);
-  const methodName = sigHashes[txMethodSig];
+  const txMethodSig = response.data.slice(0, 10)
+  const methodName = sigHashes[txMethodSig]
 
   // execTransaction is the method executed when the TX was sent from a GnosisSafe.
   if (methodName === "execTransaction") {
     const iface = contractInterfaces.gnosisSafeExecTransactionInterface
-    const res = iface.decodeFunctionData(MethodNames.execTransaction, response.data);
+    const res = iface.decodeFunctionData(MethodNames.execTransaction, response.data)
     // return original tx data
-    return { methodSig: res[2].slice(0, 10), data: res[2] };
+    return { methodSig: res[2].slice(0, 10), data: res[2] }
   } else {
-    return { methodSig: txMethodSig, data: response.data };
+    return { methodSig: txMethodSig, data: response.data }
   }
-};
+}
 
 export function getTxDetails(txResponse: TransactionResponse, receipt: TransactionReceipt): TxDetails {
-  const hopTxInfo = getHopTxInfo(txResponse);
+  const hopTxInfo = getHopTxInfo(txResponse)
 
   // WIP: generalizing the interfaces to find a matching function signature
   const theOne: any = Object.keys(contractInterfaces).reduce((acc, key) => {

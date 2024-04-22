@@ -1,18 +1,20 @@
-import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getExponentialBackoffDelayMs from 'src/utils/getExponentialBackoffDelayMs'
+import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import { BigNumber } from 'ethers'
 import {
   Chain,
   OneDayMs,
   OneHourMs,
-  OneWeekMs,
+  OneWeekMs
+} from '@hop-protocol/hop-node-core/constants'
+import {
   RelayWaitTimeMs,
   RelayableChains,
   TxError
-} from 'src/constants'
-import { TxRetryDelayMs } from 'src/config'
-import { transfersMigrations } from './migrations'
+} from '#constants/index.js'
+import { TxRetryDelayMs } from '#config/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
+import { transfersMigrations } from './migrations.js'
 
 interface BaseTransfer {
   amount?: BigNumber
@@ -186,12 +188,10 @@ class SubDbIncompletes extends BaseDb<Transfer> {
     }
 
     return (
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
       !!(item.transferSentBlockNumber && !item.transferSentTimestamp)
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
 

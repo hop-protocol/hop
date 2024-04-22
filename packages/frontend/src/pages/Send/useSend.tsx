@@ -4,7 +4,7 @@ import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import useSendData from 'src/pages/Send/useSendData'
 import { Address } from 'src/models/Address'
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { ChainSlug, HopBridge, Token } from '@hop-protocol/sdk'
 import { DisabledRoute } from 'src/config/disabled'
 import {
@@ -27,7 +27,6 @@ import { Network } from 'src/models/Network'
 import { Transaction } from 'src/models/Transaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, findMatchingBridge, networkSlugToId, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
-import { formatUnits } from 'ethers/lib/utils'
 import { getTransferTimeString } from 'src/utils/getTransferTimeString'
 import { isGoerli, showRewards } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
@@ -464,7 +463,7 @@ export function useSend(): SendResponseProps {
       const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
       const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
       const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
-      const bonderFeeMajority = fromToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, fromToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
+      const bonderFeeMajority = fromToken?.decimals && estimatedReceived && totalFee && ((Number(utils.formatUnits(totalFee, fromToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
       const insufficientRelayFeeFunds = fromToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN?.gt(fromBalance.sub(relayFeeEth))
       const notEnoughBonderFee = estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)
       const estimatedReceivedLow = estimatedReceived?.lte(0)
@@ -604,8 +603,7 @@ export function useSend(): SendResponseProps {
   useEffect(() => {
     async function update () {
       try {
-        const isUSDC = fromToken?.symbol === 'USDC' || fromToken?.symbol === 'USDC.e' // TODO: This is temporarily disabled until merkle worker is updated to work with USDC and USDC.e
-        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism && !isUSDC)) {
+        if (!(feeRefundEnabled && fromNetwork && toNetwork && fromToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism)) {
           setFeeRefund('')
           setFeeRefundUsd('')
           return
@@ -618,10 +616,14 @@ export function useSend(): SendResponseProps {
           gasCost = BigNumber.from(gasCost).div(2).toString()
         }
 
+        let tokenSymbol = fromToken?.symbol
+        if (tokenSymbol === 'USDC.e') {
+          tokenSymbol = 'USDC'
+        }
         const payload :Record<string, string> = {
           gasCost,
           amount: fromTokenAmountBN?.toString(),
-          token: fromToken?.symbol,
+          token: tokenSymbol,
           bonderFee: totalBonderFee.toString(),
           fromChain: fromNetwork?.slug
         }

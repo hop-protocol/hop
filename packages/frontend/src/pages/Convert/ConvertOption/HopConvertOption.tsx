@@ -1,12 +1,12 @@
 import ConvertOption, { SendData } from './ConvertOption'
+import { ChainSlug } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import React, { ReactNode } from 'react'
-import { BigNumber, BigNumberish, Signer } from 'ethers'
+import { BigNumber, BigNumberish, Signer, utils } from 'ethers'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { RelayableChains } from 'src/utils/constants'
-import { getAddress } from 'ethers/lib/utils'
 import { getBonderFeeWithId, toTokenDisplay } from 'src/utils'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
@@ -56,7 +56,7 @@ class HopConvertOption extends ConvertOption {
 
     try {
       if (customRecipient) {
-        getAddress(customRecipient) // attempts to checksum
+        utils.getAddress(customRecipient) // attempts to checksum
       }
     } catch (err) {
       throw new Error('Custom recipient address is invalid')
@@ -94,27 +94,34 @@ class HopConvertOption extends ConvertOption {
       ? bridge.getCanonicalToken(sourceNetwork?.slug)
       : bridge.getL2HopToken(sourceNetwork?.slug)
 
+    const isHTokenSend = true
     const {
       totalFee,
       adjustedBonderFee,
       adjustedDestinationTxFee,
       relayFeeEth
-    } = await bridge.getSendData(amountIn, sourceNetwork.slug, destNetwork.slug, true)
+    } = await bridge.getSendData(amountIn, sourceNetwork.slug, destNetwork.slug, isHTokenSend)
     const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
-      destNetwork.slug
+      destNetwork.slug,
+      isHTokenSend
     )
 
     let estimatedReceived = amountIn
     let warning : any
 
-    if (estimatedReceived && totalFee?.gt(estimatedReceived)) {
-      warning = 'Bonder fee greater than estimated received'
-    }
-
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
+
+      // note: bypass liquidity check since USDC.e out of gnosis to ethereum (deprecated token route) will have to go through the 7 day exit time.
+      if (token.symbol === 'hUSDC.e' && sourceNetwork.slug === ChainSlug.Gnosis && destNetwork.slug === ChainSlug.Ethereum) {
+        warning = ''
+      }
+    }
+
+    if (estimatedReceived && totalFee?.gt(estimatedReceived)) {
+      warning = 'Bonder fee greater than estimated received'
     }
 
     if (amountIn.gte(totalFee)) {

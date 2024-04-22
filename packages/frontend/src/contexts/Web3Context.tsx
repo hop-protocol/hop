@@ -9,19 +9,19 @@ import React, {
   useMemo,
   useState
 } from 'react'
-import coinbaseWalletModule from '@web3-onboard/coinbase'
-import gnosisModule from '@web3-onboard/gnosis'
+// import coinbaseWalletModule from '@web3-onboard/coinbase'
+// import gnosisModule from '@web3-onboard/gnosis'
 import injectedModule from '@web3-onboard/injected-wallets'
 import logger from 'src/logger'
 import walletConnectModule from '@web3-onboard/walletconnect'
 import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
 import { capitalize } from 'src/utils/capitalize'
 import { chainIdToHex } from 'src/utils/chainIdToHex'
-import { chains as chainMetadata } from '@hop-protocol/core/metadata'
+import { chains as chainMetadata } from '@hop-protocol/sdk/metadata'
 import { ethers } from 'ethers'
 import { l1Network } from 'src/config/networks'
 import { networkSlugToId } from 'src/utils'
-import { networks } from '@hop-protocol/core/networks'
+import { networks } from '@hop-protocol/sdk/networks'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export type Props = {
@@ -72,17 +72,17 @@ function getOnboardChains(): any {
 }
 
 const injected = injectedModule()
-const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
+// const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
 
 // https://github.com/blocknative/web3-onboard/pull/1834
-const gnosis = gnosisModule({
-  whitelistedDomains: [
-    /^https:\/\/gnosis-safe\.io$/,
-    /^https:\/\/app\.safe\.global$/,
-    /^https:\/\/safe\.global$/,
-    /^https:\/\/wallet\.ambire\.com$/
-  ]
-})
+// const gnosis = gnosisModule({
+//   whitelistedDomains: [
+//     /^https:\/\/gnosis-safe\.io$/,
+//     /^https:\/\/app\.safe\.global$/,
+//     /^https:\/\/safe\.global$/,
+//     /^https:\/\/wallet\.ambire\.com$/
+//   ]
+// })
 const walletConnect = walletConnectModule({
   version: 2, // NOTE: version v1 will be sunset but MetaMask currently only supports v1
   projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce',
@@ -136,7 +136,8 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
         description: 'Hop Protocol',
       },
       apiKey: blocknativeDappid,
-      wallets: [injected, walletConnect, gnosis, coinbaseWallet],
+      wallets: [injected, walletConnect],
+      // wallets: [injected, walletConnect, gnosis, coinbaseWallet],
       chains: getOnboardChains(),
       disableFontDownload: true,
       connect: {

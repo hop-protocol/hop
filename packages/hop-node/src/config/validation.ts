@@ -1,15 +1,17 @@
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { Chain, SyncType } from 'src/constants'
+import { AssetSymbol } from '@hop-protocol/sdk/config'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import {
-  Config,
-  FileConfig,
+  type Config,
+  type FileConfig,
   Watchers,
   getAllChains,
   getAllTokens,
   getEnabledTokens
-} from 'src/config'
+} from './index.js'
+import { SyncType } from '#constants/index.js'
 import { URL } from 'node:url'
-import { getAddress as checksumAddress } from 'ethers/lib/utils'
+import { utils } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk/config'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()
@@ -363,7 +365,7 @@ export async function validateConfigValues (config?: Config) {
             throw new Error('config bonder address should be a string')
           }
           try {
-            checksumAddress(bonderAddress)
+            utils.getAddress(bonderAddress)
           } catch (err) {
             throw new Error(`config bonder address "${bonderAddress}" is invalid`)
           }

@@ -1,10 +1,11 @@
-import chainSlugToId from 'src/utils/chainSlugToId'
-import getChainBridge from 'src/chains/getChainBridge'
-import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
-import { IChainBridge } from '../chains/IChainBridge'
-import { WatcherNotFoundError } from './shared/utils'
-import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
-import { getConfirmRootsWatcher } from 'src/watchers/watchers'
+import { WatcherNotFoundError } from './shared/utils.js'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared/index.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { getConfirmRootsWatcher } from '#watchers/watchers.js'
+import { getEnabledNetworks } from '#config/index.js'
+import type { ConfirmRootsData } from '#watchers/ConfirmRootsWatcher.js'
+import type { IChainBridge } from '@hop-protocol/hop-node-core/chains'
 
 root
   .command('confirm-root')
@@ -95,6 +96,10 @@ async function main (source: any) {
     console.log('rootDatas', rootDatas)
     await watcher.confirmRootsViaWrapper(rootDatas)
   } else {
+    const enabledNetworks = getEnabledNetworks()
+    if (!enabledNetworks.includes(chain)) {
+      throw new Error(`Chain ${chain} is not enabled`)
+    }
     const chainBridge: IChainBridge = getChainBridge(chain)
     for (const dbTransferRoot of dbTransferRoots) {
       const commitTxHash = dbTransferRoot.commitTxHash

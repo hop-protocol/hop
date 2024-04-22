@@ -1,8 +1,8 @@
-import GasBoostDb from './GasBoostDb'
-import GasCostDb from './GasCostDb'
-import SyncStateDb from './SyncStateDb'
-import TransferRootsDb from './TransferRootsDb'
-import TransfersDb from './TransfersDb'
+import GasBoostDb from './GasBoostDb.js'
+import GasCostDb from './GasCostDb.js'
+import SyncStateDb from './SyncStateDb.js'
+import TransferRootsDb from './TransferRootsDb.js'
+import TransfersDb from './TransfersDb.js'
 
 // dbSets are token specific instances
 const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {

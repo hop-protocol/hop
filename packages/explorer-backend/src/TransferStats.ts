@@ -1,8 +1,8 @@
 import Db, { getInstance } from './Db'
 import wait from 'wait'
-import { BigNumber, ethers, providers } from 'ethers'
+import { BigNumber, ethers, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
-import { mainnet as addresses } from '@hop-protocol/core/addresses'
+import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
 import { cache } from './cache'
 import { chainIdToSlug } from './utils/chainIdToSlug'
 import { chainSlugToId } from './utils/chainSlugToId'
@@ -11,19 +11,23 @@ import { chunk } from 'lodash'
 import { enabledChains, enabledTokens, integrations, isGoerli, network, rpcUrls } from './config'
 import {
   fetchBondTransferIdEvents,
+  fetchCctpMessageReceivedsByTransferIds,
+  fetchCctpTransferSents,
+  fetchCctpTransferSentsByTransferIds,
+  fetchCctpTransferSentsForTransferId,
+  fetchMessageReceivedEvents,
   fetchTransferBonds,
   fetchTransferEventsByTransferIds,
   fetchTransferFromL1Completeds,
-  fetchTransfers,
-  fetchTransfersForTransferId,
+  fetchTransferSents,
+  fetchTransferSentsForTransferId,
   fetchWithdrews
 } from './theGraph'
-import { formatUnits } from 'ethers/lib/utils'
 import { getPreRegenesisBondEvent } from './preregenesis'
 import { getPriceHistory } from './price'
 import { getProxyAddress } from './utils/getProxyAddress'
 import { getTokenDecimals } from './utils/getTokenDecimals'
-import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/core/abi'
+import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { populateData } from './populateData'
 import { populateTransfer } from './utils/populateTransfer'
 
@@ -157,7 +161,7 @@ export class TransferStats {
         this.trackRecentTransfers({ lookbackMinutes: 60, pollIntervalMs: 60 * 1000 }),
         this.trackRecentTransfers({ lookbackMinutes: 4 * 60, pollIntervalMs: 60 * 60 * 1000 }),
         this.trackRecentTransferBonds({ lookbackMinutes: 30, pollIntervalMs: 60 * 1000 }),
-        this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
+        this.trackRecentTransferBonds({ lookbackMinutes: 220, pollIntervalMs: 10 * 60 * 1000 }),
         this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
       ]
     }
@@ -189,7 +193,11 @@ export class TransferStats {
           return fetchTransferEventsByTransferIds(chain, allIds)
         }))
 
-        const events = enabledChainTransfers.flat()
+        const enabledChainTransfersCctp = await Promise.all(enabledChains.map((chain: string) => {
+          return fetchCctpTransferSentsByTransferIds(chain, allIds)
+        }))
+
+        const events = enabledChainTransfers.flat().concat(enabledChainTransfersCctp.flat())
 
         const found: any = {}
         for (const transferId of allIds) {
@@ -260,6 +268,9 @@ export class TransferStats {
       }
       const provider = new providers.StaticJsonRpcProvider({ allowGzip: true, url: rpcUrl })
       const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
+      if (!receipt) {
+        return null
+      }
       const transferTopic = '0xddf252ad'
 
       if (sourceChainSlug === 'ethereum' || destinationChainSlug !== 'ethereum') {
@@ -400,7 +411,7 @@ export class TransferStats {
       if (amount.gt(0)) {
         const amountReceived = amount.toString()
         const decimals = getTokenDecimals(item.token)
-        const amountReceivedFormatted = Number(formatUnits(amountReceived, decimals))
+        const amountReceivedFormatted = Number(utils.formatUnits(amountReceived, decimals))
         return { amountReceived, amountReceivedFormatted }
       }
 
@@ -511,7 +522,7 @@ export class TransferStats {
         const startTime = Math.floor(now.minus({ minute: lookbackMinutes }).toSeconds())
         const endTime = Math.floor(now.toSeconds())
 
-        console.log('fetching all bonds data for hour', startTime)
+        console.log('fetching all bonds data for hour', startTime, 'minutes: ', lookbackMinutes)
         const items = await this.getTransferBondsBetweenDates(startTime, endTime)
         console.log('recenTransferBonds items:', items.length, 'minutes:', lookbackMinutes)
         for (const item of items) {
@@ -580,12 +591,20 @@ export class TransferStats {
 
   async getTransferIdEvents (transferId: string) {
     const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
-      return fetchTransfersForTransferId(chain, transferId)
+      return fetchTransferSentsForTransferId(chain, transferId)
+    }))
+
+    const enabledChainTransfersCctp = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchCctpTransferSentsForTransferId(chain, transferId)
     }))
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
+    }
+
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
     }
 
     return events
@@ -598,7 +617,7 @@ export class TransferStats {
 
     console.log('fetching data for transferId', transferId)
     const events = await this.getTransferIdEvents(transferId)
-    const data = await this.normalizeTransferEvents(events)
+    const data = await this.normalizeTransferSentEvents(events)
     if (!data?.length) {
       console.log('no data for transferId', transferId)
 
@@ -613,7 +632,7 @@ export class TransferStats {
           _item.bonded = onchainData?.bonded
           _item.bondTransactionHash = onchainData?.bondTransactionHash
           try {
-            console.log('upserting', _item.transferId)
+            console.log('upserting transferId', _item.transferId)
             await this.upsertItem(_item)
           } catch (err: any) {
             console.error('upsert error:', err)
@@ -624,11 +643,12 @@ export class TransferStats {
 
       return
     }
+
     const items = await this.getRemainingData(data, { refetch: true })
 
     for (const item of items) {
       try {
-        console.log('upserting', item.transferId)
+        console.log('upserting transferId', item.transferId)
         await this.upsertItem(item)
         break
       } catch (err: any) {
@@ -731,16 +751,28 @@ export class TransferStats {
     return this.getTransfersBetweenDates(startTime, endTime)
   }
 
-  async getTransferEventsBetweenDates (startTime: number, endTime: number) {
-    console.log('querying fetchTransfers')
+  async getTransferSentEventsBetweenDates (startTime: number, endTime: number) {
+    console.log('querying fetchTransferSents')
 
     const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
-      return fetchTransfers(chain, startTime, endTime)
+      return fetchTransferSents(chain, startTime, endTime)
+    }))
+    const enabledChainTransfersCctp = await Promise.all(enabledChains.map(async (chain: string) => {
+      try {
+        const events = await fetchCctpTransferSents(chain, startTime, endTime)
+        return events
+      } catch (err: any) {
+        console.error(`fetchCctpTransferSents chain: ${chain}, error`,  err)
+      }
+      return []
     }))
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
+    }
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
     }
 
     return events
@@ -751,35 +783,64 @@ export class TransferStats {
       return fetchBondTransferIdEvents(chain, startTime, endTime)
     }))
 
+    const enabledChainMessageReceivedCctp = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchMessageReceivedEvents(chain, startTime, endTime)
+    }))
+
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Bonds`] = enabledChainBonds[i];
+      events[`${chain}Bonds`] = enabledChainBonds[i]
+    }
+
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Bonds`] = events[`${chain}Bonds`].concat(enabledChainMessageReceivedCctp[i])
     }
 
     return events
   }
 
-  async normalizeTransferEvents (events: any) {
+  async normalizeTransferSentEvents (events: any) {
     const data :any[] = []
 
     for (const key in events) {
       for (const x of events[key]) {
         const chain = key.replace('Transfers', '')
-        data.push({
-          sourceChain: chainSlugToId(chain),
-          destinationChain: x.destinationChainId,
-          amount: x.amount,
-          amountOutMin: x.amountOutMin,
-          recipient: x.recipient,
-          bonderFee: chain === 'ethereum' ? x.relayerFee : x.bonderFee,
-          deadline: Number(x.deadline),
-          transferId: chain === 'ethereum' ? x.id : x.transferId,
-          transactionHash: x.transactionHash,
-          timestamp: Number(x.timestamp),
-          token: x.token,
-          from: x.from,
-          originContractAddress: x?.transaction?.to?.toLowerCase()
-        })
+        if (x.isCctp) {
+          data.push({
+            sourceChain: chainSlugToId(chain),
+            destinationChain: x.chainId,
+            amount: x.amount,
+            amountOutMin: null,
+            recipient: x.recipient,
+            bonderFee: x.bonderFee,
+            deadline: null,
+            transferId: x.transferId,
+            transactionHash: x?.transaction?.hash,
+            timestamp: Number(x?.block?.timestamp),
+            token: 'USDC',
+            from: x?.transaction?.from,
+            originContractAddress: x?.transaction?.to?.toLowerCase(),
+            unbondable: false,
+            receivedHTokens: false,
+            isCctp: true
+          })
+        } else {
+          data.push({
+            sourceChain: chainSlugToId(chain),
+            destinationChain: x.destinationChainId,
+            amount: x.amount,
+            amountOutMin: x.amountOutMin,
+            recipient: x.recipient,
+            bonderFee: chain === 'ethereum' ? x.relayerFee : x.bonderFee,
+            deadline: Number(x.deadline),
+            transferId: chain === 'ethereum' ? x.id : x.transferId,
+            transactionHash: x?.transaction?.hash ?? x.transactionHash,
+            timestamp: x?.block?.timestamp ? Number(x.block.timestamp) : Number(x.timestamp),
+            token: x.token,
+            from: x.from,
+            originContractAddress: x?.transaction?.to?.toLowerCase()
+          })
+        }
       }
     }
 
@@ -803,20 +864,22 @@ export class TransferStats {
       endTime = Math.floor(DateTime.fromSeconds(endTime).plus({ days: 2 }).toSeconds())
     }
 
-    const transferIds = data.map(x => x.transferId)
-    const filterTransferIds = transferIds
+    const filterTransferIds = data.filter(x => !x.isCctp).map(x => x.transferId)
+    const filterTransferIdsCctp = data.filter(x => x.isCctp).map(x => x.transferId)
 
     const single = data?.length === 1 ? data[0] : null
 
     const fetchBondedWithdrawalsMap : any = {}
     const fetchWithdrewsMap : any = {}
     const fetchFromL1CompletedsMap : any = {}
+    const fetchMessageReceivedsMap : any = {}
 
     if (!single) {
       for (const chain of enabledChains) {
         fetchBondedWithdrawalsMap[chain] = true
         fetchWithdrewsMap[chain] = true
         fetchFromL1CompletedsMap[chain] = true
+        fetchMessageReceivedsMap[chain] = true
       }
     }
 
@@ -828,6 +891,7 @@ export class TransferStats {
         if (destinationChainSlug === chain) {
           fetchBondedWithdrawalsMap[destinationChainSlug] = true
           fetchWithdrewsMap[destinationChainSlug] = true
+          fetchMessageReceivedsMap[destinationChainSlug] = true
           if (destinationChainSlug !== 'ethereum') {
             fetchFromL1CompletedsMap[destinationChainSlug] = sourceChainSlug === 'ethereum'
           }
@@ -842,9 +906,11 @@ export class TransferStats {
       return fetchTransferBonds(chain, filterTransferIds)
     }))
 
+    console.log('got fetchTransferBonds')
+
     const bondedWithdrawals :any = {}
     for (const [i, chain] of fetchBondedWithdrawalsChains.entries()) {
-      bondedWithdrawals[chain] = enabledChainBondedWithdrawals[i];
+      bondedWithdrawals[chain] = enabledChainBondedWithdrawals[i]
     }
 
     console.log('querying fetchWithdrews')
@@ -854,26 +920,44 @@ export class TransferStats {
       return fetchWithdrews(chain, filterTransferIds)
     }))
 
+    console.log('got fetchWithdrews')
+
     const withdrews :any = {}
     for (const [i, chain] of fetchWithdrewsChains.entries()) {
-      withdrews[chain] = enabledChainWithdrews[i];
+      withdrews[chain] = enabledChainWithdrews[i]
     }
 
-    console.log('querying fetchTransferFromL1Completeds with startTime', startTime, 'endTime', endTime)
+    console.log('querying fetchTransferFromL1Completeds with startTime', startTime, 'endTime', endTime, (endTime-startTime)/60)
 
     const fetchFromL1CompletedsChains = Object.keys(fetchFromL1CompletedsMap).filter((chain: string) => chain !== 'ethereum')
     const enabledChainFromL1Completeds = await Promise.all(fetchFromL1CompletedsChains.map((chain: string) => {
       return fetchTransferFromL1Completeds(chain, startTime, endTime, undefined)
     }))
 
+    console.log('got fetchTransferFromL1Completeds with startTime', startTime, 'endTime', endTime, (endTime-startTime)/60)
+
     const fromL1CompletedsMap :any = {}
     for (const [i, chain] of fetchFromL1CompletedsChains.entries()) {
-      fromL1CompletedsMap[chain] = enabledChainFromL1Completeds[i];
+      fromL1CompletedsMap[chain] = enabledChainFromL1Completeds[i]
     }
 
     const bondsMap :any = {}
     for (const key in bondedWithdrawals) {
       bondsMap[key] = [...bondedWithdrawals[key], ...withdrews[key]]
+    }
+
+    console.log('querying fetchMessageReceiveds')
+
+    const fetchMessageReceivedsChains = Object.keys(fetchMessageReceivedsMap)
+    const enabledMessageReceiveds = await Promise.all(fetchMessageReceivedsChains.map((chain: string) => {
+      return fetchCctpMessageReceivedsByTransferIds(chain, filterTransferIdsCctp)
+    }))
+
+    console.log('got fetchMessageReceiveds')
+
+    const messageReceiveds :any = {}
+    for (const [i, chain] of fetchMessageReceivedsChains.entries()) {
+      messageReceiveds[chain] = enabledMessageReceiveds[i]
     }
 
     for (const x of data) {
@@ -893,14 +977,26 @@ export class TransferStats {
             } else {
               x.bonder = bond.from
             }
-
-            continue
+          }
+        }
+      }
+      const messageReceivedsByChain = messageReceiveds[destChainSlug]
+      if (messageReceivedsByChain) {
+        for (const receivedEvent of messageReceivedsByChain) {
+          if (receivedEvent.transferId === x.transferId && x.destinationChain === receivedEvent.destinationChainId && x.sourceChain === receivedEvent.sourceChainId) {
+            x.bonded = true
+            x.bondTransactionHash = receivedEvent?.transaction?.hash
+            x.bondedTimestamp = Number(receivedEvent?.block?.timestamp)
+            x.bonder = receivedEvent?.transaction?.from
           }
         }
       }
     }
 
     for (const x of data) {
+      if (x.isCctp) {
+        continue
+      }
       const sourceChain = chainIdToSlug(x.sourceChain)
       if (sourceChain !== 'ethereum') {
         continue
@@ -948,6 +1044,9 @@ export class TransferStats {
     if (data.length > 0) {
       const regenesisTimestamp = 1636531200
       for (const item of data) {
+        if (item.isCctp) {
+          continue
+        }
         const destChainSlug = chainIdToSlug(item.destinationChain)
         if (!item.bonded && item.timestamp < regenesisTimestamp && destChainSlug === 'optimism' && chainIdToSlug(item.sourceChain) !== 'ethereum') {
           try {
@@ -978,6 +1077,9 @@ export class TransferStats {
     console.log('checking getIntegrationPartner for items')
     if (data.length > 0 && this.shouldCheckIntegrationPartner) {
       for (const item of data) {
+        if (item.isCctp) {
+          continue
+        }
         const _data = await this.getIntegrationPartner(item)
         if (_data) {
           const { originContractAddress, integrationPartner, integrationPartnerContractAddress } = _data
@@ -1006,6 +1108,9 @@ export class TransferStats {
       })
 
     for (const x of populatedData) {
+      if (x.isCctp) {
+        continue
+      }
       const isUnbondable = (x.destinationChainSlug === 'ethereum' && (x.deadline > 0 || BigNumber.from(x.amountOutMin || 0).gt(0)))
       x.unbondable = isUnbondable
 
@@ -1100,35 +1205,67 @@ export class TransferStats {
   }
 
   async getTransfersBetweenDates (startTime: number, endTime: number) {
-    const events = await this.getTransferEventsBetweenDates(startTime, endTime)
-    let data = await this.normalizeTransferEvents(events)
+    const events = await this.getTransferSentEventsBetweenDates(startTime, endTime)
+    let data = await this.normalizeTransferSentEvents(events)
     data = await this.getRemainingData(data, { refetch: false })
     console.log('getTransfersBetweenDates done', data.length)
     return data
   }
 
   async getTransferBondsBetweenDates (startTime: number, endTime: number) {
+    const minutes = (endTime - startTime)/60
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, getting getBondTransferIdEventsBetweenDates`)
     const bondsObj = await this.getBondTransferIdEventsBetweenDates(startTime, endTime)
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, got getBondTransferIdEventsBetweenDates`)
 
     const allIds : string[] = []
 
     for (const key in bondsObj) {
       for (const k in bondsObj[key]) {
+        if (bondsObj[key][k].isCctp) {
+          continue
+        }
         allIds.push(bondsObj[key][k].transferId)
       }
     }
 
+    const allIdsCctp : string[] = []
+
+    for (const key in bondsObj) {
+      for (const k in bondsObj[key]) {
+        if (!bondsObj[key][k].isCctp) {
+          continue
+        }
+        allIdsCctp.push(bondsObj[key][k].transferId)
+      }
+    }
+
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, getting fetchTransferEventsByTransferIds`, allIds.length)
     const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
       return fetchTransferEventsByTransferIds(chain, allIds)
     }))
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, got fetchTransferEventsByTransferIds`)
+
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, getting fetchCctpTransferSentsByTransferIds`, allIdsCctp.length)
+    const enabledChainTransfersCctp = await Promise.all(enabledChains.map((chain: string) => {
+      return fetchCctpTransferSentsByTransferIds(chain, allIdsCctp)
+    }))
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, got fetchCctpTransferSentsByTransferIds`)
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
     }
 
-    const data = await this.normalizeTransferEvents(events)
-    return this.getRemainingData(data)
+    for (const [i, chain] of enabledChains.entries()) {
+      events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
+    }
+
+    const data = await this.normalizeTransferSentEvents(events)
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, getting getRemainingData`)
+    const allData = await this.getRemainingData(data)
+    console.log(`getTransferBondsBetweenDates for range ${minutes}, got getRemainingData`)
+    return allData
   }
 
   async getTransactionReceipt (provider: any, transactionHash: string) {
@@ -1188,7 +1325,7 @@ export class TransferStats {
         const logs = receipt.logs
         for (const log of logs) {
           if (log.topics[0] === '0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb') { // TransferSent
-            const iface = new ethers.utils.Interface(l2BridgeAbi)
+            const iface = new ethers.utils.Interface(L2_Bridge__factory.abi)
             const decoded = iface.parseLog(log)
             if (decoded) {
               transferId = decoded?.args?.transferId
@@ -1210,7 +1347,7 @@ export class TransferStats {
               }
             }
           } else if (log.topics[0] === '0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b') { // TransferSentToL2
-            const iface = new ethers.utils.Interface(l1BridgeAbi)
+            const iface = new ethers.utils.Interface(L1_Bridge__factory.abi)
             const decoded = iface.parseLog(log)
             if (decoded) {
               destinationChainId = Number(decoded?.args.chainId.toString())
@@ -1234,10 +1371,10 @@ export class TransferStats {
           if (token) {
             const decimals = getTokenDecimals(token)
             if (amount) {
-              amountFormatted = Number(formatUnits(amount, decimals))
+              amountFormatted = Number(utils.formatUnits(amount, decimals))
             }
             if (bonderFee) {
-              bonderFeeFormatted = Number(formatUnits(bonderFee, decimals))
+              bonderFeeFormatted = Number(utils.formatUnits(bonderFee, decimals))
             }
           }
         }

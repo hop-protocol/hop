@@ -1,15 +1,13 @@
-import { BigNumber, BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish, utils } from 'ethers'
 import { Multicall } from '@hop-protocol/sdk'
 import { addresses, hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { checkIsPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { commafy, toPercentDisplay } from 'src/utils'
-import { erc20Abi } from '@hop-protocol/core/abi'
+import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { findNetworkBySlug } from 'src/utils/networks'
 import { formatTokenDecimalString } from 'src/utils/format'
-import { formatUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { stableCoins } from 'src/utils/constants'
-import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useState } from 'react'
 import { usePoolStats } from 'src/pages/Pools/usePoolStats'
@@ -117,7 +115,7 @@ export function usePools () {
           })
         }
       }
-      return _pools
+      return _pools.filter(Boolean)
     },
     {
       enabled: true,
@@ -234,7 +232,7 @@ export function usePools () {
 
             const balancesOpts: any = []
             balancesOpts.push({
-              abi: erc20Abi,
+              abi: ERC20__factory.abi,
               method: 'balanceOf',
               address: lpTokenAddress,
               tokenSymbol,
@@ -243,13 +241,13 @@ export function usePools () {
             if (stakingContractAddress) {
               const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'balanceOf',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
               })
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'earned',
                 address: stakingContractAddress,
                 tokenSymbol: stakingContractRewardToken
@@ -257,13 +255,13 @@ export function usePools () {
             }
             if (hopStakingContractAddress) {
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'balanceOf',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'
               })
               balancesOpts.push({
-                abi: stakingRewardsAbi,
+                abi: StakingRewards__factory.abi,
                 method: 'earned',
                 address: hopStakingContractAddress,
                 tokenSymbol: 'HOP'
@@ -299,14 +297,14 @@ export function usePools () {
                 bridge.getSaddleSwapReserves(pool.chain.slug),
                 lpToken.totalSupply(),
                 stableCoins.has(pool.token.symbol) ? Promise.resolve(1) : bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
-              ]));
+              ]))
             }
 
             if (lpBalance.gt(0)) {
               if (lpTokenTotalSupplyBn.gt(0)) {
                 const [token0Deposited, token1Deposited] = calcDepositedAmount(lpBalance, poolReserves, lpTokenTotalSupplyBn)
                 const userBalance = token0Deposited.add(token1Deposited)
-                const canonicalBalance = Number(formatUnits(userBalance, tokenDecimals))
+                const canonicalBalance = Number(utils.formatUnits(userBalance, tokenDecimals))
 
                 pool.userBalanceBn = lpBalance
                 pool.userBalanceUsd = canonicalBalance * tokenUsdPrice
@@ -321,21 +319,21 @@ export function usePools () {
 
             if (stakingRewardsStakedBalance.gt(0)) {
               totalStakedBalance = totalStakedBalance.add(stakingRewardsStakedBalance)
-              pool.stakingRewardsStaked = Number(formatUnits(stakingRewardsStakedBalance, 18))
+              pool.stakingRewardsStaked = Number(utils.formatUnits(stakingRewardsStakedBalance, 18))
 
               const [stakedToken0Deposited, stakedToken1Deposited] = calcDepositedAmount(stakingRewardsStakedBalance, poolReserves, lpTokenTotalSupplyBn)
-              const stakedCanonical = Number(formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
+              const stakedCanonical = Number(utils.formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
 
               pool.stakingRewardsStakedUsd = stakedCanonical * tokenUsdPrice
               pool.stakingRewardsStakedUsdFormatted = `$${commafy(pool.stakingRewardsStakedUsd, 2)}`
             }
 
-            if (hopStakingRewardsEarned.gt(0)) {
+            if (hopStakingRewardsStakedBalance.gt(0)) {
               totalStakedBalance = totalStakedBalance.add(hopStakingRewardsStakedBalance)
-              pool.hopRewardsStaked = Number(formatUnits(hopStakingRewardsStakedBalance, 18))
+              pool.hopRewardsStaked = Number(utils.formatUnits(hopStakingRewardsStakedBalance, 18))
 
               const [stakedToken0Deposited, stakedToken1Deposited] = calcDepositedAmount(hopStakingRewardsStakedBalance, poolReserves, lpTokenTotalSupplyBn)
-              const stakedCanonical = Number(formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
+              const stakedCanonical = Number(utils.formatUnits(stakedToken0Deposited.add(stakedToken1Deposited), tokenDecimals))
 
               pool.hopRewardsStakedUsd = stakedCanonical * tokenUsdPrice
               pool.hopRewardsStakedUsdFormatted = `$${commafy(pool.hopRewardsStakedUsd, 2)}`
@@ -350,7 +348,7 @@ export function usePools () {
 
             const totalLpBalance = totalStakedBalance.add(lpBalance)
             const [totalToken0Deposited, totalToken1Deposited] = calcDepositedAmount(totalLpBalance, poolReserves, lpTokenTotalSupplyBn)
-            const totalCanonical = Number(formatUnits(totalToken0Deposited.add(totalToken1Deposited), tokenDecimals))
+            const totalCanonical = Number(utils.formatUnits(totalToken0Deposited.add(totalToken1Deposited), tokenDecimals))
             pool.userBalanceTotalUsd = totalCanonical * tokenUsdPrice
 
             pool.stakingRewardsStakedTotalUsd = pool.stakingRewardsStakedUsd + pool.hopRewardsStakedUsd

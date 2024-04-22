@@ -1,16 +1,13 @@
-
-import '../src/moduleAlias'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import contracts from 'src/contracts'
-import { OneDayMs } from 'src/constants'
+import L2Bridge from '#watchers/classes/L2Bridge.js'
+import contracts from '#contracts/index.js'
+import { OneDayMs } from '@hop-protocol/hop-node-core/constants'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
-} from 'src/config'
+} from '#config/index.js'
 
 // Run this with
 // npx ts-node test/getTransfersIdsWithTransferRootHash.test.ts
-// NOTE: import moduleAlias first to avoid errors
 
 // NOTE: These tests assume an updated DB and chain, token, transferId, and rootHash values.
 

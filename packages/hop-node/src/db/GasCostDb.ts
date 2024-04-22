@@ -1,9 +1,15 @@
-import BaseDb, { DateFilterWithKeyPrefix, DbBatchOperation, DbGetItemsFilters, DbOperations } from './BaseDb'
+import BaseDb, {
+  type DateFilterWithKeyPrefix,
+  type DbBatchOperation,
+  type DbGetItemsFilters,
+  DbOperations
+} from './BaseDb.js'
 // @ts-expect-error nearest-date does not have a types file as of 20231227
 import nearest from 'nearest-date'
-import wait from 'src/utils/wait'
-import { BigNumber } from 'ethers'
-import { GasCostTransactionType, OneHourMs, OneHourSeconds } from 'src/constants'
+import { OneHourMs, OneHourSeconds } from '@hop-protocol/hop-node-core/constants'
+import { wait } from '@hop-protocol/hop-node-core/utils'
+import type { BigNumber } from 'ethers'
+import type { GasCostTransactionType } from '#constants/index.js'
 
 const varianceSeconds = 20 * 60
 
@@ -32,7 +38,7 @@ class GasCostDb extends BaseDb<GasCost> {
     this.startPrunePoller()
   }
 
-  private async startPrunePoller () {
+  private async startPrunePoller (): Promise<never> {
     while (true) {
       try {
         await this.prune()

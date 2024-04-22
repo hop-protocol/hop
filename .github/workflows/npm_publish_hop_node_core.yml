@@ -1,0 +1,69 @@
+name: Publish NPM Hop Node Core Package If Necessary
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: environment to deploy to
+        required: true
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  publish-hop-node-core:
+    needs: [call-sdk-publish-workflow]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v3
+        with:
+          always-auth: true
+          node-version: 20.12.2
+          registry-url: https://registry.npmjs.org
+
+      - name: Check if publish is necessary
+        id: check_version
+        working-directory: packages/hop-node-core
+        run: |
+          CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+          LOCAL_VERSION=$(jq -r '.version' package.json)
+          if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
+            echo "VERSION_MISMATCH=true" >> $GITHUB_ENV
+          fi
+
+      - name: Install global dependencies
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: npm install -g pnpm@latest only-allow@latest
+
+      - name: Install local packages and dependencies
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: pnpm --filter sdk-core install && pnpm --filter sdk install && pnpm --filter hop-node-core install
+
+      - name: Build packages
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: pnpm --filter sdk-core build && pnpm --filter sdk build && pnpm --filter hop-node-core build
+
+      - name: Publish package
+        if: env.VERSION_MISMATCH == 'true'
+        working-directory: .
+        run: pnpm --filter hop-node-core publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  call-sdk-publish-workflow:
+    name: Publish SDK Core Package If Necessary
+    uses: ./.github/workflows/npm_publish_sdk.yml
+    with:
+      environment: production
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

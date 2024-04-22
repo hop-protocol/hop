@@ -1,0 +1,67 @@
+{
+  "name": "@hop-protocol/v2-explorer-backend",
+  "version": "0.0.0-beta.0",
+  "description": "The Hop v2 explorer backend",
+  "main": "dist/index.js",
+  "author": "Authereum Labs, Inc.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12.2",
+    "pnpm": ">=8"
+  },
+  "imports": {
+    "#*": "./dist/*"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/cli/index.js",
+      "default": "./dist/cli/index.js"
+    }
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "test:db": "jest test/db.test.ts",
+    "test:indexer": "jest test/indexer.test.ts",
+    "start": "tsx ./src/cli/index.ts",
+    "watch": "tsc --watch",
+    "dev": "pnpm start",
+    "start:worker": "node ./dist/cli worker --server",
+    "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint . --fix",
+    "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
+    "clean:db": "rm -rf test-db"
+  },
+  "dependencies": {
+    "@hop-protocol/v2-core": "0.0.0-beta.5",
+    "@hop-protocol/v2-sdk": "0.0.0-beta.21",
+    "async-mutex": "0.3.2",
+    "commander": "6.2.1",
+    "cors": "2.8.5",
+    "ethers": "5.7.1",
+    "express": "4.17.3",
+    "express-rate-limit": "7.2.0",
+    "level": "7.0.1",
+    "luxon": "2.5.2",
+    "memory-cache": "0.2.0",
+    "minimist": "1.2.6",
+    "pg-promise": "11.5.4",
+    "subleveldown": "6.0.1",
+    "supertest": "6.3.3",
+    "uuid": "9.0.1"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.13",
+    "@types/express": "4.17.13",
+    "@types/level": "6.0.1",
+    "@types/luxon": "2.3.2",
+    "@types/memory-cache": "0.2.2",
+    "@types/minimist": "1.2.4",
+    "@types/subleveldown": "4.1.0",
+    "@types/supertest": "2.0.15",
+    "@types/uuid": "9.0.6",
+    "tsx": "4.7.2"
+  }
+}

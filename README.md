@@ -1,49 +1,62 @@
-# Hop v1 Monorepo
+# Hop Monorepo
 
-> The [Hop Protocol](https://hop.exchange/) v1 monorepo
+> The [Hop Protocol](https://hop.exchange/) monorepo
 
 ## Packages
 
-| Library                                                       | Current Version                                                                                                                                   | Description                                 |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [@hop-protocol/core](packages/core)                             | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fcore.svg)](https://badge.fury.io/js/)                                                   | Metadata and config                         |
-| [@hop-protocol/sdk](packages/sdk)                             | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/)                                                   | TypeScript Hop SDK                          |
+### V1
 
+| Lib/App | Current Version | Description |
+| --- | --- |  --- |
+[@hop-protocol/frontend](packages/frontend) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Ffrontend.svg)](https://badge.fury.io/js/) | React Frontend UI |
+[@hop-protocol/sdk](packages/sdk) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/) | V1 TypeScript Hop SDK |
+[@hop-protocol/hop-node](packages/hop-node) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fhop-node.svg)](https://badge.fury.io/js/) | TypeScript Hop Node |
 
-| Application                                                   | Current Version                                                                                                                                   | Description                                 |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [@hop-protocol/frontend](packages/frontend)                   | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Ffrontend.svg)](https://badge.fury.io/js/%40hop-protocol%2Ffrontend)                    | React Frontend UI                           |
-| [@hop-protocol/hop-node](packages/hop-node)                   | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fhop-node.svg)](https://badge.fury.io/js/%40hop-protocol%2Fhop-node)                    | TypeScript Hop Node                         |
+### V2
+
+| Lib/App | Current Version | Description |
+| --- | --- |  --- |
+[@hop-protocol/v2-sdk](packages/v2-sdk) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fv2-sdk.svg)](https://badge.fury.io/js/) | V2 TypeScript Hop SDK |
+[@hop-protocol/v2-hop-node](packages/v-2hop-node) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fv2-hop-node.svg)](https://badge.fury.io/js/) | TypeScript Hop Node |
+
+### Shared
+
+| Lib/App | Current Version | Description |
+| --- | --- |  --- |
+| [@hop-protocol/sdk-core](packages/sdk-core) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fsdk-core.svg)](https://badge.fury.io/js/) | Shared Hop SDK code |
+| [@hop-protocol/hop-node-core](packages/hop-node-core) | [![npm version](https://badge.fury.io/js/%40hop-protocol%2Fhop-node-core.svg)](https://badge.fury.io/js/) | Shared Hop Node code |
 
 ## Quickstart
+
+The Hop monorepo uses [PNPM](https://pnpm.io/) for package and workspace management.
 
 Install dependencies & link packages
 
 ```bash
-npm install
-npm run build
+pnpm install
+pnpm build
 ```
 
-#### Guidelines for using NPM workspaces
+#### Guidelines for using PNPM workspaces
 
 All commands should be run from the root of the monorepo.
 
 ```bash
 # Install a single package
-npm install -w <package_name>
+pnpm --filter <package_name> install
 
 # Build a single package
-npm run build -w <package_name>
+pnpm --filter <package_name> build
 
-# Run an NPM script in all packages
-npm run build --workspaces
+# Run a PNPM script in all packages
+pnpm <script_name>
 
 ```
 
 **If you are developing on a single package only and need to ignore the rest of the packages**, you need to install with `--include-workspace-root`. This is because the installation of a single package does not install the root’s dependencies, which are usually needed for building and linting.
 
 ```bash
-npm install -w @<package_name> --include-workspace-root
+pnpm --filter <package_name> install --include-workspace-root
 ```
 
 ## Contributing

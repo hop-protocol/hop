@@ -1,14 +1,11 @@
-import Logger, { setLogLevel } from 'src/logger'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
-  BlocklistConfig,
-  Bonders,
-  CommitTransfersConfig,
-  Fees,
-  Routes,
-  SignerConfig,
+  type Bonders,
+  type CommitTransfersConfig,
+  type Fees,
+  type Routes,
   Watchers,
   defaultConfigFilePath,
   setBlocklistConfig,
@@ -28,11 +25,13 @@ import {
   setRoutesConfig,
   setSignerConfig,
   setSyncConfig
-} from './config'
-import { getAddress } from 'ethers/lib/utils'
-import { getParameter } from 'src/aws/parameterStore'
-import { promptPassphrase } from 'src/prompt'
-import { recoverKeystore } from 'src/keystore'
+} from './config.js'
+import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
+import { utils } from 'ethers'
+import { getParameter } from '@hop-protocol/hop-node-core/aws'
+import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
+import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
+import type { BlocklistConfig, SignerConfig } from '@hop-protocol/hop-node-core/config'
 
 const logger = new Logger('config')
 
@@ -204,7 +203,10 @@ export async function setGlobalConfigFromConfigFile (
     if (!fs.existsSync(location)) {
       throw new Error(`no config file found at ${location}`)
     }
-    const addresses = require(location) // eslint-disable-line @typescript-eslint/no-var-requires
+
+    const { default: addresses } = await import(location, {
+      with: { type: "json" }
+    })
     setConfigAddresses(addresses)
   }
   if (config?.metrics) {
@@ -275,7 +277,7 @@ export async function setGlobalConfigFromConfigFile (
       for (const address in config.blocklist.addresses) {
         try {
           delete config.blocklist.addresses[address]
-          config.blocklist.addresses[getAddress(address).toLowerCase()] = true
+          config.blocklist.addresses[utils.getAddress(address).toLowerCase()] = true
         } catch (err) {
           throw new Error(`blocklist address "${address}" is invalid`)
         }
@@ -314,7 +316,10 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    config = require(configPath)
+    const { default: importedConfig } = await import(configPath, {
+      with: { type: "json" }
+    })
+    config = importedConfig
   }
   if (config != null) {
     logger.info('config file:', configPath)

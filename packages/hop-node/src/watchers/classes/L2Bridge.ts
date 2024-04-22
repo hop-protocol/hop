@@ -1,22 +1,29 @@
-import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
-import L1Bridge from './L1Bridge'
-import L2Amm from './L2Amm'
-import L2AmmWrapper from './L2AmmWrapper'
-import Token from './Token'
-import { BigNumber, Contract, providers } from 'ethers'
-import { Chain } from 'src/constants'
-import { ERC20 } from '@hop-protocol/core/contracts'
+import Bridge, { type EventCb, type EventsBatchOptions } from './Bridge.js'
+import L1Bridge from './L1Bridge.js'
+import L2Amm from './L2Amm.js'
+import L2AmmWrapper from './L2AmmWrapper.js'
+import Token from './Token.js'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { Hop } from '@hop-protocol/sdk'
-import { L2_Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { TxOverrides } from 'src/types'
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { config as globalConfig } from 'src/config'
-import { l2AmmWrapperAbi } from '@hop-protocol/core/abi'
-import { swapAbi as saddleSwapAbi } from '@hop-protocol/core/abi'
+import {
+  ERC20__factory,
+  L2_AmmWrapper__factory,
+  Swap__factory
+} from '@hop-protocol/sdk/contracts'
+import { config as globalConfig } from '#config/index.js'
+import type { BigNumber, providers } from 'ethers'
+import type { ERC20 } from '@hop-protocol/sdk/contracts'
+import type {
+  L2_Bridge as L2BridgeContract,
+  TransferFromL1CompletedEvent,
+  TransferSentEvent,
+  TransfersCommittedEvent
+} from '@hop-protocol/sdk/contracts/L2_Bridge'
+import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
 
 export default class L2Bridge extends Bridge {
-  ammWrapper: L2AmmWrapper
-  amm: L2Amm
+  ammWrapper!: L2AmmWrapper
+  amm!: L2Amm
   TransfersCommitted: string = 'TransfersCommitted'
   TransferSent: string = 'TransferSent'
   TransferFromL1Completed: string = 'TransferFromL1Completed'
@@ -26,18 +33,16 @@ export default class L2Bridge extends Bridge {
 
     const addresses = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]
     if (addresses?.l2AmmWrapper) {
-      const ammWrapperContract = new Contract(
+      const ammWrapperContract = L2_AmmWrapper__factory.connect(
         addresses.l2AmmWrapper,
-        l2AmmWrapperAbi,
         this.bridgeContract.signer
       )
       this.ammWrapper = new L2AmmWrapper(ammWrapperContract)
     }
 
     if (addresses?.l2SaddleSwap) {
-      const ammContract = new Contract(
+      const ammContract = Swap__factory.connect(
         addresses.l2SaddleSwap,
-        saddleSwapAbi,
         this.bridgeContract.signer
       )
       this.amm = new L2Amm(ammContract)
@@ -54,9 +59,8 @@ export default class L2Bridge extends Bridge {
 
   canonicalToken = async (): Promise<Token> => {
     const tokenAddress = await this.ammWrapper.contract.l2CanonicalToken()
-    const tokenContract = new Contract(
+    const tokenContract = ERC20__factory.connect(
       tokenAddress,
-      erc20Abi,
       this.bridgeContract.signer
     ) as ERC20
     return new Token(tokenContract)
@@ -64,9 +68,8 @@ export default class L2Bridge extends Bridge {
 
   hToken = async (): Promise<Token> => {
     const tokenAddress = await this.l2BridgeContract.hToken()
-    const tokenContract = new Contract(
+    const tokenContract = ERC20__factory.connect(
       tokenAddress,
-      erc20Abi,
       this.bridgeContract.signer
     ) as ERC20
     return new Token(tokenContract)

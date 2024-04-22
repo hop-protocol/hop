@@ -1,14 +1,17 @@
-import Base, { BaseConstructorOptions, ChainProviders } from './Base'
-import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
-import shiftBNDecimals from './utils/shiftBNDecimals'
-import { BigNumber, BigNumberish, constants } from 'ethers'
-import { Chain } from './models'
-import { SecondsInDay, TokenIndex, TokenSymbol } from './constants'
-import { Swap__factory } from '@hop-protocol/core/contracts'
-import { TAmount, TChain, TProvider } from './types'
+import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
+import { BigNumber, BigNumberish, constants, utils } from 'ethers'
+import {
+  Chain
+} from '@hop-protocol/sdk-core'
+import { SecondsInDay, TokenIndex, TokenSymbol } from './constants/index.js'
+import { Swap__factory } from './contracts/index.js'
+import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
-import { formatUnits } from 'ethers/lib/utils'
-import { rateLimitRetry } from './utils/rateLimitRetry'
+import {
+  getBlockNumberFromDate,
+  rateLimitRetry,
+  shiftBNDecimals
+} from '@hop-protocol/sdk-core'
 
 export type AmmConstructorOptions = {
   tokenSymbol?: TokenSymbol,
@@ -19,7 +22,7 @@ export type AmmConstructorOptions = {
  * Class representing AMM contract
  * @namespace AMM
  */
-class AMM extends Base {
+export class AMM extends Base {
   /** Chain model */
   public chain: Chain
 
@@ -50,7 +53,7 @@ class AMM extends Base {
   ) {
     super(networkOrOptionsObject, signer, chainProviders)
     if (networkOrOptionsObject instanceof Object) {
-      const options = networkOrOptionsObject 
+      const options = networkOrOptionsObject
       if (tokenSymbol ?? chain ?? signer ?? chainProviders) {
         throw new Error('expected only single options parameter')
       }
@@ -362,7 +365,7 @@ class AMM extends Base {
     const data = await saddleSwap.swapStorage()
     const poolFeePrecision = 10
     const swapFee = data.swapFee
-    return Number(formatUnits(swapFee.toString(), poolFeePrecision))
+    return Number(utils.formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
   public async getYieldStatsForDay (unixTimestamp: number, days: number = 1): Promise<any> {
@@ -430,10 +433,10 @@ class AMM extends Base {
 
     const totalLiquidity = reserve0.add(reserve1)
     const totalLiquidityFormatted = Number(
-      formatUnits(totalLiquidity, decimals)
+      utils.formatUnits(totalLiquidity, decimals)
     )
-    const totalFeesFormatted = Number(formatUnits(totalFees, decimals))
-    const totalVolumeFormatted = Number(formatUnits(totalVolume, decimals))
+    const totalFeesFormatted = Number(utils.formatUnits(totalFees, decimals))
+    const totalVolumeFormatted = Number(utils.formatUnits(totalVolume, decimals))
 
     return { totalFeesFormatted, totalLiquidityFormatted, totalVolume, totalVolumeFormatted }
   }
@@ -643,5 +646,3 @@ class AMM extends Base {
     return amounts[0].add(amounts[1])
   }
 }
-
-export default AMM

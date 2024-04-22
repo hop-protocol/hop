@@ -1,16 +1,13 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "rootDir": "./src",
     "outDir": "./dist",
     "paths": {
       "src/*": ["./src/*"]
     }
   },
-  "include": [
-    "src",
-    "src/**/*.json" // Required to include JSON files specifically
-  ]
+  "include": ["src"]
 }

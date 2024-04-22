@@ -1,10 +1,10 @@
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import { WatcherNotFoundError } from './shared/utils'
-import { actionHandler, logger, parseString, root } from './shared'
+import { WatcherNotFoundError } from './shared/utils.js'
+import { actionHandler, logger, parseString, root } from './shared/index.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
 import {
   getCommitTransfersWatcher
-} from 'src/watchers/watchers'
+} from '#watchers/watchers.js'
+import type L2Bridge from '#watchers/classes/L2Bridge.js'
 
 root
   .command('pending-transfers')

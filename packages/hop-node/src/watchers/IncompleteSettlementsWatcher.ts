@@ -1,23 +1,21 @@
-import Logger from 'src/logger'
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
-import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import getTransferSent from 'src/theGraph/getTransferSent'
-import isTokenSupportedForChain from 'src/utils/isTokenSupportedForChain'
-import wait from 'src/utils/wait'
-import { AssetSymbol, ChainSlug } from '@hop-protocol/core/config'
-import { BigNumber, Contract } from 'ethers'
-import { Chain } from 'src/constants'
+import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
+import getBondedWithdrawal from '#theGraph/getBondedWithdrawal.js'
+import getTransferRootId from '#utils/getTransferRootId.js'
+import getTransferSent from '#theGraph/getTransferSent.js'
+import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
+import { BigNumber, Contract, utils } from 'ethers'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
-import { L1BridgeProps, L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { formatUnits } from 'ethers/lib/utils'
-import { getEnabledTokens } from 'src/config'
-import { l1BridgeAbi } from '@hop-protocol/core/abi'
-import { l2BridgeAbi } from '@hop-protocol/core/abi'
-import { promiseQueue } from 'src/utils/promiseQueue'
+import { type L1BridgeProps, type L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getEnabledTokens } from '#config/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
+import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core/utils'
+import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
 
 type Options = {
   token?: string
@@ -266,7 +264,7 @@ class IncompleteSettlementsWatcher {
     if (!config) {
       throw new Error(`Could not find bridge config for ${token} on ${chain}`)
     }
-    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? l1BridgeAbi : l2BridgeAbi, provider)
+    const contract = new Contract(config.l1Bridge || config.l2Bridge, config.l1Bridge ? L1_Bridge__factory.abi : L2_Bridge__factory.abi, provider)
     return contract
   }
 
@@ -368,6 +366,7 @@ class IncompleteSettlementsWatcher {
       // TODO: get transfer sent amount
       const amount = BigNumber.from(0)
       const rootHash = this.transferIdRootHashes[transferId]
+      if (!rootHash) continue
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
 
@@ -393,9 +392,9 @@ class IncompleteSettlementsWatcher {
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
-      const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
+      const totalAmountFormatted = Number(utils.formatUnits(_totalAmount, tokenDecimals))
       const diff = totalAmount.sub(settledTotalAmount).toString()
-      const diffFormatted = Number(formatUnits(diff, tokenDecimals))
+      const diffFormatted = Number(utils.formatUnits(diff, tokenDecimals))
       const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
       let unsettledTransfers: any[] = []
       let unsettledTransferBonders: string[] = []
@@ -490,7 +489,7 @@ class IncompleteSettlementsWatcher {
           return
         }
         const { amount } = await getTransferSent(sourceChain, transferId)
-        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        const amountFormatted = Number(utils.formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: false,
           transferId,
@@ -505,7 +504,7 @@ class IncompleteSettlementsWatcher {
       const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
       if (bondedWithdrawalAmount.gt(0)) {
         const amount = bondedWithdrawalAmount.toString()
-        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        const amountFormatted = Number(utils.formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: true,
           transferId,

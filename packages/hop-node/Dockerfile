@@ -1,4 +1,4 @@
-FROM node:20.10.0-slim AS base
+FROM node:20.12.2-slim AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -8,9 +8,12 @@ WORKDIR /app
 
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
-RUN pnpm --filter=@hop-protocol/core build && pnpm --filter=@hop-protocol/sdk build
-RUN pnpm --filter=@hop-protocol/hop-node build
-RUN pnpm --filter=@hop-protocol/hop-node deploy --prod /prod/app
+
+RUN pnpm --filter=sdk-core build
+RUN pnpm --filter=sdk build
+RUN pnpm --filter=hop-node-core build
+RUN pnpm --filter=hop-node build
+RUN pnpm --filter=hop-node deploy --prod /prod/app
 
 FROM base
 COPY --from=build /prod/app /prod/app

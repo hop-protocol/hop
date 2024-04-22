@@ -1,12 +1,13 @@
 # v1 Hop Node
 
-> Hop node for bonding transfers
+> V1 Hop Node for bonding transfers
 
-⚠️ Hop node is in beta. Use at your own risk.
+> [!NOTE]
+> This package is only meant to be used by other Hop Node packages. We recommend installing one of the Hop Node packages if you want access to functionality in this package.
 
 ## Documentation
 
-See [docs.hop.exchange/hop-node](https://docs.hop.exchange/hop-node)
+See the [Hop docs site](https://docs.hop.exchange/v/developer-docs)
 
 ## Development
 
@@ -20,7 +21,7 @@ pnpm install
 pnpm build
 
 # Run the client
-pnpm --filter @hop-protocol/hop-node dev
+pnpm --filter hop-node dev
 ```
 
 For complete instructions and required config, see [https://docs.hop.exchange/v/developer-docs/hop-node/running-a-hop-bonder](https://docs.hop.exchange/v/developer-docs/hop-node/running-a-hop-bonder).
@@ -34,7 +35,6 @@ Docker images are built and pushed to [Docker Hub](https://hub.docker.com/r/hopp
 | `production-bonder` | `hopprotocol/hop-node:latest`  | Stable   | Production mainnet environment              |
 | `mainnet-bonder`    | `hopprotocol/hop-node:mainnet` | Beta     | Mainnet pre-release environment             |
 | `develop-bonder`    | `hopprotocol/hop-node:develop` | Unstable | Unstable mainnet staging environment        |
-| `goerli-bonder`     | `hopprotocol/hop-node:goerli`  | Stable   | Goerli staging environment                  |
 
 ### Github Actions
 

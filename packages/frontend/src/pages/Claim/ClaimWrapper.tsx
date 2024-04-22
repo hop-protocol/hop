@@ -4,7 +4,7 @@ import React from 'react'
 import Typography from '@mui/material/Typography'
 import { Alert } from 'src/components/Alert'
 import { Button } from 'src/components/Button'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'
 
 export function ClaimWrapper(props: any) {
   const {

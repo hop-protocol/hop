@@ -1,15 +1,14 @@
-import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
-import { BigNumber, Contract, constants, providers } from 'ethers'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
+import { BigNumber, Contract, constants, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
-import { PriceFeed } from './PriceFeed'
-import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config'
-import { db } from './Db'
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { formatUnits } from 'ethers/lib/utils'
-import { getTokenDecimals } from './utils/getTokenDecimals'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { nearestDate } from './utils/nearestDate'
-import { timestampPerBlockPerChain } from './constants'
+import { PriceFeed } from './PriceFeed.js'
+import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config.js'
+import { db } from './Db.js'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
+import { getTokenDecimals } from './utils/getTokenDecimals.js'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { nearestDate } from './utils/nearestDate.js'
+import { timestampPerBlockPerChain } from './constants.js'
 
 function sumAmounts (items: any) {
   let sum = BigNumber.from(0)
@@ -136,9 +135,8 @@ class TvlStats {
                   return
                 }
                 const spender = config.l2SaddleSwap ?? config.l1Bridge
-                const tokenContract = new Contract(
+                const tokenContract = ERC20__factory.connect(
                   tokenAddress,
-                  erc20Abi,
                   archiveProvider
                 )
 
@@ -196,7 +194,7 @@ class TvlStats {
                   console.log('balance', balance, blockTag)
                   const decimals = getTokenDecimals(token)
                   const formattedAmount = Number(
-                    formatUnits(balance.toString(), decimals)
+                    utils.formatUnits(balance.toString(), decimals)
                   )
 
                   const dates = prices[token].reverse().map((x: any) => x[0])

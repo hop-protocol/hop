@@ -1,8 +1,8 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
 import os from 'node:os'
 import path from 'node:path'
-import { Chain, Network } from 'src/constants'
-import { config as globalConfig } from 'src/config'
+import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { config as globalConfig } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
 
 // Assume that a path is a location if it contains a slash
@@ -34,5 +34,5 @@ export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<Chain, nu
 
 export function getDefaultStartBlockNumber (chainId: number): number {
   const chainSlug = chainIdToSlug(chainId)
-  return DEFAULT_START_BLOCK_NUMBER[globalConfig.network][chainSlug]!
+  return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network][chainSlug]!
 }

@@ -10,18 +10,16 @@ import React, {
   useState,
 } from 'react'
 import logger from 'src/logger'
-import { BigNumber, Signer, constants } from 'ethers'
+import { BigNumber, Signer, constants, utils } from 'ethers'
 import { Multicall, Token } from '@hop-protocol/sdk'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, findMatchingBridge, getTokenDecimals, shiftBNDecimals, toPercentDisplay, toTokenDisplay } from 'src/utils'
-import { erc20Abi } from '@hop-protocol/core/abi'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, reactAppNetwork, stakingRewardTokens, stakingRewardsContracts } from 'src/config'
 import { l2Networks } from 'src/config/networks'
 import { stableCoins } from 'src/utils/constants'
-import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useAssets, useAsyncMemo, useBalance, useQueryParams, useSelectedNetwork } from 'src/hooks'
 import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
@@ -264,7 +262,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         if (isSubscribed) {
           setReserveTotalsUsd(
             Number(
-              formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS)
+              utils.formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS)
             )
           )
         }
@@ -289,7 +287,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const amount0 = amountToBN(token0Amount || '0', canonicalToken?.decimals)
       const amount1 = amountToBN(token1Amount || '0', hopToken?.decimals)
       const price = await amm.getPriceImpact(amount0, amount1)
-      return Number(formatUnits(price.toString(), 18))
+      return Number(utils.formatUnits(price.toString(), 18))
     } catch (err) {
       // noop
     }
@@ -316,11 +314,11 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
           lpToken.totalSupply()
         ])
         if (isSubscribed) {
-          setVirutalPrice(Number(formatUnits(vPrice.toString(), 18)))
+          setVirutalPrice(Number(utils.formatUnits(vPrice.toString(), 18)))
           setFee(swapFee)
           setPoolReserves(reserves)
           setLpTokenTotalSupply(lpTotalSupply)
-          const lpTotalSupplyFormatted = commafy(Number(formatUnits(lpTotalSupply.toString(), lpDecimals)), 0)
+          const lpTotalSupplyFormatted = commafy(Number(utils.formatUnits(lpTotalSupply.toString(), lpDecimals)), 0)
           setLpTokenTotalSupplyFormatted(lpTotalSupplyFormatted)
         }
       } catch (err) {
@@ -395,7 +393,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         const balancesOpts: any = []
         balancesOpts.push({
-          abi: erc20Abi,
+          abi: ERC20__factory.abi,
           method: 'balanceOf',
           address: lpTokenAddress,
           tokenSymbol,
@@ -404,7 +402,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         if (stakingContractAddress) {
           const stakingContractRewardToken = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()]
           balancesOpts.push({
-            abi: stakingRewardsAbi,
+            abi: StakingRewards__factory.abi,
             method: 'balanceOf',
             address: stakingContractAddress,
             tokenSymbol: stakingContractRewardToken
@@ -412,7 +410,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
         if (hopStakingContractAddress) {
           balancesOpts.push({
-            abi: stakingRewardsAbi,
+            abi: StakingRewards__factory.abi,
             method: 'balanceOf',
             address: hopStakingContractAddress,
             tokenSymbol: 'HOP'
@@ -438,9 +436,9 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
           const [_reserve0, _reserve1] = poolReserves
 
-          const _oneToken = parseUnits('1', lpDecimals)
+          const _oneToken = utils.parseUnits('1', lpDecimals)
           const _poolPercentage = lpBalance.mul(_oneToken).div(lpTokenTotalSupply).mul(100)
-          const _formattedPoolPercentage = Number(formatUnits(_poolPercentage, lpDecimals)).toFixed(2)
+          const _formattedPoolPercentage = Number(utils.formatUnits(_poolPercentage, lpDecimals)).toFixed(2)
 
           const _token0Deposited = lpBalance.mul(_reserve0).div(lpTokenTotalSupply)
           const _token1Deposited = lpBalance.mul(_reserve1).div(lpTokenTotalSupply)
@@ -719,8 +717,8 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         token0Amount = Number(proportionalAmount0 || 0).toString()
         token1Amount = Number(proportionalAmount1 || 0).toString()
       } else {
-        token0Amount = tokenIndex === 0 ? formatUnits(amount, canonicalToken.decimals) : ''
-        token1Amount = tokenIndex === 1 ? formatUnits(amount, hopToken.decimals) : ''
+        token0Amount = tokenIndex === 0 ? utils.formatUnits(amount, canonicalToken.decimals) : ''
+        token1Amount = tokenIndex === 1 ? utils.formatUnits(amount, hopToken.decimals) : ''
       }
 
       const withdrawAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
@@ -906,13 +904,13 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const amount0 = minimumAmounts[0]
         const amount1 = minimumAmounts[1]
         const price = await amm.getRemoveLiquidityPriceImpact(amount0, amount1)
-        const formatted = Number(formatUnits(price.toString(), 18))
+        const formatted = Number(utils.formatUnits(price.toString(), 18))
         return formatted
       } else {
         const amount0 = !tokenIndex ? amount : BigNumber.from(0)
         const amount1 = tokenIndex ? amount : BigNumber.from(0)
         const price = await amm.getRemoveLiquidityPriceImpact(amount0, amount1)
-        const formatted = Number(formatUnits(price.toString(), 18))
+        const formatted = Number(utils.formatUnits(price.toString(), 18))
         return formatted
       }
     } catch (err) {
@@ -922,10 +920,10 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const token0Balance =
     canonicalToken && canonicalBalance
-      ? Number(formatUnits(canonicalBalance, tokenDecimals))
+      ? Number(utils.formatUnits(canonicalBalance, tokenDecimals))
       : 0
   const token1Balance =
-    hopToken && hopBalance ? Number(formatUnits(hopBalance, tokenDecimals)) : 0
+    hopToken && hopBalance ? Number(utils.formatUnits(hopBalance, tokenDecimals)) : 0
 
   const enoughBalance =
     (Number(token0Amount) ? token0Balance >= Number(token0Amount) : true) &&
@@ -961,15 +959,15 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const chainName = selectedNetwork?.name ?? ''
   const userPoolTokenPercentageFormatted = userPoolTokenPercentage ? `${commafy(userPoolTokenPercentage)}%` : ''
   const token0DepositedFormatted = token0Deposited
-    ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5)
+    ? commafy(Number(utils.formatUnits(token0Deposited, canonicalToken?.decimals)), 5)
     : ''
   const token1DepositedFormatted = token1Deposited
-    ? commafy(Number(formatUnits(token1Deposited, tokenDecimals)), 5)
+    ? commafy(Number(utils.formatUnits(token1Deposited, tokenDecimals)), 5)
     : ''
   const tokenSumDepositedFormatted = tokenSumDeposited
-    ? commafy(Number(formatUnits(tokenSumDeposited, tokenDecimals)), 5)
+    ? commafy(Number(utils.formatUnits(tokenSumDeposited, tokenDecimals)), 5)
     : ''
-  const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited ?? 0, tokenDecimals)) + Number(formatUnits(token1Deposited ?? 0, tokenDecimals))) : 0
+  const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(utils.formatUnits(token0Deposited ?? 0, tokenDecimals)) + Number(utils.formatUnits(token1Deposited ?? 0, tokenDecimals))) : 0
   const userPoolBalanceUsd = tokenUsdPrice ? userPoolBalanceSum * tokenUsdPrice : 0
   const userPoolBalanceUsdFormatted = userPoolBalanceUsd ? `$${commafy(userPoolBalanceUsd, 2)}` : commafy(userPoolBalanceSum, 4)
   const token0BalanceFormatted = commafy(token0Balance, 4)
@@ -983,7 +981,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   let userPoolBalanceFormatted = ''
   if (userPoolBalance) {
-    let formattedBalance = formatUnits(userPoolBalance.toString(), lpDecimals)
+    let formattedBalance = utils.formatUnits(userPoolBalance.toString(), lpDecimals)
     formattedBalance = Number(formattedBalance).toFixed(5)
     if (Number(formattedBalance) === 0 && userPoolBalance.gt(0)) {
       formattedBalance = '<0.00001'
@@ -994,7 +992,7 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const overallUserLpBalance = (userPoolBalance && stakedBalance) ? userPoolBalance.add(stakedBalance) : BigNumber.from(0)
   let overallUserPoolBalanceFormatted = userPoolBalanceFormatted
   if (userPoolBalance && stakedBalance) {
-    let formattedBalance = formatUnits(overallUserLpBalance.toString(), lpDecimals)
+    let formattedBalance = utils.formatUnits(overallUserLpBalance.toString(), lpDecimals)
     formattedBalance = Number(formattedBalance).toFixed(5)
     if (Number(formattedBalance) === 0 && overallUserLpBalance.gt(0)) {
       formattedBalance = '<0.00001'
@@ -1002,18 +1000,18 @@ const PoolsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     overallUserPoolBalanceFormatted = `${commafy(formattedBalance, 5)}`
   }
 
-  const oneToken = parseUnits('1', lpDecimals)
+  const oneToken = utils.parseUnits('1', lpDecimals)
   const overallPoolPercentage = lpTokenTotalSupply?.gt(0) ? overallUserLpBalance.mul(oneToken).div(lpTokenTotalSupply).mul(100) : BigNumber.from(0)
-  const formattedOverallPoolPercentage = Number(formatUnits(overallPoolPercentage, lpDecimals)).toFixed(2)
+  const formattedOverallPoolPercentage = Number(utils.formatUnits(overallPoolPercentage, lpDecimals)).toFixed(2)
   const overallUserPoolTokenPercentage = formattedOverallPoolPercentage === '0.00' ? '<0.01' : formattedOverallPoolPercentage
   const overallUserPoolTokenPercentageFormatted = overallUserPoolTokenPercentage ? `${commafy(overallUserPoolTokenPercentage)}%` : ''
   const overallToken1DepositedFormatted = overallToken1Deposited
-    ? commafy(Number(formatUnits(overallToken1Deposited, tokenDecimals)), 5)
+    ? commafy(Number(utils.formatUnits(overallToken1Deposited, tokenDecimals)), 5)
     : ''
   const overallToken0DepositedFormatted = overallToken0Deposited
-    ? commafy(Number(formatUnits(overallToken0Deposited, tokenDecimals)), 5)
+    ? commafy(Number(utils.formatUnits(overallToken0Deposited, tokenDecimals)), 5)
     : ''
-  const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
+  const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(utils.formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(utils.formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 4)}` : commafy(overallUserPoolBalanceSum, 4)
   const hasStakeContract = !!(stakingContract ?? hopStakingContract)

@@ -7,7 +7,7 @@ import { Alert } from 'src/components/Alert'
 import { Button } from 'src/components/Button/Button'
 import { InfoTooltip } from 'src/components/InfoTooltip'
 import { LargeTextField } from 'src/components/LargeTextField'
-import { WithdrawalProof } from '@hop-protocol/sdk'
+import { WithdrawalProof } from '@hop-protocol/sdk/utils'
 import { formatError } from 'src/utils/format'
 import { makeStyles } from '@mui/styles'
 import { reactAppNetwork } from 'src/config'
@@ -146,7 +146,11 @@ export const Withdraw: FC = () => {
             const bridge = sdk.bridge('USDC')
             const data = await bridge.getCctpWithdrawData(transferIdOrTxHash)
             if (data) {
-              const { transactionHash, fromChain, toChain, toChainId } = data
+              const { transactionHash, fromChain, toChain, toChainId, nonceUsed } = data
+              if (nonceUsed) {
+                reject(new Error('The withdrawal for this transfer has already been processed'))
+                return
+              }
               await txConfirm?.show({
                 kind: 'withdrawReview',
                 inputProps: {

@@ -1,4 +1,4 @@
-import { type LogWithChainId } from 'src/cctp/db/OnchainEventIndexerDB'
+import type { LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
 
 export type IAPIEventStoreRes = string
 export type IOnchainEventStoreRes = LogWithChainId

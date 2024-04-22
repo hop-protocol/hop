@@ -1,14 +1,14 @@
-import L1Bridge from 'src/watchers/classes/L1Bridge'
-import L2Bridge from 'src/watchers/classes/L2Bridge'
-import Token from 'src/watchers/classes/Token'
-import chainSlugToId from 'src/utils/chainSlugToId'
-import contracts from 'src/contracts'
-import wallets from 'src/wallets'
-import { CanonicalTokenConvertOptions } from 'src/watchers/classes/Bridge'
-import { Chain, nativeChainTokens } from 'src/constants'
-import { TxOverrides } from 'src/types'
-import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
-import { formatEther, parseEther } from 'ethers/lib/utils'
+import L1Bridge from '#watchers/classes/L1Bridge.js'
+import L2Bridge from '#watchers/classes/L2Bridge.js'
+import Token from '#watchers/classes/Token.js'
+import contracts from '#contracts/index.js'
+import wallets from '@hop-protocol/hop-node-core/wallets'
+import { Chain, nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
+import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
+import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { utils } from 'ethers'
+import type { CanonicalTokenConvertOptions } from '#watchers/classes/Bridge.js'
+import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
 
 root
   .command('send')
@@ -61,7 +61,7 @@ async function sendNativeToken (
   }
 
   const wallet = wallets.get(chain)
-  const parsedAmount = parseEther(amount.toString())
+  const parsedAmount = utils.parseEther(amount.toString())
   let balance = await wallet.getBalance()
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
@@ -85,7 +85,7 @@ async function sendNativeToken (
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
   balance = await wallet.getBalance()
-  logger.debug(`send complete. new balance: ${formatEther(balance)}`)
+  logger.debug(`send complete. new balance: ${utils.formatEther(balance)}`)
 }
 
 async function transferTokens (

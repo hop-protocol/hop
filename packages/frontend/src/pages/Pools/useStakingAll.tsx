@@ -1,7 +1,6 @@
-import { BigNumber } from 'ethers'
-import { StakingRewards__factory } from '@hop-protocol/core/contracts'
+import { BigNumber, utils } from 'ethers'
+import { StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { commafy, findNetworkBySlug } from 'src/utils'
-import { formatUnits } from 'ethers/lib/utils'
 import { hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useState } from 'react'
@@ -88,7 +87,7 @@ export function useStakingAll () {
   }
 
   const canClaim = totalEarnedBn?.gt(0) ?? false
-  const earnedAmountFormatted = totalEarnedBn ? `${commafy(formatUnits(totalEarnedBn.toString(), 18), 5)} ${rewardsTokenSymbol}` : '-'
+  const earnedAmountFormatted = totalEarnedBn ? `${commafy(utils.formatUnits(totalEarnedBn.toString(), 18), 5)} ${rewardsTokenSymbol}` : '-'
 
   return {
     canClaim,

@@ -1,16 +1,15 @@
-import getRpcProvider from 'src/utils/getRpcProvider'
-import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
-import { Interface, formatUnits } from 'ethers/lib/utils'
-import { actionHandler, parseString, root } from '../shared'
+import { BigNumber, utils } from 'ethers'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { actionHandler, parseString, root } from '../shared/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import {
   hopAccountAddresses,
   possibleYears,
   tokenDataForYear,
   tokenDecimals,
   tokens
-} from 'src/cli/metrics/sharedMetrics'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+} from '../metrics/sharedMetrics.js'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 
 root
   .command('bonder-balance')
@@ -63,7 +62,7 @@ async function main (source: any) {
 
           const balance: BigNumber = await getBalance(chain, hopAccountAddress, tokenAddress, tokenData.blockNumbers[chain])
           const decimals = isLpToken ? 18 : tokenDecimals[token]
-          const fmtBalance: number = Number(formatUnits(balance, decimals))
+          const fmtBalance: number = Number(utils.formatUnits(balance, decimals))
 
           const tokenPriceUsd = tokenData.tokenPrice[token]
           const balanceUsd = fmtBalance * tokenPriceUsd
@@ -92,7 +91,7 @@ async function main (source: any) {
         // Token balance logic
         const balance: BigNumber = await getBalance(chain, hopAccountAddress, tokenAddress, tokenData.blockNumbers[chain])
         const decimals = tokenDecimals[token]
-        const fmtBalance: number = Number(formatUnits(balance, decimals))
+        const fmtBalance: number = Number(utils.formatUnits(balance, decimals))
 
         // USD balance logic
         const tokenPriceUsd = tokenData.tokenPrice[token]
@@ -160,7 +159,7 @@ async function getEthBalance (chain: string, accountAddress: string, blockNumber
 
 async function getTokenBalance (chain: string, accountAddress: string, tokenAddress: string, blockNumber: number): Promise<BigNumber> {
   const abi = ['function balanceOf(address) view returns (uint256)']
-  const ethersInterface = new Interface(abi)
+  const ethersInterface = new utils.Interface(abi)
   const data = ethersInterface.encodeFunctionData(
     'balanceOf', [accountAddress]
   )

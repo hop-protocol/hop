@@ -1,8 +1,7 @@
-import { BigNumber } from 'ethers'
-import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/core/contracts'
+import { BigNumber, utils } from 'ethers'
+import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { calculateStakedPosition, commafy, findMatchingBridge, findNetworkBySlug, formatError, getTokenImage, isRewardsExpired as isRewardsExpiredCheck } from 'src/utils'
 import { formatTokenDecimalString } from 'src/utils/format'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { stableCoins } from 'src/utils/constants'
 import { useApp } from 'src/contexts/AppContext'
 import { useApprove, useAsyncMemo } from 'src/hooks'
@@ -434,7 +433,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
           const spender = stakingContractAddress
           const allowance = await lpToken.allowance(spender)
-          if (allowance.lt(parseUnits(amount, 18))) {
+          if (allowance.lt(utils.parseUnits(amount, 18))) {
             return lpToken.approve(spender)
           }
         }
@@ -572,9 +571,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const canClaim = earnedAmountBn?.gt(0) ?? false
   const canWithdraw = depositedAmountBn?.gt(0) ?? false
   const depositedAmountFormatted = depositedAmountBn ? `${formatTokenDecimalString(depositedAmountBn, 18, 4)}` : '-'
-  const earnedAmountFormatted = earnedAmountBn ? `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}` : '-'
+  const earnedAmountFormatted = earnedAmountBn ? `${commafy(utils.formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}` : '-'
   const isActive = rewardRateBn.gt(0)
-  const lpBalance = userLpBalanceBn ? Number(formatUnits(userLpBalanceBn, 18)) : 0
+  const lpBalance = userLpBalanceBn ? Number(utils.formatUnits(userLpBalanceBn, 18)) : 0
   const lpBalanceFormatted = userLpBalanceBn ? `${formatTokenDecimalString(userLpBalanceBn, 18, 4)}` : '-'
   const noStaking = !stakingContractAddress
   const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
@@ -582,7 +581,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const rewardsTokenImageUrl = rewardsTokenSymbol ? getTokenImage(rewardsTokenSymbol) : ''
   const stakingApr = _stakingStats?.stakingApr ?? 0
   const stakingAprFormatted = _stakingStats?.stakingAprFormatted ?? '-'
-  const userRewardsPerDayNumber = userRewardsPerDayBn ? Number(formatUnits(userRewardsPerDayBn, 18)) : 0
+  const userRewardsPerDayNumber = userRewardsPerDayBn ? Number(utils.formatUnits(userRewardsPerDayBn, 18)) : 0
   const userRewardsPerDayFormatted = userRewardsPerDayBn ? (`${userRewardsPerDayNumber < 0.001 && userRewardsPerDayBn.gt(0) ? '<0.001' : formatTokenDecimalString(userRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`) : '-'
   const userRewardsTotalUsdFormatted = userRewardsTotalUsdBn ? `$${formatTokenDecimalString(userRewardsTotalUsdBn, 18, 4)}` : '-'
 

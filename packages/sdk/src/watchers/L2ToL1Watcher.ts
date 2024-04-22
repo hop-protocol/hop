@@ -1,8 +1,8 @@
-import { default as BaseWatcher } from './BaseWatcher'
-import { makeRequest } from './makeRequest'
-import { transferSentTopic } from '../constants/eventTopics'
+import { BaseWatcher } from './BaseWatcher.js'
+import { makeRequest } from './makeRequest.js'
+import { transferSentTopic } from '../constants/eventTopics.js'
 
-class L2ToL1Watcher extends BaseWatcher {
+export class L2ToL1Watcher extends BaseWatcher {
   public watch () {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
@@ -82,5 +82,3 @@ async function getWithdrawalBondedEvents (network: string, chain: string, transf
 
   return data.events || []
 }
-
-export default L2ToL1Watcher

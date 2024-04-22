@@ -1,14 +1,13 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
-import { PriceFeed } from './PriceFeed'
-import { db } from './Db'
-import { enabledChains, enabledTokens } from './config'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { getSubgraphUrl } from './utils/getSubgraphUrl'
-import { getTokenDecimals } from './utils/getTokenDecimals'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { nearestDate } from './utils/nearestDate'
-import { queryFetch } from './utils/queryFetch'
+import { PriceFeed } from './PriceFeed.js'
+import { db } from './Db.js'
+import { enabledChains, enabledTokens } from './config.js'
+import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
+import { getTokenDecimals } from './utils/getTokenDecimals.js'
+import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { nearestDate } from './utils/nearestDate.js'
+import { queryFetch } from './utils/queryFetch.js'
 
 type Options = {
   regenesis?: boolean
@@ -178,20 +177,20 @@ export class AmmStats {
               volume = volume.add(amount)
             }
             const volumeFormatted = Number(
-              formatUnits(volume, tokenDecimals)
+              utils.formatUnits(volume, tokenDecimals)
             )
 
-            const oneToken = parseUnits('1', tokenDecimals)
+            const oneToken = utils.parseUnits('1', tokenDecimals)
             // TODO: This is a temporary solution. Should retrieve from onchain and cache value.
             const isLowLpFeeChain = ['polygonzk', 'nova'].includes(chain)
             const lpFee: string = isLowLpFeeChain ? '1' : '4'
-            const lpFeeBN = parseUnits(lpFee, tokenDecimals)
+            const lpFeeBN = utils.parseUnits(lpFee, tokenDecimals)
             const fees = volume
               .mul(lpFeeBN)
               .div(oneToken)
               .div(10000)
 
-            const feesFormatted = Number(formatUnits(fees, tokenDecimals))
+            const feesFormatted = Number(utils.formatUnits(fees, tokenDecimals))
 
             if (!prices[token]) {
               console.log('price not found', token)

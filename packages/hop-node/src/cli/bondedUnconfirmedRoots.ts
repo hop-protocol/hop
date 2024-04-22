@@ -1,11 +1,12 @@
-import chainIdToSlug from 'src/utils/chainIdToSlug'
-import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
-import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
+import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
+import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber } from 'ethers'
-import { Chain, PreRegenesisRootsCommitted } from 'src/constants'
+import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { DateTime } from 'luxon'
-import { actionHandler, parseString, root } from './shared'
+import { PreRegenesisRootsCommitted } from '#constants/index.js'
+import { actionHandler, parseString, root } from './shared/index.js'
+import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 
 type RootCommitted = {
   rootHash: string

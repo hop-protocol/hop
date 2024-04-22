@@ -1,5 +1,5 @@
-import ContractBase from './ContractBase'
-import { BigNumber } from 'ethers'
+import ContractBase from './ContractBase.js'
+import type { BigNumber } from 'ethers'
 
 export default class L1MessengerWrapper extends ContractBase {
   confirmRoots = async (rootHashes: string[], destinationChainIds: number[], totalAmounts: BigNumber[], rootCommittedAts: number[]): Promise<void> => {

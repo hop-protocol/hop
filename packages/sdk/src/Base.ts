@@ -1,37 +1,41 @@
-import Token from './models/Token'
 import memoize from 'fast-memoize'
-import { Addresses } from '@hop-protocol/core/addresses'
-import { ArbERC20 } from '@hop-protocol/core/contracts'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts'
-import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts'
-import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
-import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, NetworkSlug } from './constants'
-import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts'
-import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
-import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts'
-import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts'
-import { L1_xDaiForeignOmniBridge } from '@hop-protocol/core/contracts'
-import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts'
-import { L2_OptimismTokenBridge } from '@hop-protocol/core/contracts'
-import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts'
-import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts'
-import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts'
-import { L2_xDaiToken } from '@hop-protocol/core/contracts'
-import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts'
-import { Multicall, Balance as MulticallBalance } from './Multicall'
-import { RelayerFee } from './relayerFee'
-import { TChain, TProvider, TToken } from './types'
-import { config, metadata } from './config'
-import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
-import { getMinGasLimit } from './utils/getMinGasLimit'
-import { getMinGasPrice } from './utils/getMinGasPrice'
-import { getProviderFromUrl } from './utils/getProviderFromUrl'
-import { getUrlFromProvider } from './utils/getUrlFromProvider'
-import { parseEther, serializeTransaction } from 'ethers/lib/utils'
-import { promiseTimeout } from './utils/promiseTimeout'
-import { rateLimitRetry } from './utils/rateLimitRetry'
+import { Addresses } from '@hop-protocol/sdk-core/addresses'
+import { ArbERC20 } from './contracts/index.js'
+import { ArbERC20__factory } from './contracts/index.js'
+import { ArbitrumGlobalInbox } from './contracts/index.js'
+import { ArbitrumGlobalInbox__factory } from './contracts/index.js'
+import { BigNumber, BigNumberish, Contract, Signer, constants, providers, utils } from 'ethers'
+import {
+  Chain,
+  TokenModel,
+  fetchJsonOrThrow,
+  getMinGasLimit,
+  getMinGasPrice,
+  getProviderFromUrl,
+  getUrlFromProvider,
+  promiseTimeout,
+  rateLimitRetry,
+} from '@hop-protocol/sdk-core'
+import { ChainSlug, Errors, NetworkSlug } from './constants/index.js'
+import { L1_OptimismTokenBridge } from './contracts/index.js'
+import { L1_OptimismTokenBridge__factory } from './contracts/index.js'
+import { L1_PolygonPosRootChainManager } from './contracts/index.js'
+import { L1_PolygonPosRootChainManager__factory } from './contracts/index.js'
+import { L1_xDaiForeignOmniBridge } from './contracts/index.js'
+import { L1_xDaiForeignOmniBridge__factory } from './contracts/index.js'
+import { L2_OptimismTokenBridge } from './contracts/index.js'
+import { L2_OptimismTokenBridge__factory } from './contracts/index.js'
+import { L2_PolygonChildERC20 } from './contracts/index.js'
+import { L2_PolygonChildERC20__factory } from './contracts/index.js'
+import { L2_xDaiToken } from './contracts/index.js'
+import { L2_xDaiToken__factory } from './contracts/index.js'
+import {
+  Multicall,
+  MulticallBalance
+} from '@hop-protocol/sdk-core'
+import { RelayerFee } from './relayerFee/index.js'
+import { TChain, TProvider, TToken } from './types.js'
+import { config, metadata } from './config/index.js'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -66,7 +70,7 @@ const getProvider = memoize((network: string, chain: string) => {
 
 const getContractMemo = memoize(
   (
-    factory,
+    factory: any,
     address: string,
     cacheKey: string
   ): ((provider: TProvider) => L1Contract | L2Contract) => {
@@ -300,8 +304,19 @@ export class Base {
   }
 
   async sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
-    const chainId = this.toChainModel(chain).chainId
+    chain = this.toChainModel(chain)
+    const chainId = chain.chainId
     await this.checkBlocklist()
+
+    if (!transactionRequest.to) {
+      throw new Error('tx "to" address is required')
+    }
+
+    const contractExists = await this.getContractExists(transactionRequest.to, chain)
+    if (!contractExists) {
+      throw new Error(`Contract "${transactionRequest.to}" does not exist on chain "${chain.slug}"`)
+    }
+
     return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
   }
 
@@ -749,13 +764,17 @@ export class Base {
     return messengerWrapper
   }
 
-  public async getFeeBps (token: TToken, destinationChain: TChain): Promise<number> {
+  public async getFeeBps (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<number> {
     const timeStart = Date.now()
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {
       throw new Error('token is required')
+    }
+    if (!sourceChain) {
+      throw new Error('sourceChain is required')
     }
     if (!destinationChain) {
       throw new Error('destinationChain is required')
@@ -765,7 +784,13 @@ export class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps = fees[destinationChain.slug] || 0
+    let feeBps = fees[destinationChain.slug] || 0
+
+    // Special case for DAI transfers out of Gnosis Chain
+    if (sourceChain.equals(Chain.Gnosis) && token.symbol === TokenModel.XDAI) {
+      feeBps = fees?.[ChainSlug.Gnosis] ?? feeBps
+    }
+
     this.debugTimeLog('getFeeBps', timeStart)
     return feeBps
   }
@@ -792,7 +817,7 @@ export class Base {
     await this.fetchConfigFromS3()
     destinationChain = this.toChainModel(destinationChain)
     const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
-    if (!isFeeEnabled || tokenSymbol !== Token.ETH) {
+    if (!isFeeEnabled || tokenSymbol !== TokenModel.ETH) {
       return BigNumber.from(0)
     }
 
@@ -984,8 +1009,8 @@ export class Base {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
     const gasPrice = await this.getGasPrice(chain.provider!)
-    const serializedTx = serializeTransaction({
-      value: parseEther('0'),
+    const serializedTx = utils.serializeTransaction({
+      value: utils.parseEther('0'),
       gasPrice,
       gasLimit,
       to,
@@ -1024,9 +1049,9 @@ export class Base {
     return json.data ?? null
   }
 
-  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string):Promise<any> {
+  async getTransferTimes (sourceChainSlug: string, destinationChainSlug: string, tokenSymbol?: string):Promise<any> {
     const baseApiUrl = this.network !== NetworkSlug.Mainnet ? `https://${this.network}-explorer-api.hop.exchange` : 'https://explorer-api.hop.exchange'
-    const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}`
+    const url = `${baseApiUrl}/v1/transfers/timeStats?sourceChainSlug=${sourceChainSlug}&destinationChainSlug=${destinationChainSlug}&token=${tokenSymbol ?? ''}`
     const json = await fetchJsonOrThrow(url, (9 * 1000))
     return json.data ?? null
   }
@@ -1141,6 +1166,26 @@ export class Base {
     const balances = await multicall.getBalances()
     return balances
   }
-}
 
-export default Base
+  async getContractExists (address: string, chain: TChain): Promise<boolean> {
+    if (!address) {
+      throw new Error('address is required')
+    }
+
+    if (!chain) {
+      throw new Error('chain is required')
+    }
+
+    const signer = await this.getSignerOrProvider(chain)
+    if (!(Signer.isSigner(signer) && signer.provider)) {
+      throw new Error('signer provider is missing')
+    }
+
+    const code = await (signer as Signer).provider!.getCode(address)
+    if (!code) {
+      return false
+    }
+
+    return code !== '0x'
+  }
+}

@@ -53,6 +53,7 @@ jobs:
         run: pnpm --filter sdk-core build
 
       - name: Publish package
+        if: env.VERSION_MISMATCH == 'true'
         working-directory: .
         run: pnpm --filter sdk-core publish --access public
         env:

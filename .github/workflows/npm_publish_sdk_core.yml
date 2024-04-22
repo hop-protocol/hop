@@ -42,24 +42,19 @@ jobs:
         working-directory: .
         run: npm install -g pnpm@latest only-allow@latest
 
-      - name: Clean branch
-        if: env.VERSION_MISMATCH == 'true'
-        working-directory: .
-        run: pnpm --filter sdk-core clean
-
       - name: Install local packages and dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter sdk-core install
+        run: pnpm --filter @hop-protocol/sdk-core install
 
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter sdk-core build
+        run: pnpm --filter @hop-protocol/sdk-core build
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter sdk-core publish --access public
+        run: pnpm --filter @hop-protocol/sdk-core publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

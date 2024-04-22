@@ -40,21 +40,20 @@ jobs:
       - name: Install global dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: npm install -g pnpm@latest only-allow@latest
+        run: npm install -g pnpm@8.15.7 only-allow@1.2.1
 
       - name: Install local packages and dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/sdk-core install
+        run: pnpm --filter sdk-core install
 
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/sdk-core build
+        run: pnpm --filter sdk-core build
 
       - name: Publish package
-        if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/sdk-core publish --access public
+        run: git status && pnpm --filter sdk-core publish --access public --dry-run
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

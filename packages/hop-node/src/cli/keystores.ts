@@ -10,7 +10,7 @@ import {
 import { entropyToMnemonic } from '@hop-protocol/hop-node-core/keystore'
 import { generateKeystore, recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
 import { hopArt } from './shared/art.js'
-import { prompt, promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
+import { prompt, promptPassphrase } from '#prompt/index.js'
 import { randomBytes } from 'node:crypto'
 
 enum Actions {

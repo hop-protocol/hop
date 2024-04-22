@@ -29,7 +29,7 @@ import {
 import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
 import { utils } from 'ethers'
 import { getParameter } from '@hop-protocol/hop-node-core/aws'
-import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
+import { promptPassphrase } from '#prompt/index.js'
 import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
 import type { BlocklistConfig, SignerConfig } from '@hop-protocol/hop-node-core/config'
 

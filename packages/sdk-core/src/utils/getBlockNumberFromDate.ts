@@ -1,7 +1,6 @@
 // @ts-expect-error No types as of 20240128
 import BlockDater from 'ethereum-block-by-date'
 import { Chain } from '#models/index.js'
-import { DateTime } from 'luxon'
 import { fetchJsonOrThrow } from './fetchJsonOrThrow.js'
 import { getEtherscanApiKey } from './getEtherscanApiKey.js'
 import { getEtherscanApiUrl } from './getEtherscanApiUrl.js'
@@ -39,7 +38,7 @@ export async function getBlockNumberFromDateUsingEtherscan (chain: string, times
 
 export async function getBlockNumberFromDateUsingLib (provider: any, timestamp: number): Promise<number> {
   const blockDater = new BlockDater(provider)
-  const date = DateTime.fromSeconds(timestamp).toJSDate()
+  const date = new Date(timestamp * 1000)
 
   let retryCount = 0
   let info

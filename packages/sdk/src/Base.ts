@@ -4,7 +4,7 @@ import { ArbERC20 } from './contracts/index.js'
 import { ArbERC20__factory } from './contracts/index.js'
 import { ArbitrumGlobalInbox } from './contracts/index.js'
 import { ArbitrumGlobalInbox__factory } from './contracts/index.js'
-import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, constants, providers, utils } from 'ethers'
 import {
   Chain,
   TokenModel,
@@ -36,7 +36,6 @@ import {
 import { RelayerFee } from './relayerFee/index.js'
 import { TChain, TProvider, TToken } from './types.js'
 import { config, metadata } from './config/index.js'
-import { parseEther, serializeTransaction } from 'ethers/lib/utils.js'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -1010,8 +1009,8 @@ export class Base {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)
     const gasPrice = await this.getGasPrice(chain.provider!)
-    const serializedTx = serializeTransaction({
-      value: parseEther('0'),
+    const serializedTx = utils.serializeTransaction({
+      value: utils.parseEther('0'),
       gasPrice,
       gasLimit,
       to,
@@ -1177,8 +1176,12 @@ export class Base {
       throw new Error('chain is required')
     }
 
-    chain = this.toChainModel(chain)
-    const code = await chain.provider!.getCode(address)
+    const signer = await this.getSignerOrProvider(chain)
+    if (!(Signer.isSigner(signer) && signer.provider)) {
+      throw new Error('signer provider is missing')
+    }
+
+    const code = await (signer as Signer).provider!.getCode(address)
     if (!code) {
       return false
     }

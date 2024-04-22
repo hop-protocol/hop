@@ -2,7 +2,7 @@ import _ from 'lodash'
 import fs from 'fs'
 import getBlockNumberFromDate from './utils/getBlockNumberFromDate.js'
 import path from 'path'
-import { BigNumber, Contract, constants, providers } from 'ethers'
+import { BigNumber, Contract, constants, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { PriceFeed } from './PriceFeed.js'
 import {
@@ -14,14 +14,8 @@ import {
 } from './config.js'
 import { createObjectCsvWriter } from 'csv-writer'
 import { db } from './Db.js'
-import { erc20Abi } from '@hop-protocol/sdk/abi'
+import { ERC20__factory } from '@hop-protocol/sdk/contracts'
 import { fileURLToPath } from 'url'
-import {
-  formatEther,
-  formatUnits,
-  parseEther,
-  parseUnits
-} from 'ethers/lib/utils.js'
 import { getEtherscanApiUrl } from './utils/getEtherscanApiUrl.js'
 import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
 import { getTokenDecimals } from './utils/getTokenDecimals.js'
@@ -173,13 +167,13 @@ class BonderStats {
       }
       totalFees = totalFees.add(chainFees)
       const chainFeesFormatted = Number(
-        formatUnits(chainFees, getTokenDecimals(token))
+        utils.formatUnits(chainFees, getTokenDecimals(token))
       )
       dbData[`${chain}FeesAmount`] = chainFeesFormatted
       console.log(day, 'chain bonder fees', isoDate, chain, chainFeesFormatted)
     }
     const totalFeesFormatted = Number(
-      formatUnits(totalFees, getTokenDecimals(token))
+      utils.formatUnits(totalFees, getTokenDecimals(token))
     )
     dbData.totalFeesAmount = totalFeesFormatted
     console.log(day, 'total bonder fees', isoDate, totalFeesFormatted)
@@ -261,7 +255,7 @@ class BonderStats {
         startDate,
         endDate
       )
-      const chainFeesFormatted = Number(formatEther(gasFees))
+      const chainFeesFormatted = Number(utils.formatEther(gasFees))
       dbData[`${chain}TxFees`] = chainFeesFormatted
       console.log(chain, chainFeesFormatted)
     })
@@ -523,33 +517,33 @@ class BonderStats {
       })
 
       dbData.unstakedAmount = Number(
-        formatUnits(unstakedAmount, getTokenDecimals(token))
+        utils.formatUnits(unstakedAmount, getTokenDecimals(token))
       )
 
-      dbData.unstakedEthAmount = Number(formatEther(unstakedEthAmount))
+      dbData.unstakedEthAmount = Number(utils.formatEther(unstakedEthAmount))
 
       dbData.restakedAmount = Number(
-        formatUnits(restakedAmount, getTokenDecimals(token))
+        utils.formatUnits(restakedAmount, getTokenDecimals(token))
       )
 
       dbData.restakedEthAmount = Number(
-        formatUnits(restakedEthAmount, getTokenDecimals(token))
+        utils.formatUnits(restakedEthAmount, getTokenDecimals(token))
       )
 
       dbData.depositAmount = Number(
-        formatUnits(depositAmount, getTokenDecimals(token))
+        utils.formatUnits(depositAmount, getTokenDecimals(token))
       )
 
       dbData.withdrawnAmount = Number(
-        formatUnits(withdrawnAmount, getTokenDecimals(token))
+        utils.formatUnits(withdrawnAmount, getTokenDecimals(token))
       )
 
       dbData.stakedAmount = Number(
-        formatUnits(stakedAmount, getTokenDecimals(token))
+        utils.formatUnits(stakedAmount, getTokenDecimals(token))
       )
 
       dbData.initialCanonicalAmount = Number(
-        formatUnits(initialCanonicalAmount, getTokenDecimals(token))
+        utils.formatUnits(initialCanonicalAmount, getTokenDecimals(token))
       )
 
       dbData.bonderAddress = bonderAddress
@@ -600,13 +594,13 @@ class BonderStats {
 
       if (depositEvent) {
         depositEvent = Number(
-          formatUnits(depositEvent, getTokenDecimals(token))
+          utils.formatUnits(depositEvent, getTokenDecimals(token))
         )
       }
 
       if (withdrawEvent) {
         withdrawEvent = Number(
-          formatUnits(withdrawEvent, getTokenDecimals(token))
+          utils.formatUnits(withdrawEvent, getTokenDecimals(token))
         )
       }
 
@@ -785,13 +779,12 @@ class BonderStats {
                   const tokenAddress =
                     bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
                   const hTokenAddress = bridgeMap.l2HopBridgeToken
-                  const tokenContract = new Contract(
+                  const tokenContract = ERC20__factory.connect(
                     tokenAddress,
-                    erc20Abi,
                     archiveProvider
                   )
                   const hTokenContract = hTokenAddress
-                    ? new Contract(hTokenAddress, erc20Abi, archiveProvider)
+                    ? ERC20__factory.connect(hTokenAddress, archiveProvider)
                     : null
 
                   console.log(
@@ -897,11 +890,11 @@ class BonderStats {
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
                     ? Number(
-                        formatUnits(balance.toString(), getTokenDecimals(token))
+                        utils.formatUnits(balance.toString(), getTokenDecimals(token))
                       )
                     : 0
                   dbData[`${chain}NativeAmount`] = native
-                    ? Number(formatEther(native.toString()))
+                    ? Number(utils.formatEther(native.toString()))
                     : 0
 
                   dbData.ethPriceUsd = Number(priceMap.ETH)
@@ -909,7 +902,7 @@ class BonderStats {
                   if (chain !== 'ethereum') {
                     dbData[`${chain}HTokenAmount`] = hBalance
                       ? Number(
-                          formatUnits(
+                          utils.formatUnits(
                             hBalance.toString(),
                             getTokenDecimals(token)
                           )
@@ -918,20 +911,20 @@ class BonderStats {
                   }
                   if (chain === 'arbitrum') {
                     dbData[`${chain}AliasAmount`] = aliasBalance
-                      ? Number(formatEther(aliasBalance.toString()))
+                      ? Number(utils.formatEther(aliasBalance.toString()))
                       : 0
                     console.log(
                       `${chain} ${token} alias balance`,
-                      Number(formatEther(aliasBalance.toString()))
+                      Number(utils.formatEther(aliasBalance.toString()))
                     )
                   }
                   if (chain === 'ethereum') {
                     dbData.arbitrumMessengerWrapperAmount = messengerWrapperBalance
-                      ? Number(formatEther(messengerWrapperBalance.toString()))
+                      ? Number(utils.formatEther(messengerWrapperBalance.toString()))
                       : 0
                     console.log(
                       `${chain} ${token} messenger wrapper balance`,
-                      Number(formatEther(messengerWrapperBalance.toString()))
+                      Number(utils.formatEther(messengerWrapperBalance.toString()))
                     )
                   }
 
@@ -941,9 +934,8 @@ class BonderStats {
 
                   if (chain === 'arbitrum') {
                     const wethAddress = wethAddresses[chain]
-                    const wethContract = new Contract(
+                    const wethContract = ERC20__factory.connect(
                       wethAddress,
-                      erc20Abi,
                       provider
                     )
 
@@ -958,7 +950,7 @@ class BonderStats {
                       })
 
                     dbData[`${chain}WethAmount`] = Number(
-                      formatEther(wethBalance.toString())
+                      utils.formatEther(wethBalance.toString())
                     )
                   }
 
@@ -1071,12 +1063,12 @@ class BonderStats {
     }
     const nativeTokenDiffsInToken: Record<string, any> = {}
     for (const chain of this.chains) {
-      const multiplier = parseEther('1')
+      const multiplier = utils.parseEther('1')
       const nativeSymbol = this.getChainNativeTokenSymbol(chain)
-      const nativeTokenPriceUsdWei = parseEther(
+      const nativeTokenPriceUsdWei = utils.parseEther(
         priceMap[nativeSymbol].toString()
       )
-      const tokenPriceUsdWei = parseEther(priceMap[token].toString())
+      const tokenPriceUsdWei = utils.parseEther(priceMap[token].toString())
       const nativeTokenDecimals = getTokenDecimals(nativeSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
       const exponent = nativeTokenDecimals - getTokenDecimals(token)
@@ -1101,7 +1093,7 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      formatUnits(result.toString(), getTokenDecimals(token))
+      utils.formatUnits(result.toString(), getTokenDecimals(token))
     )
 
     return {
@@ -1152,16 +1144,16 @@ class BonderStats {
 
     const nonEthNativeTokenDiffsInToken: Record<string, any> = {}
     for (const chain of this.chains) {
-      const multiplier = parseEther('1')
+      const multiplier = utils.parseEther('1')
       const nativeSymbol = this.getChainNativeTokenSymbol(chain)
       if (nativeSymbol === 'ETH') {
         ethAmounts = ethAmounts.add(nativeTokenDiffs[chain])
         continue
       }
-      const nativeTokenPriceUsdWei = parseEther(
+      const nativeTokenPriceUsdWei = utils.parseEther(
         priceMap[nativeSymbol].toString()
       )
-      const tokenPriceUsdWei = parseEther(priceMap[token].toString())
+      const tokenPriceUsdWei = utils.parseEther(priceMap[token].toString())
       const nativeTokenDecimals = getTokenDecimals(nativeSymbol)
       const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
       const exponent = nativeTokenDecimals - getTokenDecimals(token)
@@ -1188,10 +1180,10 @@ class BonderStats {
       result = BigNumber.from(0)
     }
     const resultFormatted = Number(
-      formatUnits(result.toString(), getTokenDecimals(token))
+      utils.formatUnits(result.toString(), getTokenDecimals(token))
     )
 
-    const ethAmountsFormatted = Number(formatUnits(ethAmounts.toString(), 18))
+    const ethAmountsFormatted = Number(utils.formatUnits(ethAmounts.toString(), 18))
 
     return {
       result,
@@ -1497,7 +1489,7 @@ class BonderStats {
     }
 
     return (arr as string[]).map((value: string) =>
-      parseUnits(value, getTokenDecimals(token))
+      utils.parseUnits(value, getTokenDecimals(token))
     )
   }
 }

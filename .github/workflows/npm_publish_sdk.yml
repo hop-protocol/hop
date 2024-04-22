@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           always-auth: true
-          node-version: 20.10.0
+          node-version: 20.12.2
           registry-url: https://registry.npmjs.org
 
       - name: Check if publish is necessary
@@ -41,22 +41,22 @@ jobs:
       - name: Install global dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: npm install -g pnpm@latest only-allow@latest
+        run: npm install -g pnpm@8.15.7 only-allow@1.2.1
 
       - name: Install local packages and dependencies
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/sdk-core install && pnpm --filter @hop-protocol/sdk install
+        run: pnpm --filter sdk-core install && pnpm --filter sdk install
 
       - name: Build packages
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/sdk-core build && pnpm --filter @hop-protocol/sdk build
+        run: pnpm --filter sdk-core build && pnpm --filter sdk build
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
         working-directory: .
-        run: pnpm --filter @hop-protocol/sdk publish --access public
+        run: pnpm --filter sdk publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

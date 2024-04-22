@@ -1,6 +1,6 @@
 import Db, { getInstance } from './Db'
 import wait from 'wait'
-import { BigNumber, ethers, providers } from 'ethers'
+import { BigNumber, ethers, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
 import { cache } from './cache'
@@ -23,12 +23,11 @@ import {
   fetchTransferSentsForTransferId,
   fetchWithdrews
 } from './theGraph'
-import { formatUnits } from 'ethers/lib/utils'
 import { getPreRegenesisBondEvent } from './preregenesis'
 import { getPriceHistory } from './price'
 import { getProxyAddress } from './utils/getProxyAddress'
 import { getTokenDecimals } from './utils/getTokenDecimals'
-import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/sdk/abi'
+import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { populateData } from './populateData'
 import { populateTransfer } from './utils/populateTransfer'
 
@@ -412,7 +411,7 @@ export class TransferStats {
       if (amount.gt(0)) {
         const amountReceived = amount.toString()
         const decimals = getTokenDecimals(item.token)
-        const amountReceivedFormatted = Number(formatUnits(amountReceived, decimals))
+        const amountReceivedFormatted = Number(utils.formatUnits(amountReceived, decimals))
         return { amountReceived, amountReceivedFormatted }
       }
 
@@ -770,7 +769,7 @@ export class TransferStats {
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
     }
     for (const [i, chain] of enabledChains.entries()) {
       events[`${chain}Transfers`] = events[`${chain}Transfers`].concat(enabledChainTransfersCctp[i])
@@ -790,7 +789,7 @@ export class TransferStats {
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Bonds`] = enabledChainBonds[i];
+      events[`${chain}Bonds`] = enabledChainBonds[i]
     }
 
     for (const [i, chain] of enabledChains.entries()) {
@@ -911,7 +910,7 @@ export class TransferStats {
 
     const bondedWithdrawals :any = {}
     for (const [i, chain] of fetchBondedWithdrawalsChains.entries()) {
-      bondedWithdrawals[chain] = enabledChainBondedWithdrawals[i];
+      bondedWithdrawals[chain] = enabledChainBondedWithdrawals[i]
     }
 
     console.log('querying fetchWithdrews')
@@ -925,7 +924,7 @@ export class TransferStats {
 
     const withdrews :any = {}
     for (const [i, chain] of fetchWithdrewsChains.entries()) {
-      withdrews[chain] = enabledChainWithdrews[i];
+      withdrews[chain] = enabledChainWithdrews[i]
     }
 
     console.log('querying fetchTransferFromL1Completeds with startTime', startTime, 'endTime', endTime, (endTime-startTime)/60)
@@ -939,7 +938,7 @@ export class TransferStats {
 
     const fromL1CompletedsMap :any = {}
     for (const [i, chain] of fetchFromL1CompletedsChains.entries()) {
-      fromL1CompletedsMap[chain] = enabledChainFromL1Completeds[i];
+      fromL1CompletedsMap[chain] = enabledChainFromL1Completeds[i]
     }
 
     const bondsMap :any = {}
@@ -958,7 +957,7 @@ export class TransferStats {
 
     const messageReceiveds :any = {}
     for (const [i, chain] of fetchMessageReceivedsChains.entries()) {
-      messageReceiveds[chain] = enabledMessageReceiveds[i];
+      messageReceiveds[chain] = enabledMessageReceiveds[i]
     }
 
     for (const x of data) {
@@ -1255,7 +1254,7 @@ export class TransferStats {
 
     const events :any = {}
     for (const [i, chain] of enabledChains.entries()) {
-      events[`${chain}Transfers`] = enabledChainTransfers[i];
+      events[`${chain}Transfers`] = enabledChainTransfers[i]
     }
 
     for (const [i, chain] of enabledChains.entries()) {
@@ -1326,7 +1325,7 @@ export class TransferStats {
         const logs = receipt.logs
         for (const log of logs) {
           if (log.topics[0] === '0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb') { // TransferSent
-            const iface = new ethers.utils.Interface(l2BridgeAbi)
+            const iface = new ethers.utils.Interface(L2_Bridge__factory.abi)
             const decoded = iface.parseLog(log)
             if (decoded) {
               transferId = decoded?.args?.transferId
@@ -1348,7 +1347,7 @@ export class TransferStats {
               }
             }
           } else if (log.topics[0] === '0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b') { // TransferSentToL2
-            const iface = new ethers.utils.Interface(l1BridgeAbi)
+            const iface = new ethers.utils.Interface(L1_Bridge__factory.abi)
             const decoded = iface.parseLog(log)
             if (decoded) {
               destinationChainId = Number(decoded?.args.chainId.toString())
@@ -1372,10 +1371,10 @@ export class TransferStats {
           if (token) {
             const decimals = getTokenDecimals(token)
             if (amount) {
-              amountFormatted = Number(formatUnits(amount, decimals))
+              amountFormatted = Number(utils.formatUnits(amount, decimals))
             }
             if (bonderFee) {
-              bonderFeeFormatted = Number(formatUnits(bonderFee, decimals))
+              bonderFeeFormatted = Number(utils.formatUnits(bonderFee, decimals))
             }
           }
         }

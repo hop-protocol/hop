@@ -1,5 +1,5 @@
 import { Multicall } from '#multicall/index.js'
-import { erc20Abi } from '#abi/index.js'
+import { ERC20__factory } from '#contracts/index.js'
 
 describe.skip('Multicall', () => {
   it('Should get token addresses for chain', async () => {
@@ -41,12 +41,12 @@ describe.skip('Multicall', () => {
     const accountAddress = '0x9997da3de3ec197C853BCC96CaECf08a81dE9D69'
     const multicall = new Multicall({ network: 'mainnet', accountAddress })
     const balances = await multicall.getBalancesForChain('polygon', [{
-      abi: erc20Abi,
+      abi: ERC20__factory.abi,
       method: 'balanceOf',
       address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
       tokenSymbol: 'DAI'
     }, {
-      abi: erc20Abi,
+      abi: ERC20__factory.abi,
       method: 'balanceOf',
       address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
       tokenSymbol: 'USDC'
@@ -59,7 +59,7 @@ describe.skip('Multicall', () => {
     const multicall = new Multicall({ network: 'mainnet', accountAddress })
     const result = await multicall.multicall('polygon', [{
       address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
-      abi: erc20Abi,
+      abi: ERC20__factory.abi,
       method: 'balanceOf',
       args: [accountAddress]
     }])

@@ -1,9 +1,14 @@
-/* eslint-disable */
-import dotenv from 'dotenv'
-import os from 'os'
-import { TextDecoder, TextEncoder } from 'util'
+ 
+import os from 'node:os'
+import { TextEncoder } from 'node:util'
+import { getEnvFilePath } from '#utils/getEnvFilePath.js'
+import { loadEnvFile } from 'node:process'
+
 global.TextEncoder = TextEncoder
-dotenv.config()
+const envFilePath = getEnvFilePath()
+if (envFilePath) {
+  loadEnvFile(envFilePath)
+}
 
 export const dbPath = process.env.DB_PATH ?? '/tmp/tempdb'
 export const privateKey = process.env.PRIVATE_KEY

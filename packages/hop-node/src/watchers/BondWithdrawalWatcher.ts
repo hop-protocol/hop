@@ -1,8 +1,7 @@
 import BaseWatcher from './classes/BaseWatcher.js'
-import L2Bridge from './classes/L2Bridge.js'
 import contracts from '#contracts/index.js'
 import getTransferId from '#utils/getTransferId.js'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
@@ -25,17 +24,13 @@ import {
   SyncType,
   TxError
 } from '#constants/index.js'
-import { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
 import {
   NonceTooLowError,
   PossibleReorgDetected,
   RedundantProviderOutOfSync,
 } from '@hop-protocol/hop-node-core/types'
-import { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
 import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { formatUnits, parseUnits } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
 import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
 import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
 import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
@@ -43,6 +38,14 @@ import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/utils'
 import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
 import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
 import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+import type L2Bridge from './classes/L2Bridge.js'
+import type {
+  L1_Bridge as L1BridgeContract,
+L2_Bridge as L2BridgeContract
+} from '@hop-protocol/sdk/contracts'
+import type { Logger } from '@hop-protocol/hop-node-core/logger'
+import type { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
+import type { providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -67,9 +70,11 @@ export type SendBondWithdrawalTxParams = {
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
-  override siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  override siblingWatchers!: { [chainId: string]: BondWithdrawalWatcher }
   // This value is limited by the number of concurrent RPC calls that can be made throughout the entire process
   private readonly bondWithdrawalBatchSize: number = BondWithdrawalBatchSize
+  // Disable specific routes if something goes wrong
+  #localEmergencyDryMode: Record<number, boolean> = {}
 
   constructor (config: Config) {
     super({
@@ -220,7 +225,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode || globalConfig.emergencyDryMode) {
+    if (this.dryMode || this.#localEmergencyDryMode?.[sourceChainId]) {
       logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondWithdrawalWatcher`)
       return
     }
@@ -365,8 +370,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
         return
       }
       if (err instanceof PossibleReorgDetected) {
-        logger.error('possible reorg detected. turning off writes.')
-        enableEmergencyMode()
+        logger.error(`possible reorg detected. turning off writes for source chain ${sourceChainId}`)
+        this.#localEmergencyDryMode[sourceChainId] = true
       }
 
       throw err
@@ -451,7 +456,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
     const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
     if (amountWithinThreshold.lt(0)) {
-      this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${formatUnits(inFlightAmount, decimals)})`)
+      this.logger.debug(`filterTransfersBySyncTypeThreshold: bonderRiskAmount (${utils.formatUnits(bonderRiskAmount, decimals)}) is less than inFlightAmount (${utils.formatUnits(inFlightAmount, decimals)})`)
       return finalizedTransfers
     }
 
@@ -480,7 +485,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // Is there enough overall credit to bond
       const enoughCredit = availableLiquidityPerChain[destinationChainId].gte(amount)
       if (!enoughCredit) {
-        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${formatUnits(amount, decimals)}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: invalid credit or liquidity. availableCredit: ${availableLiquidityPerChain[destinationChainId].toString()}, amount: ${utils.formatUnits(amount, decimals)}`)
         continue
       }
 
@@ -494,7 +499,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // If the transfer has not been finalized, is it within the bond threshold
       const isWithinBondThreshold = amount.lte(remainingAmountWithinThreshold)
       if (!isWithinBondThreshold) {
-        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${formatUnits(amount, decimals)}, remainingAmountWithinThreshold:, ${formatUnits(remainingAmountWithinThreshold, decimals)}`)
+        logger.warn(`filterTransfersBySyncTypeThreshold: amount is not within bond threshold, amount:, ${utils.formatUnits(amount, decimals)}, remainingAmountWithinThreshold:, ${utils.formatUnits(remainingAmountWithinThreshold, decimals)}`)
         continue
       } else {
         remainingAmountWithinThreshold = remainingAmountWithinThreshold.sub(amount)
@@ -546,7 +551,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return BigNumber.from(0)
     }
 
-    const bonderTotalStakeWei = parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
+    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 

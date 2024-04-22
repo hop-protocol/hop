@@ -1,18 +1,18 @@
 import {
   AbstractMessageService,
-  IMessageService,
+  type IMessageService,
   MessageDirection
 } from '../../Services/AbstractMessageService.js'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import {
-  IL1ToL2MessageWriter,
-  IL2ToL1MessageWriter,
+  type IL1ToL2MessageWriter,
+  type IL2ToL1MessageWriter,
   L1ToL2MessageStatus,
   L1TransactionReceipt,
   L2ToL1MessageStatus,
   L2TransactionReceipt
 } from '@arbitrum/sdk'
-import { Overrides, providers } from 'ethers'
+import type { Overrides, providers } from 'ethers'
 
 type Message = IL1ToL2MessageWriter | IL2ToL1MessageWriter
 type MessageStatus = L1ToL2MessageStatus | L2ToL1MessageStatus
@@ -48,7 +48,11 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       throw new Error('could not find messages for tx hash')
     }
 
-    return messages[messageIndex]
+    const message: Message | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   async #getL2ToL1Message (txHash: string, messageIndex: number): Promise<Message> {
@@ -62,7 +66,11 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
       throw new Error('could not find messages for tx hash')
     }
 
-    return messages[messageIndex]
+    const message: Message | undefined = messages[messageIndex]
+    if (!message) {
+      throw new Error(`could not find message at index ${messageIndex}`)
+    }
+    return message
   }
 
   protected async getMessageStatus (message: Message, messageDirection: MessageDirection): Promise<MessageStatus> {

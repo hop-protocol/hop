@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { DateTime } from 'luxon'
+import type { ColorName } from 'chalk'
 
 type Options = {
   tag?: string
@@ -39,9 +39,9 @@ export const setLogLevel = (_logLevel: LogLevels | string) => {
       info: LogLevels.Info,
       debug: LogLevels.Debug
     }
-    _logLevel = mapping[_logLevel]
+    _logLevel = mapping[_logLevel] as LogLevels
   }
-  logLevel = _logLevel
+  logLevel = _logLevel as LogLevels
 }
 
 export class Logger {
@@ -69,7 +69,7 @@ export class Logger {
     }
     if (tag) {
       if (opts.color) {
-        const color: typeof chalk.Color | undefined = opts?.color as any
+        const color: ColorName | undefined = opts?.color as any
         if (!color) {
           throw new Error(`invalid color: ${opts.color}`)
         }
@@ -101,13 +101,17 @@ export class Logger {
   }
 
   get timestamp (): string {
-    return DateTime.now().toISO()
+    return (new Date()).toISOString()
   }
 
   headers (logLevelEnum: LogLevels): string[] {
     const keys = Object.keys(LogLevels)
-    const logLevelName = keys[logLevelEnum + keys.length / 2].toUpperCase()
-    const color: typeof chalk.Color | undefined = logLevelColors?.[logLevelEnum] as any
+    const name = keys[logLevelEnum + keys.length / 2]
+    if (!name) {
+      throw new Error(`invalid log level: ${logLevelEnum}`)
+    }
+    const logLevelName = name.toUpperCase()
+    const color: ColorName | undefined = logLevelColors?.[logLevelEnum] as any
     if (!color) {
       throw new Error(`invalid color: ${logLevelColors?.[logLevelEnum]}`)
     }

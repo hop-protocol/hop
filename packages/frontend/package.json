@@ -11,7 +11,7 @@
     "clean": "rm -rf node_modules build ./tsconfig.tsbuildinfo",
     "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` vite",
     "dev": "pnpm start",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --fix",
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` tsc && vite build",
     "preview": "vite preview",
     "deploy": "pnpm dlx --yes netlify-cli deploy --prod",
@@ -31,9 +31,7 @@
     "@mui/styled-engine-sc": "6.0.0-alpha.13",
     "@mui/styles": "5.15.6",
     "@mui/system": "5.15.6",
-    "@web3-onboard/coinbase": "2.2.4",
     "@web3-onboard/core": "2.20.3",
-    "@web3-onboard/gnosis": "2.1.10",
     "@web3-onboard/injected-wallets": "2.10.1",
     "@web3-onboard/walletconnect": "2.5.3",
     "clsx": "1.2.1",
@@ -83,7 +81,6 @@
     "dotenv": "16.4.1",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
-    "eslint-plugin-react-refresh": "0.4.5",
-    "vite": "5.0.8"
+    "vite": "5.0.13"
   }
 }

@@ -1,4 +1,4 @@
-import BaseDb, { DateFilter, DateFilterWithKeyPrefix } from './BaseDb.js'
+import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import { BigNumber } from 'ethers'
 import {
   Chain,
@@ -188,12 +188,10 @@ class SubDbIncompletes extends BaseDb<Transfer> {
     }
 
     return (
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
       !item.sourceChainId ||
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
       !!(item.transferSentBlockNumber && !item.transferSentTimestamp)
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
 

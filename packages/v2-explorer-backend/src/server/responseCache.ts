@@ -1,5 +1,5 @@
 import mcache from 'memory-cache'
-import { responseCacheDurationMs } from '../config'
+import { responseCacheDurationMs } from '#config/index.js'
 
 const responseCacheEnabled = responseCacheDurationMs > 0
 

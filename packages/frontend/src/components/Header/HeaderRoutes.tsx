@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
       justifyContent: 'center',
     },
   }
-}));
+}))
 
 export const HeaderRoutes: FC = () => {
   const { pathname, search } = useLocation()

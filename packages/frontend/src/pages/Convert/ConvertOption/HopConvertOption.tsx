@@ -2,12 +2,11 @@ import ConvertOption, { SendData } from './ConvertOption'
 import { ChainSlug } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import React, { ReactNode } from 'react'
-import { BigNumber, BigNumberish, Signer } from 'ethers'
+import { BigNumber, BigNumberish, Signer, utils } from 'ethers'
 import { DetailRow } from 'src/components/InfoTooltip/DetailRow'
 import { FeeDetails } from 'src/components/InfoTooltip/FeeDetails'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { RelayableChains } from 'src/utils/constants'
-import { getAddress } from 'ethers/lib/utils'
 import { getBonderFeeWithId, toTokenDisplay } from 'src/utils'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
@@ -57,7 +56,7 @@ class HopConvertOption extends ConvertOption {
 
     try {
       if (customRecipient) {
-        getAddress(customRecipient) // attempts to checksum
+        utils.getAddress(customRecipient) // attempts to checksum
       }
     } catch (err) {
       throw new Error('Custom recipient address is invalid')
@@ -66,6 +65,13 @@ class HopConvertOption extends ConvertOption {
     let recipient : string | undefined
     if (customRecipient) {
       recipient = customRecipient
+    }
+
+    const isUsdceWithdrawal = l1TokenSymbol === 'USDC.e' && destNetwork?.slug === ChainSlug.Ethereum
+    if (isUsdceWithdrawal) {
+      if (BigNumber.from(bonderFee ?? 0).eq(0)) {
+        bonderFee = await bridge.getBonderFeeAbsolute(sourceNetwork?.slug, destNetwork?.slug)
+      }
     }
 
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
@@ -96,7 +102,7 @@ class HopConvertOption extends ConvertOption {
       : bridge.getL2HopToken(sourceNetwork?.slug)
 
     const isHTokenSend = true
-    const {
+    let {
       totalFee,
       adjustedBonderFee,
       adjustedDestinationTxFee,
@@ -111,12 +117,19 @@ class HopConvertOption extends ConvertOption {
     let estimatedReceived = amountIn
     let warning : any
 
+    const isUsdceWithdrawal = token.symbol === 'hUSDC.e' && destNetwork?.slug === ChainSlug.Ethereum
+
+    // note: bypass bonder fee since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    if (isUsdceWithdrawal) {
+      totalFee = BigNumber.from(0)
+    }
+
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
 
-      // note: bypass liquidity check since USDC.e out of gnosis to ethereum (deprecated token route) will have to go through the 7 day exit time.
-      if (token.symbol === 'hUSDC.e' && sourceNetwork.slug === ChainSlug.Gnosis && destNetwork.slug === ChainSlug.Ethereum) {
+      // note: bypass liquidity check since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time.
+      if (isUsdceWithdrawal) {
         warning = ''
       }
     }

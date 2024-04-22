@@ -160,8 +160,7 @@
     "bump:minor": "pnpm version minor",
     "bump:major": "pnpm version major",
     "release": "pnpm build && pnpm lint && pnpm test && pnpm bump",
-    "bump-release": "pnpm bump && pnpm release",
-    "upload": "pnpm build:esm && node dist/esm/s3upload/main"
+    "bump-release": "pnpm bump && pnpm release"
   },
   "dependencies": {
     "@uniswap/sdk-core": "4.2.0",
@@ -169,10 +168,6 @@
     "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "p-queue": "6.6.2"
-  },
-  "devDependencies": {
-    "@aws-sdk/client-s3": "3.338.0",
-    "@aws-sdk/types": "3.485.0"
   },
   "peerDependencies": {
     "ethers": "^5"

@@ -328,7 +328,7 @@ Destination Transaction Hash:
                     <Link href={event?.messageRelayedEvent?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
                       {event?.messageRelayedEvent?.context?.transactionHash}
                     </Link>
-                  ) : <Box>- <small><em>(Destination tx hash wil be availabe once message is relayed)</em></small></Box>)
+                  ) : <Box>- <small><em>(Destination tx hash wil be available once message is relayed)</em></small></Box>)
                 }
               </TableCell>
             </TableRow>

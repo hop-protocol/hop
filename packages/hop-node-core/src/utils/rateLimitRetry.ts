@@ -1,5 +1,4 @@
 import { Logger } from '#logger/index.js'
-import { Notifier } from '#notifier/index.js'
 import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from '#config/index.js'
 import { isFetchBadResponseError } from './isFetchBadResponseError.js'
 import { isFetchConnectionError } from './isFetchConnectionError.js'
@@ -9,7 +8,6 @@ import { promiseTimeout } from './promiseTimeout.js'
 import { wait } from './wait.js'
 
 const _logger = new Logger('rateLimitRetry')
-const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
 // eslint-disable-next-line max-lines-per-function
 export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
@@ -67,7 +65,6 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
           logger.error(`max retries reached (${rateLimitMaxRetries}). Error: ${err}`)
           // this must be a regular console log to print original function name
           console.error('max retries reached', fn, id, ...args)
-          await notifier.error(`max retries (${rateLimitMaxRetries}) reached (logId: ${id}). Error: ${errMsg}`)
           throw err
         }
 

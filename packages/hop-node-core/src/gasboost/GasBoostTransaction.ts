@@ -13,13 +13,10 @@ import {
 } from '#types/error.js'
 import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
-import { Notifier } from '#notifier/index.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'
 import { bigNumberMin } from '#utils/bigNumberMin.js'
 import {
   blocknativeApiKey,
-  gasBoostErrorSlackChannel,
-  gasBoostWarnSlackChannel,
   config as globalConfig,
   hostname
 } from '#config/index.js'
@@ -122,7 +119,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   signer: Signer
   store!: Store
   logger: Logger
-  notifier: Notifier
   chainSlug: string
   id: string
   createdAt: number
@@ -177,9 +173,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       prefix
     })
     this.logger.log('starting log')
-    this.notifier = new Notifier(
-      `GasBoost, label: ${prefix}, host: ${hostname}`
-    )
   }
 
   private generateId (): string {
@@ -642,7 +635,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.clearInflightTxs()
     this.emit(State.Error)
     const errMsg = 'max rebroadcast index reached. cannot rebroadcast.'
-    this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
     this.logger.error(errMsg)
   }
 
@@ -741,7 +733,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
         const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice.toString()}, maxPriorityFeePerGas: ${priorityFeePerGasCap.toString()}). cannot boost`
-        this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
         this.logger.warn(warnMsg)
         this.emit(State.MaxGasPriceReached, gasFeeData.gasPrice, this.boostIndex)
         this.maxGasPriceReached = true
@@ -892,14 +883,12 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     const formattedEthBalance = utils.formatUnits(ethBalance, 18)
     if (ethBalance.lt(gasCost)) {
       const errMsg = `insufficient ETH funds to cover gas cost. Need ${formattedGasCost}, have ${formattedEthBalance}`
-      this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
       this.logger.error(errMsg)
       throw new Error(errMsg)
     }
     if (ethBalance.lt(warnEthBalance)) {
       const warnMsg = `ETH balance is running low. Have ${formattedEthBalance}`
       this.logger.warn(warnMsg)
-      this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
     }
   }
 

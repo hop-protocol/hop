@@ -3,7 +3,6 @@ import { Logger } from '#logger/index.js'
 import { MemoryStore } from './MemoryStore.js'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from '#types/error.js'
-import { Notifier } from '#notifier/index.js'
 import { Signer, utils } from 'ethers'
 import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import { hostname, setLatestNonceOnStart } from '#config/index.js'
@@ -21,7 +20,6 @@ export class GasBoostSigner extends Signer {
   signer: Signer
   pollMs!: number
   logger: Logger
-  notifier: Notifier
   mutex: Mutex
   ready: boolean = false
   options!: Partial<Options>
@@ -47,9 +45,6 @@ export class GasBoostSigner extends Signer {
       tag,
       prefix
     })
-    this.notifier = new Notifier(
-      `GasBoostSigner, label: ${prefix}, host: ${hostname}`
-    )
     this.setOptions(options)
     this.init()
       .catch((err: Error) => this.logger.error('init error:', err))

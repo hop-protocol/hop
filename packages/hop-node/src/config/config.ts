@@ -80,6 +80,16 @@ export const SyncIntervalSec = process.env.SYNC_INTERVAL_SEC ? Number(process.en
 export const SyncIntervalMultiplier = process.env.SYNC_INTERVAL_MULTIPLIER ? Number(process.env.SYNC_INTERVAL_MULTIPLIER) : 1
 export const SyncCyclesPerFullSync = process.env.SYNC_CYCLES_PER_FULL_SYNC ? Number(process.env.SYNC_CYCLES_PER_FULL_SYNC) : 60
 
+// Slack
+export const slackChannel = process.env.SLACK_CHANNEL
+export const slackWarnChannel = process.env.SLACK_WARN_CHANNEL // optional
+export const slackErrorChannel = process.env.SLACK_ERROR_CHANNEL // optional
+export const slackInfoChannel = process.env.SLACK_INFO_CHANNEL // optional
+export const slackLogChannel = process.env.SLACK_LOG_CHANNEL // optional
+export const slackSuccessChannel = process.env.SLACK_SUCCESS_CHANNEL // optional
+export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
+export const slackUsername = process.env.SLACK_USERNAME ?? 'Hop Node'
+
 type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number

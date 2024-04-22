@@ -11,16 +11,6 @@ import { normalizeEnvVarNumber } from './utils.js'
 
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const hostname = process.env.HOSTNAME ?? os.hostname()
-export const slackChannel = process.env.SLACK_CHANNEL
-export const slackWarnChannel = process.env.SLACK_WARN_CHANNEL // optional
-export const slackErrorChannel = process.env.SLACK_ERROR_CHANNEL // optional
-export const slackInfoChannel = process.env.SLACK_INFO_CHANNEL // optional
-export const slackLogChannel = process.env.SLACK_LOG_CHANNEL // optional
-export const slackSuccessChannel = process.env.SLACK_SUCCESS_CHANNEL // optional
-export const slackAuthToken = process.env.SLACK_AUTH_TOKEN
-export const slackUsername = process.env.SLACK_USERNAME ?? 'Hop Node'
-export const gasBoostWarnSlackChannel = process.env.GAS_BOOST_WARN_SLACK_CHANNEL // optional
-export const gasBoostErrorSlackChannel = process.env.GAS_BOOST_ERROR_SLACK_CHANNEL // optional
 export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
 export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
 export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)

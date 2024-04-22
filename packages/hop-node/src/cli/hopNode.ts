@@ -2,7 +2,10 @@ import OsWatcher from '#watchers/OsWatcher.js'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
-  config as globalConfig
+  config as globalConfig,
+  slackAuthToken,
+  slackChannel,
+  slackUsername,
 } from '#config/index.js'
 import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
@@ -10,9 +13,6 @@ import { utils } from 'ethers'
 import { main as enableCCTP } from './shared/cctp.js'
 import {
   gitRev,
-  slackAuthToken,
-  slackChannel,
-  slackUsername
 } from '@hop-protocol/hop-node-core/config'
 import { printHopArt } from './shared/art.js'
 import {

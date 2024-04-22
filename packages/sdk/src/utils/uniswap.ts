@@ -1,8 +1,9 @@
 import { BigNumber, utils } from 'ethers'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pool, Route, TICK_SPACINGS, TickMath, Trade, encodeRouteToPath, nearestUsableTick } from '@uniswap/v3-sdk'
-import { UniswapQuoterV2__factory, UniswapV3Pool__factory,  ERC20__factory } from '#contracts/index.js'
-import { chainIdToSlug } from './chainIdToSlug.js'
+import { UniswapQuoterV2__factory, UniswapV3Pool__factory } from '#contracts/index.js'
+import { ERC20__factory } from '@hop-protocol/sdk-core/contracts'
+import { chainIdToSlug } from '@hop-protocol/sdk-core'
 
 type TickSpacing = 100 | 500 | 3000 | 10000
 

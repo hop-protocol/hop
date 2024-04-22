@@ -3,10 +3,6 @@
 /* eslint-disable */
 export type { ERC20 } from "./ERC20.js";
 export type { Multicall3 } from "./Multicall3.js";
-export type { UniswapQuoterV2 } from "./UniswapQuoterV2.js";
-export type { UniswapV3Pool } from "./UniswapV3Pool.js";
 export * as factories from "./factories/index.js";
 export { ERC20__factory } from "./factories/ERC20__factory.js";
 export { Multicall3__factory } from "./factories/Multicall3__factory.js";
-export { UniswapQuoterV2__factory } from "./factories/UniswapQuoterV2__factory.js";
-export { UniswapV3Pool__factory } from "./factories/UniswapV3Pool__factory.js";

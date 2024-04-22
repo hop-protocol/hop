@@ -163,8 +163,6 @@
     "bump-release": "pnpm bump && pnpm release"
   },
   "dependencies": {
-    "@uniswap/sdk-core": "4.2.0",
-    "@uniswap/v3-sdk": "3.11.0",
     "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "p-queue": "6.6.2"

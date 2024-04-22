@@ -37,7 +37,6 @@ export {
   serializeQueryParams,
   shiftBNDecimals,
   getCctpDomain,
-  getUSDCSwapParams,
   wait
 } from './utils/index.js'
 

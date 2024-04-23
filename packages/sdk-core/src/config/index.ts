@@ -1,26 +1,3 @@
-import { config as goerli } from './goerli.js'
-import { config as mainnet } from './mainnet.js'
-import { config as sepolia } from './sepolia.js'
-
-const config = { goerli, sepolia, mainnet }
-
-export { goerli, sepolia, mainnet, config }
-export {
-  ChainSlug,
-  AssetSymbol,
-  FinalityState,
-  Bps,
-  Fees,
-  RelayerFeeWei,
-  RelayerFeeEnabled,
-  BridgeDeprecated,
-  TotalStake,
-  DefaultSendGasLimit,
-  Config
-} from './types.js'
-
-// ---
-
 import { networks as chainNetworks } from '#networks/index.js'
 import { chains as chainsMetadata, tokens as tokensMetadata } from '#metadata/index.js'
 
@@ -65,30 +42,11 @@ for (const network in chainNetworks) {
     if (chainConfig?.isRollup) {
       bondableChainsSet.add(chain)
     }
-  }
-
-  const bonderFeeBps = (config as any)[network].bonderFeeBps
-  const bonderTotalStake = (config as any)[network].bonderTotalStake
-  const destinationFeeGasPriceMultiplier = (config as any)[network].destinationFeeGasPriceMultiplier
-  const relayerFeeEnabled = (config as any)[network].relayerFeeEnabled
-  const relayerFeeWei = (config as any)[network].relayerFeeWei
-  const bridgeDeprecated = (config as any)[network].bridgeDeprecated
-  const defaultSendGasLimit = (config as any)[network].defaultSendGasLimit
-
-  sdkConfig[network] = {
-    chains,
-    bonderFeeBps,
-    bonderTotalStake,
-    destinationFeeGasPriceMultiplier,
-    relayerFeeEnabled,
-    relayerFeeWei,
-    bridgeDeprecated,
-    defaultSendGasLimit
+    sdkConfig[network] = { chains }
   }
 }
 
+export { sdkConfig }
 export const bondableChains = Array.from(bondableChainsSet)
 export const rateLimitMaxRetries = 3
 export const rpcTimeoutSeconds = 60
-
-export { sdkConfig }

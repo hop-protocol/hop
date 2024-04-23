@@ -1,6 +1,6 @@
 import { Config } from './types.js'
 
-export const config : Config = {
+export const config: Config = {
   bonderFeeBps: {
     USDC: {
       ethereum: 12,

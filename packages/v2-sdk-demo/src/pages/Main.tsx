@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 import { providers } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
+import { HopSendTokens } from '../components/hop/HopSendTokens'
 import { RailsGatewaySend } from '../components/railsGateway/RailsGatewaySend'
 import { RailsGatewayBond } from '../components/railsGateway/RailsGatewayBond'
 import { RailsGatewayGetPathInfo } from '../components/railsGateway/RailsGatewayGetPathInfo'
@@ -80,6 +81,7 @@ export function Main () {
   const showAccountInfo = false
 
   const components = [
+    <HopSendTokens sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <RailsGatewayGetPathId sdk={sdk} />,
     <RailsGatewayGetPathInfo sdk={sdk} />,
     <RailsGatewayGetFee sdk={sdk} />,

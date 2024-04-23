@@ -55,12 +55,13 @@ export type GetGeneralEventsInput = {
 }
 
 type SendTokensInput = {
-  chainId: BigNumberish
-  pathId: string
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
   to: string
   amount: BigNumberish
   minAmountOut: BigNumberish
-  attestedCheckpoint: string
 }
 
 export class Hop extends Base {
@@ -260,9 +261,49 @@ export class Hop extends Base {
     return this.nft.getNftBridgeContractAddress(chainId)
   }
 
+  get populateTransaction() {
+    return {
+      sendTokens: async (input: SendTokensInput): Promise<providers.TransactionRequest> => {
+        const { fromChainId, toChainId, fromToken, toToken, to, amount, minAmountOut } = input
+
+        const pathId = await this.railsGateway.getPathId({
+          chainId0: fromChainId,
+          token0: fromToken,
+          chainId1: toChainId,
+          token1: toToken
+        })
+
+        const lastCheckpoint = await this.railsGateway.getLatestClaim({
+          chainId: fromChainId,
+          pathId
+        })
+
+        const isCheckpointValid = await this.railsGateway.getIsCheckpointValid({
+          chainId: toChainId,
+          checkpoint: lastCheckpoint
+        })
+
+        if (!isCheckpointValid) {
+          throw new Error('Latest checkpoint is invalid')
+        }
+
+        const populatedTx = await this.railsGateway.populateTransaction.send({
+          chainId: fromChainId,
+          pathId,
+          to,
+          amount,
+          minAmountOut,
+          attestedCheckpoint: lastCheckpoint
+        })
+
+        return populatedTx
+      }
+    }
+  }
+
   async sendTokens (input: SendTokensInput): Promise<any> {
-    const tx = await this.railsGateway.send(input)
-    return tx
+    const populatedTx = await this.populateTransaction.sendTokens(input)
+    return this.sendTransaction(populatedTx)
   }
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {

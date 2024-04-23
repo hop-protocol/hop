@@ -26,9 +26,9 @@ export type Path = {
 }
 
 export type GetPathIdInput = {
-  chainId0: number
+  chainId0: BigNumberish
   token0: string
-  chainId1: number
+  chainId1: BigNumberish
   token1: string
 }
 
@@ -221,9 +221,10 @@ export class RailsGateway extends StakingRegistry {
       send: async (input: SendInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, to, amount, minAmountOut, attestedCheckpoint } = input
         const contract = await this.getRailsGatewayContract(chainId)
-        const value = 0
+
+        const fee = await this.getFee({ chainId, pathId })
         const txData = await contract.populateTransaction.send(pathId, to, amount, minAmountOut, attestedCheckpoint, {
-          value
+          value: fee
         })
 
         return {

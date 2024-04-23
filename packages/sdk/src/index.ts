@@ -29,7 +29,6 @@ export {
   Chain,
   TokenModel,
   Multicall,
-  GetMulticallBalanceOptions,
   PriceFeed,
   RetryProvider,
   FallbackProvider,

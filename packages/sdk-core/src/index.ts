@@ -14,7 +14,6 @@ export {
 } from './constants/index.js'
 export {
   Multicall,
-  GetMulticallBalanceOptions,
   MulticallBalance
 } from './multicall/index.js'
 export {

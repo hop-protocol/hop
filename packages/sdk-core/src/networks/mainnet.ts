@@ -14,10 +14,7 @@ export const networks: Networks = {
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet',
     etherscanApiUrl: 'https://api.etherscan.io',
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
-    averageBlockTimeSeconds: 12,
-
-    // These values are currently the same on both mainnet and testnet but this might not always be the case
-    timeToIncludeOnL2Seconds: 0
+    averageBlockTimeSeconds: 12
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -59,12 +56,7 @@ export const networks: Networks = {
 
     // Optimism: time for relayer to publish state root
     //           https://community.optimism.io/docs/developers/bedrock/bedrock/#two-phase-withdrawals
-    oruExitTimeSeconds: 60 * 60, // 1 hour
-
-    // These values are currently the same on both mainnet and testnet but this might not always be the case
-    timeToIncludeOnL1Seconds: 120,
-    timeToIncludeOnL2Seconds: 180,
-    L1ToL2CheckpointTimeInL1Blocks: 6
+    oruExitTimeSeconds: 60 * 60 // 1 hour
   },
   gnosis: {
     name: chains.gnosis.name,
@@ -134,12 +126,7 @@ export const networks: Networks = {
     isRollup: true,
     multicall: '0xca11bde05977b3631167028862be2a173976ca11',
     averageBlockTimeSeconds: 2,
-    oruExitTimeSeconds: 60 * 60, // 1 hour
-
-    // These values are currently the same on both mainnet and testnet but this might not always be the case
-    timeToIncludeOnL1Seconds: 20,
-    timeToIncludeOnL2Seconds: 90,
-    L1ToL2CheckpointTimeInL1Blocks: 12
+    oruExitTimeSeconds: 60 * 60 // 1 hour
   },
   linea: {
     name: chains.linea.name,

@@ -16,10 +16,6 @@ export { nativeChainTokens }
 
 const relayableChainsSet = new Set<string>([])
 const AvgBlockTimeSeconds: Record<string, number> = {}
-const OruExitTimeMs: Record<string, number> = {}
-const TimeToIncludeOnL1Sec: Record<string, number> = {}
-const TimeToIncludeOnL2Sec: Record<string, number> = {}
-const L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {}
 
 for (const network in networks) {
   for (const chain in networks[network as Network]) {
@@ -31,27 +27,11 @@ for (const network in networks) {
     if (chainObj?.isRelayable) {
       relayableChainsSet.add(chain)
     }
-    if (chainObj?.oruExitTimeSeconds != null) {
-      OruExitTimeMs[chain] = chainObj.oruExitTimeSeconds * 1000
-    }
-    if (chainObj?.timeToIncludeOnL1Seconds != null) {
-      TimeToIncludeOnL1Sec[chain] = chainObj.timeToIncludeOnL1Seconds
-    }
-    if (chainObj?.timeToIncludeOnL2Seconds != null) {
-      TimeToIncludeOnL2Sec[chain] = chainObj.timeToIncludeOnL2Seconds
-    }
-    if (chainObj?.L1ToL2CheckpointTimeInL1Blocks != null) {
-      L1ToL2CheckpointTimeInL1Blocks[chain] = chainObj.L1ToL2CheckpointTimeInL1Blocks
-    }
   }
 }
 
 export {
-  AvgBlockTimeSeconds,
-  OruExitTimeMs,
-  TimeToIncludeOnL1Sec,
-  TimeToIncludeOnL2Sec,
-  L1ToL2CheckpointTimeInL1Blocks
+  AvgBlockTimeSeconds
 }
 
 export const DefaultBatchBlocks = 10000

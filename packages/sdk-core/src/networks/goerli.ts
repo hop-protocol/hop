@@ -14,10 +14,7 @@ export const networks: Networks = {
       minGasLimit: 1_000_000
     },
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
-    averageBlockTimeSeconds: 12,
-
-    // These values are currently the same on both mainnet and testnet but this might not always be the case
-    timeToIncludeOnL2Seconds: 0
+    averageBlockTimeSeconds: 12
   },
   polygon: {
     name: chains.polygon.name,
@@ -47,12 +44,7 @@ export const networks: Networks = {
     isRollup: true,
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
     averageBlockTimeSeconds: 2,
-    oruExitTimeSeconds: 60 * 60, // 1 hour
-
-    // These values are currently the same on both mainnet and testnet but this might not always be the case
-    timeToIncludeOnL1Seconds: 120,
-    timeToIncludeOnL2Seconds: 180,
-    L1ToL2CheckpointTimeInL1Blocks: 6
+    oruExitTimeSeconds: 60 * 60 // 1 hour
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -115,12 +107,7 @@ export const networks: Networks = {
     isRollup: true,
     multicall: '0xca11bde05977b3631167028862be2a173976ca11',
     averageBlockTimeSeconds: 2,
-    oruExitTimeSeconds: 60 * 60, // 1 hour
-
-    // These values are currently the same on both mainnet and testnet but this might not always be the case
-    timeToIncludeOnL1Seconds: 20,
-    timeToIncludeOnL2Seconds: 90,
-    L1ToL2CheckpointTimeInL1Blocks: 12
+    oruExitTimeSeconds: 60 * 60 // 1 hour
   },
   polygonzk: {
     name: chains.polygonzk.name,

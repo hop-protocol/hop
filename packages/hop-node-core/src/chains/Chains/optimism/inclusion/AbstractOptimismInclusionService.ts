@@ -1,6 +1,6 @@
 import zlib from 'node:zlib'
 import { AbstractInclusionService } from '../../../Services/AbstractInclusionService.js'
-import { AvgBlockTimeSeconds, Chain, L1ToL2CheckpointTimeInL1Blocks } from '#constants/index.js'
+import { AvgBlockTimeSeconds, Chain } from '#constants/index.js'
 import { Contract } from 'ethers'
 import { Derive, type Frame } from './Derive.js'
 import {
@@ -30,6 +30,10 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
   protected readonly l1BlockSetterAddress: string
   protected readonly l1BlockAddress: string
   protected readonly l1BlockContract: Contract
+  protected readonly L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {
+    [Chain.Optimism]: 6,
+    [Chain.Base]: 12
+  }
 
   constructor (chainSlug: string) {
     super(chainSlug)
@@ -66,7 +70,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
 
     // Include the constant buffer time it takes for a message to go from L1 to L2
     const numL2BlocksPerL1Block = AvgBlockTimeSeconds[Chain.Ethereum]! / AvgBlockTimeSeconds[this.chainSlug]!
-    const l1DataLagInL2Blocks = L1ToL2CheckpointTimeInL1Blocks[this.chainSlug]! * numL2BlocksPerL1Block
+    const l1DataLagInL2Blocks = this.L1ToL2CheckpointTimeInL1Blocks[this.chainSlug]! * numL2BlocksPerL1Block
     return l2BlockNumberAtTimeOfL1Tx + l1DataLagInL2Blocks
   }
 

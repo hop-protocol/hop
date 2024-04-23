@@ -24,7 +24,7 @@ import {
 import { CCTPMessageTransmitter__factory } from './contracts/index.js'
 import { CCTPTokenMessenger__factory } from './contracts/index.js'
 import { CCTPTokenMinter__factory } from './contracts/index.js'
-import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, chainIdToSlug, fetchJsonOrThrow, getCctpDomain } from '@hop-protocol/sdk-core'
+import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, chainIdToSlug, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
 import { L1_Bridge } from './contracts/index.js'
 import { L1_ERC20_Bridge__factory } from './contracts/index.js'
 import { L1_HomeAMBNativeToErc20__factory } from './contracts/index.js'
@@ -37,7 +37,7 @@ import { Token } from './Token.js'
 import { WithdrawalProof } from '#utils/WithdrawalProof.js'
 import { bondableChains, metadata } from './config/index.js'
 import { utils } from 'ethers'
-import { getUSDCSwapParams } from '#utils/index.js'
+import { getUSDCSwapParams, getCctpDomain } from '#utils/index.js'
 
 const {
   getAddress: checksumAddress,

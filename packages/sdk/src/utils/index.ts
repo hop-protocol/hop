@@ -1,4 +1,6 @@
 export { getBlockNumberFromDate } from './getBlockNumberFromDate.js'
+export { getCctpDomain } from './getCctpDomain.js'
+export { getLpFeeBps } from './getLpFeeBps.js'
 export { getUSDCSwapParams } from './uniswap.js'
 export { wait } from './wait.js'
 export { WithdrawalProof } from './WithdrawalProof.js'

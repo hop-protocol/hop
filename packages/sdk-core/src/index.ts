@@ -22,7 +22,6 @@ export {
   chainIdToSlug,
   fetchJsonOrThrow,
   getChainSlugFromName,
-  getLpFeeBps,
   getMinGasLimit,
   getMinGasPrice,
   getProviderFromUrl,
@@ -36,7 +35,6 @@ export {
   rateLimitRetry,
   serializeQueryParams,
   shiftBNDecimals,
-  getCctpDomain,
   wait
 } from './utils/index.js'
 

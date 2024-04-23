@@ -1,8 +1,6 @@
 export { chainIdToSlug } from './chainIdToSlug.js'
 export { fetchJsonOrThrow } from './fetchJsonOrThrow.js'
-export { getCctpDomain } from './getCctpDomain.js'
 export { getChainSlugFromName } from './getChainSlugFromName.js'
-export { getLpFeeBps } from './getLpFeeBps.js'
 export { getMinGasLimit } from './getMinGasLimit.js'
 export { getMinGasPrice } from './getMinGasPrice.js'
 export { getProviderWithFallbacks, getProviderFromUrl } from './getProviderFromUrl.js'

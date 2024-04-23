@@ -1,4 +1,4 @@
-import { AssetSymbol, ChainSlug } from '../config/types.js'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk-core/config'
 
 export interface L1BridgeProps {
   l1CanonicalToken: string

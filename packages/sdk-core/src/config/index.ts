@@ -21,7 +21,6 @@ export {
 
 // ---
 
-import { addresses as chainAddresses } from '#addresses/index.js'
 import { networks as chainNetworks } from '#networks/index.js'
 import { chains as chainsMetadata, tokens as tokensMetadata } from '#metadata/index.js'
 
@@ -68,8 +67,6 @@ for (const network in chainNetworks) {
     }
   }
 
-  const addresses = (chainAddresses as any)[network].bridges
-  const bonders = (chainAddresses as any)[network].bonders
   const bonderFeeBps = (config as any)[network].bonderFeeBps
   const bonderTotalStake = (config as any)[network].bonderTotalStake
   const destinationFeeGasPriceMultiplier = (config as any)[network].destinationFeeGasPriceMultiplier
@@ -79,9 +76,7 @@ for (const network in chainNetworks) {
   const defaultSendGasLimit = (config as any)[network].defaultSendGasLimit
 
   sdkConfig[network] = {
-    addresses,
     chains,
-    bonders,
     bonderFeeBps,
     bonderTotalStake,
     destinationFeeGasPriceMultiplier,

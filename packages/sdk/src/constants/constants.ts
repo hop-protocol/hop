@@ -1,6 +1,9 @@
-import { CanonicalToken, ChainId, ChainName, ChainSlug, Errors, HToken, NetworkSlug, Slug, TokenSymbol, WrappedToken } from '@hop-protocol/sdk-core'
+import { CanonicalToken, ChainId, ChainName, ChainSlug, Errors, NetworkSlug, Slug, TokenSymbol as TokenSymbolCore, WrappedToken } from '@hop-protocol/sdk-core'
+import { HToken } from '#networks/index.js'
 
-export { Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
+type TokenSymbol = TokenSymbolCore | HToken
+
+export { Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken }
 
 export enum TokenIndex {
   CanonicalToken = 0,

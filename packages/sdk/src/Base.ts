@@ -1,5 +1,5 @@
 import memoize from 'fast-memoize'
-import { Addresses } from '@hop-protocol/sdk-core/addresses'
+import { Addresses } from '#addresses/index.js'
 import { ArbERC20 } from './contracts/index.js'
 import { ArbERC20__factory } from './contracts/index.js'
 import { ArbitrumGlobalInbox } from './contracts/index.js'
@@ -1159,12 +1159,6 @@ export class Base {
       console.warn('debugTimeLogsCacheEnabled is false')
     }
     return this.debugTimeLogsCache
-  }
-
-  async getTokenBalancesForAccount (accountAddress: string): Promise<MulticallBalance[]> {
-    const multicall = new Multicall({ network: this.network, accountAddress })
-    const balances = await multicall.getBalances()
-    return balances
   }
 
   async getContractExists (address: string, chain: TChain): Promise<boolean> {

@@ -10,8 +10,7 @@ export {
   ChainSlug,
   Slug,
   CanonicalToken,
-  WrappedToken,
-  HToken
+  WrappedToken
 } from './constants/index.js'
 export {
   Multicall,

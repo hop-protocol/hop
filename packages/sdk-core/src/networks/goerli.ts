@@ -43,8 +43,7 @@ export const networks: Networks = {
     subgraphUrl: 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop-optimism-goerli',
     isRollup: true,
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
-    averageBlockTimeSeconds: 2,
-    oruExitTimeSeconds: 60 * 60 // 1 hour
+    averageBlockTimeSeconds: 2
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -81,8 +80,7 @@ export const networks: Networks = {
     isRollup: true,
     isRelayable: true,
     multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',
-    averageBlockTimeSeconds: 12,
-    oruExitTimeSeconds: 12 * 60 * 60 // 12 hours
+    averageBlockTimeSeconds: 12
   },
   scrollzk: {
     name: chains.scrollzk.name,
@@ -106,8 +104,7 @@ export const networks: Networks = {
     subgraphUrl: 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli',
     isRollup: true,
     multicall: '0xca11bde05977b3631167028862be2a173976ca11',
-    averageBlockTimeSeconds: 2,
-    oruExitTimeSeconds: 60 * 60 // 1 hour
+    averageBlockTimeSeconds: 2
   },
   polygonzk: {
     name: chains.polygonzk.name,
@@ -119,10 +116,6 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://public.zkevm-test.net',
     isRollup: true,
     isRelayable: true,
-    multicall: '0xca11bde05977b3631167028862be2a173976ca11',
-
-    // PolygonZk: typically around 30 minutes but up to a week in rare cases.
-    //           https://zkevm.polygon.technology/docs/protocol/transaction-execution
-    oruExitTimeSeconds: 60 * 60 // 1 hour
+    multicall: '0xca11bde05977b3631167028862be2a173976ca11'
   }
 }

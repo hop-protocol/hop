@@ -14,7 +14,6 @@ export type Network = {
   isRelayable?: boolean
   multicall?: string
   averageBlockTimeSeconds?: number
-  oruExitTimeSeconds?: number
   txOverrides?: {
     minGasPrice?: number
     minGasLimit?: number

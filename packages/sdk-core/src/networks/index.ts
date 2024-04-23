@@ -18,6 +18,5 @@ export {
   Slug,
   CanonicalToken,
   WrappedToken,
-  NativeChainToken,
-  HToken
+  NativeChainToken
 } from './enums.js'

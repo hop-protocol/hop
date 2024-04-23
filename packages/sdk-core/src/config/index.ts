@@ -50,3 +50,5 @@ export { sdkConfig }
 export const bondableChains = Array.from(bondableChainsSet)
 export const rateLimitMaxRetries = 3
 export const rpcTimeoutSeconds = 60
+
+export { AssetSymbol, ChainSlug, FinalityState } from './types.js'

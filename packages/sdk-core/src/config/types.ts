@@ -1,0 +1,38 @@
+export enum ChainSlug {
+  ethereum = 'ethereum',
+  polygon = 'polygon',
+  gnosis = 'gnosis',
+  optimism = 'optimism',
+  arbitrum = 'arbitrum',
+  nova = 'nova',
+  zkSync = 'zksync',
+  linea = 'linea',
+  scrollzk = 'scrollzk',
+  base = 'base',
+  polygonzk = 'polygonzk'
+}
+
+export enum AssetSymbol {
+  USDC = 'USDC',
+  'USDC.e' = 'USDC.e',
+  USDT = 'USDT',
+  DAI = 'DAI',
+  MATIC = 'MATIC',
+  ETH = 'ETH',
+  WBTC = 'WBTC',
+  HOP = 'HOP',
+  SNX = 'SNX',
+  sUSD = 'sUSD',
+  rETH = 'rETH',
+  UNI = 'UNI',
+  MAGIC = 'MAGIC',
+  // sBTC = 'sBTC',
+  // sETH = 'sETH',
+  // FRAX = 'FRAX',
+}
+
+export enum FinalityState {
+  Latest = 'latest',
+  Safe = 'safe',
+  Finalized = 'finalized'
+}

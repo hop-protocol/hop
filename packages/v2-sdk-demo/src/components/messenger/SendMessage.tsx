@@ -2,20 +2,20 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Signer, providers } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
-import { CustomTextArea } from './CustomTextArea'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
+import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from './AbiMethodForm'
+import { AbiMethodForm } from '../AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { network, defaultChainIds, chainIds } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   signer?: Signer
@@ -275,7 +275,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Send Message</Typography>
+        <Typography variant="h5">Messenger - Send Message</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Send message to a destination chain</Typography>

@@ -9,23 +9,27 @@ import Typography from '@mui/material/Typography'
 import { providers } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
-import { SendMessage } from '../components/SendMessage'
-import { RailsGatewaySend } from '../components/RailsGatewaySend'
-import { RailsGatewayGetPathInfo } from '../components/RailsGatewayGetPathInfo'
-import { RailsGatewayGetPathId } from '../components/RailsGatewayGetPathId'
-import { RailsGatewayGetFee } from '../components/RailsGatewayGetFee'
-import { RailsGatewayGetTransferId } from '../components/RailsGatewayGetTransferId'
-import { RelayMessage } from '../components/RelayMessage'
-import { ExitBundle } from '../components/ExitBundle'
-import { GetBundleProof } from '../components/GetBundleProof'
-import { GetEvents } from '../components/GetEvents'
-import { GetMessageIdFromTxHash } from '../components/GetMessageIdFromTxHash'
-import { GetMessageCalldata } from '../components/GetMessageCalldata'
-import { GetContractAddresses } from '../components/GetContractAddresses'
-import { SetContractAddresses } from '../components/SetContractAddresses'
-import { GetMessageSentEvent } from '../components/GetMessageSentEvent'
-import { GetMessageFee } from '../components/GetMessageFee'
-import { SetRpcProviders } from '../components/SetRpcProviders'
+import { RailsGatewaySend } from '../components/railsGateway/RailsGatewaySend'
+import { RailsGatewayBond } from '../components/railsGateway/RailsGatewayBond'
+import { RailsGatewayGetPathInfo } from '../components/railsGateway/RailsGatewayGetPathInfo'
+import { RailsGatewayGetPathId } from '../components/railsGateway/RailsGatewayGetPathId'
+import { RailsGatewayGetFee } from '../components/railsGateway/RailsGatewayGetFee'
+import { RailsGatewayGetTransferId } from '../components/railsGateway/RailsGatewayGetTransferId'
+import { RailsGatewayGetLatestClaim } from '../components/railsGateway/RailsGatewayGetLatestClaim'
+import { RailsGatewayGetIsCheckpointValid } from '../components/railsGateway/RailsGatewayGetIsCheckpointValid'
+import { RailsGatewayConfirmCheckpoint } from '../components/railsGateway/RailsGatewayConfirmCheckpoint'
+import { SendMessage } from '../components/messenger/SendMessage'
+import { RelayMessage } from '../components/messenger/RelayMessage'
+import { ExitBundle } from '../components/messenger/ExitBundle'
+import { GetBundleProof } from '../components/messenger/GetBundleProof'
+import { GetEvents } from '../components/messenger/GetEvents'
+import { GetMessageIdFromTxHash } from '../components/messenger/GetMessageIdFromTxHash'
+import { GetMessageCalldata } from '../components/messenger/GetMessageCalldata'
+import { GetContractAddresses } from '../components/messenger/GetContractAddresses'
+import { SetContractAddresses } from '../components/messenger/SetContractAddresses'
+import { GetMessageSentEvent } from '../components/messenger/GetMessageSentEvent'
+import { GetMessageFee } from '../components/messenger/GetMessageFee'
+import { SetRpcProviders } from '../components/messenger/SetRpcProviders'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { useStyles } from '../components/useStyles'
 import { useWeb3 } from '../hooks/useWeb3'
@@ -80,7 +84,11 @@ export function Main () {
     <RailsGatewayGetPathInfo sdk={sdk} />,
     <RailsGatewayGetFee sdk={sdk} />,
     <RailsGatewayGetTransferId sdk={sdk} />,
+    <RailsGatewayGetLatestClaim sdk={sdk} />,
+    <RailsGatewayGetIsCheckpointValid sdk={sdk} />,
+    <RailsGatewayConfirmCheckpoint sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <RailsGatewaySend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <RailsGatewayBond signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <SetContractAddresses sdk={sdk} />,
     <GetContractAddresses sdk={sdk} />,
     <SetRpcProviders sdk={sdk} />,

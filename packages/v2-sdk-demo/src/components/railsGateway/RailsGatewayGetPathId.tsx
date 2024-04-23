@@ -2,20 +2,20 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Signer, providers } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
-import { CustomTextArea } from './CustomTextArea'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
+import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from './AbiMethodForm'
+import { AbiMethodForm } from '../AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { network, defaultChainIds, chainIds } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   sdk: Hop
@@ -173,7 +173,7 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Token<small><em>(address)</em></small> <small><em>Origin chain token address</em></small></label>
+                  <label>From Token <small><em>(address)</em></small> <small><em>Origin chain token address</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={fromToken} onChange={event => setFromToken(event.target.value)} />
               </Box>
@@ -185,7 +185,7 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To Token<small><em>(address)</em></small> <small><em>Destination chain token address</em></small></label>
+                  <label>To Token <small><em>(address)</em></small> <small><em>Destination chain token address</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={toToken} onChange={event => setToToken(event.target.value)} />
               </Box>

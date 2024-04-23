@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
 import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   sdk: Hop
 }
 
-export function GetMessageCalldata (props: Props) {
-  const cacheKey = 'getMessageCalldata'
+export function GetMessageIdFromTxHash (props: Props) {
+  const cacheKey = 'getMessageIdFromTxHash'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -29,16 +29,16 @@ export function GetMessageCalldata (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
-  const [messageId, setMessageId] = useState(() => {
+  const [messageSentTransactionHash, setMessageSentTransactionHash] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:messageId`)
+      const cached = localStorage.getItem(`${cacheKey}:messageSentTransactionHash`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
     return ''
   })
-  const [calldata, setCalldata] = useState('')
+  const [messageId, setMessageId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -52,27 +52,27 @@ export function GetMessageCalldata (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:messageId`, messageId)
+      localStorage.setItem(`${cacheKey}:messageSentTransactionHash`, messageSentTransactionHash)
     } catch (err: any) {
       console.error(err)
     }
-  }, [messageId])
+  }, [messageSentTransactionHash])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
       setError('')
-      setCalldata('')
+      setMessageId('')
       setLoading(true)
 
       const args = {
         fromChainId: Number(fromChainId),
-        messageId
+        transactionHash: messageSentTransactionHash
       }
 
       console.log('args', args)
-      const calldata = await sdk.messenger.getMessageCalldata(args)
-      setCalldata(calldata)
+      const messageId = await sdk.messenger.getMessageIdFromTransactionHash(args)
+      setMessageId(messageId)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -85,14 +85,14 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const fromChainId = ${fromChainId || 'undefined'}
-  const messageId = "${messageId}"
+  const transactionHash = "${messageSentTransactionHash}"
 
   const hop = new Hop({ network: '${network}' })
-  const calldata = await hop.messenger.getMessageCalldata({
+  const messageId = await hop.messenger.getMessageIdFromTransactionHash({
     fromChainId,
-    messageId
+    transactionHash
   })
-  console.log(calldata)
+  console.log(messageId)
 }
 
 main().catch(console.error)
@@ -108,10 +108,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Get Message Calldata</Typography>
+        <Typography variant="h5">Messenger - Get Message ID</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get calldata of message given messageId</Typography>
+        <Typography variant="subtitle1">Get Message ID from transaction hash</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -125,9 +125,9 @@ main().catch(console.error)
             </Box>
             <Box mb={2}>
               <Box mb={1}>
-                <label>Message ID <small><em>(hex string)</em></small> <small><em>This is the messageId from the <code>MessageSent</code> event</em></small></label>
+                <label>Message Transaction Hash <small><em>(hex string)</em></small> <small><em>This is tx hash that contains the <code>MessageSent</code> event</em></small></label>
               </Box>
-              <CustomTextField fullWidth placeholder="0x" value={messageId} onChange={event => setMessageId(event.target.value)} />
+              <CustomTextField fullWidth placeholder="0x" value={messageSentTransactionHash} onChange={event => setMessageSentTransactionHash(event.target.value)} />
             </Box>
             <Box mb={2} display="flex" justifyContent="center">
               <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get</HighlightedButton>
@@ -138,7 +138,7 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!calldata && (
+          {!!messageId && (
             <Box>
               <Box mb={2}>
                 <Typography variant="body1">Output</Typography>
@@ -147,7 +147,7 @@ main().catch(console.error)
                 maxWidth: '500px',
                 overflow: 'auto'
               }}>
-                {calldata}
+                {messageId}
               </pre>
               <CopyToClipboard text={messageId}
                 onCopy={handleCopy}>

@@ -2,11 +2,11 @@ import React, { useMemo, useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { HighlightedButton } from './HighlightedButton'
-import { network } from '../config'
+import { HighlightedButton } from '../HighlightedButton'
+import { network } from '../../config'
 
 type Props = {
   sdk: Hop
@@ -50,7 +50,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Get Contract Addresses</Typography>
+        <Typography variant="h5">Messenger - Get Contract Addresses</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Get hub and spoke contract addresses used</Typography>

@@ -2,27 +2,27 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Signer, providers } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
-import { CustomTextArea } from './CustomTextArea'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
+import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from './AbiMethodForm'
+import { AbiMethodForm } from '../AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { network, defaultChainIds, chainIds } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayGetFee (props: Props) {
-  const cacheKey = 'railsGatewayGetFee'
+export function RailsGatewayGetIsCheckpointValid (props: Props) {
+  const cacheKey = 'railsGatewayGetIsCheckpointValid'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -35,16 +35,16 @@ export function RailsGatewayGetFee (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
-  const [pathId, setPathId] = useState(() => {
+  const [checkpoint, setCheckpoint] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:pathId`)
+      const cached = localStorage.getItem(`${cacheKey}:checkpoint`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
     return ''
   })
-  const [fee, setFee] = useState('')
+  const [isCheckpointValid, setIsCheckpointValid] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -62,25 +62,26 @@ export function RailsGatewayGetFee (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:pathId`, pathId)
+      localStorage.setItem(`${cacheKey}:checkpoint`, checkpoint)
     } catch (err: any) {
       console.error(err)
     }
-  }, [pathId])
+  }, [checkpoint])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
       setError('')
-      setFee('')
+      setIsCheckpointValid('')
       setLoading(true)
       const args = {
         chainId: Number(fromChainId),
-        pathId
+        checkpoint
       }
+
       console.log('args', args)
-      const fee = await sdk.railsGateway.getFee(args)
-      setFee(fee?.toString())
+      const isCheckpointValid = await sdk.railsGateway.getIsCheckpointValid(args)
+      setIsCheckpointValid(`${isCheckpointValid}`)
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -93,14 +94,14 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const chainId = ${fromChainId || 'undefined'}
-  const pathId = "${pathId}"
+  const checkpoint = "${checkpoint}"
 
   const hop = new Hop({ network: '${network}' })
-  const fee = await hop.railsGateway.getFee({
+  const isCheckpoinValid = await hop.railsGateway.getIsCheckpointValid({
     chainId,
-    pathId
+    checkpoint
   })
-  console.log(fee)
+  console.log(isCheckpoinValid)
 }
 
 main().catch(console.error)
@@ -116,10 +117,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Get Fee</Typography>
+        <Typography variant="h5">Rails Hub - Is Checkpoint Valid</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Hub Fee</Typography>
+        <Typography variant="subtitle1">Get Rails Hub Is Checkpoint Valid</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -133,13 +134,13 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID<small><em>(hex)</em></small> <small><em>The path ID hex string</em></small></label>
+                  <label>Checkpoint <small><em>(bytes32)</em></small> <small><em>The checkpoint hash</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={checkpoint} onChange={event => setCheckpoint(event.target.value)} />
               </Box>
 
               <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Fee</HighlightedButton>
+                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Is Checkpoint Valid</HighlightedButton>
               </Box>
             </form>
           </Box>
@@ -148,9 +149,9 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!pathId && (
+          {!!isCheckpointValid && (
             <Box mb={4}>
-              <Alert severity="info">{fee}</Alert>
+              <Alert severity="info">{isCheckpointValid}</Alert>
             </Box>
           )}
         </Box>

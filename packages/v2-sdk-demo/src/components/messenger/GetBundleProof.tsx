@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   sdk: Hop
@@ -129,7 +129,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Get Bundle Proof</Typography>
+        <Typography variant="h5">Messenger - Get Bundle Proof</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Get bundle proof needed to relay message at destination chain</Typography>
@@ -154,7 +154,7 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Message ID <small><em>(hex)</em></small> <small><em>The Message ID is emitted as an event when sending message</em></small></label>
+                  <label>Message ID <small><em>(bytes32)</em></small> <small><em>The Message ID is emitted as an event when sending message</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={messageId} onChange={event => setMessageId(event.target.value)} />
               </Box>

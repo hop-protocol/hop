@@ -2,17 +2,20 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Signer, providers } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
-import { CustomTextArea } from './CustomTextArea'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
+import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../config'
+import { AbiMethodForm } from '../AbiMethodForm'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   signer?: Signer
@@ -21,8 +24,8 @@ type Props = {
   requestWallet: any
 }
 
-export function RelayMessage (props: Props) {
-  const cacheKey = 'relayMessage'
+export function RailsGatewayBond (props: Props) {
+  const cacheKey = 'railsGatewayBond'
   const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -35,18 +38,18 @@ export function RelayMessage (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
-  const [toChainId, setToChainId] = useState(() => {
+  const [pathId, setPathId] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
+      const cached = localStorage.getItem(`${cacheKey}:pathId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return defaultChainIds.to
+    return ''
   })
-  const [fromAddress, setFromAddress] = useState(() => {
+  const [checkpoint, setCheckpoint] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:fromAddress`)
+      const cached = localStorage.getItem(`${cacheKey}:checkpoint`)
       if (cached) {
         return cached
       }
@@ -62,9 +65,36 @@ export function RelayMessage (props: Props) {
     } catch (err: any) {}
     return ''
   })
-  const [toCalldata, setToCalldata] = useState(() => {
+  const [amount, setAmount] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:toCalldata`)
+      const cached = localStorage.getItem(`${cacheKey}:amount`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
+  const [totalSent, setTotalSent] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:totalSent`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
+  const [nonce, setNonce] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:nonce`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
+  const [attestedCheckpoint, setAttestedCheckpoint] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:attestedCheckpoint`)
       if (cached) {
         return cached
       }
@@ -72,15 +102,6 @@ export function RelayMessage (props: Props) {
     return ''
   })
   const [txData, setTxData] = useState('')
-  const [bundleProof, setBundleProof] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:bundleProof`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
   const [loading, setLoading] = useState(false)
@@ -96,19 +117,19 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
+      localStorage.setItem(`${cacheKey}:pathId`, pathId)
     } catch (err: any) {
       console.error(err)
     }
-  }, [toChainId])
+  }, [pathId])
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:fromAddress`, fromAddress)
+      localStorage.setItem(`${cacheKey}:checkpoint`, checkpoint)
     } catch (err: any) {
       console.error(err)
     }
-  }, [fromAddress])
+  }, [checkpoint])
 
   useEffect(() => {
     try {
@@ -120,34 +141,49 @@ export function RelayMessage (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:toCalldata`, toCalldata)
+      localStorage.setItem(`${cacheKey}:amount`, amount)
     } catch (err: any) {
       console.error(err)
     }
-  }, [toCalldata])
+  }, [amount])
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:bundleProof`, bundleProof)
+      localStorage.setItem(`${cacheKey}:totalSent`, totalSent)
     } catch (err: any) {
       console.error(err)
     }
-  }, [bundleProof])
+  }, [totalSent])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${cacheKey}:nonce`, nonce)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [nonce])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${cacheKey}:attestedCheckpoint`, attestedCheckpoint)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [attestedCheckpoint])
 
   async function getSendTxData() {
-    if (!bundleProof) {
-      throw new Error('bundle proof json is required')
-    }
     const args = {
-      fromChainId: Number(fromChainId),
-      toChainId: Number(toChainId),
-      fromAddress,
-      toAddress,
-      toCalldata,
-      bundleProof: JSON.parse(bundleProof.trim())
+      chainId: Number(fromChainId),
+      pathId,
+      checkpoint,
+      to: toAddress,
+      amount,
+      totalSent,
+      nonce,
+      attestedCheckpoint
     }
     console.log('args', args)
-    const txData = await sdk.messenger.populateTransaction.relayMessage(args)
+    const txData = await sdk.railsGateway.populateTransaction.bond(args)
     return txData
   }
 
@@ -164,10 +200,9 @@ export function RelayMessage (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        await checkConnectedNetworkId(Number(toChainId))
+        await checkConnectedNetworkId(Number(fromChainId))
         const tx = await signer.sendTransaction({
-          ...txData,
-          // gasLimit: 1_000_000,
+          ...txData
         })
         setTxHash(tx.hash)
       }
@@ -178,14 +213,6 @@ export function RelayMessage (props: Props) {
     setLoading(false)
   }
 
-  const _bundleProof = useMemo(() => {
-    try {
-      return JSON.stringify(JSON.parse(bundleProof.trim()), null, 2)
-    } catch (err: any) {
-      return '{}'
-    }
-  }, [bundleProof])
-
   const code = `
 ${populateTxDataOnly ? `
 import { Hop } from '@hop-protocol/v2-sdk'
@@ -195,21 +222,25 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const fromChainId = ${fromChainId || 'undefined'}
-  const toChainId = ${toChainId || 'undefined'}
-  const fromAddress = "${fromAddress}"
-  const toAddress = "${toAddress}"
-  const toCalldata = "${toCalldata}"
-  const bundleProof = ${_bundleProof}
+  const chainId = ${fromChainId || 'undefined'}
+  const pathId = "${pathId}"
+  const checkpoint = "${checkpoint}"
+  const to = "${toAddress}"
+  const amount = "${amount}"
+  const totalSent = "${totalSent}"
+  const nonce = "${nonce}"
+  const attestedCheckpoint = "${attestedCheckpoint}"
 
-  const hop = new Hop({ network: '${network}' })
-  const txData = await hop.populateTransaction.relayMessage({
-    fromChainId,
-    toChainId,
-    fromAddress,
-    toAddress,
-    toCalldata,
-    bundleProof
+  const hop = new Hop({ network: '${network}' )
+  const txData = await hop.railsGateway.populateTransaction.bond({
+    chainId,
+    pathId,
+    checkpoint,
+    to,
+    amount,
+    totalSent,
+    nonce,
+    attestedCheckpoint
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -219,7 +250,10 @@ async function main() {
     window.ethereum
   )
   const signer = provider.getSigner()
-  const tx = await signer.sendTransaction(txData)
+  const tx = await signer.sendTransaction({
+    ...txData,
+    value: fee
+  })
   console.log(tx)
   `.trim()
   )}
@@ -238,10 +272,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Relay Message</Typography>
+        <Typography variant="h5">Rails Hub - Bond</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Relay and execute message at the destination</Typography>
+        <Typography variant="subtitle1">Bond tokens at the destination chain</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -249,52 +283,56 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message was sent from</em></small></label>
+                  <label>Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
                 </Box>
-                {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
+
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain specified for the message</em></small></label>
+                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
                 </Box>
-                {/*<CustomTextField fullWidth placeholder="5" value={toChainId} onChange={event => setToChainId(event.target.value)} />*/}
-                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
+                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setPathId(event.target.value)} />
               </Box>
+
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From <small><em>(address)</em></small> <small><em>This is the sender address that sent the message</em></small></label>
+                  <label>Checkpoint <small><em>(bytes32)</em></small> <small><em>Checkpoint hash</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={fromAddress} onChange={event => setFromAddress(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={checkpoint} onChange={(event: any) => setCheckpoint(event.target.value)} />
               </Box>
+
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>This is the destination address specified when sending the message</em></small></label>
+                  <label>To <small><em>(address)</em></small> <small><em>Recipient at the destination</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={event => setToAddress(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
               </Box>
+
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Calldata <small><em>(hex string)</em></small> <small><em>This is the destination calldata specified when sending the message</em></small></label>
+                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent</em></small></label>
                 </Box>
-                <CustomTextArea minRows={5} placeholder="0x" value={toCalldata} onChange={event => setToCalldata(event.target.value)} style={{ width: '100%' }} />
+                <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
               </Box>
+
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Bundle Proof <small><em>(JSON)</em></small> <small><em>This is the bundle proof JSON which can be generated given the message ID in form above</em></small></label>
+                  <label>Nonce <small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
                 </Box>
-                <CustomTextArea minRows={5} placeholder={`
-{
-  "bundleId": "",
-  "treeIndex": 0,
-  "siblings": [],
-  "totalLeaves": 0
-}
-                `.trim()} value={bundleProof} onChange={event => setBundleProof(event.target.value)} style={{ width: '100%' }} />
+                <CustomTextField fullWidth placeholder="0" value={nonce} onChange={(event: any) => setNonce(event.target.value)} />
               </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Attested Checkpoint <small><em>(bytes32)</em></small> <small><em>Attested checkpoint to use</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={(event: any) => setAttestedCheckpoint(event.target.value)} />
+              </Box>
+
               <Box mb={2}>
                 <Box>
-                  <Checkbox onChange={event => setPopulateTxDataOnly(event.target.checked)} checked={populateTxDataOnly} />
+                  <Checkbox onChange={(event: any) => setPopulateTxDataOnly(event.target.checked)} checked={populateTxDataOnly} />
                   <label>Populate Tx Only</label>
                 </Box>
               </Box>
@@ -303,7 +341,7 @@ main().catch(console.error)
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Send'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Bond'}</HighlightedButton>
                 )}
               </Box>
             </form>

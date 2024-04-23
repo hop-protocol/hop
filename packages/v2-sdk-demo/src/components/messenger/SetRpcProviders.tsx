@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import { Signer, providers } from 'ethers'
 import Box from '@mui/material/Box'
-import { HighlightedButton } from './HighlightedButton'
+import { HighlightedButton } from '../HighlightedButton'
 import Checkbox from '@mui/material/Checkbox'
-import { CustomTextField } from './CustomTextField'
-import { CustomTextArea } from './CustomTextArea'
+import { CustomTextField } from '../CustomTextField'
+import { CustomTextArea } from '../CustomTextArea'
 import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   sdk: Hop
 }
 
-export function SetContractAddresses (props: Props) {
-  const cacheKey = 'setContractAddresses'
+export function SetRpcProviders (props: Props) {
+  const cacheKey = 'setRpcProviders'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -30,7 +30,10 @@ export function SetContractAddresses (props: Props) {
         return cached
       }
     } catch (err: any) {}
-    return JSON.stringify(sdk.getContractAddresses(), null, 2)
+    return JSON.stringify({
+      84532: 'https://sepolia.base.org',
+      11155111: 'https://sepolia.infura.io/v3/84842078b09946638c03157f83405213',
+    }, null, 2)
   })
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
@@ -52,7 +55,7 @@ export function SetContractAddresses (props: Props) {
       setResult('')
 
       const config = JSON.parse(configString)
-      sdk.setContractAddresses(config)
+      sdk.setChainRpcProviderUrls(config)
       setResult('set')
     } catch (err: any) {
       console.error(err)
@@ -65,10 +68,10 @@ export function SetContractAddresses (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const contractAddresses = ${configString}
+  const rpcProviders = ${configString}
 
   const hop = new Hop({ network: '${network}' })
-  hop.setContractAddresses(contractAddresses)
+  hop.setChainRpcProviderUrls(rpcProviders)
 }
 
 main().catch(console.error)
@@ -84,17 +87,17 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Set Contract Addresses</Typography>
+        <Typography variant="h5">Messenger - Set RPC Providers</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Set contract addresses config</Typography>
+        <Typography variant="subtitle1">Set RPC Providers</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
           <form onSubmit={handleSubmit}>
             <Box mb={2}>
               <Box mb={1}>
-                <label>Contract Addresses Config <small><em>(JSON)</em></small> <small><em>JSON Object with contract addresses config</em></small></label>
+                <label>RPC Providers Config <small><em>(JSON)</em></small> <small><em>JSON Object with RPC providers config</em></small></label>
               </Box>
               <CustomTextArea minRows={10} placeholder="{}" value={configString} onChange={(event: any) => setConfigString(event.target.value)} style={{ width: '100%' }} />
             </Box>

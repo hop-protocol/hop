@@ -2,20 +2,20 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Signer, providers } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
-import { CustomTextArea } from './CustomTextArea'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
+import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from './AbiMethodForm'
+import { AbiMethodForm } from '../AbiMethodForm'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { network, defaultChainIds, chainIds } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   sdk: Hop
@@ -211,7 +211,7 @@ async function main() {
   const attestedCheckpoint = "${attestedCheckpoint}"
 
   const hop = new Hop({ network: '${network}' })
-  const fee = await hop.railsGateway.getTransferID({
+  const transferId = await hop.railsGateway.getTransferId({
     chainId,
     pathId,
     to,
@@ -221,7 +221,7 @@ async function main() {
     nonce,
     attestedCheckpoint
   })
-  console.log(fee)
+  console.log(transferId)
 }
 
 main().catch(console.error)
@@ -254,43 +254,43 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID<small><em>(hex)</em></small> <small><em>The path ID hex string</em></small></label>
+                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>The path ID hex string</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To<small><em>(address)</em></small> <small><em>To address</em></small></label>
+                  <label>To <small><em>(address)</em></small> <small><em>To address</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={event => setToAddress(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Adjusted Amount<small><em>(uint256)</em></small> <small><em>Adjusted amount</em></small></label>
+                  <label>Adjusted Amount <small><em>(uint256)</em></small> <small><em>Adjusted amount</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={adjustedAmount} onChange={event => setAdjustedAmount(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Min Amount Out<small><em>(uint256)</em></small> <small><em>Min amount out</em></small></label>
+                  <label>Min Amount Out <small><em>(uint256)</em></small> <small><em>Min amount out</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={minAmountOut} onChange={event => setMinAmountOut(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Total Sent<small><em>(uint256)</em></small> <small><em>Total sent value</em></small></label>
+                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent value</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={event => setTotalSent(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Nonce<small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
+                  <label>Nonce <small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={nonce} onChange={event => setNonce(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Attested checkpoint<small><em>(bytes32)</em></small> <small><em>Attested checkpoint hex string</em></small></label>
+                  <label>Attested Checkpoint <small><em>(bytes32)</em></small> <small><em>Attested checkpoint hex string</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={event => setAttestedCheckpoint(event.target.value)} />
               </Box>

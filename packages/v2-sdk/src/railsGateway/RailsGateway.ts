@@ -110,6 +110,16 @@ export type WithdrawBalanceInput = {
   timeWindow: number
 }
 
+export type GetLatestClaimInput = {
+  chainId: BigNumberish
+  pathId: string
+}
+
+export type GetIsCheckpointValidInput = {
+  chainId: BigNumberish
+  checkpoint: string
+}
+
 export type GetFeeInput = {
   chainId: BigNumberish
   pathId: string
@@ -470,12 +480,14 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async getLatestClaim (chainId: BigNumberish, pathId: string): Promise<string> {
+  async getLatestClaim (input: GetLatestClaimInput): Promise<string> {
+    const { chainId, pathId } = input
     const contract = await this.getRailsGatewayContract(chainId)
     return contract.getLatestClaim(pathId)
   }
 
-  async getIsCheckpointValid (chainId: BigNumberish, checkpoint: string): Promise<boolean> {
+  async getIsCheckpointValid (input: GetIsCheckpointValidInput): Promise<boolean> {
+    const { chainId, checkpoint } = input
     const contract = await this.getRailsGatewayContract(chainId)
     return contract.isCheckpointValid(checkpoint)
   }

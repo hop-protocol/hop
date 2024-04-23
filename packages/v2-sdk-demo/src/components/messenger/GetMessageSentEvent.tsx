@@ -1,28 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { Signer, providers } from 'ethers'
+import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
+import { HighlightedButton } from '../HighlightedButton'
+import { CustomTextField } from '../CustomTextField'
 import Alert from '@mui/material/Alert'
-import { HighlightedButton } from './HighlightedButton'
-import { CustomTextField } from './CustomTextField'
-import { CustomTextArea } from './CustomTextArea'
-import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
-import { Syntax } from './Syntax'
-import { ChainSelect } from './ChainSelect'
-import { useStyles } from './useStyles'
+import { Syntax } from '../Syntax'
+import { ChainSelect } from '../ChainSelect'
+import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from './AbiMethodForm'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import { network, defaultChainIds, chainIds } from '../config'
+import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   sdk: Hop
 }
 
-export function RailsGatewayGetPathInfo (props: Props) {
-  const cacheKey = 'railsGatewayGetPathInfo'
+export function GetMessageSentEvent (props: Props) {
+  const cacheKey = 'getMessageSentEvent'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -35,22 +29,18 @@ export function RailsGatewayGetPathInfo (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
-  const [pathId, setPathId] = useState(() => {
+  const [messageId, setMessageId] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:pathId`)
+      const cached = localStorage.getItem(`${cacheKey}:messageId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
     return ''
   })
-  const [pathInfo, setPathInfo] = useState('')
+  const [event, setEvent] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(Number(fromChainId))
-  }, [sdk, fromChainId])
 
   useEffect(() => {
     try {
@@ -62,26 +52,27 @@ export function RailsGatewayGetPathInfo (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:pathId`, pathId)
+      localStorage.setItem(`${cacheKey}:messageId`, messageId)
     } catch (err: any) {
       console.error(err)
     }
-  }, [pathId])
+  }, [messageId])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
       setError('')
-      setPathInfo('')
+      setEvent('')
       setLoading(true)
+
       const args = {
-        chainId: Number(fromChainId),
-        pathId: pathId,
+        fromChainId: Number(fromChainId),
+        messageId
       }
 
       console.log('args', args)
-      const pathInfo = await sdk.railsGateway.getPathInfo(args)
-      setPathInfo(JSON.stringify(pathInfo, null, 2))
+      const event = await sdk.messenger.getMessageSentEventFromMessageId(args)
+      setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
       setError(err.message)
@@ -93,15 +84,15 @@ export function RailsGatewayGetPathInfo (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
-  const pathId = "${pathId}"
+  const fromChainId = ${fromChainId || 'undefined'}
+  const messageId = "${messageId}"
 
   const hop = new Hop({ network: '${network}' })
-  const pathInfo = await hop.railsGateway.getPathInfo({
-    chainId,
-    pathId
+  const event = await hop.messenger.getMessageSentEventFromMessageId({
+    fromChainId,
+    messageId
   })
-  console.log(pathInfo)
+  console.log(event)
 }
 
 main().catch(console.error)
@@ -117,50 +108,48 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Get Path Info</Typography>
+        <Typography variant="h5">Messenger - Get Message Sent Event</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Hub Path Info</Typography>
+        <Typography variant="subtitle1">Get full event log from messageId</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
-          <Box>
-            <form onSubmit={handleSubmit}>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small> <small><em>Chain ID to get path info from</em></small></label>
-                </Box>
-                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
+          <form onSubmit={handleSubmit}>
+            <Box mb={2}>
+              <Box mb={1}>
+                <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message</em></small></label>
               </Box>
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Path ID<small><em>(hex)</em></small> <small><em>The path ID hex string</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
+              {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
+              <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
+            </Box>
+            <Box mb={2}>
+              <Box mb={1}>
+                <label>Message ID <small><em>(bytes32)</em></small> <small><em>This is the messageId from the <code>MessageSent</code> event</em></small></label>
               </Box>
-
-              <Box mb={2} display="flex" justifyContent="center">
-                <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get Path Info</HighlightedButton>
-              </Box>
-            </form>
-          </Box>
+              <CustomTextField fullWidth placeholder="0x" value={messageId} onChange={event => setMessageId(event.target.value)} />
+            </Box>
+            <Box mb={2} display="flex" justifyContent="center">
+              <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get</HighlightedButton>
+            </Box>
+          </form>
           {!!error && (
             <Box mb={4} width="100%" style={{ wordBreak: 'break-word' }}>
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!pathInfo && (
-            <Box width="100%">
+          {!!event && (
+            <Box>
               <Box mb={2}>
                 <Typography variant="body1">Output</Typography>
               </Box>
               <pre style={{
-                width: '100%',
-                wordBreak: 'break-all',
-                whiteSpace: 'pre-wrap',
+                maxWidth: '500px',
                 overflow: 'auto'
-              }}>{pathInfo}</pre>
-              <CopyToClipboard text={pathInfo}
+              }}>
+                {event}
+              </pre>
+              <CopyToClipboard text={messageId}
                 onCopy={handleCopy}>
                 <Typography variant="body2" style={{ cursor: 'pointer' }}>
                   {copied ? 'Copied!' : 'Copy to clipboard'}

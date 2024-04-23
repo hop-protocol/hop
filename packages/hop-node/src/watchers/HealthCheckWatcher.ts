@@ -11,7 +11,7 @@ import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, 
 import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { Notifier } from '#notifier/index.js'
 import { RelayableChains } from '#constants/index.js'
 import { S3Upload } from '@hop-protocol/hop-node-core/aws'
 import { appTld, hostname } from '@hop-protocol/hop-node-core/config'

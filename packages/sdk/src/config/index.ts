@@ -6,7 +6,7 @@ import { config as goerli } from './goerli.js'
 import { config as mainnet } from './mainnet.js'
 import { config as sepolia } from './sepolia.js'
 
-const config = { goerli, sepolia, mainnet }
+const config: any = { goerli, sepolia, mainnet }
 for (const network in chainNetworks) {
   const addresses = (chainAddresses as any)[network].bridges
   const bonders = (chainAddresses as any)[network].bonders
@@ -40,9 +40,6 @@ export {
 }
 
 export {
-  ChainSlug,
-  AssetSymbol,
-  FinalityState,
   Bps,
   Fees,
   RelayerFeeWei,
@@ -50,7 +47,13 @@ export {
   BridgeDeprecated,
   TotalStake,
   DefaultSendGasLimit,
-  Config,
+  Config
+} from './types.js'
+
+export {
+  ChainSlug,
+  AssetSymbol,
+  FinalityState,
   Chains,
   sdkMetadata as metadata,
   bondableChains,

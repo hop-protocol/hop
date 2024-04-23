@@ -3,7 +3,7 @@ import { HToken } from '#networks/index.js'
 
 type TokenSymbol = TokenSymbolCore | HToken
 
-export { Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken }
+export { Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
 
 export enum TokenIndex {
   CanonicalToken = 0,

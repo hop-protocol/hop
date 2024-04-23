@@ -163,7 +163,6 @@
     "bump-release": "pnpm bump && pnpm release"
   },
   "dependencies": {
-    "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "p-queue": "6.6.2"
   },

@@ -72,7 +72,6 @@ export const BondThreshold = normalizeEnvVarNumber(process.env.BOND_THRESHOLD) ?
 // TODO: Normalize bool. This will be true if ENFORCE_RELAYER_FEE is set to anything
 export const EnforceRelayerFee = !!process.env.ENFORCE_RELAYER_FEE ?? false
 export const isTestMode = !!process.env.TEST_MODE
-export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 
 // Decreasing SyncCyclesPerFullSync will result in more full syncs (root data) more often. This is useful for the
 // available liquidity watcher to have up-to-date info
@@ -123,6 +122,7 @@ export type Config = CoreConfig & {
   commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
+  metrics: MetricsConfig
 }
 
 const networkConfigs: {[key: string]: any} = {}

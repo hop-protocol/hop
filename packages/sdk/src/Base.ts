@@ -29,10 +29,6 @@ import { L2_PolygonChildERC20 } from './contracts/index.js'
 import { L2_PolygonChildERC20__factory } from './contracts/index.js'
 import { L2_xDaiToken } from './contracts/index.js'
 import { L2_xDaiToken__factory } from './contracts/index.js'
-import {
-  Multicall,
-  MulticallBalance
-} from '@hop-protocol/sdk-core'
 import { RelayerFee } from './relayerFee/index.js'
 import { TChain, TProvider, TToken } from './types.js'
 import { config, metadata } from './config/index.js'

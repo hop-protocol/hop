@@ -1,5 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher.js'
-import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { Notifier } from '#notifier/index.js'
 import { hostname } from '@hop-protocol/hop-node-core/config'
 import type L1Bridge from './classes/L1Bridge.js'
 import type { ChallengeableTransferRoot } from '#db/TransferRootsDb.js'

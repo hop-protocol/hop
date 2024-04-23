@@ -25,6 +25,11 @@ export {
   HToken,
   eventTopics
 } from './constants/index.js'
+
+export {
+  getLpFeeBps
+} from './utils/index.js'
+
 export {
   Chain,
   TokenModel,
@@ -35,7 +40,6 @@ export {
   chainIdToSlug,
   fetchJsonOrThrow,
   getChainSlugFromName,
-  getLpFeeBps,
   getMinGasLimit,
   getMinGasPrice,
   getProviderFromUrl,

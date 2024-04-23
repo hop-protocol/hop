@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { Chain } from '#models/index.js'
+import { Chain } from '@hop-protocol/sdk-core/models'
 
 // TODO: This is a temporary solution. Should retrieve from onchain and cache value.
 

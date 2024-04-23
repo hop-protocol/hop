@@ -9,22 +9,21 @@ import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/netwo
 import { execSync } from 'node:child_process'
 import { normalizeEnvVarNumber } from './utils.js'
 
-
-export setCoreEnvironment = (config: CoreConfig) => {
+export const setCoreEnvironment = (config: CoreConfig) => {
   config = config
 }
 
 // Other
-export const hostname = process.env.HOSTNAME ?? os.hostname()
 export const gitRev = process.env.GIT_REV ?? execSync('git rev-parse --short HEAD').toString().trim()
 export const envNetwork = process.env.NETWORK ?? Network.Mainnet
 export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = normalizeEnvVarNumber(process.env.RPC_TIMEOUT_SECONDS) ?? 90
 export const CoingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''
+export const hostname = process.env.HOSTNAME ?? os.hostname()
+export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 
 // Gasboost
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
-export const hostname = process.env.HOSTNAME ?? os.hostname()
 export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
 export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
 export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
@@ -39,8 +38,6 @@ export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
 export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
-
-export const hostname = process.env.HOSTNAME ?? os.hostname()
 
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',

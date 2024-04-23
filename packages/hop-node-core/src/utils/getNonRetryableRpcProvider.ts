@@ -1,6 +1,5 @@
 import { getRpcUrl } from './getRpcUrl.js'
 import { providers } from 'ethers'
-import type { providers } from 'ethers'
 
 const cache: Record<string, providers.Provider> = {}
 export const getNonRetryableRpcProvider = (network: string): providers.Provider => {

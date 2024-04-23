@@ -13,7 +13,7 @@ import {
 } from '#constants/index.js'
 import { Logger } from '@hop-protocol/hop-node-core/logger'
 import { Mutex } from 'async-mutex'
-import { Notifier } from '@hop-protocol/hop-node-core/notifier'
+import { Notifier } from '#notifier/index.js'
 import {
   PossibleReorgDetected,
   RedundantProviderOutOfSync

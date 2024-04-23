@@ -1,4 +1,4 @@
-import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk-core'
+import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk-core/config'
 
 export type Bps = {
   [key in ChainSlug]: number

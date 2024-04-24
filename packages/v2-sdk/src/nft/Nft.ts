@@ -1,6 +1,6 @@
 import { Base, BaseConfig } from '#common/index.js'
 import { Interface } from 'ethers/lib/utils.js'
-import { Signer } from 'ethers'
+import { Signer, BigNumberish } from 'ethers'
 import { getProvider } from '#utils/getProvider.js'
 import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
 import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
@@ -276,7 +276,7 @@ export class Nft extends Base {
     return eventFetcher.getEvents(fromBlock, toBlock as any)
   }
 
-  getNftBridgeContractAddress (chainId: number): string {
+  getNftBridgeContractAddress (chainId: BigNumberish): string {
     return this.getConfigAddress(chainId, 'nftBridge')
   }
 

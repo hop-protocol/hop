@@ -107,6 +107,126 @@ export class Hop extends Base {
     return '' // TODO
   }
 
+  getSupportedChainIds (): number[] {
+    const keys = Object.keys(this.contractAddresses[this.network])
+    return keys.map((chainId: string) => Number(chainId))
+  }
+
+  async getHubConnectorContractAddress (chainId: BigNumberish): Promise<string> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`Invalid chainId: ${chainId}`)
+    }
+
+    return this.hubConnector.getHubConnectorContractAddress(chainId)
+  }
+
+  async getRailsGatewayContractAddress (chainId: BigNumberish): Promise<string> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`Invalid chainId: ${chainId}`)
+    }
+
+    return this.railsGateway.getRailsGatewayContractAddress(chainId)
+  }
+
+  async getNftBridgeContractAddress (chainId: BigNumberish): Promise<string> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`Invalid chainId: ${chainId}`)
+    }
+
+    return this.nft.getNftBridgeContractAddress(chainId)
+  }
+
+  get populateTransaction() {
+    return {
+      sendTokens: async (input: SendTokensInput): Promise<providers.TransactionRequest> => {
+        const { fromChainId, toChainId, fromToken, toToken, to, amount, minAmountOut } = input
+
+        if (!this.utils.isValidChainId(fromChainId)) {
+          throw new Error(`Invalid fromChainId "${fromChainId}"`)
+        }
+
+        if (!this.utils.isValidChainId(toChainId)) {
+          throw new Error(`Invalid toChainId "${toChainId}"`)
+        }
+
+        if (!this.utils.isValidAddress(fromToken)) {
+          throw new Error(`Invalid fromToken "${fromToken}"`)
+        }
+
+        if (!this.utils.isValidAddress(toToken)) {
+          throw new Error(`Invalid toToken "${toToken}"`)
+        }
+
+        if (!this.utils.isValidAddress(to)) {
+          throw new Error(`Invalid to "${to}"`)
+        }
+
+        if (!this.utils.isValidNumericValue(minAmountOut)) {
+          throw new Error(`Invalid minAmountOut "${minAmountOut}"`)
+        }
+
+        const pathId = await this.railsGateway.getPathId({
+          chainId0: fromChainId,
+          token0: fromToken,
+          chainId1: toChainId,
+          token1: toToken
+        })
+
+        const lastCheckpoint = await this.railsGateway.getLatestClaim({
+          chainId: fromChainId,
+          pathId
+        })
+
+        const isCheckpointValid = await this.railsGateway.getIsCheckpointValid({
+          chainId: toChainId,
+          checkpoint: lastCheckpoint
+        })
+
+        if (!isCheckpointValid) {
+          throw new Error('Latest checkpoint is invalid')
+        }
+
+        const populatedTx = await this.railsGateway.populateTransaction.send({
+          chainId: fromChainId,
+          pathId,
+          to,
+          amount,
+          minAmountOut,
+          attestedCheckpoint: lastCheckpoint
+        })
+
+        return populatedTx
+      }
+    }
+  }
+
+  async sendTokens (input: SendTokensInput): Promise<any> {
+    const populatedTx = await this.populateTransaction.sendTokens(input)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async getPathInfo (input: GetPathInfoInput): Promise<Path> {
+    return this.railsGateway.getPathInfo(input)
+  }
+
+  async connectTargets (input: ConnectTargetsInput): Promise<{tx: providers.TransactionResponse, connectorAddress: string}> {
+    const tx = await this.hubConnector.connectTargets(input)
+    const connectorAddress = await this.hubConnector.getConnectorAddressFromTx(tx)
+    return { tx, connectorAddress }
+  }
+
+  async switchChain (chainId: BigNumberish): Promise<void> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`Invalid chainId: ${chainId}`)
+    }
+
+    if (!this.signer) {
+      throw new Error('No signer connected to switch chains')
+    }
+
+    await this.utils.switchChain(chainId, this.signer.provider)
+  }
+
   // used by v2-explorer backend
   async getEvents (input: GetGeneralEventsInput): Promise<any[]> {
     let { eventName, eventNames, chainId, fromBlock, toBlock } = input
@@ -246,85 +366,5 @@ export class Hop extends Base {
   // used by v2-explorer backend
   getEventNames (): string[] {
     return this.messenger.getEventNames()
-  }
-
-  getSupportedChainIds (): number[] {
-    const keys = Object.keys(this.contractAddresses[this.network])
-    return keys.map((chainId: string) => Number(chainId))
-  }
-
-  async getHubConnectorContractAddress (chainId: number): Promise<string> {
-    return this.hubConnector.getHubConnectorContractAddress(chainId)
-  }
-
-  async getRailsGatewayContractAddress (chainId: number): Promise<string> {
-    return this.railsGateway.getRailsGatewayContractAddress(chainId)
-  }
-
-  async getNftBridgeContractAddress (chainId: number): Promise<string> {
-    return this.nft.getNftBridgeContractAddress(chainId)
-  }
-
-  get populateTransaction() {
-    return {
-      sendTokens: async (input: SendTokensInput): Promise<providers.TransactionRequest> => {
-        const { fromChainId, toChainId, fromToken, toToken, to, amount, minAmountOut } = input
-
-        const pathId = await this.railsGateway.getPathId({
-          chainId0: fromChainId,
-          token0: fromToken,
-          chainId1: toChainId,
-          token1: toToken
-        })
-
-        const lastCheckpoint = await this.railsGateway.getLatestClaim({
-          chainId: fromChainId,
-          pathId
-        })
-
-        const isCheckpointValid = await this.railsGateway.getIsCheckpointValid({
-          chainId: toChainId,
-          checkpoint: lastCheckpoint
-        })
-
-        if (!isCheckpointValid) {
-          throw new Error('Latest checkpoint is invalid')
-        }
-
-        const populatedTx = await this.railsGateway.populateTransaction.send({
-          chainId: fromChainId,
-          pathId,
-          to,
-          amount,
-          minAmountOut,
-          attestedCheckpoint: lastCheckpoint
-        })
-
-        return populatedTx
-      }
-    }
-  }
-
-  async sendTokens (input: SendTokensInput): Promise<any> {
-    const populatedTx = await this.populateTransaction.sendTokens(input)
-    return this.sendTransaction(populatedTx)
-  }
-
-  async getPathInfo (input: GetPathInfoInput): Promise<Path> {
-    return this.railsGateway.getPathInfo(input)
-  }
-
-  async connectTargets (input: ConnectTargetsInput): Promise<{tx: providers.TransactionResponse, connectorAddress: string}> {
-    const tx = await this.hubConnector.connectTargets(input)
-    const connectorAddress = await this.hubConnector.getConnectorAddressFromTx(tx)
-    return { tx, connectorAddress }
-  }
-
-  async switchChain (chainId: BigNumberish): Promise<void> {
-    if (!this.signer) {
-      throw new Error('No signer connected to switch chains')
-    }
-
-    await this.utils.switchChain(chainId, this.signer.provider)
   }
 }

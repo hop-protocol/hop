@@ -1,4 +1,5 @@
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
+import { getAddress as checksumAddress } from 'ethers/lib/utils'
 import { getProviderFromUrl, rateLimitRetry, networks, metadata } from '@hop-protocol/sdk-core'
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
@@ -128,6 +129,7 @@ export class Base {
     if (!chainId) {
       throw new Error('chainId is required')
     }
+
     const address = this.contractAddresses?.[chainId?.toString()]?.[key]
     return address
   }
@@ -143,6 +145,10 @@ export class Base {
   async getContractExists (address: string, provider: Provider): Promise<boolean> {
     if (!address) {
       throw new Error('address is required')
+    }
+
+    if (!this.utils.isValidAddress(address)) {
+      throw new Error('invalid address')
     }
 
     if (!provider) {
@@ -173,6 +179,10 @@ export class Base {
     chainId: BigNumberish,
     signer: Signer = this.signer
   ): Promise<Signer | Provider> {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`invalid chainId "${chainId}"`)
+    }
+
     chainId = chainId.toString()
     const provider = this.getRpcProviderForChainId(chainId)
     if (!signer) {
@@ -244,6 +254,10 @@ export class Base {
       throw new Error('tx "to" address is required')
     }
 
+    if (!this.utils.isValidAddress(transactionRequest.to)) {
+      throw new Error('invalid "to" address')
+    }
+
     if (!this.signer.provider) {
       throw new Error('signer provider is required')
     }
@@ -273,8 +287,41 @@ export class Base {
         return this.contractAddresses[chainId?.toString()] != null
       },
 
+      isValidBytes32: (hash: string): boolean => {
+        if (typeof hash !== 'string') {
+          return false
+        }
+
+        return hash.slice(0, 2) === '0x' && hash.length === 66
+      },
+
       isValidTxHash: (txHash: string): boolean => {
-        return txHash.slice(0, 2) === '0x' && txHash.length === 66
+        return this.utils.isValidBytes32(txHash)
+      },
+
+      isValidBytes: (bytes: string): boolean => {
+        return bytes.slice(0, 2) === '0x'
+      },
+
+      isValidAddress: (address: string): boolean => {
+        try {
+          checksumAddress(address)
+          return true
+        } catch (err) {
+          return false
+        }
+      },
+
+      isValidFilterBlock: (blockTag: string | number): boolean => {
+        return blockTag === 'latest' || blockTag === 'pending' || blockTag === 'earliest' || Number(blockTag) >= 0
+      },
+
+      isValidNumericValue: (value: any): boolean => {
+        if (BigNumber.isBigNumber(value)) {
+          return true
+        }
+
+        return !isNaN(value)
       },
 
       getChainSlug: (chainId: BigNumberish) => {

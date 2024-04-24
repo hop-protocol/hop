@@ -1,33 +1,25 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { Signer, providers } from 'ethers'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
 import { useInterval } from 'react-use'
-import { CustomTextField } from '../CustomTextField'
-import { CustomTextArea } from '../CustomTextArea'
-import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from '../AbiMethodForm'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   signer?: Signer
   sdk: Hop
-  checkConnectedNetworkId: any
   requestWallet: any
 }
 
 export function HopSwitchChain (props: Props) {
   const cacheKey = 'hopSwitchChain'
-  const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
+  const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
@@ -40,9 +32,6 @@ export function HopSwitchChain (props: Props) {
     return defaultChainIds.from
   })
   const [connectedChainId, setConnectedChainId] = useState('')
-  const [txData, setTxData] = useState('')
-  const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
-  const [txHash, setTxHash] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -82,8 +71,6 @@ export function HopSwitchChain (props: Props) {
     event.preventDefault()
     try {
       setError('')
-      setTxData('')
-      setTxHash('')
       setLoading(true)
       if (!signer) {
         throw new Error('No signer')

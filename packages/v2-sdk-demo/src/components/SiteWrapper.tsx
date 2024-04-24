@@ -1,6 +1,5 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
+import React from 'react'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import { Header } from './Header'
 import { Footer } from './Footer'
 

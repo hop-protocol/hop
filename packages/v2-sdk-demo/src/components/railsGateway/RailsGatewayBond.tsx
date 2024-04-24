@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { Signer, providers } from 'ethers'
+import React, { useState, useEffect } from 'react'
+import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
 import { CustomTextField } from '../CustomTextField'
-import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
@@ -12,21 +11,17 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from '../AbiMethodForm'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   signer?: Signer
   sdk: Hop
-  checkConnectedNetworkId: any
   requestWallet: any
 }
 
 export function RailsGatewayBond (props: Props) {
   const cacheKey = 'railsGatewayBond'
-  const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
+  const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
@@ -200,7 +195,6 @@ export function RailsGatewayBond (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        await checkConnectedNetworkId(Number(fromChainId))
         const tx = await signer.sendTransaction({
           ...txData
         })
@@ -307,6 +301,13 @@ main().catch(console.error)
                   <label>To <small><em>(address)</em></small> <small><em>Recipient at the destination</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
+              </Box>
+
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Amount <small><em>(uint256)</em></small> <small><em>Original amount of transfer</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
               </Box>
 
               <Box mb={2}>

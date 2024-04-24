@@ -198,7 +198,6 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>Chain ID <small><em>(number)</em></small></label>
                 </Box>
-                {/*<CustomTextField fullWidth placeholder="420" value={chainId} onChange={event => setChainId(event.target.value)} />*/}
                 <ChainSelect value={chainId} chains={chainIds} onChange={value => setChainId(value)} />
               </Box>
               <Box mb={2}>

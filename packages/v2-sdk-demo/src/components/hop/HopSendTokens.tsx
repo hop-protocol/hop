@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Signer, providers } from 'ethers'
+import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
 import { CustomTextField } from '../CustomTextField'
-import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
@@ -12,21 +11,17 @@ import { Syntax } from '../Syntax'
 import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { AbiMethodForm } from '../AbiMethodForm'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import { network, defaultChainIds, chainIds } from '../../config'
 
 type Props = {
   signer?: Signer
   sdk: Hop
-  checkConnectedNetworkId: any
   requestWallet: any
 }
 
 export function HopSendTokens (props: Props) {
   const cacheKey = 'hopSendTokens'
-  const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
+  const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
@@ -182,7 +177,6 @@ export function HopSendTokens (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        await checkConnectedNetworkId(Number(fromChainId))
         const tx = await signer.sendTransaction({
           ...txData
         })

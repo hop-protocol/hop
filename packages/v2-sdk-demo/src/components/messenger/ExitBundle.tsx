@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Signer, providers } from 'ethers'
+import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import { HighlightedButton } from '../HighlightedButton'
 import { CustomTextField } from '../CustomTextField'
@@ -16,13 +16,12 @@ import { network, defaultChainIds, chainIds } from '../../config'
 type Props = {
   signer?: Signer
   sdk: Hop
-  checkConnectedNetworkId: any
   requestWallet: any
 }
 
 export function ExitBundle (props: Props) {
   const cacheKey = 'exitBundle'
-  const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
+  const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
@@ -88,7 +87,6 @@ export function ExitBundle (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        await checkConnectedNetworkId(Number(fromChainId))
         const tx = await signer.sendTransaction({
           ...txData
         })
@@ -157,7 +155,6 @@ main().catch(console.error)
               <Box mb={1}>
                 <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message route</em></small></label>
               </Box>
-              {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
               <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>

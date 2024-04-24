@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Signer, providers } from 'ethers'
+import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
@@ -17,13 +17,12 @@ import { network, defaultChainIds, chainIds } from '../../config'
 type Props = {
   signer?: Signer
   sdk: Hop
-  checkConnectedNetworkId: any
   requestWallet: any
 }
 
 export function RelayMessage (props: Props) {
   const cacheKey = 'relayMessage'
-  const { signer, sdk, checkConnectedNetworkId, requestWallet } = props
+  const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
   const [fromChainId, setFromChainId] = useState(() => {
@@ -164,7 +163,6 @@ export function RelayMessage (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        await checkConnectedNetworkId(Number(toChainId))
         const tx = await signer.sendTransaction({
           ...txData,
           // gasLimit: 1_000_000,
@@ -251,14 +249,12 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message was sent from</em></small></label>
                 </Box>
-                {/*<CustomTextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
                   <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain specified for the message</em></small></label>
                 </Box>
-                {/*<CustomTextField fullWidth placeholder="5" value={toChainId} onChange={event => setToChainId(event.target.value)} />*/}
                 <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>
               <Box mb={2}>

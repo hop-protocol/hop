@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Signer, providers } from 'ethers'
 import Box from '@mui/material/Box'
 import { HighlightedButton } from '../HighlightedButton'
-import Checkbox from '@mui/material/Checkbox'
-import { CustomTextField } from '../CustomTextField'
 import { CustomTextArea } from '../CustomTextArea'
 import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Syntax } from '../Syntax'
-import { ChainSelect } from '../ChainSelect'
 import { useStyles } from '../useStyles'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { network, defaultChainIds, chainIds } from '../../config'
+import { network } from '../../config'
 
 type Props = {
   sdk: Hop

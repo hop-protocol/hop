@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { SiteWrapper } from '../components/SiteWrapper'
 import { CustomPaper } from '../components/CustomPaper'
 import { useInterval } from 'react-use'
@@ -6,7 +6,6 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import { HighlightedButton } from '../components/HighlightedButton'
 import Typography from '@mui/material/Typography'
-import { providers } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { HopSendTokens } from '../components/hop/HopSendTokens'
@@ -39,7 +38,7 @@ import { network } from '../config'
 
 export function Main () {
   // const { sdk, connected, safe } = useSafeAppsSDK()
-  const { provider, address, requestWallet, disconnectWallet, checkConnectedNetworkIdOrThrow } = useWeb3()
+  const { provider, address, requestWallet, disconnectWallet } = useWeb3()
   const styles = useStyles()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [error, setError] = useState('')
@@ -82,24 +81,24 @@ export function Main () {
   const showAccountInfo = false
 
   const components = [
-    <HopSendTokens signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
-    <HopSwitchChain signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <HopSendTokens signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <HopSwitchChain signer={signer} sdk={sdk} requestWallet={requestWallet} />,
     <RailsGatewayGetPathId sdk={sdk} />,
     <RailsGatewayGetPathInfo sdk={sdk} />,
     <RailsGatewayGetFee sdk={sdk} />,
     <RailsGatewayGetTransferId sdk={sdk} />,
     <RailsGatewayGetLatestClaim sdk={sdk} />,
     <RailsGatewayGetIsCheckpointValid sdk={sdk} />,
-    <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
-    <RailsGatewaySend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
-    <RailsGatewayBond signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <RailsGatewaySend signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <RailsGatewayBond signer={signer} sdk={sdk} requestWallet={requestWallet} />,
     <SetContractAddresses sdk={sdk} />,
     <GetContractAddresses sdk={sdk} />,
     <SetRpcProviders sdk={sdk} />,
-    <SendMessage signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <SendMessage signer={signer} sdk={sdk} requestWallet={requestWallet} />,
     <GetBundleProof sdk={sdk} />,
-    <RelayMessage signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
-    <ExitBundle signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <RelayMessage signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <ExitBundle signer={signer} sdk={sdk} requestWallet={requestWallet} />,
     <GetMessageIdFromTxHash sdk={sdk} />,
     <GetMessageCalldata sdk={sdk} />,
     <GetMessageSentEvent sdk={sdk} />,

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
@@ -109,14 +109,12 @@ main().catch(console.error)
               <Box mb={1}>
                 <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message will be sent from</em></small></label>
               </Box>
-              {/*<TextField fullWidth placeholder="420" value={fromChainId} onChange={event => setFromChainId(event.target.value)} />*/}
               <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>
               <Box mb={1}>
                 <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain for the message</em></small></label>
               </Box>
-              {/*<TextField fullWidth placeholder="5" value={toChainId} onChange={event => setToChainId(event.target.value)} />*/}
               <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
             </Box>
             <Box mb={2} display="flex" justifyContent="center">

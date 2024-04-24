@@ -252,6 +252,8 @@ export class Base {
       throw new Error('signer is required')
     }
 
+    await this.utils.switchChain(chainId, this.signer.provider)
+
     const signer = await this.getSignerOrProvider(chainId)
     if (!(Signer.isSigner(signer) && signer.provider)) {
       throw new Error(`signer not connected to required chain "${chainId}"`)
@@ -275,8 +277,8 @@ export class Base {
         return txHash.slice(0, 2) === '0x' && txHash.length === 66
       },
 
-      getChainSlug: (chainId: number) => {
-        const chainSlug = chainSlugMap[chainId]
+      getChainSlug: (chainId: BigNumberish) => {
+        const chainSlug = chainSlugMap[chainId.toString()]
         if (!chainSlug) {
           throw new Error(`Invalid chain: ${chainId}`)
         }
@@ -301,20 +303,31 @@ export class Base {
         return gasPrice
       }),
 
+      getConnectedChainId: async (provider: Provider): Promise<BigNumber> => {
+        const network = await provider.getNetwork()
+        return BigNumber.from(network.chainId)
+      },
+
       switchChain: async (chainId: BigNumberish, provider: any): Promise<void> => {
-        chainId = Number(chainId.toString())
+        chainId = BigNumber.from(chainId)
         try {
           if (!provider) {
             throw new Error('provider or signer is required')
           }
-          await provider.send('wallet_switchEthereumChain', [{ chainId: `0x${chainId.toString(16)}` }])
+
+          const connectedChainId = await this.utils.getConnectedChainId(provider)
+          if (connectedChainId.toString() === chainId.toString()) {
+            return
+          }
+
+          await provider.send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString }])
         } catch (error: any) {
           if (error.code === 4902) {
             const network = (networks as any)?.[this.network]?.[this.utils.getChainSlug(chainId)]
             if (network) {
               const nativeCurrency = (metadata as any).chains?.[this.utils.getChainSlug(chainId)]?.nativeTokenSymbol
               await provider.send('wallet_addEthereumChain', [{
-                chainId: `0x${chainId.toString(16)}`,
+                chainId: chainId.toHexString(),
                 chainName: this.utils.getChainSlug(chainId),
                 nativeCurrency: {
                   name: nativeCurrency,

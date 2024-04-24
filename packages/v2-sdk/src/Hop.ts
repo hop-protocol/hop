@@ -99,6 +99,10 @@ export class Hop extends Base {
     this.nft = new Nft({ network, signer: this.signer, contractAddresses: this.contractAddresses })
   }
 
+  override connect (signer: Signer) {
+    return new Hop({ network: this.network, signer, contractAddresses: this.contractAddresses })
+  }
+
   get version () {
     return '' // TODO
   }
@@ -314,5 +318,13 @@ export class Hop extends Base {
     const tx = await this.hubConnector.connectTargets(input)
     const connectorAddress = await this.hubConnector.getConnectorAddressFromTx(tx)
     return { tx, connectorAddress }
+  }
+
+  async switchChain (chainId: BigNumberish): Promise<void> {
+    if (!this.signer) {
+      throw new Error('No signer connected to switch chains')
+    }
+
+    await this.utils.switchChain(chainId, this.signer.provider)
   }
 }

@@ -10,6 +10,7 @@ import { providers } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { HopSendTokens } from '../components/hop/HopSendTokens'
+import { HopSwitchChain } from '../components/hop/HopSwitchChain'
 import { RailsGatewaySend } from '../components/railsGateway/RailsGatewaySend'
 import { RailsGatewayBond } from '../components/railsGateway/RailsGatewayBond'
 import { RailsGatewayGetPathInfo } from '../components/railsGateway/RailsGatewayGetPathInfo'
@@ -81,14 +82,15 @@ export function Main () {
   const showAccountInfo = false
 
   const components = [
-    <HopSendTokens sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <HopSendTokens signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <HopSwitchChain signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <RailsGatewayGetPathId sdk={sdk} />,
     <RailsGatewayGetPathInfo sdk={sdk} />,
     <RailsGatewayGetFee sdk={sdk} />,
     <RailsGatewayGetTransferId sdk={sdk} />,
     <RailsGatewayGetLatestClaim sdk={sdk} />,
     <RailsGatewayGetIsCheckpointValid sdk={sdk} />,
-    <RailsGatewayConfirmCheckpoint sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
+    <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <RailsGatewaySend signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <RailsGatewayBond signer={signer} sdk={sdk} requestWallet={requestWallet} checkConnectedNetworkId={checkConnectedNetworkIdOrThrow} />,
     <SetContractAddresses sdk={sdk} />,

@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
-import { getProviderFromUrl, rateLimitRetry, networks } from '@hop-protocol/sdk-core'
+import { getProviderFromUrl, rateLimitRetry, networks, metadata } from '@hop-protocol/sdk-core'
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 
@@ -82,25 +82,9 @@ export class Base {
     return this
   }
 
-  isValidChainId (chainId: BigNumberish) {
-    return this.contractAddresses[chainId?.toString()] != null
-  }
-
-  isValidTxHash (txHash: string): boolean {
-    return txHash.slice(0, 2) === '0x' && txHash.length === 66
-  }
-
-  getChainSlug (chainId: number) {
-    const chainSlug = chainSlugMap[chainId]
-    if (!chainSlug) {
-      throw new Error(`Invalid chain: ${chainId}`)
-    }
-    return chainSlug
-  }
-
   setChainRpcProvider (chainId: BigNumberish, provider: Provider): void {
     chainId = chainId.toString()
-    if (!this.isValidChainId(chainId)) {
+    if (!this.utils.isValidChainId(chainId)) {
       throw new Error(
         `unsupported chain "${chainId}" for network ${this.network}`
       )
@@ -110,7 +94,7 @@ export class Base {
 
   setChainRpcProviders (chainProviders: ChainProviders): void {
     for (const chainId in chainProviders) {
-      if (!this.isValidChainId(chainId)) {
+      if (!this.utils.isValidChainId(chainId)) {
         throw new Error(
           `unsupported chain "${chainId}" for network ${this.network}`
         )
@@ -121,7 +105,7 @@ export class Base {
 
   setChainRpcProviderUrl (chainId: BigNumberish, url: string): void {
     chainId = chainId.toString()
-    if (!this.isValidChainId(chainId)) {
+    if (!this.utils.isValidChainId(chainId)) {
       throw new Error(
         `unsupported chain "${chainId}" for network ${this.network}`
       )
@@ -131,7 +115,7 @@ export class Base {
 
   setChainRpcProviderUrls (chainProviders: Record<string, string>): void {
     for (const chainId in chainProviders) {
-      if (!this.isValidChainId(chainId)) {
+      if (!this.utils.isValidChainId(chainId)) {
         throw new Error(
           `unsupported chain "${chainId}" for network ${this.network}`
         )
@@ -171,11 +155,6 @@ export class Base {
     }
 
     return code !== '0x'
-  }
-
-  async getBumpedGasPrice (provider: Provider, percent: number): Promise<BigNumber> {
-    const gasPrice = await this.getGasPrice(provider)
-    return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
   getSigner (): Signer | null {
@@ -227,7 +206,7 @@ export class Base {
     const txOptions: any = {}
     const provider = await this.getSignerOrProvider(fromChainId)
     if (this.gasPriceMultiplier > 0) {
-      txOptions.gasPrice = await this.getBumpedGasPrice(
+      txOptions.gasPrice = await this.utils.getBumpedGasPrice(
         provider as Provider,
         this.gasPriceMultiplier
       )
@@ -236,7 +215,7 @@ export class Base {
     // TODO get min gas price for chain
     const minGasPrice = 0
     if (minGasPrice) {
-      const currentGasPrice = await this.getGasPrice(provider)
+      const currentGasPrice = await this.utils.getGasPrice(provider)
       const minGasPriceBn = BigNumber.from(minGasPrice)
       if (currentGasPrice.lte(minGasPriceBn)) {
         txOptions.gasPrice = minGasPriceBn
@@ -253,19 +232,6 @@ export class Base {
 
     return txOptions
   }
-
-  async estimateGas (provider: providers.Provider, tx: any): Promise<BigNumber> {
-    const gasLimit = await provider.estimateGas(tx)
-    return gasLimit
-  }
-
-  getGasPrice = rateLimitRetry(async (signerOrProvider: Signer | Provider): Promise<BigNumber> => {
-    if (!signerOrProvider) {
-      throw new Error('expected signer or provider')
-    }
-    const gasPrice = await signerOrProvider.getGasPrice()
-    return gasPrice
-  })
 
   async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId): Promise<any> {
     chainId = chainId?.toString()
@@ -297,5 +263,75 @@ export class Base {
     }
 
     return signer.sendTransaction({ ...transactionRequest, chainId } as any)
+  }
+
+  get utils() {
+    return {
+      isValidChainId: (chainId: BigNumberish): boolean => {
+        return this.contractAddresses[chainId?.toString()] != null
+      },
+
+      isValidTxHash: (txHash: string): boolean => {
+        return txHash.slice(0, 2) === '0x' && txHash.length === 66
+      },
+
+      getChainSlug: (chainId: number) => {
+        const chainSlug = chainSlugMap[chainId]
+        if (!chainSlug) {
+          throw new Error(`Invalid chain: ${chainId}`)
+        }
+        return chainSlug
+      },
+
+      getBumpedGasPrice: async (provider: Provider, percent: number): Promise<BigNumber> => {
+        const gasPrice = await this.utils.getGasPrice(provider)
+        return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
+      },
+
+      estimateGas: async (provider: providers.Provider, tx: any): Promise<BigNumber> => {
+        const gasLimit = await provider.estimateGas(tx)
+        return gasLimit
+      },
+
+      getGasPrice: rateLimitRetry(async (signerOrProvider: Signer | Provider): Promise<BigNumber> => {
+        if (!signerOrProvider) {
+          throw new Error('expected signer or provider')
+        }
+        const gasPrice = await signerOrProvider.getGasPrice()
+        return gasPrice
+      }),
+
+      switchChain: async (chainId: BigNumberish, provider: any): Promise<void> => {
+        chainId = Number(chainId.toString())
+        try {
+          if (!provider) {
+            throw new Error('provider or signer is required')
+          }
+          await provider.send('wallet_switchEthereumChain', [{ chainId: `0x${chainId.toString(16)}` }])
+        } catch (error: any) {
+          if (error.code === 4902) {
+            const network = (networks as any)?.[this.network]?.[this.utils.getChainSlug(chainId)]
+            if (network) {
+              const nativeCurrency = (metadata as any).chains?.[this.utils.getChainSlug(chainId)]?.nativeTokenSymbol
+              await provider.send('wallet_addEthereumChain', [{
+                chainId: `0x${chainId.toString(16)}`,
+                chainName: this.utils.getChainSlug(chainId),
+                nativeCurrency: {
+                  name: nativeCurrency,
+                  symbol: nativeCurrency,
+                  decimals: 18
+                },
+                rpcUrls: [network.publicRpcUrl],
+                blockExplorerUrls: network.explorerUrls
+              }])
+            } else {
+              throw error
+            }
+          } else {
+            throw error
+          }
+        }
+      }
+    }
   }
 }

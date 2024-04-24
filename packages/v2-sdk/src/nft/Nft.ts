@@ -282,7 +282,7 @@ export class Nft extends Base {
 
   async getNftMintPopulatedTx (input: GetNftMintPopulatedTxInput): Promise<any> {
     const { fromChainId, toAddress, tokenId } = input
-    if (!this.isValidChainId(fromChainId)) {
+    if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
     if (!toAddress) {
@@ -308,7 +308,7 @@ export class Nft extends Base {
 
   async getNftBurnPopulatedTx (input: GetNftBurnPopulatedTxInput): Promise<any> {
     const { fromChainId, tokenId } = input
-    if (!this.isValidChainId(fromChainId)) {
+    if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
     if (!tokenId) {
@@ -334,10 +334,10 @@ export class Nft extends Base {
 
   async getNftSendPopulatedTx (input: GetNftSendPopulatedTxInput): Promise<any> {
     const { fromChainId, toChainId, toAddress, tokenId } = input
-    if (!this.isValidChainId(fromChainId)) {
+    if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    if (!this.isValidChainId(toChainId)) {
+    if (!this.utils.isValidChainId(toChainId)) {
       throw new Error(`Invalid toChainId: ${toChainId}`)
     }
     if (fromChainId === toChainId) {
@@ -369,10 +369,10 @@ export class Nft extends Base {
 
   async getNftMintAndSendPopulatedTx (input: GetNftMintAndSendPopulatedTxInput): Promise<any> {
     const { fromChainId, toChainId, toAddress, tokenId } = input
-    if (!this.isValidChainId(fromChainId)) {
+    if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
-    if (!this.isValidChainId(toChainId)) {
+    if (!this.utils.isValidChainId(toChainId)) {
       throw new Error(`Invalid toChainId: ${toChainId}`)
     }
     if (fromChainId === toChainId) {
@@ -404,7 +404,7 @@ export class Nft extends Base {
 
   async getNftConfirmPopulatedTx (input: GetNftConfirmPopulatedTxInput): Promise<any> {
     const { fromChainId, tokenId } = input
-    if (!this.isValidChainId(fromChainId)) {
+    if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
     }
     if (!tokenId) {

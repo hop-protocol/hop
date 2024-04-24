@@ -6,7 +6,7 @@ import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC
 export interface ConnectorDeployed extends EventBase {
   connector: string
   target: string
-  counterpartChainId: number
+  counterpartChainId: string
   counterpartConnector: string
   counterpartTarget: string
 }
@@ -20,9 +20,9 @@ export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<ConnectorDeployed[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<ConnectorDeployed[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): ConnectorDeployed {
@@ -31,7 +31,7 @@ export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
 
     const connector = decoded.args.connector.toString()
     const target = decoded.args.target.toString()
-    const counterpartChainId = Number(decoded.args.counterpartChainId.toString())
+    const counterpartChainId = decoded.args.counterpartChainId.toString()
     const counterpartConnector = decoded.args.counterpartConnector.toString()
     const counterpartTarget = decoded.args.counterpartTarget.toString()
 

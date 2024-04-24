@@ -151,8 +151,8 @@ export function HopSendTokens (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      fromChainId: Number(fromChainId),
-      toChainId: Number(toChainId),
+      fromChainId,
+      toChainId,
       fromToken,
       toToken,
       to: toAddress,
@@ -177,10 +177,29 @@ export function HopSendTokens (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await signer.sendTransaction({
-          ...txData
+
+        const needsApproval = await sdk.getNeedsApprovalForSendTokens({
+          fromChainId,
+          toChainId,
+          fromToken,
+          toToken,
+          amount
         })
-        setTxHash(tx.hash)
+
+        if (needsApproval) {
+          const approveTxData = await sdk.populateTransaction.sendTokensApproval({
+            fromChainId,
+            toChainId,
+            fromToken,
+            toToken,
+            amount
+          })
+          const tx = await signer.sendTransaction(approveTxData)
+          setTxHash(tx.hash)
+        } else {
+          const tx = await signer.sendTransaction(txData)
+          setTxHash(tx.hash)
+        }
       }
     } catch (err: any) {
       console.error(err)
@@ -254,14 +273,14 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
+                  <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain to send tokens to</em></small></label>
+                  <label>To Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain to send tokens to</em></small></label>
                 </Box>
                 <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>

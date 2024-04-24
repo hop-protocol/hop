@@ -29,18 +29,18 @@ export function GetEvents (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
-  const [startBlock, setStartBlock] = useState(() => {
+  const [fromBlock, setFromBlock] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:startBlock`)
+      const cached = localStorage.getItem(`${cacheKey}:fromBlock`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
     return ''
   })
-  const [endBlock, setEndBlock] = useState(() => {
+  const [toBlock, setToBlock] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:endBlock`)
+      const cached = localStorage.getItem(`${cacheKey}:toBlock`)
       if (cached) {
         return cached
       }
@@ -81,45 +81,45 @@ export function GetEvents (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:startBlock`, startBlock)
+      localStorage.setItem(`${cacheKey}:fromBlock`, fromBlock)
     } catch (err: any) {
       console.error(err)
     }
-  }, [startBlock])
+  }, [fromBlock])
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:endBlock`, endBlock)
+      localStorage.setItem(`${cacheKey}:toBlock`, toBlock)
     } catch (err: any) {
       console.error(err)
     }
-  }, [endBlock])
+  }, [toBlock])
 
   async function getEvents() {
-    let _startBlock = Number(startBlock)
-    let _endBlock = Number(endBlock)
-    const provider = sdk.getRpcProviderForChainId(Number(chainId))
+    let _fromBlock = Number(fromBlock)
+    let _toBlock = Number(toBlock)
+    const provider = sdk.getRpcProviderForChainId(chainId)
     const latestBlock = await provider.getBlockNumber()
     if (latestBlock) {
-      if (!endBlock) {
-        setEndBlock(latestBlock.toString())
-        _endBlock = latestBlock
+      if (!toBlock) {
+        setToBlock(latestBlock.toString())
+        _toBlock = latestBlock
       }
-      if (!startBlock) {
+      if (!fromBlock) {
         const start = latestBlock - 1000
-        setStartBlock(start.toString())
-        _startBlock = start
+        setFromBlock(start.toString())
+        _fromBlock = start
       }
-      if (_startBlock < 0) {
-        _startBlock = _endBlock + _startBlock
-        setStartBlock(_startBlock.toString())
+      if (_fromBlock < 0) {
+        _fromBlock = _toBlock + _fromBlock
+        setFromBlock(_fromBlock.toString())
       }
     }
     const args = {
       eventNames: selectedEventNames,
-      chainId: Number(chainId),
-      fromBlock: _startBlock,
-      toBlock: _endBlock
+      chainId,
+      fromBlock: _fromBlock,
+      toBlock: _toBlock
     }
     console.log('args', args)
     const _events = await sdk.getEvents(args)
@@ -147,8 +147,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 async function main() {
   const eventNames = ${JSON.stringify(selectedEventNames)}
   const chainId = ${chainId || 'undefined'}
-  const fromBlock = ${startBlock || 'undefined'}
-  const toBlock = ${endBlock || 'undefined'}
+  const fromBlock = ${fromBlock || 'undefined'}
+  const toBlock = ${toBlock || 'undefined'}
 
   const hop = new Hop({ network: '${network}' )
   const events = await hop.messenger.getEvents({
@@ -196,7 +196,7 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small></label>
+                  <label>Chain ID <small><em>(uin256)</em></small></label>
                 </Box>
                 <ChainSelect value={chainId} chains={chainIds} onChange={value => setChainId(value)} />
               </Box>
@@ -204,13 +204,13 @@ main().catch(console.error)
                 <Box mb={1}>
                   <label>From Block <small><em>(number)</em></small> <small><em>You can use negative value for number of blocks back of toBlock</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={startBlock} onChange={event => setStartBlock(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={fromBlock} onChange={event => setFromBlock(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
                   <label>To Block <small><em>(number)</em></small> <small><em>Leave blank to use head block</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0" value={endBlock} onChange={event => setEndBlock(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0" value={toBlock} onChange={event => setToBlock(event.target.value)} />
               </Box>
               <Box mb={2} display="flex" justifyContent="center">
                 <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get events</HighlightedButton>

@@ -34,9 +34,9 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<TransferBonded[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<TransferBonded[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TransferBonded {

@@ -30,9 +30,9 @@ export class MessageBundledEventFetcher extends Event<MessageBundled> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<MessageBundled[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<MessageBundled[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageBundled {

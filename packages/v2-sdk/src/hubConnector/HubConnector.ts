@@ -1,18 +1,18 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { BigNumberish, BigNumber, Signer, providers } from 'ethers'
+import { BigNumberish, Signer, providers } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
-import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
+import { getAddress } from 'ethers/lib/utils.js'
 import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
 
 export type GetEventsInput = {
-  chainId: number
+  chainId: BigNumberish
   fromBlock: number
   toBlock?: number
 }
 
 export type ConnectTargetsInput = {
-  hubChainId: number
-  spokeChainId: number
+  hubChainId: BigNumberish
+  spokeChainId: BigNumberish
   target1: string
   target2: string
 }
@@ -79,6 +79,9 @@ export class HubConnector extends Base {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
       throw new Error('chainId is required')
+    }
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`Invalid chainId: ${chainId}`)
     }
     if (!fromBlock) {
       throw new Error('fromBlock is required')

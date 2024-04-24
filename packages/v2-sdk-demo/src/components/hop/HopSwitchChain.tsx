@@ -132,7 +132,7 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small> <small><em>The chain ID to switch to</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>The chain ID to switch to</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>

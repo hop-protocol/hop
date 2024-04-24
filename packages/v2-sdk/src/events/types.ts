@@ -1,6 +1,6 @@
 export type EventContext = {
   chainSlug: string
-  chainId: number
+  chainId: string
   transactionHash: string
   transactionIndex: number
   logIndex: number

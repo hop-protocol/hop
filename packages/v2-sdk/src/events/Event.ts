@@ -2,16 +2,16 @@ import { EventContext } from './types.js'
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk-core'
-import { providers } from 'ethers'
+import { providers, BigNumberish } from 'ethers'
 
 export class Event<T> {
   provider: providers.Provider
-  chainId: number
+  chainId: BigNumberish
   batchBlocks: number
   address: string
   eventName: string
 
-  constructor (provider: any, chainId: number, batchBlocks: number, address: string) {
+  constructor (provider: any, chainId: BigNumberish, batchBlocks: number, address: string) {
     if (!provider) {
       throw new Error('expected provider')
     }
@@ -50,13 +50,13 @@ export class Event<T> {
     throw new Error('Not implemented')
   }
 
-  async addContextToEvent (event: any, chainId: number): Promise<T> {
+  async addContextToEvent (event: any, chainId: BigNumberish): Promise<T> {
     const context = await this.getEventContext(event.eventLog, chainId)
     event.context = context
     return event
   }
 
-  async getEventContext (event: any, chainId: number): Promise<EventContext> {
+  async getEventContext (event: any, chainId: BigNumberish): Promise<EventContext> {
     try {
       const chainSlug = this.getChainSlug(chainId)
       const transactionHash = event.transactionHash
@@ -75,7 +75,7 @@ export class Event<T> {
 
       return {
         chainSlug,
-        chainId,
+        chainId: chainId?.toString(),
         transactionHash,
         transactionIndex,
         logIndex,
@@ -96,10 +96,10 @@ export class Event<T> {
     }
   }
 
-  getChainSlug (chainId: number): string {
-    const chainSlug = chainSlugMap[chainId]
+  getChainSlug (chainId: BigNumberish): string {
+    const chainSlug = chainSlugMap[chainId?.toString()]
     if (!chainSlug) {
-      throw new Error(`Invalid chain: ${chainId}`)
+      throw new Error(`Invalid chain "${chainId?.toString()}", slug not found`)
     }
     return chainSlug
   }

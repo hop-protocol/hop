@@ -6,8 +6,8 @@ import { ethers } from 'ethers'
 export interface BundleForwarded extends EventBase {
   bundleId: string
   bundleRoot: string
-  fromChainId: number
-  toChainId: number
+  fromChainId: string
+  toChainId: string
 }
 
 export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
@@ -19,9 +19,9 @@ export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<BundleForwarded[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<BundleForwarded[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleForwarded {
@@ -30,8 +30,8 @@ export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
 
     const bundleId = decoded.args.bundleId.toString()
     const bundleRoot = decoded.args.bundleRoot.toString()
-    const fromChainId = Number(decoded.args.fromChainId.toString())
-    const toChainId = Number(decoded.args.toChainId.toString())
+    const fromChainId = decoded.args.fromChainId.toString()
+    const toChainId = decoded.args.toChainId.toString()
 
     return {
       eventName: this.eventName,

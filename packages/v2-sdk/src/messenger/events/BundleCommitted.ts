@@ -7,7 +7,7 @@ export interface BundleCommitted extends EventBase {
   bundleId: string
   bundleRoot: string
   bundleFees: BigNumber
-  toChainId: number
+  toChainId: string
   commitTime: number
 }
 
@@ -20,9 +20,9 @@ export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<BundleCommitted[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<BundleCommitted[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleCommitted {
@@ -32,7 +32,7 @@ export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
     const bundleId = decoded.args.bundleId.toString()
     const bundleRoot = decoded.args.bundleRoot.toString()
     const bundleFees = decoded.args.bundleFees
-    const toChainId = Number(decoded.args.toChainId.toString())
+    const toChainId = decoded.args.toChainId.toString()
     const commitTime = Number(decoded.args.commitTime.toString())
 
     return {

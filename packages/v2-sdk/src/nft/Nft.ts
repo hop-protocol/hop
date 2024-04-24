@@ -1,28 +1,26 @@
 import { Base, BaseConfig } from '#common/index.js'
 import { Interface } from 'ethers/lib/utils.js'
 import { Signer, BigNumberish } from 'ethers'
-import { getProvider } from '#utils/getProvider.js'
 import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
 import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
 import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
 import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
-import { addresses } from '#addresses/index.js'
 
 type GetEventsInput = {
-  chainId: number
+  chainId: BigNumberish
   fromBlock: number
   toBlock?: number
 }
 
 export type MintNftInput = {
-  fromChainId: number
+  fromChainId: BigNumberish
   contractAddress: string
   recipient: string
   tokenId: string
 }
 
 export type ApproveNftInput = {
-  fromChainId: number
+  fromChainId: BigNumberish
   contractAddress: string
   spender: string
   tokenId: string
@@ -31,7 +29,7 @@ export type ApproveNftInput = {
 export type MintNftWrapperInput = {
   nftBridgeAddress: string
   wrapperTokenId: string
-  fromChainId: number
+  fromChainId: BigNumberish
   serialNumber: string
   supportedChains: number[]
   wrapperTokenIdNonce: number
@@ -41,19 +39,19 @@ export type ReclaimNftWrapperInput = {
   nftBridgeAddress: string
   nftTokenAddress: string
   tokenId: string
-  fromChainId: number
+  fromChainId: BigNumberish
   serialNumber: string
-  supportedChainIds: number[]
+  supportedChainIds: BigNumberish[]
   wrapperTokenIdNonce: number
 }
 
 export type SendNftInput = {
-  fromChainId: number
+  fromChainId: BigNumberish
   nftBridgeAddress: string
   contractAddress: string
   tokenId: string
-  supportedChainIds: number[]
-  toChainId: number
+  supportedChainIds: BigNumberish[]
+  toChainId: BigNumberish
   recipient: string
   wrapperTokenIdNonce: number
 }
@@ -61,42 +59,42 @@ export type SendNftInput = {
 export type SendNftWrapperInput = {
   nftBridgeAddress: string
   wrapperTokenId: string
-  fromChainId: number
+  fromChainId: BigNumberish
   serialNumber: string
-  supportedChainIds: number[]
+  supportedChainIds: BigNumberish[]
   initialRecipient: string
-  toChainId: number
+  toChainId: BigNumberish
   recipient: string
   wrapperTokenIdNonce: number
 }
 
 export type GetNftMintPopulatedTxInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   toAddress: string
   tokenId: string
 }
 
 export type GetNftBurnPopulatedTxInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   tokenId: string
 }
 
 export type GetNftSendPopulatedTxInput = {
-  fromChainId: number,
-  toChainId: number,
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
   toAddress: string
   tokenId: string
 }
 
 export type GetNftMintAndSendPopulatedTxInput = {
-  fromChainId: number,
-  toChainId: number,
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
   toAddress: string
   tokenId: string
 }
 
 export type GetNftConfirmPopulatedTxInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   tokenId: string
 }
 
@@ -116,7 +114,7 @@ export class Nft extends Base {
   get populateTransaction() {
     return {
       mintNft: (input: MintNftInput) => {
-        const { contractAddress, fromChainId, recipient, tokenId } = input
+        const { contractAddress, recipient, tokenId } = input
         const ABI = [
           'function safeMint(address to, uint256 tokenId)'
         ]
@@ -132,7 +130,7 @@ export class Nft extends Base {
       },
 
       approveNft: (input: ApproveNftInput) => {
-        const { contractAddress, fromChainId, spender, tokenId } = input
+        const { contractAddress, spender, tokenId } = input
         const ABI = [
           'function approve(address spender, uint256 tokenId)'
         ]
@@ -340,7 +338,7 @@ export class Nft extends Base {
     if (!this.utils.isValidChainId(toChainId)) {
       throw new Error(`Invalid toChainId: ${toChainId}`)
     }
-    if (fromChainId === toChainId) {
+    if (fromChainId?.toString() === toChainId?.toString()) {
       throw new Error('fromChainId and toChainId must be different')
     }
     if (!toAddress) {
@@ -375,7 +373,7 @@ export class Nft extends Base {
     if (!this.utils.isValidChainId(toChainId)) {
       throw new Error(`Invalid toChainId: ${toChainId}`)
     }
-    if (fromChainId === toChainId) {
+    if (fromChainId?.toString() === toChainId?.toString()) {
       throw new Error('fromChainId and toChainId must be different')
     }
     if (!toAddress) {

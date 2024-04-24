@@ -42,7 +42,7 @@ export function RailsGatewayGetFee (props: Props) {
   const [error, setError] = useState('')
 
   const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(Number(fromChainId))
+    return sdk.getRpcProviderForChainId(fromChainId)
   }, [sdk, fromChainId])
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export function RailsGatewayGetFee (props: Props) {
       setFee('')
       setLoading(true)
       const args = {
-        chainId: Number(fromChainId),
+        chainId: fromChainId,
         pathId
       }
       console.log('args', args)
@@ -120,7 +120,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small> <small><em>Chain to get fee for</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>

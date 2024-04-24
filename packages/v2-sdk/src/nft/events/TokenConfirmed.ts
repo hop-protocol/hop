@@ -16,9 +16,9 @@ export class TokenConfirmedEventFetcher extends Event<TokenConfirmed> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<TokenConfirmed[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<TokenConfirmed[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TokenConfirmed {

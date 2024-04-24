@@ -166,7 +166,7 @@ export function RailsGatewayGetTransferId (props: Props) {
       setTransferId('')
       setLoading(true)
       const args = {
-        chainId: Number(fromChainId),
+        chainId: fromChainId,
         pathId,
         to: toAddress,
         adjustedAmount,
@@ -237,7 +237,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small> <small><em>Chain to get fee for</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>

@@ -16,9 +16,9 @@ export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<FeesSentToHub[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<FeesSentToHub[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): FeesSentToHub {

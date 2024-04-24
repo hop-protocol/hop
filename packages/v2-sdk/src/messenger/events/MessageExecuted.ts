@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 // event from SpokeMessageBridge (MessageExecutor.sol)
 export interface MessageExecuted extends EventBase {
   messageId: string
-  fromChainId: number
+  fromChainId: string
 }
 
 export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
@@ -25,9 +25,9 @@ export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<MessageExecuted[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<MessageExecuted[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageExecuted {
@@ -35,7 +35,7 @@ export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
     const decoded = iface.parseLog(ethersEvent)
 
     const messageId = decoded.args.messageId.toString()
-    const fromChainId = Number(decoded.args.fromChainId.toString())
+    const fromChainId = decoded.args.fromChainId.toString()
 
     return {
       eventName: this.eventName,

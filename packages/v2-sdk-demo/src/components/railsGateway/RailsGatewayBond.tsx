@@ -24,14 +24,14 @@ export function RailsGatewayBond (props: Props) {
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [fromChainId, setFromChainId] = useState(() => {
+  const [toChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
+      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return defaultChainIds.from
+    return defaultChainIds.to
   })
   const [pathId, setPathId] = useState(() => {
     try {
@@ -104,11 +104,11 @@ export function RailsGatewayBond (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
+      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
     } catch (err: any) {
       console.error(err)
     }
-  }, [fromChainId])
+  }, [toChainId])
 
   useEffect(() => {
     try {
@@ -168,7 +168,7 @@ export function RailsGatewayBond (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: Number(fromChainId),
+      chainId: toChainId,
       pathId,
       checkpoint,
       to: toAddress,
@@ -195,9 +195,24 @@ export function RailsGatewayBond (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await signer.sendTransaction({
-          ...txData
+
+        const needsApproval = await sdk.railsGateway.getNeedsApprovalForBond({
+          chainId: toChainId,
+          pathId,
+          amount
         })
+
+        if (needsApproval) {
+          const approveTxData = await sdk.railsGateway.populateTransaction.bondApproval({
+            chainId: toChainId,
+            pathId,
+            amount
+          })
+          const tx = await signer.sendTransaction(approveTxData)
+          await tx.wait()
+        }
+
+        const tx = await signer.sendTransaction(txData)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -216,7 +231,7 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
+  const chainId = ${toChainId || 'undefined'}
   const pathId = "${pathId}"
   const checkpoint = "${checkpoint}"
   const to = "${toAddress}"
@@ -277,9 +292,9 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain id of the transfer</em></small></label>
                 </Box>
-                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
+                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2}>

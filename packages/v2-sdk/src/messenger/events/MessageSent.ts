@@ -6,7 +6,7 @@ import { ethers } from 'ethers'
 export interface MessageSent extends EventBase {
   messageId: string
   from: string
-  toChainId: number
+  toChainId: string
   to: string
   data: string
 }
@@ -26,9 +26,9 @@ export class MessageSentEventFetcher extends Event<MessageSent> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<MessageSent[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<MessageSent[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageSent {
@@ -37,7 +37,7 @@ export class MessageSentEventFetcher extends Event<MessageSent> {
 
     const messageId = decoded.args.messageId.toString()
     const from = decoded.args.from
-    const toChainId = Number(decoded.args.toChainId.toString())
+    const toChainId = decoded.args.toChainId.toString()
     const to = decoded.args.to
     const data = decoded.args.data
 

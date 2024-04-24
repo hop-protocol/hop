@@ -34,9 +34,9 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<TransferSent[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<TransferSent[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TransferSent {

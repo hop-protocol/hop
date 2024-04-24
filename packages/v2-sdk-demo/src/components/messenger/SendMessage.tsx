@@ -109,7 +109,7 @@ export function SendMessage (props: Props) {
   }, [abiJson, selectedAbiMethod])
 
   const provider = useMemo(() => {
-    return sdk.getRpcProviderForChainId(Number(fromChainId))
+    return sdk.getRpcProviderForChainId(fromChainId)
   }, [sdk, fromChainId])
 
   const abiOptions = useMemo(() => {
@@ -179,8 +179,8 @@ export function SendMessage (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      fromChainId: Number(fromChainId),
-      toChainId: Number(toChainId),
+      fromChainId,
+      toChainId,
       toAddress,
       toCalldata
     }
@@ -199,7 +199,7 @@ export function SendMessage (props: Props) {
       setLoading(true)
       const txData = await getSendTxData()
       setTxData(JSON.stringify(txData, null, 2))
-      const fee = await sdk.messenger.getMessageFee({ fromChainId: Number(fromChainId), toChainId: Number(toChainId) })
+      const fee = await sdk.messenger.getMessageFee({ fromChainId, toChainId })
       if (!populateTxDataOnly) {
         if (!signer) {
           throw new Error('No signer')
@@ -211,7 +211,7 @@ export function SendMessage (props: Props) {
         setTxHash(tx.hash)
 
         const receipt = await tx.wait()
-        const { messageId } = await sdk.messenger.getMessageSentEventFromTransactionReceipt({ fromChainId: Number(fromChainId), receipt })
+        const { messageId } = await sdk.messenger.getMessageSentEventFromTransactionReceipt({ fromChainId, receipt })
         setMessageId(messageId)
       }
     } catch (err: any) {
@@ -284,13 +284,13 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message will be sent from</em></small></label>
+                  <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain the message will be sent from</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain where the message should be received</em></small></label>
+                  <label>To Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain where the message should be received</em></small></label>
                 </Box>
                 <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>

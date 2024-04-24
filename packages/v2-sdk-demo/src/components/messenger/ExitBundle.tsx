@@ -66,7 +66,7 @@ export function ExitBundle (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      fromChainId: Number(fromChainId),
+      fromChainId,
       bundleCommittedTransactionHash: bundleCommittedTxHash
     }
     console.log('args', args)
@@ -153,7 +153,7 @@ main().catch(console.error)
           <form onSubmit={handleSubmit}>
             <Box mb={2}>
               <Box mb={1}>
-                <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message route</em></small></label>
+                <label>From Chain ID <small><em>(uin256)</em></small> <small><em>This is the origin chain of the message route</em></small></label>
               </Box>
               <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>

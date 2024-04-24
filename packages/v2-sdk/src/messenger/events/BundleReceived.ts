@@ -7,8 +7,8 @@ export interface BundleReceived extends EventBase {
   bundleId: string
   bundleRoot: string
   bundleFees: BigNumber
-  fromChainId: number
-  toChainId: number
+  fromChainId: string
+  toChainId: string
   relayWindowStart: number
   relayer: string
 }
@@ -22,9 +22,9 @@ export class BundleReceivedEventFetcher extends Event<BundleReceived> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<BundleReceived[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<BundleReceived[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleReceived {
@@ -34,8 +34,8 @@ export class BundleReceivedEventFetcher extends Event<BundleReceived> {
     const bundleId = decoded.args.bundleId.toString()
     const bundleRoot = decoded.args.bundleRoot.toString()
     const bundleFees = decoded.args.bundleFees
-    const fromChainId = Number(decoded.args.fromChainId.toString())
-    const toChainId = Number(decoded.args.toChainId.toString())
+    const fromChainId = decoded.args.fromChainId.toString()
+    const toChainId = decoded.args.toChainId.toString()
     const relayWindowStart = Number(decoded.args.relayWindowStart.toString())
     const relayer = decoded.args.relayer.toString()
 

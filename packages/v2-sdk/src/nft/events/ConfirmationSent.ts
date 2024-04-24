@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 // event from ERC721Bridge
 export interface ConfirmationSent extends EventBase {
   tokenId: string
-  toChainId: number
+  toChainId: string
 }
 
 export class ConfirmationSentEventFetcher extends Event<ConfirmationSent> {
@@ -17,9 +17,9 @@ export class ConfirmationSentEventFetcher extends Event<ConfirmationSent> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<ConfirmationSent[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<ConfirmationSent[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): ConfirmationSent {
@@ -27,7 +27,7 @@ export class ConfirmationSentEventFetcher extends Event<ConfirmationSent> {
     const decoded = iface.parseLog(ethersEvent)
 
     const tokenId = decoded.args.tokenId.toString()
-    const toChainId = Number(decoded.args.toChainId.toString())
+    const toChainId = decoded.args.toChainId.toString()
 
     return {
       eventName: this.eventName,

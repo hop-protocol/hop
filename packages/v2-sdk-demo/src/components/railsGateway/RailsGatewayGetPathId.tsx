@@ -98,9 +98,9 @@ export function RailsGatewayGetPathId (props: Props) {
       setPathId('')
       setLoading(true)
       const args = {
-        chainId0: Number(fromChainId),
+        chainId0: fromChainId,
         token0: fromToken,
-        chainId1: Number(toChainId),
+        chainId1: toChainId,
         token1: toToken,
       }
       console.log('args', args)
@@ -156,7 +156,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain</em></small></label>
+                  <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
@@ -168,7 +168,7 @@ main().catch(console.error)
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain</em></small></label>
+                  <label>To Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain</em></small></label>
                 </Box>
                 <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>

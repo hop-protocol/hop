@@ -1,37 +1,24 @@
 import { Base } from '#common/index.js'
-import { BigNumberish, BigNumber, Signer, providers } from 'ethers'
-import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
-import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
-import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
-import { BundleSet, BundleSetEventFetcher } from '#messenger/events/BundleSet.js'
-import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
-import { DateTime } from 'luxon'
-import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
+import { BigNumberish, Signer, providers } from 'ethers'
+import { BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
+import { BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
+import { BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
+import { BundleSetEventFetcher } from '#messenger/events/BundleSet.js'
+import { ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
 import { EventFetcher } from '#events/index.js'
-import { ExitRelayer } from '#exitRelayers/ExitRelayer.js'
-import { FeesSentToHub, FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
+import { FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
-import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
-import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
-import { MerkleTree } from '#utils/MerkleTree.js'
-import { MessageBundled, MessageBundledEventFetcher } from '#messenger/events/MessageBundled.js'
-import { MessageExecuted, MessageExecutedEventFetcher } from '#messenger/events/MessageExecuted.js'
-import { MessageSent, MessageSentEventFetcher } from '#messenger/events/MessageSent.js'
-import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
-import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
+import { MessageBundledEventFetcher } from '#messenger/events/MessageBundled.js'
+import { MessageExecutedEventFetcher } from '#messenger/events/MessageExecuted.js'
+import { MessageSentEventFetcher } from '#messenger/events/MessageSent.js'
+import { TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
+import { TokenSentEventFetcher } from '#nft/events/TokenSent.js'
 import { TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 import { TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
-import { chainSlugMap } from '#utils/chainSlugMap.js'
-import { getProvider } from '#utils/getProvider.js'
-import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
-import { addresses } from '#addresses/index.js'
 import { Messenger } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, GetPathInfoInput, Path } from '#railsGateway/index.js'
 import { Nft } from '#nft/index.js'
-
-const cache : Record<string, any> = {}
 
 export type HopConstructorInput = {
   network: string
@@ -41,7 +28,7 @@ export type HopConstructorInput = {
 }
 
 type GetEventsInput = {
-  chainId: number
+  chainId: BigNumberish
   fromBlock: number
   toBlock?: number
 }
@@ -49,7 +36,7 @@ type GetEventsInput = {
 export type GetGeneralEventsInput = {
   eventName?: string
   eventNames?: string[]
-  chainId: number
+  chainId: BigNumberish
   fromBlock: number
   toBlock?: number
 }
@@ -62,6 +49,14 @@ type SendTokensInput = {
   to: string
   amount: BigNumberish
   minAmountOut: BigNumberish
+}
+
+type SendTokensApprovalInput = {
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromToken: string
+  toToken: string
+  amount: BigNumberish
 }
 
 export class Hop extends Base {
@@ -196,6 +191,25 @@ export class Hop extends Base {
         })
 
         return populatedTx
+      },
+
+      sendTokensApproval: async (input: SendTokensApprovalInput): Promise<providers.TransactionRequest> => {
+        const { fromChainId, toChainId, fromToken, toToken, amount } = input
+
+        const pathId = await this.railsGateway.getPathId({
+          chainId0: fromChainId,
+          token0: fromToken,
+          chainId1: toChainId,
+          token1: toToken
+        })
+
+        const populatedTx = await this.railsGateway.populateTransaction.sendApproval({
+          chainId: fromChainId,
+          pathId,
+          amount
+        })
+
+        return populatedTx
       }
     }
   }
@@ -203,6 +217,22 @@ export class Hop extends Base {
   async sendTokens (input: SendTokensInput): Promise<any> {
     const populatedTx = await this.populateTransaction.sendTokens(input)
     return this.sendTransaction(populatedTx)
+  }
+
+  async sendTokensApproval (input: SendTokensApprovalInput): Promise<any> {
+    const populatedTx = await this.populateTransaction.sendTokensApproval(input)
+    return this.sendTransaction(populatedTx)
+  }
+
+  async getNeedsApprovalForSendTokens (input: SendTokensApprovalInput): Promise<boolean> {
+    const { fromChainId, fromToken, toChainId, toToken, amount } = input
+    const pathId = await this.railsGateway.getPathId({
+      chainId0: fromChainId,
+      token0: fromToken,
+      chainId1: toChainId,
+      token1: toToken
+    })
+    return this.railsGateway.getNeedsApprovalForSend({ chainId: fromChainId, pathId, amount })
   }
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {

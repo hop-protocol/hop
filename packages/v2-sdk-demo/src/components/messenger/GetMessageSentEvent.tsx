@@ -66,7 +66,7 @@ export function GetMessageSentEvent (props: Props) {
       setLoading(true)
 
       const args = {
-        fromChainId: Number(fromChainId),
+        fromChainId,
         messageId
       }
 
@@ -118,7 +118,7 @@ main().catch(console.error)
           <form onSubmit={handleSubmit}>
             <Box mb={2}>
               <Box mb={1}>
-                <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain of the message</em></small></label>
+                <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain of the message</em></small></label>
               </Box>
               <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>

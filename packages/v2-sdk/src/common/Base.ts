@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
+import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { getAddress as checksumAddress } from 'ethers/lib/utils'
 import { getProviderFromUrl, rateLimitRetry, networks, metadata } from '@hop-protocol/sdk-core'
 import { addresses } from '#addresses/index.js'
@@ -305,7 +305,10 @@ export class Base {
 
       isValidAddress: (address: string): boolean => {
         try {
-          checksumAddress(address)
+          address = checksumAddress(address)
+          if (address === constants.AddressZero) {
+            return false
+          }
           return true
         } catch (err) {
           return false

@@ -6,7 +6,7 @@ import { ethers } from 'ethers'
 export interface BundleSet extends EventBase {
   bundleId: string
   bundleRoot: string
-  fromChainId: number
+  fromChainId: string
 }
 
 export class BundleSetEventFetcher extends Event<BundleSet> {
@@ -18,9 +18,9 @@ export class BundleSetEventFetcher extends Event<BundleSet> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<BundleSet[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<BundleSet[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleSet {
@@ -29,7 +29,7 @@ export class BundleSetEventFetcher extends Event<BundleSet> {
 
     const bundleId = decoded.args.bundleId.toString()
     const bundleRoot = decoded.args.bundleRoot.toString()
-    const fromChainId = Number(decoded.args.fromChainId.toString())
+    const fromChainId = decoded.args.fromChainId.toString()
 
     return {
       eventName: this.eventName,

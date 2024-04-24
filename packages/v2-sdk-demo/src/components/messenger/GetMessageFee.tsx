@@ -58,8 +58,8 @@ export function GetMessageFee (props: Props) {
     event.preventDefault()
     try {
       const args = {
-        fromChainId: Number(fromChainId),
-        toChainId: Number(toChainId),
+        fromChainId,
+        toChainId
       }
       console.log(args)
       const fee = await sdk.messenger.getMessageFee(args)
@@ -107,13 +107,13 @@ main().catch(console.error)
           <form onSubmit={handleSubmit}>
             <Box mb={2}>
               <Box mb={1}>
-                <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message will be sent from</em></small></label>
+                <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain the message will be sent from</em></small></label>
               </Box>
               <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
             </Box>
             <Box mb={2}>
               <Box mb={1}>
-                <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain for the message</em></small></label>
+                <label>To Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain for the message</em></small></label>
               </Box>
               <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
             </Box>

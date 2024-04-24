@@ -5,7 +5,6 @@ import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/
 import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
 import { BundleSet, BundleSetEventFetcher } from '#messenger/events/BundleSet.js'
 import { DateTime } from 'luxon'
-import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { ExitRelayer } from '#exitRelayers/ExitRelayer.js'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 import { MerkleTree } from '#utils/MerkleTree.js'
@@ -16,7 +15,6 @@ import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBr
 import { FeesSentToHub, FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
-import { addresses } from '#addresses/index.js'
 
 type GetEventsInput = {
   chainId: number
@@ -32,37 +30,37 @@ export type BundleProof = {
 }
 
 export type HasAuctionStartedInput = {
-  fromChainId: number
+  fromChainId: BigNumberish
   bundleCommittedEvent: BundleCommitted
 }
 
 export type GetSpokeExitTimeInput = {
-  fromChainId: number
-  toChainId: number
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
 }
 
 export type GetRelayRewardInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   bundleCommittedEvent: BundleCommitted
 }
 
 export type GetEstimatedTxCostForForwardMessageInput = {
-  chainId: number,
+  chainId: BigNumberish
 }
 
 export type ShouldAttemptForwardMessageInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   bundleCommittedEvent: BundleCommitted
 }
 
 export type GetBundleExitPopulatedTxInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   bundleCommittedEvent?: BundleCommitted
   bundleCommittedTransactionHash?: string
 }
 
 export type ExitBundleInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   bundleCommittedEvent?: BundleCommitted
   bundleCommittedTransactionHash?: string
   signer: Signer
@@ -74,106 +72,106 @@ export type RouteData = {
 }
 
 export type GetIsL2TxHashExitedInput = {
-  fromChainId: number
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetSendMessagePopulatedTxInput = {
-  fromChainId: number,
-  toChainId: number,
-  toAddress: string,
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  toAddress: string
   toCalldata: string
 }
 
 export type GetEventContextInput = {
-  chainId: number
-  event: any,
+  chainId: BigNumberish
+  event: any
 }
 
 export type GetRouteDataInput = {
-  fromChainId: number,
-  toChainId: number
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
 }
 
 export type GetMessageFeeInput = {
-  fromChainId: number,
-  toChainId: number
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
 }
 
 export type GetMaxBundleMessageCountInput = {
-  fromChainId: number,
-  toChainId: number
+  fromChainId: BigNumberish
+  toChainId: BigNumber
 }
 
 export type GetIsBundleSetInput = {
-  fromChainId: number,
-  toChainId: number,
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
   bundleId: string
 }
 
 export type GetMessageSentEventFromTransactionReceiptInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   receipt: any
 }
 
 export type GetMessageSentEventFromTransactionHashInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetMessageBundledEventFromMessageIdInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   messageId: string
 }
 
 export type GetMessageSentEventFromMessageIdInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   messageId: string
 }
 
 export type GetMessageExecutedEventFromMessageIdInput = {
   messageId: string
-  fromChainId: number,
-  toChainId: number,
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
 }
 
 export type GetMessageBundledEventFromTransactionHashInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetMessageIdFromTransactionHashInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetMessageBundleIdFromMessageIdInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   messageId: string
 }
 
 export type GetMessageBundleIdFromTransactionHashInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetMessageTreeIndexFromMessageIdInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   messageId: string
 }
 
 export type GetMessageTreeIndexFromTransactionHashInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetMessageBundledEventsForBundleIdInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   bundleId: string
 }
 
 export type GetMessageIdsForBundleIdInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   bundleId: string
 }
 
@@ -183,23 +181,23 @@ export type GetMerkleProofForMessageIdInput = {
 }
 
 export type GetBundleProofFromMessageIdInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   messageId: string
 }
 
 export type GetBundleProofFromTransactionHashInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetRelayMessageDataFromTransactionHashInput = {
-  fromChainId: number,
+  fromChainId: BigNumberish
   transactionHash: string
 }
 
 export type GetRelayMessagePopulatedTxInput = {
-  fromChainId: number,
-  toChainId: number,
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
   fromAddress: string,
   toAddress: string,
   toCalldata: string,
@@ -207,29 +205,29 @@ export type GetRelayMessagePopulatedTxInput = {
 }
 
 export type GetMessageCalldataInput = {
-  fromChainId: number
+  fromChainId: BigNumberish
   messageId: string
 }
 
 export type GetIsMessageIdRelayedInput = {
   messageId: string
-  fromChainId: number
-  toChainId: number
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
 }
 
 export type GetRelayFeeInput = {
-  fromChainId: number,
-  toChainId: number,
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
   toAddress: string,
   toCalldata: string
 }
 
 export type RelayMessageData = {
-  fromChainId: number
+  fromChainId: BigNumberish
   toAddress: string
   fromAddress: string
   toCalldata: string
-  toChainId: number
+  toChainId: BigNumberish
   bundleProof: BundleProof
 }
 
@@ -639,16 +637,16 @@ export class Messenger extends Base {
     const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
     const l2Provider = this.getRpcProviderForChainId(fromChainId)
     let exitRelayer : ExitRelayer | undefined = undefined
-    if ([420, 10].includes(fromChainId)) {
+    if (['420', '10'].includes(fromChainId?.toString())) {
       const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
       exitRelayer = new OptimismRelayer(this.network, signer, l2Provider)
-    } else if ([421613, 42161, 42170].includes(fromChainId)) {
+    } else if (['421613', '42161', '42170'].includes(fromChainId?.toString())) {
       // const { ArbitrumRelayer } = await import('../exitRelayers/ArbitrumRelayer.js')
       // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
-    } else if ([80001, 137].includes(fromChainId)) {
+    } else if (['80001', '137'].includes(fromChainId?.toString())) {
       // const { PolygonRelayer } = await import('../exitRelayers/PolygonRelayer.js')
       // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
-    } else if ([100].includes(fromChainId)) {
+    } else if (['100'].includes(fromChainId?.toString())) {
       // const { GnosisChainRelayer } = await import('../exitRelayers/GnosisChainRelayer.js')
       // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
     }
@@ -671,7 +669,7 @@ export class Messenger extends Base {
     const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
     const l2Provider = this.getRpcProviderForChainId(fromChainId)
     let exitRelayer : ExitRelayer
-    if ([420, 10].includes(fromChainId)) {
+    if (['420', '10'].includes(fromChainId?.toString())) {
       const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
       exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
     } else {
@@ -721,7 +719,7 @@ export class Messenger extends Base {
 
         return {
           ...txData,
-          chainId: fromChainId,
+          chainId: Number(fromChainId),
           value: value.toString()
         }
       },
@@ -747,6 +745,10 @@ export class Messenger extends Base {
           throw new Error('bundleProof is required')
         }
 
+        if (!this.isValidBundleProof(bundleProof)) {
+          throw new Error('Invalid bundleProof')
+        }
+
         const provider = this.getRpcProviderForChainId(toChainId)
         if (!provider) {
           throw new Error(`Invalid chainId "${toChainId}", provider not found`)
@@ -768,7 +770,7 @@ export class Messenger extends Base {
 
         return {
           ...txData,
-          chainId: toChainId
+          chainId: Number(toChainId)
         }
       },
 
@@ -794,16 +796,16 @@ export class Messenger extends Base {
         const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
         const l2Provider = this.getRpcProviderForChainId(fromChainId)
         let exitRelayer : ExitRelayer | undefined = undefined
-        if ([420, 10].includes(fromChainId)) {
+        if (['420', '10'].includes(fromChainId?.toString())) {
           const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
           exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
-        } else if ([421613, 42161, 42170].includes(fromChainId)) {
+        } else if (['421613', '42161', '42170'].includes(fromChainId?.toString())) {
           // const { ArbitrumRelayer } = await import('../exitRelayers/ArbitrumRelayer.js')
           // exitRelayer = new ArbitrumRelayer(this.network, l1Provider, l2Provider)
-        } else if ([80001, 137].includes(fromChainId)) {
+        } else if (['80001', '137'].includes(fromChainId?.toString())) {
           // const { PolygonRelayer } = await import('../exitRelayers/PolygonRelayer.js')
           // exitRelayer = new PolygonRelayer(this.network, l1Provider, l2Provider)
-        } else if ([100].includes(fromChainId)) {
+        } else if (['100'].includes(fromChainId?.toString())) {
           // const { GnosisChainRelayer } = await import('../exitRelayers/GnosisChainRelayer.js')
           // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
         }
@@ -1412,5 +1414,33 @@ export class Messenger extends Base {
       'MessageExecuted',
       'MessageSent'
     ]
+  }
+
+  isValidBundleProof (bundleProof: BundleProof): boolean {
+    if (!bundleProof) {
+      return false
+    }
+
+    if (!this.utils.isValidBytes32(bundleProof.bundleId)) {
+      return false
+    }
+
+    if (typeof bundleProof.treeIndex !== 'number') {
+      return false
+    }
+
+    if (!Array.isArray(bundleProof.siblings)) {
+      return false
+    }
+
+    if (bundleProof.siblings.some((item: any) => !this.utils.isValidBytes32(item))) {
+      return false
+    }
+
+    if (typeof bundleProof.totalLeaves !== 'number') {
+      return false
+    }
+
+    return true
   }
 }

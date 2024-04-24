@@ -1,5 +1,5 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { Contract, Signer, ethers, providers, BigNumberish } from 'ethers'
+import { Contract, Signer, ethers, BigNumberish } from 'ethers'
 import { StakingRegistry__factory } from '#contracts/factories/StakingRegistry__factory.js'
 
 export type MinHopStakeForRoleInput = {

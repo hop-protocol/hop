@@ -138,8 +138,8 @@ export function RelayMessage (props: Props) {
       throw new Error('bundle proof json is required')
     }
     const args = {
-      fromChainId: Number(fromChainId),
-      toChainId: Number(toChainId),
+      fromChainId,
+      toChainId,
       fromAddress,
       toAddress,
       toCalldata,
@@ -247,13 +247,13 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>From Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the message was sent from</em></small></label>
+                  <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain the message was sent from</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>To Chain ID <small><em>(number)</em></small> <small><em>This is the destination chain specified for the message</em></small></label>
+                  <label>To Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain specified for the message</em></small></label>
                 </Box>
                 <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>

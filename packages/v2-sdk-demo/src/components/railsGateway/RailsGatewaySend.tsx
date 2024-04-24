@@ -134,7 +134,7 @@ export function RailsGatewaySend (props: Props) {
 
   async function getSendTxData() {
     const args = {
-      chainId: Number(fromChainId),
+      chainId: fromChainId,
       pathId,
       to: toAddress,
       amount,
@@ -155,7 +155,7 @@ export function RailsGatewaySend (props: Props) {
       setLoading(true)
       const txData = await getSendTxData()
       setTxData(JSON.stringify(txData, null, 2))
-      const fee = await sdk.railsGateway.getFee({ chainId: Number(fromChainId), pathId })
+      const fee = await sdk.railsGateway.getFee({ chainId: fromChainId, pathId })
       if (!populateTxDataOnly) {
         if (!signer) {
           throw new Error('No signer')
@@ -240,7 +240,7 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(number)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain the transfer will be sent from</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>

@@ -4,7 +4,7 @@ import { ethers } from 'ethers'
 
 // event from ERC721Bridge
 export interface TokenSent extends EventBase {
-  toChainId: number
+  toChainId: string
   to: string
   tokenId: string
   newTokenId: string
@@ -19,16 +19,16 @@ export class TokenSentEventFetcher extends Event<TokenSent> {
     return filter
   }
 
-  async getEvents (startBlock: number, endBlock: number): Promise<TokenSent[]> {
+  async getEvents (fromBlock: number, toBlock: number): Promise<TokenSent[]> {
     const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, startBlock, endBlock)
+    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TokenSent {
     const iface = new ethers.utils.Interface(ERC721Bridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 
-    const toChainId = Number(decoded.args.toChainId.toString())
+    const toChainId = decoded.args.toChainId.toString()
     const tokenId = decoded.args.tokenId.toString()
     const to = decoded.args.to.toString()
     const newTokenId = decoded.args.newTokenId.toString()

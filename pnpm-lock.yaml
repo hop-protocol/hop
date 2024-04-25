@@ -361,7 +361,7 @@ importers:
         version: 2.9.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       vite-plugin-svgr:
         specifier: 4.2.0
-        version: 4.2.0(rollup@4.16.1)(typescript@5.4.3)(vite@5.0.13(@types/node@20.12.7)(terser@5.30.4))
+        version: 4.2.0(rollup@4.16.1)(typescript@5.4.3)(vite@5.0.13(@types/node@16.18.96)(terser@5.30.4))
       web-vitals:
         specifier: 0.2.4
         version: 0.2.4
@@ -401,7 +401,7 @@ importers:
         version: 5.1.22
       '@vitejs/plugin-react':
         specifier: 4.2.1
-        version: 4.2.1(vite@5.0.13(@types/node@20.12.7)(terser@5.30.4))
+        version: 4.2.1(vite@5.0.13(@types/node@16.18.96)(terser@5.30.4))
       buffer:
         specifier: 6.0.3
         version: 6.0.3
@@ -416,7 +416,7 @@ importers:
         version: 4.6.0(eslint@9.1.0)
       vite:
         specifier: 5.0.13
-        version: 5.0.13(@types/node@20.12.7)(terser@5.30.4)
+        version: 5.0.13(@types/node@16.18.96)(terser@5.30.4)
 
   packages/hop-node:
     dependencies:
@@ -727,7 +727,7 @@ importers:
         version: 5.1.22
       '@vitejs/plugin-react':
         specifier: 4.2.1
-        version: 4.2.1(vite@5.0.13(@types/node@20.12.7)(terser@5.30.4))
+        version: 4.2.1(vite@5.0.13(@types/node@16.18.96)(terser@5.30.4))
       buffer:
         specifier: 6.0.3
         version: 6.0.3
@@ -739,10 +739,10 @@ importers:
         version: 4.6.0(eslint@9.1.0)
       vite:
         specifier: 5.0.13
-        version: 5.0.13(@types/node@20.12.7)(terser@5.30.4)
+        version: 5.0.13(@types/node@16.18.96)(terser@5.30.4)
       vite-plugin-svgr:
         specifier: 4.2.0
-        version: 4.2.0(rollup@4.16.1)(typescript@5.4.3)(vite@5.0.13(@types/node@20.12.7)(terser@5.30.4))
+        version: 4.2.0(rollup@4.16.1)(typescript@5.4.3)(vite@5.0.13(@types/node@16.18.96)(terser@5.30.4))
 
   packages/stats-worker:
     dependencies:
@@ -1173,6 +1173,9 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
+      qs:
+        specifier: 6.11.0
+        version: 6.11.0
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -19696,7 +19699,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 20.12.7
+      '@types/node': 16.18.96
 
   '@types/bn.js@5.1.5':
     dependencies:
@@ -19715,7 +19718,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 20.12.7
+      '@types/node': 16.18.96
       '@types/responselike': 1.0.3
 
   '@types/connect-history-api-fallback@1.5.4':
@@ -19851,7 +19854,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 20.12.7
+      '@types/node': 16.18.96
 
   '@types/level-codec@9.0.4': {}
 
@@ -19946,7 +19949,7 @@ snapshots:
 
   '@types/prompts@2.4.9':
     dependencies:
-      '@types/node': 20.12.7
+      '@types/node': 16.18.96
       kleur: 3.0.3
 
   '@types/prop-types@15.7.12': {}
@@ -20007,7 +20010,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 20.12.7
+      '@types/node': 16.18.96
 
   '@types/retry@0.12.0': {}
 
@@ -20583,6 +20586,17 @@ snapshots:
       '@openzeppelin/contracts': 3.4.1-solc-0.7-2
       '@uniswap/v3-core': 1.0.0
       '@uniswap/v3-periphery': 1.4.4
+
+  '@vitejs/plugin-react@4.2.1(vite@5.0.13(@types/node@16.18.96)(terser@5.30.4))':
+    dependencies:
+      '@babel/core': 7.24.4
+      '@babel/plugin-transform-react-jsx-self': 7.24.1(@babel/core@7.24.4)
+      '@babel/plugin-transform-react-jsx-source': 7.24.1(@babel/core@7.24.4)
+      '@types/babel__core': 7.20.5
+      react-refresh: 0.14.0
+      vite: 5.0.13(@types/node@16.18.96)(terser@5.30.4)
+    transitivePeerDependencies:
+      - supports-color
 
   '@vitejs/plugin-react@4.2.1(vite@5.0.13(@types/node@20.12.7)(terser@5.30.4))':
     dependencies:
@@ -30973,6 +30987,17 @@ snapshots:
       - supports-color
       - typescript
 
+  vite-plugin-svgr@4.2.0(rollup@4.16.1)(typescript@5.4.3)(vite@5.0.13(@types/node@16.18.96)(terser@5.30.4)):
+    dependencies:
+      '@rollup/pluginutils': 5.1.0(rollup@4.16.1)
+      '@svgr/core': 8.1.0(typescript@5.4.3)
+      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@5.4.3))
+      vite: 5.0.13(@types/node@16.18.96)(terser@5.30.4)
+    transitivePeerDependencies:
+      - rollup
+      - supports-color
+      - typescript
+
   vite-plugin-svgr@4.2.0(rollup@4.16.1)(typescript@5.4.3)(vite@5.0.13(@types/node@20.12.7)(terser@5.30.4)):
     dependencies:
       '@rollup/pluginutils': 5.1.0(rollup@4.16.1)
@@ -30983,6 +31008,16 @@ snapshots:
       - rollup
       - supports-color
       - typescript
+
+  vite@5.0.13(@types/node@16.18.96)(terser@5.30.4):
+    dependencies:
+      esbuild: 0.19.12
+      postcss: 8.4.38
+      rollup: 4.16.1
+    optionalDependencies:
+      '@types/node': 16.18.96
+      fsevents: 2.3.3
+      terser: 5.30.4
 
   vite@5.0.13(@types/node@20.12.7)(terser@5.30.4):
     dependencies:

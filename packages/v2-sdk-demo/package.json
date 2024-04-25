@@ -23,6 +23,7 @@
     "buffer": "^5.7.1",
     "ethers": "^5.6.8",
     "lodash": "^4.17.21",
+    "qs": "6.11.0",
     "react": "^18.2.0",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.2.0",
@@ -33,10 +34,10 @@
     "react-use": "^17.4.0",
     "styled-components": "^5.3.6",
     "styled-system": "^5.1.5",
+    "vite-plugin-svgr": "4.2.0",
     "wait": "^0.4.2",
     "web-vitals": "^2.1.4",
-    "zlib-browserify": "^0.0.3",
-    "vite-plugin-svgr": "4.2.0"
+    "zlib-browserify": "^0.0.3"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.198",
@@ -45,11 +46,11 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/react-syntax-highlighter": "^15.5.5",
     "@types/styled-system": "^5.1.17",
+    "@vitejs/plugin-react": "4.2.1",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
     "eslint-plugin-react-refresh": "0.4.5",
     "lerna-sync-version": "^0.0.6",
-    "@vitejs/plugin-react": "4.2.1",
     "vite": "5.0.8"
   },
   "scripts": {

@@ -1,5 +1,7 @@
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
-import { keccak256 } from 'ethers/lib/utils.js'
+import { utils } from 'ethers'
+
+const { keccak256 } = utils
 
 export class MerkleTree extends MerkleTreeLib {
   constructor (messageIds: string[]) {

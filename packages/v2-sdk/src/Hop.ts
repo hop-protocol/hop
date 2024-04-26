@@ -107,7 +107,7 @@ export class Hop extends Base {
     return keys.map((chainId: string) => Number(chainId))
   }
 
-  async getHubConnectorContractAddress (chainId: BigNumberish): Promise<string> {
+  getHubConnectorContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`Invalid chainId: ${chainId}`)
     }
@@ -115,7 +115,7 @@ export class Hop extends Base {
     return this.hubConnector.getHubConnectorContractAddress(chainId)
   }
 
-  async getRailsGatewayContractAddress (chainId: BigNumberish): Promise<string> {
+  getRailsGatewayContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`Invalid chainId: ${chainId}`)
     }
@@ -123,7 +123,7 @@ export class Hop extends Base {
     return this.railsGateway.getRailsGatewayContractAddress(chainId)
   }
 
-  async getNftBridgeContractAddress (chainId: BigNumberish): Promise<string> {
+  getNftBridgeContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`Invalid chainId: ${chainId}`)
     }
@@ -301,79 +301,79 @@ export class Hop extends Base {
     const map : any = {}
     for (const eventName of eventNames) {
       if (eventName === 'BundleCommitted') {
-        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'BundleForwared') {
-        const address = await this.messenger.getHubMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getHubMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'BundleReceived') {
-        const address = await this.messenger.getHubMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getHubMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'BundleSet') {
-        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'FeesSentToHub') {
-        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'MessageBundled') {
-        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'MessageExecuted') {
-        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'MessageSent') {
-        const address = await this.messenger.getSpokeMessageBridgeContractAddress(chainId)
+        const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
         const _eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'ConfirmationSent') { // nft
-        const address = await this.getNftBridgeContractAddress(chainId)
+        const address = this.getNftBridgeContractAddress(chainId)
         const _eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TokenConfirmed') { // nft
-        const address = await this.getNftBridgeContractAddress(chainId)
+        const address = this.getNftBridgeContractAddress(chainId)
         const _eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TokenSent') { // nft
-        const address = await this.getNftBridgeContractAddress(chainId)
+        const address = this.getNftBridgeContractAddress(chainId)
         const _eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TransferSent') { // RailsGateway
-        const address = await this.getRailsGatewayContractAddress(chainId)
+        const address = this.getRailsGatewayContractAddress(chainId)
         const _eventFetcher = new TransferSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)
         map[filter?.topics?.[0] as string] = _eventFetcher
       } else if (eventName === 'TransferBonded') { // RailsGateway
-        const address = await this.getRailsGatewayContractAddress(chainId)
+        const address = this.getRailsGatewayContractAddress(chainId)
         const _eventFetcher = new TransferBondedEventFetcher(provider, chainId, this.batchBlocks as any, address)
         const filter = _eventFetcher.getFilter()
         filters.push(filter)

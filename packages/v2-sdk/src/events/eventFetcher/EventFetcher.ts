@@ -1,7 +1,8 @@
 import { Filter } from '@ethersproject/abstract-provider'
-import { getAddress } from 'ethers/lib/utils.js'
 import { promiseQueue } from '@hop-protocol/sdk-core'
-import { providers } from 'ethers'
+import { providers, utils } from 'ethers'
+
+const { getAddress: checksumAddress } = utils
 
 const DefaultBatchBlocks = 2000
 
@@ -81,13 +82,13 @@ export class EventFetcher {
 
     if (filters.length === 1) {
       const filter = filters[0]
-      const address = getAddress(filter.address)
+      const address = checksumAddress(filter.address)
       filter.address = address
       filtersByAddress[address] = filter
     } else if (filters.length > 1) {
       for (const filter of filters) {
         if (filter.address) {
-          const address = getAddress(filter.address)
+          const address = checksumAddress(filter.address)
           if (!filtersByAddress[address]) {
             filtersByAddress[address] = {}
           }

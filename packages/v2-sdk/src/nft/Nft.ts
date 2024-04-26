@@ -1,10 +1,11 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { Interface } from 'ethers/lib/utils.js'
-import { Signer, BigNumberish } from 'ethers'
+import { Signer, BigNumberish, utils } from 'ethers'
 import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
 import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
 import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
 import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
+
+const { Interface } = utils
 
 type GetEventsInput = {
   chainId: BigNumberish

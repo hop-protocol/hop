@@ -1,7 +1,8 @@
-import { providers } from 'ethers'
+import { providers, utils } from 'ethers'
 import { L1_xDaiAMB__factory } from '#contracts/factories/L1_xDaiAMB__factory.js'
 import { L2_xDaiAMB__factory } from '#contracts/factories/L2_xDaiAMB__factory.js'
-import { solidityKeccak256 } from 'ethers/lib/utils.js'
+
+const { solidityKeccak256 } = utils
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149

@@ -236,7 +236,7 @@ export class RailsGateway extends StakingRegistry {
     return events
   }
 
-  async getRailsGatewayContractAddress (chainId: BigNumberish): Promise<string> {
+  getRailsGatewayContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`Invalid chainId "${chainId}"`)
     }
@@ -249,7 +249,7 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Invalid chainId "${chainId}"`)
     }
 
-    const address = await this.getRailsGatewayContractAddress(chainId)
+    const address = this.getRailsGatewayContractAddress(chainId)
     const provider = this.getRpcProviderForChainId(chainId)
     const contract = RailsGateway__factory.connect(address, provider)
     return contract
@@ -744,7 +744,7 @@ export class RailsGateway extends StakingRegistry {
       throw new Error('Insufficient balance ')
     }
 
-    const address = await this.getRailsGatewayContractAddress(chainId)
+    const address = this.getRailsGatewayContractAddress(chainId)
     const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')
@@ -785,7 +785,7 @@ export class RailsGateway extends StakingRegistry {
       throw new Error('Insufficient balance')
     }
 
-    const address = await this.getRailsGatewayContractAddress(chainId)
+    const address = this.getRailsGatewayContractAddress(chainId)
     const approved = await tokenContract.allowance(signerAddress, address)
     if (approved.lt(amount)) {
       throw new Error('Insufficient approval')

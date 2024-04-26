@@ -1,5 +1,5 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { BigNumber, BigNumberish, Signer, providers } from 'ethers'
+import { BigNumber, BigNumberish, Signer, providers, utils } from 'ethers'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
@@ -13,8 +13,9 @@ import { MessageExecuted, MessageExecutedEventFetcher } from '#messenger/events/
 import { MessageSent, MessageSentEventFetcher } from '#messenger/events/MessageSent.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 import { FeesSentToHub, FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
-import { formatEther, formatUnits, getAddress, parseEther } from 'ethers/lib/utils.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
+
+const { formatEther, formatUnits, parseEther } = utils
 
 type GetEventsInput = {
   chainId: number

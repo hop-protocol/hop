@@ -1,8 +1,9 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { BigNumberish, Signer, providers } from 'ethers'
+import { BigNumberish, Signer, providers, utils } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
-import { getAddress } from 'ethers/lib/utils.js'
 import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
+
+const { getAddress: checksumAddress } = utils
 
 export type GetEventsInput = {
   chainId: BigNumberish
@@ -38,7 +39,7 @@ export class HubConnector extends Base {
         if (!provider) {
           throw new Error(`Provider not found for chainId: ${hubChainId}`)
         }
-        const address = await this.getHubConnectorContractAddress(hubChainId)
+        const address = this.getHubConnectorContractAddress(hubChainId)
         const signer = await this.getSignerOrProvider(hubChainId)
         const factory = HubERC5164ConnectorFactory__factory.connect(address, signer)
         const txData = await (factory as any).populateTransaction.deployConnectors(hubChainId, target1, spokeChainId, target2)
@@ -67,11 +68,11 @@ export class HubConnector extends Base {
     const event = receipt.events?.find(
       (event: any) => event.event === 'ConnectorDeployed'
     )
-    const connectorAddress = getAddress(event?.args?.connector)
+    const connectorAddress = checksumAddress(event?.args?.connector)
     return connectorAddress
   }
 
-  async getHubConnectorContractAddress (chainId: BigNumberish): Promise<string> {
+  getHubConnectorContractAddress (chainId: BigNumberish): string {
     return this.getConfigAddress(chainId, 'hubConnectorFactory')
   }
 
@@ -90,7 +91,7 @@ export class HubConnector extends Base {
     if (!provider) {
       throw new Error(`Provider not found for chainId: ${chainId}`)
     }
-    const address = await this.getHubConnectorContractAddress(chainId)
+    const address = this.getHubConnectorContractAddress(chainId)
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }

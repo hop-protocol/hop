@@ -1,8 +1,9 @@
-import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
-import { getAddress as checksumAddress } from 'ethers/lib/utils'
+import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
 import { getProviderFromUrl, rateLimitRetry, networks, metadata } from '@hop-protocol/sdk-core'
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
+
+const { getAddress: checksumAddress } = utils
 
 type Provider = providers.Provider
 
@@ -132,6 +133,15 @@ export class Base {
 
     const address = this.contractAddresses?.[chainId?.toString()]?.[key]
     return address
+  }
+
+  getConfigStartBlock (chainId: BigNumberish): number {
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+
+    const startBlock = this.contractAddresses?.[chainId?.toString()]?.startBlock
+    return startBlock
   }
 
   getRpcProviderForChainId (chainId: BigNumberish): Provider {

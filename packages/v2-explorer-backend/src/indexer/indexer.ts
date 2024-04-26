@@ -1,9 +1,10 @@
 import { wait } from '#utils/wait.js'
-// import { Hop } from '@hop-protocol/v2-sdk'
+import { Hop } from '@hop-protocol/v2-sdk'
 import { SyncStateDb } from '#db/syncStateDb/index.js'
 import { db } from '#db/index.js'
 import { dbPath } from '#config/index.js'
 import { pgDb } from '#pgDb/index.js'
+import { network } from '#config/index.js'
 
 type StartBlocks = {
   [chainId: string]: number
@@ -24,16 +25,11 @@ type Options = {
 export const defaultPollSeconds = 10
 
 export class Indexer {
-  // TODO: fix sdk
-  // sdk: Hop
-  sdk: any
+  sdk: Hop
   pollIntervalMs: number = defaultPollSeconds * 1000
   startBlocks: StartBlocks = {}
   endBlocks: EndBlocks = {}
-  chainIds: any = {
-    11155111: true, // sepolia
-    84532: true // sepolia base
-  }
+  chainIds: Record<string, boolean> = {}
 
   paused: boolean = false
   syncIndex: number = 0
@@ -45,14 +41,16 @@ export class Indexer {
     if (options?.pollIntervalSeconds) {
       this.pollIntervalMs = options?.pollIntervalSeconds * 1000
     }
-    // TODO: fix sdk
-    // this.sdk = new Hop({
-    //   network: 'sepolia,
-    //   batchBlocks: 10_000,
-    //   contractAddresses: options?.sdkContractAddresses ?? sdkContractAddresses
-    // })
+    this.sdk = new Hop({
+      network,
+      batchBlocks: 10_000,
+      contractAddresses: options?.sdkContractAddresses
+    })
     if (options?.startBlocks) {
       this.startBlocks = options.startBlocks
+    }
+    for (const chainId in this.startBlocks) {
+      this.chainIds[chainId] = true
     }
     for (const chainId in this.chainIds) {
       this.startBlocks[chainId] = this.startBlocks[chainId] ?? 0
@@ -136,9 +134,7 @@ export class Indexer {
       const syncState = await _db.getSyncState(chainId)
       console.log('syncState', chainId, syncState)
 
-      // TODO: fix sdk
-      // const provider = this.sdk.getRpcProvider(chainId)
-      const provider : any = null
+      const provider = this.sdk.getRpcProviderForChainId(chainId)
       let fromBlock = this.startBlocks[chainId]
       let headBlock = await provider.getBlockNumber()
       if (this.endBlocks[chainId]) {
@@ -151,9 +147,7 @@ export class Indexer {
       }
 
       console.log('get', eventNames, chainId, fromBlock, toBlock)
-      // TODO: fix sdk
-      // const events = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock })
-      const events : any[] = []
+      const events = await this.sdk.getEvents({ eventNames, chainId, fromBlock, toBlock })
       console.log('events', eventNames, events.length)
       for (const event of events) {
         console.log('event', event)

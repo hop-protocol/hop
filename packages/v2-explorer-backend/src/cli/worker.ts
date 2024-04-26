@@ -13,7 +13,7 @@ export const workerProgram = root
     parseBool
   )
   .option(
-    '--server [boolean]',
+    '--api-server [boolean]',
     'Start the api server',
     parseBool
   )
@@ -25,20 +25,21 @@ export const workerProgram = root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { dry: dryMode, server: startServer, indexerPollSeconds } = source
+  const { dry: dryMode, apiServer, indexerPollSeconds } = source
 
   console.log('starting worker')
   console.log('dryMode:', !!dryMode)
-  console.log('server:', !!startServer)
+  console.log('apiServer:', !!apiServer)
   console.log('indexerPollSeconds:', indexerPollSeconds || 'default')
 
-  if (startServer) {
+  if (apiServer) {
     server()
   }
 
   const worker = new Worker({
     indexerPollSeconds
   })
+
   await worker.start()
   while (true) {
     await wait(1000)

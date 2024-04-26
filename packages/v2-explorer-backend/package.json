@@ -35,8 +35,7 @@
     "clean:db": "rm -rf test-db"
   },
   "dependencies": {
-    "@hop-protocol/v2-core": "0.0.0-beta.5",
-    "@hop-protocol/v2-sdk": "0.0.0-beta.21",
+    "@hop-protocol/v2-sdk": "workspace:*",
     "async-mutex": "0.3.2",
     "commander": "6.2.1",
     "cors": "2.8.5",

@@ -199,15 +199,11 @@ export function SendMessage (props: Props) {
       setLoading(true)
       const txData = await getSendTxData()
       setTxData(JSON.stringify(txData, null, 2))
-      const fee = await sdk.messenger.getMessageFee({ fromChainId, toChainId })
       if (!populateTxDataOnly) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await signer.sendTransaction({
-          ...txData,
-          value: fee
-        })
+        const tx = await signer.sendTransaction(txData)
         setTxHash(tx.hash)
 
         const receipt = await tx.wait()
@@ -246,15 +242,11 @@ async function main() {
   'console.log(txData)'
   ) : (
   `
-  const fee = await hop.messenger.getMessageFee({ fromChainId, toChainId })
   const provider = new ethers.providers.Web3Provider(
     window.ethereum
   )
   const signer = provider.getSigner()
-  const tx = await signer.sendTransaction({
-    ...txData,
-    value: fee
-  })
+  const tx = await signer.sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

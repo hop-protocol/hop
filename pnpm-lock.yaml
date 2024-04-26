@@ -813,12 +813,9 @@ importers:
 
   packages/v2-explorer-backend:
     dependencies:
-      '@hop-protocol/v2-core':
-        specifier: 0.0.0-beta.5
-        version: 0.0.0-beta.5(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@hop-protocol/v2-sdk':
-        specifier: 0.0.0-beta.21
-        version: 0.0.0-beta.21(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@20.12.7)(bufferutil@4.0.8)(encoding@0.1.13)(ts-node@10.7.0(@types/node@20.12.7)(typescript@5.4.3))(typescript@5.4.3)(utf-8-validate@5.0.10)
+        specifier: workspace:*
+        version: link:../v2-sdk
       async-mutex:
         specifier: 0.3.2
         version: 0.3.2

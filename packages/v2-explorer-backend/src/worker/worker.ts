@@ -1,6 +1,6 @@
 // import { Hop } from '@hop-protocol/v2-sdk'
 import { Indexer } from '#indexer/index.js'
-import { goerliAddresses } from '@hop-protocol/v2-core/addresses'
+import { addresses } from '@hop-protocol/v2-sdk'
 
 export type Options = {
   indexerPollSeconds?: number
@@ -17,12 +17,12 @@ export class Worker {
 
   constructor (options: Options = {}) {
     // TODO: fix sdk
-    // this.sdk = new Hop('goerli')
+    // this.sdk = new Hop({ network: 'sepolia' })
     this.indexer = new Indexer({
       pollIntervalSeconds: options.indexerPollSeconds,
       startBlocks: {
-        5: goerliAddresses['5'].startBlock,
-        420: goerliAddresses['420'].startBlock
+        11155111: addresses.sepolia['11155111'].startBlock,
+        84532: addresses.sepolia['84532'].startBlock
       }
     })
   }

@@ -4,6 +4,7 @@ import { db } from '#db/index.js'
 import { getTransactionHashExplorerUrl } from '#utils/getTransactionHashExplorerUrl.js'
 import { pgDb } from '#pgDb/index.js'
 import { truncateString } from '#utils/truncateString.js'
+import { chainNames } from '#config/index.js'
 
 type EventsResult = {
   items: any[]
@@ -28,13 +29,6 @@ export class Controller {
     const { eventName, limit = 10, filter, page = 1 } = input
 
     const { items, hasNextPage } = await this.getEvents({ eventName, limit, page, filter })
-
-    const chainNames: any = {
-      1: 'Ethereum (Mainnet)',
-      10: 'Optimism (Mainnet)',
-      420: 'Optimism (Goerli)',
-      5: 'Ethereum (Goerli)'
-    }
 
     for (const item of items) {
       if (item.messageId) {
@@ -99,13 +93,6 @@ export class Controller {
     const items = await this.pgDb.events[eventName].getItems({ limit, filter, page })
     const itemsNext = await this.pgDb.events[eventName].getItems({ limit, filter, page: Number(page) + 1 })
     const hasNextPage = itemsNext.length > 0
-
-    const chainNames: any = {
-      1: 'Ethereum (Mainnet)',
-      10: 'Optimism (Mainnet)',
-      420: 'Optimism (Goerli)',
-      5: 'Ethereum (Goerli)'
-    }
 
     for (const item of items) {
       if (item.messageId) {

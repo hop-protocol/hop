@@ -31,8 +31,8 @@ export class Indexer {
   startBlocks: StartBlocks = {}
   endBlocks: EndBlocks = {}
   chainIds: any = {
-    5: true, // goerli
-    420: true // goerli optimism
+    11155111: true, // sepolia
+    84532: true // sepolia base
   }
 
   paused: boolean = false
@@ -46,7 +46,8 @@ export class Indexer {
       this.pollIntervalMs = options?.pollIntervalSeconds * 1000
     }
     // TODO: fix sdk
-    // this.sdk = new Hop('goerli', {
+    // this.sdk = new Hop({
+    //   network: 'sepolia,
     //   batchBlocks: 10_000,
     //   contractAddresses: options?.sdkContractAddresses ?? sdkContractAddresses
     // })

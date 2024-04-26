@@ -5,7 +5,7 @@ export function getProvider (network: string, chainId: number) {
   const rpcUrl : string = (networks as any)[network]?.[chainId]?.publicRpcUrl
 
   if (!rpcUrl) {
-    throw new Error(`Invalid network ${network} or chainId: ${chainId}`)
+    throw new Error(`Invalid network ${network} or chainId: ${chainId}, rpcUrl not found`)
   }
 
   return new providers.JsonRpcProvider(rpcUrl)

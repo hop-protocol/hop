@@ -1,22 +1,16 @@
-import { BaseType } from './BaseType.js'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
+import { BaseType, EventDb } from '../BaseType.js'
+import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface BundleForwared extends BaseType {
   bundleId: string
   bundleRoot: string
-  fromChainId: number
-  toChainId: number
+  fromChainId: string
+  toChainId: string
 }
 
-export class BundleForwarded {
-  db: any
-
-  constructor (db: any) {
-    this.db = db
-  }
-
-  async createTable () {
+export class BundleForwardedTable extends EventDb {
+  override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS bundle_forwarded_events (
         id TEXT PRIMARY KEY,
         bundle_id VARCHAR NOT NULL UNIQUE,
@@ -27,7 +21,7 @@ export class BundleForwarded {
     )`)
   }
 
-  async createIndexes () {
+  override async createIndexes () {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_forwareded_events_bundle_id ON bundle_forwarded_events (bundle_id);'
     )
@@ -36,7 +30,7 @@ export class BundleForwarded {
     )
   }
 
-  async getItems (opts: any = {}) {
+  override async getItems (opts: any = {}) {
     const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000), limit = 10, page = 1, filter } = opts
     let offset = (page - 1) * limit
     if (offset < 0) {
@@ -76,7 +70,7 @@ export class BundleForwarded {
     return getItemsWithContext(items)
   }
 
-  async upsertItem (item: any) {
+  override async upsertItem (item: any) {
     const { bundleId, bundleRoot, fromChainId, toChainId, context } = item
     const args = [
       uuid(), bundleId, bundleRoot, fromChainId, toChainId,

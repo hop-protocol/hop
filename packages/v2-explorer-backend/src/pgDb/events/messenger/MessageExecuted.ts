@@ -1,20 +1,14 @@
-import { BaseType } from './BaseType.js'
-import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
+import { BaseType, EventDb } from '../BaseType.js'
+import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface MessageExecuted extends BaseType {
   messageId: string
-  fromChainId: number
+  fromChainId: string
 }
 
-export class MessageExecuted {
-  db: any
-
-  constructor (db: any) {
-    this.db = db
-  }
-
-  async createTable () {
+export class MessageExecutedTable extends EventDb {
+  override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS message_executed_events (
         id TEXT PRIMARY KEY,
         message_id VARCHAR NOT NULL UNIQUE,
@@ -23,13 +17,13 @@ export class MessageExecuted {
     )`)
   }
 
-  async createIndexes () {
+  override async createIndexes () {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_message_executed_events_message_id ON message_executed_events (message_id);'
     )
   }
 
-  async getItems (opts: any = {}) {
+  override async getItems (opts: any = {}) {
     const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000), limit = 10, page = 1, filter } = opts
     let offset = (page - 1) * limit
     if (offset < 0) {
@@ -66,7 +60,7 @@ export class MessageExecuted {
     return getItemsWithContext(items)
   }
 
-  async upsertItem (item: any) {
+  override async upsertItem (item: any) {
     const { messageId, fromChainId, context } = item
     const args = [
       uuid(), messageId, fromChainId,

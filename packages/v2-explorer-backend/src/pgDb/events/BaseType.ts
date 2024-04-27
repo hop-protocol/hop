@@ -1,6 +1,6 @@
 export type EventContext = {
   chainSlug: string
-  chainId: number
+  chainId: string
   transactionHash: string
   transactionIndex: number
   logIndex: number
@@ -21,4 +21,27 @@ export type BaseType = {
   timestamp: number
 
   context: EventContext
+}
+
+export abstract class EventDb {
+  db: any
+  constructor (db: any) {
+    this.db = db
+  }
+
+  async createTable(): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
+  async createIndexes (): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
+  async getItems (opts: any): Promise<any[]> {
+    throw new Error('Not implemented')
+  }
+
+  async upsertItem (item: any): Promise<void> {
+    throw new Error('Not implemented')
+  }
 }

@@ -1,19 +1,22 @@
 import minimist from 'minimist'
 import pgp from 'pg-promise'
-import { BundleCommitted } from './events/BundleCommitted.js'
-import { BundleForwarded } from './events/BundleForwarded.js'
-import { BundleReceived } from './events/BundleReceived.js'
-import { BundleSet } from './events/BundleSet.js'
-import { FeesSentToHub } from './events/FeesSentToHub.js'
-import { MessageBundled } from './events/MessageBundled.js'
-import { MessageExecuted } from './events/MessageExecuted.js'
-import { MessageSent } from './events/MessageSent.js'
+import { BundleCommittedTable } from './events/messenger/BundleCommitted.js'
+import { BundleForwardedTable } from './events/messenger/BundleForwarded.js'
+import { BundleReceivedTable } from './events/messenger/BundleReceived.js'
+import { BundleSetTable } from './events/messenger/BundleSet.js'
+import { FeesSentToHubTable } from './events/messenger/FeesSentToHub.js'
+import { MessageBundledTable } from './events/messenger/MessageBundled.js'
+import { MessageExecutedTable } from './events/messenger/MessageExecuted.js'
+import { MessageSentTable } from './events/messenger/MessageSent.js'
+import { TransferSentTable } from './events/railsGateway/TransferSent.js'
+import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
 import { postgresConfig } from '#config/index.js'
+import { Pgp } from './pgDbTypes.js'
 
 const argv = minimist(process.argv.slice(2))
 
 export class PgDb {
-  db: any
+  db: Pgp
   events: any = {}
 
   constructor () {
@@ -27,14 +30,16 @@ export class PgDb {
     this.db = db
 
     this.events = {
-      BundleCommitted: new BundleCommitted(this.db),
-      BundleForwarded: new BundleForwarded(this.db),
-      BundleReceived: new BundleReceived(this.db),
-      BundleSet: new BundleSet(this.db),
-      FeesSentToHub: new FeesSentToHub(this.db),
-      MessageBundled: new MessageBundled(this.db),
-      MessageExecuted: new MessageExecuted(this.db),
-      MessageSent: new MessageSent(this.db)
+      BundleCommitted: new BundleCommittedTable(this.db),
+      BundleForwarded: new BundleForwardedTable(this.db),
+      BundleReceived: new BundleReceivedTable(this.db),
+      BundleSet: new BundleSetTable(this.db),
+      FeesSentToHub: new FeesSentToHubTable(this.db),
+      MessageBundled: new MessageBundledTable(this.db),
+      MessageExecuted: new MessageExecutedTable(this.db),
+      MessageSent: new MessageSentTable(this.db),
+      TransferSent: new TransferSentTable(this.db),
+      TransferBonded: new TransferBondedTable(this.db),
     }
 
     this.init().catch((err: any) => {

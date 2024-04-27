@@ -1,5 +1,4 @@
 export const contextSqlCreation = `
-  _chain_slug VARCHAR,
   _chain_id VARCHAR,
   _transaction_hash VARCHAR,
   _transaction_index INTEGER,
@@ -17,7 +16,6 @@ export const contextSqlCreation = `
 `
 
 export const contextSqlSelect = `
-  _chain_slug AS "chainSlug",
   _chain_id AS "chainId",
   _transaction_hash AS "transactionHash",
   _transaction_index AS "transactionIndex",
@@ -35,7 +33,6 @@ export const contextSqlSelect = `
 `
 
 export const contextSqlInsert = `
-  _chain_slug,
   _chain_id,
   _transaction_hash,
   _transaction_index,
@@ -54,7 +51,6 @@ export const contextSqlInsert = `
 
 export function getOrderedInsertContextArgs (context: any) {
   return [
-    context?.chainSlug,
     context?.chainId,
     context?.transactionHash,
     context?.transactionIndex,
@@ -77,7 +73,6 @@ export function getItemsWithContext (items: any[]) {
     return {
       ...x,
       context: {
-        chainSlug: x.chainSlug,
         chainId: x.chainId,
         transactionHash: x.transactionHash,
         transactionIndex: x.transactionIndex,

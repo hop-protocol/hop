@@ -1,20 +1,14 @@
-import { BaseType } from './BaseType.js'
+import { BaseType, EventDb } from '../BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
+import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface FeesSentToHub extends BaseType {
   amount: BigNumber
 }
 
-export class FeesSentToHub {
-  db: any
-
-  constructor (db: any) {
-    this.db = db
-  }
-
-  async createTable () {
+export class FeesSentToHubTable extends EventDb {
+  override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS fees_sent_to_hub_events (
         id TEXT PRIMARY KEY,
         amount NUMERIC NOT NULL,
@@ -22,11 +16,9 @@ export class FeesSentToHub {
     )`)
   }
 
-  async createIndexes () {
+  override async createIndexes () {}
 
-  }
-
-  async getItems (opts: any = {}) {
+  override async getItems (opts: any = {}) {
     const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000), limit = 10, page = 1 } = opts
     let offset = (page - 1) * limit
     if (offset < 0) {
@@ -51,8 +43,8 @@ export class FeesSentToHub {
     return getItemsWithContext(items)
   }
 
-  async upsertItem (item: any) {
-    const { amount, context } = this.normalizeDataForPut(item)
+  override async upsertItem (item: any) {
+    const { amount, context } = this.#normalizeDataForPut(item)
     const args = [
       uuid(), amount,
       ...getOrderedInsertContextArgs(context)
@@ -67,7 +59,7 @@ export class FeesSentToHub {
     )
   }
 
-  normalizeDataForGet (getData: Partial<FeesSentToHub>): Partial<FeesSentToHub> {
+  #normalizeDataForGet (getData: Partial<FeesSentToHub>): Partial<FeesSentToHub> {
     if (!getData) {
       return getData
     }
@@ -80,7 +72,7 @@ export class FeesSentToHub {
     return data
   }
 
-  normalizeDataForPut (putData: Partial<FeesSentToHub>): Partial<FeesSentToHub> {
+  #normalizeDataForPut (putData: Partial<FeesSentToHub>): Partial<FeesSentToHub> {
     const data = Object.assign({}, putData) as any
     if (data.amount && typeof data.amount !== 'string') {
       data.amount = data.amount.toString()

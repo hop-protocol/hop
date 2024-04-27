@@ -1,21 +1,15 @@
-import { BaseType } from './BaseType.js'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
+import { BaseType, EventDb } from '../BaseType.js'
+import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface BundleSet extends BaseType {
   bundleId: string
   bundleRoot: string
-  fromChainId: number
+  fromChainId: string
 }
 
-export class BundleSet {
-  db: any
-
-  constructor (db: any) {
-    this.db = db
-  }
-
-  async createTable () {
+export class BundleSetTable extends EventDb {
+  override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS bundle_set_events (
         id TEXT PRIMARY KEY,
         bundle_id VARCHAR NOT NULL UNIQUE,
@@ -25,7 +19,7 @@ export class BundleSet {
     )`)
   }
 
-  async createIndexes () {
+  override async createIndexes () {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_set_events_bundle_id ON bundle_set_events (bundle_id);'
     )
@@ -34,7 +28,7 @@ export class BundleSet {
     )
   }
 
-  async getItems (opts: any = {}) {
+  override async getItems (opts: any = {}) {
     const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000), limit = 10, page = 1, filter } = opts
     let offset = (page - 1) * limit
     if (offset < 0) {
@@ -74,7 +68,7 @@ export class BundleSet {
     return getItemsWithContext(items)
   }
 
-  async upsertItem (item: any) {
+  override async upsertItem (item: any) {
     const { bundleId, bundleRoot, fromChainId, context } = item
     const args = [
       uuid(), bundleId, bundleRoot, fromChainId,

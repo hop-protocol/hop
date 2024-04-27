@@ -1,54 +1,45 @@
-import { BaseType } from './BaseType.js'
+import { BaseType, EventDb } from '../BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from './context.js'
+import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
-export interface BundleReceived extends BaseType {
+export interface BundleCommitted extends BaseType {
   bundleId: string
   bundleRoot: string
   bundleFees: BigNumber
-  fromChainId: number
-  toChainId: number
-  relayWindowStart: number
-  relayer: string
+  toChainId: string
+  commitTime: number
 }
 
-export class BundleReceived {
-  db: any
-
-  constructor (db: any) {
-    this.db = db
-  }
-
-  async createTable () {
-    await this.db.query(`CREATE TABLE IF NOT EXISTS bundle_received_events (
+export class BundleCommittedTable extends EventDb {
+  override async createTable () {
+    await this.db.query(`CREATE TABLE IF NOT EXISTS bundle_committed_events (
         id TEXT PRIMARY KEY,
         bundle_id VARCHAR NOT NULL UNIQUE,
         bundle_root VARCHAR NOT NULL UNIQUE,
         bundle_fees NUMERIC NOT NULL,
-        from_chain_id VARCHAR NOT NULL,
         to_chain_id VARCHAR NOT NULL,
-        relay_window_start INTEGER NOT NULL,
-        relayer VARCHAR NOT NULL,
+        commit_time INTEGER NOT NULL,
         ${contextSqlCreation}
     )`)
   }
 
-  async createIndexes () {
+  override async createIndexes () {
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_received_events_bundle_id ON bundle_received_events (bundle_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_committed_events_bundle_id ON bundle_committed_events (bundle_id);'
     )
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_received_events_bundle_root ON bundle_received_events (bundle_root);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_bundle_committed_events_bundle_root ON bundle_committed_events (bundle_root);'
     )
   }
 
-  async getItems (opts: any = {}) {
+  override async getItems (opts: any = {}) {
     const { startTimestamp = 0, endTimestamp = Math.floor(Date.now() / 1000), limit = 10, page = 1, filter } = opts
     let offset = (page - 1) * limit
     if (offset < 0) {
       offset = 0
     }
+
     const args = [startTimestamp, endTimestamp, limit, offset]
     if (filter?.bundleId) {
       args.push(filter.bundleId)
@@ -62,13 +53,11 @@ export class BundleReceived {
         bundle_id AS "bundleId",
         bundle_root AS "bundleRoot",
         bundle_fees AS "bundleFees",
-        from_chain_id AS "fromChainId",
         to_chain_id AS "toChainId",
-        relay_window_start AS "relayWindowStart",
-        relayer,
+        commit_time AS "commitTime",
         ${contextSqlSelect}
       FROM
-        bundle_received_events
+        bundle_committed_events
       WHERE
         _block_timestamp >= $1
         AND
@@ -86,26 +75,26 @@ export class BundleReceived {
     return getItemsWithContext(items)
   }
 
-  async upsertItem (item: any) {
-    const { bundleId, bundleRoot, bundleFees, fromChainId, toChainId, relayWindowStart, relayer, context } = this.normalizeDataForPut(item)
+  override async upsertItem (item: any) {
+    const { bundleId, bundleRoot, bundleFees, toChainId, commitTime, context } = this.#normalizeDataForPut(item)
     const args = [
-      uuid(), bundleId, bundleRoot, bundleFees, fromChainId, toChainId, relayWindowStart, relayer,
+      uuid(), bundleId, bundleRoot, bundleFees, toChainId, commitTime,
       ...getOrderedInsertContextArgs(context)
     ]
     await this.db.query(
       `INSERT INTO
-        bundle_received_events
+        bundle_committed_events
       (
-        id, bundle_id, bundle_root, bundle_fees, from_chain_id, to_chain_id, relay_window_start, relayer,
+        id, bundle_id, bundle_root, bundle_fees, to_chain_id, commit_time,
         ${contextSqlInsert}
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       ON CONFLICT (bundle_id)
-      DO UPDATE SET _block_timestamp = $15, _transaction_hash = $11`, args
+      DO UPDATE SET _block_timestamp = $13, _transaction_hash = $9`, args
     )
   }
 
-  normalizeDataForGet (getData: Partial<BundleReceived>): Partial<BundleReceived> {
+  #normalizeDataForGet (getData: Partial<BundleCommitted>): Partial<BundleCommitted> {
     if (!getData) {
       return getData
     }
@@ -116,7 +105,7 @@ export class BundleReceived {
     return data
   }
 
-  normalizeDataForPut (putData: Partial<BundleReceived>): Partial<BundleReceived> {
+  #normalizeDataForPut (putData: Partial<BundleCommitted>): Partial<BundleCommitted> {
     const data = Object.assign({}, putData) as any
     if (data.bundleFees && typeof data.bundleFees !== 'string') {
       data.bundleFees = data.bundleFees.toString()

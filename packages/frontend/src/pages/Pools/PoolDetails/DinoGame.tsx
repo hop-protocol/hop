@@ -186,7 +186,7 @@ export function DinoGame() {
       document.body.classList.add('no-scroll')
       if (!play) {
         setPlay(true)
-        const runner = new (window as any).Runner('.interstitial-wrapper') // eslint-disable-line
+        const runner = new (window as any).Runner('.interstitial-wrapper')  
         const el: any = document.querySelector('.interstitial-wrapper')
         if (el) {
           el.style.paddingTop = '100px'

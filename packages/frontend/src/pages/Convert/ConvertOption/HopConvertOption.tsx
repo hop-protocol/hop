@@ -67,10 +67,14 @@ class HopConvertOption extends ConvertOption {
       recipient = customRecipient
     }
 
-    const isUsdceWithdrawal = l1TokenSymbol === 'USDC.e' && destNetwork?.slug === ChainSlug.Ethereum
+    // note: usdc.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    const isUsdceWithdrawal = l1TokenSymbol === 'USDC.e' && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
     if (isUsdceWithdrawal) {
       if (BigNumber.from(bonderFee ?? 0).eq(0)) {
-        bonderFee = await bridge.getBonderFeeAbsolute(sourceNetwork?.slug, destNetwork?.slug)
+        const isHTokenSend = true
+        const relativeFee = await bridge.getBonderFeeRelative(amountIn, sourceNetwork?.slug, destNetwork?.slug, isHTokenSend)
+        const absoluteFee = await bridge.getBonderFeeAbsolute(sourceNetwork?.slug, destNetwork?.slug)
+        bonderFee = relativeFee.gt(absoluteFee) ? relativeFee : absoluteFee
       }
     }
 

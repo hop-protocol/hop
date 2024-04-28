@@ -2870,7 +2870,7 @@ export class HopBridge extends Base {
     return this.calcSwapAmountMulticall(chain, [TokenIndex.HopBridgeToken, TokenIndex.CanonicalToken], amountIns)
   }
 
-  private async getBonderFeeRelative (
+  async getBonderFeeRelative (
     amountIn: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Signer } from 'ethers'
 import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import { HighlightedButton } from '../HighlightedButton'
 import { CustomTextField } from '../CustomTextField'
+import { CustomTextArea } from '../CustomTextArea'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { Hop } from '@hop-protocol/v2-sdk'
@@ -19,8 +20,8 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsGatewayConfirmCheckpoint (props: Props) {
-  const cacheKey = 'railsGatewayConfirmCheckpoint'
+export function Execute (props: Props) {
+  const cacheKey = 'execute'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -33,18 +34,45 @@ export function RailsGatewayConfirmCheckpoint (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
-  const [pathId, setPathId] = useState(() => {
+  const [toChainId, setToChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:pathId`)
+      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return defaultChainIds.to
+  })
+  const [messageId, setMessageId] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:messageId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
     return ''
   })
-  const [checkpoint, setCheckpoint] = useState(() => {
+  const [fromAddress, setFromAddress] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:checkpoint`)
+      const cached = localStorage.getItem(`${cacheKey}:fromAddress`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
+  const [toAddress, setToAddress] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
+  const [toCalldata, setToCalldata] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:toCalldata`)
       if (cached) {
         return cached
       }
@@ -67,28 +95,55 @@ export function RailsGatewayConfirmCheckpoint (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:pathId`, pathId)
+      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
     } catch (err: any) {
       console.error(err)
     }
-  }, [pathId])
+  }, [toChainId])
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:checkpoint`, checkpoint)
+      localStorage.setItem(`${cacheKey}:messageId`, messageId)
     } catch (err: any) {
       console.error(err)
     }
-  }, [checkpoint])
+  }, [messageId])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${cacheKey}:fromAddress`, fromAddress)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [fromAddress])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [toAddress])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${cacheKey}:toCalldata`, toCalldata)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [toCalldata])
 
   async function getSendTxData() {
     const args = {
-      chainId: fromChainId,
-      pathId,
-      checkpoint
+      messageId,
+      fromChainId,
+      toChainId,
+      fromAddress,
+      toAddress,
+      toCalldata
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.confirmCheckpoint(args)
+    const txData = await sdk.messenger.populateTransaction.execute(args)
     return txData
   }
 
@@ -124,15 +179,21 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
-  const pathId = "${pathId}"
-  const checkpoint = "${checkpoint}"
+  const messageId = "${messageId}"
+  const fromChainId = ${fromChainId || 'undefined'}
+  const toChainId = ${toChainId || 'undefined'}
+  const fromAddress = "${fromAddress}"
+  const toAddress = "${toAddress}"
+  const toCalldata = "${toCalldata}"
 
-  const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.confirmCheckpoint({
-    chainId,
-    pathId,
-    checkpoint
+  const hop = new Hop({ network: '${network}' })
+  const txData = await hop.messenger.populateTransaction.execute({
+    messageId,
+    fromChainId,
+    toChainId,
+    fromAddress,
+    toAddress,
+    toCalldata
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -161,10 +222,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Confirm Checkpoint</Typography>
+        <Typography variant="h5">Messenger - Execute (Mock Contract)</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Confirm a checkpoint</Typography>
+        <Typography variant="subtitle1">Execute message at the destination</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -172,28 +233,43 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the chain to confirm checkpoint on</em></small></label>
+                  <label>From Chain ID <small><em>(uint256)</em></small> <small><em>This is the origin chain the message was sent from</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
-
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Path ID <small><em>(bytes32)</em></small> <small><em>Path ID to use</em></small></label>
+                  <label>To Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain specified for the message</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={(event: any) => setPathId(event.target.value)} />
+                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setToChainId(value)} />
               </Box>
-
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Checkpoint <small><em>(bytes32)</em></small> <small><em>The checkpoint to confirm</em></small></label>
+                  <label>Message ID <small><em>(bytes32)</em></small> <small><em>This is the origin chain message ID</em></small></label>
                 </Box>
-                <CustomTextField fullWidth placeholder="0x" value={checkpoint} onChange={(event: any) => setCheckpoint(event.target.value)} />
+                <CustomTextField fullWidth placeholder="0x" value={messageId} onChange={event => setMessageId(event.target.value)} />
               </Box>
-
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>From <small><em>(address)</em></small> <small><em>This is the sender address that sent the message</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={fromAddress} onChange={event => setFromAddress(event.target.value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>To <small><em>(address)</em></small> <small><em>This is the destination address specified when sending the message</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={event => setToAddress(event.target.value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Calldata <small><em>(hex string)</em></small> <small><em>This is the destination calldata specified when sending the message</em></small></label>
+                </Box>
+                <CustomTextArea minRows={5} placeholder="0x" value={toCalldata} onChange={event => setToCalldata(event.target.value)} style={{ width: '100%' }} />
+              </Box>
               <Box mb={2}>
                 <Box>
-                  <Checkbox onChange={(event: any) => setPopulateTxDataOnly(event.target.checked)} checked={populateTxDataOnly} />
+                  <Checkbox onChange={event => setPopulateTxDataOnly(event.target.checked)} checked={populateTxDataOnly} />
                   <label>Populate Tx Only</label>
                 </Box>
               </Box>
@@ -202,7 +278,7 @@ main().catch(console.error)
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Confirm Checkpoint'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Execute'}</HighlightedButton>
                 )}
               </Box>
             </form>

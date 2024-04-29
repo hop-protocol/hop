@@ -110,10 +110,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Is Checkpoint Valid</Typography>
+        <Typography variant="h5">Rails Gateway - Is Checkpoint Valid</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Hub Is Checkpoint Valid</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Is Checkpoint Valid</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>

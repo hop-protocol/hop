@@ -208,11 +208,11 @@ export function RailsGatewayBond (props: Props) {
             pathId,
             amount
           })
-          const tx = await signer.sendTransaction(approveTxData)
+          const tx = await sdk.sendTransaction(approveTxData)
           await tx.wait()
         }
 
-        const tx = await signer.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -281,7 +281,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Bond</Typography>
+        <Typography variant="h5">Rails Gateway - Bond</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Bond tokens at the destination chain</Typography>

@@ -140,6 +140,7 @@ export type GetLatestClaimInput = {
 
 export type GetIsCheckpointValidInput = {
   chainId: BigNumberish
+  pathId: string
   checkpoint: string
 }
 
@@ -275,7 +276,9 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId0)
-    return contract.getPathId(chainId0, token0, chainId1, token1)
+    const pathId = await contract.getPathId(chainId0, token0, chainId1, token1)
+    console.log('getPathId', pathId, {chainId0, token0, chainId1, token1})
+    return pathId
   }
 
   async getPathInfo (input: GetPathInfoInput): Promise<Path> {
@@ -290,7 +293,17 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.getPathInfo(pathId)
+    const pathInfoArray = await contract.getPathInfo(pathId)
+    const pathInfo: Path = {
+      pathId,
+      chainId: pathInfoArray[0],
+      token: pathInfoArray[1],
+      counterpartChainId: pathInfoArray[2],
+      counterpartToken: pathInfoArray[3]
+    }
+
+    console.log('pathInfo', pathInfo)
+    return pathInfo
   }
 
   async getFee (input: GetFeeInput): Promise<BigNumber> {
@@ -839,12 +852,15 @@ export class RailsGateway extends StakingRegistry {
     const path = await this.getPathInfo({ chainId, pathId })
     const tokenAddress = path.token
     const provider = this.getRpcProviderForChainId(chainId)
+    console.log('rails approval token', tokenAddress)
     const tokenContract = ERC20__factory.connect(tokenAddress, provider)
     const spender = this.getRailsGatewayContractAddress(chainId)
     const account = await this.getSignerAddress()
     if (!account) {
       throw new Error('signer not set')
     }
+    console.log('rails approval account', account)
+    console.log('rails approval spender', spender)
     const approved = await tokenContract.allowance(account, spender)
     return approved.lt(amount)
   }
@@ -889,7 +905,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getIsCheckpointValid (input: GetIsCheckpointValidInput): Promise<boolean> {
-    const { chainId, checkpoint } = input
+    const { chainId, pathId, checkpoint } = input
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`Invalid chainId "${chainId}"`)
@@ -900,7 +916,7 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.isCheckpointValid(checkpoint)
+    return contract.isCheckpointValid(pathId, checkpoint)
   }
 
   async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {

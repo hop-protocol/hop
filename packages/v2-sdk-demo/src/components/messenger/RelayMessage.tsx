@@ -163,10 +163,7 @@ export function RelayMessage (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await signer.sendTransaction({
-          ...txData,
-          // gasLimit: 1_000_000,
-        })
+        const tx = await sdk.sendTransaction(txData)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -201,7 +198,7 @@ async function main() {
   const bundleProof = ${_bundleProof}
 
   const hop = new Hop({ network: '${network}' })
-  const txData = await hop.populateTransaction.relayMessage({
+  const txData = await hop.messenger.populateTransaction.relayMessage({
     fromChainId,
     toChainId,
     fromAddress,

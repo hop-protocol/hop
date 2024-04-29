@@ -27,3 +27,4 @@ export { StakingRegistry__factory } from "./StakingRegistry__factory.js";
 export { Transporter__factory } from "./Transporter__factory.js";
 export { WETH9__factory } from "./WETH9__factory.js";
 export { RailsGateway__factory } from "./RailsGateway__factory.js";
+export { MockExecutor__factory } from "./MockExecutor__factory.js";

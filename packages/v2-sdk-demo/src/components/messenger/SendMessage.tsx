@@ -203,7 +203,7 @@ export function SendMessage (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await signer.sendTransaction(txData)
+        const tx = await sdk.sendTransaction(txData)
         setTxHash(tx.hash)
 
         const receipt = await tx.wait()

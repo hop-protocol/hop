@@ -27,6 +27,7 @@ export type { StakingRegistry } from "./StakingRegistry.js";
 export type { Transporter } from "./Transporter.js";
 export type { WETH9 } from "./WETH9.js";
 export type { RailsGateway } from "./RailsGateway.js";
+export type { MockExecutor } from "./MockExecutor.js";
 export * as factories from "./factories/index.js";
 export { AliasFactory__factory } from "./factories/AliasFactory__factory.js";
 export { Connector__factory } from "./factories/Connector__factory.js";
@@ -54,3 +55,4 @@ export { StakingRegistry__factory } from "./factories/StakingRegistry__factory.j
 export { Transporter__factory } from "./factories/Transporter__factory.js";
 export { WETH9__factory } from "./factories/WETH9__factory.js";
 export { RailsGateway__factory } from "./factories/RailsGateway__factory.js";
+export { MockExecutor__factory } from "./factories/MockExecutor__factory.js";

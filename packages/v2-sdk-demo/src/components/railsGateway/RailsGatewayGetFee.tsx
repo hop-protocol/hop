@@ -109,10 +109,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Get Fee</Typography>
+        <Typography variant="h5">Rails Gateway - Get Fee</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Hub Fee</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Fee</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>

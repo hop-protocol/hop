@@ -226,10 +226,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Get Transfer ID</Typography>
+        <Typography variant="h5">Rails Gateway - Get Transfer ID</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Hub Transfer ID</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Transfer ID</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>

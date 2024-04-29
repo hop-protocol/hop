@@ -160,7 +160,7 @@ export function RailsGatewaySend (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await signer.sendTransaction({
+        const tx = await sdk.sendTransaction({
           ...txData,
           value: fee
         })
@@ -229,7 +229,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Send</Typography>
+        <Typography variant="h5">Rails Gateway - Send</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Send tokens to a destination chain</Typography>

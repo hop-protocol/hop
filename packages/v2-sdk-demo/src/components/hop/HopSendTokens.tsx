@@ -171,9 +171,10 @@ export function HopSendTokens (props: Props) {
       setTxData('')
       setTxHash('')
       setLoading(true)
-      const txData = await getSendTxData()
-      setTxData(JSON.stringify(txData, null, 2))
-      if (!populateTxDataOnly) {
+      if (populateTxDataOnly) {
+        const txData = await getSendTxData()
+        setTxData(JSON.stringify(txData, null, 2))
+      } else {
         if (!signer) {
           throw new Error('No signer')
         }
@@ -194,10 +195,12 @@ export function HopSendTokens (props: Props) {
             toToken,
             amount
           })
-          const tx = await signer.sendTransaction(approveTxData)
+          const tx = await sdk.sendTransaction(approveTxData)
           setTxHash(tx.hash)
         } else {
-          const tx = await signer.sendTransaction(txData)
+          const txData = await getSendTxData()
+          setTxData(JSON.stringify(txData, null, 2))
+          const tx = await sdk.sendTransaction(txData)
           setTxHash(tx.hash)
         }
       }

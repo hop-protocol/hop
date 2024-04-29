@@ -380,7 +380,7 @@ export class Base {
             return
           }
 
-          await provider.send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString }])
+          await provider.send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString() }])
         } catch (error: any) {
           if (error.code === 4902) {
             const network = (networks as any)?.[this.network]?.[this.utils.getChainSlug(chainId)]

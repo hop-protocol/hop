@@ -167,18 +167,24 @@ export class Hop extends Base {
           token1: toToken
         })
 
+        console.log('pathId', pathId)
         const lastCheckpoint = await this.railsGateway.getLatestClaim({
           chainId: fromChainId,
           pathId
         })
+        console.log('lastCheckpoint', lastCheckpoint)
 
         const isCheckpointValid = await this.railsGateway.getIsCheckpointValid({
           chainId: toChainId,
+          pathId,
           checkpoint: lastCheckpoint
         })
 
+        console.log('isCheckpointValid', isCheckpointValid)
+
         if (!isCheckpointValid) {
-          throw new Error('Latest checkpoint is invalid')
+          // TODO: how to handle empty initial checkpoint
+          //throw new Error('Latest checkpoint is invalid')
         }
 
         const populatedTx = await this.railsGateway.populateTransaction.send({
@@ -189,6 +195,8 @@ export class Hop extends Base {
           minAmountOut,
           attestedCheckpoint: lastCheckpoint
         })
+
+        console.log('populatedTx', populatedTx)
 
         return populatedTx
       },
@@ -232,6 +240,7 @@ export class Hop extends Base {
       chainId1: toChainId,
       token1: toToken
     })
+    console.log('getPathId', pathId)
     return this.railsGateway.getNeedsApprovalForSend({ chainId: fromChainId, pathId, amount })
   }
 

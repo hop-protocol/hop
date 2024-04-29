@@ -12,6 +12,7 @@ import { MessageBundled, MessageBundledEventFetcher } from '#messenger/events/Me
 import { MessageExecuted, MessageExecutedEventFetcher } from '#messenger/events/MessageExecuted.js'
 import { MessageSent, MessageSentEventFetcher } from '#messenger/events/MessageSent.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
+import { MockExecutor__factory } from '#contracts/factories/MockExecutor__factory.js'
 import { FeesSentToHub, FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 
@@ -232,6 +233,15 @@ export type RelayMessageData = {
   bundleProof: BundleProof
 }
 
+export type ExecuteInput = {
+  messageId: string
+  fromChainId: BigNumberish
+  toChainId: BigNumberish
+  fromAddress: string
+  toAddress: string
+  toCalldata: string
+}
+
 export type MessengerConfig = BaseConfig & {}
 
 export class Messenger extends Base {
@@ -262,6 +272,14 @@ export class Messenger extends Base {
     }
 
     return this.getConfigAddress(chainId, 'hubCoreMessenger')
+  }
+
+  getExecutorContractAddress (chainId: BigNumberish): string {
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`Invalid chainId "${chainId}"`)
+    }
+
+    return this.getConfigAddress(chainId, 'executor')
   }
 
   async getBundleCommittedEvents (input: GetEventsInput): Promise<BundleCommitted[]> {
@@ -818,6 +836,47 @@ export class Messenger extends Base {
         return {
           ...txData,
           chainId: fromChainId
+        }
+      },
+
+      execute: async (input: ExecuteInput): Promise<providers.TransactionRequest> => {
+        const { fromChainId, toChainId, messageId, fromAddress, toAddress, toCalldata } = input
+
+        if (!this.utils.isValidChainId(fromChainId)) {
+          throw new Error(`Invalid fromChainId "${fromChainId}"`)
+        }
+
+        if (!this.utils.isValidChainId(toChainId)) {
+          throw new Error(`Invalid toChainId "${toChainId}"`)
+        }
+
+        if (!this.utils.isValidBytes32(messageId)) {
+          throw new Error(`Invalid messageId "${messageId}"`)
+        }
+
+        if (!this.utils.isValidAddress(fromAddress)) {
+          throw new Error(`Invalid fromAddress "${fromAddress}"`)
+        }
+
+        if (!this.utils.isValidAddress(toAddress)) {
+          throw new Error(`Invalid toAddress "${toAddress}"`)
+        }
+
+        if (!this.utils.isValidBytes(toCalldata)) {
+          throw new Error(`Invalid calldata "${toCalldata}"`)
+        }
+
+        const address = this.getExecutorContractAddress(toChainId)
+        if (!address) {
+          throw new Error(`Invalid address, not found for chainId "${toChainId}"`)
+        }
+        const provider = this.getRpcProviderForChainId(toChainId)
+        const mockExecutor = MockExecutor__factory.connect(address, provider)
+        const txData = await mockExecutor.populateTransaction.execute(messageId, fromChainId, fromAddress, toAddress, toCalldata)
+
+        return {
+          ...txData,
+          chainId: Number(toChainId)
         }
       }
     }
@@ -1444,4 +1503,11 @@ export class Messenger extends Base {
 
     return true
   }
+
+  async execute (input: any): Promise<providers.TransactionResponse>  {
+    const txData = await this.populateTransaction.execute(input)
+    const tx = await this.sendTransaction(txData)
+    return tx
+  }
 }
+

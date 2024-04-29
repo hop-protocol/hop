@@ -21,6 +21,7 @@ import { RailsGatewayGetIsCheckpointValid } from '../components/railsGateway/Rai
 import { RailsGatewayConfirmCheckpoint } from '../components/railsGateway/RailsGatewayConfirmCheckpoint'
 import { SendMessage } from '../components/messenger/SendMessage'
 import { RelayMessage } from '../components/messenger/RelayMessage'
+import { Execute } from '../components/messenger/Execute'
 import { ExitBundle } from '../components/messenger/ExitBundle'
 import { GetBundleProof } from '../components/messenger/GetBundleProof'
 import { GetEvents } from '../components/messenger/GetEvents'
@@ -80,25 +81,28 @@ export function Main () {
   const signer = provider?.getSigner()
   const showAccountInfo = false
 
+  const sdkWithSigner = signer ? sdk.connect(signer) : sdk
+
   const components = [
-    <HopSendTokens signer={signer} sdk={sdk} requestWallet={requestWallet} />,
-    <HopSwitchChain signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <HopSendTokens signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <HopSwitchChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayGetPathId sdk={sdk} />,
     <RailsGatewayGetPathInfo sdk={sdk} />,
     <RailsGatewayGetFee sdk={sdk} />,
     <RailsGatewayGetTransferId sdk={sdk} />,
     <RailsGatewayGetLatestClaim sdk={sdk} />,
     <RailsGatewayGetIsCheckpointValid sdk={sdk} />,
-    <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdk} requestWallet={requestWallet} />,
-    <RailsGatewaySend signer={signer} sdk={sdk} requestWallet={requestWallet} />,
-    <RailsGatewayBond signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <SetContractAddresses sdk={sdk} />,
     <GetContractAddresses sdk={sdk} />,
     <SetRpcProviders sdk={sdk} />,
-    <SendMessage signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <SendMessage signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <GetBundleProof sdk={sdk} />,
-    <RelayMessage signer={signer} sdk={sdk} requestWallet={requestWallet} />,
-    <ExitBundle signer={signer} sdk={sdk} requestWallet={requestWallet} />,
+    <Execute signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <RelayMessage signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <ExitBundle signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <GetMessageIdFromTxHash sdk={sdk} />,
     <GetMessageCalldata sdk={sdk} />,
     <GetMessageSentEvent sdk={sdk} />,

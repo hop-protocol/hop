@@ -145,10 +145,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Hub - Get Path ID</Typography>
+        <Typography variant="h5">Rails Gateway - Get Path ID</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get Rails Hub Path ID</Typography>
+        <Typography variant="subtitle1">Get Rails Gateway Path ID</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>

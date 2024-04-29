@@ -87,9 +87,7 @@ export function ExitBundle (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await signer.sendTransaction({
-          ...txData
-        })
+        const tx = await sdk.sendTransaction(txData)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -112,7 +110,7 @@ async function main() {
   const bundleCommittedTransactionHash = "${bundleCommittedTxHash}"
 
   const hop = new Hop({ network: '${network}' })
-  const txData = await hop.populateTransaction.bundleExit({
+  const txData = await hop.messenger.populateTransaction.bundleExit({
     fromChainId,
     bundleCommittedTransactionHash
   })

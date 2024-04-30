@@ -122,11 +122,6 @@ class YieldStats {
 
     this.bridges = mainnetAddresses.bridges!
     this.stakingRewardsContracts = mainnetAddresses.rewardsContracts!
-
-    console.log(
-      'provider urls:',
-      JSON.stringify(this.sdk.getChainProviderUrls())
-    )
   }
 
   async getAllYields () {

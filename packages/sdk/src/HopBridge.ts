@@ -1367,11 +1367,11 @@ export class HopBridge extends Base {
         this.estimateBondWithdrawalGasLimit(sourceChain, destinationChain),
         this.populateBondWithdrawalTx(sourceChain, destinationChain)
       ])
-      const l1FeeInWei = await this.estimateOptimismL1FeeFromData(gasLimit, data, to)
+      const l1FeeInWei = await this.estimateOptimismL1FeeFromData(gasLimit, data, to, destinationChain)
       this.debugTimeLog('getOptimismL1Fee', timeStart)
       return l1FeeInWei
     } catch (err) {
-      console.error(err)
+      // console.error('getOptimismL1Fee error', err)
       return BigNumber.from(0)
     }
   }
@@ -1435,9 +1435,7 @@ export class HopBridge extends Base {
       this.debugTimeLog('estimateBondWithdrawalGasLimit', timeStart)
       return estimatedGas
     } catch (err) {
-      console.error(err, {
-        destinationChain
-      })
+      // console.error('estimateBondWithdrawalGasLimit', err)
       let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
       if (destinationChain.equals(Chain.Optimism)) {
         bondTransferGasLimit = BondTransferGasLimit.Optimism
@@ -1753,7 +1751,7 @@ export class HopBridge extends Base {
         }
       }
     } catch (err) {
-      console.error(err)
+      console.error('getUnbondedTransferRootAmount error', err)
     }
 
     return BigNumber.from(0)
@@ -1775,7 +1773,7 @@ export class HopBridge extends Base {
         }
       }
     } catch (err) {
-      console.error(err)
+      console.error('getBaseAvailableCredit error', err)
     }
   }
 
@@ -1795,7 +1793,7 @@ export class HopBridge extends Base {
         }
       }
     } catch (err) {
-      console.error(err)
+      console.error('getPendingAmount error', err)
     }
   }
 
@@ -3025,7 +3023,7 @@ export class HopBridge extends Base {
       const token = this.toTokenModel(this.tokenSymbol)
       return !!supported[chain?.slug]?.[token.canonicalSymbol]
     } catch (err: any) {
-      console.error(err)
+      console.error('isSupportedAsset error', err)
     }
     return false
   }
@@ -3288,7 +3286,7 @@ export class HopBridge extends Base {
         return true
       }
     } catch (err: any) {
-      console.error(err)
+      console.error('getIsSupportedCctpRoute error', err)
     }
     return false
   }
@@ -3484,7 +3482,7 @@ export class HopBridge extends Base {
           }
         }
       } catch (err) {
-        console.error(err)
+        console.error('getCctpWithdrawData', err)
       }
     }
 

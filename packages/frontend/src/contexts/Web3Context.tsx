@@ -17,11 +17,10 @@ import walletConnectModule from '@web3-onboard/walletconnect'
 import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
 import { capitalize } from 'src/utils/capitalize'
 import { chainIdToHex } from 'src/utils/chainIdToHex'
-import { chains as chainMetadata } from '@hop-protocol/sdk/metadata'
 import { ethers } from 'ethers'
 import { l1Network } from 'src/config/networks'
 import { networkSlugToId } from 'src/utils'
-import { networks } from '@hop-protocol/sdk/networks'
+import { getNetwork } from '@hop-protocol/sdk'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export type Props = {
@@ -40,13 +39,13 @@ export type Props = {
 class NetworkSwitchError extends Error {}
 
 function getOnboardChains(): any {
-  const chains = (networks as any)[reactAppNetwork]
+  const chains = getNetwork(reactAppNetwork).chains
   const onboardChains :any[] = []
 
   for (const chainSlug in chains) {
     const chainObj = chains[chainSlug]
     const id = chainIdToHex(chainObj.chainId)
-    const token = chainMetadata?.[chainSlug]?.nativeTokenSymbol
+    const token = chains?.[chainSlug]?.nativeTokenSymbol
     const label = `${chainObj.name} ${capitalize(reactAppNetwork)}`
     let rpcUrl = chainObj.publicRpcUrl
 

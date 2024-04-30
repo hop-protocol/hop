@@ -13,6 +13,7 @@ import {
   getMinGasLimit,
   getMinGasPrice,
   getChain,
+  getNetwork,
   getToken,
   getUrlFromProvider,
   promiseTimeout,
@@ -32,7 +33,7 @@ import { L2_xDaiToken } from './contracts/index.js'
 import { L2_xDaiToken__factory } from './contracts/index.js'
 import { RelayerFee } from './relayerFee/index.js'
 import { TChain, TProvider, TToken } from './types.js'
-import { config } from './config/index.js'
+import { config, sdkConfig } from './config/index.js'
 import { TokenModel } from './models/index.js'
 import { getProviderFromUrl } from '#utils/index.js'
 
@@ -51,16 +52,14 @@ let s3FileCacheTimestamp: number = 0
 const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
-const getProvider = memoize((network: string, chain: string) => {
-  if (!config[network]?.chains[chain]) {
-    throw new Error(`config for chain not found: ${network} ${chain}`)
-  }
-  const rpcUrl = config[network].chains[chain].rpcUrl
+const getProvider = memoize((network: string, chainSlug: string) => {
+  const chain = getChain(network, chainSlug)
+  const rpcUrl = chain.publicRpcUrl
   if (!rpcUrl) {
     return providers.getDefaultProvider(network)
   }
 
-  const fallbackRpcUrls = config[network].chains[chain].fallbackRpcUrls ?? []
+  const fallbackRpcUrls = chain.fallbackPublicRpcUrls ?? []
   const rpcUrls = [rpcUrl, ...fallbackRpcUrls]
 
   const provider = getProviderFromUrl(rpcUrls)
@@ -229,9 +228,9 @@ export class Base {
       this.chainProviders = chainProviders
     }
 
-    this.chains = config[network].chains
-    this.addresses = config[network].addresses
-    this.bonders = config[network].bonders
+    this.chains = getNetwork(network).chains
+    this.addresses = sdkConfig[network].addresses
+    this.bonders = sdkConfig[network].bonders
 
     if (this.bonders && this.bonders.USDC && !this.bonders['USDC.e']) {
       this.bonders['USDC.e'] = this.bonders.USDC

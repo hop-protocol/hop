@@ -1,10 +1,11 @@
 import { BigNumber, utils } from 'ethers'
 import { StakingRewards__factory } from '@hop-protocol/sdk/contracts'
 import { commafy, findNetworkBySlug } from 'src/utils'
-import { hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
+import { hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { getToken } from '@hop-protocol/sdk'
 
 export function useStakingAll () {
   const { sdk, txConfirm } = useApp()
@@ -14,7 +15,7 @@ export function useStakingAll () {
   const [txList, setTxList] = useState<any[]>([])
   const [isClaiming, setIsClaiming] = useState<boolean>(false)
   const rewardsTokenSymbol = 'HOP'
-  const rewardsTokenImageUrl = metadata.tokens[rewardsTokenSymbol]?.image
+  const rewardsTokenImageUrl = getToken(rewardsTokenSymbol).image
 
   useEffect(() => {
     async function update() {

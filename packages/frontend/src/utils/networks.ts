@@ -5,7 +5,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { Signer, providers } from 'ethers'
 import { WaitConfirmations, networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
-import { networks as coreNetworks } from '@hop-protocol/sdk/networks'
+import { getChain } from '@hop-protocol/sdk'
 import { getNativeTokenSymbol } from './getNativeTokenSymbol'
 
 export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
@@ -54,18 +54,13 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     return ''
   }
 
-  if (typeof networkId === 'number') {
-    networkId = networkId.toString()
+  if (typeof networkId === 'string') {
+    networkId = Number(networkId)
   }
 
-  for (const _network in coreNetworks) {
-    const chains = (coreNetworks as any)[_network]
-    for (const chainSlug in chains) {
-      const chainObj = chains[chainSlug]
-      if (chainObj.networkId.toString() === networkId) {
-        return chainSlug as Slug
-      }
-    }
+  const chains = getChain(networkId)
+  if (chains) {
+    return chains.slug
   }
 
   return ''

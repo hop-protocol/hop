@@ -1,6 +1,6 @@
 import { HopAddresses, Networks } from 'src/config/interfaces'
 import { sepolia as _sepoliaAddresses } from '@hop-protocol/sdk/addresses'
-import { sepolia as _sepoliaNetworks } from '@hop-protocol/sdk/networks'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 
 export const sepoliaAddresses: HopAddresses = {
   governance: {
@@ -13,15 +13,15 @@ export const sepoliaAddresses: HopAddresses = {
   bonders: _sepoliaAddresses.bonders,
 }
 
-const _networks = _sepoliaNetworks as any
+const _network = getNetwork(NetworkSlug.Sepolia)
 const sepoliaNetworks: Networks = {}
 
-for (const chainSlug in _networks) {
+for (const chainSlug in _network.chains) {
   sepoliaNetworks[chainSlug] = {
-    networkId: _networks[chainSlug].chainId,
-    rpcUrl: _networks[chainSlug].publicRpcUrl,
-    fallbackRpcUrls: _networks[chainSlug].fallbackPublicRpcUrls,
-    explorerUrl: _networks[chainSlug].explorerUrls[0]
+    networkId: _network.chains[chainSlug].chainId,
+    rpcUrl: _network.chains[chainSlug].publicRpcUrl,
+    fallbackRpcUrls: _network.chains[chainSlug].fallbackPublicRpcUrls,
+    explorerUrl: _network.chains[chainSlug].explorerUrls[0]
   }
 }
 

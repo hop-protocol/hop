@@ -30,7 +30,10 @@ export * from './contracts/index.js'
 
 export { type Bps, sdkConfig } from './config/index.js'
 export {
-  getLpFeeBps
+  getChainSlugFromName,
+  getLpFeeBps,
+  getSubgraphChains,
+  getSubgraphUrl
 } from './utils/index.js'
 
 export {

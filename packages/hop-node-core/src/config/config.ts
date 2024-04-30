@@ -72,11 +72,14 @@ export class CoreEnvironment {
    */
 
   setEnvironment(environment: CoreEnvironmentVariables) {
-    this.#environment = environment
+    this.#environment = { ...environment, ...this.#environment }
   }
 
   // From parent
   setRpcUrl(chainSlug: ChainSlug, rpcUrl: string) {
+    if (!this.#environment?.rpcUrls) {
+      this.#environment.rpcUrls = {}
+    }
     this.#environment.rpcUrls[chainSlug] = rpcUrl
   }
 

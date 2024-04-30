@@ -5,10 +5,10 @@ import { config as goerli } from './goerli.js'
 import { config as mainnet } from './mainnet.js'
 import { config as sepolia } from './sepolia.js'
 
-let sdkConfig: any
+let sdkConfig: any = {}
 const bondableChainsSet = new Set<string>([])
 const config: any = { goerli, sepolia, mainnet }
-for (const network in Object.values(NetworkSlug)) {
+for (const network of Object.values(NetworkSlug)) {
   // Network Config
   const addresses = (chainAddresses as any)[network].bridges
   const bonders = (chainAddresses as any)[network].bonders
@@ -19,6 +19,9 @@ for (const network in Object.values(NetworkSlug)) {
   const relayerFeeWei = (config as any)[network].relayerFeeWei
   const bridgeDeprecated = (config as any)[network].bridgeDeprecated
   const defaultSendGasLimit = (config as any)[network].defaultSendGasLimit
+  if (!sdkConfig?.[network]) {
+    sdkConfig[network] = {}
+  }
   sdkConfig[network] = {
     ...sdkConfig[network],
     addresses,

@@ -12,7 +12,7 @@ import { type ChainSlug } from '@hop-protocol/sdk'
 
 const cache: Record<string, Signer> = {}
 
-const constructSigner = (network: string, privateKey: string): Signer => {
+const constructSigner = (network: string, privateKey?: string): Signer => {
   const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
   const cacheKey = `${network}`
   const cachedValue = cache[cacheKey]
@@ -25,18 +25,13 @@ const constructSigner = (network: string, privateKey: string): Signer => {
   }
   let wallet
   const signerConfig: SignerConfig | undefined = coreEnvironmentVariables?.signer
-  if (!signerConfig) {
-    wallet = new Wallet(privateKey, provider)
-    throw new Error('signer config not found')
-  }
-
-  if (signerConfig.type === 'kms') {
+  if (signerConfig?.type === 'kms') {
     const { keyId, awsRegion } = signerConfig
     if (!keyId) {
       throw new Error('keyId is required')
     }
     wallet = new KmsSigner({ keyId, region: awsRegion }, provider)
-  } else if (signerConfig.type === 'lambda') {
+  } else if (signerConfig?.type === 'lambda') {
     const { keyId, awsRegion, lambdaFunctionName } = signerConfig
     if (!keyId || !awsRegion || !lambdaFunctionName) {
       throw new Error('keyId, awsRegion, and lambdaFunctionName are required')
@@ -68,17 +63,11 @@ export const wallets = {
   has (network: string) {
     const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     const privateKey = coreEnvironmentVariables?.bonderPrivateKey
-    if (!privateKey) {
-      throw new Error('private key not found') 
-    }
     return !!constructSigner(network, privateKey)
   },
   get (network: string) {
     const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     const privateKey = coreEnvironmentVariables?.bonderPrivateKey
-    if (!privateKey) {
-      throw new Error('private key not found') 
-    }
     return constructSigner(network, privateKey)
   }
 }

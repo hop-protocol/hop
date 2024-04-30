@@ -128,36 +128,6 @@ export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY ?? '123'
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 
 export const emergencyDryMode = false
-  // // Gasboost
-  // setLatestNonceOnStart: boolean
-  // // TODO: These shouldn't be optional
-  // gasPriceMultiplier?: number
-  // initialTxGasPriceMultiplier?: number
-  // priorityFeePerGasCap?: number
-  // maxGasPriceGwei?: number
-  // timeTilBoostMs?: number
-  // maxPriorityFeeConfidenceLevel: number
-  // blocknativeApiKey: string
-
-  // // AWS
-  // awsAccessKeyId: string
-  // awsSecretAccessKey: string
-  // awsRegion: string
-
-  // // Other
-  // gitRev: string
-  // envNetwork: NetworkSlug
-  // rateLimitMaxRetries: number
-  // rpcTimeoutSeconds: number
-  // CoingeckoApiKey: string
-  // hostname: string
-  // appTld: string
-
-  // // From Parent, remove eventually
-  // bonderPrivateKey?: string
-  // signer?: SignerConfig
-  // network?: NetworkSlug
-  // rpcUrls: any
 
 CoreEnvironment.getInstance().setEnvironment({
   // Gasboost
@@ -185,6 +155,10 @@ CoreEnvironment.getInstance().setEnvironment({
   appTld,
 })
 
+if (bonderPrivateKey) {
+  const coreEnvironment = CoreEnvironment.getInstance()
+  coreEnvironment.setBonderPrivateKey(bonderPrivateKey)
+}
 
 type SyncConfig = {
   totalBlocks?: number
@@ -229,6 +203,7 @@ export type Config = {
 const networkConfigs: {[key: string]: any} = {}
 
 for (const network of getNetworks()) {
+  if (network.slug !== envNetwork) continue
   const coreEnvironment = CoreEnvironment.getInstance()
   const { bridges: addresses, bonders } = coreAddresses[network.slug]
   const bonderConfig: BonderConfig = {}

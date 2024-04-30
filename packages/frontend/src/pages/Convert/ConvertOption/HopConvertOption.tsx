@@ -67,6 +67,17 @@ class HopConvertOption extends ConvertOption {
       recipient = customRecipient
     }
 
+    // note: usdc.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    const isUsdceWithdrawal = l1TokenSymbol === 'USDC.e' && destNetwork?.slug === ChainSlug.Ethereum && !sourceNetwork?.isLayer1
+    if (isUsdceWithdrawal) {
+      if (BigNumber.from(bonderFee ?? 0).eq(0)) {
+        const isHTokenSend = true
+        const relativeFee = await bridge.getBonderFeeRelative(amountIn, sourceNetwork?.slug, destNetwork?.slug, isHTokenSend)
+        const absoluteFee = await bridge.getBonderFeeAbsolute(sourceNetwork?.slug, destNetwork?.slug)
+        bonderFee = relativeFee.gt(absoluteFee) ? relativeFee : absoluteFee
+      }
+    }
+
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
       bonderFee,
       recipient
@@ -95,7 +106,7 @@ class HopConvertOption extends ConvertOption {
       : bridge.getL2HopToken(sourceNetwork?.slug)
 
     const isHTokenSend = true
-    const {
+    let {
       totalFee,
       adjustedBonderFee,
       adjustedDestinationTxFee,
@@ -110,12 +121,19 @@ class HopConvertOption extends ConvertOption {
     let estimatedReceived = amountIn
     let warning : any
 
+    const isUsdceWithdrawal = token.symbol === 'hUSDC.e' && destNetwork?.slug === ChainSlug.Ethereum
+
+    // note: bypass bonder fee since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time and be manually withdrawn.
+    if (isUsdceWithdrawal) {
+      totalFee = BigNumber.from(0)
+    }
+
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
 
-      // note: bypass liquidity check since USDC.e out of gnosis to ethereum (deprecated token route) will have to go through the 7 day exit time.
-      if (token.symbol === 'hUSDC.e' && sourceNetwork.slug === ChainSlug.Gnosis && destNetwork.slug === ChainSlug.Ethereum) {
+      // note: bypass liquidity check since USDC.e out of L2 to ethereum (deprecated token route) will have to go through the 7 day exit time.
+      if (isUsdceWithdrawal) {
         warning = ''
       }
     }

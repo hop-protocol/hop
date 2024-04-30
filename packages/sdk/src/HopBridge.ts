@@ -18,8 +18,7 @@ import {
   NetworkSlug,
   PendingAmountBufferUsd,
   SettlementGasLimitPerTx,
-  TokenIndex,
-  TokenSymbol
+  TokenIndex
 } from './constants/index.js'
 import { CCTPMessageTransmitter__factory } from './contracts/index.js'
 import { CCTPTokenMessenger__factory } from './contracts/index.js'
@@ -43,6 +42,7 @@ import {
   Multicall,
   PriceFeedApiKeys,
   PriceFeedFromS3,
+  TokenSymbolish,
   chainIdToSlug,
   fetchJsonOrThrow,
   getToken
@@ -156,7 +156,7 @@ type FeeAndAmountOutMinData = {
  * @namespace HopBridge
  */
 export class HopBridge extends Base {
-  private tokenSymbol: TokenSymbol
+  private tokenSymbol: TokenSymbolish
 
   /** Source Chain model */
   public sourceChain: Chain

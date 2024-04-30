@@ -1,1 +1,0 @@
-export { getToken } from '@hop-protocol/sdk-core'

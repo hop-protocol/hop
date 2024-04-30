@@ -1,14 +1,11 @@
 import {
-  type TokenSymbolish,
   ChainSlug,
   Errors,
   NetworkSlug,
 } from '@hop-protocol/sdk-core'
 import { HToken } from '#networks/index.js'
 
-type TokenSymbol =  TokenSymbolish | HToken
-
-export { Errors, TokenSymbol, NetworkSlug, ChainSlug, HToken }
+export { Errors, NetworkSlug, ChainSlug, HToken }
 
 export enum Slug {
   ethereum = 'ethereum',
@@ -39,6 +36,7 @@ export enum ChainId {
   Base = 8453,
   Linea = 59144
 }
+
 export enum CanonicalToken {
   ETH = 'ETH',
   MATIC = 'MATIC',

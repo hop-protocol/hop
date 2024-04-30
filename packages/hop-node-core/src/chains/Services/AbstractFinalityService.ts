@@ -1,6 +1,6 @@
 import { AbstractService } from '../Services/AbstractService.js'
 import { CacheService } from '../Services/CacheService.js'
-import { Chain } from '#constants/index.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { FinalityBlockTag } from '../IChainBridge.js'
 import type { providers } from 'ethers'
@@ -17,7 +17,7 @@ export abstract class AbstractFinalityService extends AbstractService {
   constructor (chainSlug: string) {
     super(chainSlug)
     this.cache = new CacheService()
-    this.l1Provider = getRpcProvider(Chain.Ethereum)
+    this.l1Provider = getRpcProvider(ChainSlug.Ethereum)
     this.l2Provider = getRpcProvider(this.chainSlug)
   }
 

@@ -30,7 +30,7 @@ export interface Token {
   decimals: number
   image: string
   coingeckoId: string
-  isStablecoin: boolean
+  isStableCoin: boolean
 }
 
 export type Tokens = {

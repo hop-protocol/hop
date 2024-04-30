@@ -1,6 +1,6 @@
 import zlib from 'node:zlib'
 import { AbstractInclusionService } from '../../../Services/AbstractInclusionService.js'
-import { AvgBlockTimeSeconds, Chain } from '#constants/index.js'
+import { AvgBlockTimeSeconds } from '#constants/index.js'
 import { Contract } from 'ethers'
 import { Derive, type Frame } from './Derive.js'
 import {
@@ -12,6 +12,7 @@ import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
 import type { NetworkSlug } from '@hop-protocol/sdk/networks'
 import type { providers } from 'ethers'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 interface Channel {
   transactionHashes: string[]
@@ -31,8 +32,8 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
   protected readonly l1BlockAddress: string
   protected readonly l1BlockContract: Contract
   protected readonly L1ToL2CheckpointTimeInL1Blocks: Record<string, number> = {
-    [Chain.Optimism]: 6,
-    [Chain.Base]: 12
+    [ChainSlug.Optimism]: 6,
+    [ChainSlug.Base]: 12
   }
 
   constructor (chainSlug: string) {
@@ -69,7 +70,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     const l2BlockNumberAtTimeOfL1Tx: number = currentL2BlockNumber - l1TimestampDiffInL2Blocks
 
     // Include the constant buffer time it takes for a message to go from L1 to L2
-    const numL2BlocksPerL1Block = AvgBlockTimeSeconds[Chain.Ethereum]! / AvgBlockTimeSeconds[this.chainSlug]!
+    const numL2BlocksPerL1Block = AvgBlockTimeSeconds[ChainSlug.Ethereum]! / AvgBlockTimeSeconds[this.chainSlug]!
     const l1DataLagInL2Blocks = this.L1ToL2CheckpointTimeInL1Blocks[this.chainSlug]! * numL2BlocksPerL1Block
     return l2BlockNumberAtTimeOfL1Tx + l1DataLagInL2Blocks
   }

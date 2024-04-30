@@ -1,7 +1,6 @@
 import type { Token, TokenSymbolish } from './types.js'
 import { TokenSymbol } from './types.js'
-import { tokens } from './tokens.js'
-import { isValidTokenSymbol } from './utils/internal.js'
+import { isValidTokenSymbol, _getToken } from './utils/internal.js'
 
 /**
  * Types and utils
@@ -18,5 +17,9 @@ export const getToken = (symbol: TokenSymbolish): Token => {
   if (!isValidTokenSymbol(symbol)) {
     throw new Error(`Invalid token symbol: ${symbol}`)
   }
-  return tokens[symbol]
+  return _getToken(symbol)
+}
+
+export const getTokens = (): Token[] => {
+  return Object.values(TokenSymbol).map(tokenSymbol => getToken(tokenSymbol))
 }

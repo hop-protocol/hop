@@ -1,5 +1,5 @@
 import { AbstractOptimismInclusionService } from '../../../Chains/optimism/inclusion/AbstractOptimismInclusionService.js'
-import { RootProviderName } from '#constants/index.js'
+import { RpcProviderSlug as RootProviderName } from '@hop-protocol/sdk'
 import { getRpcRootProviderName } from '#utils/getRpcRootProviderName.js'
 import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
 import { wait } from '#utils/wait.js'

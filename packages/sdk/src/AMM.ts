@@ -3,7 +3,7 @@ import { BigNumber, BigNumberish, constants, utils } from 'ethers'
 import {
   Chain
 } from '@hop-protocol/sdk-core'
-import { SecondsInDay, TokenIndex, TokenSymbol } from './constants/index.js'
+import { SecondsInDay, TokenIndex } from './constants/index.js'
 import { Swap__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
@@ -12,9 +12,10 @@ import {
   shiftBNDecimals
 } from '@hop-protocol/sdk-core'
 import { getBlockNumberFromDate } from './utils/index.js'
+import { TokenSymbolish } from '@hop-protocol/sdk-core'
 
 export type AmmConstructorOptions = {
-  tokenSymbol?: TokenSymbol,
+  tokenSymbol?: TokenSymbolish,
   chain?: TChain,
 } & BaseConstructorOptions
 
@@ -27,7 +28,7 @@ export class AMM extends Base {
   public chain: Chain
 
   /** Token class instance */
-  public tokenSymbol: TokenSymbol
+  public tokenSymbol: TokenSymbolish
 
   /**
    * @desc Instantiates AMM instance.
@@ -46,7 +47,7 @@ export class AMM extends Base {
    */
   constructor (
     networkOrOptionsObject: string | AmmConstructorOptions,
-    tokenSymbol?: TokenSymbol,
+    tokenSymbol?: TokenSymbolish,
     chain?: TChain,
     signer?: TProvider,
     chainProviders?: ChainProviders

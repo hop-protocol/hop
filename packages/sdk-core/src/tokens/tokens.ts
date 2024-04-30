@@ -8,7 +8,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.ETHImage,
     coingeckoId: 'ethereum',
-    isStablecoin: false
+    isStableCoin: false
   },
   XDAI: {
     symbol: TokenSymbol.XDAI,
@@ -16,7 +16,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.XDAIImage,
     coingeckoId: 'dai',
-    isStablecoin: true
+    isStableCoin: true
   },
   MATIC: {
     symbol: TokenSymbol.MATIC,
@@ -24,7 +24,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.MATICImage,
     coingeckoId: 'matic-network',
-    isStablecoin: false
+    isStableCoin: false
   },
   DAI: {
     symbol: TokenSymbol.DAI,
@@ -32,7 +32,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.DAIImage,
     coingeckoId: 'dai',
-    isStablecoin: true
+    isStableCoin: true
   },
   ARB: {
     symbol: TokenSymbol.ARB,
@@ -40,7 +40,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.ARBmage,
     coingeckoId: 'arbitrum',
-    isStablecoin: false
+    isStableCoin: false
   },
   USDC: {
     symbol: TokenSymbol.USDC,
@@ -48,7 +48,7 @@ export const tokens: Tokens = {
     decimals: 6,
     image: assets.USDCImage,
     coingeckoId: 'usd-coin',
-    isStablecoin: true
+    isStableCoin: true
   },
   'USDC.e': {
     symbol: TokenSymbol['USDC.e'],
@@ -56,7 +56,7 @@ export const tokens: Tokens = {
     decimals: 6,
     image: assets.USDCImage,
     coingeckoId: 'usd-coin',
-    isStablecoin: true
+    isStableCoin: true
   },
   USDT: {
     symbol: TokenSymbol.USDT,
@@ -64,7 +64,7 @@ export const tokens: Tokens = {
     decimals: 6,
     image: assets.USDTImage,
     coingeckoId: 'tether',
-    isStablecoin: true
+    isStableCoin: true
   },
   WBTC: {
     symbol: TokenSymbol.WBTC,
@@ -72,7 +72,7 @@ export const tokens: Tokens = {
     decimals: 8,
     image: assets.WBTCImage,
     coingeckoId: 'wrapped-bitcoin',
-    isStablecoin: false
+    isStableCoin: false
   },
   HOP: {
     symbol: TokenSymbol.HOP,
@@ -80,7 +80,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.HOPImage,
     coingeckoId: 'hop-protocol',
-    isStablecoin: false
+    isStableCoin: false
   },
   OP: {
     symbol: TokenSymbol.OP,
@@ -88,7 +88,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.OPImage,
     coingeckoId: 'optimism',
-    isStablecoin: false
+    isStableCoin: false
   },
   SNX: {
     symbol: TokenSymbol.SNX,
@@ -96,7 +96,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.SNXImage,
     coingeckoId: 'havven',
-    isStablecoin: false
+    isStableCoin: false
   },
   sUSD: {
     symbol: TokenSymbol.sUSD,
@@ -104,7 +104,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.sUSDImage,
     coingeckoId: 'nusd',
-    isStablecoin: true
+    isStableCoin: true
   },
   GNO: {
     symbol: TokenSymbol.GNO,
@@ -112,7 +112,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.GNOImage,
     coingeckoId: 'gnosis',
-    isStablecoin: false
+    isStableCoin: false
   },
   rETH: {
     symbol: TokenSymbol.rETH,
@@ -120,7 +120,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.rETHImage,
     coingeckoId: 'rocket-pool-eth',
-    isStablecoin: false
+    isStableCoin: false
   },
   UNI: {
     symbol: TokenSymbol.UNI,
@@ -128,7 +128,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.UNIImage,
     coingeckoId: 'uniswap',
-    isStablecoin: false
+    isStableCoin: false
   },
   RPL: {
     symbol: TokenSymbol.RPL,
@@ -136,7 +136,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.RPLImage,
     coingeckoId: 'rocket-pool',
-    isStablecoin: false
+    isStableCoin: false
   },
   MAGIC: {
     symbol: TokenSymbol.MAGIC,
@@ -144,7 +144,7 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.MAGICImage,
     coingeckoId: 'magic',
-    isStablecoin: false
+    isStableCoin: false
   },
   WETH: {
     symbol: TokenSymbol.WETH,
@@ -152,6 +152,6 @@ export const tokens: Tokens = {
     decimals: 18,
     image: assets.ETHImage,
     coingeckoId: 'weth',
-    isStablecoin: false
+    isStableCoin: false
   }
 }

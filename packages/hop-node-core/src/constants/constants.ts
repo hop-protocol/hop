@@ -1,38 +1,32 @@
-import { ChainSlug as Chain, NativeChainToken, NetworkSlug as Network, CanonicalToken as Token } from '@hop-protocol/sdk/networks'
-import { RpcProviderSlug } from '@hop-protocol/sdk/metadata'
-import { chains } from '@hop-protocol/sdk/metadata'
-import { networks } from '@hop-protocol/sdk/networks'
-import { tokens } from '@hop-protocol/sdk/metadata'
-import type { AssetSymbol } from '@hop-protocol/sdk/config'
+import {
+  ChainSlug,
+  type ChainSlugish,
+  NetworkSlug,
+  getTokens,
+  getChains
+} from '@hop-protocol/sdk'
 
-export { Network, Chain, Token, NativeChainToken }
+const relayableChainsSet = new Set<ChainSlugish>([])
+const AvgBlockTimeSeconds: Record<ChainSlugish, number> = {}
 
-const nativeChainTokens: Record<string, string> = {}
-for (const chain in chains) {
-  nativeChainTokens[chain] = chains[chain as Chain].nativeTokenSymbol
-}
+/**
+ * Some chains have a variable block time with a single tx per block. Use
+ * 250ms for these chains as an approximation, following the lead
+ * of https://www.rollup.codes/
+ */
+const BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS = 250
 
-export { nativeChainTokens }
-
-const relayableChainsSet = new Set<string>([])
-const AvgBlockTimeSeconds: Record<string, number> = {}
-
-for (const network in networks) {
-  for (const chain in networks[network as Network]) {
-    const chainObj = networks[network as Network][chain as Chain]
-    const seconds = chainObj?.averageBlockTimeSeconds
-    if (seconds != null) {
-      AvgBlockTimeSeconds[chain] = seconds
-    }
-    if (chainObj?.isRelayable) {
-      relayableChainsSet.add(chain)
-    }
+for (const chain of getChains(NetworkSlug.Mainnet)) {
+  const blockTimeMs = chain.averageBlockTimeMs
+  if (blockTimeMs !== BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS) {
+    AvgBlockTimeSeconds[chain.slug] = blockTimeMs / 1000
+  }
+  if (chain.isManualRelayOnL2) {
+    relayableChainsSet.add(chain.slug)
   }
 }
 
-export {
-  AvgBlockTimeSeconds
-}
+export { AvgBlockTimeSeconds }
 
 export const DefaultBatchBlocks = 10000
 
@@ -47,9 +41,9 @@ export const OneWeekSeconds = 7 * 24 * 60 * 60
 export const OneWeekMs = OneWeekSeconds * 1000
 
 export const TotalBlocks = {
-  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Ethereum]!),
-  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Polygon]!),
-  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[Chain.Gnosis]!)
+  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[ChainSlug.Ethereum]!),
+  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[ChainSlug.Polygon]!),
+  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds[ChainSlug.Gnosis]!)
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
@@ -61,19 +55,16 @@ export const MinPolygonGasPrice = 60_000_000_000
 export const MinGnosisGasPrice = 5_000_000_000
 
 export const stableCoins = new Set<string>([])
-for (const tokenSymbol in tokens) {
-  const tokenObj = tokens[tokenSymbol as AssetSymbol]
-  if (tokenObj?.isStablecoin) {
-    stableCoins.add(tokenSymbol)
+for (const token of getTokens()) {
+  if (token.isStableCoin) {
+    stableCoins.add(token.symbol)
   }
 }
 
 export const DoesSupportCustomFinality: Record<string, boolean> = {
-  [Chain.Optimism]: true,
-  [Chain.Base]: true
+  [ChainSlug.Optimism]: true,
+  [ChainSlug.Base]: true
 }
-
-export { RpcProviderSlug as RootProviderName }
 
 // TODO: When bonder-specific strategies are isolated from the finality dir, use a new
 // SyncType const defined there

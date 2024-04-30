@@ -1,48 +1,48 @@
-import { Chain } from '#constants/index.js'
+import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { isNativeToken } from '#utils/isNativeToken.js'
 
 describe('isNativeToken', () => {
   it('isNativeToken', () => {
     // Happy path
-    let network = Chain.Ethereum
+    let network = ChainSlug.Ethereum
     let token = 'ETH'
-    expect(isNativeToken(network, token)).toBe(true)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(true)
 
-    network = Chain.Optimism
+    network = ChainSlug.Optimism
     token = 'ETH'
-    expect(isNativeToken(network, token)).toBe(true)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(true)
 
-    network = Chain.Arbitrum
+    network = ChainSlug.Arbitrum
     token = 'ETH'
-    expect(isNativeToken(network, token)).toBe(true)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(true)
 
-    network = Chain.Polygon
+    network = ChainSlug.Polygon
     token = 'MATIC'
-    expect(isNativeToken(network, token)).toBe(true)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(true)
 
-    network = Chain.Gnosis
+    network = ChainSlug.Gnosis
     token = 'XDAI'
-    expect(isNativeToken(network, token)).toBe(true)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(true)
 
     // Non-happy path
-    network = Chain.Polygon
+    network = ChainSlug.Polygon
     token = 'mAtIc'
-    expect(isNativeToken(network, token)).toBe(false)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(false)
 
-    network = Chain.Ethereum
+    network = ChainSlug.Ethereum
     token = 'MATIC'
-    expect(isNativeToken(network, token)).toBe(false)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(false)
 
-    network = Chain.Ethereum
+    network = ChainSlug.Ethereum
     token = 'abc'
-    expect(isNativeToken(network, token)).toBe(false)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(false)
 
-    network = Chain.Ethereum
+    network = ChainSlug.Ethereum
     token = ''
-    expect(isNativeToken(network, token)).toBe(false)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(false)
 
-    network = Chain.Polygon
+    network = ChainSlug.Polygon
     token = 'xDai'
-    expect(isNativeToken(network, token)).toBe(false)
+    expect(isNativeToken(getChain('mainnet', network).chainId, token)).toBe(false)
   })
 })

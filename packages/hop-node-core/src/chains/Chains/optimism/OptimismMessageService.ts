@@ -5,9 +5,18 @@ import {
   MessageStatus
 } from '@eth-optimism/sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { config as globalConfig } from '#config/index.js'
-import { networkSlugToId } from '#utils/networkSlugToId.js'
 import type { providers } from 'ethers'
+
+// TODO: Move to sdk
+function getParentChainId (chainId: number): number {
+  if (chainId === 10) {
+    return 1
+  }
+  else if (chainId === 11155420) {
+    return 11155111
+  }
+  throw new Error(`unsupported chain: ${chainId}`)
+}
 
 export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus> implements IMessageService {
   readonly #csm: CrossChainMessenger
@@ -17,7 +26,7 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
 
     this.#csm = new CrossChainMessenger({
       bedrock: true,
-      l1ChainId: networkSlugToId(globalConfig.network),
+      l1ChainId: getParentChainId(chainSlugToId(chainSlug)),
       l2ChainId: chainSlugToId(chainSlug),
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet

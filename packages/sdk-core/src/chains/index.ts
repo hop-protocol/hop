@@ -27,6 +27,10 @@ export function getNetwork (networkSlug: NetworkSlugish): Network {
   return networks[networkSlug]
 }
 
+export const getNetworks = (): Network[] => {
+  return Object.values(NetworkSlug).map(x => getNetwork(x))
+}
+
 export function getChain(chainId: number): Chain;
 export function getChain(networkSlug: NetworkSlugish, chainSlug: ChainSlugish): Chain;
 export function getChain(chainIdOrNetworkSlug: number | NetworkSlugish, chainSlug?: ChainSlugish): Chain {
@@ -41,4 +45,11 @@ export function getChain(chainIdOrNetworkSlug: number | NetworkSlugish, chainSlu
     }
     return getChainByNetworkSlugAndChainSlug(chainIdOrNetworkSlug, chainSlug)
   }
+}
+
+// Do not expose a getChains method indexed by chainId. This would return all chains for all networks, which
+// should never be used. A consumer who wants this can make this call multiple times with different networks.
+export function getChains(networkSlug: NetworkSlugish): Chain[] {
+  const chains = getNetwork(networkSlug).chains
+  return Object.values(chains).map(chain => chain)
 }

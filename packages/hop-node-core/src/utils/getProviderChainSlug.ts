@@ -1,10 +1,10 @@
 import { URL } from 'node:url'
 import { config as globalConfig } from '#config/index.js'
-import type { Chain } from '#constants/index.js'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 const cache: Record<string, any> = {}
 
-export const getProviderChainSlug = (provider: any): Chain | undefined => {
+export const getProviderChainSlug = (provider: any): ChainSlug | undefined => {
   const providerUrl = provider?.connection?.url || provider?.providerConfigs?.[0]?.provider?.connection?.url
   if (!providerUrl) {
     return
@@ -18,7 +18,7 @@ export const getProviderChainSlug = (provider: any): Chain | undefined => {
     const configUrlObj = new URL(url)
     if (providerUrlObj.host === configUrlObj.host && providerUrlObj.pathname === configUrlObj.pathname) {
       cache[providerUrl] = chain
-      return chain as Chain
+      return chain as ChainSlug
     }
   }
 }

@@ -1,9 +1,9 @@
 import { config as globalConfig } from '#config/index.js'
-import type { Chain } from '#constants/index.js'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
-const cache: Record<string, Chain> = {}
+const cache: Record<string, ChainSlug> = {}
 
-export const chainIdToSlug = (chainId: string | number): Chain => {
+export const chainIdToSlug = (chainId: string | number): ChainSlug => {
   const cacheKey = chainId?.toString()
   const cachedValue = cache[cacheKey]
   if (cachedValue) {
@@ -17,11 +17,8 @@ export const chainIdToSlug = (chainId: string | number): Chain => {
     if (!v) {
       continue
     }
-    if (
-      v?.networkId?.toString() === chainId.toString() ||
-      v?.chainId?.toString() === chainId.toString()
-    ) {
-      const chain = k as Chain
+    if (v?.chainId?.toString() === chainId.toString()) {
+      const chain = k as ChainSlug
       cache[cacheKey] = chain
       return chain
     }

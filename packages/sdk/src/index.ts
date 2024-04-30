@@ -19,7 +19,6 @@ export {
   Slug,
   NetworkSlug,
   ChainId,
-  TokenSymbol,
   CanonicalToken,
   WrappedToken,
   HToken,
@@ -27,6 +26,7 @@ export {
 } from './constants/index.js'
 
 export * from './models/index.js'
+export * from './contracts/index.js'
 
 export {
   getLpFeeBps
@@ -34,12 +34,21 @@ export {
 
 export {
   Chain,
+  ChainSlugish,
   Multicall,
   PriceFeed,
   RetryProvider,
+  RpcProvider,
   FallbackProvider,
+  TokenSymbol,
   chainIdToSlug,
   fetchJsonOrThrow,
+  getChain,
+  getChains,
+  getToken,
+  getTokens,
+  getNetwork,
+  getNetworks,
   getMinGasLimit,
   getMinGasPrice,
   getUrlFromProvider,
@@ -47,7 +56,9 @@ export {
   promiseTimeout,
   rateLimitRetry,
   serializeQueryParams,
-  shiftBNDecimals
+  shiftBNDecimals,
+  rpcProviders,
+  RpcProviderSlug
 } from '@hop-protocol/sdk-core'
 
 export { TokenModel } from '#models/index.js'

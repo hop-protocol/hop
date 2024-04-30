@@ -1,6 +1,5 @@
 import { BigNumber } from 'ethers'
 import {
-  Chain,
   InitialTxGasPriceMultiplier,
   MaxGasPriceMultiplier,
   MaxPriorityFeeConfidenceLevel,
@@ -30,6 +29,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Signer, providers } from 'ethers'
 import type { Store } from './Store.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -404,7 +404,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum && globalConfig.isMainnet
+    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === ChainSlug.Ethereum && globalConfig.isMainnet
     if (isEthereumMainnet) {
       try {
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
@@ -428,11 +428,11 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     // we support does not hardcode 1.5 gwei as the default maxPriorityFeePerGas
     // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
     if (
-      this.chainSlug === Chain.Optimism ||
-      this.chainSlug === Chain.Base ||
-      this.chainSlug === Chain.Arbitrum ||
-      this.chainSlug === Chain.Nova ||
-      this.chainSlug === Chain.Linea
+      this.chainSlug === ChainSlug.Optimism ||
+      this.chainSlug === ChainSlug.Base ||
+      this.chainSlug === ChainSlug.Arbitrum ||
+      this.chainSlug === ChainSlug.Nova ||
+      this.chainSlug === ChainSlug.Linea
     ) {
       try {
         const maxFeePerGas = await this.getOruMaxFeePerGas(this.chainSlug)

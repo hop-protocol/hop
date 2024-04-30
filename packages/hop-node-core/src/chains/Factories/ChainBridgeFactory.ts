@@ -1,5 +1,5 @@
 import { ArbitrumBridge } from '../Chains/arbitrum/ArbitrumBridge.js'
-import { Chain } from '#constants/index.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { GnosisBridge } from '../Chains/gnosis/GnosisBridge.js'
 import { LineaBridge } from '../Chains/linea/LineaBridge.js'
 import { OptimismBridge } from '../Chains/optimism/OptimismBridge.js'
@@ -11,19 +11,19 @@ import type { IChainBridge } from '../IChainBridge.js'
 
 // Maps chainSlugs to their respective superchain classes
 const chainBridgeMap: Record<string, new (chainSlug: string) => IChainBridge> = {
-  [Chain.Optimism]: OptimismBridge,
-  [Chain.Base]: OptimismBridge,
-  [Chain.Arbitrum]: ArbitrumBridge,
-  [Chain.Nova]: ArbitrumBridge,
-  [Chain.Gnosis]: GnosisBridge,
-  [Chain.Polygon]: PolygonBridge,
-  [Chain.ZkSync]: ZkSyncBridge,
-  [Chain.Linea]: LineaBridge,
-  [Chain.ScrollZk]: ScrollZkBridge,
-  [Chain.PolygonZk]: PolygonZkBridge
+  [ChainSlug.Optimism]: OptimismBridge,
+  [ChainSlug.Base]: OptimismBridge,
+  [ChainSlug.Arbitrum]: ArbitrumBridge,
+  [ChainSlug.Nova]: ArbitrumBridge,
+  [ChainSlug.Gnosis]: GnosisBridge,
+  [ChainSlug.Polygon]: PolygonBridge,
+  [ChainSlug.ZkSync]: ZkSyncBridge,
+  [ChainSlug.Linea]: LineaBridge,
+  [ChainSlug.ScrollZk]: ScrollZkBridge,
+  [ChainSlug.PolygonZk]: PolygonZkBridge
 }
 
-export function createChainBridgeInstance (chainSlug: Chain): IChainBridge {
+export function createChainBridgeInstance (chainSlug: ChainSlug): IChainBridge {
   if (!chainBridgeMap[chainSlug]) {
     throw new Error(`Chain ${chainSlug} is not supported`)
   }

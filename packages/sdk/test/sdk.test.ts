@@ -1,13 +1,12 @@
 import fs from 'fs'
 import dotenv from 'dotenv'
 import { BigNumber, Wallet, constants, providers, utils } from 'ethers'
-import {
-  Chain,
-  Hop
-} from '#index.js'
+import { Hop } from '#index.js'
+import { addresses } from '#addresses/index.js'
 import { Swap__factory } from '#contracts/index.js'
-import * as addresses from '@hop-protocol/sdk-core/addresses'
-import { TokenModel, FallbackProvider, promiseQueue, getChainSlugFromName, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
+import { FallbackProvider, promiseQueue, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
+import { TokenModel } from '#models/index.js'
+import { ChainSlug, chainIdToSlug, getChain } from '@hop-protocol/sdk-core'
 // @ts-ignore
 import pkg from '../package.json'
 
@@ -33,7 +32,7 @@ describe.skip('hop bridge token transfers', () => {
       const tx = await hop
         .connect(signer)
         .bridge(TokenModel.USDC)
-        .send(tokenAmount, Chain.Ethereum, Chain.Optimism)
+        .send(tokenAmount, ChainSlug.Ethereum, ChainSlug.Optimism)
 
       console.log('tx hash:', tx?.hash)
 
@@ -48,7 +47,7 @@ describe.skip('hop bridge token transfers', () => {
       const tx = await hop
         .connect(signer)
         .bridge(TokenModel.USDC)
-        .send(tokenAmount, Chain.Optimism, Chain.Gnosis)
+        .send(tokenAmount, ChainSlug.Optimism, ChainSlug.Gnosis)
 
       console.log('tx hash:', tx?.hash)
 
@@ -63,7 +62,7 @@ describe.skip('hop bridge token transfers', () => {
       const tx = await hop
         .connect(signer)
         .bridge(TokenModel.USDC)
-        .send(tokenAmount, Chain.Gnosis, Chain.Ethereum)
+        .send(tokenAmount, ChainSlug.Gnosis, ChainSlug.Ethereum)
 
       console.log('tx hash:', tx?.hash)
 
@@ -88,14 +87,14 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, TokenModel.USDC, Chain.Ethereum, Chain.Polygon)
+          .watch(txHash, TokenModel.USDC, ChainSlug.Ethereum, ChainSlug.Polygon)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Ethereum)) {
+            if (chainIdToSlug(chain) === ChainSlug.Ethereum) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chain.equals(Chain.Polygon)) {
+            if (chainIdToSlug(chain) === ChainSlug.Polygon) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -127,14 +126,14 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, TokenModel.USDC, Chain.Ethereum, Chain.Gnosis)
+          .watch(txHash, TokenModel.USDC, ChainSlug.Ethereum, ChainSlug.Gnosis)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Ethereum)) {
+            if (chainIdToSlug(chain) === ChainSlug.Ethereum) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chain.equals(Chain.Gnosis)) {
+            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -163,19 +162,19 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, TokenModel.USDC, Chain.Gnosis, Chain.Optimism, false, {
+          .watch(txHash, TokenModel.USDC, ChainSlug.Gnosis, ChainSlug.Optimism, false, {
             // destinationHeadBlockNumber: 5661102
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Gnosis)) {
+            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
                 receipt.transactionHash
               )
             }
-            if (chain.equals(Chain.Optimism)) {
+            if (chainIdToSlug(chain) === ChainSlug.Optimism) {
               destinationReceipt = receipt
               console.log(
                 'got destination transaction receipt:',
@@ -207,19 +206,19 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, TokenModel.ETH, Chain.Optimism, Chain.Arbitrum, false, {
+          .watch(txHash, TokenModel.ETH, ChainSlug.Optimism, ChainSlug.Arbitrum, false, {
             // destinationHeadBlockNumber: 5661102
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Optimism)) {
+            if (chainIdToSlug(chain) === ChainSlug.Optimism) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
                 receipt.transactionHash
               )
             }
-            if (chain.equals(Chain.Arbitrum)) {
+            if (chainIdToSlug(chain) === ChainSlug.Arbitrum) {
               destinationReceipt = receipt
               console.log(
                 'got destination transaction receipt:',
@@ -251,12 +250,12 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, TokenModel.USDC, Chain.Gnosis, Chain.Polygon, false, {
+          .watch(txHash, TokenModel.USDC, ChainSlug.Gnosis, ChainSlug.Polygon, false, {
             // destinationHeadBlockNumber: 14779300 // estimate
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Gnosis)) {
+            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
@@ -266,7 +265,7 @@ describe.skip('tx watcher', () => {
                 '0x152348cfaf5344668191859ab95d858d31fd347f807c615e26e027b61fd976f3'
               )
             }
-            if (chain.equals(Chain.Polygon)) {
+            if (chainIdToSlug(chain) === ChainSlug.Polygon) {
               destinationReceipt = receipt
               console.log(
                 'got destination transaction receipt:',
@@ -301,14 +300,14 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, TokenModel.USDC, Chain.Gnosis, Chain.Ethereum)
+          .watch(txHash, TokenModel.USDC, ChainSlug.Gnosis, ChainSlug.Ethereum)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Gnosis)) {
+            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chain.equals(Chain.Ethereum)) {
+            if (chainIdToSlug(chain) === ChainSlug.Ethereum) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -338,7 +337,7 @@ describe.skip('liqudity provider', () => {
     const amount1Desired = tokenAmount
     const tx = await bridge
       .connect(signer)
-      .addLiquidity(amount0Desired, amount1Desired, Chain.Gnosis)
+      .addLiquidity(amount0Desired, amount1Desired, ChainSlug.Gnosis)
     console.log('tx:', tx.hash)
     expect(tx.hash).toBeTruthy()
   })
@@ -347,7 +346,7 @@ describe.skip('liqudity provider', () => {
     const liqudityTokenAmount = utils.parseUnits('0.1', 18)
     const tx = await bridge
       .connect(signer)
-      .removeLiquidity(liqudityTokenAmount, Chain.Gnosis)
+      .removeLiquidity(liqudityTokenAmount, ChainSlug.Gnosis)
     console.log('tx:', tx.hash)
     expect(tx.hash).toBeTruthy()
   })
@@ -369,22 +368,22 @@ describe.skip('custom addresses', () => {
 })
 
 describe.skip('approve addresses', () => {
-  const sdk = new Hop('mainnet')
-  const bridge = sdk.bridge('USDC')
-  it('get send approval address (L1 -> L2)', () => {
-    const approvalAddress = bridge.getSendApprovalAddress(
-      Chain.Ethereum
-    )
-    const expectedAddress = addresses.mainnet.bridges['USDC.e']!.ethereum!.l1Bridge
-    expect(approvalAddress).toBe(expectedAddress)
-  })
-  it('get send approval address (L2 -> L2)', () => {
-    const approvalAddress = bridge.getSendApprovalAddress(
-      Chain.Polygon
-    )
-    const expectedAddress = addresses.mainnet.bridges['USDC.e']!.polygon!.l2AmmWrapper
-    expect(approvalAddress).toBe(expectedAddress)
-  })
+  // const sdk = new Hop('mainnet')
+  // const bridge = sdk.bridge('USDC')
+  // it('get send approval address (L1 -> L2)', () => {
+  //   const approvalAddress = bridge.getSendApprovalAddress(
+  //     ChainSlug.Ethereum
+  //   )
+  //   const expectedAddress = addresses.mainnet.bridges['USDC.e']!.ethereum!.l1Bridge
+  //   expect(approvalAddress).toBe(expectedAddress)
+  // })
+  // it('get send approval address (L2 -> L2)', () => {
+  //   const approvalAddress = bridge.getSendApprovalAddress(
+  //     ChainSlug.Polygon
+  //   )
+  //   const expectedAddress = addresses.mainnet.bridges['USDC.e']!.polygon!.l2AmmWrapper
+  //   expect(approvalAddress).toBe(expectedAddress)
+  // })
 })
 
 describe.skip('custom chain providers', () => {
@@ -444,13 +443,13 @@ describe.skip('getSendData', () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     const availableLiquidityBn = await bridge.getFrontendAvailableLiquidity(
-      Chain.Arbitrum,
-      Chain.Ethereum
+      ChainSlug.Arbitrum,
+      ChainSlug.Ethereum
     )
     const sendData = await bridge.getSendData(
       '1000000000',
-      Chain.Arbitrum,
-      Chain.Ethereum
+      ChainSlug.Arbitrum,
+      ChainSlug.Ethereum
     )
     const requiredLiquidity = Number(
       utils.formatUnits(sendData.requiredLiquidity.toString(), 6)
@@ -468,8 +467,8 @@ describe.skip('getSendData', () => {
     const amountIn = BigNumber.from('1000000')
     const sendData = await bridge.getSendData(
       amountIn,
-      Chain.Ethereum,
-      Chain.Arbitrum
+      ChainSlug.Ethereum,
+      ChainSlug.Arbitrum
     )
     const adjustedBonderFee = Number(
       utils.formatUnits(sendData.adjustedBonderFee.toString(), 6)
@@ -495,7 +494,7 @@ describe.skip('getSendData', () => {
       const amountOut = await hop
         .connect(signer)
         .bridge(TokenModel.USDC)
-        .getAmountOut(tokenAmount, Chain.Gnosis, Chain.Optimism)
+        .getAmountOut(tokenAmount, ChainSlug.Gnosis, ChainSlug.Optimism)
 
       expect(Number(utils.formatUnits(amountOut.toString(), 18))).toBeGreaterThan(0)
     },
@@ -651,12 +650,13 @@ describe('supported assets', () => {
     expect(assets).toBeTruthy()
   })
   it('should check if asset is supported on chain', () => {
-    const hop = new Hop('mainnet')
+    const network = 'mainnet'
+    const hop = new Hop(network)
     const bridge = hop.bridge('SNX')
     expect(bridge.isSupportedAsset('polygon')).toBe(false)
-    expect(bridge.isSupportedAsset(Chain.fromSlug('polygon'))).toBe(false)
+    expect(bridge.isSupportedAsset(getChain(network, 'polygon'))).toBe(false)
     expect(bridge.isSupportedAsset('optimism')).toBe(true)
-    expect(bridge.isSupportedAsset(Chain.fromSlug('optimism'))).toBe(true)
+    expect(bridge.isSupportedAsset(getChain(network, 'optimism'))).toBe(true)
   })
 })
 
@@ -887,10 +887,10 @@ describe.skip('calcAmountOutMin', () => {
   it('should return min amount out given slippage tolerance', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
-    const amountOut = bridge.utils.parseUnits('1')
+    const amountOut = utils.parseUnits('1')
     const slippageTolerance = 0.5
     const amountOutMin = bridge.calcAmountOutMin(amountOut, slippageTolerance)
-    expect(bridge.utils.formatUnits(amountOutMin)).toBe(0.995)
+    expect(utils.formatUnits(amountOutMin)).toBe(0.995)
   })
 })
 
@@ -929,11 +929,11 @@ describe.skip('hop bridge', () => {
     expect(hopToken._symbol).toBe('HOP')
   })
   it('Should use correct approval address', async () => {
-    const hop = new Hop('goerli')
-    const bridge = hop.bridge('HOP')
-    const approvalAddress = bridge.getSendApprovalAddress('polygon')
-    const expectedAddress = addresses.goerli.bridges.HOP?.polygon?.l2Bridge
-    expect(approvalAddress).toBe(expectedAddress)
+    // const hop = new Hop('goerli')
+    // const bridge = hop.bridge('HOP')
+    // const approvalAddress = bridge.getSendApprovalAddress('polygon')
+    // const expectedAddress = addresses.goerli.bridges.HOP?.polygon?.l2Bridge
+    // expect(approvalAddress).toBe(expectedAddress)
   })
 })
 
@@ -951,7 +951,7 @@ describe.skip('fallback provider', () => {
   it('Should return supported chains', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
-    const provider = bridge.toChainModel('optimism').provider
+    const provider = bridge.getChainProvider('optimism')
     expect(provider instanceof FallbackProvider).toBe(true)
     const network = await provider!.getNetwork()
     console.log('network:', network)
@@ -972,22 +972,6 @@ describe.skip('AMM calculateSwap', () => {
     console.log(token, chain, amountOut)
     expect(amountOut.gt(0)).toBe(true)
   }, 10 * 60 * 1000)
-})
-
-describe.skip('utils', () => {
-  it('getChainSlugFromName', async () => {
-    expect(getChainSlugFromName('Ethereum')).toBe('ethereum')
-    expect(getChainSlugFromName('Goerli')).toBe('ethereum')
-    expect(getChainSlugFromName('Arbitrum')).toBe('arbitrum')
-    expect(getChainSlugFromName('Optimism')).toBe('optimism')
-    expect(getChainSlugFromName('Polygon')).toBe('polygon')
-    expect(getChainSlugFromName('xDai')).toBe('gnosis')
-    expect(getChainSlugFromName('Gnosis')).toBe('gnosis')
-    expect(getChainSlugFromName('Gnosis Chain')).toBe('gnosis')
-    expect(getChainSlugFromName('Linea')).toBe('linea')
-    expect(getChainSlugFromName('Base')).toBe('base')
-    expect(getChainSlugFromName('Polygon zkEVM')).toBe('polygonzk')
-  })
 })
 
 describe.skip('S3 data', () => {

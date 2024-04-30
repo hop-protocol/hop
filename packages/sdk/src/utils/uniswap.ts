@@ -2,8 +2,7 @@ import { BigNumber, utils } from 'ethers'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pool, Route, TICK_SPACINGS, TickMath, Trade, encodeRouteToPath, nearestUsableTick } from '@uniswap/v3-sdk'
 import { UniswapQuoterV2__factory, UniswapV3Pool__factory } from '#contracts/index.js'
-import { ERC20__factory } from '@hop-protocol/sdk-core/contracts'
-import { chainIdToSlug } from '@hop-protocol/sdk-core'
+import { ERC20__factory, chainIdToSlug } from '@hop-protocol/sdk-core'
 
 type TickSpacing = 100 | 500 | 3000 | 10000
 
@@ -138,7 +137,7 @@ const addresses: any = {
 
 export async function getUSDCSwapParams(options: any) {
   const { network, chainId, provider, amountIn, recipient, getQuote = false } = options
-  const chain = chainIdToSlug(network, chainId)
+  const chain = chainIdToSlug(chainId)
 
   const { chainId: providerChainId } = await provider.getNetwork()
   if (chainId !== Number(providerChainId.toString())) {

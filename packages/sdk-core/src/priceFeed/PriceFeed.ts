@@ -1,7 +1,7 @@
-import { CoinCodexPriceFeed } from './CoinCodex.js'
-import { CoinGeckoPriceFeed } from './CoinGecko.js'
-import { CoinbasePriceFeed } from './Coinbase.js'
-import { CoinpaprikaPriceFeed } from './Coinpaprika.js'
+import { CoinCodexPriceFeed } from './priceFeeds/CoinCodex.js'
+import { CoinGeckoPriceFeed } from './priceFeeds/CoinGecko.js'
+import { CoinbasePriceFeed } from './priceFeeds/Coinbase.js'
+import { CoinpaprikaPriceFeed } from './priceFeeds/Coinpaprika.js'
 import { promiseTimeout } from '#utils/index.js'
 
 const cache: {
@@ -41,16 +41,16 @@ export class PriceFeed {
     this.setServices()
   }
 
-  setApiKeys (apiKeysMap: PriceFeedApiKeys = {}) {
+  setApiKeys (apiKeysMap: PriceFeedApiKeys = {}): void {
     this.apiKeys = apiKeysMap
     this.setServices()
   }
 
-  private setServices () {
+  private setServices (): void {
     this.services = [new CoinGeckoPriceFeed(this.apiKeys?.coingecko), new CoinbasePriceFeed(), new CoinpaprikaPriceFeed(), new CoinCodexPriceFeed()]
   }
 
-  prependService (service: Service) {
+  prependService (service: Service): void {
     this.services.unshift(service)
   }
 
@@ -100,7 +100,7 @@ export class PriceFeed {
     throw new Error('unreachable')
   }
 
-  formatPrice (tokenSymbol: string, price: number) {
+  formatPrice (tokenSymbol: string, price: number): number {
     if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
       return Number(price.toFixed(6))
     }

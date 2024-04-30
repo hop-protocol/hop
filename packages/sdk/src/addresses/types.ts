@@ -1,4 +1,4 @@
-import { AssetSymbol, ChainSlug } from '@hop-protocol/sdk-core/config'
+import { TokenSymbol, TokenSymbolish, ChainSlug } from '@hop-protocol/sdk-core'
 
 export interface L1BridgeProps {
   l1CanonicalToken: string
@@ -84,7 +84,7 @@ export type USDCBridge = Partial<{
 }>
 
 export type Bridges = {
-  [key in AssetSymbol]: key extends 'USDC' ? USDCBridge : BridgeChains
+  [key in TokenSymbol]: key extends 'USDC' ? USDCBridge : BridgeChains
 }
 
 export type Routes = Partial<{
@@ -94,7 +94,7 @@ export type Routes = Partial<{
 }>
 
 export type Bonders = {
-  [key in AssetSymbol]: Routes
+  [key in TokenSymbolish]: Routes
 }
 
 export type RewardsContracts = {

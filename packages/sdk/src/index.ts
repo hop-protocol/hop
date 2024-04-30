@@ -26,34 +26,32 @@ export {
   eventTopics
 } from './constants/index.js'
 
+export * from './models/index.js'
+
 export {
   getLpFeeBps
 } from './utils/index.js'
 
 export {
   Chain,
-  TokenModel,
   Multicall,
   PriceFeed,
   RetryProvider,
   FallbackProvider,
   chainIdToSlug,
   fetchJsonOrThrow,
-  getChainSlugFromName,
   getMinGasLimit,
   getMinGasPrice,
-  getProviderFromUrl,
-  getSubgraphChains,
-  getSubgraphUrl,
-  getTokenDecimals,
   getUrlFromProvider,
-  isValidUrl,
   promiseQueue,
   promiseTimeout,
   rateLimitRetry,
   serializeQueryParams,
   shiftBNDecimals
 } from '@hop-protocol/sdk-core'
+
+export { TokenModel } from '#models/index.js'
+export { getProviderFromUrl, getTokenDecimals } from '#utils/index.js'
 
 if (typeof window !== 'undefined') {
   (window as any).Hop = Hop

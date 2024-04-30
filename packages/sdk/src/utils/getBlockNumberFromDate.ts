@@ -1,10 +1,9 @@
 // @ts-expect-error No types as of 20240128
 import BlockDater from 'ethereum-block-by-date'
-import { Chain } from '@hop-protocol/sdk-core'
+import { providers } from 'ethers'
 
-export async function getBlockNumberFromDate (chain: Chain, timestamp: number): Promise<number> {
-  const chainProvider = chain.provider
-  return getBlockNumberFromDateUsingLib(chainProvider, timestamp)
+export async function getBlockNumberFromDate (provider: providers.Provider, timestamp: number): Promise<number> {
+  return getBlockNumberFromDateUsingLib(provider, timestamp)
 }
 
 export async function getBlockNumberFromDateUsingLib (provider: any, timestamp: number): Promise<number> {

@@ -1,1 +1,1 @@
-export { Multicall, MulticallBalance } from './Multicall.js'
+export { Multicall } from './Multicall.js'

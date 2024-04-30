@@ -1,13 +1,15 @@
-import { sdkConfig } from '@hop-protocol/sdk-core/config'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk-core'
 import { addresses as chainAddresses } from '#addresses/index.js'
-import { networks as chainNetworks } from '#networks/index.js'
 
 import { config as goerli } from './goerli.js'
 import { config as mainnet } from './mainnet.js'
 import { config as sepolia } from './sepolia.js'
 
+let sdkConfig: any
+const bondableChainsSet = new Set<string>([])
 const config: any = { goerli, sepolia, mainnet }
-for (const network in chainNetworks) {
+for (const network in Object.values(NetworkSlug)) {
+  // Network Config
   const addresses = (chainAddresses as any)[network].bridges
   const bonders = (chainAddresses as any)[network].bonders
   const bonderFeeBps = (config as any)[network].bonderFeeBps
@@ -28,6 +30,15 @@ for (const network in chainNetworks) {
     relayerFeeWei,
     bridgeDeprecated,
     defaultSendGasLimit,
+  }
+
+  // Bondable Chains
+  const networkData = getNetwork(network)
+  const networkChains = networkData.chains
+  for (const chainData of Object.values(networkChains)) {
+    if (chainData.isRollup) {
+      bondableChainsSet.add(chainData.slug)
+    }
   }
 }
 
@@ -52,11 +63,7 @@ export {
 
 export {
   ChainSlug,
-  AssetSymbol,
-  FinalityState,
-  Chains,
-  sdkMetadata as metadata,
-  bondableChains,
-  rateLimitMaxRetries,
-  rpcTimeoutSeconds,
-} from '@hop-protocol/sdk-core/config'
+  TokenSymbol
+} from '@hop-protocol/sdk-core'
+
+export const bondableChains = Array.from(bondableChainsSet)

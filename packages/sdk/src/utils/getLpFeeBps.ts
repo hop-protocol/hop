@@ -1,12 +1,12 @@
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/sdk-core/models'
+import { Chain, ChainSlug } from '@hop-protocol/sdk-core'
 
 // TODO: This is a temporary solution. Should retrieve from onchain and cache value.
 
 const defaultFeeBps = 4
 const customFeeBps: Record<string, number> = {
-  [Chain.PolygonZk.slug]: 1,
-  [Chain.Nova.slug]: 1
+  [ChainSlug.PolygonZk]: 1,
+  [ChainSlug.Nova]: 1
 }
 
 export function getLpFeeBps (chain: Chain): BigNumber {

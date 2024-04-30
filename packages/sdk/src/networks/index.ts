@@ -11,15 +11,7 @@ export enum HToken {
 }
 
 export {
-  goerli, sepolia, mainnet, networks,
   Network,
-  Networks,
   NetworkSlug,
-  ChainId,
-  ChainName,
-  ChainSlug,
-  Slug,
-  CanonicalToken,
-  WrappedToken,
-  NativeChainToken
-} from '@hop-protocol/sdk-core/networks'
+  ChainSlug
+} from '@hop-protocol/sdk-core'

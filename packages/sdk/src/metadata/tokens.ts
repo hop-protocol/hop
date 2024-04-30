@@ -1,1 +1,1 @@
-export { tokens } from '@hop-protocol/sdk-core/metadata/tokens'
+export { getToken } from '@hop-protocol/sdk-core'

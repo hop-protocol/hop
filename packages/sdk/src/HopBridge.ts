@@ -24,7 +24,6 @@ import {
 import { CCTPMessageTransmitter__factory } from './contracts/index.js'
 import { CCTPTokenMessenger__factory } from './contracts/index.js'
 import { CCTPTokenMinter__factory } from './contracts/index.js'
-import { Chain, Multicall, PriceFeedApiKeys, PriceFeedFromS3, TokenModel, chainIdToSlug, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
 import { L1_Bridge } from './contracts/index.js'
 import { L1_ERC20_Bridge__factory } from './contracts/index.js'
 import { L1_HomeAMBNativeToErc20__factory } from './contracts/index.js'
@@ -35,9 +34,19 @@ import { L2_Bridge__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types.js'
 import { Token } from './Token.js'
 import { WithdrawalProof } from '#utils/WithdrawalProof.js'
-import { bondableChains, metadata } from './config/index.js'
+import { bondableChains } from './config/index.js'
 import { utils } from 'ethers'
 import { getUSDCSwapParams, getCctpDomain } from '#utils/index.js'
+import { TokenModel } from '#models/index.js'
+import {
+  Chain,
+  Multicall,
+  PriceFeedApiKeys,
+  PriceFeedFromS3,
+  chainIdToSlug,
+  fetchJsonOrThrow,
+  getToken
+} from '@hop-protocol/sdk-core'
 
 const {
   getAddress: checksumAddress,
@@ -252,7 +261,7 @@ export class HopBridge extends Base {
   }
 
   public getL1Token (): any {
-    return this.toCanonicalToken(this.tokenSymbol, this.network, Chain.Ethereum)
+    return this.toCanonicalToken(this.tokenSymbol, this.network, ChainSlug.Ethereum)
   }
 
   public getCanonicalToken (chain: TChain): any {
@@ -270,10 +279,9 @@ export class HopBridge extends Base {
   ): Token {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    const { name, decimals, image } = metadata.tokens[token.canonicalSymbol]
-    let symbol = metadata.tokens[token.canonicalSymbol].symbol
-
-    if (chain.equals(Chain.Gnosis) && token.symbol === CanonicalToken.DAI) {
+    const { name, decimals, image } = getToken(token.canonicalSymbol)
+    let symbol: string = getToken(token.canonicalSymbol).symbol
+    if (chain.slug === ChainSlug.Gnosis && token.symbol === CanonicalToken.DAI) {
       symbol = CanonicalToken.XDAI
     }
 
@@ -314,7 +322,7 @@ export class HopBridge extends Base {
       throw new Error('Hop tokens do not exist on layer 1')
     }
 
-    const { name, decimals, image } = metadata.tokens[token.canonicalSymbol]
+    const { name, decimals, image } = getToken(token.canonicalSymbol)
     const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
     let formattedSymbol = token.canonicalSymbol as HToken
@@ -537,7 +545,7 @@ export class HopBridge extends Base {
       console.warn('hop sdk getEstimatedGasLimit error estimating gas limit. trying fixed gasLimit for estimateGas')
       return this.estimateGas(provider, {
         ...populatedTx,
-        gasLimit: sourceChain.equals(Chain.Arbitrum) ? 1_000_000 : 500_000
+        gasLimit: sourceChain.slug === ChainSlug.Arbitrum ? 1_000_000 : 500_000
       })
     }
   }
@@ -550,9 +558,10 @@ export class HopBridge extends Base {
   ) : Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendTx(tokenAmount, sourceChain, destinationChain, options)
+    const provider = this.getChainProvider(sourceChain)
     const [estimatedGasLimit, gasPrice] = await Promise.all([
       this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx),
-      this.getGasPrice(sourceChain.provider!)
+      this.getGasPrice(provider)
     ])
     return gasPrice.mul(estimatedGasLimit)
   }
@@ -564,7 +573,7 @@ export class HopBridge extends Base {
   ) : string {
     sourceChain = this.toChainModel(sourceChain)
 
-    if (sourceChain.equals(Chain.Ethereum)) {
+    if (sourceChain.slug === ChainSlug.Ethereum) {
       if (this.getShouldUseCctpBridge({ isHTokenSend })) {
         return this.getCctpL1BridgeAddress(this.tokenSymbol, sourceChain)
       } else {
@@ -715,7 +724,8 @@ export class HopBridge extends Base {
         throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer fee is disabled')
       }
 
-      const l1Bridge = await this.getL1Bridge(sourceChain.provider!)
+      const sourceChainProvider = this.getChainProvider(sourceChain)
+      const l1Bridge = await this.getL1Bridge(sourceChainProvider)
       const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
       if (isPaused) {
         throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
@@ -741,7 +751,7 @@ export class HopBridge extends Base {
         relayer,
         bonderFee,
         {
-          ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+          ...(await this.txOverrides(ChainSlug.Ethereum, destinationChain)),
           value
         }
       ] as const
@@ -763,7 +773,8 @@ export class HopBridge extends Base {
         await this.txOverrides(sourceChain)
       ] as const
 
-      const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
+      const sourceChainProvider = this.getChainProvider(sourceChain)
+      const l2Bridge = await this.getL2Bridge(sourceChain, sourceChainProvider)
       return l2Bridge.populateTransaction.send(...txOptions)
     }
   }
@@ -1220,6 +1231,7 @@ export class HopBridge extends Base {
     if (this.getShouldUseCctpBridge({isHTokenSend})) {
       const canonicalToken = this.toCanonicalToken('USDC', this.network, sourceChain)
       const chainNativeToken = this.getChainNativeToken(destinationChain)
+      const destinationChainProvider = this.getChainProvider(destinationChain)
       const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, destinationTxGasLimit] = await Promise.all([
         this.getPriceByTokenSymbol(
           chainNativeToken.symbol
@@ -1227,7 +1239,7 @@ export class HopBridge extends Base {
         this.getPriceByTokenSymbol(
           canonicalToken.symbol
         ),
-        this.getGasPrice(destinationChain.provider!),
+        this.getGasPrice(destinationChainProvider),
         this.getCctpReceiveMessageEstimateGasLimit(sourceChain, destinationChain)
       ])
 
@@ -1250,12 +1262,12 @@ export class HopBridge extends Base {
       let destinationTxFee = txFeeInWei.mul(rateBN).div(oneEth)
 
       if (
-        destinationChain.equals(Chain.Ethereum) ||
-        destinationChain.equals(Chain.Optimism) ||
-        destinationChain.equals(Chain.Arbitrum) ||
-        destinationChain.equals(Chain.Nova) ||
-        destinationChain.equals(Chain.Linea) ||
-        destinationChain.equals(Chain.Base)
+        destinationChain.slug === ChainSlug.Ethereum ||
+        destinationChain.slug === ChainSlug.Optimism ||
+        destinationChain.slug === ChainSlug.Arbitrum ||
+        destinationChain.slug === ChainSlug.Nova ||
+        destinationChain.slug === ChainSlug.Linea ||
+        destinationChain.slug === ChainSlug.Base
       ) {
         const multiplier = parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
         if (multiplier.gt(0)) {
@@ -1286,6 +1298,7 @@ export class HopBridge extends Base {
     const isRelayerFee = sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
+    const destinationChainProvider = this.getChainProvider(destinationChain)
     const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, bondTransferGasLimit, l1FeeInWei, relayerFee] = await Promise.all([
       this.getPriceByTokenSymbol(
         chainNativeToken.symbol
@@ -1293,12 +1306,12 @@ export class HopBridge extends Base {
       this.getPriceByTokenSymbol(
         canonicalToken.symbol
       ),
-      this.getGasPrice(destinationChain.provider!),
+      this.getGasPrice(destinationChainProvider),
       this.estimateBondWithdrawalGasLimit(
         sourceChain,
         destinationChain
       ),
-      (destinationChain.equals(Chain.Optimism) || destinationChain.equals(Chain.Base)) ? this.getOptimismL1Fee(sourceChain, destinationChain) : Promise.resolve(BigNumber.from(0)),
+      (destinationChain.slug === ChainSlug.Optimism || destinationChain.slug === ChainSlug.Base) ? this.getOptimismL1Fee(sourceChain, destinationChain) : Promise.resolve(BigNumber.from(0)),
       isRelayerFee ? this.getRelayerFee(destinationChain, this.tokenSymbol) : Promise.resolve(undefined)
     ])
 
@@ -1331,12 +1344,12 @@ export class HopBridge extends Base {
     }
 
     if (
-      destinationChain.equals(Chain.Ethereum) ||
-      destinationChain.equals(Chain.Optimism) ||
-      destinationChain.equals(Chain.Arbitrum) ||
-      destinationChain.equals(Chain.Nova) ||
-      destinationChain.equals(Chain.Linea) ||
-      destinationChain.equals(Chain.Base)
+      destinationChain.slug === ChainSlug.Ethereum ||
+      destinationChain.slug === ChainSlug.Optimism ||
+      destinationChain.slug === ChainSlug.Arbitrum ||
+      destinationChain.slug === ChainSlug.Nova ||
+      destinationChain.slug === ChainSlug.Linea ||
+      destinationChain.slug === ChainSlug.Base
     ) {
       const multiplier = parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
       if (multiplier.gt(0)) {
@@ -1390,19 +1403,20 @@ export class HopBridge extends Base {
         return false
       }
       if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.ZkSync)) {
+        if (destinationChain.slug === ChainSlug.ZkSync) {
           // TODO
-        } else if (destinationChain.equals(Chain.Linea)) {
+        } else if (destinationChain.slug === ChainSlug.Linea) {
           // TODO
-        } else if (destinationChain.equals(Chain.ScrollZk)) {
+        } else if (destinationChain.slug === ChainSlug.ScrollZk) {
           // TODO
-        } else if (destinationChain.equals(Chain.Base)) {
+        } else if (destinationChain.slug === ChainSlug.Base) {
           // TODO
-        } else if (destinationChain.equals(Chain.PolygonZk)) {
+        } else if (destinationChain.slug === ChainSlug.PolygonZk) {
           // TODO
         } else {
           const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
-          await this.estimateGas(destinationChain.provider!, {
+          const destinationChainProvider = this.getChainProvider(destinationChain)
+          await this.estimateGas(destinationChainProvider, {
             value: BigNumber.from('1'),
             from: bonderAddress,
             to: recipient
@@ -1415,7 +1429,8 @@ export class HopBridge extends Base {
           this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
         ])
         populatedTx.from = bonderAddress
-        await this.estimateGas(destinationChain.provider!, populatedTx)
+        const destinationChainProvider = this.getChainProvider(destinationChain)
+        await this.estimateGas(destinationChainProvider, populatedTx)
         return false
       }
     } catch (err) {
@@ -1431,8 +1446,9 @@ export class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     try {
       const timeStart = Date.now()
+      const destinationChainProvider = this.getChainProvider(destinationChain)
       const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain)
-      const estimatedGas = await this.estimateGas(destinationChain.provider!, populatedTx)
+      const estimatedGas = await this.estimateGas(destinationChainProvider, populatedTx)
       this.debugTimeLog('estimateBondWithdrawalGasLimit', timeStart)
       return estimatedGas
     } catch (err) {
@@ -1440,15 +1456,15 @@ export class HopBridge extends Base {
         destinationChain
       })
       let bondTransferGasLimit: string = BondTransferGasLimit.Ethereum
-      if (destinationChain.equals(Chain.Optimism)) {
+      if (destinationChain.slug === ChainSlug.Optimism) {
         bondTransferGasLimit = BondTransferGasLimit.Optimism
-      } else if (destinationChain.equals(Chain.Arbitrum)) {
+      } else if (destinationChain.slug === ChainSlug.Arbitrum) {
         bondTransferGasLimit = BondTransferGasLimit.Arbitrum
-      } else if (destinationChain.equals(Chain.Nova)) {
+      } else if (destinationChain.slug === ChainSlug.Nova) {
         bondTransferGasLimit = BondTransferGasLimit.Nova
-      } else if (destinationChain.equals(Chain.Base)) {
+      } else if (destinationChain.slug === ChainSlug.Base) {
         bondTransferGasLimit = BondTransferGasLimit.Base
-      } else if (destinationChain.equals(Chain.Linea)) {
+      } else if (destinationChain.slug === ChainSlug.Linea) {
         bondTransferGasLimit = BondTransferGasLimit.Linea
       }
       return BigNumber.from(bondTransferGasLimit)
@@ -1467,7 +1483,8 @@ export class HopBridge extends Base {
     } else {
       destinationBridge = await this.getL2Bridge(destinationChain)
     }
-    destinationBridge = destinationBridge.connect(destinationChain.provider)
+    const destinationChainProvider = this.getChainProvider(destinationChain)
+    destinationBridge = destinationBridge.connect(destinationChainProvider)
     const bonder = await this.getBonderAddress(sourceChain, destinationChain)
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
@@ -1588,7 +1605,7 @@ export class HopBridge extends Base {
       return BigNumber.from(0) // TODO
     }
 
-    if (sourceChain.equals(Chain.Ethereum)) {
+    if (sourceChain.slug === ChainSlug.Ethereum) {
       return BigNumber.from(0)
     }
 
@@ -1623,12 +1640,13 @@ export class HopBridge extends Base {
 
     sourceChain = this.toChainModel(sourceChain)
 
+    const sourceChainProvider = this.getChainProvider(sourceChain)
     const hopCctpBridge = await this.getCctpBridge(sourceChain)
     const canonicalTokenAddress = await hopCctpBridge.nativeToken()
     const cctpAddress = await hopCctpBridge.cctp()
-    const tokenMessenger = CCTPTokenMessenger__factory.connect(cctpAddress, sourceChain.provider!)
+    const tokenMessenger = CCTPTokenMessenger__factory.connect(cctpAddress, sourceChainProvider)
     const localMinterAddress = await tokenMessenger.localMinter()
-    const tokenMinter = CCTPTokenMinter__factory.connect(localMinterAddress, sourceChain.provider!)
+    const tokenMinter = CCTPTokenMinter__factory.connect(localMinterAddress, sourceChainProvider)
     const availableLiquidity = await tokenMinter.burnLimitsPerMessage(canonicalTokenAddress)
 
     return availableLiquidity
@@ -1687,7 +1705,7 @@ export class HopBridge extends Base {
         } catch (err) {}
         if (validChain) {
           try {
-            const pendingAmount = await this.getPendingAmount(bondableChain, Chain.Ethereum)
+            const pendingAmount = await this.getPendingAmount(bondableChain, ChainSlug.Ethereum)
             if (!pendingAmount) {
               return
             }
@@ -1922,24 +1940,24 @@ export class HopBridge extends Base {
   public async getL1Bridge (signer: TProvider = this.signer): Promise<any> {
     const bridgeAddress = this.getL1BridgeAddress(
       this.tokenSymbol,
-      Chain.Ethereum
+      ChainSlug.Ethereum
     )
     if (!bridgeAddress) {
       throw new Error(`token "${this.tokenSymbol}" on chain ethereum bridge does not have l1Bridge`)
     }
-    const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
+    const provider = await this.getSignerOrProvider(ChainSlug.Ethereum, signer)
     return L1_ERC20_Bridge__factory.connect(bridgeAddress, provider)
   }
 
   public async getCctpL1Bridge (signer: TProvider = this.signer): Promise<any> {
     const bridgeAddress = this.getCctpL1BridgeAddress(
       this.tokenSymbol,
-      Chain.Ethereum
+      ChainSlug.Ethereum
     )
     if (!bridgeAddress) {
       throw new Error(`token "${this.tokenSymbol}" bridge on chain ethereum does not have cctpL1Bridge`)
     }
-    const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
+    const provider = await this.getSignerOrProvider(ChainSlug.Ethereum, signer)
     return L1_HopCCTPImplementation__factory.connect(bridgeAddress, provider)
   }
 
@@ -2370,11 +2388,12 @@ export class HopBridge extends Base {
     recipient = checksumAddress(recipient)
 
     const isNativeToken = this.isNativeToken(sourceChain)
+    const sourceChainProvider = this.getChainProvider(sourceChain)
     let l1Bridge : L1_Bridge | L1_HopCCTPImplementation
     if (this.getShouldUseCctpBridge()) {
-      l1Bridge = await this.getCctpL1Bridge(sourceChain.provider!)
+      l1Bridge = await this.getCctpL1Bridge(sourceChainProvider)
     } else {
-      l1Bridge = await this.getL1Bridge(sourceChain.provider!)
+      l1Bridge = await this.getL1Bridge(sourceChainProvider)
     }
 
     if (checkAllowance) {
@@ -2417,7 +2436,7 @@ export class HopBridge extends Base {
         amount || 0,
         relayerFee,
         {
-          ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+          ...(await this.txOverrides(ChainSlug.Ethereum, destinationChain)),
           value
         }
       ] as const
@@ -2442,7 +2461,7 @@ export class HopBridge extends Base {
         relayer || constants.AddressZero,
         relayerFee,
         {
-          ...(await this.txOverrides(Chain.Ethereum, destinationChain)),
+          ...(await this.txOverrides(ChainSlug.Ethereum, destinationChain)),
           value
         }
       ] as const
@@ -2486,17 +2505,18 @@ export class HopBridge extends Base {
     }
     recipient = checksumAddress(recipient)
 
+    const sourceChainProvider = this.getChainProvider(sourceChain)
     let l2Bridge : L2_Bridge | L2_HopCCTPImplementation
     if (this.getShouldUseCctpBridge()) {
-      l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChain.provider!)
+      l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChainProvider)
     } else {
-      l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
+      l2Bridge = await this.getL2Bridge(sourceChain, sourceChainProvider)
     }
 
     let spender = l2Bridge.address
     const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
     if (attemptSwapAtSource && !this.getShouldUseCctpBridge()) {
-      const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
+      const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChainProvider)
       spender = ammWrapper.address
     }
 
@@ -2529,7 +2549,7 @@ export class HopBridge extends Base {
           network: this.network,
           chainId: sourceChain.chainId,
           amountIn: amount,
-          provider: sourceChain.provider!,
+          provider: sourceChainProvider,
           recipient: l2Bridge.address
         })
 
@@ -2586,7 +2606,7 @@ export class HopBridge extends Base {
           }
         ] as const
 
-        const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
+        const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChainProvider)
         return ammWrapper.populateTransaction.swapAndSend(
           ...txOptions,
           ...additionalOptions
@@ -2641,16 +2661,17 @@ export class HopBridge extends Base {
     }
     recipient = checksumAddress(recipient)
 
+    const sourceChainProvider = this.getChainProvider(sourceChain)
     let l2Bridge : L2_Bridge | L2_HopCCTPImplementation
     if (this.getShouldUseCctpBridge()) {
-      l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChain.provider!)
+      l2Bridge = await this.getCctpL2Bridge(sourceChain, sourceChainProvider)
     } else {
-      l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider!)
+      l2Bridge = await this.getL2Bridge(sourceChain, sourceChainProvider)
     }
     let spender = l2Bridge.address
     const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
     if (attemptSwapAtSource && !this.getShouldUseCctpBridge()) {
-      const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
+      const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChainProvider)
       spender = ammWrapper.address
     }
     const isNativeToken = this.isNativeToken(sourceChain)
@@ -2682,7 +2703,7 @@ export class HopBridge extends Base {
           network: this.network,
           chainId: sourceChain.chainId,
           amountIn: amount,
-          provider: sourceChain.provider!,
+          provider: sourceChainProvider,
           recipient: l2Bridge.address
         })
 
@@ -2739,7 +2760,7 @@ export class HopBridge extends Base {
           }
         ] as const
 
-        const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider!)
+        const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChainProvider)
         return ammWrapper.populateTransaction.swapAndSend(
           ...txOptions,
           ...additionalOptions
@@ -2913,7 +2934,7 @@ export class HopBridge extends Base {
 
     // DAI into Gnosis can be bonded for a cheaper fee
     if (
-      destinationChain?.slug === Chain.Gnosis.slug &&
+      destinationChain?.slug === ChainSlug.Gnosis &&
       this.tokenSymbol === TokenModel.DAI
     ) {
       return BigNumber.from(0)
@@ -2922,7 +2943,7 @@ export class HopBridge extends Base {
     const timeStart = Date.now()
     let onChainBonderFeeAbsolutePromise : any
     if (token.canonicalSymbol === TokenModel.ETH) {
-      if (Chain.Gnosis.equals(sourceChain) || Chain.Polygon.equals(sourceChain)) {
+      if (ChainSlug.Gnosis === sourceChain.slug || ChainSlug.Polygon === sourceChain.slug) {
         const l2Bridge = await this.getL2Bridge(sourceChain)
         onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
       }
@@ -2984,21 +3005,21 @@ export class HopBridge extends Base {
   // Gnosis AMB bridge
   async getAmbBridge (chain: TChain): Promise<any> {
     chain = this.toChainModel(chain)
-    if (chain.equals(Chain.Ethereum)) {
-      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
-      const provider = await this.getSignerOrProvider(Chain.Ethereum)
+    if (chain.slug === ChainSlug.Ethereum) {
+      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, ChainSlug.Gnosis)
+      const provider = await this.getSignerOrProvider(ChainSlug.Ethereum)
       return L1_HomeAMBNativeToErc20__factory.connect(address, provider)
     }
-    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
-    const provider = await this.getSignerOrProvider(Chain.Gnosis)
+    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, ChainSlug.Gnosis)
+    const provider = await this.getSignerOrProvider(ChainSlug.Gnosis)
     return L1_HomeAMBNativeToErc20__factory.connect(address, provider)
   }
 
   getChainNativeToken (chain: TChain): any {
     chain = this.toChainModel(chain)
-    if (chain?.equals(Chain.Polygon)) {
+    if (chain?.slug === ChainSlug.Polygon) {
       return this.toTokenModel(CanonicalToken.MATIC)
-    } else if (chain?.equals(Chain.Gnosis)) {
+    } else if (chain?.slug === ChainSlug.Gnosis) {
       return this.toTokenModel(CanonicalToken.DAI)
     }
 
@@ -3016,7 +3037,8 @@ export class HopBridge extends Base {
     if (!address) {
       throw new Error('address is required')
     }
-    return chain.provider!.getBalance(address)
+    const provider = this.getChainProvider(chain)
+    return provider.getBalance(address)
   }
 
   isSupportedAsset (chain: TChain) :boolean {
@@ -3348,8 +3370,8 @@ export class HopBridge extends Base {
   private getLpFeeBps (chain: Chain): BigNumber {
     const defaultFeeBps = 4
     const customFeeBps: Record<string, number> = {
-      [Chain.PolygonZk.slug]: 1,
-      [Chain.Nova.slug]: 1
+      [ChainSlug.PolygonZk]: 1,
+      [ChainSlug.Nova]: 1
     }
 
     if (customFeeBps[chain.slug]) {
@@ -3444,7 +3466,8 @@ export class HopBridge extends Base {
       throw new Error(`transmitter address not found for chain ${toChain.slug}`)
     }
 
-    const transmitter = CCTPMessageTransmitter__factory.connect(transmitterAddress, toChain.provider!)
+    const toChainProvider = this.getChainProvider(toChain)
+    const transmitter = CCTPMessageTransmitter__factory.connect(transmitterAddress, toChainProvider)
     const populatedTx = await transmitter.populateTransaction.receiveMessage(message, attestation)
     return populatedTx
   }
@@ -3453,7 +3476,8 @@ export class HopBridge extends Base {
     for (const chain in this.chains) {
       try {
         const fromChain = this.toChainModel(chain)
-        const provider = fromChain.provider!
+        const fromChainProvider = this.getChainProvider(fromChain)
+        const provider = fromChainProvider
         const receipt = await provider.getTransactionReceipt(transactionHash)
         if (receipt) {
           let toChain : any
@@ -3472,7 +3496,8 @@ export class HopBridge extends Base {
           if (!nonce) {
             throw new Error('nonce not found')
           }
-          const toChainSlug = chainIdToSlug(this.network, toChain)
+          // toChain is a chainID
+          const toChainSlug = chainIdToSlug(toChain)
           const nonceUsed = await this.getIsCctpNonceUsed(nonce, fromChain, toChainSlug)
           return {
             fromChain: chain,
@@ -3504,8 +3529,9 @@ export class HopBridge extends Base {
       throw new Error('CCTP bridge is not supported')
     }
 
+    const fromChainProvider = this.getChainProvider(fromChain)
     const transmitterAddress = this.getCctpMessageTransmitterAddress(this.tokenSymbol, fromChain)
-    const receipt = await fromChain.provider!.getTransactionReceipt(transactionHash)
+    const receipt = await fromChainProvider.getTransactionReceipt(transactionHash)
     if (!receipt) {
       throw new Error(`transaction receipt not found for hash ${transactionHash}`)
     }
@@ -3549,12 +3575,13 @@ export class HopBridge extends Base {
 
   async calcUniswapSwapAmountOut (sourceChain: TChain, amountIn: BigNumber): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
+    const sourceChainProvider = this.getChainProvider(sourceChain)
     const cctpBridge = await this.getCctpBridge(sourceChain)
     const { quotedAmountOut } = await getUSDCSwapParams({
       network: this.network,
       chainId: sourceChain.chainId,
       amountIn: amountIn,
-      provider: sourceChain.provider!,
+      provider: sourceChainProvider,
       recipient: cctpBridge.address,
       getQuote: true
     })
@@ -3596,7 +3623,8 @@ export class HopBridge extends Base {
         throw new Error(`transmitter address not found for chain ${toChain.slug}`)
       }
 
-      const transmitter = CCTPMessageTransmitter__factory.connect(transmitterAddress, toChain.provider!)
+      const toChainProvider = this.getChainProvider(toChain)
+      const transmitter = CCTPMessageTransmitter__factory.connect(transmitterAddress, toChainProvider)
       const result = await transmitter.usedNonces(nonceHash)
       return BigNumber.from(result).eq(1)
     } catch (err) {

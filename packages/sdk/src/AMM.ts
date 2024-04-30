@@ -376,7 +376,8 @@ export class AMM extends Base {
     const saddleSwap = await this.getSaddleSwap()
 
     const endTimestamp = unixTimestamp
-    let endBlockNumber = await getBlockNumberFromDate(this.chain, endTimestamp)
+    const provider = this.getChainProvider(this.chain)
+    let endBlockNumber = await getBlockNumberFromDate(provider, endTimestamp)
     endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
@@ -390,7 +391,7 @@ export class AMM extends Base {
     ])
 
     const startTimestamp = endTimestamp - (days * SecondsInDay)
-    let startBlockNumber = await getBlockNumberFromDate(this.chain, startTimestamp)
+    let startBlockNumber = await getBlockNumberFromDate(provider, startTimestamp)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 2000
@@ -464,7 +465,7 @@ export class AMM extends Base {
       throw new Error('invalid arg: valid days are: 1, 7, 30')
     }
 
-    const provider = this.chain.provider
+    const provider = this.getChainProvider(this.chain)
     if (!provider) {
       throw new Error('expected provider')
     }

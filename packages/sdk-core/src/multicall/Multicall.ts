@@ -2,15 +2,15 @@ import { providers, utils } from 'ethers'
 import { Multicall3__factory } from '#contracts/index.js'
 import { PriceFeedFromS3 } from '#priceFeed/index.js'
 import { ERC20__factory } from '#contracts/index.js'
-import { getTokenDecimals } from '#utils/index.js'
-import { sdkConfig } from '#config/index.js'
+import { type TokenSymbolish, getToken } from '#tokens/index.js'
+import { type Chain, type ChainSlugish, type NetworkSlugish, getChain } from '#chains/index.js'
 
 type Config = {
-  network: string
+  network: NetworkSlugish
   accountAddress?: string
 }
 
-export type MulticallBalance = {
+type MulticallBalance = {
   tokenSymbol: string
   address: string
   chainSlug: string
@@ -25,7 +25,7 @@ type GetMulticallBalanceOptions = {
   abi?: any
   method?: string
   address?: string
-  tokenSymbol?: string
+  tokenSymbol?: TokenSymbolish
   tokenDecimals?: number
 }
 
@@ -37,7 +37,7 @@ type MulticallOptions = {
 }
 
 export class Multicall {
-  network: string
+  network: NetworkSlugish
   accountAddress?: string
   priceFeed: PriceFeedFromS3
 
@@ -53,16 +53,18 @@ export class Multicall {
     this.priceFeed = new PriceFeedFromS3()
   }
 
-  getMulticallAddressForChain (chainSlug: string): string | null {
-    const address = sdkConfig[this.network].chains?.[chainSlug]?.multicall
+  #getMulticallAddressForChain (chainSlug: ChainSlugish): string | null {
+    const chain: Chain = getChain(this.network, chainSlug)
+    const address = chain.multicall
     if (!address) {
       return null
     }
     return address
   }
 
-  getProvider (chainSlug: string): providers.Provider {
-    const rpcUrl = sdkConfig[this.network].chains?.[chainSlug]?.rpcUrl
+  #getProvider (chainSlug: ChainSlugish): providers.Provider {
+    const chain: Chain = getChain(this.network, chainSlug)
+    const rpcUrl = chain.publicRpcUrl
     if (!rpcUrl) {
       throw new Error(`rpcUrl not found for chain ${chainSlug}`)
     }
@@ -70,9 +72,9 @@ export class Multicall {
     return provider
   }
 
-  async multicall (chainSlug: string, options: MulticallOptions[]): Promise<Array<any>> {
-    const provider = this.getProvider(chainSlug)
-    const multicallAddress = this.getMulticallAddressForChain(chainSlug)
+  async multicall (chainSlug: ChainSlugish, options: MulticallOptions[]): Promise<Array<any>> {
+    const provider = this.#getProvider(chainSlug)
+    const multicallAddress = this.#getMulticallAddressForChain(chainSlug)
     const calls = options.map(({ address, abi, method, args }: any) => {
       const contractInterface = new utils.Interface(abi)
       const calldata = contractInterface.encodeFunctionData(method, args)
@@ -120,8 +122,8 @@ export class Multicall {
     if (!this.accountAddress) {
       throw new Error('config.accountAddress is required')
     }
-    const provider = this.getProvider(chainSlug)
-    const multicallAddress = this.getMulticallAddressForChain(chainSlug)
+    const provider = this.#getProvider(chainSlug)
+    const multicallAddress = this.#getMulticallAddressForChain(chainSlug)
 
     const calls = await Promise.all(multicallBalanceOpts.map(async ({ address, method }: GetMulticallBalanceOptions) => {
       const tokenContract = ERC20__factory.connect(address!, provider)
@@ -152,7 +154,7 @@ export class Multicall {
       const { tokenSymbol, address, tokenDecimals } = multicallBalanceOpts[index]
       try {
         const balance = utils.defaultAbiCoder.decode(['uint256'], returnData)[0]
-        const _tokenDecimals = tokenDecimals ?? getTokenDecimals(tokenSymbol!)
+        const _tokenDecimals = tokenDecimals ?? getToken(tokenSymbol!)?.decimals
         const balanceFormatted = Number(utils.formatUnits(balance, _tokenDecimals))
         const tokenPrice = multicallBalanceOpts ? null : await this.priceFeed.getPriceByTokenSymbol(tokenSymbol!) // don't fetch usd price if using custom abi
         const balanceUsd = tokenPrice ? balanceFormatted * tokenPrice : null

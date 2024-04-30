@@ -1,4 +1,4 @@
-import wallets from '#wallets/index.js'
+import { wallets } from '#wallets/index.js'
 import { AbstractService } from '../Services/AbstractService.js'
 import { ChainSlug } from '@hop-protocol/sdk'
 import type { Signer, providers } from 'ethers'

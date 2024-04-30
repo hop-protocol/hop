@@ -45,7 +45,7 @@ function getOnboardChains(): any {
 
   for (const chainSlug in chains) {
     const chainObj = chains[chainSlug]
-    const id = chainIdToHex(chainObj.networkId)
+    const id = chainIdToHex(chainObj.chainId)
     const token = chainMetadata?.[chainSlug]?.nativeTokenSymbol
     const label = `${chainObj.name} ${capitalize(reactAppNetwork)}`
     let rpcUrl = chainObj.publicRpcUrl

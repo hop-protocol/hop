@@ -1,12 +1,11 @@
 import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json" with { type: "json" }
-import wallets from '@hop-protocol/hop-node-core/wallets'
+import { wallets } from '@hop-protocol/hop-node-core'
 import { BigNumber, Contract, type Signer, constants, utils } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { Logger } from '@hop-protocol/hop-node-core'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import { ERC20__factory } from '@hop-protocol/sdk/contracts'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { ChainSlug, ERC20__factory } from '@hop-protocol/sdk'
 import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
 import type { SwapInput } from '../types.js'
 
@@ -302,9 +301,9 @@ async function getTokenSwapTokens(pool: Pool, wallet: Signer, chain: string, toT
   let routeToken1: any = pool.token1
 
   const token0Symbol = await token0.symbol()
-  const ethNativeChains: string[] = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base, Chain.Linea]
+  const ethNativeChains: string[] = [ChainSlug.Ethereum, ChainSlug.Optimism, ChainSlug.Arbitrum, ChainSlug.Nova, ChainSlug.Base, ChainSlug.Linea]
   const isToken0ETH = ethNativeChains.includes(chain) && ['ETH', 'WETH'].includes(token0Symbol)
-  const isToken0MATIC = chain === Chain.Polygon && ['MATIC', 'WMATIC'].includes(token0Symbol)
+  const isToken0MATIC = chain === ChainSlug.Polygon && ['MATIC', 'WMATIC'].includes(token0Symbol)
   const isToken0Native = isToken0ETH || isToken0MATIC
   if (isToken0Native) {
     sourceToken = token1
@@ -318,7 +317,7 @@ async function getTokenSwapTokens(pool: Pool, wallet: Signer, chain: string, toT
     routeToken1 = Ether.onChain(chainSlugToId(chain))
   }
 
-  if (chain === Chain.Polygon && toToken === 'MATIC') {
+  if (chain === ChainSlug.Polygon && toToken === 'MATIC') {
     if (pool.token0.symbol === 'WMATIC') {
       routeToken1 = pool.token0
     } else if (pool.token1.symbol === 'WMATIC') {

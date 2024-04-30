@@ -4,18 +4,15 @@ import getTransferRootId from '#utils/getTransferRootId.js'
 import getTransferSent from '#theGraph/getTransferSent.js'
 import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
 import { BigNumber, Contract, utils } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, TokenSymbol, getChain, getToken } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
 import { type L1BridgeProps, type L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { Logger } from '@hop-protocol/hop-node-core'
 import { getEnabledTokens } from '#config/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
-import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
-import { wait } from '@hop-protocol/hop-node-core/utils'
-import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import { promiseQueue } from '@hop-protocol/hop-node-core'
+import { wait } from '@hop-protocol/hop-node-core'
 
 type Options = {
   token?: string
@@ -30,15 +27,15 @@ class IncompleteSettlementsWatcher {
   format: string = 'table'
 
   chains: string[] = [
-    Chain.Ethereum,
-    Chain.Arbitrum,
-    Chain.Optimism,
-    Chain.Gnosis,
-    Chain.Polygon,
-    Chain.Nova,
-    Chain.Base,
-    Chain.PolygonZk,
-    Chain.Linea
+    ChainSlug.Ethereum,
+    ChainSlug.Arbitrum,
+    ChainSlug.Optimism,
+    ChainSlug.Gnosis,
+    ChainSlug.Polygon,
+    ChainSlug.Nova,
+    ChainSlug.Base,
+    ChainSlug.PolygonZk,
+    ChainSlug.Linea
   ]
 
   tokens: string[] = getEnabledTokens()
@@ -145,7 +142,7 @@ class IncompleteSettlementsWatcher {
       const startBlockNumber = await getBlockNumberFromDate(chain, timestamp)
       this.startBlockNumbers[chain] = startBlockNumber
 
-      const provider = getRpcProvider(chain)
+      const provider = getRpcProvider(chain as ChainSlug)
       let endBlockNumber: number
       if (this.offsetDays) {
         const date = DateTime.fromMillis(Date.now()).minus({ days: this.offsetDays })
@@ -182,7 +179,7 @@ class IncompleteSettlementsWatcher {
     const concurrency = 20
     await promiseQueue(logs, async (log: any, i: number) => {
       const { rootHash, totalAmount, destinationChainId } = log.args
-      const destinationChain = chainIdToSlug(destinationChainId)
+      const destinationChain = getChain(destinationChainId).slug
       this.rootHashMeta[rootHash] = {
         token,
         sourceChain: chain,
@@ -190,7 +187,7 @@ class IncompleteSettlementsWatcher {
       }
       this.rootHashTotals[rootHash] = totalAmount
 
-      const provider = getRpcProvider(chain)
+      const provider = getRpcProvider(chain as ChainSlug)
       const { timestamp } = await provider.getBlock(log.blockNumber)
       this.rootHashTimestamps[rootHash] = timestamp
     }, { concurrency })
@@ -244,7 +241,7 @@ class IncompleteSettlementsWatcher {
   }
 
   private async setRootTransferIds (chain: string, token: string, log: any) {
-    const provider = getRpcProvider(chain)
+    const provider = getRpcProvider(chain as ChainSlug)
     const rootHash = log.args.rootHash
     const { data } = await provider.getTransaction(log.transactionHash)
     const contract = this.getContract(chain, token)
@@ -259,8 +256,8 @@ class IncompleteSettlementsWatcher {
   }
 
   private getContract (chain: string, token: string) {
-    const provider = getRpcProvider(chain)
-    const config = mainnetAddresses.bridges[token as AssetSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
+    const provider = getRpcProvider(chain as ChainSlug)
+    const config = mainnetAddresses.bridges[token as TokenSymbol]?.[chain as ChainSlug] as L1BridgeProps & L2BridgeProps
     if (!config) {
       throw new Error(`Could not find bridge config for ${token} on ${chain}`)
     }
@@ -387,7 +384,7 @@ class IncompleteSettlementsWatcher {
       const timestamp = this.rootHashTimestamps[rootHash]
       const isConfirmed = !!this.rootHashConfirmeds[rootHash]
       const isSet = !!this.rootHashSets[rootHash]
-      const tokenDecimals = getTokenDecimals(token)
+      const tokenDecimals = getToken(token).decimals
       // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
@@ -473,7 +470,7 @@ class IncompleteSettlementsWatcher {
 
   private async getUnsettledTransfers (rootHash: string) {
     const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
-    const tokenDecimals = getTokenDecimals(token)
+    const tokenDecimals = getToken(token).decimals
     const contract = this.getContract(destinationChain, token)
     const transferIds = await this.rootTransferIds[rootHash] || []
     const unsettledTransfers: any[] = []

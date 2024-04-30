@@ -18,11 +18,10 @@ const sepoliaNetworks: Networks = {}
 
 for (const chainSlug in _networks) {
   sepoliaNetworks[chainSlug] = {
-    networkId: _networks[chainSlug].networkId,
+    networkId: _networks[chainSlug].chainId,
     rpcUrl: _networks[chainSlug].publicRpcUrl,
     fallbackRpcUrls: _networks[chainSlug].fallbackPublicRpcUrls,
-    explorerUrl: _networks[chainSlug].explorerUrls[0],
-    nativeBridgeUrl: _networks[chainSlug].nativeBridgeUrl
+    explorerUrl: _networks[chainSlug].explorerUrls[0]
   }
 }
 

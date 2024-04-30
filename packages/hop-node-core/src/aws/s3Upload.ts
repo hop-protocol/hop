@@ -2,15 +2,18 @@ import { BigNumber } from 'ethers'
 import { Logger } from '#logger/index.js'
 import { Mutex } from 'async-mutex'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from '#config/index.js'
+import { CoreEnvironment } from '#config/index.js'
 
 const mutex = new Mutex()
 
 let credentials
-if (awsAccessKeyId && awsSecretAccessKey) {
+if (
+  CoreEnvironment.getInstance().getEnvironment()?.awsAccessKeyId &&
+  CoreEnvironment.getInstance().getEnvironment()?.awsSecretAccessKey
+) {
   credentials = {
-    accessKeyId: awsAccessKeyId,
-    secretAccessKey: awsSecretAccessKey
+    accessKeyId: CoreEnvironment.getInstance().getEnvironment()?.awsAccessKeyId,
+    secretAccessKey: CoreEnvironment.getInstance().getEnvironment()?.awsSecretAccessKey
   }
 }
 
@@ -20,7 +23,7 @@ type Config = {
 }
 
 const client = new S3Client({
-  region: awsRegion,
+  region: CoreEnvironment.getInstance().getEnvironment()?.awsRegion,
   credentials
 })
 

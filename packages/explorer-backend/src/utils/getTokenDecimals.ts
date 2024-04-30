@@ -1,4 +1,4 @@
-import { tokens } from '@hop-protocol/sdk/metadata'
+import { tokens } from '@hop-protocol/sdk'
 
 export function getTokenDecimals (tokenSymbol: string) {
   const decimals = (tokens as any)[tokenSymbol]?.decimals

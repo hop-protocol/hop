@@ -1,13 +1,12 @@
 import ContractBase from './ContractBase.js'
 import { BigNumber, utils } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { Hop } from '@hop-protocol/sdk'
-import { getTokenMetadata } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, Hop } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
-import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
-import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
-import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import { isL1ChainId } from '@hop-protocol/hop-node-core'
+import { isNativeToken } from '@hop-protocol/hop-node-core'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
 import type { providers } from 'ethers'
+import { getToken } from '@hop-protocol/sdk'
 
 export default class L2AmmWrapper extends ContractBase {
   decodeSwapAndSendData (data: string): any {
@@ -49,9 +48,9 @@ export default class L2AmmWrapper extends ContractBase {
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const amountOutMin = amountOut.mul(minBps).div(10000)
     let destinationAmountOutMin = amountOutMin
-    const isNativeTokenSend = isNativeToken(this.chainSlug, token)
-    const tokenDecimals = getTokenMetadata(token)?.decimals
-    if (destinationChain === Chain.Ethereum) {
+    const isNativeTokenSend = isNativeToken(this.chainId, token)
+    const tokenDecimals = getToken(token)?.decimals
+    if (destinationChain === ChainSlug.Ethereum) {
       destinationDeadline = 0
       destinationAmountOutMin = BigNumber.from(0)
     }

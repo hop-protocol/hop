@@ -163,7 +163,7 @@ for (const chain in chains) {
 const chainSlugToIdMap :any = {}
 
 for (const chain in networks) {
-  chainSlugToIdMap[chain] = networks[chain].networkId
+  chainSlugToIdMap[chain] = networks[chain].chainId
 }
 
 export function chainSlugToId (chainSlug: string) {

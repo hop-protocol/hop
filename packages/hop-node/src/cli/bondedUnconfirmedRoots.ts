@@ -2,11 +2,10 @@ import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
 import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
 import { PreRegenesisRootsCommitted } from '#constants/index.js'
 import { actionHandler, parseString, root } from './shared/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 
 type RootCommitted = {
   rootHash: string
@@ -34,8 +33,8 @@ export async function main (source: any) {
 
   const startTimestamp = 0
   const rootsCommitted = await getRootsCommitted(chain, token, startTimestamp, endTimestamp)
-  const rootsConfirmed = await getTransferRootConfirmed(Chain.Ethereum, token, startTimestamp, endTimestamp)
-  const rootsBonded = await getTransferRootBonded(Chain.Ethereum, token, startTimestamp, endTimestamp)
+  const rootsConfirmed = await getTransferRootConfirmed(ChainSlug.Ethereum, token, startTimestamp, endTimestamp)
+  const rootsBonded = await getTransferRootBonded(ChainSlug.Ethereum, token, startTimestamp, endTimestamp)
 
   const rootHashesConfirmed = rootsConfirmed.map((rootConfirmed: any) => rootConfirmed.rootHash)
   const rootHashesBonded = rootsBonded.map((rootBonded: any) => rootBonded.root)
@@ -87,7 +86,7 @@ async function getRootsCommitted (
 
   for (const preRegenesisRootCommitted of PreRegenesisRootsCommitted) {
     if (preRegenesisRootCommitted.token !== token) continue
-    if (chainIdToSlug(preRegenesisRootCommitted.sourceChainId) !== chain) continue
+    if (getChain(Number(preRegenesisRootCommitted.sourceChainId)).slug !== chain) continue
 
     rootsCommitted.push({
       rootHash: preRegenesisRootCommitted.rootHash,

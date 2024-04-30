@@ -1,6 +1,7 @@
 import { APIEventStore } from './ApiEventStore.js'
 import { BigNumber } from 'ethers'
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { ChainSlug } from '@hop-protocol/sdk'
+import { getChain } from '@hop-protocol/sdk'
 import type {
   IAPIEventStoreRes,
   IDataStore,
@@ -13,13 +14,13 @@ import type { LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
 import { Message } from '../Message.js'
 import { OnchainEventStore } from './OnchainEventStore.js'
 import type { RequiredFilter } from '../../indexer/OnchainEventIndexer.js'
-import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
 import { getTimestampFromBlockNumberMs } from './utils.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
 
 export class TransitionDataProvider<T extends MessageState, U extends IMessage> implements ITransitionDataProvider<T, U> {
   readonly #stores: Record<T, IDataStore>
 
-  constructor (chains: Chain[]) {
+  constructor (chains: ChainSlug[]) {
     const onchainEventSourceIndexer = new OnchainEventStore(chains)
     const apiFetchEventSourceIndexer = new APIEventStore()
 
@@ -141,7 +142,7 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
   async #getMessageFromHopCCTPTransferLog (log: LogWithChainId, nonce: number): Promise<string> {
     const { chainId, blockNumber } = log
 
-    const chain = chainIdToSlug(chainId)
+    const chain = getChain(chainId).slug
     const provider = getRpcProvider(chain)
     const eventFilter = Message.getMessageSentEventFilter(chainId)
     const filter: RequiredFilter = {

@@ -9,65 +9,9 @@
     "#*": "./dist/*"
   },
   "exports": {
-    "./aws": {
-      "types": "./dist/aws/index.d.ts",
-      "default": "./dist/aws/index.js"
-    },
-    "./chains": {
-      "types": "./dist/chains/index.d.ts",
-      "default": "./dist/chains/index.js"
-    },
-    "./config": {
-      "types": "./dist/config/index.d.ts",
-      "default": "./dist/config/index.js"
-    },
-    "./constants": {
-      "types": "./dist/constants/index.d.ts",
-      "default": "./dist/constants/index.js"
-    },
-    "./finality": {
-      "types": "./dist/finality/index.d.ts",
-      "default": "./dist/finality/index.js"
-    },
-    "./gasboost": {
-      "types": "./dist/gasboost/index.d.ts",
-      "default": "./dist/gasboost/index.js"
-    },
-    "./keystore": {
-      "types": "./dist/keystore/index.d.ts",
-      "default": "./dist/keystore/index.js"
-    },
-    "./logger": {
-      "types": "./dist/logger/index.d.ts",
-      "default": "./dist/logger/index.js"
-    },
-    "./metrics": {
-      "types": "./dist/metrics/index.d.ts",
-      "default": "./dist/metrics/index.js"
-    },
-    "./notifier": {
-      "types": "./dist/notifier/index.d.ts",
-      "default": "./dist/notifier/index.js"
-    },
-    "./provider": {
-      "types": "./dist/provider/index.d.ts",
-      "default": "./dist/provider/index.js"
-    },
-    "./swap": {
-      "types": "./dist/swap/index.d.ts",
-      "default": "./dist/swap/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "default": "./dist/types/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "default": "./dist/utils/index.js"
-    },
-    "./wallets": {
-      "types": "./dist/wallets/index.d.ts",
-      "default": "./dist/wallets/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "files": [

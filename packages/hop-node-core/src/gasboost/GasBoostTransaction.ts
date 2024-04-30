@@ -14,22 +14,15 @@ import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'
 import { bigNumberMin } from '#utils/bigNumberMin.js'
-import {
-  blocknativeApiKey,
-  config as globalConfig,
-  hostname
-} from '#config/index.js'
-import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { CoreEnvironment } from '#config/index.js'
 import { utils } from 'ethers'
 import { getBumpedBN } from '#utils/getBumpedBN.js'
 import { getBumpedGasPrice } from '#utils/getBumpedGasPrice.js'
-import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
-import { getRpcUrl } from '#utils/getRpcUrl.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Signer, providers } from 'ethers'
 import type { Store } from './Store.js'
-import { ChainSlug } from '@hop-protocol/sdk'
+import { ChainSlug, getChain } from '@hop-protocol/sdk'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -159,14 +152,13 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.id = id ?? this.generateId()
     this.setOptions(options)
 
-    const chainSlug = getProviderChainSlug(this.signer.provider)
-    if (!chainSlug) {
-      throw new Error('chain slug not found for contract provider')
+    if (!tx.chainId) {
+      throw new Error('chainId is required')
     }
-    this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)
+    this.chainId = tx.chainId
+    this.chainSlug = getChain(this.chainId).slug
     const tag = 'GasBoostTransaction'
-    const prefix = `${this.chainSlug} id: ${this.id}`
+    const prefix = `id: ${this.id}`
     this.logId = prefix
     this.logger = new Logger({
       tag,
@@ -387,7 +379,9 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
   // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
   async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
-    const res = await fetch(getRpcUrl(chainSlug), {
+    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+    const rpcUrl = coreEnvironmentVariables.rpcUrls?.[chainSlug as ChainSlug]
+    const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -404,9 +398,18 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === ChainSlug.Ethereum && globalConfig.isMainnet
+    // Only use blocknative for mainnet
+    const isChainIdMainnet = this.chainId === 1
+    const isEthereumMainnet = (
+      typeof this._is1559Supported === 'boolean' &&
+      this._is1559Supported &&
+      this.chainSlug === ChainSlug.Ethereum &&
+      this.chainId === 1 &&
+      isChainIdMainnet
+    )
     if (isEthereumMainnet) {
       try {
+        const blocknativeApiKey = CoreEnvironment.getInstance().getEnvironment().blocknativeApiKey
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
         const res = await fetch(url, {

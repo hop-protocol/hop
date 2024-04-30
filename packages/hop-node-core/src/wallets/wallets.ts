@@ -3,38 +3,41 @@ import { KmsSigner } from '#aws/KmsSigner.js'
 import { LambdaSigner } from '#aws/LambdaSigner.js'
 import { Wallet } from 'ethers'
 import {
-  gasPriceMultiplier,
-  config as globalConfig,
-  initialTxGasPriceMultiplier,
-  maxPriorityFeeConfidenceLevel,
-  priorityFeePerGasCap,
-  timeTilBoostMs
+  type SignerConfig,
+  CoreEnvironment
 } from '#config/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
+import { type ChainSlug } from '@hop-protocol/sdk'
 
 const cache: Record<string, Signer> = {}
 
 const constructSigner = (network: string, privateKey: string): Signer => {
+  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
   const cacheKey = `${network}`
   const cachedValue = cache[cacheKey]
   if (cachedValue) {
     return cachedValue
   }
-
-  const provider = getRpcProvider(network)
+  const provider = getRpcProvider(network as ChainSlug)
   if (!provider) {
     throw new Error('expected provider')
   }
   let wallet
-  if (globalConfig.signerConfig.type === 'kms') {
-    const { keyId, awsRegion } = globalConfig.signerConfig
+  const signerConfig: SignerConfig | undefined = coreEnvironmentVariables?.signer
+  if (!signerConfig) {
+    wallet = new Wallet(privateKey, provider)
+    throw new Error('signer config not found')
+  }
+
+  if (signerConfig.type === 'kms') {
+    const { keyId, awsRegion } = signerConfig
     if (!keyId) {
       throw new Error('keyId is required')
     }
     wallet = new KmsSigner({ keyId, region: awsRegion }, provider)
-  } else if (globalConfig.signerConfig.type === 'lambda') {
-    const { keyId, awsRegion, lambdaFunctionName } = globalConfig.signerConfig
+  } else if (signerConfig.type === 'lambda') {
+    const { keyId, awsRegion, lambdaFunctionName } = signerConfig
     if (!keyId || !awsRegion || !lambdaFunctionName) {
       throw new Error('keyId, awsRegion, and lambdaFunctionName are required')
     }
@@ -47,14 +50,13 @@ const constructSigner = (network: string, privateKey: string): Signer => {
   }
 
   const signer = new GasBoostSigner(wallet)
-  const maxGasPriceGwei = (globalConfig as any).networks[network].maxGasPrice
   signer.setOptions({
-    gasPriceMultiplier,
-    initialTxGasPriceMultiplier,
-    maxGasPriceGwei,
-    priorityFeePerGasCap,
-    timeTilBoostMs,
-    maxPriorityFeeConfidenceLevel
+    gasPriceMultiplier: coreEnvironmentVariables.gasPriceMultiplier,
+    initialTxGasPriceMultiplier: coreEnvironmentVariables.initialTxGasPriceMultiplier,
+    maxGasPriceGwei: coreEnvironmentVariables.maxGasPriceGwei,
+    priorityFeePerGasCap: coreEnvironmentVariables.priorityFeePerGasCap,
+    timeTilBoostMs: coreEnvironmentVariables.timeTilBoostMs,
+    maxPriorityFeeConfidenceLevel: coreEnvironmentVariables.maxPriorityFeeConfidenceLevel
   })
 
   cache[cacheKey] = signer
@@ -62,11 +64,21 @@ const constructSigner = (network: string, privateKey: string): Signer => {
 }
 
 // lazy instantiate
-export default {
+export const wallets = {
   has (network: string) {
-    return !!constructSigner(network, globalConfig.bonderPrivateKey)
+    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+    const privateKey = coreEnvironmentVariables?.bonderPrivateKey
+    if (!privateKey) {
+      throw new Error('private key not found') 
+    }
+    return !!constructSigner(network, privateKey)
   },
   get (network: string) {
-    return constructSigner(network, globalConfig.bonderPrivateKey)
+    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+    const privateKey = coreEnvironmentVariables?.bonderPrivateKey
+    if (!privateKey) {
+      throw new Error('private key not found') 
+    }
+    return constructSigner(network, privateKey)
   }
 }

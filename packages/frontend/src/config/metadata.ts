@@ -1,4 +1,4 @@
-import { Slug, TokenSymbol } from '@hop-protocol/sdk'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { capitalize } from 'src/utils/capitalize'
 import { metadata as coreMetadata } from '@hop-protocol/sdk/metadata'
 import { isMainnet, reactAppNetwork } from 'src/config'
@@ -14,7 +14,7 @@ type Metadata = {
     }
   }
   networks: {
-    [key in Slug | string]: {
+    [key in ChainSlug | string]: {
       name: string
       isLayer1: boolean
       image: any
@@ -30,12 +30,12 @@ const chainMetadata : any = {}
 for (const chainSlug in chains) {
   const chainObj = chains[chainSlug]
   let name = chainObj.name
-  if (!isMainnet && chainSlug === Slug.ethereum) {
+  if (!isMainnet && chainSlug === ChainSlug.Ethereum) {
     name = `${chainObj.name} ${capitalize(reactAppNetwork)}`
   }
   chainMetadata[chainSlug] = {
       name: chainObj.name,
-      isLayer1: chainObj.isLayer1,
+      isLayer1: chainObj.parentChainId === 0,
       image: chainObj.image,
       nativeTokenSymbol: chainObj.nativeTokenSymbol,
   }

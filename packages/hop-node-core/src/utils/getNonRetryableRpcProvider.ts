@@ -1,9 +1,11 @@
-import { getRpcUrl } from './getRpcUrl.js'
 import { providers } from 'ethers'
+import { CoreEnvironment } from '#config/config.js'
+import { type ChainSlug } from '@hop-protocol/sdk'
 
 const cache: Record<string, providers.Provider> = {}
-export const getNonRetryableRpcProvider = (network: string): providers.Provider => {
-  const rpcUrl = getRpcUrl(network)
+export const getNonRetryableRpcProvider = (chainSlug: ChainSlug): providers.Provider => {
+  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+  const rpcUrl = coreEnvironmentVariables.rpcUrls?.[chainSlug]
   const cacheKey = rpcUrl
   const cachedValue = cache[cacheKey]
   if (cachedValue) {

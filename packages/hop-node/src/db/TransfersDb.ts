@@ -1,19 +1,18 @@
 import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import { BigNumber } from 'ethers'
 import {
-  Chain,
   OneDayMs,
   OneHourMs,
-  OneWeekMs
-} from '@hop-protocol/hop-node-core/constants'
+  OneWeekMs,
+  getExponentialBackoffDelayMs
+} from '@hop-protocol/hop-node-core'
 import {
   RelayWaitTimeMs,
   RelayableChains,
   TxError
 } from '#constants/index.js'
 import { TxRetryDelayMs } from '#config/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, getChain } from '@hop-protocol/sdk'
 import { transfersMigrations } from './migrations.js'
 
 interface BaseTransfer {
@@ -380,8 +379,8 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const sourceChainSlug = chainIdToSlug(item.sourceChainId)
-      if (sourceChainSlug !== Chain.Ethereum) {
+      const sourceChainSlug = getChain(item.sourceChainId).slug
+      if (sourceChainSlug !== ChainSlug.Ethereum) {
         return false
       }
 
@@ -399,7 +398,7 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const destinationChain = chainIdToSlug(item.destinationChainId)
+      const destinationChain = getChain(item.destinationChainId).slug
       const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
       if (!isRelayable) {
         return false
@@ -535,10 +534,10 @@ class TransfersDb extends BaseDb<Transfer> {
 
   #normalizeTransferValue = (item: Transfer): Transfer => {
     if (item.destinationChainId) {
-      item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
+      item.destinationChainSlug = getChain(item.destinationChainId).slug
     }
     if (item.sourceChainId) {
-      item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
+      item.sourceChainSlug = getChain(item.sourceChainId).slug
     }
     if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons

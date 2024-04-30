@@ -18,7 +18,7 @@ export abstract class AbstractFinalityService extends AbstractService {
     super(chainSlug)
     this.cache = new CacheService()
     this.l1Provider = getRpcProvider(ChainSlug.Ethereum)
-    this.l2Provider = getRpcProvider(this.chainSlug)
+    this.l2Provider = getRpcProvider(this.chainSlug as ChainSlug)
   }
 
   /**

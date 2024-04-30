@@ -28,6 +28,7 @@ export {
 export * from './models/index.js'
 export * from './contracts/index.js'
 
+export { type Bps, sdkConfig } from './config/index.js'
 export {
   getLpFeeBps
 } from './utils/index.js'

@@ -1,7 +1,20 @@
 import BlockDater from 'ethereum-block-by-date'
 import { DateTime } from 'luxon'
-import { etherscanApiKeys, etherscanApiUrls } from '@hop-protocol/hop-node-core/config'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { etherscanApiKeys } from '#config/index.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { ChainSlug } from '@hop-protocol/sdk'
+
+export const etherscanApiUrls: Record<string, string> = {
+  [ChainSlug.Ethereum]: 'https://api.etherscan.io',
+  [ChainSlug.Polygon]: 'https://api.polygonscan.com',
+  [ChainSlug.Optimism]: 'https://api-optimistic.etherscan.io',
+  [ChainSlug.Arbitrum]: 'https://api.arbiscan.io',
+  [ChainSlug.Gnosis]: 'https://api.gnosisscan.io',
+  [ChainSlug.Nova]: 'https://api-nova.arbiscan.io',
+  [ChainSlug.Base]: 'https://api.basescan.org',
+  [ChainSlug.Linea]: 'https://api.lineascan.build',
+  [ChainSlug.PolygonZk]: 'https://api-zkevm.polygonscan.com'
+}
 
 export async function getBlockNumberFromDate (chain: string, timestamp: number): Promise<number> {
   const useEtherscan = etherscanApiKeys[chain]
@@ -31,7 +44,7 @@ async function getBlockNumberFromDateUsingEtherscan (chain: string, timestamp: n
 }
 
 async function getBlockNumberFromDateUsingLib (chain: string, timestamp: number): Promise<number> {
-  const provider = getRpcProvider(chain)
+  const provider = getRpcProvider(chain as ChainSlug)
   const blockDater = new BlockDater(provider)
   const date = DateTime.fromSeconds(timestamp).toJSDate()
 

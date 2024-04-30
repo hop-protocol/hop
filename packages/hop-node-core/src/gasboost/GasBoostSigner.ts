@@ -4,8 +4,7 @@ import { MemoryStore } from './MemoryStore.js'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from '#types/error.js'
 import { Signer, utils } from 'ethers'
-import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
-import { hostname, setLatestNonceOnStart } from '#config/index.js'
+import { CoreEnvironment } from '#config/index.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Store } from './Store.js'
@@ -15,7 +14,6 @@ export class GasBoostSigner extends Signer {
   store!: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0
-  chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
   pollMs!: number
@@ -32,19 +30,10 @@ export class GasBoostSigner extends Signer {
     if (store != null) {
       this.store = store
     }
-    const chainSlug = getProviderChainSlug(this.signer.provider)
-    if (!chainSlug) {
-      throw new Error('chain slug not found for contract provider')
-    }
-    this.chainSlug = chainSlug
     this.mutex = new Mutex()
     this.gTxFactory = new GasBoostTransactionFactory(this.signer)
     const tag = 'GasBoostSigner'
-    const prefix = `${this.chainSlug}`
-    this.logger = new Logger({
-      tag,
-      prefix
-    })
+    this.logger = new Logger({ tag })
     this.setOptions(options)
     this.init()
       .catch((err: Error) => this.logger.error('init error:', err))
@@ -88,6 +77,7 @@ export class GasBoostSigner extends Signer {
   }
 
   private async shouldSetLatestNonce () {
+    const setLatestNonceOnStart = CoreEnvironment.getInstance().getEnvironment().setLatestNonceOnStart
     if (setLatestNonceOnStart) {
       return true
     }

@@ -15,6 +15,6 @@ export abstract class AbstractInclusionService extends AbstractService {
   constructor (chainSlug: string) {
     super(chainSlug)
     this.l1Provider = getRpcProvider(ChainSlug.Ethereum)
-    this.l2Provider = getRpcProvider(this.chainSlug)
+    this.l2Provider = getRpcProvider(this.chainSlug as ChainSlug)
   }
 }

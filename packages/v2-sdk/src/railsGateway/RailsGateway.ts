@@ -3,6 +3,8 @@ import { BigNumber, BigNumberish, Contract, Signer, providers } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
+import { TransferSent, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
+import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
 
 export type TransferSentEventInput = {
   chainId: BigNumberish
@@ -179,9 +181,51 @@ export type CalcAmountOutMinInput = {
   slippageTolerance: number
 }
 
+export type GetTransferSentEventFromTransactionReceiptInput = {
+  fromChainId: BigNumberish
+  receipt: any
+}
+
+export type GetTransferSentEventFromTransactionHashInput = {
+  fromChainId: BigNumberish
+  transactionHash: string
+}
+
+export type GetTransferSentEventFromTransferIdInput = {
+  fromChainId: BigNumberish
+  transferId: string
+}
+
+export type GetTransferSentEventFromCheckpointInput = {
+  fromChainId: BigNumberish
+  checkpoint: string
+}
+
+export type GetTransferBondedEventFromTransactionReceiptInput = {
+  fromChainId: BigNumberish
+  receipt: any
+}
+
+export type GetTransferBondedEventFromTransactionHashInput = {
+  fromChainId: BigNumberish
+  transactionHash: string
+}
+
+export type GetTransferBondedEventFromTransferIdInput = {
+  fromChainId: BigNumberish
+  transferId: string
+}
+
+export type GetTransferBondedEventFromCheckpointInput = {
+  fromChainId: BigNumberish
+  checkpoint: string
+}
+
 export type RailsGatewayConstructorInput = BaseConfig & {}
 
 export class RailsGateway extends StakingRegistry {
+  batchBlocks?: number = 1000
+
   constructor (input: RailsGatewayConstructorInput) {
     const { network, signer, contractAddresses } = input
     super({
@@ -916,7 +960,9 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const contract = await this.getRailsGatewayContract(chainId)
-    return contract.isCheckpointValid(pathId, checkpoint)
+    const valid = await contract.isCheckpointValid(pathId, checkpoint)
+
+    return valid
   }
 
   async stakeHop (input: StakeHopInput): Promise<providers.TransactionResponse> {
@@ -1082,5 +1128,211 @@ export class RailsGateway extends StakingRegistry {
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     return amountOut.mul(minBps).div(10000)
+  }
+
+  async getTransferSentEventFromTransactionReceipt (input: GetTransferSentEventFromTransactionReceiptInput): Promise<TransferSent | null> {
+    const { fromChainId, receipt } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!receipt) {
+      throw new Error('receipt is required')
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+    const address = this.getRailsGatewayContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId: ${fromChainId}`)
+    }
+    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
+    const filter = eventFetcher.getFilter()
+    for (const log of receipt.logs) {
+      if (log.topics[0] === filter?.topics?.[0]) {
+        const decoded = eventFetcher.toTypedEvent(log)
+        return decoded
+      }
+    }
+    return null
+  }
+
+  async getTransferSentEventFromTransactionHash (input: GetTransferSentEventFromTransactionHashInput): Promise<TransferSent | null> {
+    const { fromChainId, transactionHash } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!transactionHash) {
+      throw new Error('transactionHash is required')
+    }
+    if (!this.utils.isValidTxHash(transactionHash)) {
+      throw new Error(`Invalid transaction hash "${transactionHash}"`)
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+    const receipt = await provider.getTransactionReceipt(transactionHash)
+
+    if (!receipt) {
+      return null
+    }
+
+    return this.getTransferSentEventFromTransactionReceipt({ fromChainId, receipt })
+  }
+
+  async getTransferSentEventFromTransferId (input: GetTransferSentEventFromTransferIdInput): Promise<TransferSent> {
+    const { fromChainId, transferId } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!this.utils.isValidBytes32(transferId)) {
+      throw new Error(`Invalid transferId "${transferId}"`)
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+
+    const address = this.getRailsGatewayContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId "${fromChainId}"`)
+    }
+
+    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const filter = eventFetcher.getTransferIdFilter(transferId)
+    const toBlock = await provider.getBlockNumber()
+    const fromBlock = 0 // endBlock - 100_000
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    return events?.[0] ?? null
+  }
+
+  async getTransferSentEventFromCheckpoint (input: GetTransferSentEventFromCheckpointInput): Promise<TransferSent> {
+    const { fromChainId, checkpoint } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!this.utils.isValidBytes32(checkpoint)) {
+      throw new Error(`Invalid transferId "${checkpoint}"`)
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+
+    const address = this.getRailsGatewayContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId "${fromChainId}"`)
+    }
+
+    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const filter = eventFetcher.getCheckpointFilter(checkpoint)
+    const toBlock = await provider.getBlockNumber()
+    const fromBlock = 0 // endBlock - 100_000
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    return events?.[0] ?? null
+  }
+
+  async getTransferBondedEventFromTransactionReceipt (input: GetTransferBondedEventFromTransactionReceiptInput): Promise<TransferBonded | null> {
+    const { fromChainId, receipt } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!receipt) {
+      throw new Error('receipt is required')
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+    const address = this.getRailsGatewayContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId: ${fromChainId}`)
+    }
+    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
+    const filter = eventFetcher.getFilter()
+    for (const log of receipt.logs) {
+      if (log.topics[0] === filter?.topics?.[0]) {
+        const decoded = eventFetcher.toTypedEvent(log)
+        return decoded
+      }
+    }
+    return null
+  }
+
+  async getTransferBondedEventFromTransactionHash (input: GetTransferBondedEventFromTransactionHashInput): Promise<TransferBonded | null> {
+    const { fromChainId, transactionHash } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!transactionHash) {
+      throw new Error('transactionHash is required')
+    }
+    if (!this.utils.isValidTxHash(transactionHash)) {
+      throw new Error(`Invalid transaction hash "${transactionHash}"`)
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+    const receipt = await provider.getTransactionReceipt(transactionHash)
+
+    if (!receipt) {
+      return null
+    }
+
+    return this.getTransferBondedEventFromTransactionReceipt({ fromChainId, receipt })
+  }
+
+  async getTransferBondedEventFromTransferId (input: GetTransferBondedEventFromTransferIdInput): Promise<TransferBonded> {
+    const { fromChainId, transferId } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!this.utils.isValidBytes32(transferId)) {
+      throw new Error(`Invalid transferId "${transferId}"`)
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+
+    const address = this.getRailsGatewayContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId "${fromChainId}"`)
+    }
+
+    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const filter = eventFetcher.getTransferIdFilter(transferId)
+    const toBlock = await provider.getBlockNumber()
+    const fromBlock = 0 // endBlock - 100_000
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    return events?.[0] ?? null
+  }
+
+  async getTransferBondedEventFromCheckpoint (input: GetTransferBondedEventFromCheckpointInput): Promise<TransferBonded> {
+    const { fromChainId, checkpoint } = input
+    if (!this.utils.isValidChainId(fromChainId)) {
+      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+    }
+    if (!this.utils.isValidBytes32(checkpoint)) {
+      throw new Error(`Invalid transferId "${checkpoint}"`)
+    }
+    const provider = this.getRpcProviderForChainId(fromChainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+    }
+
+    const address = this.getRailsGatewayContractAddress(fromChainId)
+    if (!address) {
+      throw new Error(`Contract address not found for chainId "${fromChainId}"`)
+    }
+
+    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const filter = eventFetcher.getCheckpointFilter(checkpoint)
+    const toBlock = await provider.getBlockNumber()
+    const fromBlock = 0 // endBlock - 100_000
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    return events?.[0] ?? null
   }
 }

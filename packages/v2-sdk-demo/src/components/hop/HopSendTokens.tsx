@@ -89,7 +89,9 @@ export function HopSendTokens (props: Props) {
   })
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
+  const [approvalTxHash, setApprovalTxHash] = useState('')
   const [txHash, setTxHash] = useState('')
+  const [checkpoint, setCheckpoint] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -169,7 +171,9 @@ export function HopSendTokens (props: Props) {
     try {
       setError('')
       setTxData('')
+      setApprovalTxHash('')
       setTxHash('')
+      setCheckpoint('')
       setLoading(true)
       if (populateTxDataOnly) {
         const txData = await getSendTxData()
@@ -196,12 +200,20 @@ export function HopSendTokens (props: Props) {
             amount
           })
           const tx = await sdk.sendTransaction(approveTxData)
-          setTxHash(tx.hash)
+          setApprovalTxHash(tx.hash)
         } else {
           const txData = await getSendTxData()
           setTxData(JSON.stringify(txData, null, 2))
           const tx = await sdk.sendTransaction(txData)
           setTxHash(tx.hash)
+
+          const receipt = await tx.wait()
+          const event = await sdk.railsGateway.getTransferSentEventFromTransactionReceipt({
+            fromChainId,
+            receipt
+          })
+          const checkpoint = event?.checkpoint
+          setCheckpoint(checkpoint)
         }
       }
     } catch (err: any) {
@@ -220,8 +232,8 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const fromChainId = ${fromChainId || 'undefined'}
-  const toChainId = ${toChainId || 'undefined'}
+  const fromChainId = "${fromChainId}"
+  const toChainId = "${toChainId}"
   const fromToken = "${fromToken}"
   const toToken = "${toToken}"
   const to = "${toAddress}"
@@ -246,7 +258,7 @@ async function main() {
     window.ethereum
   )
   const signer = provider.getSigner()
-  const tx = await signer.sendTransaction(txData)
+  const tx = await hop.connect(signer).sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}
@@ -334,7 +346,7 @@ main().catch(console.error)
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Send Token'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Send Tokens'}</HighlightedButton>
                 )}
               </Box>
             </form>
@@ -344,9 +356,19 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
+          {!!approvalTxHash && (
+            <Box mb={4}>
+              <Alert severity="success">Tx hash (Approval): {approvalTxHash}</Alert>
+            </Box>
+          )}
           {!!txHash && (
             <Box mb={4}>
-              <Alert severity="success">Tx hash: {txHash}</Alert>
+              <Alert severity="success">Tx hash (Send): {txHash}</Alert>
+            </Box>
+          )}
+          {!!checkpoint && (
+            <Box mb={4}>
+              <Alert severity="info">Checkpoint: {checkpoint}</Alert>
             </Box>
           )}
           {!!txData && (

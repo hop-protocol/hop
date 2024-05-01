@@ -1,5 +1,5 @@
 import { Base } from '#common/index.js'
-import { BigNumberish, Signer, providers } from 'ethers'
+import { BigNumber, BigNumberish, Signer, providers } from 'ethers'
 import { BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
@@ -174,7 +174,7 @@ export class Hop extends Base {
         })
         console.log('lastCheckpoint', lastCheckpoint)
 
-        const isCheckpointValid = await this.railsGateway.getIsCheckpointValid({
+        let isCheckpointValid = await this.railsGateway.getIsCheckpointValid({
           chainId: toChainId,
           pathId,
           checkpoint: lastCheckpoint
@@ -182,9 +182,13 @@ export class Hop extends Base {
 
         console.log('isCheckpointValid', isCheckpointValid)
 
+        // new path without checkpoints will return 0 bytes32
+        if (!isCheckpointValid && BigNumber.from(lastCheckpoint).eq(0)) {
+          isCheckpointValid = true
+        }
+
         if (!isCheckpointValid) {
-          // TODO: how to handle empty initial checkpoint
-          //throw new Error('Latest checkpoint is invalid')
+          throw new Error('Latest checkpoint is invalid')
         }
 
         const populatedTx = await this.railsGateway.populateTransaction.send({

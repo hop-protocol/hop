@@ -1004,7 +1004,7 @@ export class Base {
     gasLimit : BigNumberish,
     data: string = '0x',
     to: string = constants.AddressZero,
-    destChain: Chain | string = Chain.Optimism
+    destChain: TChain | string = Chain.Optimism
   ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(destChain)

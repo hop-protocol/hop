@@ -15,8 +15,8 @@ type Props = {
   sdk: Hop
 }
 
-export function GetMessageSentEventFromMessageId (props: Props) {
-  const cacheKey = 'getMessageSentEvent'
+export function RailsGatewayGetTransferBondedEventFromTxHash (props: Props) {
+  const cacheKey = 'railsGatewayGetTransferBondedEventFromTxHash'
   const { sdk } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
@@ -29,9 +29,9 @@ export function GetMessageSentEventFromMessageId (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
-  const [messageId, setMessageId] = useState(() => {
+  const [transactionHash, setTransactionHash] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:messageId`)
+      const cached = localStorage.getItem(`${cacheKey}:transactionHash`)
       if (cached) {
         return cached
       }
@@ -52,11 +52,11 @@ export function GetMessageSentEventFromMessageId (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:messageId`, messageId)
+      localStorage.setItem(`${cacheKey}:transactionHash`, transactionHash)
     } catch (err: any) {
       console.error(err)
     }
-  }, [messageId])
+  }, [transactionHash])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -67,11 +67,11 @@ export function GetMessageSentEventFromMessageId (props: Props) {
 
       const args = {
         fromChainId,
-        messageId
+        transactionHash
       }
 
       console.log('args', args)
-      const event = await sdk.messenger.getMessageSentEventFromMessageId(args)
+      const event = await sdk.railsGateway.getTransferBondedEventFromTransactionHash(args)
       setEvent(JSON.stringify(event, null, 2))
     } catch (err: any) {
       console.error(err)
@@ -85,12 +85,12 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const fromChainId = "${fromChainId}"
-  const messageId = "${messageId}"
+  const transactionHash = "${transactionHash}"
 
   const hop = new Hop({ network: '${network}' })
-  const event = await hop.messenger.getMessageSentEventFromMessageId({
+  const event = await hop.railsGateway.getTransferBondedEventFromTransactionHash({
     fromChainId,
-    messageId
+    transactionHash
   })
   console.log(event)
 }
@@ -108,10 +108,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Messenger - Get Message Sent Event From Message ID</Typography>
+        <Typography variant="h5">Rails Gateway - Get Transfer Bonded Event From Transaction Hash</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Get full event log from messageId</Typography>
+        <Typography variant="subtitle1">Get full event log from transferId</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -124,9 +124,9 @@ main().catch(console.error)
             </Box>
             <Box mb={2}>
               <Box mb={1}>
-                <label>Message ID <small><em>(bytes32)</em></small> <small><em>This is the messageId from the <code>MessageSent</code> event</em></small></label>
+                <label>Transaction Hash <small><em>(hex string)</em></small> <small><em>This is the transaction hash of the origin transfer bonded transaction</em></small></label>
               </Box>
-              <CustomTextField fullWidth placeholder="0x" value={messageId} onChange={event => setMessageId(event.target.value)} />
+              <CustomTextField fullWidth placeholder="0x" value={transactionHash} onChange={event => setTransactionHash(event.target.value)} />
             </Box>
             <Box mb={2} display="flex" justifyContent="center">
               <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">Get</HighlightedButton>
@@ -148,7 +148,7 @@ main().catch(console.error)
               }}>
                 {event}
               </pre>
-              <CopyToClipboard text={messageId}
+              <CopyToClipboard text={transactionHash}
                 onCopy={handleCopy}>
                 <Typography variant="body2" style={{ cursor: 'pointer' }}>
                   {copied ? 'Copied!' : 'Copy to clipboard'}

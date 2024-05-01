@@ -180,8 +180,8 @@ import { ethers } from 'ethers'
 
 async function main() {
   const messageId = "${messageId}"
-  const fromChainId = ${fromChainId || 'undefined'}
-  const toChainId = ${toChainId || 'undefined'}
+  const fromChainId = "${fromChainId}"
+  const toChainId = "${toChainId}"
   const fromAddress = "${fromAddress}"
   const toAddress = "${toAddress}"
   const toCalldata = "${toCalldata}"
@@ -203,7 +203,7 @@ async function main() {
     window.ethereum
   )
   const signer = provider.getSigner()
-  const tx = await signer.sendTransaction(txData)
+  const tx = await hop.connect(signer).sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

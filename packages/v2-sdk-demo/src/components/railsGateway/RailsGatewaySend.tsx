@@ -155,15 +155,11 @@ export function RailsGatewaySend (props: Props) {
       setLoading(true)
       const txData = await getSendTxData()
       setTxData(JSON.stringify(txData, null, 2))
-      const fee = await sdk.railsGateway.getFee({ chainId: fromChainId, pathId })
       if (!populateTxDataOnly) {
         if (!signer) {
           throw new Error('No signer')
         }
-        const tx = await sdk.sendTransaction({
-          ...txData,
-          value: fee
-        })
+        const tx = await sdk.sendTransaction(txData)
         setTxHash(tx.hash)
       }
     } catch (err: any) {
@@ -182,7 +178,7 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
+  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
   const to = "${toAddress}"
   const amount = "${amount}"
@@ -202,15 +198,11 @@ async function main() {
   'console.log(txData)'
   ) : (
   `
-  const fee = await hop.railsGateway.getFee({ chainId, pathId })
   const provider = new ethers.providers.Web3Provider(
     window.ethereum
   )
   const signer = provider.getSigner()
-  const tx = await signer.sendTransaction({
-    ...txData,
-    value: fee
-  })
+  const tx = await hop.connect(signer).sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

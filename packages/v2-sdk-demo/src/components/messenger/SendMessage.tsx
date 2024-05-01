@@ -226,10 +226,10 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const fromChainId = ${fromChainId || 'undefined'}
-  const toChainId = ${toChainId || 'undefined'}
+  const fromChainId = "${fromChainId}"
+  const toChainId = "${toChainId}"
   const toAddress = "${toAddress}"
-  const toCalldata = ${toCalldata ? `"${toCalldata}"` : 'undefined'}
+  const toCalldata = "${toCalldata}"
 
   const hop = new Hop({ network: '${network}' })
   const txData = await hop.messenger.populateTransaction.sendMessage({
@@ -246,7 +246,7 @@ async function main() {
     window.ethereum
   )
   const signer = provider.getSigner()
-  const tx = await signer.sendTransaction(txData)
+  const tx = await hop.connect(signer).sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

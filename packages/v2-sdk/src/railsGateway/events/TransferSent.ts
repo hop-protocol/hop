@@ -4,12 +4,15 @@ import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factor
 
 // event from RailsGateway
 export interface TransferSent extends EventBase {
-  transferId: string
   pathId: string
+  transferId: string
+  checkpoint: string
   to: string
   amount: BigNumber
-  minAmountOut: BigNumber
+  attestationFee: BigNumber
   totalSent: BigNumber
+  nonce: string
+  attestedCheckpoint: string
 }
 
 export class TransferSentEventFetcher extends Event<TransferSent> {
@@ -17,20 +20,26 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
 
   getFilter () {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
-    // TODO: remove 'as any' once event is added to contract
-    const filter = (railsGateway.filters as any).TransferSent()
-    return filter
-  }
-
-  getTransferIdFilter (transferId: string) {
-    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
-    const filter = (railsGateway.filters as any).TransferSent(transferId)
+    const filter = railsGateway.filters.TransferSent()
     return filter
   }
 
   getPathIdFilter (pathId: string) {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
-    const filter = (railsGateway.filters as any).TransferSent(pathId)
+    const filter = railsGateway.filters.TransferSent(pathId)
+    return filter
+  }
+
+  getTransferIdFilter (transferId: string) {
+    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    // TODO: currently transferId is not indexed by contract, so this doesn't work
+    const filter = railsGateway.filters.TransferSent(transferId)
+    return filter
+  }
+
+  getCheckpointFilter (checkpoint: string) {
+    const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
+    const filter = railsGateway.filters.TransferSent(null, null, checkpoint)
     return filter
   }
 
@@ -43,22 +52,28 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const iface = new ethers.utils.Interface(RailsGateway__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 
-    const transferId = decoded.args.transferId.toString()
     const pathId = decoded.args.pathId.toString()
+    const transferId = decoded.args.transferId.toString()
+    const checkpoint = decoded.args.checkpoint.toString()
     const to = decoded.args.to
     const amount = decoded.args.amount
-    const minAmountOut = decoded.args.minAmountOut
+    const attestationFee = decoded.args.attestationFee
     const totalSent = decoded.args.totalSent
+    const nonce = decoded.args.nonce.toString()
+    const attestedCheckpoint = decoded.args.attestedCheckpoint.toString()
 
     return {
       eventName: this.eventName,
       eventLog: ethersEvent,
-      transferId,
       pathId,
+      transferId,
+      checkpoint,
       to,
       amount,
-      minAmountOut,
-      totalSent
+      attestationFee,
+      totalSent,
+      nonce,
+      attestedCheckpoint
     }
   }
 }

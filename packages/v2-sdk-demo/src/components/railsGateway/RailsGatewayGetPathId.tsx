@@ -117,9 +117,9 @@ export function RailsGatewayGetPathId (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId0 = ${fromChainId || 'undefined'}
+  const chainId0 = "${fromChainId}"
   const token0 = "${fromToken}"
-  const chainId1 = ${toChainId || 'undefined'}
+  const chainId1 = "${toChainId}"
   const token1 = "${toToken}"
 
   const hop = new Hop({ network: '${network}' })

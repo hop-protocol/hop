@@ -8,5 +8,6 @@ export const chainSlugMap: Record<string, string> = {
   421613: 'arbitrum', // goerli
   137: 'polygon', // mainnet
   80001: 'polygon', // goerli,
-  84532: 'base' // sepolia
+  84532: 'base', // sepolia
+  11155420: 'optimism', // sepolia
 }

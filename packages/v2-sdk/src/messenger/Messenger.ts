@@ -1383,7 +1383,7 @@ export class Messenger extends Base {
     }
   }
 
-  async getMessageCalldata (input: GetMessageCalldataInput): Promise<string> {
+  async getMessageCalldataFromMessageId (input: GetMessageCalldataInput): Promise<string> {
     const { fromChainId, messageId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId "${fromChainId}"`)

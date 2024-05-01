@@ -146,7 +146,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const eventNames = ${JSON.stringify(selectedEventNames)}
-  const chainId = ${chainId || 'undefined'}
+  const chainId = "${chainId}"
   const fromBlock = ${fromBlock || 'undefined'}
   const toBlock = ${toBlock || 'undefined'}
 

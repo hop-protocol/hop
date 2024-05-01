@@ -104,8 +104,8 @@ export function GetBundleProof (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const fromChainId = ${fromChainId || 'undefined'}
-  const toChainId = ${toChainId || 'undefined'}
+  const fromChainId = "${fromChainId}"
+  const toChainId = "${toChainId}"
   const messageId = "${messageId}"
 
   const hop = new Hop({ network: '${network}' })
@@ -129,7 +129,7 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Messenger - Get Bundle Proof</Typography>
+        <Typography variant="h5">Messenger - Get Bundle Proof From Message ID</Typography>
       </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">Get bundle proof needed to relay message at destination chain</Typography>

@@ -231,7 +231,7 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = ${toChainId || 'undefined'}
+  const chainId = "${toChainId}"
   const pathId = "${pathId}"
   const checkpoint = "${checkpoint}"
   const to = "${toAddress}"
@@ -259,10 +259,7 @@ async function main() {
     window.ethereum
   )
   const signer = provider.getSigner()
-  const tx = await signer.sendTransaction({
-    ...txData,
-    value: fee
-  })
+  const tx = await hop.connect(signer).sendTransaction(txData)
   console.log(tx)
   `.trim()
   )}

@@ -90,7 +90,7 @@ import { Hop } from '@hop-protocol/v2-sdk'
 import { ethers } from 'ethers'
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
+  const chainId = "${fromChainId}"
 
   const hop = new Hop({ network: '${network}' })
   const signer = new ethers.providers.Web3Provider(

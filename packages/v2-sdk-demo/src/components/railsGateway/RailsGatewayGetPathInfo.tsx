@@ -83,7 +83,7 @@ export function RailsGatewayGetPathInfo (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
+  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
 
   const hop = new Hop({ network: '${network}' })

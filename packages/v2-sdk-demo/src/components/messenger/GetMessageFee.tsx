@@ -74,8 +74,8 @@ import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
   const hop = new Hop({ network: '${network}' })
-  const fromChainId = ${fromChainId || 'undefined'}
-  const toChainId = ${toChainId || 'undefined'}
+  const fromChainId = "${fromChainId}"
+  const toChainId = "${toChainId}"
 
   const fee = await hop.messenger.getMessageFee({
     fromChainId,

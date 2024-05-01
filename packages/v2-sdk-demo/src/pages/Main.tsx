@@ -19,6 +19,11 @@ import { RailsGatewayGetTransferId } from '../components/railsGateway/RailsGatew
 import { RailsGatewayGetLatestClaim } from '../components/railsGateway/RailsGatewayGetLatestClaim'
 import { RailsGatewayGetIsCheckpointValid } from '../components/railsGateway/RailsGatewayGetIsCheckpointValid'
 import { RailsGatewayConfirmCheckpoint } from '../components/railsGateway/RailsGatewayConfirmCheckpoint'
+import { RailsGatewayGetTransferSentEventFromTxHash } from '../components/railsGateway/RailsGatewayGetTransferSentEventFromTxHash'
+// import { RailsGatewayGetTransferSentEventFromTransferId } from '../components/railsGateway/RailsGatewayGetTransferSentEventFromTransferId'
+import { RailsGatewayGetTransferSentEventFromCheckpoint } from '../components/railsGateway/RailsGatewayGetTransferSentEventFromCheckpoint'
+import { RailsGatewayGetTransferBondedEventFromTxHash } from '../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash'
+import { RailsGatewayGetTransferBondedEventFromCheckpoint } from '../components/railsGateway/RailsGatewayGetTransferBondedEventFromCheckpoint'
 import { SendMessage } from '../components/messenger/SendMessage'
 import { RelayMessage } from '../components/messenger/RelayMessage'
 import { Execute } from '../components/messenger/Execute'
@@ -29,7 +34,8 @@ import { GetMessageIdFromTxHash } from '../components/messenger/GetMessageIdFrom
 import { GetMessageCalldata } from '../components/messenger/GetMessageCalldata'
 import { GetContractAddresses } from '../components/messenger/GetContractAddresses'
 import { SetContractAddresses } from '../components/messenger/SetContractAddresses'
-import { GetMessageSentEvent } from '../components/messenger/GetMessageSentEvent'
+import { GetMessageSentEventFromMessageId } from '../components/messenger/GetMessageSentEventFromMessageId'
+import { GetMessageSentEventFromTxHash } from '../components/messenger/GetMessageSentEventFromTxHash'
 import { GetMessageFee } from '../components/messenger/GetMessageFee'
 import { SetRpcProviders } from '../components/messenger/SetRpcProviders'
 import { Hop } from '@hop-protocol/v2-sdk'
@@ -95,6 +101,10 @@ export function Main () {
     <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />,
+    <RailsGatewayGetTransferSentEventFromCheckpoint sdk={sdk} />,
+    <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />,
+    <RailsGatewayGetTransferBondedEventFromCheckpoint sdk={sdk} />,
     <SetContractAddresses sdk={sdk} />,
     <GetContractAddresses sdk={sdk} />,
     <SetRpcProviders sdk={sdk} />,
@@ -105,7 +115,8 @@ export function Main () {
     <ExitBundle signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <GetMessageIdFromTxHash sdk={sdk} />,
     <GetMessageCalldata sdk={sdk} />,
-    <GetMessageSentEvent sdk={sdk} />,
+    <GetMessageSentEventFromMessageId sdk={sdk} />,
+    <GetMessageSentEventFromTxHash sdk={sdk} />,
     <GetMessageFee sdk={sdk} />,
     <GetEvents sdk={sdk} />,
   ]

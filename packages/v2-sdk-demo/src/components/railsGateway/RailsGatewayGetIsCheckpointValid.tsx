@@ -28,6 +28,15 @@ export function RailsGatewayGetIsCheckpointValid (props: Props) {
     } catch (err: any) {}
     return defaultChainIds.from
   })
+  const [pathId, setPathId] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`${cacheKey}:pathId`)
+      if (cached) {
+        return cached
+      }
+    } catch (err: any) {}
+    return ''
+  })
   const [checkpoint, setCheckpoint] = useState(() => {
     try {
       const cached = localStorage.getItem(`${cacheKey}:checkpoint`)
@@ -55,6 +64,14 @@ export function RailsGatewayGetIsCheckpointValid (props: Props) {
 
   useEffect(() => {
     try {
+      localStorage.setItem(`${cacheKey}:pathId`, pathId)
+    } catch (err: any) {
+      console.error(err)
+    }
+  }, [pathId])
+
+  useEffect(() => {
+    try {
       localStorage.setItem(`${cacheKey}:checkpoint`, checkpoint)
     } catch (err: any) {
       console.error(err)
@@ -69,6 +86,7 @@ export function RailsGatewayGetIsCheckpointValid (props: Props) {
       setLoading(true)
       const args = {
         chainId: fromChainId,
+        pathId,
         checkpoint
       }
 
@@ -86,12 +104,14 @@ export function RailsGatewayGetIsCheckpointValid (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
+  const chainId = "${fromChainId}"
+  const pathId = "${pathId}"
   const checkpoint = "${checkpoint}"
 
   const hop = new Hop({ network: '${network}' })
   const isCheckpoinValid = await hop.railsGateway.getIsCheckpointValid({
     chainId,
+    pathId,
     checkpoint
   })
   console.log(isCheckpoinValid)
@@ -124,6 +144,12 @@ main().catch(console.error)
                   <label>Chain ID <small><em>(uint256)</em></small> <small><em>Chain to get fee for</em></small></label>
                 </Box>
                 <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
+              </Box>
+              <Box mb={2}>
+                <Box mb={1}>
+                  <label>Path ID<small><em>(bytes32)</em></small> <small><em>The path ID</em></small></label>
+                </Box>
+                <CustomTextField fullWidth placeholder="0x" value={pathId} onChange={event => setPathId(event.target.value)} />
               </Box>
               <Box mb={2}>
                 <Box mb={1}>

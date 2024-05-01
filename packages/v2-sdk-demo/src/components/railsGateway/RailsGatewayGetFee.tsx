@@ -85,7 +85,7 @@ export function RailsGatewayGetFee (props: Props) {
 import { Hop } from '@hop-protocol/v2-sdk'
 
 async function main() {
-  const chainId = ${fromChainId || 'undefined'}
+  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
 
   const hop = new Hop({ network: '${network}' })
@@ -141,7 +141,7 @@ main().catch(console.error)
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          {!!pathId && (
+          {!!fee && (
             <Box mb={4}>
               <Alert severity="info">{fee}</Alert>
             </Box>

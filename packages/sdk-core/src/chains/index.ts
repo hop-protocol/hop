@@ -1,18 +1,13 @@
 import { networks } from './networks/index.js'
-import type { Chain, ChainSlugish, Network, NetworkSlugish } from './types.js'
+import type { Chain, Network } from './types.js'
 import { ChainSlug, NetworkSlug } from './types.js'
-import {
-  getChainByChainId,
-  getChainByNetworkSlugAndChainSlug,
-  isValidChainSlug,
-  isValidNetworkSlug
-} from './utils/internal.js'
+import { getChainByChainId, getChainByNetworkSlugAndChainSlug} from './utils/internal.js'
 
 /**
  * Types and utils
  */
 
-export type { Chain, ChainSlugish, Network, NetworkSlugish }
+export type { Chain, Network }
 export { ChainSlug, NetworkSlug }
 export * from './utils/index.js'
 
@@ -20,10 +15,7 @@ export * from './utils/index.js'
  * Main methods to be consumed
  */
 
-export function getNetwork (networkSlug: NetworkSlugish): Network {
-  if (!isValidNetworkSlug(networkSlug)) {
-    throw new Error(`Invalid networkSlug: ${networkSlug}`)
-  }
+export function getNetwork (networkSlug: NetworkSlug): Network {
   return networks[networkSlug]
 }
 
@@ -31,25 +23,20 @@ export const getNetworks = (): Network[] => {
   return Object.values(NetworkSlug).map(x => getNetwork(x))
 }
 
-export function getChain(chainId: number): Chain;
-export function getChain(networkSlug: NetworkSlugish, chainSlug: ChainSlugish): Chain;
-export function getChain(chainIdOrNetworkSlug: number | NetworkSlugish, chainSlug?: ChainSlugish): Chain {
-  if (typeof chainIdOrNetworkSlug === 'number') {
+export function getChain(chainId: string): Chain;
+export function getChain(networkSlug: NetworkSlug, chainSlug: ChainSlug): Chain;
+export function getChain(chainIdOrNetworkSlug: string | NetworkSlug, chainSlug?: ChainSlug): Chain {
+  if (typeof chainIdOrNetworkSlug === 'string') {
     return getChainByChainId(chainIdOrNetworkSlug)
-  } else {
-    if (!isValidNetworkSlug(chainIdOrNetworkSlug)) {
-      throw new Error(`Invalid networkSlug: ${chainIdOrNetworkSlug}`)
-    }
-    if (!isValidChainSlug(chainSlug)) {
-      throw new Error(`Invalid chainSlug: ${chainSlug}`)
-    }
+  } else if (chainIdOrNetworkSlug && chainSlug) {
     return getChainByNetworkSlugAndChainSlug(chainIdOrNetworkSlug, chainSlug)
   }
+  throw new Error('Invalid arguments')
 }
 
 // Do not expose a getChains method indexed by chainId. This would return all chains for all networks, which
 // should never be used. A consumer who wants this can make this call multiple times with different networks.
-export function getChains(networkSlug: NetworkSlugish): Chain[] {
+export function getChains(networkSlug: NetworkSlug): Chain[] {
   const chains = getNetwork(networkSlug).chains
   return Object.values(chains).map(chain => chain)
 }

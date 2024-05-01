@@ -1,7 +1,10 @@
 import { fetchJsonOrThrow, serializeQueryParams, wait } from '#utils/index.js'
-import { getToken } from '#tokens/index.js'
+import { getToken, TokenSymbol, isValidTokenSymbol } from '#tokens/index.js'
 
-function getCoinId (tokenSymbol: string): string {
+function getCoinId (tokenSymbol: TokenSymbol | string): string {
+  if (!isValidTokenSymbol(tokenSymbol)) {
+    throw new Error('invalid token symbol')
+  }
   return getToken(tokenSymbol).coingeckoId
 }
 
@@ -55,6 +58,7 @@ export class CoinGeckoPriceFeed {
     base: string = 'usd'
   ): Promise<number> => {
     let symbol = tokenSymbol
+
     if (symbol === 'ETH') {
       symbol = 'WETH'
     }

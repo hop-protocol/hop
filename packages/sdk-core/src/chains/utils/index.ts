@@ -6,3 +6,5 @@
 export { chainIdToSlug } from './chainIdToSlug.js'
 export { getMinGasLimit } from './getMinGasLimit.js'
 export { getMinGasPrice } from './getMinGasPrice.js'
+export { isValidChainSlug } from './isValidChainSlug.js'
+export { isValidNetworkSlug } from './isValidNetworkSlug.js'

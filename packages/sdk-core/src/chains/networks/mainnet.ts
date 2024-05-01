@@ -5,7 +5,7 @@ import { TokenSymbol } from '#tokens/index.js'
 export const chains: Chains = {
   ethereum: {
     ...sharedChain.ethereum,
-    chainId: 1,
+    chainId: '1',
     parentChainId: NO_PARENT_CHAIN_ID,
     publicRpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
@@ -19,8 +19,8 @@ export const chains: Chains = {
   },
   arbitrum: {
     ...sharedChain.arbitrum,
-    chainId: 42161,
-    parentChainId: 1,
+    chainId: '42161',
+    parentChainId: '1',
     publicRpcUrl: 'https://arb1.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [
       'https://arbitrum-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
@@ -34,8 +34,8 @@ export const chains: Chains = {
   },
   optimism: {
     ...sharedChain.optimism,
-    chainId: 10,
-    parentChainId: 1,
+    chainId: '10',
+    parentChainId: '1',
     publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
       'https://rpc.ankr.com/optimism',
@@ -49,8 +49,8 @@ export const chains: Chains = {
   },
   gnosis: {
     ...sharedChain.gnosis,
-    chainId: 100,
-    parentChainId: 1,
+    chainId: '100',
+    parentChainId: '1',
     publicRpcUrl: 'https://rpc.gnosis.gateway.fm',
     fallbackPublicRpcUrls: [
       'https://rpc.ankr.com/gnosis',
@@ -66,8 +66,8 @@ export const chains: Chains = {
   },
   polygon: {
     ...sharedChain.polygon,
-    chainId: 137,
-    parentChainId: 1,
+    chainId: '137',
+    parentChainId: '1',
     publicRpcUrl: 'https://polygon-rpc.com',
     fallbackPublicRpcUrls: [
       'https://rpc.ankr.com/polygon'
@@ -85,8 +85,8 @@ export const chains: Chains = {
   },
   nova: {
     ...sharedChain.nova,
-    chainId: 42170,
-    parentChainId: 1,
+    chainId: '42170',
+    parentChainId: '1',
     publicRpcUrl: 'https://nova.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://nova.arbiscan.io'],
@@ -97,8 +97,8 @@ export const chains: Chains = {
   },
   base: {
     ...sharedChain.base,
-    chainId: 8453,
-    parentChainId: 1,
+    chainId: '8453',
+    parentChainId: '1',
     publicRpcUrl: 'https://mainnet.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://basescan.org'],
@@ -109,8 +109,8 @@ export const chains: Chains = {
   },
   linea: {
     ...sharedChain.linea,
-    chainId: 59144,
-    parentChainId: 1,
+    chainId: '59144',
+    parentChainId: '1',
     publicRpcUrl: 'https://rpc.linea.build',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://lineascan.build/'],
@@ -121,8 +121,8 @@ export const chains: Chains = {
   },
   polygonzk: {
     ...sharedChain.polygonzk,
-    chainId: 1101,
-    parentChainId: 1,
+    chainId: '1101',
+    parentChainId: '1',
     publicRpcUrl: 'https://zkevm-rpc.com',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://zkevm.polygonscan.com/'],

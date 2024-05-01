@@ -2,11 +2,11 @@ import { providers, utils } from 'ethers'
 import { Multicall3__factory } from '#contracts/index.js'
 import { PriceFeedFromS3 } from '#priceFeed/index.js'
 import { ERC20__factory } from '#contracts/index.js'
-import { type TokenSymbolish, getToken } from '#tokens/index.js'
-import { type Chain, type ChainSlugish, type NetworkSlugish, getChain } from '#chains/index.js'
+import { type TokenSymbol, getToken } from '#tokens/index.js'
+import { type Chain, type NetworkSlug, type ChainSlug, getChain, isValidChainSlug, isValidNetworkSlug } from '#chains/index.js'
 
 type Config = {
-  network: NetworkSlugish
+  network: NetworkSlug | string
   accountAddress?: string
 }
 
@@ -25,7 +25,7 @@ type GetMulticallBalanceOptions = {
   abi?: any
   method?: string
   address?: string
-  tokenSymbol?: TokenSymbolish
+  tokenSymbol?: TokenSymbol
   tokenDecimals?: number
 }
 
@@ -37,7 +37,7 @@ type MulticallOptions = {
 }
 
 export class Multicall {
-  network: NetworkSlugish
+  network: NetworkSlug
   accountAddress?: string
   priceFeed: PriceFeedFromS3
 
@@ -48,12 +48,17 @@ export class Multicall {
     if (!config.network) {
       throw new Error('config.network is required')
     }
+
+    if (!isValidNetworkSlug(config.network)) {
+      throw new Error(`Invalid network: ${config.network}`)
+    }
+
     this.network = config.network
     this.accountAddress = config.accountAddress
     this.priceFeed = new PriceFeedFromS3()
   }
 
-  #getMulticallAddressForChain (chainSlug: ChainSlugish): string | null {
+  #getMulticallAddressForChain (chainSlug: ChainSlug): string | null {
     const chain: Chain = getChain(this.network, chainSlug)
     const address = chain.multicall
     if (!address) {
@@ -62,7 +67,7 @@ export class Multicall {
     return address
   }
 
-  #getProvider (chainSlug: ChainSlugish): providers.Provider {
+  #getProvider (chainSlug: ChainSlug): providers.Provider {
     const chain: Chain = getChain(this.network, chainSlug)
     const rpcUrl = chain.publicRpcUrl
     if (!rpcUrl) {
@@ -72,7 +77,11 @@ export class Multicall {
     return provider
   }
 
-  async multicall (chainSlug: ChainSlugish, options: MulticallOptions[]): Promise<Array<any>> {
+  async multicall (chainSlug: ChainSlug | string, options: MulticallOptions[]): Promise<Array<any>> {
+    if (!isValidChainSlug(chainSlug)) {
+      throw new Error(`Invalid chain: ${chainSlug}`)
+    }
+
     const provider = this.#getProvider(chainSlug)
     const multicallAddress = this.#getMulticallAddressForChain(chainSlug)
     const calls = options.map(({ address, abi, method, args }: any) => {
@@ -118,7 +127,10 @@ export class Multicall {
     return parsed
   }
 
-  async getBalancesForChain (chainSlug: string, multicallBalanceOpts: GetMulticallBalanceOptions[]): Promise<MulticallBalance[]> {
+  async getBalancesForChain (chainSlug: ChainSlug | string, multicallBalanceOpts: GetMulticallBalanceOptions[]): Promise<MulticallBalance[]> {
+    if (!isValidChainSlug(chainSlug)) {
+      throw new Error(`Invalid chain: ${chainSlug}`)
+    }
     if (!this.accountAddress) {
       throw new Error('config.accountAddress is required')
     }

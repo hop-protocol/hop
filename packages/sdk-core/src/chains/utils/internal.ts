@@ -6,7 +6,7 @@ import { type Chain, ChainSlug, NetworkSlug } from '../types.js'
  * They are not exported from the main module.
  */
 
-export function getChainByChainId(chainId: number): Chain {
+export function getChainByChainId(chainId: string): Chain {
   for (const network of Object.values(networks)) {
     for (const chain of Object.values(network.chains)) {
       if (chain.chainId === chainId) {
@@ -19,20 +19,9 @@ export function getChainByChainId(chainId: number): Chain {
 
 
 export function getChainByNetworkSlugAndChainSlug(networkSlug: NetworkSlug, chainSlug: ChainSlug): Chain {
-  const chain: Chain | undefined = networks[networkSlug as NetworkSlug].chains?.[chainSlug as ChainSlug]
+  const chain: Chain | undefined = networks[networkSlug].chains?.[chainSlug]
   if (!chain) {
     throw new Error(`Chain with networkSlug ${networkSlug} and chainSlug ${chainSlug} not found`)
   }
   return chain
-}
-
-// Return a type predicate
-// https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
-
-export function isValidChainSlug(slug: any): slug is ChainSlug {
-  return Object.values(ChainSlug).includes(slug)
-}
-
-export function isValidNetworkSlug(slug: any): slug is NetworkSlug {
-  return Object.values(NetworkSlug).includes(slug)
 }

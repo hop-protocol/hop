@@ -1,11 +1,10 @@
 import { NO_PARENT_CHAIN_ID, sharedChain } from './shared.js'
 import { type Chains } from '../types.js'
-import { TokenSymbol } from '#tokens/index.js'
 
 export const chains: Chains = {
   ethereum: {
     ...sharedChain.ethereum,
-    chainId: 5,
+    chainId: '5',
     parentChainId: NO_PARENT_CHAIN_ID,
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
@@ -19,8 +18,8 @@ export const chains: Chains = {
   },
   polygon: {
     ...sharedChain.polygon,
-    chainId: 80001,
-    parentChainId: 5,
+    chainId: '80001',
+    parentChainId: '5',
     publicRpcUrl: 'https://rpc.ankr.com/polygon_mumbai',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
@@ -34,8 +33,8 @@ export const chains: Chains = {
   },
   optimism: {
     ...sharedChain.optimism,
-    chainId: 420,
-    parentChainId: 5,
+    chainId: '420',
+    parentChainId: '5',
     publicRpcUrl: 'https://goerli.optimism.io',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io'],
@@ -46,8 +45,8 @@ export const chains: Chains = {
   },
   arbitrum: {
     ...sharedChain.arbitrum,
-    chainId: 421613,
-    parentChainId: 5,
+    chainId: '421613',
+    parentChainId: '5',
     publicRpcUrl: 'https://goerli-rollup.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.arbiscan.io/'],
@@ -58,8 +57,8 @@ export const chains: Chains = {
   },
   zksync: {
     ...sharedChain.zksync,
-    chainId: 280,
-    parentChainId: 5,
+    chainId: '280',
+    parentChainId: '5',
     publicRpcUrl: 'https://zksync2-testnet.zksync.dev',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
@@ -70,8 +69,8 @@ export const chains: Chains = {
   },
   linea: {
     ...sharedChain.linea,
-    chainId: 59140,
-    parentChainId: 5,
+    chainId: '59140',
+    parentChainId: '5',
     publicRpcUrl: 'https://rpc.goerli.linea.build',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.linea.build'],
@@ -82,8 +81,8 @@ export const chains: Chains = {
   },
   scrollzk: {
     ...sharedChain.scrollzk,
-    chainId: 534354,
-    parentChainId: 5,
+    chainId: '534354',
+    parentChainId: '5',
     publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
@@ -94,8 +93,8 @@ export const chains: Chains = {
   },
   base: {
     ...sharedChain.base,
-    chainId: 84531,
-    parentChainId: 5,
+    chainId: '84531',
+    parentChainId: '5',
     publicRpcUrl: 'https://goerli.base.org',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli.basescan.org'],
@@ -106,8 +105,8 @@ export const chains: Chains = {
   },
   polygonzk: {
     ...sharedChain.polygonzk,
-    chainId: 1442,
-    parentChainId: 5,
+    chainId: '1442',
+    parentChainId: '5',
     publicRpcUrl: 'https://rpc.public.zkevm-test.net',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.public.zkevm-test.net'],

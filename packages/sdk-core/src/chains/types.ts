@@ -1,8 +1,4 @@
-import { type TokenSymbolish } from '#tokens/index.js'
-
-/**
- * Chains
- */
+import { type TokenSymbol } from '#tokens/index.js'
 
 // We do not account for different names for the same chain on different ecosystems
 // For example, Polygon on Mainnet and Amoy on Sepolia are both called Polygon
@@ -20,15 +16,13 @@ export enum ChainSlug {
   PolygonZk = 'polygonzk'
 }
 
-export type ChainSlugish = ChainSlug | string
-
 // Allows for consumption of the enum values as strings without needing `as ChainSlug`
 type ChainSlugString = typeof ChainSlug[keyof typeof ChainSlug]
 interface SharedChain {
   name: string
   slug: ChainSlugString
   image: string
-  nativeTokenSymbol: TokenSymbolish
+  nativeTokenSymbol: TokenSymbol
   primaryColor: string
   isL1: boolean
   isRollup: boolean
@@ -41,14 +35,14 @@ export type SharedChains = {
 }
 
 export type Chain = SharedChain & {
-  chainId: number
+  chainId: string
   publicRpcUrl: string
   fallbackPublicRpcUrls: string[]
   explorerUrls: string[]
   subgraphUrl: string
   etherscanApiUrl: string
   multicall: string
-  parentChainId: number
+  parentChainId: string
   txOverrides: {
     minGasPrice?: number
     minGasLimit?: number
@@ -68,8 +62,6 @@ export enum NetworkSlug {
   Goerli = 'goerli',
   Sepolia = 'sepolia'
 }
-
-export type NetworkSlugish = NetworkSlug | string
 
 // Allows for consumption of the enum values as strings without needing `as NetworkSlug`
 type NetworkSlugString = typeof NetworkSlug[keyof typeof NetworkSlug]

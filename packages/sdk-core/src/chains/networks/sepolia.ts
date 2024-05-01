@@ -5,7 +5,7 @@ import { TokenSymbol } from '#tokens/index.js'
 export const chains: Chains = {
   ethereum: {
     ...sharedChain.ethereum,
-    chainId: 11155111,
+    chainId: '11155111',
     parentChainId: NO_PARENT_CHAIN_ID,
     publicRpcUrl: 'https://sepolia.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
@@ -19,8 +19,8 @@ export const chains: Chains = {
   },
   arbitrum: {
     ...sharedChain.arbitrum,
-    chainId: 421614,
-    parentChainId: 11155111,
+    chainId: '421614',
+    parentChainId: '11155111',
     publicRpcUrl: 'https://arbitrum-sepolia.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://sepolia.arbiscan.io'],
@@ -31,8 +31,8 @@ export const chains: Chains = {
   },
   optimism: {
     ...sharedChain.optimism,
-    chainId: 11155420,
-    parentChainId: 11155111,
+    chainId: '11155420',
+    parentChainId: '11155111',
     publicRpcUrl: 'https://optimism-sepolia.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://sepolia-optimism.etherscan.io'],

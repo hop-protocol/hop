@@ -1,6 +1,6 @@
-import type { ChainSlugish, NetworkSlugish } from '../types.js'
+import type { ChainSlug, NetworkSlug } from '../types.js'
 import { getChain } from '../index.js'
 
-export function getMinGasLimit (network: NetworkSlugish, chain: ChainSlugish) {
+export function getMinGasLimit (network: NetworkSlug, chain: ChainSlug) {
   return getChain(network, chain).txOverrides?.minGasLimit
 }

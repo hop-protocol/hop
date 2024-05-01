@@ -3,7 +3,7 @@ import { TokenSymbol } from '#tokens/index.js'
 import * as assets from '../assets/index.js'
 
 // A parentChainId of 0 indicates that the chain is an L1 chain
-export const NO_PARENT_CHAIN_ID = 0
+export const NO_PARENT_CHAIN_ID: string = '0'
 
 /**
  * Some chains have a variable block time with a single tx per block. Use

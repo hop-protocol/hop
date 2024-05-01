@@ -24,6 +24,8 @@ import { RailsGatewayGetTransferSentEventFromTxHash } from '../components/railsG
 import { RailsGatewayGetTransferSentEventFromCheckpoint } from '../components/railsGateway/RailsGatewayGetTransferSentEventFromCheckpoint'
 import { RailsGatewayGetTransferBondedEventFromTxHash } from '../components/railsGateway/RailsGatewayGetTransferBondedEventFromTxHash'
 import { RailsGatewayGetTransferBondedEventFromCheckpoint } from '../components/railsGateway/RailsGatewayGetTransferBondedEventFromCheckpoint'
+import { RailsGatewayGetTransferSentEvents } from '../components/railsGateway/RailsGatewayGetTransferSentEvents'
+import { RailsGatewayGetTransferBondedEvents } from '../components/railsGateway/RailsGatewayGetTransferBondedEvents'
 import { SendMessage } from '../components/messenger/SendMessage'
 import { RelayMessage } from '../components/messenger/RelayMessage'
 import { Execute } from '../components/messenger/Execute'
@@ -105,6 +107,8 @@ export function Main () {
     <RailsGatewayGetTransferSentEventFromCheckpoint sdk={sdk} />,
     <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />,
     <RailsGatewayGetTransferBondedEventFromCheckpoint sdk={sdk} />,
+    <RailsGatewayGetTransferSentEvents sdk={sdk} />,
+    <RailsGatewayGetTransferBondedEvents sdk={sdk} />,
     <SetContractAddresses sdk={sdk} />,
     <GetContractAddresses sdk={sdk} />,
     <SetRpcProviders sdk={sdk} />,

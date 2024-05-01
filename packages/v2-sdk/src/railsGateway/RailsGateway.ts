@@ -240,7 +240,7 @@ export class RailsGateway extends StakingRegistry {
   }
 
   async getTransferSentEvents (input: TransferSentEventInput) {
-    const { chainId, fromBlock, toBlock } = input
+    let { chainId, fromBlock, toBlock } = input
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`Invalid chainId "${chainId}"`)
@@ -254,14 +254,34 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Invalid fromBlock "${toBlock}"`)
     }
 
-    const contract = await this.getRailsGatewayContract(chainId)
-    const filter = contract.filters.TransferSent()
-    const events = await contract.queryFilter(filter, fromBlock, toBlock)
+    const provider = this.getRpcProviderForChainId(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId}`)
+    }
+
+    const latestBlock = await provider.getBlockNumber()
+    if (latestBlock) {
+      if (!toBlock) {
+        toBlock = latestBlock
+      }
+      if (!fromBlock) {
+        const start = latestBlock - 1000
+        fromBlock = start
+      }
+      if (toBlock && fromBlock < 0) {
+        fromBlock = toBlock + fromBlock
+      }
+    }
+
+    const address = this.getRailsGatewayContractAddress(chainId)
+    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 1_000_000_000, address)
+    const filter = eventFetcher.getFilter()
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
     return events
   }
 
   async getTransferBondedEvents (input: TransferBondEventInput) {
-    const { chainId, fromBlock, toBlock } = input
+    let { chainId, fromBlock, toBlock } = input
 
     if (!this.utils.isValidChainId(chainId)) {
       throw new Error(`Invalid chainId "${chainId}"`)
@@ -275,9 +295,29 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Invalid fromBlock "${toBlock}"`)
     }
 
-    const contract = await this.getRailsGatewayContract(chainId)
-    const filter = contract.filters.TransferBonded()
-    const events = await contract.queryFilter(filter, fromBlock, toBlock)
+    const provider = this.getRpcProviderForChainId(chainId)
+    if (!provider) {
+      throw new Error(`Provider not found for chainId: ${chainId}`)
+    }
+
+    const latestBlock = await provider.getBlockNumber()
+    if (latestBlock) {
+      if (!toBlock) {
+        toBlock = latestBlock
+      }
+      if (!fromBlock) {
+        const start = latestBlock - 1000
+        fromBlock = start
+      }
+      if (toBlock && fromBlock < 0) {
+        fromBlock = toBlock + fromBlock
+      }
+    }
+
+    const address = this.getRailsGatewayContractAddress(chainId)
+    const eventFetcher = new TransferBondedEventFetcher(provider, chainId, 1_000_000_000, address)
+    const filter = eventFetcher.getFilter()
+    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
     return events
   }
 

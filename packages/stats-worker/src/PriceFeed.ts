@@ -1,12 +1,9 @@
 import { PriceFeed as PriceFeedSdk } from '@hop-protocol/sdk'
 import { coingeckoApiKey } from './config.js'
-import { getToken, TokenSymbol, isValidTokenSymbol } from '@hop-protocol/sdk'
+import { getToken, TokenSymbol } from '@hop-protocol/sdk'
 
-function getCoinId (tokenSymbol: TokenSymbol | string): string {
-  if (!isValidTokenSymbol(tokenSymbol)) {
-    throw new Error('invalid token symbol')
-  }
-  return getToken(tokenSymbol).coingeckoId
+function getCoinId (tokenSymbol: string): string {
+  return getToken(tokenSymbol as TokenSymbol).coingeckoId
 }
 
 const cache: {

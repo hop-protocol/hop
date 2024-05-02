@@ -1,5 +1,5 @@
-import { getToken } from '@hop-protocol/sdk'
+import { TokenSymbol, getToken } from '@hop-protocol/sdk'
 
 export function getTokenDecimals (tokenSymbol: string) {
-  return getToken(tokenSymbol).decimals
+  return getToken(tokenSymbol as TokenSymbol).decimals
 }

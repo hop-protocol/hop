@@ -737,12 +737,6 @@ importers:
         specifier: 4.2.0
         version: 4.2.0(typescript@5.4.3)(vite@5.0.13)
 
-  packages/shane:
-    dependencies:
-      '@hop-protocol/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-
   packages/stats-worker:
     dependencies:
       '@aws-sdk/client-s3':
@@ -1135,7 +1129,7 @@ packages:
       '@aws-crypto/supports-web-crypto': 3.0.0
       '@aws-crypto/util': 3.0.0
       '@aws-sdk/types': 3.485.0
-      '@aws-sdk/util-locate-window': 3.535.0
+      '@aws-sdk/util-locate-window': 3.567.0
       '@aws-sdk/util-utf8-browser': 3.259.0
       tslib: 1.14.1
     dev: false
@@ -1148,7 +1142,7 @@ packages:
       '@aws-crypto/supports-web-crypto': 3.0.0
       '@aws-crypto/util': 3.0.0
       '@aws-sdk/types': 3.485.0
-      '@aws-sdk/util-locate-window': 3.535.0
+      '@aws-sdk/util-locate-window': 3.567.0
       '@aws-sdk/util-utf8-browser': 3.259.0
       tslib: 1.14.1
     dev: false
@@ -2146,9 +2140,9 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@aws-sdk/util-locate-window@3.535.0:
-    resolution: {integrity: sha512-PHJ3SL6d2jpcgbqdgiPxkXpu7Drc2PYViwxSIqvvMKhDwzSB1W3mMvtpzwKM4IE7zLFodZo0GKjJ9AsoXndXhA==}
-    engines: {node: '>=14.0.0'}
+  /@aws-sdk/util-locate-window@3.567.0:
+    resolution: {integrity: sha512-o05vqq2+IdIHVqu2L28D1aVzZRkjheyQQE0kAIB+aS0fr4hYidsO2XqkXRRnhkaOxW3VN5/K/p2gxCaKt6A1XA==}
+    engines: {node: '>=16.0.0'}
     dependencies:
       tslib: 2.6.2
     dev: false
@@ -5523,8 +5517,8 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /@mui/core-downloads-tracker@5.15.15:
-    resolution: {integrity: sha512-aXnw29OWQ6I5A47iuWEI6qSSUfH6G/aCsW9KmW3LiFqr7uXZBK4Ks+z8G+qeIub8k0T5CMqlT2q0L+ZJTMrqpg==}
+  /@mui/core-downloads-tracker@5.15.16:
+    resolution: {integrity: sha512-PTIbMJs5C/vYMfyJNW8ArOezh4eyHkg2pTeA7bBxh2kLP1Uzs0Nm+krXWbWGJPwTWjM8EhnDrr4aCF26+2oleg==}
     dev: false
 
   /@mui/icons-material@5.11.0(@mui/material@5.11.8)(@types/react@18.2.73)(react@18.2.0):
@@ -5696,7 +5690,7 @@ packages:
       '@emotion/react': 11.10.5(@babel/core@7.24.5)(@types/react@18.2.73)(react@18.2.0)
       '@emotion/styled': 11.11.0(@emotion/react@11.10.5)(@types/react@18.2.73)(react@18.2.0)
       '@mui/base': 5.0.0-alpha.117(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
-      '@mui/core-downloads-tracker': 5.15.15
+      '@mui/core-downloads-tracker': 5.15.16
       '@mui/system': 5.15.6(@emotion/react@11.10.5)(@emotion/styled@11.11.0)(@types/react@18.2.73)(react@18.2.0)
       '@mui/types': 7.2.14(@types/react@18.2.73)
       '@mui/utils': 5.15.14(@types/react@18.2.73)(react@18.2.0)
@@ -5732,7 +5726,7 @@ packages:
       '@emotion/react': 11.10.5(@babel/core@7.24.5)(@types/react@18.2.73)(react@18.2.0)
       '@emotion/styled': 11.11.0(@emotion/react@11.10.5)(@types/react@18.2.73)(react@18.2.0)
       '@mui/base': 5.0.0-beta.33(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
-      '@mui/core-downloads-tracker': 5.15.15
+      '@mui/core-downloads-tracker': 5.15.16
       '@mui/system': 5.15.6(@emotion/react@11.10.5)(@emotion/styled@11.11.0)(@types/react@18.2.73)(react@18.2.0)
       '@mui/types': 7.2.14(@types/react@18.2.73)
       '@mui/utils': 5.15.14(@types/react@18.2.73)(react@18.2.0)
@@ -5768,7 +5762,7 @@ packages:
       '@emotion/react': 11.5.0(@babel/core@7.24.5)(@types/react@18.2.73)(react@18.2.0)
       '@emotion/styled': 11.11.0(@emotion/react@11.5.0)(@types/react@18.2.73)(react@18.2.0)
       '@mui/base': 5.0.0-beta.33(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
-      '@mui/core-downloads-tracker': 5.15.15
+      '@mui/core-downloads-tracker': 5.15.16
       '@mui/system': 5.15.6(@emotion/react@11.5.0)(@emotion/styled@11.11.0)(@types/react@18.2.73)(react@18.2.0)
       '@mui/types': 7.2.14(@types/react@18.2.73)
       '@mui/utils': 5.15.14(@types/react@18.2.73)(react@18.2.0)
@@ -9848,9 +9842,9 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001614
-      electron-to-chromium: 1.4.752
+      electron-to-chromium: 1.4.753
       node-releases: 2.0.14
-      update-browserslist-db: 1.0.13(browserslist@4.23.0)
+      update-browserslist-db: 1.0.14(browserslist@4.23.0)
 
   /bs-logger@0.2.6:
     resolution: {integrity: sha512-pd8DCoxmbgc7hyPKOvxtqNcjYoOsABPQdcCUjGp3d42VR2CX1ORhk2A87oqqu5R1kk+76nsxZupkmyd+MVtCog==}
@@ -11146,8 +11140,8 @@ packages:
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  /electron-to-chromium@1.4.752:
-    resolution: {integrity: sha512-P3QJreYI/AUTcfBVrC4zy9KvnZWekViThgQMX/VpJ+IsOBbcX5JFpORM4qWapwWQ+agb2nYAOyn/4PMXOk0m2Q==}
+  /electron-to-chromium@1.4.753:
+    resolution: {integrity: sha512-Wn1XKa0Lc5kMe5UIwQc4+i5lhhBggF0l82C1bE3oOMASt4JVqdOyRIVc8mh0kiuL5CCptqwQJBmFbaPglLrN0Q==}
 
   /elliptic@6.5.4:
     resolution: {integrity: sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ==}
@@ -15070,7 +15064,7 @@ packages:
       h3: 1.11.1
       http-shutdown: 1.2.2
       jiti: 1.21.0
-      mlly: 1.6.1
+      mlly: 1.7.0
       node-forge: 1.3.1
       pathe: 1.1.2
       std-env: 3.7.0
@@ -16079,8 +16073,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  /mlly@1.6.1:
-    resolution: {integrity: sha512-vLgaHvaeunuOXHSmEbZ9izxPx3USsk8KCQ8iC+aTlp5sKRSoZvwhHh5L9VbKSaVC6sJDqbyohIS76E2VmHIPAA==}
+  /mlly@1.7.0:
+    resolution: {integrity: sha512-U9SDaXGEREBYQgfejV97coK0UL1r+qnF2SyO9A3qcI8MzKnsIFKHNVEkrDyNncQTKQQumsasmeq84eNMdBfsNQ==}
     dependencies:
       acorn: 8.11.3
       pathe: 1.1.2
@@ -17222,7 +17216,7 @@ packages:
     resolution: {integrity: sha512-/RpmvKdxKf8uILTtoOhAgf30wYbP2Qw+L9p3Rvshx1JZVX+XQNZQFjlbmGHEGIm4CkVPlSn+NXmIM8+9oWQaSA==}
     dependencies:
       confbox: 0.1.7
-      mlly: 1.6.1
+      mlly: 1.7.0
       pathe: 1.1.2
     dev: false
 
@@ -20091,8 +20085,8 @@ packages:
       pathe: 1.1.2
     dev: false
 
-  /update-browserslist-db@1.0.13(browserslist@4.23.0):
-    resolution: {integrity: sha512-xebP81SNcPuNpPP3uzeW1NYXxI3rxyJzF3pD6sH4jE7o/IX+WtSpwnVU+qIsDPyk0d3hmFQ7mjqc6AtV604hbg==}
+  /update-browserslist-db@1.0.14(browserslist@4.23.0):
+    resolution: {integrity: sha512-JixKH8GR2pWYshIPUg/NujK3JO7JiqEEUiNArE86NQyrgUuZeTlZQN3xuS/yiV5Kb48ev9K6RqNkaJjXsdg7Jw==}
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'

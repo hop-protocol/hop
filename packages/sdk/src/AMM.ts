@@ -369,7 +369,7 @@ export class AMM extends Base {
     return Number(utils.formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
-  public async getYieldStatsForDay (unixTimestamp: number, days: number = 1): Promise<any> {
+  public async getYieldStatsForDay (unixTimestamp: number, days: number = 1, etherscanApiKey?: string): Promise<any> {
     if (this.tokenSymbol === 'HOP') {
       throw new Error('getYieldStatsForDay: Unsupported, there is no AMM for HOP token.')
     }
@@ -392,7 +392,7 @@ export class AMM extends Base {
     ])
 
     const startTimestamp = endTimestamp - (days * SecondsInDay)
-    let startBlockNumber = await getBlockNumberFromDate(provider, startTimestamp)
+    let startBlockNumber = await getBlockNumberFromDate(provider, startTimestamp, etherscanApiKey)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 2000
@@ -461,7 +461,7 @@ export class AMM extends Base {
     return apy
   }
 
-  public async getYieldData (days: number = 1): Promise<any> {
+  public async getYieldData (days: number = 1, etherscanApiKey?: string): Promise<any> {
     if (![1, 7, 30].includes(days)) {
       throw new Error('invalid arg: valid days are: 1, 7, 30')
     }
@@ -478,7 +478,7 @@ export class AMM extends Base {
       totalLiquidityFormatted: totalLiquidityToday,
       totalVolume,
       totalVolumeFormatted
-    } = await this.getYieldStatsForDay(endTimestamp, days)
+    } = await this.getYieldStatsForDay(endTimestamp, days, etherscanApiKey)
 
     const { apr, apy } = this.calcYield(feesEarnedToday, totalLiquidityToday, days)
 

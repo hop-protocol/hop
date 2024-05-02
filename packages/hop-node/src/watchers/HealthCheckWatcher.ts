@@ -648,7 +648,7 @@ export class HealthCheckWatcher {
         availableLiquidity = BigNumber.from(0)
       }
 
-      const tokenDecimals = getToken(token).decimals
+      const tokenDecimals = getToken(token as TokenSymbol).decimals
       const availableLiquidityFormatted = Number(utils.formatUnits(availableLiquidity, tokenDecimals))
       const totalLiquidityFormatted = Number(utils.formatUnits(totalLiquidity, tokenDecimals))
       const oneToken = utils.parseUnits('1', tokenDecimals)
@@ -854,7 +854,7 @@ export class HealthCheckWatcher {
     // This function does not use TheGraph, as that adds an additional layer/failure point.
 
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
-    const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
+    const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds[ChainSlug.Ethereum]!
     const provider = getRpcProvider(ChainSlug.Ethereum)
     const endBlockNumber = Number((await provider.getBlockNumber()).toString())
     const startBlockNumber = endBlockNumber - blocksInDay
@@ -870,7 +870,7 @@ export class HealthCheckWatcher {
           const transferRootHash = event.args.rootHash.toString()
           const transferRootId = event.args.transferRootId.toString()
           const originalAmount = event.args.originalAmount.toString()
-          const tokenDecimals = getToken(token).decimals
+          const tokenDecimals = getToken(token as TokenSymbol).decimals
           const originalAmountFormatted = Number(utils.formatUnits(originalAmount, tokenDecimals))
           const data = {
             token,
@@ -1009,7 +1009,7 @@ export class HealthCheckWatcher {
       const receiveHashesFounds: any = {}
       for (const transferSent of transfersSent) {
         const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
-        const destinationChain = getChain(destinationChainId).slug
+        const destinationChain = getChain(destinationChainId.toString()).slug
         if (destinationChain !== chain) {
           continue
         }

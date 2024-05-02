@@ -40,7 +40,7 @@ L2_Bridge as L2BridgeContract
 import type { Logger } from '@hop-protocol/hop-node-core'
 import type { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
 import type { providers } from 'ethers'
-import { ChainSlug, getChain, getToken } from '@hop-protocol/sdk'
+import { ChainSlug, getChain, getToken, TokenSymbol } from '@hop-protocol/sdk'
 
 type Config = {
   chainSlug: string
@@ -193,7 +193,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const isReceivingNativeToken = isNativeToken(destinationChainId, this.tokenSymbol)
+    const isReceivingNativeToken = isNativeToken(destinationChainId.toString(), this.tokenSymbol)
     if (isReceivingNativeToken) {
       logger.debug('checkTransferId getIsRecipientReceivable')
       const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
@@ -446,7 +446,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   private async filterTransfersBySyncTypeThreshold (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
     const finalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
 
-    const decimals = getToken(this.tokenSymbol).decimals
+    const decimals = getToken(this.tokenSymbol as TokenSymbol).decimals
     const inFlightAmount: BigNumber = await this.getInFlightAmount(dbTransfers)
     const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
     const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
@@ -520,7 +520,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       // L1 to L2 transfers are not bonded by the bonder so they are not considered in flight.
       // Checking bonderFeeTooLow could be a false positive since the bonder bonds relative to the current gas price.
-      const sourceChainSlug = getChain(dbTransfer.sourceChainId).slug
+      const sourceChainSlug = getChain(dbTransfer.sourceChainId.toString()).slug
       return (
         sourceChainSlug !== ChainSlug.Ethereum &&
         dbTransfer.transferSentTimestamp >= inFlightCutoffTimestampSec &&
@@ -546,7 +546,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return BigNumber.from(0)
     }
 
-    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getToken(this.tokenSymbol).decimals)
+    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getToken(this.tokenSymbol as TokenSymbol).decimals)
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 

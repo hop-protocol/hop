@@ -47,7 +47,7 @@ async function main (source: any) {
   } else {
     const transferRoot: any = await getTransferRoot(chain, token, transferRootHash)
     const destinationChainId: number = transferRoot.destinationChainId
-    const destinationChain = getChain(destinationChainId).slug
+    const destinationChain = getChain(destinationChainId.toString()).slug
     const transferIds: string[] = []
     for (const transfer of transferRoot.transferIds) {
       transferIds.push(transfer.transferId)

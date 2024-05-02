@@ -1,7 +1,8 @@
 import { networks } from './networks/index.js'
 import type { Chain, Network } from './types.js'
 import { ChainSlug, NetworkSlug } from './types.js'
-import { getChainByChainId, getChainByNetworkSlugAndChainSlug} from './utils/internal.js'
+import { getChainByChainId, getChainByNetworkSlugAndChainSlug } from './utils/internal.js'
+import { isValidNetworkSlug } from './utils/isValidNetworkSlug.js'
 
 /**
  * Types and utils
@@ -26,9 +27,9 @@ export const getNetworks = (): Network[] => {
 export function getChain(chainId: string): Chain;
 export function getChain(networkSlug: NetworkSlug, chainSlug: ChainSlug): Chain;
 export function getChain(chainIdOrNetworkSlug: string | NetworkSlug, chainSlug?: ChainSlug): Chain {
-  if (typeof chainIdOrNetworkSlug === 'string') {
+  if (typeof chainIdOrNetworkSlug === 'string' && !chainSlug) {
     return getChainByChainId(chainIdOrNetworkSlug)
-  } else if (chainIdOrNetworkSlug && chainSlug) {
+  } else if (isValidNetworkSlug(chainIdOrNetworkSlug) && chainSlug) {
     return getChainByNetworkSlugAndChainSlug(chainIdOrNetworkSlug, chainSlug)
   }
   throw new Error('Invalid arguments')

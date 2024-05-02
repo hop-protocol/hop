@@ -64,7 +64,7 @@ async function getDestinationChainFromTxHash (chain: string, txHash: string): Pr
       }
 
       const destinationChainIdString = BigNumber.from(destinationChainId).toString()
-      return getChain(Number(destinationChainIdString)).slug
+      return getChain(destinationChainIdString).slug
     }
   }
 

@@ -134,7 +134,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
 
-    const usePendingCountCommitThreshold = this.shouldUsePendingCountCommitThreshold(this.chainSlug, getChain(destinationChainId).slug)
+    const usePendingCountCommitThreshold = this.shouldUsePendingCountCommitThreshold(this.chainSlug, getChain(destinationChainId.toString()).slug)
     let pendingCountOk = false
     if (usePendingCountCommitThreshold) {
       pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)

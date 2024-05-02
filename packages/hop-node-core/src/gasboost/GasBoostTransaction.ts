@@ -156,7 +156,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       throw new Error('chainId is required')
     }
     this.chainId = tx.chainId
-    this.chainSlug = getChain(this.chainId).slug
+    this.chainSlug = getChain(this.chainId.toString()).slug
     const tag = 'GasBoostTransaction'
     const prefix = `id: ${this.id}`
     this.logId = prefix

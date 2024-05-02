@@ -8,7 +8,7 @@ export function getTokenImage(tokenSymbol: string = 'ETH') {
     return ''
   }
   tokenSymbol = normalizeTokenSymbol(tokenSymbol)
-  const token = getToken(tokenSymbol)
+  const token = getToken(tokenSymbol as TokenSymbol)
   if (!token) {
     console.error(`could not find token: ${tokenSymbol}`)
     console.error(tokenSymbol)
@@ -19,7 +19,7 @@ export function getTokenImage(tokenSymbol: string = 'ETH') {
 
 export function getTokenDecimals(tokenSymbol: string) {
   tokenSymbol = normalizeTokenSymbol(tokenSymbol)
-  const token = getToken(tokenSymbol)
+  const token = getToken(tokenSymbol as TokenSymbol)
   if (!token) {
     throw new Error(`could not find token: ${tokenSymbol}`)
   }

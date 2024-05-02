@@ -6,7 +6,7 @@ import { BigNumber, utils } from 'ethers'
 import { actionHandler, parseString, root } from './shared/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { getSourceChains } from '#config/index.js'
-import { getToken } from '@hop-protocol/sdk'
+import { TokenSymbol, getToken } from '@hop-protocol/sdk'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 
@@ -28,7 +28,7 @@ async function main (source: any) {
 
   console.log('\n*** This will only look back until 01/01/2022. Prior data may be invalid due to the OVM regenesis. ***\n')
   const startTimestamp = 1640995200
-  const decimals = getToken(token).decimals
+  const decimals = getToken(token as TokenSymbol).decimals
 
   // Get all settlements
   const settledRootsPerBonder: SettledRootsPerBonder = await getSettledRoots(settlementChain, token)

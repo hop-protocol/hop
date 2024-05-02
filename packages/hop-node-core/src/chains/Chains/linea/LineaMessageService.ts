@@ -9,6 +9,7 @@ import {
 import { constants } from 'ethers'
 import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
 import type { BytesLike, CallOverrides, Contract, providers } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 // TODO: Get these from the SDK when they become exported
 interface LineaMessageServiceContract {
@@ -26,7 +27,7 @@ export class LineaMessageService extends AbstractMessageService<LineaMessage, On
   readonly #l1Contract: LineaMessageServiceContract
   readonly #l2Contract: LineaMessageServiceContract
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
     const lineaNetwork: Network = `linea-${this.networkSlug}` as Network
 

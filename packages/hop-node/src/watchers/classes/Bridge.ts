@@ -848,7 +848,7 @@ export default class Bridge extends ContractBase {
     if (destinationChain === ChainSlug.Optimism || destinationChain === ChainSlug.Base) {
       minBonderFeeUsd = 0.10
     }
-    const tokenDecimals = getToken(tokenSymbol).decimals
+    const tokenDecimals = getToken(tokenSymbol as TokenSymbol).decimals
     let minBonderFeeAbsolute = utils.parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
@@ -963,7 +963,7 @@ export default class Bridge extends ContractBase {
   }
 
   async getGasCostTokenValues (symbol: string) {
-    const decimals = getToken(symbol).decimals
+    const decimals = getToken(symbol as TokenSymbol).decimals
     let priceUsd
     try {
       priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!

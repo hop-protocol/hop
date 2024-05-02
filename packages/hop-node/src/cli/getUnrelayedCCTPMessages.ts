@@ -65,7 +65,7 @@ async function main (source: any) {
 
   for (const transferSent of transfersSent) {
     const { nonce, destinationChainId, sourceChainId } = transferSent
-    const destinationChain = getChain(destinationChainId).slug
+    const destinationChain = getChain(destinationChainId.toString()).slug
     const isRelayed = transfersRelayed.find((transferRelayed) => {
       return transferRelayed.nonce === nonce && transferRelayed.sourceChainId === sourceChainId
     })

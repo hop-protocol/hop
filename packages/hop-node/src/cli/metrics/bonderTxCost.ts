@@ -10,8 +10,8 @@ import {
   tokenDecimals
 } from '../metrics/sharedMetrics.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
-import { config as globalConfig  } from '#config/index.js'
+import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
+import { config as globalConfig } from '#config/index.js'
 
 root
   .command('bonder-tx-cost')
@@ -102,7 +102,7 @@ async function getUserTransactionsForDate (chain: string, startBlockNumber: numb
 async function getGasCost (chain: string, txHash: string): Promise<number> {
   const receipt = await getRpcProvider(chain as ChainSlug).getTransactionReceipt(txHash)
   const block = await getRpcProvider(chain as ChainSlug).getBlock(receipt.blockNumber)
-  const nativeToken = getChain(globalConfig.network, chain).nativeTokenSymbol
+  const nativeToken = getChain(globalConfig.network as NetworkSlug, chain as ChainSlug).nativeTokenSymbol
 
   // Get bond gas data
   // Pre-bedrock Optimism had a fixed gasPrice of 0.001 Gwei

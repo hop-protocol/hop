@@ -36,6 +36,6 @@ export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug
 }
 
 export function getDefaultStartBlockNumber (chainId: number): number {
-  const chainSlug = getChain(chainId).slug
+  const chainSlug = getChain(chainId.toString()).slug
   return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network][chainSlug]!
 }

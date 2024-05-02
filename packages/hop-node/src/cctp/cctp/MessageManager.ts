@@ -204,7 +204,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     }
     RELAY_CACHE.add(messageNonce)
 
-    const chainSlug = getChain(destinationChainId).slug
+    const chainSlug = getChain(destinationChainId.toString()).slug
     const wallet = wallets.get(chainSlug)
     // TODO: better err handling
     // error={"reason":"execution reverted: Nonce already used"

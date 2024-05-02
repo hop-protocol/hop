@@ -20,7 +20,7 @@ import { chainIdToHex } from 'src/utils/chainIdToHex'
 import { ethers } from 'ethers'
 import { l1Network } from 'src/config/networks'
 import { networkSlugToId } from 'src/utils'
-import { getNetwork } from '@hop-protocol/sdk'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export type Props = {
@@ -39,7 +39,7 @@ export type Props = {
 class NetworkSwitchError extends Error {}
 
 function getOnboardChains(): any {
-  const chains = getNetwork(reactAppNetwork).chains
+  const chains = getNetwork(reactAppNetwork as NetworkSlug).chains
   const onboardChains :any[] = []
 
   for (const chainSlug in chains) {

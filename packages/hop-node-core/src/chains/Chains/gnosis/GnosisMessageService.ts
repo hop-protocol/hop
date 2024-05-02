@@ -17,7 +17,7 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
   readonly #l1Amb: L1_xDaiAMB
   readonly #l2Amb: L2_xDaiAMB
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     // Get chain contracts

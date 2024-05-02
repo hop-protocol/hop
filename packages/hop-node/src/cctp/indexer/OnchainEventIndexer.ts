@@ -76,7 +76,7 @@ export class OnchainEventIndexer {
 
   // FilterID is unique per chain and event filter. The filter can technically match on multiple chains.
   #getUniqueFilterId = (chainId: number, eventFilter: RequiredEventFilter): string => {
-    const chainSlug = getChain(chainId).slug
+    const chainSlug = getChain(chainId.toString()).slug
     const bytesId = utils.toUtf8Bytes(chainSlug + JSON.stringify(eventFilter))
     return utils.keccak256(bytesId)
   }

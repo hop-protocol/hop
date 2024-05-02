@@ -3,7 +3,7 @@ import L2Bridge from '#watchers/classes/L2Bridge.js'
 import Token from '#watchers/classes/Token.js'
 import contracts from '#contracts/index.js'
 import { wallets } from '@hop-protocol/hop-node-core'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { utils } from 'ethers'
@@ -156,7 +156,7 @@ async function sendTokens (
   isHToken: boolean,
   shouldSendMax: boolean
 ) {
-  const isFromNative = getChain(globalConfig.network, fromChain).nativeTokenSymbol === token && !isHToken
+  const isFromNative = getChain(globalConfig.network as NetworkSlug, fromChain as ChainSlug).nativeTokenSymbol === token && !isHToken
 
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')

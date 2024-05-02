@@ -54,8 +54,8 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     return ''
   }
 
-  if (typeof networkId === 'string') {
-    networkId = Number(networkId)
+  if (typeof networkId === 'number') {
+    networkId = networkId.toString()
   }
 
   const chains = getChain(networkId)

@@ -86,7 +86,7 @@ async function getRootsCommitted (
 
   for (const preRegenesisRootCommitted of PreRegenesisRootsCommitted) {
     if (preRegenesisRootCommitted.token !== token) continue
-    if (getChain(Number(preRegenesisRootCommitted.sourceChainId)).slug !== chain) continue
+    if (getChain(preRegenesisRootCommitted.sourceChainId).slug !== chain) continue
 
     rootsCommitted.push({
       rootHash: preRegenesisRootCommitted.rootHash,

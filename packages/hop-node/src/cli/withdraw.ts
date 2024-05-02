@@ -80,7 +80,7 @@ async function main (source: any) {
     transferIndex
   } = getWithdrawalProofDataForCli(transferId, transferRoot)
 
-  const destinationChain = getChain(destinationChainId).slug
+  const destinationChain = getChain(destinationChainId.toString()).slug
   const watcher = await getBondWithdrawalWatcher({ chain: destinationChain, token, dryMode: false })
   if (!watcher) {
     throw new Error(WatcherNotFoundError)

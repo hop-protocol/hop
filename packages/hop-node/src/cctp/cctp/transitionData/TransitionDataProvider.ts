@@ -142,7 +142,7 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
   async #getMessageFromHopCCTPTransferLog (log: LogWithChainId, nonce: number): Promise<string> {
     const { chainId, blockNumber } = log
 
-    const chain = getChain(chainId).slug
+    const chain = getChain(chainId.toString()).slug
     const provider = getRpcProvider(chain)
     const eventFilter = Message.getMessageSentEventFilter(chainId)
     const filter: RequiredFilter = {

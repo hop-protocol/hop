@@ -26,7 +26,7 @@ export const FinalityTimeForChainIdMs: Record<string, Partial<Record<ChainSlug, 
 }
 
 export function getFinalityTimeFromChainIdMs (chainId: number): number {
-  const chainSlug = getChain(chainId).slug
+  const chainSlug = getChain(chainId.toString()).slug
   return (FinalityTimeForChainIdMs as any)[globalConfig.network][chainSlug]!
 }
 
@@ -88,7 +88,7 @@ export function getMessageTransmitterContract (chainId: number): Contract {
     'event MessageReceived(address indexed caller, uint32 sourceDomain, uint64 indexed nonce, bytes32 sender, bytes messageBody)',
     'event MessageSent(bytes message)'
   ]
-  const chainSlug = getChain(chainId).slug
+  const chainSlug = getChain(chainId.toString()).slug
   return new Contract(
     (MessageTransmitterAddresses as any)[globalConfig.network][chainSlug]!,
     abi
@@ -100,7 +100,7 @@ export function getHopCCTPContract (chainId: number): Contract {
   const abi: string[] = [
     'event CCTPTransferSent(uint64 indexed cctpNonce,uint256 indexed chainId,address indexed recipient,uint256 amount,uint256 bonderFee)'
   ]
-  const chainSlug = getChain(chainId).slug
+  const chainSlug = getChain(chainId.toString()).slug
   return new Contract(
     (HopCCTPAddresses as any)[globalConfig.network][chainSlug]!,
     abi

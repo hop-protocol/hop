@@ -156,7 +156,7 @@ class RelayWatcher extends BaseWatcher {
       return
     }
 
-    const isReceivingNativeToken = isNativeToken(destinationChainId, this.tokenSymbol)
+    const isReceivingNativeToken = isNativeToken(destinationChainId.toString(), this.tokenSymbol)
     if (isReceivingNativeToken) {
       logger.debug('checkTransferSentToL2 getIsRecipientReceivable')
       const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
@@ -410,7 +410,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const destinationChainSlug = getChain(destinationChainId).slug
+    const destinationChainSlug = getChain(destinationChainId.toString()).slug
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(destinationChainSlug)) {
       throw new Error(`RelayWatcher: sendRelayTx: destination chain id "${destinationChainId}" not enabled`)

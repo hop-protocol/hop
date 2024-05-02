@@ -5,6 +5,7 @@ import { getRpcUrlFromProvider } from '#utils/getRpcUrlFromProvider.js'
 import { wait } from '#utils/wait.js'
 import type { IInclusionService } from '../../../Services/AbstractInclusionService.js'
 import type { providers } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 interface GetInclusionTxHashes {
   destChainProvider: providers.Provider
@@ -19,7 +20,7 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
   #isInitialized!: boolean
   #ready!: boolean
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     // Async init

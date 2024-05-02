@@ -323,7 +323,7 @@ function getSiblingWatchers (config: GetSiblingWatchersConfig, init: (conf: GetS
         continue
       }
 
-      const slug = getChain(chainId).slug
+      const slug = getChain(chainId.toString()).slug
 
       // Skip watcher if it's not specified as route
       if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {

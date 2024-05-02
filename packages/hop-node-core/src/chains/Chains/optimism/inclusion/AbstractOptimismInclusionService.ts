@@ -36,7 +36,7 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     [ChainSlug.Base]: 12
   }
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     const canonicalAddresses: OptimismCanonicalAddresses | undefined = OptimismAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as OptimismSuperchainSlugs]

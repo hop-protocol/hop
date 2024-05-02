@@ -135,7 +135,7 @@ export class Message {
 
   // TODO: rm for config
   static async getTxOverrides (chainId: number): Promise<any>{
-    const chainSlug = getChain(chainId).slug
+    const chainSlug = getChain(chainId.toString()).slug
     const provider = getRpcProvider(chainSlug)
     const txOptions: any = {}
 

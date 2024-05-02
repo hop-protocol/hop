@@ -171,7 +171,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     // If there is no resource constraint, settle all
-    const destChainSlug = getChain(Number(destChainId.toString())).slug
+    const destChainSlug = getChain(destChainId.toString()).slug
     if (
       destChainSlug !== ChainSlug.PolygonZk ||
       transferIds.length <= maxNumTransferIds

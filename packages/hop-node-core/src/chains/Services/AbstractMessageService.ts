@@ -45,7 +45,7 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
   protected abstract isMessageRelayable (messageStatus: MessageStatus, messageDirection?: MessageDirection): Promise<boolean> | boolean
   protected abstract isMessageRelayed (messageStatus: MessageStatus, messageDirection?: MessageDirection): Promise<boolean> | boolean
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     this.l1Wallet = wallets.get(ChainSlug.Ethereum)

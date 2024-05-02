@@ -179,7 +179,7 @@ class IncompleteSettlementsWatcher {
     const concurrency = 20
     await promiseQueue(logs, async (log: any, i: number) => {
       const { rootHash, totalAmount, destinationChainId } = log.args
-      const destinationChain = getChain(destinationChainId).slug
+      const destinationChain = getChain(destinationChainId.toString()).slug
       this.rootHashMeta[rootHash] = {
         token,
         sourceChain: chain,
@@ -384,7 +384,7 @@ class IncompleteSettlementsWatcher {
       const timestamp = this.rootHashTimestamps[rootHash]
       const isConfirmed = !!this.rootHashConfirmeds[rootHash]
       const isSet = !!this.rootHashSets[rootHash]
-      const tokenDecimals = getToken(token).decimals
+      const tokenDecimals = getToken(token as TokenSymbol).decimals
       // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
@@ -470,7 +470,7 @@ class IncompleteSettlementsWatcher {
 
   private async getUnsettledTransfers (rootHash: string) {
     const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
-    const tokenDecimals = getToken(token).decimals
+    const tokenDecimals = getToken(token as TokenSymbol).decimals
     const contract = this.getContract(destinationChain, token)
     const transferIds = await this.rootTransferIds[rootHash] || []
     const unsettledTransfers: any[] = []

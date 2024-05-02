@@ -1,13 +1,12 @@
 import {
   ChainSlug,
-  type ChainSlugish,
   NetworkSlug,
   getTokens,
   getChains
 } from '@hop-protocol/sdk'
 
-const relayableChainsSet = new Set<ChainSlugish>([])
-const AvgBlockTimeSeconds: Record<ChainSlugish, number> = {}
+const relayableChainsSet = new Set<ChainSlug>([])
+const AvgBlockTimeSeconds: Partial<Record<ChainSlug, number>> = {}
 
 /**
  * Some chains have a variable block time with a single tx per block. Use
@@ -19,7 +18,7 @@ const BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS = 250
 for (const chain of getChains(NetworkSlug.Mainnet)) {
   const blockTimeMs = chain.averageBlockTimeMs
   if (blockTimeMs !== BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS) {
-    AvgBlockTimeSeconds[chain.slug] = blockTimeMs / 1000
+    AvgBlockTimeSeconds[chain.slug as ChainSlug] = blockTimeMs / 1000
   }
   if (chain.isManualRelayOnL2) {
     relayableChainsSet.add(chain.slug)

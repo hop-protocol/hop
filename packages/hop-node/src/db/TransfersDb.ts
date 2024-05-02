@@ -379,7 +379,7 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const sourceChainSlug = getChain(item.sourceChainId).slug
+      const sourceChainSlug = getChain(item.sourceChainId.toString()).slug
       if (sourceChainSlug !== ChainSlug.Ethereum) {
         return false
       }
@@ -398,7 +398,7 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const destinationChain = getChain(item.destinationChainId).slug
+      const destinationChain = getChain(item.destinationChainId.toString()).slug
       const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
       if (!isRelayable) {
         return false
@@ -534,10 +534,10 @@ class TransfersDb extends BaseDb<Transfer> {
 
   #normalizeTransferValue = (item: Transfer): Transfer => {
     if (item.destinationChainId) {
-      item.destinationChainSlug = getChain(item.destinationChainId).slug
+      item.destinationChainSlug = getChain(item.destinationChainId.toString()).slug
     }
     if (item.sourceChainId) {
-      item.sourceChainSlug = getChain(item.sourceChainId).slug
+      item.sourceChainSlug = getChain(item.sourceChainId.toString()).slug
     }
     if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons

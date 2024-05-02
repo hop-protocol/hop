@@ -239,7 +239,7 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = getChain(destinationChainId).slug
+    const destinationChain = getChain(destinationChainId.toString()).slug
     if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
@@ -290,7 +290,7 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = getChain(destinationChainId).slug
+    const destinationChain = getChain(destinationChainId.toString()).slug
     if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)

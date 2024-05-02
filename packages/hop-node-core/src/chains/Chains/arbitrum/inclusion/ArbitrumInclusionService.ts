@@ -13,7 +13,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   readonly #nodeInterfaceContract: Contract
   readonly #sequencerInboxContract: Contract
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     const canonicalAddresses: ArbitrumCanonicalAddresses | undefined = ArbitrumAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as ArbitrumSuperchainSlugs]

@@ -1,13 +1,13 @@
 import { Logger } from '#logger/index.js'
-import { type NetworkSlug } from '@hop-protocol/sdk'
+import { type NetworkSlug, type ChainSlug } from '@hop-protocol/sdk'
 import { CoreEnvironment } from '#config/index.js'
 
 export abstract class AbstractService {
-  protected readonly chainSlug: string
+  protected readonly chainSlug: ChainSlug
   protected readonly networkSlug: NetworkSlug
   protected readonly logger: Logger
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     this.chainSlug = chainSlug
     const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     this.networkSlug = coreEnvironmentVariables.envNetwork

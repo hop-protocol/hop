@@ -1,3 +1,8 @@
-export * from './Event.js'
-export * from './types.js'
-export * from './eventFetcher/index.js'
+export { Event } from './Event.js'
+export { EventContext, EventBase } from './types.js'
+export {
+  Options,
+  FetchOptions,
+  InputFilter,
+  EventFetcher
+} from './eventFetcher/index.js'

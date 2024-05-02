@@ -11,7 +11,7 @@ export interface TransferSent extends EventBase {
   amount: BigNumber
   attestationFee: BigNumber
   totalSent: BigNumber
-  nonce: string
+  nonce: BigNumber
   attestedCheckpoint: string
 }
 

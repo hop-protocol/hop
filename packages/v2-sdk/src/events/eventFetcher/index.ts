@@ -1,1 +1,6 @@
-export * from './EventFetcher.js'
+export {
+  Options,
+  FetchOptions,
+  InputFilter,
+  EventFetcher
+} from './EventFetcher.js'

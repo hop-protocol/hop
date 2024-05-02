@@ -1,5 +1,4 @@
 import { Messenger } from '#messenger/index.js'
-import { getAddress, parseUnits } from 'ethers/lib/utils.js'
 import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'
 

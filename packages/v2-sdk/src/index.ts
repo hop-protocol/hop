@@ -1,10 +1,7 @@
-export * from './Hop.js'
-export * from './railsGateway/index.js'
-export * from './nft/index.js'
-export * from './events/index.js'
-export * from './gasPriceOracle/index.js'
-export * from './events/index.js'
-export * from './common/index.js'
-export * from './hubConnector/index.js'
-export * from './utils/index.js'
-export * from './addresses/index.js'
+export {
+  HopConstructorInput,
+  GetEventsInput,
+  GetGeneralEventsInput,
+  SendTokensInput,
+  SendTokensApprovalInput,
+} from './Hop.js'

@@ -1,1 +1,4 @@
-export * from './ConnectorDeployed.js'
+export {
+  ConnectorDeployed,
+  ConnectorDeployedEventFetcher
+} from './ConnectorDeployed.js'

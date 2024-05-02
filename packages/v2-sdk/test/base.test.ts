@@ -1,5 +1,4 @@
 import { Base } from '#common/Base.js'
-import { getAddress } from 'ethers/lib/utils.js'
 import { providers, Wallet } from 'ethers'
 import dotenv from 'dotenv'
 

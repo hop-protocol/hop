@@ -1,3 +1,3 @@
-export * from './ConfirmationSent.js'
-export * from './TokenConfirmed.js'
-export * from './TokenSent.js'
+export { ConfirmationSent, ConfirmationSentEventFetcher } from './ConfirmationSent.js'
+export { TokenConfirmed, TokenConfirmedEventFetcher } from './TokenConfirmed.js'
+export { TokenSent, TokenSentEventFetcher } from './TokenSent.js'

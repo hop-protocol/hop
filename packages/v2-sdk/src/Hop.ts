@@ -27,7 +27,7 @@ export type HopConstructorInput = {
   contractAddresses?: Record<string, any> // TODO: types
 }
 
-type GetEventsInput = {
+export type GetEventsInput = {
   chainId: BigNumberish
   fromBlock: number
   toBlock?: number
@@ -41,7 +41,7 @@ export type GetGeneralEventsInput = {
   toBlock?: number
 }
 
-type SendTokensInput = {
+export type SendTokensInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
   fromToken: string
@@ -51,7 +51,7 @@ type SendTokensInput = {
   minAmountOut: BigNumberish
 }
 
-type SendTokensApprovalInput = {
+export type SendTokensApprovalInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
   fromToken: string

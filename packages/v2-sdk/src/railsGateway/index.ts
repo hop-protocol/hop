@@ -1,3 +1,62 @@
-export * from './RailsGateway.js'
-export * from './StakingRegistry.js'
-export * from './events/index.js'
+export {
+  TransferSentEventInput,
+  TransferBondEventInput,
+  Path,
+  GetPathIdInput,
+  GetPathInfoInput,
+  SendInput,
+  SendApprovalInput,
+  BondInput,
+  BondApprovalInput,
+  PostClaimInput,
+  RemoveClaimInput,
+  ConfirmCheckpointInput,
+  GetTransferIdInput,
+  WithdrawInput,
+  WithdrawAllInput,
+  WithdrawBalanceInput,
+  GetNeedsApprovalForSendInput,
+  GetNeedsApprovalForBondInput,
+  GetLatestClaimInput,
+  GetIsCheckpointValidInput,
+  GetFeeInput,
+  StakeHopInput,
+  UnstakeHopInput,
+  WithdrawHopInput,
+  GetCheckpointInput,
+  CalcAmountOutMinInput,
+  GetTransferSentEventFromTransactionReceiptInput,
+  GetTransferSentEventFromTransactionHashInput,
+  GetTransferSentEventFromTransferIdInput,
+  GetTransferSentEventFromCheckpointInput,
+  GetTransferBondedEventFromTransactionReceiptInput,
+  GetTransferBondedEventFromTransactionHashInput,
+  GetTransferBondedEventFromTransferIdInput,
+  GetTransferBondedEventFromCheckpointInput,
+  RailsGatewayConstructorInput,
+  RailsGateway
+} from './RailsGateway.js'
+export {
+  MinHopStakeForRoleInput,
+  GetChallengesInput,
+  GetWithdrawableEthInput,
+  RegistryStakeHopInput,
+  RegistryUnstakeHopInput,
+  RegistryWithdrawInput,
+  CreateChallengeInput,
+  AddToChallengeInput,
+  AddToAppealInput,
+  OptimisticallySettleChallengeInput,
+  AcceptSlashInput,
+  ForceSettleChallengeInput,
+  IsStakedInput,
+  GetStakedBalanceInput,
+  GetWithdrawableBalanceInput,
+  GetChallengeIdInput,
+  StakingRegistryConstructorInput,
+  StakingRegistry
+} from './StakingRegistry.js'
+export {
+  TransferBonded, TransferBondedEventFetcher,
+  TransferSent, TransferSentEventFetcher
+} from './events/index.js'

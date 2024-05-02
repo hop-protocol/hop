@@ -1,1 +1,1 @@
-export * from './GasPriceOracle.js'
+export { GasPriceOracle } from './GasPriceOracle.js'

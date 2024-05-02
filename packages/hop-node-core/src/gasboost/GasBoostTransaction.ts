@@ -140,7 +140,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   chainId: number // type 0 and 2 tx required property
   confirmations: number = 0 // type 0 and 2 tx required property
 
-  constructor (tx: providers.TransactionRequest, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
+  constructor (tx: providers.TransactionRequest, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
     super()
     this.signer = signer
     if (store != null) {
@@ -152,10 +152,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.id = id ?? this.generateId()
     this.setOptions(options)
 
-    if (!tx.chainId) {
-      throw new Error('chainId is required')
-    }
-    this.chainId = tx.chainId
+    this.chainId = Number(chainId)
     this.chainSlug = getChain(this.chainId.toString()).slug
     const tag = 'GasBoostTransaction'
     const prefix = `id: ${this.id}`
@@ -298,12 +295,12 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  static async fromId (id: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static async fromId (id: string, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const item = await store.getItem(id)
-    return GasBoostTransaction.unmarshal(item, signer, store, options)
+    return GasBoostTransaction.unmarshal(item, chainId, signer, store, options)
   }
 
-  static unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static unmarshal (item: MarshalledTx, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,
@@ -316,7 +313,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       maxPriorityFeePerGas: item.maxPriorityFeePerGas,
       gasLimit: item.gasLimit
     }
-    const gTx = new GasBoostTransaction(tx, signer, store)
+    const gTx = new GasBoostTransaction(tx, chainId, signer, store)
     gTx.id = item.id
     gTx.createdAt = item.createdAt
     gTx.txHash = item.txHash

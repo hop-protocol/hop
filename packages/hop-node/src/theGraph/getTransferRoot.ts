@@ -108,7 +108,7 @@ export default async function getTransferRoot (chain: string, token: string, tra
   if (!transferRoot) {
     return transferRoot
   }
-  const destinationChain = getChain(transferRoot.destinationChainId).slug
+  const destinationChain = getChain(transferRoot.destinationChainId.toString()).slug
 
   const [rootSet, rootConfirmed, transferIds] = await Promise.all([
     queryRootSet(destinationChain, token, transferRootHash),

@@ -124,9 +124,7 @@ export class GasBoostSigner extends Signer {
     const _timeId = `GasBoostTransaction elapsed ${id} `
     console.time(_timeId)
     const logger = this.logger.create({ id })
-    // logger.debug('_sendTransaction getDbNonce start')
     tx.nonce = await this.getDbNonce()
-    // logger.debug('_sendTransaction getDbNonce done')
     const gTx = this.gTxFactory.createTransaction(tx, id)
     await gTx.save()
     try {
@@ -137,19 +135,13 @@ export class GasBoostSigner extends Signer {
       // if nonce too low then we still want to increment the tracked nonce
       // before throwing error
       if (err instanceof NonceTooLowError) {
-        // logger.debug('_sendTransaction inNonce in catch start')
         await this.incNonce()
-        // logger.debug('_sendTransaction inNonce in catch done')
-        // logger.debug('_sendTransaction getDbNonce in catch start')
         const newNonce = await this.getDbNonce()
-        // logger.debug('_sendTransaction getDbNonce in catch done')
         logger.debug(`increment for NonceTooLowError. new nonce ${newNonce}`)
       }
       throw err
     }
-    // logger.debug('_sendTransaction incNonce start')
     await this.incNonce()
-    // logger.debug('_sendTransaction incNonce done')
     this.lastTxSentTimestamp = Date.now()
     console.timeEnd(_timeId)
     return gTx

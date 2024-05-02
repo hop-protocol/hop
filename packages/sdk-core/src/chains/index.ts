@@ -32,7 +32,7 @@ export function getChain(chainIdOrNetworkSlug: string | NetworkSlug, chainSlug?:
   } else if (isValidNetworkSlug(chainIdOrNetworkSlug) && chainSlug) {
     return getChainByNetworkSlugAndChainSlug(chainIdOrNetworkSlug, chainSlug)
   }
-  throw new Error('Invalid arguments')
+  throw new Error('Invalid arguments passed into getChain')
 }
 
 // Do not expose a getChains method indexed by chainId. This would return all chains for all networks, which

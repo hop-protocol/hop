@@ -22,11 +22,11 @@ export function normalizeEntity (x: any) {
   }
   if (x.sourceChainId) {
     x.sourceChainId = Number(x.sourceChainId)
-    x.sourceChain = getChain(x.sourceChainId).slug
+    x.sourceChain = getChain(x.sourceChainId.toString()).slug
   }
   if (x.destinationChainId) {
     x.destinationChainId = Number(x.destinationChainId)
-    x.destinationChain = getChain(x.destinationChainId).slug
+    x.destinationChain = getChain(x.destinationChainId.toString()).slug
   }
 
   const decimals = getToken(x.token).decimals

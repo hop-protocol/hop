@@ -387,7 +387,7 @@ async function getTransfersData (startTime: number, endTime: number) {
   console.log('getTransfersData: mapping transfers to bonds')
 
   data.forEach((x: any) => {
-    const bonds = bondsMap[getChain(x.destinationChain).slug]
+    const bonds = bondsMap[getChain(x.destinationChain.toString()).slug]
     if (bonds) {
       const bond = bonds[x.transferId]
       if (bond) {
@@ -402,11 +402,11 @@ async function getTransfersData (startTime: number, endTime: number) {
   console.log('getTransfersData: mapping events to l1CompletedsMap')
 
   data.forEach((x: any) => {
-    const sourceChain = getChain(x.sourceChain).slug
+    const sourceChain = getChain(x.sourceChain.toString()).slug
     if (sourceChain !== ChainSlug.Ethereum) {
       return false
     }
-    const events = l1CompletedsMap[getChain(x.destinationChain).slug]
+    const events = l1CompletedsMap[getChain(x.destinationChain.toString()).slug]
     if (events) {
       for (const event of events) {
         if (
@@ -663,8 +663,8 @@ async function fetchTransferFromL1Completeds (chain: ChainSlug, startTime: numbe
 function populateTransfer (x: any, i: number) {
   x.timestamp = Number(x.timestamp)
   const transferTime = DateTime.fromSeconds(x.timestamp)
-  x.sourceChainSlug = getChain(x.sourceChain).slug
-  x.destinationChainSlug = getChain(x.destinationChain).slug
+  x.sourceChainSlug = getChain(x.sourceChain.toString()).slug
+  x.destinationChainSlug = getChain(x.destinationChain.toString()).slug
   x.receiveStatusUnknown = x.sourceChain === 1 && !x.bonded && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 5)
 
   const decimals = getToken(x.token).decimals

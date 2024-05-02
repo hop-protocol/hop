@@ -52,7 +52,7 @@ export default async function getTransfer (chain: string, token: string, transfe
   transfer.sourceChain = chain
   transfer = normalizeEntity(transfer)
 
-  const destinationChain = getChain(transfer.destinationChainId).slug
+  const destinationChain = getChain(transfer.destinationChainId.toString()).slug
   const bondedWithdrawal = await getBondedWithdrawal(destinationChain, token, transferId)
   transfer.bondedWithdrawalEvent = bondedWithdrawal
   transfer.bonded = !!bondedWithdrawal

@@ -199,10 +199,7 @@ async function main() {
   'console.log(txData)'
   ) : (
   `
-  const provider = new ethers.providers.Web3Provider(
-    window.ethereum
-  )
-  const signer = provider.getSigner()
+  const signer = window.ethereum
   const tx = await hop.connect(signer).sendTransaction(txData)
   console.log(tx)
   `.trim()

@@ -93,9 +93,7 @@ async function main() {
   const chainId = "${fromChainId}"
 
   const hop = new Hop({ network: '${network}' })
-  const signer = new ethers.providers.Web3Provider(
-    window.ethereum
-  )
+  const signer = window.ethereum
   await hop.connect(signer).switchChain(chainId)
 }
 

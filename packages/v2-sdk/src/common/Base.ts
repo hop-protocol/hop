@@ -35,6 +35,9 @@ export class Base {
     this.network = config.network
     if (config.signer) {
       this.signer = config.signer
+      if (!Signer.isSigner(this.signer)) {
+        this.signer = new providers.Web3Provider(this.signer, 'any').getSigner()
+      }
     }
     this.gasPriceMultiplier = config.gasPriceMultiplier ?? 0
     this.chainProviders = config.chainProviders || this.getDefaultChainRpcProviders()

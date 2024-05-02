@@ -4,4 +4,5 @@ export {
   GetGeneralEventsInput,
   SendTokensInput,
   SendTokensApprovalInput,
+  Hop
 } from './Hop.js'

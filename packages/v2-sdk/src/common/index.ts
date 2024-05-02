@@ -1,1 +1,1 @@
-export * from './Base.js'
+export { Base, BaseConfig } from './Base.js'

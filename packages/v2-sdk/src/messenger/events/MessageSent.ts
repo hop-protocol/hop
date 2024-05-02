@@ -14,7 +14,7 @@ export interface MessageSent extends EventBase {
 export class MessageSentEventFetcher extends Event<MessageSent> {
   override eventName = 'MessageSent'
 
-  getFilter () {
+  override getFilter () {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageSent()
     return filter
@@ -24,11 +24,6 @@ export class MessageSentEventFetcher extends Event<MessageSent> {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageSent(messageId)
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<MessageSent[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageSent {

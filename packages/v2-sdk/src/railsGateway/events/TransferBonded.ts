@@ -15,7 +15,7 @@ export interface TransferBonded extends EventBase {
 export class TransferBondedEventFetcher extends Event<TransferBonded> {
   override eventName = 'TransferBonded'
 
-  getFilter () {
+  override getFilter () {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
     const filter = railsGateway.filters.TransferBonded()
     return filter
@@ -38,11 +38,6 @@ export class TransferBondedEventFetcher extends Event<TransferBonded> {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
     const filter = railsGateway.filters.TransferBonded(null, null, checkpoint)
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<TransferBonded[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TransferBonded {

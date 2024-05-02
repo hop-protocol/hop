@@ -10,15 +10,10 @@ export interface FeesSentToHub extends EventBase {
 export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
   override eventName = 'FeesSentToHub'
 
-  getFilter () {
+  override getFilter () {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.FeesSentToHub()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<FeesSentToHub[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): FeesSentToHub {

@@ -14,15 +14,10 @@ export interface ConnectorDeployed extends EventBase {
 export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
   override eventName = 'ConnectorDeployed'
 
-  getFilter () {
+  override getFilter () {
     const contract = HubERC5164ConnectorFactory__factory.connect(this.address, this.provider)
     const filter = contract.filters.ConnectorDeployed()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<ConnectorDeployed[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): ConnectorDeployed {

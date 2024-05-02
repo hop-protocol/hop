@@ -14,15 +14,10 @@ export interface BundleCommitted extends EventBase {
 export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
   override eventName = 'BundleCommitted'
 
-  getFilter () {
+  override getFilter () {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.BundleCommitted()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<BundleCommitted[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleCommitted {

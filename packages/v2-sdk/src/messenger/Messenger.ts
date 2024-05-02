@@ -999,14 +999,8 @@ export class Messenger extends Base {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
     const eventFetcher = new MessageSentEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
-    const filter = eventFetcher.getFilter()
-    for (const log of receipt.logs) {
-      if (log.topics[0] === filter?.topics?.[0]) {
-        const decoded = eventFetcher.toTypedEvent(log)
-        return decoded
-      }
-    }
-    return null
+    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
+    return events?.[0] ?? null
   }
 
   async getMessageSentEventFromTransactionHash (input: GetMessageSentEventFromTransactionHashInput): Promise<MessageSent | null> {
@@ -1046,7 +1040,7 @@ export class Messenger extends Base {
       throw new Error(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
@@ -1078,7 +1072,7 @@ export class Messenger extends Base {
       throw new Error(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new MessageSentEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const eventFetcher = new MessageSentEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
@@ -1111,7 +1105,7 @@ export class Messenger extends Base {
       throw new Error(`Contract address not found for chainId: ${toChainId}`)
     }
 
-    const eventFetcher = new MessageExecutedEventFetcher(provider, toChainId, 1_000_000_000, address)
+    const eventFetcher = new MessageExecutedEventFetcher(provider, toChainId, 0, address)
     const filter = eventFetcher.getMessageIdFilter(messageId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
@@ -1140,14 +1134,8 @@ export class Messenger extends Base {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
     const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
-    const filter = eventFetcher.getFilter()
-    for (const log of receipt.logs) {
-      if (log.topics[0] === filter?.topics?.[0]) {
-        const decoded = eventFetcher.toTypedEvent(log)
-        return decoded
-      }
-    }
-    return null
+    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
+    return events?.[0] ?? null
   }
 
   async getMessageIdFromTransactionHash (input: GetMessageIdFromTransactionHashInput): Promise<string> {
@@ -1254,7 +1242,7 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getBundleIdFilter(bundleId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
@@ -1510,4 +1498,3 @@ export class Messenger extends Base {
     return tx
   }
 }
-

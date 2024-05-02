@@ -11,7 +11,7 @@ export interface MessageExecuted extends EventBase {
 export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
   override eventName = 'MessageExecuted'
 
-  getFilter () {
+  override getFilter () {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageExecuted()
     return filter
@@ -23,11 +23,6 @@ export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
     // const filter = spokeMessageBridge.filters.MessageExecuted(messageId)
     const filter = spokeMessageBridge.filters.MessageExecuted()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<MessageExecuted[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageExecuted {

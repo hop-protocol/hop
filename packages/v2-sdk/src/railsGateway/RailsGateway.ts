@@ -274,9 +274,8 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const address = this.getRailsGatewayContractAddress(chainId)
-    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 1_000_000_000, address)
-    const filter = eventFetcher.getFilter()
-    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    const eventFetcher = new TransferSentEventFetcher(provider, chainId, 0, address)
+    const events = await eventFetcher.getEvents(fromBlock, toBlock)
     return events
   }
 
@@ -315,9 +314,8 @@ export class RailsGateway extends StakingRegistry {
     }
 
     const address = this.getRailsGatewayContractAddress(chainId)
-    const eventFetcher = new TransferBondedEventFetcher(provider, chainId, 1_000_000_000, address)
-    const filter = eventFetcher.getFilter()
-    const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
+    const eventFetcher = new TransferBondedEventFetcher(provider, chainId, 0, address)
+    const events = await eventFetcher.getEvents(fromBlock, toBlock)
     return events
   }
 
@@ -1187,14 +1185,8 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
     const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
-    const filter = eventFetcher.getFilter()
-    for (const log of receipt.logs) {
-      if (log.topics[0] === filter?.topics?.[0]) {
-        const decoded = eventFetcher.toTypedEvent(log)
-        return decoded
-      }
-    }
-    return null
+    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
+    return events?.[0] ?? null
   }
 
   async getTransferSentEventFromTransactionHash (input: GetTransferSentEventFromTransactionHashInput): Promise<TransferSent | null> {
@@ -1239,7 +1231,7 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
@@ -1265,7 +1257,7 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
@@ -1290,14 +1282,8 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
     const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
-    const filter = eventFetcher.getFilter()
-    for (const log of receipt.logs) {
-      if (log.topics[0] === filter?.topics?.[0]) {
-        const decoded = eventFetcher.toTypedEvent(log)
-        return decoded
-      }
-    }
-    return null
+    const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
+    return events?.[0] ?? null
   }
 
   async getTransferBondedEventFromTransactionHash (input: GetTransferBondedEventFromTransactionHashInput): Promise<TransferBonded | null> {
@@ -1342,7 +1328,7 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getTransferIdFilter(transferId)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000
@@ -1368,7 +1354,7 @@ export class RailsGateway extends StakingRegistry {
       throw new Error(`Contract address not found for chainId "${fromChainId}"`)
     }
 
-    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 1_000_000_000, address)
+    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getCheckpointFilter(checkpoint)
     const toBlock = await provider.getBlockNumber()
     const fromBlock = 0 // endBlock - 100_000

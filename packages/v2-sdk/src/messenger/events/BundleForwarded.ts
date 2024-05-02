@@ -13,15 +13,10 @@ export interface BundleForwarded extends EventBase {
 export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
   override eventName = 'BundleForwarded'
 
-  getFilter () {
+  override getFilter () {
     const hubMessageBridge = HubMessageBridge__factory.connect(this.address, this.provider)
     const filter = hubMessageBridge.filters.BundleForwarded()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<BundleForwarded[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleForwarded {

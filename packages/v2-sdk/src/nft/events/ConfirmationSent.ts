@@ -11,15 +11,10 @@ export interface ConfirmationSent extends EventBase {
 export class ConfirmationSentEventFetcher extends Event<ConfirmationSent> {
   override eventName = 'ConfirmationSent'
 
-  getFilter () {
+  override getFilter () {
     const nftBridge = ERC721Bridge__factory.connect(this.address, this.provider)
     const filter = nftBridge.filters.TokenSent()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<ConfirmationSent[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): ConfirmationSent {

@@ -12,7 +12,7 @@ export interface MessageBundled extends EventBase {
 export class MessageBundledEventFetcher extends Event<MessageBundled> {
   override eventName = 'MessageBundled'
 
-  getFilter () {
+  override getFilter () {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageBundled()
     return filter
@@ -28,11 +28,6 @@ export class MessageBundledEventFetcher extends Event<MessageBundled> {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.MessageBundled(null, null, messageId)
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<MessageBundled[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): MessageBundled {

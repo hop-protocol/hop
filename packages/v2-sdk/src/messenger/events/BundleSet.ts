@@ -12,15 +12,10 @@ export interface BundleSet extends EventBase {
 export class BundleSetEventFetcher extends Event<BundleSet> {
   override eventName = 'BundleSet'
 
-  getFilter () {
+  override getFilter () {
     const spokeMessageBridge = SpokeMessageBridge__factory.connect(this.address, this.provider)
     const filter = spokeMessageBridge.filters.BundleSet()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<BundleSet[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleSet {

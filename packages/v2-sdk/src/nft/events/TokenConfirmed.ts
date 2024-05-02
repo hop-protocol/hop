@@ -10,15 +10,10 @@ export interface TokenConfirmed extends EventBase {
 export class TokenConfirmedEventFetcher extends Event<TokenConfirmed> {
   override eventName = 'TokenConfirmed'
 
-  getFilter () {
+  override getFilter () {
     const nftBridge = ERC721Bridge__factory.connect(this.address, this.provider)
     const filter = nftBridge.filters.TokenSent()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<TokenConfirmed[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TokenConfirmed {

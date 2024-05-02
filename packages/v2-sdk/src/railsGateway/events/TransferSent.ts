@@ -18,7 +18,7 @@ export interface TransferSent extends EventBase {
 export class TransferSentEventFetcher extends Event<TransferSent> {
   override eventName = 'TransferSent'
 
-  getFilter () {
+  override getFilter () {
     const railsGateway = RailsGateway__factory.connect(this.address, this.provider)
     const filter = railsGateway.filters.TransferSent()
     return filter
@@ -43,11 +43,6 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     return filter
   }
 
-  async getEvents (fromBlock: number, toBlock: number): Promise<TransferSent[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
-  }
-
   override toTypedEvent (ethersEvent: any): TransferSent {
     const iface = new ethers.utils.Interface(RailsGateway__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
@@ -59,7 +54,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     const amount = decoded.args.amount
     const attestationFee = decoded.args.attestationFee
     const totalSent = decoded.args.totalSent
-    const nonce = decoded.args.nonce.toString()
+    const nonce = decoded.args.nonce
     const attestedCheckpoint = decoded.args.attestedCheckpoint.toString()
 
     return {

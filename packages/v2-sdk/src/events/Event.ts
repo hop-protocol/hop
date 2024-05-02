@@ -18,7 +18,19 @@ export class Event<T> {
     this.provider = provider
     this.chainId = chainId
     this.batchBlocks = batchBlocks
+    if (this.batchBlocks === 0) {
+      this.batchBlocks = 1_000_000
+    }
     this.address = address
+  }
+
+  getFilter (): any {
+    throw new Error('Not implemented. This should be implemented by child class.')
+  }
+
+  getTopic0 () {
+    const filter = this.getFilter()
+    return filter.topics[0]
   }
 
   async getEventsWithFilter(filter: any, fromBlock: number, toBlock?: number): Promise<T[]> {
@@ -32,6 +44,12 @@ export class Event<T> {
     const events = await eventFetcher.fetchEvents([filter as InputFilter], { fromBlock, toBlock })
     console.log(`populating events. count: ${events.length}`)
     return this.populateEvents(events)
+  }
+
+  async getEvents (fromBlock: number, toBlock?: number): Promise<T[]> {
+    const filter = this.getFilter()
+    const events = await this.getEventsWithFilter(filter, fromBlock, toBlock)
+    return events
   }
 
   async populateEvents<T>(events: any[]): Promise<T[]> {
@@ -102,5 +120,17 @@ export class Event<T> {
       throw new Error(`Invalid chain "${chainId?.toString()}", slug not found`)
     }
     return chainSlug
+  }
+
+  decodeEventsFromTransactionReceipt (receipt: any): T[] {
+    const decodedEvents: T[] = []
+    const topic = this.getTopic0()
+    for (const log of receipt.logs) {
+      if (log.topics[0] === topic) {
+        const decoded = this.toTypedEvent(log)
+        decodedEvents.push(decoded)
+      }
+    }
+    return decodedEvents
   }
 }

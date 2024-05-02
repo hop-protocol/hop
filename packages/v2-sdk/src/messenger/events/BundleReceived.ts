@@ -16,15 +16,10 @@ export interface BundleReceived extends EventBase {
 export class BundleReceivedEventFetcher extends Event<BundleReceived> {
   override eventName = 'BundleReceived'
 
-  getFilter () {
+  override getFilter () {
     const hubMessageBridge = HubMessageBridge__factory.connect(this.address, this.provider)
     const filter = hubMessageBridge.filters.BundleReceived()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<BundleReceived[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): BundleReceived {

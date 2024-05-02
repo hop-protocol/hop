@@ -13,15 +13,10 @@ export interface TokenSent extends EventBase {
 export class TokenSentEventFetcher extends Event<TokenSent> {
   override eventName = 'TokenSent'
 
-  getFilter () {
+  override getFilter () {
     const nftBridge = ERC721Bridge__factory.connect(this.address, this.provider)
     const filter = nftBridge.filters.TokenSent()
     return filter
-  }
-
-  async getEvents (fromBlock: number, toBlock: number): Promise<TokenSent[]> {
-    const filter = this.getFilter()
-    return this.getEventsWithFilter(filter, fromBlock, toBlock)
   }
 
   override toTypedEvent (ethersEvent: any): TokenSent {

@@ -1,6 +1,6 @@
 import { Base, BaseConstructorOptions, ChainProviders } from './Base.js'
 import { BigNumber, Contract, Signer, ethers, providers, utils } from 'ethers'
-import { Chain, ChainSlug, TokenSymbolish } from '@hop-protocol/sdk-core'
+import { Chain, ChainSlug, TokenSymbol } from '@hop-protocol/sdk-core'
 import { ERC20__factory } from './contracts/index.js'
 import { TAmount, TChain } from './types.js'
 import { WrappedToken } from './constants/index.js'
@@ -12,7 +12,7 @@ export type TokenConstructorOptions = {
   chain: TChain,
   address: string,
   decimals: number,
-  symbol:  TokenSymbolish,
+  symbol:  TokenSymbol | string,
   name: string,
   image: string,
 } & BaseConstructorOptions
@@ -28,7 +28,7 @@ export class Token extends Base {
   public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
-  _symbol: TokenSymbolish 
+  _symbol: TokenSymbol | string
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -47,7 +47,7 @@ export class Token extends Base {
     chain?: TChain,
     address?: string,
     decimals?: number,
-    symbol?:  TokenSymbolish,
+    symbol?:  TokenSymbol | string,
     name?: string,
     image?: string,
     signer?: Signer | providers.Provider,

@@ -12,10 +12,10 @@ import {
   shiftBNDecimals
 } from '@hop-protocol/sdk-core'
 import { getBlockNumberFromDate } from './utils/index.js'
-import { TokenSymbolish } from '@hop-protocol/sdk-core'
+import { TokenSymbol } from '@hop-protocol/sdk-core'
 
 export type AmmConstructorOptions = {
-  tokenSymbol?: TokenSymbolish,
+  tokenSymbol?: TokenSymbol | string,
   chain?: TChain,
 } & BaseConstructorOptions
 
@@ -28,7 +28,7 @@ export class AMM extends Base {
   public chain: Chain
 
   /** Token class instance */
-  public tokenSymbol: TokenSymbolish
+  public tokenSymbol: TokenSymbol | string
 
   /**
    * @desc Instantiates AMM instance.
@@ -47,7 +47,7 @@ export class AMM extends Base {
    */
   constructor (
     networkOrOptionsObject: string | AmmConstructorOptions,
-    tokenSymbol?: TokenSymbolish,
+    tokenSymbol?: TokenSymbol | string,
     chain?: TChain,
     signer?: TProvider,
     chainProviders?: ChainProviders

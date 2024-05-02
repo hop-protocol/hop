@@ -1,7 +1,7 @@
 import {
-  type TokenSymbolish,
   TokenSymbol,
-  getToken
+  getToken,
+  isValidTokenSymbol
 } from '@hop-protocol/sdk-core'
 import { utils } from 'ethers'
 
@@ -9,7 +9,7 @@ export class TokenModel {
   public readonly chainId: number
   public readonly address: string
   public readonly decimals: number
-  public readonly symbol: TokenSymbolish
+  public readonly symbol: TokenSymbol | string
   public readonly name: string 
 
   static ETH = 'ETH'
@@ -36,7 +36,7 @@ export class TokenModel {
     chainId: number | string,
     address: string,
     decimals: number,
-    symbol: TokenSymbolish,
+    symbol: TokenSymbol | string,
     name: string 
   ) {
     if (chainId) {
@@ -57,6 +57,9 @@ export class TokenModel {
       this.decimals = decimals
     }
     if (!decimals && symbol) {
+      if (!isValidTokenSymbol(symbol)) {
+        throw new Error('invalid token symbol')
+      }
       this.decimals = getToken(symbol).decimals
     }
   }
@@ -65,7 +68,7 @@ export class TokenModel {
     return TokenModel.getCanonicalSymbol(this.symbol)
   }
 
-  static getCanonicalSymbol (tokenSymbol: TokenSymbolish) {
+  static getCanonicalSymbol (tokenSymbol: TokenSymbol | string) {
     const isWrappedToken = [TokenModel.WETH, TokenModel.WMATIC, TokenModel.WXDAI].includes(tokenSymbol)
     if (isWrappedToken) {
       tokenSymbol = tokenSymbol.replace(/^W/, '')

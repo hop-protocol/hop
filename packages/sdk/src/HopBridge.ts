@@ -42,10 +42,11 @@ import {
   Multicall,
   PriceFeedApiKeys,
   PriceFeedFromS3,
-  TokenSymbolish,
+  TokenSymbol,
   chainIdToSlug,
   fetchJsonOrThrow,
-  getToken
+  getToken,
+  isValidTokenSymbol
 } from '@hop-protocol/sdk-core'
 
 const {
@@ -156,7 +157,7 @@ type FeeAndAmountOutMinData = {
  * @namespace HopBridge
  */
 export class HopBridge extends Base {
-  private tokenSymbol: TokenSymbolish
+  private tokenSymbol: TokenSymbol | string
 
   /** Source Chain model */
   public sourceChain: Chain
@@ -279,6 +280,9 @@ export class HopBridge extends Base {
   ): Token {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
+    if (!isValidTokenSymbol(token.canonicalSymbol)) {
+      throw new Error('Invalid token symbol')
+    }
     const { name, decimals, image } = getToken(token.canonicalSymbol)
     let symbol: string = getToken(token.canonicalSymbol).symbol
     if (chain.slug === ChainSlug.Gnosis && token.symbol === CanonicalToken.DAI) {
@@ -322,10 +326,13 @@ export class HopBridge extends Base {
       throw new Error('Hop tokens do not exist on layer 1')
     }
 
+    if (!isValidTokenSymbol(token.canonicalSymbol)) {
+      throw new Error('Invalid token symbol')
+    }
     const { name, decimals, image } = getToken(token.canonicalSymbol)
     const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
-    let formattedSymbol = token.canonicalSymbol as HToken
+    let formattedSymbol: HToken = token.canonicalSymbol.toString() as HToken
     let formattedName = name
     if (this.doesUseAmm) {
       formattedSymbol = `h${formattedSymbol}` as HToken
@@ -2995,7 +3002,7 @@ export class HopBridge extends Base {
 
   private async checkConnectedChain (signer: TProvider, chain: Chain): Promise<void> {
     const connectedChainId = await (signer as Signer)?.getChainId()
-    if (connectedChainId !== chain.chainId) {
+    if (connectedChainId.toString() !== chain.chainId) {
       throw new Error(`invalid connected chain ID "${connectedChainId}". Make sure web3 signer provider is connected to source chain from network "${chain.slug}" chain ID "${chain.chainId}"`)
     }
   }

@@ -18,6 +18,9 @@ import {
   getUrlFromProvider,
   promiseTimeout,
   rateLimitRetry,
+  isValidChainSlug,
+  isValidNetworkSlug,
+  isValidTokenSymbol
 } from '@hop-protocol/sdk-core'
 import { L1_OptimismTokenBridge } from './contracts/index.js'
 import { L1_OptimismTokenBridge__factory } from './contracts/index.js'
@@ -53,6 +56,12 @@ const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
 const getProvider = memoize((network: string, chainSlug: string) => {
+  if (!isValidNetworkSlug(network)) {
+    throw new Error(`invalid network "${network}"`)
+  }
+  if (!isValidChainSlug(chainSlug)) {
+    throw new Error(`invalid chain "${chainSlug}"`)
+  }
   const chain = getChain(network, chainSlug)
   const rpcUrl = chain.publicRpcUrl
   if (!rpcUrl) {
@@ -418,9 +427,15 @@ export class Base {
       throw new Error('expected chain')
     }
     if (typeof chain === 'string') {
+      if (!isValidNetworkSlug(this.network)) {
+        throw new Error(`invalid network "${this.network}"`)
+      }
       if (chain === 'xdai') {
-        chain = getChain(this.network, 'gnosis')
+        chain = getChain(this.network, ChainSlug.Gnosis)
       } else {
+        if (!isValidChainSlug(chain)) {
+          throw new Error(`invalid chainSlug "${chain}"`)
+        }
         chain = getChain(this.network, chain)
       }
     }
@@ -436,7 +451,8 @@ export class Base {
         )}`
       )
     }
-    chain.chainId = this.getChainId(chain)
+
+    chain.chainId = this.getChainId(chain).toString()
     return chain
   }
 
@@ -448,6 +464,9 @@ export class Base {
   public toTokenModel (token: TToken): TokenModel {
     if (typeof token === 'string') {
       const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
+      if (!isValidTokenSymbol(canonicalSymbol)) {
+        throw new Error(`invalid token "${token}"`)
+      }
       const { name, decimals } = getToken(canonicalSymbol)
       return new TokenModel(0, '', decimals, token, name)
     }
@@ -555,7 +574,7 @@ export class Base {
     if (Signer.isSigner(signer)) {
       if (signer.provider) {
         const connectedChainId = await signer.getChainId()
-        if (connectedChainId !== chain.chainId) {
+        if (connectedChainId.toString() !== chain.chainId) {
           if (!signer.provider) {
             const provider = this.getChainProvider(chain)
             return (signer).connect(provider)
@@ -569,7 +588,7 @@ export class Base {
     } else {
       // console.log('isSigner')
       const { chainId } = await signer.getNetwork()
-      if (chainId !== chain.chainId) {
+      if (chainId.toString() !== chain.chainId) {
         return this.getChainProvider(chain)
       }
       return signer
@@ -680,6 +699,9 @@ export class Base {
       )
     }
 
+    if (!isValidNetworkSlug(this.network)) {
+      throw new Error(`invalid network "${this.network}"`)
+    }
     const minGasPrice = getMinGasPrice(this.network, sourceChain.slug)
     if (minGasPrice) {
       const provider = this.getChainProvider(sourceChain)

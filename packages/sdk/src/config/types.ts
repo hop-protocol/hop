@@ -1,11 +1,11 @@
-import { TokenSymbolish, ChainSlug } from '@hop-protocol/sdk-core'
+import { TokenSymbol, ChainSlug } from '@hop-protocol/sdk-core'
 
 export type Bps = {
   [key in ChainSlug]: number
 }
 
 export type Fees = {
-  [key in TokenSymbolish]: Partial<Bps>
+  [key in TokenSymbol | string]: Partial<Bps>
 }
 
 export type RelayerFeeWei = {
@@ -17,11 +17,11 @@ export type RelayerFeeEnabled = {
 }
 
 export type BridgeDeprecated = {
-  [key in TokenSymbolish]: boolean
+  [key in TokenSymbol | string]: boolean
 }
 
 export type TotalStake = {
-  [key in TokenSymbolish]: number
+  [key in TokenSymbol | string]: number
 }
 
 export type DefaultSendGasLimit = {

@@ -38,7 +38,6 @@ export {
 
 export {
   Chain,
-  ChainSlugish,
   Multicall,
   PriceFeed,
   RetryProvider,

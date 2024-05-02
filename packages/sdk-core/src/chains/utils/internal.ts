@@ -7,6 +7,7 @@ import { type Chain, ChainSlug, NetworkSlug } from '../types.js'
  */
 
 export function getChainByChainId(chainId: string): Chain {
+  chainId = preprocessChainId(chainId)
   for (const network of Object.values(networks)) {
     for (const chain of Object.values(network.chains)) {
       if (chain.chainId === chainId) {
@@ -24,4 +25,21 @@ export function getChainByNetworkSlugAndChainSlug(networkSlug: NetworkSlug, chai
     throw new Error(`Chain with networkSlug ${networkSlug} and chainSlug ${chainSlug} not found`)
   }
   return chain
+}
+
+function preprocessChainId(chainId: string): string {
+  if (chainId.startsWith('0x')) {
+    const decimal = parseInt(chainId.substring(2), 16)
+    if (isNaN(decimal)) {
+      throw new Error(`Invalid hexadecimal chainId: ${chainId}`)
+    }
+    return decimal.toString()
+  }
+
+  const decimal = parseInt(chainId, 10)
+  if (isNaN(decimal)) {
+    throw new Error(`Invalid hexadecimal chainId: ${chainId}`)
+  }
+
+  return chainId
 }

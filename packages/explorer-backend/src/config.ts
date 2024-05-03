@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { getDefaultRpcUrl } from './utils/getDefaultRpcUrl'
 import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
-import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
+import { sdkConfig } from '@hop-protocol/sdk'
 
 dotenv.config()
 
@@ -24,7 +24,7 @@ export const CoingeckoApiKey = process.env.COINGECKO_API_KEY || ''
 const tokenSet = new Set<string>([])
 const chainSet = new Set<string>([])
 
-const addresses = isGoerli ? goerliAddresses : mainnetAddresses
+const addresses = isGoerli ?  sdkConfig[NetworkSlug.Goerli].addresses: sdkConfig[NetworkSlug.Mainnet].addresses
 for (const token in addresses.bridges) {
   tokenSet.add(token)
 

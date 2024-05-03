@@ -1,4 +1,4 @@
-import { networks } from '../config'
+import { network, networks } from '../config'
 
 const getSlugFromChainIdMap:any = {}
 

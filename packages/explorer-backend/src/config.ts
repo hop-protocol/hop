@@ -24,7 +24,7 @@ export const CoingeckoApiKey = process.env.COINGECKO_API_KEY || ''
 const tokenSet = new Set<string>([])
 const chainSet = new Set<string>([])
 
-const addresses = isGoerli ?  sdkConfig[NetworkSlug.Goerli].addresses: sdkConfig[NetworkSlug.Mainnet].addresses
+const addresses = isGoerli ? sdkConfig[NetworkSlug.Goerli].addresses : sdkConfig[NetworkSlug.Mainnet].addresses
 for (const token in addresses.bridges) {
   tokenSet.add(token)
 
@@ -52,7 +52,7 @@ for (const chain of enabledChains) {
   rpcUrls[chain] = process.env[`${chain.toUpperCase()}_RPC`] || getDefaultRpcUrl(network, chain)
 }
 
-export const networks = isGoerli ? getNetwork(NetworkSlug.Goerli) : getNetwork(NetworkSlug.Mainnet)
+export const networks = isGoerli ? getNetwork(NetworkSlug.Goerli).chains : getNetwork(NetworkSlug.Mainnet).chains
 
 // TODO: maybe move this to core config?
 export const transferTimes = {

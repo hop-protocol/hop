@@ -8,7 +8,6 @@ import type { IMessage, MessageState } from '../cctp/MessageManager.js'
 
 // TODO: Remove
 const CREATION_CACHE: Set<string> = new Set()
-const API_CALL_CACHE: Set<string> = new Set()
 
 /**
  * Expects the terminal state of stateTransitionMap to be null.
@@ -106,14 +105,12 @@ export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
   // TODO: Does this belong here or up a level?
   async getTransitionEvent (newState: T, key: string, value: U): Promise<U | undefined> {
     // TODO: Better error handling -- should handle elsewhere
-    if (API_CALL_CACHE.has(key)) return
     try {
       // TODO: Assert that newState cannot be the initial state
       const initialState = this.#getInitialState()
       if (newState === initialState) return
       return await this.#transitionDataProvider.getTransitionData(newState, key, value)
     } catch (err) {
-      API_CALL_CACHE.add(key)
       console.log('getTransitionEvent err', err)
       return
     }
@@ -128,7 +125,6 @@ export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
     // TODO: RM
     if (CREATION_CACHE.has(key)) return
 
-    console.log('aaaaaaaaaaaaa', key, value)
     await this.#createState(key, value)
   }
 

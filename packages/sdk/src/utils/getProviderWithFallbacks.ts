@@ -1,8 +1,8 @@
-import { FallbackProvider, RetryProvider } from '#provider/index.js'
-import { rpcTimeoutSeconds } from '#config/index.js'
+import { FallbackProvider } from '#provider/index.js'
+import { RetryProvider } from '@hop-protocol/sdk-core'
 
 export function getProviderWithFallbacks (rpcUrls: string[]): any {
-  const timeout = rpcTimeoutSeconds * 1000
+  const timeout = 60 * 1000
   const throttleLimit = 1
   const rpcProviders: any[] = []
 

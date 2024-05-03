@@ -27,6 +27,7 @@ export {
 
 export * from './models/index.js'
 export * from './contracts/index.js'
+export * from './provider/index.js'
 
 export { type Bps, sdkConfig } from './config/index.js'
 export {
@@ -42,7 +43,6 @@ export {
   PriceFeed,
   RetryProvider,
   RpcProvider,
-  FallbackProvider,
   TokenSymbol,
   chainIdToSlug,
   fetchJsonOrThrow,

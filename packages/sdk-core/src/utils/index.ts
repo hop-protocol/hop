@@ -1,5 +1,4 @@
 export { fetchJsonOrThrow } from './fetchJsonOrThrow.js'
-export { getProviderWithFallbacks } from './getProviderWithFallbacks.js'
 export { getUrlFromProvider } from './getUrlFromProvider.js'
 export { promiseQueue } from './promiseQueue.js'
 export { promiseTimeout } from './promiseTimeout.js'

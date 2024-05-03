@@ -1,6 +1,5 @@
 import { NO_PARENT_CHAIN_ID, sharedChain } from './shared.js'
 import { type Chains } from '../types.js'
-import { TokenSymbol } from '#tokens/index.js'
 
 export const chains: Chains = {
   ethereum: {

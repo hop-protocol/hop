@@ -16,11 +16,9 @@ export enum ChainSlug {
   PolygonZk = 'polygonzk'
 }
 
-// Allows for consumption of the enum values as strings without needing `as ChainSlug`
-type ChainSlugString = typeof ChainSlug[keyof typeof ChainSlug]
 interface SharedChain {
   name: string
-  slug: ChainSlugString
+  slug: ChainSlug
   image: string
   nativeTokenSymbol: TokenSymbol
   primaryColor: string

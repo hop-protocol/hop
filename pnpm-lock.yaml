@@ -4917,8 +4917,8 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     dev: true
 
-  /@humanwhocodes/retry@0.2.3:
-    resolution: {integrity: sha512-X38nUbachlb01YMlvPFojKoiXq+LzZvuSce70KPMPdeM1Rj03k4dR7lDslhbqXn3Ang4EU3+EAmwEAsbrjHW3g==}
+  /@humanwhocodes/retry@0.2.4:
+    resolution: {integrity: sha512-Ttl/jHpxfS3st5sxwICYfk4pOH0WrLI1SpW283GgQL7sCWU7EHIOhX4b4fkIxr3tkfzwg8+FNojtzsIEE7Ecgg==}
     engines: {node: '>=18.18'}
     dev: true
 
@@ -8065,8 +8065,8 @@ packages:
       '@types/levelup': 5.1.5
     dev: true
 
-  /@types/superagent@8.1.6:
-    resolution: {integrity: sha512-yzBOv+6meEHSzV2NThYYOA6RtqvPr3Hbob9ZLp3i07SH27CrYVfm8CrF7ydTmidtelsFiKx2I4gZAiAOamGgvQ==}
+  /@types/superagent@8.1.7:
+    resolution: {integrity: sha512-NmIsd0Yj4DDhftfWvvAku482PZum4DBW7U51OvS8gvOkDDY0WT1jsVyDV3hK+vplrsYw8oDwi9QxOM7U68iwww==}
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
@@ -8076,7 +8076,7 @@ packages:
   /@types/supertest@2.0.15:
     resolution: {integrity: sha512-jUCZZ/TMcpGzoSaed9Gjr8HCf3HehExdibyw3OHHEL1als1KmyzcOZZH4MjbObI8TkWsEr7bc7gsW0WTDni+qQ==}
     dependencies:
-      '@types/superagent': 8.1.6
+      '@types/superagent': 8.1.7
     dev: true
 
   /@types/testing-library__jest-dom@5.14.9:
@@ -8879,7 +8879,7 @@ packages:
     dependencies:
       '@web3-onboard/common': 2.3.4
       bignumber.js: 9.1.2
-      bnc-sdk: 4.6.8
+      bnc-sdk: 4.6.9
       bowser: 2.11.0
       ethers: 5.5.3
       eventemitter3: 4.0.7
@@ -9665,8 +9665,8 @@ packages:
   /bn.js@5.2.1:
     resolution: {integrity: sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==}
 
-  /bnc-sdk@4.6.8:
-    resolution: {integrity: sha512-YkhIRyTnPH9nfahPtV134RbVWr5Yqc3+KjYRXOSulhNHDdg1nqiHPixe6GqjNvuhohJw2xGMnrn2C3ChXFQitw==}
+  /bnc-sdk@4.6.9:
+    resolution: {integrity: sha512-jenJNMtI1Mx5afbgv4u+eRmnbtAFZ7su6/ias9CYxUs7inZarl5dFTCddSwzXW4i9PoElqlDtIKQN4aeFXuKxg==}
     dependencies:
       crypto-es: 1.2.7
       nanoid: 3.3.7
@@ -9842,7 +9842,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001615
-      electron-to-chromium: 1.4.755
+      electron-to-chromium: 1.4.756
       node-releases: 2.0.14
       update-browserslist-db: 1.0.14(browserslist@4.23.0)
 
@@ -11140,8 +11140,8 @@ packages:
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  /electron-to-chromium@1.4.755:
-    resolution: {integrity: sha512-9nop+3jZxSHIxe1EzEUcjDXzK+3qOv3fY5w0sE88nIZUntbv1aXWmoxGWlklX5XSO4txCpLssWkUSh8RQPovBg==}
+  /electron-to-chromium@1.4.756:
+    resolution: {integrity: sha512-RJKZ9+vEBMeiPAvKNWyZjuYyUqMndcP1f335oHqn3BEQbs2NFtVrnK5+6Xg5wSM9TknNNpWghGDUCKGYF+xWXw==}
 
   /elliptic@6.5.4:
     resolution: {integrity: sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ==}
@@ -11849,7 +11849,7 @@ packages:
       '@eslint/js': 9.1.1
       '@humanwhocodes/config-array': 0.13.0
       '@humanwhocodes/module-importer': 1.0.1
-      '@humanwhocodes/retry': 0.2.3
+      '@humanwhocodes/retry': 0.2.4
       '@nodelib/fs.walk': 1.2.8
       ajv: 6.12.6
       chalk: 4.1.2

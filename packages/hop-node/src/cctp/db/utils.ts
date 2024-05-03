@@ -22,11 +22,11 @@ export function getDbPathForNameOrLocation (dbNameOrLocation: string): string {
 // TODO: Get these from more persistent config
 export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<Chain, number>>> = {
   [Network.Mainnet]: {
-    [Chain.Ethereum]: 19447854,
-    [Chain.Optimism]: 117499078,
-    [Chain.Arbitrum]: 190986712,
-    [Chain.Base]: 11903793,
-    [Chain.Polygon]: 54729294
+    [Chain.Ethereum]: 19786200, //19447854,
+    [Chain.Optimism]: 119550000, //117499078,
+    [Chain.Arbitrum]: 207240000, //190986712,
+    [Chain.Base]: 13956000, //11903793,
+    [Chain.Polygon]: 56513000, //54729294
   },
   [Network.Sepolia]: {
     [Chain.Ethereum]: 5498073,

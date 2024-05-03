@@ -1,6 +1,6 @@
 import L2Bridge from '#watchers/classes/L2Bridge.js'
 import contracts from '#contracts/index.js'
-import { OneDayMs } from '@hop-protocol/hop-node-core/constants'
+import { OneDayMs } from '@hop-protocol/hop-node-core'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile

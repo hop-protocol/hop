@@ -19,41 +19,56 @@ export {
   Slug,
   NetworkSlug,
   ChainId,
-  TokenSymbol,
   CanonicalToken,
   WrappedToken,
   HToken,
   eventTopics
 } from './constants/index.js'
+
+export * from './models/index.js'
+export * from './contracts/index.js'
+export * from './provider/index.js'
+
+export { type Bps, sdkConfig } from './config/index.js'
+export {
+  getChainSlugFromName,
+  getLpFeeBps,
+  getSubgraphChains,
+  getSubgraphUrl
+} from './utils/index.js'
+
 export {
   Chain,
-  TokenModel,
   Multicall,
-  GetMulticallBalanceOptions,
   PriceFeed,
   RetryProvider,
-  FallbackProvider,
+  RpcProvider,
+  TokenSymbol,
   chainIdToSlug,
   fetchJsonOrThrow,
-  getBlockNumberFromDate,
-  getChainSlugFromName,
-  getEtherscanApiKey,
-  getEtherscanApiUrl,
-  getLpFeeBps,
+  getChain,
+  getChains,
+  getChainNativeTokenSymbol,
+  getChainSlug,
+  getToken,
+  getTokens,
+  getTokenDecimals,
+  getNetwork,
+  getNetworks,
   getMinGasLimit,
   getMinGasPrice,
-  getProviderFromUrl,
-  getSubgraphChains,
-  getSubgraphUrl,
-  getTokenDecimals,
   getUrlFromProvider,
-  isValidUrl,
   promiseQueue,
   promiseTimeout,
   rateLimitRetry,
   serializeQueryParams,
-  shiftBNDecimals
+  shiftBNDecimals,
+  rpcProviders,
+  RpcProviderSlug
 } from '@hop-protocol/sdk-core'
+
+export { TokenModel } from '#models/index.js'
+export { getProviderFromUrl } from '#utils/index.js'
 
 if (typeof window !== 'undefined') {
   (window as any).Hop = Hop

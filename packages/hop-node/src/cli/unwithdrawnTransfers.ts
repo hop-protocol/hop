@@ -1,7 +1,7 @@
 import getTransferRootSet from '#theGraph/getTransferRootSet.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber } from 'ethers'
-import { Chain, OneHourSeconds } from '@hop-protocol/hop-node-core/constants'
+import { OneHourSeconds } from '@hop-protocol/hop-node-core'
 import { DateTime } from 'luxon'
 import {
   actionHandler,
@@ -9,9 +9,10 @@ import {
   root
 } from './shared/index.js'
 import { Bridge__factory } from '@hop-protocol/sdk/contracts'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { config as globalConfig } from '#config/index.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 interface TransferRootsToChain {
   rootHash: string
@@ -50,7 +51,7 @@ export async function main (source: any) {
 
   // Get contracts
   const contractAddresses = addresses[destinationChain]
-  const bridgeAddress = destinationChain === Chain.Ethereum ? contractAddresses.l1Bridge : contractAddresses.l2Bridge
+  const bridgeAddress = destinationChain === ChainSlug.Ethereum ? contractAddresses.l1Bridge : contractAddresses.l2Bridge
 
   // Get transfer roots to chain
   // NOTE: For most chains, we can look up the roots that have been set on the chain. For chains with a regenesis,
@@ -78,20 +79,20 @@ export async function main (source: any) {
 }
 
 async function getTransferRootsToChain (
-  destinationChain: Chain,
+  destinationChain: ChainSlug,
   token: string,
   startTimestamp: number,
   endTimestamp: number
 ): Promise<TransferRootsToChain[]> {
   const transferRootsToChain: TransferRootsToChain[] = []
   // We need to look up the roots that have been committed before the Optimism Regenesis.
-  if (destinationChain === Chain.Optimism) {
+  if (destinationChain === ChainSlug.Optimism) {
     const destinationChainId = chainSlugToId(destinationChain)
     const sourceChains: string[] = []
     for (const chain in globalConfig.addresses[token]) {
       if (
-        chain === Chain.Ethereum ||
-        chain === Chain.Optimism
+        chain === ChainSlug.Ethereum ||
+        chain === ChainSlug.Optimism
       ) continue
       sourceChains.push(chain)
     }

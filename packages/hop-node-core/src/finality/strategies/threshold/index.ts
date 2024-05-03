@@ -6,17 +6,17 @@ import { OptimismStrategy } from './OptimismStrategy.js'
 import { PolygonStrategy } from './PolygonStrategy.js'
 import { PolygonZkStrategy } from './PolygonZkStrategy.js'
 
-import { Chain } from '#constants/index.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 import type { Strategies } from '../IFinalityStrategy.js'
 
 export const ThresholdStrategiesMap: Strategies = {
-  [Chain.Ethereum]: EthereumStrategy,
-  [Chain.Polygon]: PolygonStrategy,
-  [Chain.Gnosis]: GnosisStrategy,
-  [Chain.Optimism]: OptimismStrategy,
-  [Chain.Base]: OptimismStrategy,
-  [Chain.Arbitrum]: ArbitrumStrategy,
-  [Chain.Nova]: ArbitrumStrategy,
-  [Chain.Linea]: LineaStrategy,
-  [Chain.PolygonZk]: PolygonZkStrategy
+  [ChainSlug.Ethereum]: EthereumStrategy,
+  [ChainSlug.Polygon]: PolygonStrategy,
+  [ChainSlug.Gnosis]: GnosisStrategy,
+  [ChainSlug.Optimism]: OptimismStrategy,
+  [ChainSlug.Base]: OptimismStrategy,
+  [ChainSlug.Arbitrum]: ArbitrumStrategy,
+  [ChainSlug.Nova]: ArbitrumStrategy,
+  [ChainSlug.Linea]: LineaStrategy,
+  [ChainSlug.PolygonZk]: PolygonZkStrategy
 }

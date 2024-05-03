@@ -1,7 +1,7 @@
 import makeRequest from './makeRequest.js'
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 type TransferCommitted = {
   blockNumber: string
@@ -33,7 +33,7 @@ type BondedTransfer = {
 export default async function getIncompleteSettlements (token: string, chain: string, destinationChain: string): Promise<any> {
   const destinationChainId: number = chainSlugToId(destinationChain)
 
-  const isDestinationOptimism = destinationChain === Chain.Optimism
+  const isDestinationOptimism = destinationChain === ChainSlug.Optimism
   if (isDestinationOptimism) {
     console.warn(`
 **********

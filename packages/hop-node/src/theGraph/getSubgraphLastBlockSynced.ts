@@ -1,4 +1,4 @@
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 export async function getSubgraphLastBlockSynced (chain: string) {
   const url = 'https://api.thegraph.com/index-node/graphql'
@@ -7,7 +7,7 @@ export async function getSubgraphLastBlockSynced (chain: string) {
     chain = 'xdai'
   }
   let subgraph = 'hop'
-  if (chain === Chain.Ethereum) {
+  if (chain === ChainSlug.Ethereum) {
     subgraph = `${subgraph}-mainnet`
   } else {
     subgraph = `${subgraph}-${chain}`

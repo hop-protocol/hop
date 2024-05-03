@@ -1,8 +1,6 @@
-import { chains as chainMetadata } from '@hop-protocol/sdk/metadata'
-import type { Chain } from '#constants/index.js'
+import { getChainNativeTokenSymbol } from '@hop-protocol/sdk'
 
-export function isNativeToken (chain: Chain, token: string) {
-  const nativeTokenSymbol = chainMetadata[chain]?.nativeTokenSymbol
-  const isNative = nativeTokenSymbol === token
-  return isNative
+export function isNativeToken (chainId: string, token: string): boolean {
+  const nativeTokenSymbol = getChainNativeTokenSymbol(chainId)
+  return nativeTokenSymbol === token
 }

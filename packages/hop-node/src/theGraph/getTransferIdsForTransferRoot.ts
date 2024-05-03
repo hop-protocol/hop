@@ -3,7 +3,7 @@ import makeRequest from './makeRequest.js'
 import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
 import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
 import { normalizeEntity } from './shared.js'
-import type { AssetSymbol, ChainSlug } from '@hop-protocol/sdk/config'
+import type { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 
 export default async function getTransferIdsForTransferRoot (
   chain: string,
@@ -87,7 +87,7 @@ export default async function getTransferIdsForTransferRoot (
     // get the transfer sent events between the two commit transfer events
     startBlockNumber = previousTransferCommitted.blockNumber
   } else {
-    startBlockNumber = (addresses?.bridges?.[token as AssetSymbol]?.[chain as ChainSlug] as any)?.bridgeDeployedBlockNumber ?? 0
+    startBlockNumber = (addresses?.bridges?.[token as TokenSymbol]?.[chain as ChainSlug] as any)?.bridgeDeployedBlockNumber ?? 0
   }
 
   const endBlockNumber = transferCommitted.blockNumber

@@ -1,13 +1,10 @@
 import assert from 'node:assert'
 import { AbstractMessageService, type IMessageService } from '../../Services/AbstractMessageService.js'
-import { Chain } from '#constants/index.js'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import { GnosisAddresses, type GnosisCanonicalAddresses } from '../../Chains/gnosis/GnosisAddresses.js'
-import { L1_xDaiAMB__factory, L2_xDaiAMB__factory } from '@hop-protocol/sdk/contracts'
 import { utils } from 'ethers'
-import type { L1_xDaiAMB } from '@hop-protocol/sdk/contracts'
-import type { L2_xDaiAMB } from '@hop-protocol/sdk/contracts'
-import type { NetworkSlug } from '@hop-protocol/sdk/networks'
+import type { L1_xDaiAMB, L2_xDaiAMB, NetworkSlug } from '@hop-protocol/sdk'
+import { ChainSlug, L1_xDaiAMB__factory, L2_xDaiAMB__factory } from '@hop-protocol/sdk'
 import type { Overrides, providers } from 'ethers'
 
 type Message = string
@@ -20,11 +17,11 @@ export class GnosisMessageService extends AbstractMessageService<Message, Messag
   readonly #l1Amb: L1_xDaiAMB
   readonly #l2Amb: L2_xDaiAMB
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     // Get chain contracts
-    const gnosisAddresses: GnosisCanonicalAddresses | undefined = GnosisAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[Chain.Gnosis]
+    const gnosisAddresses: GnosisCanonicalAddresses | undefined = GnosisAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[ChainSlug.Gnosis]
     if (!gnosisAddresses) {
       throw new Error(`canonical addresses not found for ${this.chainSlug}`)
     }

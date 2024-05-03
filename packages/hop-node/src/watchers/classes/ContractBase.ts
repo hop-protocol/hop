@@ -1,27 +1,26 @@
 import { BigNumber } from 'ethers'
 import {
-  Chain,
   MinGnosisGasPrice,
   MinPolygonGasPrice,
-} from '@hop-protocol/hop-node-core/constants'
+} from '@hop-protocol/hop-node-core'
 import { EventEmitter } from 'node:events'
-import { FinalityService } from '@hop-protocol/hop-node-core/finality'
+import { FinalityService } from '@hop-protocol/hop-node-core'
 import {
   SyncType
 } from '#constants/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
-import { getBumpedGasPrice } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { getBumpedGasPrice } from '@hop-protocol/hop-node-core'
 import { getNetworkCustomSyncType, config as globalConfig } from '#config/index.js'
-import { getProviderChainSlug } from '@hop-protocol/hop-node-core/utils'
+import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import type { Contract, providers } from 'ethers'
 import type { Event } from '@ethersproject/contracts'
-import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
   public chainId: number
-  public chainSlug: Chain
+  public chainSlug: ChainSlug
   private readonly finalityService: FinalityService
 
   constructor (contract: Contract) {
@@ -30,6 +29,7 @@ export default class ContractBase extends EventEmitter {
     if (!this.contract.provider) {
       throw new Error('no provider found for contract')
     }
+
     const chainSlug = getProviderChainSlug(contract.provider)
     if (!chainSlug) {
       throw new Error('chain slug not found for contract provider')
@@ -65,8 +65,8 @@ export default class ContractBase extends EventEmitter {
     return _chainId
   }
 
-  chainIdToSlug (chainId: number): Chain {
-    return chainIdToSlug(chainId)
+  chainIdToSlug (chainId: number): ChainSlug {
+    return getChainSlug(chainId.toString())
   }
 
   chainSlugToId (chainSlug: string): number {
@@ -179,14 +179,14 @@ export default class ContractBase extends EventEmitter {
     if (globalConfig.isMainnet) {
       // Not all Polygon nodes follow recommended 30 Gwei gasPrice
       // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-      if (this.chainSlug === Chain.Polygon) {
+      if (this.chainSlug === ChainSlug.Polygon) {
         txOptions.gasPrice = await this.getBumpedGasPrice(1)
 
         const gasPriceBn = BigNumber.from(txOptions.gasPrice)
         if (gasPriceBn.lt(MinPolygonGasPrice)) {
           txOptions.gasPrice = MinPolygonGasPrice
         }
-      } else if (this.chainSlug === Chain.Gnosis) {
+      } else if (this.chainSlug === ChainSlug.Gnosis) {
         // increasing more gas multiplier for gnosis
         // to avoid the error "code:-32010, message: FeeTooLowToCompete"
         const multiplier = 3
@@ -198,12 +198,12 @@ export default class ContractBase extends EventEmitter {
         }
       }
     } else {
-      if (this.chainSlug === Chain.Gnosis) {
+      if (this.chainSlug === ChainSlug.Gnosis) {
         txOptions.gasPrice = 50_000_000_000
         txOptions.gasLimit = 10_000_000
-      } else if (this.chainSlug === Chain.Polygon) {
+      } else if (this.chainSlug === ChainSlug.Polygon) {
         txOptions.gasLimit = 10_000_000
-      } else if (this.chainSlug === Chain.Linea) {
+      } else if (this.chainSlug === ChainSlug.Linea) {
         txOptions.gasLimit = 10_000_000
       }
     }

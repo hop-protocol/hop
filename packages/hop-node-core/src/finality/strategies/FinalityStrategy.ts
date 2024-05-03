@@ -1,17 +1,22 @@
-import { FinalityState } from '@hop-protocol/sdk/config'
 import { getChainBridge } from '#chains/getChainBridge.js'
-import type { Chain } from '#constants/index.js'
 import type { FinalityBlockTag, IChainBridge, } from '#chains/IChainBridge.js'
 import type { IFinalityStrategy } from './IFinalityStrategy.js'
 import type { providers } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 // Default values to be overridden by child classes if desired
 
+enum FinalityState {
+  Latest = 'latest',
+  Safe = 'safe',
+  Finalized = 'finalized'
+}
+
 export abstract class FinalityStrategy implements IFinalityStrategy {
   protected readonly provider: providers.Provider
-  protected readonly chainSlug: Chain
+  protected readonly chainSlug: ChainSlug
 
-  constructor (provider: providers.Provider, chainSlug: Chain) {
+  constructor (provider: providers.Provider, chainSlug: ChainSlug) {
     this.provider = provider
     this.chainSlug = chainSlug
   }

@@ -1,6 +1,5 @@
 import { BigNumber } from 'ethers'
 import {
-  Chain,
   InitialTxGasPriceMultiplier,
   MaxGasPriceMultiplier,
   MaxPriorityFeeConfidenceLevel,
@@ -13,26 +12,17 @@ import {
 } from '#types/error.js'
 import { EventEmitter } from 'node:events'
 import { Logger } from '#logger/index.js'
-import { Notifier } from '#notifier/index.js'
 import { bigNumberMax } from '#utils/bigNumberMax.js'
 import { bigNumberMin } from '#utils/bigNumberMin.js'
-import {
-  blocknativeApiKey,
-  gasBoostErrorSlackChannel,
-  gasBoostWarnSlackChannel,
-  config as globalConfig,
-  hostname
-} from '#config/index.js'
-import { chainSlugToId } from '#utils/chainSlugToId.js'
+import { CoreEnvironment } from '#config/index.js'
 import { utils } from 'ethers'
 import { getBumpedBN } from '#utils/getBumpedBN.js'
 import { getBumpedGasPrice } from '#utils/getBumpedGasPrice.js'
-import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
-import { getRpcUrl } from '#utils/getRpcUrl.js'
 import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Signer, providers } from 'ethers'
 import type { Store } from './Store.js'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -122,7 +112,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   signer: Signer
   store!: Store
   logger: Logger
-  notifier: Notifier
   chainSlug: string
   id: string
   createdAt: number
@@ -151,7 +140,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   chainId: number // type 0 and 2 tx required property
   confirmations: number = 0 // type 0 and 2 tx required property
 
-  constructor (tx: providers.TransactionRequest, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
+  constructor (tx: providers.TransactionRequest, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
     super()
     this.signer = signer
     if (store != null) {
@@ -163,23 +152,16 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.id = id ?? this.generateId()
     this.setOptions(options)
 
-    const chainSlug = getProviderChainSlug(this.signer.provider)
-    if (!chainSlug) {
-      throw new Error('chain slug not found for contract provider')
-    }
-    this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)
+    this.chainId = Number(chainId)
+    this.chainSlug = getChainSlug(this.chainId.toString())
     const tag = 'GasBoostTransaction'
-    const prefix = `${this.chainSlug} id: ${this.id}`
+    const prefix = `id: ${this.id}`
     this.logId = prefix
     this.logger = new Logger({
       tag,
       prefix
     })
     this.logger.log('starting log')
-    this.notifier = new Notifier(
-      `GasBoost, label: ${prefix}, host: ${hostname}`
-    )
   }
 
   private generateId (): string {
@@ -313,12 +295,12 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  static async fromId (id: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static async fromId (id: string, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const item = await store.getItem(id)
-    return GasBoostTransaction.unmarshal(item, signer, store, options)
+    return GasBoostTransaction.unmarshal(item, chainId, signer, store, options)
   }
 
-  static unmarshal (item: MarshalledTx, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static unmarshal (item: MarshalledTx, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
       type: item.type,
       from: item.from,
@@ -331,7 +313,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
       maxPriorityFeePerGas: item.maxPriorityFeePerGas,
       gasLimit: item.gasLimit
     }
-    const gTx = new GasBoostTransaction(tx, signer, store)
+    const gTx = new GasBoostTransaction(tx, chainId, signer, store)
     gTx.id = item.id
     gTx.createdAt = item.createdAt
     gTx.txHash = item.txHash
@@ -394,7 +376,9 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   // TODO: remove this once orus's supports maxFeePerGas & ethers doesn't have a default maxPriorityFeePerGas
   // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
   async getOruMaxFeePerGas (chainSlug: string): Promise<BigNumber> {
-    const res = await fetch(getRpcUrl(chainSlug), {
+    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+    const rpcUrl = coreEnvironmentVariables.rpcUrls?.[chainSlug as ChainSlug]
+    const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -411,9 +395,18 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const isEthereumMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum && globalConfig.isMainnet
+    // Only use blocknative for mainnet
+    const isChainIdMainnet = this.chainId === 1
+    const isEthereumMainnet = (
+      typeof this._is1559Supported === 'boolean' &&
+      this._is1559Supported &&
+      this.chainSlug === ChainSlug.Ethereum &&
+      this.chainId === 1 &&
+      isChainIdMainnet
+    )
     if (isEthereumMainnet) {
       try {
+        const blocknativeApiKey = CoreEnvironment.getInstance().getEnvironment().blocknativeApiKey
         const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
         const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
         const res = await fetch(url, {
@@ -435,11 +428,11 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     // we support does not hardcode 1.5 gwei as the default maxPriorityFeePerGas
     // https://github.com/ethers-io/ethers.js/blob/v5.7.0/packages/abstract-provider/src.ts/index.ts#L252
     if (
-      this.chainSlug === Chain.Optimism ||
-      this.chainSlug === Chain.Base ||
-      this.chainSlug === Chain.Arbitrum ||
-      this.chainSlug === Chain.Nova ||
-      this.chainSlug === Chain.Linea
+      this.chainSlug === ChainSlug.Optimism ||
+      this.chainSlug === ChainSlug.Base ||
+      this.chainSlug === ChainSlug.Arbitrum ||
+      this.chainSlug === ChainSlug.Nova ||
+      this.chainSlug === ChainSlug.Linea
     ) {
       try {
         const maxFeePerGas = await this.getOruMaxFeePerGas(this.chainSlug)
@@ -642,7 +635,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.clearInflightTxs()
     this.emit(State.Error)
     const errMsg = 'max rebroadcast index reached. cannot rebroadcast.'
-    this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
     this.logger.error(errMsg)
   }
 
@@ -741,7 +733,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
         const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice.toString()}, maxPriorityFeePerGas: ${priorityFeePerGasCap.toString()}). cannot boost`
-        this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
         this.logger.warn(warnMsg)
         this.emit(State.MaxGasPriceReached, gasFeeData.gasPrice, this.boostIndex)
         this.maxGasPriceReached = true
@@ -892,14 +883,12 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     const formattedEthBalance = utils.formatUnits(ethBalance, 18)
     if (ethBalance.lt(gasCost)) {
       const errMsg = `insufficient ETH funds to cover gas cost. Need ${formattedGasCost}, have ${formattedEthBalance}`
-      this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
       this.logger.error(errMsg)
       throw new Error(errMsg)
     }
     if (ethBalance.lt(warnEthBalance)) {
       const warnMsg = `ETH balance is running low. Have ${formattedEthBalance}`
       this.logger.warn(warnMsg)
-      this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
     }
   }
 

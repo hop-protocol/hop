@@ -1,7 +1,6 @@
 import os from 'node:os'
 import path from 'node:path'
-import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, NetworkSlug, getChainSlug } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 import { mkdirp } from 'mkdirp'
 
@@ -20,23 +19,23 @@ export function getDbPathForNameOrLocation (dbNameOrLocation: string): string {
 
 
 // TODO: Get these from more persistent config
-export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<Chain, number>>> = {
-  [Network.Mainnet]: {
-    [Chain.Ethereum]: 19447854,
-    [Chain.Optimism]: 117499078,
-    [Chain.Arbitrum]: 190986712,
-    [Chain.Base]: 11903793,
-    [Chain.Polygon]: 54729294
+export const DEFAULT_START_BLOCK_NUMBER: Record<string, Partial<Record<ChainSlug, number>>> = {
+  [NetworkSlug.Mainnet]: {
+    [ChainSlug.Ethereum]: 19786200, //19447854,
+    [ChainSlug.Optimism]: 119550000, //117499078,
+    [ChainSlug.Arbitrum]: 207240000, //190986712,
+    [ChainSlug.Base]: 13956000, //11903793,
+    [ChainSlug.Polygon]: 56513000, //54729294
   },
-  [Network.Sepolia]: {
-    [Chain.Ethereum]: 5498073,
-    [Chain.Optimism]: 9397181,
-    [Chain.Arbitrum]: 23788247,
-    [Chain.Base]: 7414306
+  [NetworkSlug.Sepolia]: {
+    [ChainSlug.Ethereum]: 5498073,
+    [ChainSlug.Optimism]: 9397181,
+    [ChainSlug.Arbitrum]: 23788247,
+    [ChainSlug.Base]: 7414306
   }
 }
 
 export function getDefaultStartBlockNumber (chainId: number): number {
-  const chainSlug = chainIdToSlug(chainId)
+  const chainSlug = getChainSlug(chainId.toString())
   return (DEFAULT_START_BLOCK_NUMBER as any)[globalConfig.network][chainSlug]!
 }

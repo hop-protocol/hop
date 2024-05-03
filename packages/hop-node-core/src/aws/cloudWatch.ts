@@ -5,7 +5,7 @@ import {
   FilterLogEventsCommand
 } from '@aws-sdk/client-cloudwatch-logs'
 import { Logger } from '#logger/index.js'
-import { awsRegion } from '#config/index.js'
+import { CoreEnvironment } from '#config/index.js'
 
 const logger = new Logger('CloudWatch')
 
@@ -18,7 +18,8 @@ type Config = {
 }
 
 export async function getLogGroups () {
-  const cloudwatch = new CloudWatchLogsClient({ region: awsRegion })
+  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+  const cloudwatch = new CloudWatchLogsClient({ region: coreEnvironmentVariables.awsRegion })
   const params = {
     limit: 20
   }
@@ -37,7 +38,8 @@ export async function getLogGroups () {
 
 export async function getLogStreams (config: Partial<Config>) {
   const { logGroup } = config
-  const cloudwatch = new CloudWatchLogsClient({ region: awsRegion })
+  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+  const cloudwatch = new CloudWatchLogsClient({ region: coreEnvironmentVariables.awsRegion })
   const params = {
     logGroupName: logGroup,
     descending: true,
@@ -60,7 +62,8 @@ export async function getLogStreams (config: Partial<Config>) {
 
 export async function getLogs (config: Partial<Config>, cb: any) {
   let { logGroup, logStream, filterPattern, startTime, endTime } = config
-  const cloudwatch = new CloudWatchLogsClient({ region: awsRegion })
+  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+  const cloudwatch = new CloudWatchLogsClient({ region: coreEnvironmentVariables.awsRegion })
 
   if (!logStream) {
     logStream = await getLatestLogStream(logGroup!, cloudwatch)

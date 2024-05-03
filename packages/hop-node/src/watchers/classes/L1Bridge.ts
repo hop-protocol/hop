@@ -1,11 +1,9 @@
 import Bridge, { type CanonicalTokenConvertOptions, type EventCb, type EventsBatchOptions } from './Bridge.js'
 import Token from './Token.js'
-import wallets from '@hop-protocol/hop-node-core/wallets'
+import { wallets } from '@hop-protocol/hop-node-core'
 import { BigNumber, constants } from 'ethers'
-import { Chain, Network, Token as TokenEnum } from '@hop-protocol/hop-node-core/constants'
 import { GasCostTransactionType, RelayableChains } from '#constants/index.js'
-import { Hop } from '@hop-protocol/sdk'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, NetworkSlug, Hop, TokenSymbol } from '@hop-protocol/sdk'
 import { ERC20__factory,  L1_ERC20_Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { config as globalConfig } from '#config/index.js'
 import type { ERC20 } from '@hop-protocol/sdk/contracts'
@@ -17,8 +15,9 @@ import type {
   TransferSentToL2Event
 } from '@hop-protocol/sdk/contracts/L1_Bridge'
 import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
-import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
 import type { providers } from 'ethers'
+import { getChainSlug } from '@hop-protocol/sdk'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
@@ -34,7 +33,7 @@ export default class L1Bridge extends Bridge {
   static fromAddress (address: string): L1Bridge {
     const contract = L1_ERC20_Bridge__factory.connect(
       address,
-      wallets.get(Chain.Ethereum)
+      wallets.get(ChainSlug.Ethereum)
     )
 
     return new L1Bridge(contract as unknown as L1BridgeContract)
@@ -150,7 +149,7 @@ export default class L1Bridge extends Bridge {
 
   getTransferRootCommittedAt = async (destChainId: number, transferRootId: string): Promise<number> => {
     let committedAt
-    if (this.tokenSymbol === TokenEnum.USDC && globalConfig.network === Network.Mainnet) {
+    if (this.tokenSymbol === TokenSymbol.USDC && globalConfig.network === NetworkSlug.Mainnet) {
       committedAt = await (this.l1BridgeContract as L1BridgeContract).transferRootCommittedAt(transferRootId)
     } else {
       committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)
@@ -181,8 +180,8 @@ export default class L1Bridge extends Bridge {
 
     // Hardcode a gasLimit for chains that have variable gas costs in their messengers
     if (
-      chainId === this.chainSlugToId(Chain.Optimism) ||
-      chainId === this.chainSlugToId(Chain.Base)
+      chainId === this.chainSlugToId(ChainSlug.Optimism) ||
+      chainId === this.chainSlugToId(ChainSlug.Base)
     ) {
       txOverrides.gasLimit = 1_000_000
     }
@@ -240,7 +239,7 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = chainIdToSlug(destinationChainId)
+    const destinationChain = getChainSlug(destinationChainId.toString())
     if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
@@ -257,7 +256,7 @@ export default class L1Bridge extends Bridge {
 
     const txOverrides: TxOverrides = await this.txOverrides()
     if (
-      this.chainSlug === Chain.Ethereum &&
+      this.chainSlug === ChainSlug.Ethereum &&
       this.tokenSymbol === 'ETH'
     ) {
       txOverrides.value = amount
@@ -291,7 +290,7 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = chainIdToSlug(destinationChainId)
+    const destinationChain = getChainSlug(destinationChainId.toString())
     if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
@@ -306,7 +305,7 @@ export default class L1Bridge extends Bridge {
     const relayer = await this.getBonderAddress()
     const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = bridge.defaultDeadlineSeconds
-    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
+    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.getSlugFromChainId(destinationChainId))
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
@@ -314,7 +313,7 @@ export default class L1Bridge extends Bridge {
 
     const txOverrides: TxOverrides = await this.txOverrides()
     if (
-      this.chainSlug === Chain.Ethereum &&
+      this.chainSlug === ChainSlug.Ethereum &&
       this.tokenSymbol === 'ETH'
     ) {
       txOverrides.value = amount

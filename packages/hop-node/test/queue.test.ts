@@ -1,5 +1,5 @@
 import { Mutex } from 'async-mutex'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core'
 
 const DELAY_SECONDS = 1
 const ITERATIONS = 5

@@ -4,21 +4,23 @@ import {
   CrossChainMessenger,
   MessageStatus
 } from '@eth-optimism/sdk'
-import { chainSlugToId } from '#utils/chainSlugToId.js'
-import { config as globalConfig } from '#config/index.js'
-import { networkSlugToId } from '#utils/networkSlugToId.js'
 import type { providers } from 'ethers'
+import { CoreEnvironment } from '#config/index.js'
+import { getChain } from '@hop-protocol/sdk'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 export class OptimismMessageService extends AbstractMessageService<CrossChainMessage, MessageStatus> implements IMessageService {
   readonly #csm: CrossChainMessenger
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
+    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+    const l2Chain = getChain(coreEnvironmentVariables.envNetwork, chainSlug)
     this.#csm = new CrossChainMessenger({
       bedrock: true,
-      l1ChainId: networkSlugToId(globalConfig.network),
-      l2ChainId: chainSlugToId(chainSlug),
+      l1ChainId: Number(l2Chain.parentChainId),
+      l2ChainId: l2Chain.chainId,
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet
     })

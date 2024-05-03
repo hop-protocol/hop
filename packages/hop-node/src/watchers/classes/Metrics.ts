@@ -1,6 +1,6 @@
 import { config as globalConfig } from '#config/index.js'
-import { hostname } from '@hop-protocol/hop-node-core/config'
-import { metrics } from '@hop-protocol/hop-node-core/metrics'
+import { hostname } from '#config/index.js'
+import { metrics } from '#metrics/index.js'
 
 class Metrics {
   metrics: any = metrics

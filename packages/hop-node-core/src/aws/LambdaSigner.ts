@@ -1,7 +1,7 @@
 import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { TextDecoder } from 'node:util'
-import { awsAccessKeyId, awsSecretAccessKey } from '#config/index.js'
+import { CoreEnvironment } from '#config/index.js'
 import { utils } from 'ethers'
 import type { providers } from 'ethers'
 
@@ -22,11 +22,15 @@ export class LambdaSigner extends AwsSigner {
 
   constructor (config: LambdaSignerConfig, provider?: providers.Provider) {
     super(config.keyId, provider)
+    const CoreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     let credentials
-    if (awsAccessKeyId && awsSecretAccessKey) {
+    if (
+      CoreEnvironmentVariables.awsAccessKeyId &&
+      CoreEnvironmentVariables.awsSecretAccessKey
+    ) {
       credentials = {
-        accessKeyId: awsAccessKeyId,
-        secretAccessKey: awsSecretAccessKey
+        accessKeyId: CoreEnvironmentVariables.awsAccessKeyId,
+        secretAccessKey: CoreEnvironmentVariables.awsSecretAccessKey
       }
     }
     if (!config.lambdaFunctionName) {

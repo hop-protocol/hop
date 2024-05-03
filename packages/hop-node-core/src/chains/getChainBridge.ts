@@ -1,10 +1,10 @@
 import { createChainBridgeInstance } from './Factories/ChainBridgeFactory.js'
-import type { Chain } from '#constants/index.js'
 import type { IChainBridge } from './IChainBridge.js'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 const chainBridgeInstances: Record<string, IChainBridge> = {}
 
-export function getChainBridge (chainSlug: Chain): IChainBridge {
+export function getChainBridge (chainSlug: ChainSlug): IChainBridge {
   const instance = chainBridgeInstances?.[chainSlug]
   if (instance) {
     return instance

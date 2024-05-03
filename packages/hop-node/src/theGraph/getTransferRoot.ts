@@ -1,7 +1,7 @@
 import getTransferIdsForTransferRoot from './getTransferIdsForTransferRoot.js'
 import makeRequest from './makeRequest.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { chainIdToSlug, normalizeEntity } from './shared.js'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import { normalizeEntity } from './shared.js'
 
 async function queryTransferRoot (chain: string, token: string, transferRootHash: string) {
   const query = `
@@ -108,11 +108,11 @@ export default async function getTransferRoot (chain: string, token: string, tra
   if (!transferRoot) {
     return transferRoot
   }
-  const destinationChain = chainIdToSlug[transferRoot.destinationChainId]
+  const destinationChain = getChainSlug(transferRoot.destinationChainId.toString())
 
   const [rootSet, rootConfirmed, transferIds] = await Promise.all([
     queryRootSet(destinationChain, token, transferRootHash),
-    queryRootConfirmed(Chain.Ethereum, token, transferRootHash),
+    queryRootConfirmed(ChainSlug.Ethereum, token, transferRootHash),
     getTransferIdsForTransferRoot(chain, token, transferRootHash)
   ])
 

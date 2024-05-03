@@ -1,5 +1,5 @@
 import { BigNumber, utils } from 'ethers'
-import { CoingeckoApiKey } from '@hop-protocol/hop-node-core/config'
+import { CoingeckoApiKey } from '#config/index.js'
 import { actionHandler, parseString, root } from '../shared/index.js'
 import {
   coingeckoCoinIds,
@@ -9,9 +9,9 @@ import {
   tokenDataForYear,
   tokenDecimals
 } from '../metrics/sharedMetrics.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
-import { nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { ChainSlug, NetworkSlug, getChainNativeTokenSymbol } from '@hop-protocol/sdk'
+import { config as globalConfig } from '#config/index.js'
 
 root
   .command('bonder-tx-cost')
@@ -70,7 +70,7 @@ async function getUserTransactionsForDate (chain: string, startBlockNumber: numb
     params: [params]
   }
 
-  const res = await fetch(getRpcUrl(chain), {
+  const res = await fetch(globalConfig.networks[chain].rpcUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -100,9 +100,9 @@ async function getUserTransactionsForDate (chain: string, startBlockNumber: numb
 }
 
 async function getGasCost (chain: string, txHash: string): Promise<number> {
-  const receipt = await getRpcProvider(chain).getTransactionReceipt(txHash)
-  const block = await getRpcProvider(chain).getBlock(receipt.blockNumber)
-  const nativeToken = nativeChainTokens[chain]
+  const receipt = await getRpcProvider(chain as ChainSlug).getTransactionReceipt(txHash)
+  const block = await getRpcProvider(chain as ChainSlug).getBlock(receipt.blockNumber)
+  const nativeToken = getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain as ChainSlug)
 
   // Get bond gas data
   // Pre-bedrock Optimism had a fixed gasPrice of 0.001 Gwei
@@ -122,7 +122,8 @@ async function getL1GasCost (chain: string, txHash: string): Promise<BigNumber> 
     return BigNumber.from(0)
   }
 
-  const res: Response = await fetch(getRpcUrl(chain), {
+  
+  const res: Response = await fetch(globalConfig.networks[chain].rpcUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

@@ -2860,7 +2860,7 @@ export class HopBridge extends Base {
       return amountIns.map((amount: BigNumberish) => BigNumber.from(amount))
     }
 
-    const multicall = new Multicall({ network: this.network })
+    const multicall = new Multicall({ network: this.network, chainProviders: this.chainProviders })
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
     const options = amountIns.map((amountIn: any, index: number) => {

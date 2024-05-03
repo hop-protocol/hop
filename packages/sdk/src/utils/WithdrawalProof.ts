@@ -1,5 +1,5 @@
 import { MerkleTree as MerkleTreeJS } from 'merkletreejs'
-import { chainIdToSlug, getTokenDecimals } from '@hop-protocol/sdk-core'
+import { getSlugFromChainId, getTokenDecimals } from '@hop-protocol/sdk-core'
 import { getSubgraphChains, getSubgraphUrl } from '#utils/index.js'
 import { utils } from 'ethers'
 import buffer from 'buffer'
@@ -249,7 +249,7 @@ export class WithdrawalProof {
 
     if (transfer) {
       const { transferId, destinationChainId, token } = transfer
-      const destinationChain = chainIdToSlug(destinationChainId)
+      const destinationChain = getSlugFromChainId(destinationChainId)
       const [withdrewEvent, bondedEvent] = await Promise.all([
         this.queryWithdrew(transferId, destinationChain),
         this.queryBondWithdrawal(transferId, destinationChain)
@@ -695,7 +695,7 @@ export class WithdrawalProof {
     if (!transferRoot) {
       return transferRoot
     }
-    const destinationChain = chainIdToSlug(transferRoot.destinationChainId)
+    const destinationChain = getSlugFromChainId(transferRoot.destinationChainId)
 
     const [rootSet, transferIds] = await Promise.all([
       this.queryRootSet(destinationChain, token, transferRootHash),
@@ -781,12 +781,12 @@ export class WithdrawalProof {
 
     if (x.sourceChainId) {
       x.sourceChainId = Number(x.sourceChainId)
-      x.sourceChain = chainIdToSlug(x.sourceChainId)
+      x.sourceChain = getSlugFromChainId(x.sourceChainId)
     }
 
     if (x.destinationChainId) {
       x.destinationChainId = Number(x.destinationChainId)
-      x.destinationChain = chainIdToSlug(x.destinationChainId)
+      x.destinationChain = getSlugFromChainId(x.destinationChainId)
     }
 
     x.blockNumber = Number(x.blockNumber)

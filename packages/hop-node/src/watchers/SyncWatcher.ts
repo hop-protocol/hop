@@ -840,7 +840,7 @@ class SyncWatcher extends BaseWatcher {
       const sourceChainId = await this.bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
 
-      const sourceChainSlug = this.chainIdToSlug(sourceChainId)
+      const sourceChainSlug = this.getSlugFromChainId(sourceChainId)
       const shouldBondTransferRoot = BondTransferRootChains.includes(sourceChainSlug)
 
       logger.debug('handling TransfersCommitted event', JSON.stringify({
@@ -1680,7 +1680,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async #getIsRelayableFee (relayerFee: BigNumber, destinationChainId: number): Promise<boolean> {
-    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    const destinationChainSlug = this.getSlugFromChainId(destinationChainId)
     let expectedFee: BigNumber = BigNumber.from(0)
     try {
       expectedFee = await this.hopSdk.getRelayerFee(destinationChainSlug, this.tokenSymbol)
@@ -1850,7 +1850,7 @@ class SyncWatcher extends BaseWatcher {
   hasChainIdBeenDeprecated (chainId: number): boolean {
     // If a chainId has been deprecated, the chainId will not return a chain slug
     try {
-      this.chainIdToSlug(chainId)
+      this.getSlugFromChainId(chainId)
       return false
     } catch {
       return true

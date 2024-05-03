@@ -1,6 +1,6 @@
 import { ChainSlug } from '../types.js'
 import { getChainSlug } from '../index.js'
 
-export function chainIdToSlug(chainId: string): ChainSlug {
+export function getSlugFromChainId(chainId: string): ChainSlug {
   return getChainSlug(chainId)
 }

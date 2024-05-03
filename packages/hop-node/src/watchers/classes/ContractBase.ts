@@ -65,7 +65,7 @@ export default class ContractBase extends EventEmitter {
     return _chainId
   }
 
-  chainIdToSlug (chainId: number): ChainSlug {
+  getSlugFromChainId (chainId: number): ChainSlug {
     return getChainSlug(chainId.toString())
   }
 

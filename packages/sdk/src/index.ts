@@ -44,7 +44,7 @@ export {
   RetryProvider,
   RpcProvider,
   TokenSymbol,
-  chainIdToSlug,
+  getSlugFromChainId,
   fetchJsonOrThrow,
   getChain,
   getChains,

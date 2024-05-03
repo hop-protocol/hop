@@ -61,10 +61,8 @@ export enum NetworkSlug {
   Sepolia = 'sepolia'
 }
 
-// Allows for consumption of the enum values as strings without needing `as NetworkSlug`
-type NetworkSlugString = typeof NetworkSlug[keyof typeof NetworkSlug]
 export type Network = {
-  slug: NetworkSlugString
+  slug: NetworkSlug
   isMainnet: boolean
   chains: Chains
 }

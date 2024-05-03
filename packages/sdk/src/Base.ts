@@ -237,7 +237,12 @@ export class Base {
       this.chainProviders = chainProviders
     }
 
-    this.chains = getChains(network)
+    for (const chain of getChains(network)) {
+      if (!this.chains) {
+        this.chains ={}
+      }
+      this.chains[chain.slug] = chain
+    }
     this.addresses = sdkConfig[network].addresses
     this.bonders = sdkConfig[network].bonders
 

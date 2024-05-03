@@ -18,7 +18,7 @@ const BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS = 250
 for (const chain of getChains(NetworkSlug.Mainnet)) {
   const blockTimeMs = chain.averageBlockTimeMs
   if (blockTimeMs !== BLOCK_TIME_FOR_SINGLE_TX_BLOCKS_MS) {
-    AvgBlockTimeSeconds[chain.slug as ChainSlug] = blockTimeMs / 1000
+    AvgBlockTimeSeconds[chain.slug] = blockTimeMs / 1000
   }
   if (chain.isManualRelayOnL2) {
     relayableChainsSet.add(chain.slug)

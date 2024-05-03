@@ -12,11 +12,11 @@ export function getAttestationUrl (messageHash: string): string {
 // TODO: Use block numbers, not arbitrary time
 export const FinalityTimeForChainIdMs: Record<string, Partial<Record<Chain, number>>> = {
   [Network.Mainnet]: {
-    [Chain.Ethereum]: 20 * 60 * 1000,
-    [Chain.Optimism]: 20 * 60 * 1000,
-    [Chain.Arbitrum]: 20 * 60 * 1000,
-    [Chain.Base]: 20 * 60 * 1000,
-    [Chain.Polygon]: 20 * 60 * 1000,
+    [Chain.Ethereum]: 30 * 60 * 1000,
+    [Chain.Optimism]: 30 * 60 * 1000,
+    [Chain.Arbitrum]: 40 * 60 * 1000,
+    [Chain.Base]: 30 * 60 * 1000,
+    [Chain.Polygon]: 40 * 60 * 1000,
   },
   [Network.Sepolia]: {
     [Chain.Ethereum]: 2 * 60 * 1000,

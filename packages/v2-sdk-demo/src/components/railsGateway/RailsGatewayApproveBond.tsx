@@ -19,41 +19,23 @@ type Props = {
   requestWallet: any
 }
 
-export function RailsGatewayBond (props: Props) {
-  const cacheKey = 'railsGatewayBond'
+export function RailsGatewayApproveBond (props: Props) {
+  const cacheKey = 'railsGatewayApproveBond'
   const { signer, sdk, requestWallet } = props
   const styles = useStyles()
   const [copied, setCopied] = useState(false)
-  const [toChainId, setFromChainId] = useState(() => {
+  const [fromChainId, setFromChainId] = useState(() => {
     try {
-      const cached = localStorage.getItem(`${cacheKey}:toChainId`)
+      const cached = localStorage.getItem(`${cacheKey}:fromChainId`)
       if (cached) {
         return cached
       }
     } catch (err: any) {}
-    return defaultChainIds.to
+    return defaultChainIds.from
   })
   const [pathId, setPathId] = useState(() => {
     try {
       const cached = localStorage.getItem(`${cacheKey}:pathId`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
-  const [checkpoint, setCheckpoint] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:checkpoint`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
-  const [toAddress, setToAddress] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:toAddress`)
       if (cached) {
         return cached
       }
@@ -69,33 +51,6 @@ export function RailsGatewayBond (props: Props) {
     } catch (err: any) {}
     return ''
   })
-  const [totalSent, setTotalSent] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:totalSent`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
-  const [nonce, setNonce] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:nonce`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
-  const [attestedCheckpoint, setAttestedCheckpoint] = useState(() => {
-    try {
-      const cached = localStorage.getItem(`${cacheKey}:attestedCheckpoint`)
-      if (cached) {
-        return cached
-      }
-    } catch (err: any) {}
-    return ''
-  })
   const [txData, setTxData] = useState('')
   const [populateTxDataOnly, setPopulateTxDataOnly] = useState(true)
   const [txHash, setTxHash] = useState('')
@@ -104,11 +59,11 @@ export function RailsGatewayBond (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:toChainId`, toChainId)
+      localStorage.setItem(`${cacheKey}:fromChainId`, fromChainId)
     } catch (err: any) {
       console.error(err)
     }
-  }, [toChainId])
+  }, [fromChainId])
 
   useEffect(() => {
     try {
@@ -120,65 +75,20 @@ export function RailsGatewayBond (props: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(`${cacheKey}:checkpoint`, checkpoint)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [checkpoint])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:toAddress`, toAddress)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [toAddress])
-
-  useEffect(() => {
-    try {
       localStorage.setItem(`${cacheKey}:amount`, amount)
     } catch (err: any) {
       console.error(err)
     }
   }, [amount])
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:totalSent`, totalSent)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [totalSent])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:nonce`, nonce)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [nonce])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${cacheKey}:attestedCheckpoint`, attestedCheckpoint)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }, [attestedCheckpoint])
-
   async function getSendTxData() {
     const args = {
-      chainId: toChainId,
+      chainId: fromChainId,
       pathId,
-      checkpoint,
-      to: toAddress,
       amount,
-      totalSent,
-      nonce,
-      attestedCheckpoint
     }
     console.log('args', args)
-    const txData = await sdk.railsGateway.populateTransaction.bond(args)
+    const txData = await sdk.railsGateway.populateTransaction.approveBond(args)
     return txData
   }
 
@@ -195,23 +105,6 @@ export function RailsGatewayBond (props: Props) {
         if (!signer) {
           throw new Error('No signer')
         }
-
-        const needsApproval = await sdk.railsGateway.getNeedsApprovalForBond({
-          chainId: toChainId,
-          pathId,
-          amount
-        })
-
-        if (needsApproval) {
-          const approveTxData = await sdk.railsGateway.populateTransaction.approveBond({
-            chainId: toChainId,
-            pathId,
-            amount
-          })
-          const tx = await sdk.sendTransaction(approveTxData)
-          await tx.wait()
-        }
-
         const tx = await sdk.sendTransaction(txData)
         setTxHash(tx.hash)
       }
@@ -231,25 +124,15 @@ import { ethers } from 'ethers'
 `.trim()}
 
 async function main() {
-  const chainId = "${toChainId}"
+  const chainId = "${fromChainId}"
   const pathId = "${pathId}"
-  const checkpoint = "${checkpoint}"
-  const to = "${toAddress}"
   const amount = "${amount}"
-  const totalSent = "${totalSent}"
-  const nonce = "${nonce}"
-  const attestedCheckpoint = "${attestedCheckpoint}"
 
   const hop = new Hop({ network: '${network}' )
-  const txData = await hop.railsGateway.populateTransaction.bond({
+  const txData = await hop.railsGateway.populateTransaction.approveBond({
     chainId,
     pathId,
-    checkpoint,
-    to,
-    amount,
-    totalSent,
-    nonce,
-    attestedCheckpoint
+    amount
   })
   ${populateTxDataOnly ? (
   'console.log(txData)'
@@ -275,10 +158,10 @@ main().catch(console.error)
   return (
     <Box>
       <Box mb={1}>
-        <Typography variant="h5">Rails Gateway - Bond</Typography>
+        <Typography variant="h5">Rails Gateway - Approve Bond</Typography>
       </Box>
       <Box mb={4}>
-        <Typography variant="subtitle1">Bond tokens at the destination chain</Typography>
+        <Typography variant="subtitle1">Approve tokens for bonding</Typography>
       </Box>
       <Box width="100%" display="flex" justifyContent="space-between" className={styles.container}>
         <Box mr={4} className={styles.formContainer}>
@@ -286,9 +169,9 @@ main().catch(console.error)
             <form onSubmit={handleSubmit}>
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain id of the transfer</em></small></label>
+                  <label>Chain ID <small><em>(uint256)</em></small> <small><em>This is the destination chain the transfer will be sent to</em></small></label>
                 </Box>
-                <ChainSelect value={toChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
+                <ChainSelect value={fromChainId} chains={chainIds} onChange={value => setFromChainId(value)} />
               </Box>
 
               <Box mb={2}>
@@ -300,44 +183,9 @@ main().catch(console.error)
 
               <Box mb={2}>
                 <Box mb={1}>
-                  <label>Checkpoint <small><em>(bytes32)</em></small> <small><em>Checkpoint hash</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={checkpoint} onChange={(event: any) => setCheckpoint(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>To <small><em>(address)</em></small> <small><em>Recipient at the destination</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={toAddress} onChange={(event: any) => setToAddress(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Amount <small><em>(uint256)</em></small> <small><em>Original amount of transfer</em></small></label>
+                  <label>Amount <small><em>(uint256)</em></small> <small><em>Amount to approve</em></small></label>
                 </Box>
                 <CustomTextField fullWidth placeholder="0" value={amount} onChange={(event: any) => setAmount(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Total Sent <small><em>(uint256)</em></small> <small><em>Total sent</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={totalSent} onChange={(event: any) => setTotalSent(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Nonce <small><em>(uint256)</em></small> <small><em>Nonce value</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0" value={nonce} onChange={(event: any) => setNonce(event.target.value)} />
-              </Box>
-
-              <Box mb={2}>
-                <Box mb={1}>
-                  <label>Attested Checkpoint <small><em>(bytes32)</em></small> <small><em>Attested checkpoint to use</em></small></label>
-                </Box>
-                <CustomTextField fullWidth placeholder="0x" value={attestedCheckpoint} onChange={(event: any) => setAttestedCheckpoint(event.target.value)} />
               </Box>
 
               <Box mb={2}>
@@ -351,7 +199,7 @@ main().catch(console.error)
                   <HighlightedButton fullWidth variant="contained" size="large" onClick={() => requestWallet()}>Connect Wallet</HighlightedButton>
                 )}
                 {!!signer && (
-                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Bond'}</HighlightedButton>
+                  <HighlightedButton loading={loading} fullWidth type="submit" variant="contained" size="large">{populateTxDataOnly ? 'Get tx data' : 'Approve'}</HighlightedButton>
                 )}
               </Box>
             </form>

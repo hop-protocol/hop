@@ -9,8 +9,11 @@ import Typography from '@mui/material/Typography'
 import { formatEther } from 'ethers/lib/utils'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { HopSendTokens } from '../components/hop/HopSendTokens'
+import { HopApproveSendTokens } from '../components/hop/HopApproveSendTokens'
 import { HopSwitchChain } from '../components/hop/HopSwitchChain'
 import { RailsGatewaySend } from '../components/railsGateway/RailsGatewaySend'
+import { RailsGatewayApproveSend } from '../components/railsGateway/RailsGatewayApproveSend'
+import { RailsGatewayApproveBond } from '../components/railsGateway/RailsGatewayApproveBond'
 import { RailsGatewayBond } from '../components/railsGateway/RailsGatewayBond'
 import { RailsGatewayGetPathInfo } from '../components/railsGateway/RailsGatewayGetPathInfo'
 import { RailsGatewayGetPathId } from '../components/railsGateway/RailsGatewayGetPathId'
@@ -93,6 +96,7 @@ export function Main () {
 
   const components = [
     <HopSendTokens signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <HopApproveSendTokens signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <HopSwitchChain signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayGetPathId sdk={sdk} />,
     <RailsGatewayGetPathInfo sdk={sdk} />,
@@ -102,7 +106,9 @@ export function Main () {
     <RailsGatewayGetIsCheckpointValid sdk={sdk} />,
     <RailsGatewayConfirmCheckpoint signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewaySend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <RailsGatewayApproveSend signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
+    <RailsGatewayApproveBond signer={signer} sdk={sdkWithSigner} requestWallet={requestWallet} />,
     <RailsGatewayGetTransferSentEventFromTxHash sdk={sdk} />,
     <RailsGatewayGetTransferSentEventFromCheckpoint sdk={sdk} />,
     <RailsGatewayGetTransferBondedEventFromTxHash sdk={sdk} />,

@@ -51,7 +51,7 @@ export type SendTokensInput = {
   minAmountOut: BigNumberish
 }
 
-export type SendTokensApprovalInput = {
+export type ApproveSendTokensInput = {
   fromChainId: BigNumberish
   toChainId: BigNumberish
   fromToken: string
@@ -205,7 +205,7 @@ export class Hop extends Base {
         return populatedTx
       },
 
-      sendTokensApproval: async (input: SendTokensApprovalInput): Promise<providers.TransactionRequest> => {
+      approveSendTokens: async (input: ApproveSendTokensInput): Promise<providers.TransactionRequest> => {
         const { fromChainId, toChainId, fromToken, toToken, amount } = input
 
         const pathId = await this.railsGateway.getPathId({
@@ -215,7 +215,7 @@ export class Hop extends Base {
           token1: toToken
         })
 
-        const populatedTx = await this.railsGateway.populateTransaction.sendApproval({
+        const populatedTx = await this.railsGateway.populateTransaction.approveSend({
           chainId: fromChainId,
           pathId,
           amount
@@ -231,12 +231,12 @@ export class Hop extends Base {
     return this.sendTransaction(populatedTx)
   }
 
-  async sendTokensApproval (input: SendTokensApprovalInput): Promise<any> {
-    const populatedTx = await this.populateTransaction.sendTokensApproval(input)
+  async approveSendTokens (input: ApproveSendTokensInput): Promise<any> {
+    const populatedTx = await this.populateTransaction.approveSendTokens(input)
     return this.sendTransaction(populatedTx)
   }
 
-  async getNeedsApprovalForSendTokens (input: SendTokensApprovalInput): Promise<boolean> {
+  async getNeedsApprovalForSendTokens (input: ApproveSendTokensInput): Promise<boolean> {
     const { fromChainId, fromToken, toChainId, toToken, amount } = input
     const pathId = await this.railsGateway.getPathId({
       chainId0: fromChainId,

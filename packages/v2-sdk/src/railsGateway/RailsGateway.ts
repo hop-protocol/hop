@@ -47,7 +47,7 @@ export type SendInput = {
   attestedCheckpoint: string
 }
 
-export type SendApprovalInput = {
+export type ApproveSendInput = {
   chainId: BigNumberish
   pathId: string
   amount: BigNumberish
@@ -64,7 +64,7 @@ export type BondInput = {
   attestedCheckpoint: string
 }
 
-export type BondApprovalInput = {
+export type ApproveBondInput = {
   chainId: BigNumberish
   pathId: string
   amount: BigNumberish
@@ -384,6 +384,10 @@ export class RailsGateway extends StakingRegistry {
       counterpartToken: pathInfoArray[3]
     }
 
+    if (!(this.utils.isValidAddress(pathInfo.token) && this.utils.isValidAddress(pathInfo.counterpartToken))) {
+      throw new Error('pathId is invalid or not found')
+    }
+
     console.log('pathInfo', pathInfo)
     return pathInfo
   }
@@ -441,7 +445,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      sendApproval: async (input: SendApprovalInput): Promise<providers.TransactionRequest> => {
+      approveSend: async (input: ApproveSendInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, amount } = input
 
         if (!this.utils.isValidChainId(chainId)) {
@@ -509,7 +513,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      bondApproval: async (input: BondApprovalInput): Promise<providers.TransactionRequest> => {
+      approveBond: async (input: ApproveBondInput): Promise<providers.TransactionRequest> => {
         const { chainId, pathId, amount } = input
 
         if (!this.utils.isValidChainId(chainId)) {
@@ -673,7 +677,7 @@ export class RailsGateway extends StakingRegistry {
         }
       },
 
-      stakeHopApproval: async (input: StakeHopInput): Promise<providers.TransactionRequest> => {
+      approveStakeHop: async (input: StakeHopInput): Promise<providers.TransactionRequest> => {
         let { chainId, role, staker, amount } = input
 
         if (!staker) {
@@ -850,8 +854,8 @@ export class RailsGateway extends StakingRegistry {
     return tx
   }
 
-  async sendApproval (input: SendApprovalInput): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.sendApproval(input)
+  async approveSend (input: ApproveSendInput): Promise<providers.TransactionResponse> {
+    const txData = await this.populateTransaction.approveSend(input)
     return this.sendTransaction(txData)
   }
 
@@ -890,8 +894,8 @@ export class RailsGateway extends StakingRegistry {
     return this.sendTransaction(populatedTx)
   }
 
-  async bondApproval (input: BondApprovalInput): Promise<providers.TransactionResponse> {
-    const txData = await this.populateTransaction.bondApproval(input)
+  async approveBond (input: ApproveBondInput): Promise<providers.TransactionResponse> {
+    const txData = await this.populateTransaction.approveBond(input)
     return this.sendTransaction(txData)
   }
 

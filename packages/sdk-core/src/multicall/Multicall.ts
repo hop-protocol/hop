@@ -5,9 +5,12 @@ import { ERC20__factory } from '#contracts/index.js'
 import { type TokenSymbol, getToken } from '#tokens/index.js'
 import { type Chain, type NetworkSlug, type ChainSlug, getChain, isValidChainSlug, isValidNetworkSlug } from '#chains/index.js'
 
+export type ChainProviders = { [slug in ChainSlug | string]: providers.Provider }
+
 type Config = {
   network: NetworkSlug | string
   accountAddress?: string
+  chainProviders?: ChainProviders
 }
 
 type MulticallBalance = {
@@ -40,6 +43,7 @@ export class Multicall {
   network: NetworkSlug
   accountAddress?: string
   priceFeed: PriceFeedFromS3
+  chainProviders: ChainProviders = {}
 
   constructor (config: Config) {
     if (!config) {
@@ -56,6 +60,10 @@ export class Multicall {
     this.network = config.network
     this.accountAddress = config.accountAddress
     this.priceFeed = new PriceFeedFromS3()
+
+    if (config.chainProviders) {
+      this.chainProviders = config.chainProviders
+    }
   }
 
   #getMulticallAddressForChain (chainSlug: ChainSlug): string | null {
@@ -68,6 +76,10 @@ export class Multicall {
   }
 
   #getProvider (chainSlug: ChainSlug): providers.Provider {
+    if (this.chainProviders[chainSlug]) {
+      return this.chainProviders[chainSlug]
+    }
+
     const chain: Chain = getChain(this.network, chainSlug)
     const rpcUrl = chain.publicRpcUrl
     if (!rpcUrl) {

@@ -147,6 +147,7 @@ export class Message {
       console.log('temp555', messageHash)
       return json.attestation
     })
+    throw new Error('Failed to fetch attestation')
   }
 
   // TODO: rm for config

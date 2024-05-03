@@ -43,7 +43,7 @@ import {
   PriceFeedApiKeys,
   PriceFeedFromS3,
   TokenSymbol,
-  chainIdToSlug,
+  getSlugFromChainId,
   fetchJsonOrThrow,
   getToken,
   isValidTokenSymbol
@@ -3502,7 +3502,7 @@ export class HopBridge extends Base {
             throw new Error('nonce not found')
           }
           // toChain is a chainID
-          const toChainSlug = chainIdToSlug(toChain)
+          const toChainSlug = getSlugFromChainId(toChain)
           const nonceUsed = await this.getIsCctpNonceUsed(nonce, fromChain, toChainSlug)
           return {
             fromChain: chain,

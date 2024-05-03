@@ -41,7 +41,7 @@ export default class L2AmmWrapper extends ContractBase {
 
     const deadline = bridge.defaultDeadlineSeconds
     let destinationDeadline = bridge.defaultDeadlineSeconds
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const { amountOut, totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100

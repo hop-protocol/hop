@@ -305,7 +305,7 @@ export default class L1Bridge extends Bridge {
     const relayer = await this.getBonderAddress()
     const relayerFee: BigNumber = nearestItemToTransferSent?.gasCostInToken ?? BigNumber.from('0')
     const deadline = bridge.defaultDeadlineSeconds
-    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
+    const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.getSlugFromChainId(destinationChainId))
     const slippageTolerance = 0.1
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)

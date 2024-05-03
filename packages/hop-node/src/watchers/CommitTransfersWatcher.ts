@@ -193,7 +193,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   getMinThresholdAmount (destinationChainId: number) {
-    return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
+    return this.minThresholdAmounts[this.getSlugFromChainId(destinationChainId)] || BigNumber.from(0)
   }
 
   private readonly shouldUsePendingCountCommitThreshold = (sourceChain: string, destinationChain: string): boolean => {

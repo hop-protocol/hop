@@ -97,7 +97,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const destinationWatcher = this.getSiblingWatcherByChainSlug(destinationChain)
     if (!destinationWatcher) {
       throw new Error(`no destination watcher for chain ${destinationChain}`)
@@ -152,7 +152,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   public async calculateUnbondedTransferRootAmounts (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const transferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: this.chainSlugToId(this.chainSlug),
       destinationChainId
@@ -177,7 +177,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   private async updateAvailableCreditMap (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const bonder = await this.getBonderAddress(destinationChain)
     const { availableCredit, baseAvailableCredit } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
@@ -191,13 +191,13 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   private async updatePendingAmountsMap (destinationChainId: number) {
     const pendingAmount = await this.calculatePendingAmount(destinationChainId)
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     this.pendingAmounts[destinationChain] = pendingAmount
   }
 
   private async updateUnbondedTransferRootAmountsMap (destinationChainId: number) {
     const totalAmounts = await this.calculateUnbondedTransferRootAmounts(destinationChainId)
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     this.unbondedTransferRootAmounts[destinationChain] = totalAmounts
     this.lastCalculated[destinationChain] = Date.now()
   }
@@ -212,7 +212,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
-      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const destinationChain = this.getSlugFromChainId(destinationChainId)
       if (
         this.chainSlug === ChainSlug.Ethereum ||
         this.chainSlug === destinationChain
@@ -231,7 +231,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
-      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const destinationChain = this.getSlugFromChainId(destinationChainId)
       const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
       const shouldSkip = (
         !doesChainSupportRootBond ||
@@ -255,7 +255,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
-      const destinationChain = this.chainIdToSlug(destinationChainId)
+      const destinationChain = this.getSlugFromChainId(destinationChainId)
       const shouldSkip = (
         sourceChain === ChainSlug.Ethereum ||
         sourceChain === destinationChain ||
@@ -322,7 +322,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   public getBaseAvailableCredit (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const baseAvailableCredit = this.baseAvailableCredit[destinationChain]
     if (!baseAvailableCredit) {
       return BigNumber.from(0)
@@ -332,7 +332,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   public getEffectiveAvailableCredit (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
     if (!availableCredit) {
       return BigNumber.from(0)
@@ -342,7 +342,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   public getPendingAmounts (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const pendingAmounts = this.pendingAmounts[destinationChain]
     if (!pendingAmounts) {
       return BigNumber.from(0)
@@ -352,7 +352,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   public getUnbondedTransferRootAmounts (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const unbondedAmounts = this.unbondedTransferRootAmounts[destinationChain]
     if (!unbondedAmounts) {
       return BigNumber.from(0)
@@ -373,7 +373,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       unbondedTransferRootAmounts: {}
     }
     for (const chainId in this.siblingWatchers) {
-      const sourceChain = this.chainIdToSlug(Number(chainId))
+      const sourceChain = this.getSlugFromChainId(Number(chainId))
       const watcher = this.siblingWatchers[chainId]
       const shouldSkip = (
         sourceChain === ChainSlug.Ethereum
@@ -445,7 +445,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   private getPendingAmountCacheKey (destinationChainId: number): string {
-    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    const destinationChainSlug = this.getSlugFromChainId(destinationChainId)
     const cacheName = 'pendingAmount'
     return this._getCacheKey(cacheName, destinationChainSlug)
   }

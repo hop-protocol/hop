@@ -4,7 +4,7 @@ import { BigNumber, ethers, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
 import { cache } from './cache'
-import { chainIdToSlug } from './utils/chainIdToSlug'
+import { getSlugFromChainId } from './utils/getSlugFromChainId'
 import { chainSlugToId } from './utils/chainSlugToId'
 import { chainSlugToName } from './utils/chainSlugToName'
 import { chunk } from 'lodash'
@@ -884,8 +884,8 @@ export class TransferStats {
     }
 
     if (single) {
-      const sourceChainSlug = chainIdToSlug(single.sourceChain)
-      const destinationChainSlug = chainIdToSlug(single.destinationChain)
+      const sourceChainSlug = getSlugFromChainId(single.sourceChain)
+      const destinationChainSlug = getSlugFromChainId(single.destinationChain)
 
       for (const chain of enabledChains) {
         if (destinationChainSlug === chain) {
@@ -961,7 +961,7 @@ export class TransferStats {
     }
 
     for (const x of data) {
-      const destChainSlug = chainIdToSlug(x.destinationChain)
+      const destChainSlug = getSlugFromChainId(x.destinationChain)
       const bonds = bondsMap[destChainSlug]
       if (bonds) {
         for (const bond of bonds) {
@@ -997,11 +997,11 @@ export class TransferStats {
       if (x.isCctp) {
         continue
       }
-      const sourceChain = chainIdToSlug(x.sourceChain)
+      const sourceChain = getSlugFromChainId(x.sourceChain)
       if (sourceChain !== 'ethereum') {
         continue
       }
-      const destChainSlug = chainIdToSlug(x.destinationChain)
+      const destChainSlug = getSlugFromChainId(x.destinationChain)
       const events = fromL1CompletedsMap[destChainSlug]
       if (events) {
         for (const event of events) {
@@ -1047,8 +1047,8 @@ export class TransferStats {
         if (item.isCctp) {
           continue
         }
-        const destChainSlug = chainIdToSlug(item.destinationChain)
-        if (!item.bonded && item.timestamp < regenesisTimestamp && destChainSlug === 'optimism' && chainIdToSlug(item.sourceChain) !== 'ethereum') {
+        const destChainSlug = getSlugFromChainId(item.destinationChain)
+        if (!item.bonded && item.timestamp < regenesisTimestamp && destChainSlug === 'optimism' && getSlugFromChainId(item.sourceChain) !== 'ethereum') {
           try {
             const event = await getPreRegenesisBondEvent(item.transferId, item.token)
             if (event) {
@@ -1135,7 +1135,7 @@ export class TransferStats {
       return cached
     }
     const { transactionHash, sourceChain } = item
-    const sourceChainSlug = chainIdToSlug(sourceChain)
+    const sourceChainSlug = getSlugFromChainId(sourceChain)
 
     const _addresses = Object.values((addresses as any)?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: any) => {
       address = /^0x/.test(address) ? address?.toLowerCase() : ''
@@ -1298,7 +1298,7 @@ export class TransferStats {
       const receipt = await this.getTransactionReceipt(provider, transactionHash)
       let transferId = ''
       const sourceChainId = chainSlugToId(chainSlug)
-      const sourceChainSlug = chainIdToSlug(sourceChainId)
+      const sourceChainSlug = getSlugFromChainId(sourceChainId)
       const sourceChainSlugName = chainSlugToName(chainSlug)
       let destinationChainSlug = ''
       let destinationChainId = 0
@@ -1330,7 +1330,7 @@ export class TransferStats {
             if (decoded) {
               transferId = decoded?.args?.transferId
               destinationChainId = Number(decoded?.args.chainId.toString())
-              destinationChainSlug = chainIdToSlug(destinationChainId)
+              destinationChainSlug = getSlugFromChainId(destinationChainId)
               destinationChainName = chainSlugToName(destinationChainSlug)
               recipient = decoded?.args?.recipient.toString()
               amount = decoded?.args?.amount?.toString()
@@ -1351,7 +1351,7 @@ export class TransferStats {
             const decoded = iface.parseLog(log)
             if (decoded) {
               destinationChainId = Number(decoded?.args.chainId.toString())
-              destinationChainSlug = chainIdToSlug(destinationChainId)
+              destinationChainSlug = getSlugFromChainId(destinationChainId)
               destinationChainName = chainSlugToName(destinationChainSlug)
               recipient = decoded?.args?.recipient.toString()
               amount = decoded?.args?.amount?.toString()
@@ -1380,7 +1380,7 @@ export class TransferStats {
         }
         if (transferId && destinationChainId && token) {
           try {
-            const destinationChainSlug = chainIdToSlug(destinationChainId)
+            const destinationChainSlug = getSlugFromChainId(destinationChainId)
             const bonds = await fetchTransferBonds(destinationChainSlug, [transferId])
             if (bonds.length === 1) {
               bonded = true

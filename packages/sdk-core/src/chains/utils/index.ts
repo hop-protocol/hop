@@ -3,7 +3,7 @@
  * meant to be used internally to this module.
  */
 
-export { chainIdToSlug } from './chainIdToSlug.js'
+export { getSlugFromChainId } from './getSlugFromChainId.js'
 export { getChainNativeTokenSymbol } from './getChainNativeTokenSymbol.js'
 export { getChainSlug } from './getChainSlug.js'
 export { getMinGasLimit } from './getMinGasLimit.js'

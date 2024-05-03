@@ -18,6 +18,7 @@
     "start:bonder": "tsx src/index.ts --bonder --bonderDays=30",
     "start:bonder:migration": "tsx src/index.ts --bonder --bonderDays=30 --migrations=[19]",
     "start:bonderProfit": "tsx src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
+    "upload-config": "tsx src/index.ts --uploadConfig",
     "watch": "tsc --watch",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "eslint . --fix",

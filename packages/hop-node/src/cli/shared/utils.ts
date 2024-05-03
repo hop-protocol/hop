@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
 
 import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
@@ -12,7 +12,7 @@ export async function getHistoricalUnrelayedL1ToL2Transfers (
 ): Promise<BigNumber> {
   // It is not possible to get Optimism pre-regenesis data from TheGraph. However, there are no unrelayed messages
   // from pre-regenesis, so we can return 0
-  if (chain === Chain.Optimism) {
+  if (chain === ChainSlug.Optimism) {
     return BigNumber.from('0')
   }
 
@@ -23,7 +23,7 @@ export async function getHistoricalUnrelayedL1ToL2Transfers (
   // not concerned with that level of granularity
   const thirtyMinutesSeconds = 30 * 60
   endTimestamp = endTimestamp - thirtyMinutesSeconds
-  const l1ToL2TransfersSent = await getTransferSentToL2(Chain.Ethereum, token, startTimestamp, endTimestamp)
+  const l1ToL2TransfersSent = await getTransferSentToL2(ChainSlug.Ethereum, token, startTimestamp, endTimestamp)
 
   return getUnrelayedL1ToL2Transfers(chain, l1ToL2TransfersSent, l1ToL2TransfersReceived)
 }
@@ -39,7 +39,7 @@ export async function getRecentUnrelayedL1ToL2Transfers (
   const startTimestampSeconds = Math.floor(startTimestamp.toSeconds())
 
   const l1ToL2TransfersReceived = await getTransferFromL1Completed(chain, token, startTimestampSeconds, l2EndTimestamp)
-  const l1ToL2TransfersSent = await getTransferSentToL2(Chain.Ethereum, token, startTimestampSeconds, l1EndTimestamp)
+  const l1ToL2TransfersSent = await getTransferSentToL2(ChainSlug.Ethereum, token, startTimestampSeconds, l1EndTimestamp)
 
   return getUnrelayedL1ToL2Transfers(chain, l1ToL2TransfersSent, l1ToL2TransfersReceived)
 }

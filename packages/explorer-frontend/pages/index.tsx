@@ -35,9 +35,8 @@ import Typography from '@mui/material/Typography'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
-import { chains, tokens } from '@hop-protocol/sdk/metadata'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
-import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/sdk/networks'
+import { ChainSlug, NetworkSlug, TokenSymbol, getNetwork, getChain, getTokens, getToken } from '@hop-protocol/sdk'
 import { styled } from '@mui/material/styles'
 import { useInterval } from 'react-use'
 import * as luxon from 'luxon'
@@ -143,7 +142,7 @@ for (let i = 0; i < enabledChains.length; i++) {
   chainToIndexMapDestination[enabledChains[i]] = i + enabledChains.length
 }
 
-const networks: any = isGoerli ? goerliNetworks : mainnetNetworks
+const networks: any = isGoerli ? getNetwork(NetworkSlug.Goerli) : getNetwork(NetworkSlug.Mainnet)
 const chainSlugToNameMap :any = {}
 
 for (const chain in networks) {
@@ -156,14 +155,16 @@ const colorsMap: any = {
   fallback: '#9f9fa3'
 }
 
-for (const chain in chains) {
-  colorsMap[chain] = (chains as any)[chain].primaryColor
+for (const chains of Object.values(getNetwork(NetworkSlug.Mainnet))) {
+  for (const chain of Object.values(chains)) {
+    colorsMap[chain.slug] = chain.color
+  }
 }
 
 const chainSlugToIdMap :any = {}
 
 for (const chain in networks) {
-  chainSlugToIdMap[chain] = networks[chain].networkId
+  chainSlugToIdMap[chain] = networks[chain].chainId
 }
 
 export function chainSlugToId (chainSlug: string) {
@@ -887,14 +888,14 @@ const Index: NextPage = (props: any) => {
   const chainMenuItems: any[] = []
   for (const chain of enabledChains) {
     chainMenuItems.push(
-      <MenuItem key={chain} value={chain}><MenuItemIcon src={(chains as any)[chain].image} /> {chainSlugToNameMap[chain]}</MenuItem>,
+      <MenuItem key={chain} value={chain}><MenuItemIcon src={getChain(isGoerli ? NetworkSlug.Goerli : NetworkSlug.Mainnet, chain as ChainSlug).image} /> {chainSlugToNameMap[chain]}</MenuItem>,
     )
   }
 
   const tokenMenuItems: any[] = []
   for (const tokenSymbol of enabledTokens) {
     tokenMenuItems.push(
-      <MenuItem key={tokenSymbol} value={tokenSymbol}><MenuItemIcon src={(tokens as any)[tokenSymbol].image} /> {tokenSymbol}</MenuItem>
+      <MenuItem key={tokenSymbol} value={tokenSymbol}><MenuItemIcon src={getToken(tokenSymbol as TokenSymbol).image} /> {tokenSymbol}</MenuItem>
     )
   }
 

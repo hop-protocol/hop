@@ -3,8 +3,7 @@ import L1Bridge from './L1Bridge.js'
 import L2Amm from './L2Amm.js'
 import L2AmmWrapper from './L2AmmWrapper.js'
 import Token from './Token.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { Hop } from '@hop-protocol/sdk'
+import { ChainSlug, Hop } from '@hop-protocol/sdk'
 import {
   ERC20__factory,
   L2_AmmWrapper__factory,
@@ -19,7 +18,7 @@ import type {
   TransferSentEvent,
   TransfersCommittedEvent
 } from '@hop-protocol/sdk/contracts/L2_Bridge'
-import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
 
 export default class L2Bridge extends Bridge {
   ammWrapper!: L2AmmWrapper
@@ -294,7 +293,7 @@ export default class L2Bridge extends Bridge {
     }
 
     const txOverrides: TxOverrides = await this.txOverrides()
-    if (this.chainSlug === Chain.Polygon) {
+    if (this.chainSlug === ChainSlug.Polygon) {
       const gasLimit = 15_000_000
       txOverrides.gasLimit = gasLimit
     }
@@ -319,10 +318,10 @@ export default class L2Bridge extends Bridge {
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000
-    if (this.chainSlug === Chain.Arbitrum) {
+    if (this.chainSlug === ChainSlug.Arbitrum) {
       gasLimit = 10_000_000
     }
-    if (this.chainSlug === Chain.Nova) {
+    if (this.chainSlug === ChainSlug.Nova) {
       gasLimit = 5_000_000
     }
     txOverrides.gasLimit = gasLimit

@@ -1,10 +1,11 @@
 import Transaction from 'src/models/Transaction'
 import { BigNumber, constants } from 'ethers'
-import { Chain, Token } from '@hop-protocol/sdk'
+import { ChainSlug, NetworkSlug, Token, getChain } from '@hop-protocol/sdk'
 import { toTokenDisplay } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { useTransactionReplacement } from 'src/hooks/useTransactionReplacement'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { reactAppNetwork } from 'src/config'
 
 const useApprove = (token: any) => {
   const { provider } = useWeb3Context()
@@ -50,7 +51,7 @@ const useApprove = (token: any) => {
     }
 
     const formattedAmount = toTokenDisplay(amount, token.decimals)
-    const chain = Chain.fromSlug(token.chain.slug)
+    const chain = getChain(reactAppNetwork as NetworkSlug, token.chain.slug as ChainSlug)
     const tx = await txConfirm?.show({
       kind: 'approval',
       inputProps: {

@@ -1,6 +1,6 @@
-import wallets from '#wallets/index.js'
+import { wallets } from '#wallets/index.js'
 import { AbstractService } from '../Services/AbstractService.js'
-import { Chain } from '#constants/index.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 import type { Signer, providers } from 'ethers'
 
 export class MessageUnknownError extends Error {}
@@ -45,10 +45,10 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
   protected abstract isMessageRelayable (messageStatus: MessageStatus, messageDirection?: MessageDirection): Promise<boolean> | boolean
   protected abstract isMessageRelayed (messageStatus: MessageStatus, messageDirection?: MessageDirection): Promise<boolean> | boolean
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
-    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l1Wallet = wallets.get(ChainSlug.Ethereum)
     this.l2Wallet = wallets.get(this.chainSlug)
   }
 

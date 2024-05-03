@@ -1,26 +1,26 @@
-import { Chain, Network } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
 import { MessageManager } from '#cctp/cctp/MessageManager.js'
 import { config as globalConfig } from '#config/index.js'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core'
 
 // TODO: Automate
-const CHAINS: Partial<Record<Network, Chain[]>> = {
-  [Network.Mainnet]: [
-    Chain.Ethereum,
-    Chain.Optimism,
-    Chain.Arbitrum,
-    Chain.Base,
-    Chain.Polygon
+const CHAINS: Partial<Record<NetworkSlug, ChainSlug[]>> = {
+  [NetworkSlug.Mainnet]: [
+    ChainSlug.Ethereum,
+    ChainSlug.Optimism,
+    ChainSlug.Arbitrum,
+    ChainSlug.Base,
+    ChainSlug.Polygon
   ],
-  [Network.Sepolia]: [
-    Chain.Ethereum,
-    Chain.Optimism,
-    Chain.Arbitrum,
-    Chain.Base
+  [NetworkSlug.Sepolia]: [
+    ChainSlug.Ethereum,
+    ChainSlug.Optimism,
+    ChainSlug.Arbitrum,
+    ChainSlug.Base
   ]
 }
 export async function main () {
-  const chains: Chain[] = CHAINS[globalConfig.network as Network]!
+  const chains: ChainSlug[] = CHAINS[globalConfig.network as NetworkSlug]!
   try {
     const manager = new MessageManager(chains)
     manager.start()

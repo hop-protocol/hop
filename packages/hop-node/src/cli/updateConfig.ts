@@ -9,7 +9,7 @@ import {
   writeConfigFile
 } from '#config/index.js'
 import { actionHandler, logger, parseBool, parseString, root } from './shared/index.js'
-import { normalizeEnvVarArray } from '@hop-protocol/hop-node-core/config'
+import { normalizeEnvVarArray } from '#config/types.js'
 
 root
   .command('update-config')

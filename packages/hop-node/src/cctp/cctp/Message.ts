@@ -6,13 +6,14 @@ import {
   getHopCCTPContract,
   getMessageTransmitterContract
 } from './utils.js'
-import type { Network } from '@hop-protocol/hop-node-core/constants'
-import { Chain, MinPolygonGasPrice } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
+import type { NetworkSlug } from '@hop-protocol/sdk'
+import { MinPolygonGasPrice } from '@hop-protocol/hop-node-core'
 import type { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
-import { chainIdToSlug, getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { config as globalConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core'
 
 // Temp to handle API rate limit
 const mutex = new Mutex()
@@ -94,7 +95,7 @@ export class Message {
 
   // TODO: Get from SDK
   static convertDomainToChainId (domainId: BigNumber): BigNumber {
-    const domainMap = CCTP_DOMAIN_MAP[globalConfig.network as Network]
+    const domainMap = CCTP_DOMAIN_MAP[globalConfig.network as NetworkSlug]
     if (!domainMap) {
       throw new Error('Domain map not found')
     }
@@ -151,13 +152,13 @@ export class Message {
 
   // TODO: rm for config
   static async getTxOverrides (chainId: number): Promise<any>{
-    const chainSlug = chainIdToSlug(chainId)
+    const chainSlug = getChainSlug(chainId.toString())
     const provider = getRpcProvider(chainSlug)
     const txOptions: any = {}
 
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-    if (chainSlug === Chain.Polygon) {
+    if (chainSlug === ChainSlug.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 
       const minGasPrice = BigNumber.from(MinPolygonGasPrice).mul(2)

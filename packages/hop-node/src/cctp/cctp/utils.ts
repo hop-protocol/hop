@@ -11,11 +11,11 @@ export function getAttestationUrl (messageHash: string): string {
 // TODO: Use block numbers, not arbitrary time
 export const FinalityTimeForChainIdMs: Record<string, Partial<Record<ChainSlug, number>>> = {
   [NetworkSlug.Mainnet]: {
-    [ChainSlug.Ethereum]: 20 * 60 * 1000,
-    [ChainSlug.Optimism]: 20 * 60 * 1000,
-    [ChainSlug.Arbitrum]: 20 * 60 * 1000,
-    [ChainSlug.Base]: 20 * 60 * 1000,
-    [ChainSlug.Polygon]: 20 * 60 * 1000,
+    [ChainSlug.Ethereum]: 30 * 60 * 1000,
+    [ChainSlug.Optimism]: 30 * 60 * 1000,
+    [ChainSlug.Arbitrum]: 40 * 60 * 1000,
+    [ChainSlug.Base]: 30 * 60 * 1000,
+    [ChainSlug.Polygon]: 40 * 60 * 1000,
   },
   [NetworkSlug.Sepolia]: {
     [ChainSlug.Ethereum]: 2 * 60 * 1000,

@@ -16,7 +16,7 @@ const CREATION_CACHE: Set<string> = new Set()
 export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
   // TODO: Timing
   // TODO: SLow down
-  readonly #pollIntervalMs: number = 10_000
+  readonly #pollIntervalMs: number = 30_000
   readonly #db: StateMachineDB<T, U>
   readonly #stateTransitionMap: Record<T, T | null>
   readonly #transitionDataProvider: TransitionDataProvider<T, U>

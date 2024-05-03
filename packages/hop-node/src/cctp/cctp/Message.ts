@@ -12,6 +12,11 @@ import { MinPolygonGasPrice } from '@hop-protocol/hop-node-core'
 import type { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { config as globalConfig } from '#config/index.js'
+import { Mutex } from 'async-mutex'
+import { wait } from '@hop-protocol/hop-node-core/utils'
+
+// Temp to handle API rate limit
+const mutex = new Mutex()
 
 enum AttestationStatus {
   PendingConfirmation = 'pending_confirmation',
@@ -114,23 +119,35 @@ export class Message {
    * {"attestation":"0x123...","status":"complete"}
    */
   static async fetchAttestation (messageHash: string): Promise<string> {
-    const url = getAttestationUrl(messageHash)
-    const res = await fetch(url)
-    const json: IAttestationResponse = await res.json()
+    return await mutex.runExclusive(async () => {
+      const url = getAttestationUrl(messageHash)
+      console.log('temp000', messageHash)
+      const res = await fetch(url)
+      console.log('temp111', messageHash, res)
+      if (res.status === 429) {
+        // Temp to handle API rate limit
+        await wait(2_000)
+      }
+      const json: IAttestationResponse = await res.json()
+      console.log('temp222', messageHash, json)
 
-    if (!json) {
-      throw new Error('Message hash not found')
-    }
+      if (!json) {
+        throw new Error('Message hash not found')
+      }
 
-    if ('error' in json) {
-      throw new Error(json.error)
-    }
+      console.log('temp333', messageHash)
+      if ('error' in json) {
+        throw new Error(json.error)
+      }
 
-    if (json.status !== 'complete') {
-      throw new Error(`Attestation not complete: ${JSON.stringify(json)} (messageHash: ${messageHash})`)
-    }
+      console.log('temp444', messageHash)
+      if (json.status !== 'complete') {
+        throw new Error(`Attestation not complete: ${JSON.stringify(json)} (messageHash: ${messageHash})`)
+      }
 
-    return json.attestation
+      console.log('temp555', messageHash, json)
+      return json.attestation
+    })
   }
 
   // TODO: rm for config

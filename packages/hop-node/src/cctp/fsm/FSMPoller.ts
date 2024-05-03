@@ -1,7 +1,7 @@
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { ChainSlug } from '@hop-protocol/sdk'
 import { StateMachineDB } from '../db/StateMachineDB.js'
 import { TransitionDataProvider } from '../cctp/transitionData/TransitionDataProvider.js'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core'
 
 // TODO: Not this here
 import type { IMessage, MessageState } from '../cctp/MessageManager.js'
@@ -16,7 +16,7 @@ const CREATION_CACHE: Set<string> = new Set()
 export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
   // TODO: Timing
   // TODO: SLow down
-  readonly #pollIntervalMs: number = 10_000
+  readonly #pollIntervalMs: number = 30_000
   readonly #db: StateMachineDB<T, U>
   readonly #stateTransitionMap: Record<T, T | null>
   readonly #transitionDataProvider: TransitionDataProvider<T, U>
@@ -35,7 +35,7 @@ export abstract class FSMPoller<T extends MessageState, U extends IMessage>{
   // Hooks
   protected abstract handleStateExitHook(state: T, key: string, value: U): void
 
-  constructor (stateMachineName: string, stateTransitionMap: Record<T, T | null>, chains: Chain[]) {
+  constructor (stateMachineName: string, stateTransitionMap: Record<T, T | null>, chains: ChainSlug[]) {
     this.#db = new StateMachineDB(stateMachineName)
     this.#stateTransitionMap = stateTransitionMap
     this.#transitionDataProvider = new TransitionDataProvider(chains)

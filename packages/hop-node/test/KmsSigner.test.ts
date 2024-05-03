@@ -1,6 +1,6 @@
-import { Chain } from '@hop-protocol/hop-node-core/constants'
-import { KmsSigner } from '@hop-protocol/hop-node-core/aws'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { KmsSigner } from '@hop-protocol/hop-node-core'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
 
 describe.skip('KmsSigner', () => {
   const keyId = process.env.TEST_KMS_KEY_ID!
@@ -43,7 +43,7 @@ describe.skip('KmsSigner', () => {
   it('sendTransaction', async () => {
     const address = await signer.getAddress()
     const transaction = { to: address }
-    const provider = getRpcProvider(Chain.Ethereum)
+    const provider = getRpcProvider(ChainSlug.Ethereum)
     const tx = await signer.connect(provider!).sendTransaction(transaction)
     console.log('tx:', tx)
     expect(tx.hash.startsWith('0x')).toBeTruthy()

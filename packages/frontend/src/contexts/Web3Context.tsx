@@ -17,11 +17,10 @@ import walletConnectModule from '@web3-onboard/walletconnect'
 import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
 import { capitalize } from 'src/utils/capitalize'
 import { chainIdToHex } from 'src/utils/chainIdToHex'
-import { chains as chainMetadata } from '@hop-protocol/sdk/metadata'
 import { ethers } from 'ethers'
 import { l1Network } from 'src/config/networks'
 import { networkSlugToId } from 'src/utils'
-import { networks } from '@hop-protocol/sdk/networks'
+import { NetworkSlug, getChains } from '@hop-protocol/sdk'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export type Props = {
@@ -40,18 +39,17 @@ export type Props = {
 class NetworkSwitchError extends Error {}
 
 function getOnboardChains(): any {
-  const chains = (networks as any)[reactAppNetwork]
+  const chains = getChains(reactAppNetwork as NetworkSlug)
   const onboardChains :any[] = []
 
-  for (const chainSlug in chains) {
-    const chainObj = chains[chainSlug]
-    const id = chainIdToHex(chainObj.networkId)
-    const token = chainMetadata?.[chainSlug]?.nativeTokenSymbol
-    const label = `${chainObj.name} ${capitalize(reactAppNetwork)}`
-    let rpcUrl = chainObj.publicRpcUrl
+  for (const chain of chains) {
+    const id = chainIdToHex(Number(chain.chainId))
+    const token = chain.nativeTokenSymbol
+    const label = `${chain.name} ${capitalize(reactAppNetwork)}`
+    let rpcUrl = chain.publicRpcUrl
 
     // overrides
-    if (chainSlug === 'linea') {
+    if (chain.slug === 'linea') {
       if (isGoerli) {
         rpcUrl = 'https://rpc.goerli.linea.build'
       }

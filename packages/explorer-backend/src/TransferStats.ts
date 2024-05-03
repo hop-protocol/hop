@@ -26,7 +26,7 @@ import {
 import { getPreRegenesisBondEvent } from './preregenesis'
 import { getPriceHistory } from './price'
 import { getProxyAddress } from './utils/getProxyAddress'
-import { getTokenDecimals } from './utils/getTokenDecimals'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 import { L1_Bridge__factory, L2_Bridge__factory } from '@hop-protocol/sdk/contracts'
 import { populateData } from './populateData'
 import { populateTransfer } from './utils/populateTransfer'
@@ -1369,7 +1369,7 @@ export class TransferStats {
           }
 
           if (token) {
-            const decimals = getTokenDecimals(token)
+            const decimals = getTokenDecimals(token as TokenSymbol)
             if (amount) {
               amountFormatted = Number(utils.formatUnits(amount, decimals))
             }

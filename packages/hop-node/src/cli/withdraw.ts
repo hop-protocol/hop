@@ -2,7 +2,7 @@ import getTransferId from '#theGraph/getTransfer.js'
 import getTransferRoot from '#theGraph/getTransferRoot.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, getWithdrawalProofDataForCli, parseString, root } from './shared/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getChainSlug } from '@hop-protocol/sdk'
 import {
   getBondWithdrawalWatcher
 } from '#watchers/watchers.js'
@@ -80,7 +80,7 @@ async function main (source: any) {
     transferIndex
   } = getWithdrawalProofDataForCli(transferId, transferRoot)
 
-  const destinationChain = chainIdToSlug(destinationChainId)
+  const destinationChain = getChainSlug(destinationChainId.toString())
   const watcher = await getBondWithdrawalWatcher({ chain: destinationChain, token, dryMode: false })
   if (!watcher) {
     throw new Error(WatcherNotFoundError)

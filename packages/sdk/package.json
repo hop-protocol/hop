@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.640",
+  "version": "0.0.1-beta.642",
   "description": "The v1 Hop Protocol TypeScript SDK",
   "author": "Authereum Labs, Inc.",
   "license": "MIT",
@@ -31,8 +31,11 @@
   },
   "dependencies": {
     "@hop-protocol/sdk-core": "workspace:*",
+    "@uniswap/sdk-core": "4.2.0",
+    "@uniswap/v3-sdk": "3.11.0",
     "buffer": "6.0.3",
     "dotenv": "16.4.1",
+    "ethereum-block-by-date": "1.4.9",
     "ethers": "5.7.2",
     "eventemitter3": "5.0.1",
     "fast-memoize": "2.5.2",

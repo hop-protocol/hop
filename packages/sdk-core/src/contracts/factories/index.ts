@@ -3,5 +3,3 @@
 /* eslint-disable */
 export { ERC20__factory } from "./ERC20__factory.js";
 export { Multicall3__factory } from "./Multicall3__factory.js";
-export { UniswapQuoterV2__factory } from "./UniswapQuoterV2__factory.js";
-export { UniswapV3Pool__factory } from "./UniswapV3Pool__factory.js";

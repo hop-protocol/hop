@@ -1,9 +1,10 @@
 import { Base, ChainProviders } from '../Base.js'
-import { Chain, TokenModel } from '@hop-protocol/sdk-core'
+import { Chain } from '@hop-protocol/sdk-core'
 import { EventEmitter } from 'eventemitter3'
 import { HopBridge } from '../HopBridge.js'
 import { TChain, TProvider, TToken } from '../types.js'
 import { wait } from '../utils/index.js'
+import { TokenModel } from '#models/index.js'
 
 /**
  * @desc Event types for transaction watcher.
@@ -56,20 +57,21 @@ export class BaseWatcher extends Base {
   public async startBase () {
     this.bridge = new HopBridge(this.network, this.signer, this.token)
 
-    const receipt = await this.sourceChain.provider?.waitForTransaction(
+    const sourceChainProvider = this.getChainProvider(this.sourceChain)
+    const receipt = await sourceChainProvider.waitForTransaction(
       this.sourceTxHash
     )
     await this.emitSourceTxEvent(receipt)
     if (!receipt?.status) {
       return
     }
-    const sourceTx = await this.sourceChain.provider?.getTransaction(
+    const sourceTx = await sourceChainProvider.getTransaction(
       this.sourceTxHash
     )
     if (!sourceTx?.blockNumber) {
       return
     }
-    const sourceBlock = await this.sourceChain.provider?.getBlock(
+    const sourceBlock = await sourceChainProvider.getBlock(
       sourceTx.blockNumber
     )
     if (!sourceBlock) {
@@ -104,7 +106,8 @@ export class BaseWatcher extends Base {
     if (!destTx) {
       return false
     }
-    const destTxReceipt = await this.destinationChain.provider?.waitForTransaction(
+    const destinationChainProvider = this.getChainProvider(this.destinationChain)
+    const destTxReceipt = await destinationChainProvider.waitForTransaction(
       destTx.hash
     )
     this.ee.emit(

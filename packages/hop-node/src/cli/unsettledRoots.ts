@@ -4,9 +4,9 @@ import getTransferIdsForTransferRoot from '#theGraph/getTransferIdsForTransferRo
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber, utils } from 'ethers'
 import { actionHandler, parseString, root } from './shared/index.js'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { getSourceChains } from '#config/index.js'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 
@@ -28,7 +28,7 @@ async function main (source: any) {
 
   console.log('\n*** This will only look back until 01/01/2022. Prior data may be invalid due to the OVM regenesis. ***\n')
   const startTimestamp = 1640995200
-  const decimals = getTokenDecimals(token)
+  const decimals = getTokenDecimals(token as TokenSymbol)
 
   // Get all settlements
   const settledRootsPerBonder: SettledRootsPerBonder = await getSettledRoots(settlementChain, token)

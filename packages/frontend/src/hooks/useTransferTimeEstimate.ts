@@ -1,4 +1,4 @@
-import { Chain } from '@hop-protocol/sdk'
+import { getChain } from '@hop-protocol/sdk'
 import { getTransferTimeSeconds } from 'src/utils/getTransferTimeSeconds'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useRef, useState } from 'react'
@@ -7,9 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destinationChainSlug?: string | null, tokenSymbol?: string) => {
   const { sdk } = useApp()
 
-  const sourceChain = sourceChainSlug ? Chain.fromSlug(sourceChainSlug) : null
-  const destinationChain = destinationChainSlug ? Chain.fromSlug(destinationChainSlug) : null
-  const fixedTimeEstimate = sourceChain && destinationChain ? getTransferTimeSeconds(sourceChain?.slug, destinationChain?.slug) : 0
+  const fixedTimeEstimate = sourceChainSlug && destinationChainSlug ? getTransferTimeSeconds(sourceChainSlug, destinationChainSlug) : 0
 
   const [averageTimeEstimate, setAverageTimeEstimate] = useState<number | null>(null)
   const [medianTimeEstimate, setMedianTimeEstimate] = useState<number | null>(null)
@@ -61,7 +59,7 @@ export const useTransferTimeEstimate = (sourceChainSlug?: string | null, destina
       setIsLoading(false)
     }
     fetchData().catch(console.error)
-  }, [sourceChain, destinationChain])
+  }, [sourceChainSlug, destinationChainSlug])
 
   return { fixedTimeEstimate, averageTimeEstimate, medianTimeEstimate, percentileTimeEstimate, isLoading }
 }

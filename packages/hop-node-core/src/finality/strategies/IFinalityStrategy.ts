@@ -1,5 +1,5 @@
-import type { Chain } from '#constants/index.js'
 import type { providers } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 export enum FinalityStrategyType {
   Bonder = 'bonder',
@@ -15,8 +15,8 @@ export interface IFinalityStrategy {
   getCustomBlockNumber?(): Promise<number>
 }
 
-export type Strategy = new (provider: providers.Provider, chainSlug: Chain) => IFinalityStrategy
+export type Strategy = new (provider: providers.Provider, chainSlug: ChainSlug) => IFinalityStrategy
 
 export type Strategies = Partial<{
-  [value in Chain]: Strategy
+  [value in ChainSlug]: Strategy
 }>

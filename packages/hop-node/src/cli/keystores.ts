@@ -7,10 +7,10 @@ import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 import {
   defaultKeystoreFilePath
 } from '#config/index.js'
-import { entropyToMnemonic } from '@hop-protocol/hop-node-core/keystore'
-import { generateKeystore, recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
+import { entropyToMnemonic } from '@hop-protocol/hop-node-core'
+import { generateKeystore, recoverKeystore } from '@hop-protocol/hop-node-core'
 import { hopArt } from './shared/art.js'
-import { prompt, promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
+import { prompt, promptPassphrase } from '#prompt/index.js'
 import { randomBytes } from 'node:crypto'
 
 enum Actions {

@@ -1,5 +1,4 @@
 import { explorerLink } from '../src/utils/explorerLink'
-import { getTokenDecimals } from '../src/utils/getTokenDecimals'
 import { chainIdToSlug } from '../src/utils/chainIdToSlug'
 import { chainSlugToName } from '../src/utils/chainSlugToName'
 import { chainSlugToId } from '../src/utils/chainSlugToId'
@@ -9,9 +8,6 @@ import { getDefaultRpcUrl } from '../src/utils/getDefaultRpcUrl'
 describe('config', () => {
   it('explorerLink', () => {
     expect(explorerLink('arbitrum')).toBe('https://goerli.arbiscan.io')
-  })
-  it('getTokenDecimals', () => {
-    expect(getTokenDecimals('rETH')).toBe(18)
   })
   it('chainIdToSlug', () => {
     expect(chainIdToSlug(5)).toBe('ethereum')

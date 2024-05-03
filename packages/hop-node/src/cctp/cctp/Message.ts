@@ -144,7 +144,7 @@ export class Message {
         throw new Error(`Attestation not complete: ${JSON.stringify(json)} (messageHash: ${messageHash})`)
       }
 
-      console.log('temp555', messageHash)
+      console.log('temp555', messageHash, json)
       return json.attestation
     })
     throw new Error('Failed to fetch attestation')

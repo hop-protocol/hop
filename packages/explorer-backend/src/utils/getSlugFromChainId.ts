@@ -3,11 +3,11 @@ import { networks } from '../config'
 const getSlugFromChainIdMap:any = {}
 
 for (const chain in networks) {
-  getSlugFromChainIdMap[Number((networks as any)[chain].chainId)] = chain
+  getSlugFromChainIdMap[(networks as any)[chain].chainId] = chain
 }
 
 export function getSlugFromChainId (chainId: number) {
-  const slug = getSlugFromChainIdMap[chainId]
+  const slug = getSlugFromChainIdMap[chainId.toString()]
   if (!slug) {
     throw new Error(`Unknown chain id ${chainId}`)
   }

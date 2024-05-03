@@ -214,7 +214,7 @@ for (const network of getNetworks()) {
       networks[chain.slug] = {}
     }
     networks[chain.slug].name = chain.name
-    networks[chain.slug].chainId = chain.chainId
+    networks[chain.slug].chainId = Number(chain.chainId)
     networks[chain.slug].rpcUrl = chain.publicRpcUrl
     networks[chain.slug].subgraphUrl = chain.subgraphUrl
     coreEnvironment.setRpcUrl(chain.slug, chain.publicRpcUrl)

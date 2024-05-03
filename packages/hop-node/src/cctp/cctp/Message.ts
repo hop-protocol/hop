@@ -118,7 +118,7 @@ export class Message {
    * {"attestation":"0x123...","status":"complete"}
    */
   static async fetchAttestation (messageHash: string): Promise<string> {
-    await mutex.runExclusive(async () => {
+    return await mutex.runExclusive(async () => {
       const url = getAttestationUrl(messageHash)
       console.log('temp000', messageHash)
       const res = await fetch(url)
@@ -147,7 +147,6 @@ export class Message {
       console.log('temp555', messageHash, json)
       return json.attestation
     })
-    throw new Error('Failed to fetch attestation')
   }
 
   // TODO: rm for config

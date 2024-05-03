@@ -9,7 +9,7 @@ import { actionHandler, logger, parseBool, parseNumber, parseString, root } from
 import { swap as dexSwap } from '#swap/index.js'
 import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
 import type Token from '#watchers/classes/Token.js'
-import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, NetworkSlug, getChainNativeTokenSymbol } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 
 root
@@ -45,8 +45,8 @@ async function main (source: any) {
   if (!max && !amount) {
     throw new Error('"max" or "amount" is required')
   }
-  const fromNative = fromToken === getChain(globalConfig.network as NetworkSlug, chain).nativeTokenSymbol
-  const toNative = toToken === getChain(globalConfig.network as NetworkSlug, chain).nativeTokenSymbol
+  const fromNative = fromToken === getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain)
+  const toNative = toToken === getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain)
   if (fromToken === toToken) {
     throw new Error('from-token and to-token cannot be the same')
   }
@@ -274,7 +274,7 @@ function isWrappedNativeToken (token: string, chain: string) {
 }
 
 function isValidChainWrapTokens (chain: string, nativeToken: string, wrappedToken: string) {
-  return getChain(globalConfig.network as NetworkSlug, chain as ChainSlug).nativeTokenSymbol === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
+  return getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain as ChainSlug) === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
 }
 
 const wrappedTokenAddresses: Record<string, string> = {

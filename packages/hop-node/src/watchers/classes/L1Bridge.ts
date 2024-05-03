@@ -17,7 +17,7 @@ import type {
 import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { TxOverrides } from '@hop-protocol/hop-node-core'
 import type { providers } from 'ethers'
-import { getChain } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 
 export default class L1Bridge extends Bridge {
   TransferRootBonded: string = 'TransferRootBonded'
@@ -239,7 +239,7 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = getChain(destinationChainId.toString()).slug
+    const destinationChain = getChainSlug(destinationChainId.toString())
     if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)
@@ -290,7 +290,7 @@ export default class L1Bridge extends Bridge {
     }
 
     let nearestItemToTransferSent
-    const destinationChain = getChain(destinationChainId.toString()).slug
+    const destinationChain = getChainSlug(destinationChainId.toString())
     if (RelayableChains.L1_TO_L2.includes(destinationChain) && !options?.shouldSkipNearestCheck) {
       const transactionType = GasCostTransactionType.BondWithdrawal
       const now = Math.floor(Date.now() / 1000)

@@ -1,5 +1,5 @@
 import type { ChainSlug } from '@hop-protocol/sdk'
-import { getChain } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 import type { EventFilter, providers} from 'ethers'
 import { utils } from 'ethers'
 import type { OnchainEventIndexerDB, LogWithChainId } from '#cctp/db/OnchainEventIndexerDB.js'
@@ -76,7 +76,7 @@ export class OnchainEventIndexer {
 
   // FilterID is unique per chain and event filter. The filter can technically match on multiple chains.
   #getUniqueFilterId = (chainId: number, eventFilter: RequiredEventFilter): string => {
-    const chainSlug = getChain(chainId.toString()).slug
+    const chainSlug = getChainSlug(chainId.toString())
     const bytesId = utils.toUtf8Bytes(chainSlug + JSON.stringify(eventFilter))
     return utils.keccak256(bytesId)
   }

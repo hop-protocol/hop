@@ -1,6 +1,6 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import { BigNumber } from 'ethers'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { ChainPollMultiplier } from '#constants/index.js'
 import {
   TxRetryDelayMs,
@@ -134,7 +134,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
 
-    const usePendingCountCommitThreshold = this.shouldUsePendingCountCommitThreshold(this.chainSlug, getChain(destinationChainId.toString()).slug)
+    const usePendingCountCommitThreshold = this.shouldUsePendingCountCommitThreshold(this.chainSlug, getChainSlug(destinationChainId.toString()))
     let pendingCountOk = false
     if (usePendingCountCommitThreshold) {
       pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)

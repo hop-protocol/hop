@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import { CCTP_DOMAIN_MAP } from '#cctp/cctp/utils.js'
-import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, NetworkSlug, getChainSlug } from '@hop-protocol/sdk'
 import { Message } from '#cctp/cctp/Message.js'
 import { actionHandler, root } from './shared/index.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core'
@@ -65,7 +65,7 @@ async function main (source: any) {
 
   for (const transferSent of transfersSent) {
     const { nonce, destinationChainId, sourceChainId } = transferSent
-    const destinationChain = getChain(destinationChainId.toString()).slug
+    const destinationChain = getChainSlug(destinationChainId.toString())
     const isRelayed = transfersRelayed.find((transferRelayed) => {
       return transferRelayed.nonce === nonce && transferRelayed.sourceChainId === sourceChainId
     })
@@ -74,7 +74,7 @@ async function main (source: any) {
     }
 
     // TODO: Better
-    const sourceChain = getChain(transferSent.sourceChainId).slug
+    const sourceChain = getChainSlug(transferSent.sourceChainId)
     const sourceProvider = getRpcProvider(sourceChain)
     const transaction = await sourceProvider.getTransaction(transferSent.transactionHash)
     const block = await sourceProvider.getBlock(transaction.blockNumber!)

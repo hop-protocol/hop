@@ -2,7 +2,7 @@ import { BigNumber } from 'ethers'
 import { Message } from '#cctp/cctp/Message.js'
 import { getRpcProvider, wallets } from '@hop-protocol/hop-node-core'
 import type { RequiredFilter } from '#cctp/indexer/OnchainEventIndexer.js'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 
 import { actionHandler, parseString, parseStringArray, root } from './shared/index.js'
@@ -64,7 +64,7 @@ async function getDestinationChainFromTxHash (chain: string, txHash: string): Pr
       }
 
       const destinationChainIdString = BigNumber.from(destinationChainId).toString()
-      return getChain(destinationChainIdString).slug
+      return getChainSlug(destinationChainIdString)
     }
   }
 

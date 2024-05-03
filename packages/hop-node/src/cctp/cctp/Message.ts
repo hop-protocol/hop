@@ -6,14 +6,14 @@ import {
   getHopCCTPContract,
   getMessageTransmitterContract
 } from './utils.js'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import type { NetworkSlug } from '@hop-protocol/sdk'
 import { MinPolygonGasPrice } from '@hop-protocol/hop-node-core'
 import type { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { config as globalConfig } from '#config/index.js'
 import { Mutex } from 'async-mutex'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { wait } from '@hop-protocol/hop-node-core'
 
 // Temp to handle API rate limit
 const mutex = new Mutex()
@@ -152,7 +152,7 @@ export class Message {
 
   // TODO: rm for config
   static async getTxOverrides (chainId: number): Promise<any>{
-    const chainSlug = getChain(chainId.toString()).slug
+    const chainSlug = getChainSlug(chainId.toString())
     const provider = getRpcProvider(chainSlug)
     const txOptions: any = {}
 

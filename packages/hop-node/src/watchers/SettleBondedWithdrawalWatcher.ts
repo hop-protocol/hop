@@ -1,7 +1,7 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import MerkleTree from '#utils/MerkleTree.js'
 import { wallets } from '@hop-protocol/hop-node-core'
-import { ChainSlug, TokenSymbol, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, TokenSymbol, getChainSlug } from '@hop-protocol/sdk'
 import { Contract } from 'ethers'
 import { type WithdrawalProofData, getWithdrawalProofData } from '#utils/getWithdrawalProofData.js'
 import { config as globalConfig } from '#config/index.js'
@@ -171,7 +171,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     // If there is no resource constraint, settle all
-    const destChainSlug = getChain(destChainId.toString()).slug
+    const destChainSlug = getChainSlug(destChainId.toString())
     if (
       destChainSlug !== ChainSlug.PolygonZk ||
       transferIds.length <= maxNumTransferIds

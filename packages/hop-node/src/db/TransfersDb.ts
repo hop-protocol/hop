@@ -12,7 +12,7 @@ import {
   TxError
 } from '#constants/index.js'
 import { TxRetryDelayMs } from '#config/index.js'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { transfersMigrations } from './migrations.js'
 
 interface BaseTransfer {
@@ -379,7 +379,7 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const sourceChainSlug = getChain(item.sourceChainId.toString()).slug
+      const sourceChainSlug = getChainSlug(item.sourceChainId.toString())
       if (sourceChainSlug !== ChainSlug.Ethereum) {
         return false
       }
@@ -398,7 +398,7 @@ class TransfersDb extends BaseDb<Transfer> {
         return false
       }
 
-      const destinationChain = getChain(item.destinationChainId.toString()).slug
+      const destinationChain = getChainSlug(item.destinationChainId.toString())
       const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
       if (!isRelayable) {
         return false
@@ -534,10 +534,10 @@ class TransfersDb extends BaseDb<Transfer> {
 
   #normalizeTransferValue = (item: Transfer): Transfer => {
     if (item.destinationChainId) {
-      item.destinationChainSlug = getChain(item.destinationChainId.toString()).slug
+      item.destinationChainSlug = getChainSlug(item.destinationChainId.toString())
     }
     if (item.sourceChainId) {
-      item.sourceChainSlug = getChain(item.sourceChainId.toString()).slug
+      item.sourceChainSlug = getChainSlug(item.sourceChainId.toString())
     }
     if (item.deadline !== undefined) {
       // convert number to BigNumber for backward compatibility reasons

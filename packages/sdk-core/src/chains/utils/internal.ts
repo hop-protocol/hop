@@ -18,7 +18,6 @@ export function getChainByChainId(chainId: string): Chain {
   throw new Error(`Chain with chainId ${chainId} not found`)
 }
 
-
 export function getChainByNetworkSlugAndChainSlug(networkSlug: NetworkSlug, chainSlug: ChainSlug): Chain {
   const chain: Chain | undefined = networks[networkSlug].chains?.[chainSlug]
   if (!chain) {

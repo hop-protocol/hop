@@ -5,7 +5,6 @@ import { BigNumber } from 'ethers'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
-  enableEmergencyMode,
   getBonderTotalStake,
   getNetworkCustomSyncType,
   config as globalConfig
@@ -40,7 +39,7 @@ L2_Bridge as L2BridgeContract
 import type { Logger } from '@hop-protocol/hop-node-core'
 import type { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
 import type { providers } from 'ethers'
-import { ChainSlug, getChain, getToken, TokenSymbol } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug, getTokenDecimals, TokenSymbol } from '@hop-protocol/sdk'
 
 type Config = {
   chainSlug: string
@@ -446,7 +445,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   private async filterTransfersBySyncTypeThreshold (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
     const finalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
 
-    const decimals = getToken(this.tokenSymbol as TokenSymbol).decimals
+    const decimals = getTokenDecimals(this.tokenSymbol as TokenSymbol)
     const inFlightAmount: BigNumber = await this.getInFlightAmount(dbTransfers)
     const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
     const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
@@ -520,7 +519,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       // L1 to L2 transfers are not bonded by the bonder so they are not considered in flight.
       // Checking bonderFeeTooLow could be a false positive since the bonder bonds relative to the current gas price.
-      const sourceChainSlug = getChain(dbTransfer.sourceChainId.toString()).slug
+      const sourceChainSlug = getChainSlug(dbTransfer.sourceChainId.toString())
       return (
         sourceChainSlug !== ChainSlug.Ethereum &&
         dbTransfer.transferSentTimestamp >= inFlightCutoffTimestampSec &&
@@ -546,7 +545,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return BigNumber.from(0)
     }
 
-    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getToken(this.tokenSymbol as TokenSymbol).decimals)
+    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol as TokenSymbol))
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 

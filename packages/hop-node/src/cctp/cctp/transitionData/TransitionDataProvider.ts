@@ -1,7 +1,7 @@
 import { APIEventStore } from './ApiEventStore.js'
 import { BigNumber } from 'ethers'
 import type { ChainSlug } from '@hop-protocol/sdk'
-import { getChain } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 import type {
   IAPIEventStoreRes,
   IDataStore,
@@ -142,7 +142,7 @@ export class TransitionDataProvider<T extends MessageState, U extends IMessage> 
   async #getMessageFromHopCCTPTransferLog (log: LogWithChainId, nonce: number): Promise<string> {
     const { chainId, blockNumber } = log
 
-    const chain = getChain(chainId.toString()).slug
+    const chain = getChainSlug(chainId.toString())
     const provider = getRpcProvider(chain)
     const eventFilter = Message.getMessageSentEventFilter(chainId)
     const filter: RequiredFilter = {

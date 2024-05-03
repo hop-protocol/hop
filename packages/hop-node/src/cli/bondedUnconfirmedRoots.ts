@@ -2,7 +2,7 @@ import getTransferRootBonded from '#theGraph/getTransferRootBonded.js'
 import getTransferRootConfirmed from '#theGraph/getTransferRootConfirmed.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber } from 'ethers'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
 import { PreRegenesisRootsCommitted } from '#constants/index.js'
 import { actionHandler, parseString, root } from './shared/index.js'
@@ -86,7 +86,7 @@ async function getRootsCommitted (
 
   for (const preRegenesisRootCommitted of PreRegenesisRootsCommitted) {
     if (preRegenesisRootCommitted.token !== token) continue
-    if (getChain(preRegenesisRootCommitted.sourceChainId).slug !== chain) continue
+    if (getChainSlug(preRegenesisRootCommitted.sourceChainId) !== chain) continue
 
     rootsCommitted.push({
       rootHash: preRegenesisRootCommitted.rootHash,

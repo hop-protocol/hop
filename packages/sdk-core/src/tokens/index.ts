@@ -1,6 +1,6 @@
 import type { Token } from './types.js'
 import { TokenSymbol } from './types.js'
-import { _getToken } from './utils/internal.js'
+import { tokens } from './tokens.js'
 
 /**
  * Types and utils
@@ -16,7 +16,7 @@ export * from './utils/index.js'
  */
 
 export const getToken = (symbol: TokenSymbol): Token => {
-  return _getToken(symbol)
+  return tokens[symbol]
 }
 
 export const getTokens = (): Token[] => {

@@ -4,7 +4,7 @@ import getTransferRootId from '#utils/getTransferRootId.js'
 import getTransferSent from '#theGraph/getTransferSent.js'
 import isTokenSupportedForChain from '#utils/isTokenSupportedForChain.js'
 import { BigNumber, Contract, utils } from 'ethers'
-import { ChainSlug, TokenSymbol, getChain, getToken } from '@hop-protocol/sdk'
+import { ChainSlug, TokenSymbol, getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
 import { type L1BridgeProps, type L2BridgeProps, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { Logger } from '@hop-protocol/hop-node-core'
@@ -179,7 +179,7 @@ class IncompleteSettlementsWatcher {
     const concurrency = 20
     await promiseQueue(logs, async (log: any, i: number) => {
       const { rootHash, totalAmount, destinationChainId } = log.args
-      const destinationChain = getChain(destinationChainId.toString()).slug
+      const destinationChain = getChainSlug(destinationChainId.toString())
       this.rootHashMeta[rootHash] = {
         token,
         sourceChain: chain,
@@ -384,7 +384,7 @@ class IncompleteSettlementsWatcher {
       const timestamp = this.rootHashTimestamps[rootHash]
       const isConfirmed = !!this.rootHashConfirmeds[rootHash]
       const isSet = !!this.rootHashSets[rootHash]
-      const tokenDecimals = getToken(token as TokenSymbol).decimals
+      const tokenDecimals = getTokenDecimals(token as TokenSymbol)
       // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
@@ -470,7 +470,7 @@ class IncompleteSettlementsWatcher {
 
   private async getUnsettledTransfers (rootHash: string) {
     const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
-    const tokenDecimals = getToken(token as TokenSymbol).decimals
+    const tokenDecimals = getTokenDecimals(token as TokenSymbol)
     const contract = this.getContract(destinationChain, token)
     const transferIds = await this.rootTransferIds[rootHash] || []
     const unsettledTransfers: any[] = []

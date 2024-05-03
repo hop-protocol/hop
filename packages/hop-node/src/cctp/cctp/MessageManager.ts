@@ -1,6 +1,6 @@
 import { wallets } from '@hop-protocol/hop-node-core'
 import type { ChainSlug } from '@hop-protocol/sdk'
-import { getChain } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 import { FSMPoller } from '../fsm/FSMPoller.js'
 import { Message } from './Message.js'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
@@ -204,7 +204,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     }
     RELAY_CACHE.add(messageNonce)
 
-    const chainSlug = getChain(destinationChainId.toString()).slug
+    const chainSlug = getChainSlug(destinationChainId.toString())
     const wallet = wallets.get(chainSlug)
     // TODO: better err handling
     // error={"reason":"execution reverted: Nonce already used"

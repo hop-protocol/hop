@@ -8,7 +8,7 @@ import RelayWatcher from './RelayWatcher.js'
 import SettleBondedWithdrawalWatcher from './SettleBondedWithdrawalWatcher.js'
 import SyncWatcher from './SyncWatcher.js'
 import contracts from '#contracts/index.js'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { MetricsServer } from '#metrics/index.js'
 import { Watchers, getAllChains, getAllTokens, config as globalConfig } from '#config/index.js'
 import { Logger } from '@hop-protocol/hop-node-core'
@@ -323,7 +323,7 @@ function getSiblingWatchers (config: GetSiblingWatchersConfig, init: (conf: GetS
         continue
       }
 
-      const slug = getChain(chainId.toString()).slug
+      const slug = getChainSlug(chainId.toString())
 
       // Skip watcher if it's not specified as route
       if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {

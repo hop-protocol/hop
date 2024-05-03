@@ -4,7 +4,7 @@ import { PriceFeed } from './PriceFeed.js'
 import { db } from './Db.js'
 import { enabledChains, enabledTokens } from './config.js'
 import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
-import { getTokenDecimals } from './utils/getTokenDecimals.js'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { nearestDate } from './utils/nearestDate.js'
 import { queryFetch } from './utils/queryFetch.js'
@@ -163,7 +163,7 @@ export class AmmStats {
           }
 
           try {
-            const tokenDecimals = getTokenDecimals(token)
+            const tokenDecimals = getTokenDecimals(token as TokenSymbol)
             console.log('fetching token swaps', chain, token, i)
             const events = await this.fetchTokenSwaps(
               chain,

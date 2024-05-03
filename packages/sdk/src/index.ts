@@ -48,8 +48,11 @@ export {
   fetchJsonOrThrow,
   getChain,
   getChains,
+  getChainNativeTokenSymbol,
+  getChainSlug,
   getToken,
   getTokens,
+  getTokenDecimals,
   getNetwork,
   getNetworks,
   getMinGasLimit,
@@ -65,7 +68,7 @@ export {
 } from '@hop-protocol/sdk-core'
 
 export { TokenModel } from '#models/index.js'
-export { getProviderFromUrl, getTokenDecimals } from '#utils/index.js'
+export { getProviderFromUrl } from '#utils/index.js'
 
 if (typeof window !== 'undefined') {
   (window as any).Hop = Hop

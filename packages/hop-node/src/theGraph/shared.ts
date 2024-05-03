@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { utils } from 'ethers'
-import { getChain, getToken } from '@hop-protocol/sdk'
+import { getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 
 export type Filters = {
   startDate: string
@@ -22,14 +22,14 @@ export function normalizeEntity (x: any) {
   }
   if (x.sourceChainId) {
     x.sourceChainId = Number(x.sourceChainId)
-    x.sourceChain = getChain(x.sourceChainId.toString()).slug
+    x.sourceChain = getChainSlug(x.sourceChainId.toString())
   }
   if (x.destinationChainId) {
     x.destinationChainId = Number(x.destinationChainId)
-    x.destinationChain = getChain(x.destinationChainId.toString()).slug
+    x.destinationChain = getChainSlug(x.destinationChainId.toString())
   }
 
-  const decimals = getToken(x.token).decimals
+  const decimals = getTokenDecimals(x.token)
 
   // TODO: use correct decimal places for future assets
   if (x.amount) {

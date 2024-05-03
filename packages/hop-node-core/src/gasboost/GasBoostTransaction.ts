@@ -22,7 +22,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { wait } from '#utils/wait.js'
 import type { Signer, providers } from 'ethers'
 import type { Store } from './Store.js'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 
 type TransactionRequestWithHash = providers.TransactionRequest & {
   hash: string
@@ -153,7 +153,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.setOptions(options)
 
     this.chainId = Number(chainId)
-    this.chainSlug = getChain(this.chainId.toString()).slug
+    this.chainSlug = getChainSlug(this.chainId.toString())
     const tag = 'GasBoostTransaction'
     const prefix = `id: ${this.id}`
     this.logId = prefix

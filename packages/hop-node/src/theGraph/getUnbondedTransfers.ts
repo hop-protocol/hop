@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
 import makeRequest from './makeRequest.js'
-import { ChainSlug, getChain, getToken } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 import { DateTime } from 'luxon'
 import { utils } from 'ethers'
 import { padHex } from '#utils/padHex.js'
@@ -387,7 +387,7 @@ async function getTransfersData (startTime: number, endTime: number) {
   console.log('getTransfersData: mapping transfers to bonds')
 
   data.forEach((x: any) => {
-    const bonds = bondsMap[getChain(x.destinationChain.toString()).slug]
+    const bonds = bondsMap[getChainSlug(x.destinationChain.toString())]
     if (bonds) {
       const bond = bonds[x.transferId]
       if (bond) {
@@ -402,11 +402,11 @@ async function getTransfersData (startTime: number, endTime: number) {
   console.log('getTransfersData: mapping events to l1CompletedsMap')
 
   data.forEach((x: any) => {
-    const sourceChain = getChain(x.sourceChain.toString()).slug
+    const sourceChain = getChainSlug(x.sourceChain.toString())
     if (sourceChain !== ChainSlug.Ethereum) {
       return false
     }
-    const events = l1CompletedsMap[getChain(x.destinationChain.toString()).slug]
+    const events = l1CompletedsMap[getChainSlug(x.destinationChain.toString())]
     if (events) {
       for (const event of events) {
         if (
@@ -663,11 +663,11 @@ async function fetchTransferFromL1Completeds (chain: ChainSlug, startTime: numbe
 function populateTransfer (x: any, i: number) {
   x.timestamp = Number(x.timestamp)
   const transferTime = DateTime.fromSeconds(x.timestamp)
-  x.sourceChainSlug = getChain(x.sourceChain.toString()).slug
-  x.destinationChainSlug = getChain(x.destinationChain.toString()).slug
+  x.sourceChainSlug = getChainSlug(x.sourceChain.toString())
+  x.destinationChainSlug = getChainSlug(x.destinationChain.toString())
   x.receiveStatusUnknown = x.sourceChain === 1 && !x.bonded && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 5)
 
-  const decimals = getToken(x.token).decimals
+  const decimals = getTokenDecimals(x.token)
   x.formattedAmount = Number(utils.formatUnits(x.amount, decimals))
   x.formattedBonderFee = x.bonderFee ? Number(utils.formatUnits(x.bonderFee, decimals)) : 0
 

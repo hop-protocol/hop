@@ -22,7 +22,7 @@ import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
 import { getUnbondedTransfers } from '#theGraph/getUnbondedTransfers.js'
 import { wait } from '@hop-protocol/hop-node-core'
-import { ChainSlug, TokenSymbol, getChain, getToken } from '@hop-protocol/sdk'
+import { ChainSlug, TokenSymbol, getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 import type { Routes } from '@hop-protocol/sdk/addresses'
 import type { TransferBondChallengedEvent } from '@hop-protocol/sdk/contracts/L1_Bridge'
 import type { providers } from 'ethers'
@@ -648,7 +648,7 @@ export class HealthCheckWatcher {
         availableLiquidity = BigNumber.from(0)
       }
 
-      const tokenDecimals = getToken(token as TokenSymbol).decimals
+      const tokenDecimals = getTokenDecimals(token as TokenSymbol)
       const availableLiquidityFormatted = Number(utils.formatUnits(availableLiquidity, tokenDecimals))
       const totalLiquidityFormatted = Number(utils.formatUnits(totalLiquidity, tokenDecimals))
       const oneToken = utils.parseUnits('1', tokenDecimals)
@@ -870,7 +870,7 @@ export class HealthCheckWatcher {
           const transferRootHash = event.args.rootHash.toString()
           const transferRootId = event.args.transferRootId.toString()
           const originalAmount = event.args.originalAmount.toString()
-          const tokenDecimals = getToken(token as TokenSymbol).decimals
+          const tokenDecimals = getTokenDecimals(token as TokenSymbol)
           const originalAmountFormatted = Number(utils.formatUnits(originalAmount, tokenDecimals))
           const data = {
             token,
@@ -1009,7 +1009,7 @@ export class HealthCheckWatcher {
       const receiveHashesFounds: any = {}
       for (const transferSent of transfersSent) {
         const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
-        const destinationChain = getChain(destinationChainId.toString()).slug
+        const destinationChain = getChainSlug(destinationChainId.toString())
         if (destinationChain !== chain) {
           continue
         }

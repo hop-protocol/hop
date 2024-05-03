@@ -13,7 +13,7 @@ import { actionHandler, parseBool, parseString, root } from './shared/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
-import { getToken } from '@hop-protocol/sdk'
+import { getTokenDecimals } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 import type { Contract, providers } from 'ethers'
 
@@ -186,7 +186,7 @@ export async function main (source: any) {
   let chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
 
   if (allowRoundingError) {
-    const decimals: number = getToken(token).decimals
+    const decimals: number = getTokenDecimals(token)
     const roundingError = ethersUtils.parseUnits('0.0001', decimals).mul(-1)
     if (chainBalanceHTokenDiff.isNegative() && chainBalanceHTokenDiff.gte(roundingError)) {
       chainBalanceHTokenDiff = BigNumber.from(0)
@@ -563,7 +563,7 @@ function logValues (
   hTokenAdjustments: HTokenAdjustmentData[],
   metaBlockData: Record<string, MetaBlockData>
 ): void {
-  const decimals: number = getToken(token).decimals
+  const decimals: number = getTokenDecimals(token)
 
   console.log(`\n\n${token} Logs`)
   console.log(`MetaBlockData: ${JSON.stringify(metaBlockData)}`)

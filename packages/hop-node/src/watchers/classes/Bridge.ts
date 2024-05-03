@@ -31,7 +31,7 @@ import type {
 } from '@hop-protocol/sdk/contracts/Bridge'
 import type { State } from '#db/SyncStateDb.js'
 import type { TxOverrides } from '@hop-protocol/hop-node-core'
-import { getToken } from '@hop-protocol/sdk'
+import { getTokenDecimals } from '@hop-protocol/sdk'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -848,7 +848,7 @@ export default class Bridge extends ContractBase {
     if (destinationChain === ChainSlug.Optimism || destinationChain === ChainSlug.Base) {
       minBonderFeeUsd = 0.10
     }
-    const tokenDecimals = getToken(tokenSymbol as TokenSymbol).decimals
+    const tokenDecimals = getTokenDecimals(tokenSymbol as TokenSymbol)
     let minBonderFeeAbsolute = utils.parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
@@ -963,7 +963,7 @@ export default class Bridge extends ContractBase {
   }
 
   async getGasCostTokenValues (symbol: string) {
-    const decimals = getToken(symbol as TokenSymbol).decimals
+    const decimals = getTokenDecimals(symbol as TokenSymbol)
     let priceUsd
     try {
       priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!

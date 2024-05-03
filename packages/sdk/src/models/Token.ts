@@ -1,6 +1,6 @@
 import {
   TokenSymbol,
-  getToken,
+  getTokenDecimals,
   isValidTokenSymbol
 } from '@hop-protocol/sdk-core'
 import { utils } from 'ethers'
@@ -60,7 +60,7 @@ export class TokenModel {
       if (!isValidTokenSymbol(symbol)) {
         throw new Error('invalid token symbol')
       }
-      this.decimals = getToken(symbol).decimals
+      this.decimals = getTokenDecimals(symbol)
     }
   }
 

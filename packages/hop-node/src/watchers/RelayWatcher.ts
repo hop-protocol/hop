@@ -21,7 +21,7 @@ import type { Logger } from '@hop-protocol/hop-node-core'
 import type { RelayableTransferRoot, TransferRootRelayProps } from '#db/TransferRootsDb.js'
 import type { Transfer, UnrelayedSentTransfer } from '#db/TransfersDb.js'
 import type { providers } from 'ethers'
-import { getChain } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 
 type Config = {
   chainSlug: string
@@ -410,7 +410,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async sendRelayTx (destinationChainId: number, txHash: string, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const destinationChainSlug = getChain(destinationChainId.toString()).slug
+    const destinationChainSlug = getChainSlug(destinationChainId.toString())
     const enabledNetworks = getEnabledNetworks()
     if (!enabledNetworks.includes(destinationChainSlug)) {
       throw new Error(`RelayWatcher: sendRelayTx: destination chain id "${destinationChainId}" not enabled`)

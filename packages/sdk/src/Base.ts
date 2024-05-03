@@ -13,7 +13,7 @@ import {
   getMinGasLimit,
   getMinGasPrice,
   getChain,
-  getNetwork,
+  getChains,
   getToken,
   getUrlFromProvider,
   promiseTimeout,
@@ -237,7 +237,7 @@ export class Base {
       this.chainProviders = chainProviders
     }
 
-    this.chains = getNetwork(network).chains
+    this.chains = getChains(network)
     this.addresses = sdkConfig[network].addresses
     this.bonders = sdkConfig[network].bonders
 

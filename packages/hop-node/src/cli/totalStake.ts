@@ -1,7 +1,7 @@
 import getStake from '#theGraph/getStake.js'
 import getUnstake from '#theGraph/getUnstake.js'
 import { BigNumber, utils } from 'ethers'
-import { ChainSlug, TokenSymbol, getToken } from '@hop-protocol/sdk'
+import { ChainSlug, TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 import { actionHandler, parseString, root } from './shared/index.js'
 
 root
@@ -37,7 +37,7 @@ async function main (source: any) {
     }
 
     totalStake = getAdditionalAmounts(chain, token, bonder, totalStake)
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     console.log(chain, utils.formatUnits(totalStake, decimals))
   }
 }
@@ -54,7 +54,7 @@ function getAdditionalAmounts (
     token === 'USDC' &&
     bonder.toLowerCase() === '0xa6a688f107851131f0e1dce493ebbebfaf99203e'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('250000', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -65,7 +65,7 @@ function getAdditionalAmounts (
     token === 'USDC' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('49', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -76,7 +76,7 @@ function getAdditionalAmounts (
     token === 'USDC' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('740', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -87,7 +87,7 @@ function getAdditionalAmounts (
     token === 'USDC' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('5020', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -98,7 +98,7 @@ function getAdditionalAmounts (
     token === 'USDT' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('8492', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -109,7 +109,7 @@ function getAdditionalAmounts (
     token === 'USDT' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('300', decimals)
     totalAmount = totalAmount.sub(amount)
   }
@@ -120,7 +120,7 @@ function getAdditionalAmounts (
     token === 'ETH' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('0.000001', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -131,7 +131,7 @@ function getAdditionalAmounts (
     token === 'ETH' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('0.000001', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -142,7 +142,7 @@ function getAdditionalAmounts (
     token === 'ETH' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('1', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -153,7 +153,7 @@ function getAdditionalAmounts (
     token === 'ETH' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('1.5', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -164,7 +164,7 @@ function getAdditionalAmounts (
     token === 'ETH' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('1', decimals)
     totalAmount = totalAmount.add(amount)
   }
@@ -175,7 +175,7 @@ function getAdditionalAmounts (
     token === 'DAI' &&
     bonder.toLowerCase() === '0x2a6303e6b99d451df3566068ebb110708335658f'
   ) {
-    const decimals = getToken(token as TokenSymbol).decimals
+    const decimals = getTokenDecimals(token as TokenSymbol)
     const amount = utils.parseUnits('45', decimals)
     totalAmount = totalAmount.add(amount)
   }

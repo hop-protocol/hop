@@ -13,7 +13,7 @@ import {
   getExponentialBackoffDelayMs
 } from '@hop-protocol/hop-node-core'
 import { TxRetryDelayMs } from '#config/index.js'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChain, getChainSlug } from '@hop-protocol/sdk'
 import { transferRootsMigrations } from './migrations.js'
 import type { BigNumber } from 'ethers'
 import { Mutex } from 'async-mutex'
@@ -370,7 +370,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const sourceChain = getChain(item.sourceChainId.toString()).slug
+      const sourceChain = getChainSlug(item.sourceChainId.toString())
       const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
       if (!doesChainSupportRootBond) {
         return false
@@ -439,7 +439,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const sourceChain = getChain(item.sourceChainId.toString()).slug
+      const sourceChain = getChainSlug(item.sourceChainId.toString())
       const isRelayable = RelayableChains.L2_TO_L1.includes(sourceChain)
       if (!isRelayable) {
         return false
@@ -557,7 +557,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const destinationChain = getChain(item.destinationChainId.toString()).slug
+      const destinationChain = getChainSlug(item.destinationChainId.toString())
       const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
       if (!isRelayable) {
         return false
@@ -660,7 +660,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
       let rootSetTimestampOk = true
-      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && getChain(filter.destinationChainId.toString()).slug === ChainSlug.Gnosis
+      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && getChainSlug(filter.destinationChainId.toString()) === ChainSlug.Gnosis
       if (checkRootSetTimestamp) {
         rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now()
       }

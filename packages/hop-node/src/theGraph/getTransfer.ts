@@ -3,7 +3,7 @@ import getTransferRootForTransferId from './getTransferRootForTransferId.js'
 import makeRequest from './makeRequest.js'
 import { normalizeEntity } from './shared.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core'
-import { getChain } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 
 export default async function getTransfer (chain: string, token: string, transferId: string): Promise<any> {
   let query = `
@@ -52,7 +52,7 @@ export default async function getTransfer (chain: string, token: string, transfe
   transfer.sourceChain = chain
   transfer = normalizeEntity(transfer)
 
-  const destinationChain = getChain(transfer.destinationChainId.toString()).slug
+  const destinationChain = getChainSlug(transfer.destinationChainId.toString())
   const bondedWithdrawal = await getBondedWithdrawal(destinationChain, token, transferId)
   transfer.bondedWithdrawalEvent = bondedWithdrawal
   transfer.bonded = !!bondedWithdrawal

@@ -20,7 +20,7 @@ import { chainIdToHex } from 'src/utils/chainIdToHex'
 import { ethers } from 'ethers'
 import { l1Network } from 'src/config/networks'
 import { networkSlugToId } from 'src/utils'
-import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
+import { NetworkSlug, getChains } from '@hop-protocol/sdk'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 export type Props = {
@@ -39,18 +39,17 @@ export type Props = {
 class NetworkSwitchError extends Error {}
 
 function getOnboardChains(): any {
-  const chains = getNetwork(reactAppNetwork as NetworkSlug).chains
+  const chains = getChains(reactAppNetwork as NetworkSlug)
   const onboardChains :any[] = []
 
-  for (const chainSlug in chains) {
-    const chainObj = chains[chainSlug]
-    const id = chainIdToHex(Number(chainObj.chainId))
-    const token = chains?.[chainSlug]?.nativeTokenSymbol
-    const label = `${chainObj.name} ${capitalize(reactAppNetwork)}`
-    let rpcUrl = chainObj.publicRpcUrl
+  for (const chain of chains) {
+    const id = chainIdToHex(Number(chain.chainId))
+    const token = chain.nativeTokenSymbol
+    const label = `${chain.name} ${capitalize(reactAppNetwork)}`
+    let rpcUrl = chain.publicRpcUrl
 
     // overrides
-    if (chainSlug === 'linea') {
+    if (chain.slug === 'linea') {
       if (isGoerli) {
         rpcUrl = 'https://rpc.goerli.linea.build'
       }

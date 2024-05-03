@@ -15,7 +15,7 @@ import { getProviderChainSlug } from '#utils/getProviderChainSlug.js'
 import type { Contract, providers } from 'ethers'
 import type { Event } from '@ethersproject/contracts'
 import type { TxOverrides } from '@hop-protocol/hop-node-core'
-import { ChainSlug, getChain } from '@hop-protocol/sdk'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 
 export default class ContractBase extends EventEmitter {
   contract: Contract
@@ -66,7 +66,7 @@ export default class ContractBase extends EventEmitter {
   }
 
   chainIdToSlug (chainId: number): ChainSlug {
-    return getChain(chainId.toString()).slug
+    return getChainSlug(chainId.toString())
   }
 
   chainSlugToId (chainSlug: string): number {

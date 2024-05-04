@@ -590,9 +590,12 @@ export class TransferStats {
   }
 
   async getTransferIdEvents (transferId: string) {
+    console.log('temp-AAA', transferId, enabledChains)
     const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
+      console.log('temp-BBB', transferId, chain)
       return fetchTransferSentsForTransferId(chain, transferId)
     }))
+    console.log('temp-CCC', transferId, enabledChainTransfers)
 
     const enabledChainTransfersCctp = await Promise.all(enabledChains.map((chain: string) => {
       return fetchCctpTransferSentsForTransferId(chain, transferId)
@@ -616,7 +619,7 @@ export class TransferStats {
     }
 
     console.log('fetching data for transferId', transferId)
-    console.log('temp000')
+    console.log('temp000', transferId)
     const events = await this.getTransferIdEvents(transferId)
     console.log('temp111', events)
     const data = await this.normalizeTransferSentEvents(events)

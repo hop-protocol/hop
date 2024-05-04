@@ -2,23 +2,20 @@ import OsWatcher from '#watchers/OsWatcher.js'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
-  config as globalConfig
+  config as globalConfig,
+  slackAuthToken,
+  slackChannel,
+  slackUsername,
 } from '#config/index.js'
 import { HealthCheckWatcher } from '#watchers/HealthCheckWatcher.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared/index.js'
 import { utils } from 'ethers'
 import { main as enableCCTP } from './shared/cctp.js'
-import {
-  gitRev,
-  slackAuthToken,
-  slackChannel,
-  slackUsername
-} from '@hop-protocol/hop-node-core/config'
 import { printHopArt } from './shared/art.js'
 import {
   startWatchers
 } from '#watchers/watchers.js'
-import type { AssetSymbol } from '@hop-protocol/sdk/config'
+import { gitRev } from '#config/index.js'
 
 root
   .description('Start Hop node')
@@ -127,7 +124,7 @@ async function main (source: any) {
     if (totalStake) {
       for (const token of tokens) {
         if (token in totalStake) {
-          logger.info(`bonder total stake for ${token}: ${totalStake[token as AssetSymbol]}`)
+          logger.info(`bonder total stake for ${token}: ${totalStake[token]}`)
         }
       }
     }

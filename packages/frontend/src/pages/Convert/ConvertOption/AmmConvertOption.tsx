@@ -73,7 +73,7 @@ class AmmConvertOption extends ConvertOption {
       sourceNetwork,
       destNetwork,
       isConvertingToHToken,
-      bridge.getTokenSymbol()
+      bridge.getTokenSymbol() as TokenSymbol
     )
 
     return {

@@ -1,19 +1,19 @@
 import getTransferRootBonded from './getTransferRootBonded.js'
 import getTransferRootConfirmed from './getTransferRootConfirmed.js'
 import getTransferRootSet from './getTransferRootSet.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { getAllChains } from '#config/index.js'
 
 export default async function getUnsetTransferRoots (startDate: number, endDate: number, token: string = '') {
   const transferRoots: Record<string, any> = {}
-  console.log('fetching bonded roots', Chain.Ethereum, startDate, endDate)
-  let items = await getTransferRootBonded(Chain.Ethereum, token, startDate, endDate)
+  console.log('fetching bonded roots', ChainSlug.Ethereum, startDate, endDate)
+  let items = await getTransferRootBonded(ChainSlug.Ethereum, token, startDate, endDate)
   for (const item of items) {
     transferRoots[item.root] = { ...item, rootHash: item.root, totalAmount: item.amount }
   }
 
-  console.log('fetching confirmed roots', Chain.Ethereum, startDate, endDate)
-  items = await getTransferRootConfirmed(Chain.Ethereum, token, startDate, endDate)
+  console.log('fetching confirmed roots', ChainSlug.Ethereum, startDate, endDate)
+  items = await getTransferRootConfirmed(ChainSlug.Ethereum, token, startDate, endDate)
   for (const item of items) {
     transferRoots[item.rootHash] = item
   }

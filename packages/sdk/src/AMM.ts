@@ -3,18 +3,19 @@ import { BigNumber, BigNumberish, constants, utils } from 'ethers'
 import {
   Chain
 } from '@hop-protocol/sdk-core'
-import { SecondsInDay, TokenIndex, TokenSymbol } from './constants/index.js'
+import { SecondsInDay, TokenIndex } from './constants/index.js'
 import { Swap__factory } from './contracts/index.js'
 import { TAmount, TChain, TProvider } from './types.js'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import {
-  getBlockNumberFromDate,
   rateLimitRetry,
   shiftBNDecimals
 } from '@hop-protocol/sdk-core'
+import { getBlockNumberFromDate } from './utils/index.js'
+import { TokenSymbol } from '@hop-protocol/sdk-core'
 
 export type AmmConstructorOptions = {
-  tokenSymbol?: TokenSymbol,
+  tokenSymbol?: TokenSymbol | string,
   chain?: TChain,
 } & BaseConstructorOptions
 
@@ -27,7 +28,7 @@ export class AMM extends Base {
   public chain: Chain
 
   /** Token class instance */
-  public tokenSymbol: TokenSymbol
+  public tokenSymbol: TokenSymbol | string
 
   /**
    * @desc Instantiates AMM instance.
@@ -46,7 +47,7 @@ export class AMM extends Base {
    */
   constructor (
     networkOrOptionsObject: string | AmmConstructorOptions,
-    tokenSymbol?: TokenSymbol,
+    tokenSymbol?: TokenSymbol | string,
     chain?: TChain,
     signer?: TProvider,
     chainProviders?: ChainProviders
@@ -368,7 +369,7 @@ export class AMM extends Base {
     return Number(utils.formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
-  public async getYieldStatsForDay (unixTimestamp: number, days: number = 1): Promise<any> {
+  public async getYieldStatsForDay (unixTimestamp: number, days: number = 1, etherscanApiKey?: string): Promise<any> {
     if (this.tokenSymbol === 'HOP') {
       throw new Error('getYieldStatsForDay: Unsupported, there is no AMM for HOP token.')
     }
@@ -376,7 +377,8 @@ export class AMM extends Base {
     const saddleSwap = await this.getSaddleSwap()
 
     const endTimestamp = unixTimestamp
-    let endBlockNumber = await getBlockNumberFromDate(this.chain, endTimestamp)
+    const provider = this.getChainProvider(this.chain)
+    let endBlockNumber = await getBlockNumberFromDate(provider, endTimestamp)
     endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
@@ -390,7 +392,7 @@ export class AMM extends Base {
     ])
 
     const startTimestamp = endTimestamp - (days * SecondsInDay)
-    let startBlockNumber = await getBlockNumberFromDate(this.chain, startTimestamp)
+    let startBlockNumber = await getBlockNumberFromDate(provider, startTimestamp, etherscanApiKey)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 2000
@@ -459,12 +461,12 @@ export class AMM extends Base {
     return apy
   }
 
-  public async getYieldData (days: number = 1): Promise<any> {
+  public async getYieldData (days: number = 1, etherscanApiKey?: string): Promise<any> {
     if (![1, 7, 30].includes(days)) {
       throw new Error('invalid arg: valid days are: 1, 7, 30')
     }
 
-    const provider = this.chain.provider
+    const provider = this.getChainProvider(this.chain)
     if (!provider) {
       throw new Error('expected provider')
     }
@@ -476,7 +478,7 @@ export class AMM extends Base {
       totalLiquidityFormatted: totalLiquidityToday,
       totalVolume,
       totalVolumeFormatted
-    } = await this.getYieldStatsForDay(endTimestamp, days)
+    } = await this.getYieldStatsForDay(endTimestamp, days, etherscanApiKey)
 
     const { apr, apy } = this.calcYield(feesEarnedToday, totalLiquidityToday, days)
 

@@ -210,44 +210,6 @@ describe.skip('GasBoostSigner', () => {
   }, 10 * 60 * 1000)
 })
 
-describe('GasBoostTransaction', () => {
-  const store = new MemoryStore()
-  const provider = getRpcProvider('optimism')
-  expectDefined(provider)
-  expectDefined(privateKey)
-  const signer = new Wallet(privateKey, provider)
-
-  it('instance', () => {
-    const gTx = new GasBoostTransaction({
-      to: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-      value: '1'
-    }, signer, store)
-
-    expect(gTx.id).toBeTruthy()
-  })
-  it.skip('getMaxGasPrice', () => {
-    const tx = {
-      to: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-      value: '1'
-    }
-    let gTx = new GasBoostTransaction(tx, signer, store)
-
-    let maxGasPrice = gTx.getMaxGasPrice()
-    let expectedMaxGasPrice = utils.parseUnits('90', 9)
-    expect(maxGasPrice).toEqual(expectedMaxGasPrice)
-
-    const optimismProvider = getRpcProvider('optimism')
-    expectDefined(optimismProvider)
-    const optimismSigner = new Wallet(privateKey!, optimismProvider)
-
-    gTx = new GasBoostTransaction(tx, optimismSigner, store)
-
-    maxGasPrice = gTx.getMaxGasPrice()
-    expectedMaxGasPrice = utils.parseUnits('500', 9)
-    expect(maxGasPrice).toEqual(expectedMaxGasPrice)
-  })
-})
-
 describe.skip('GasBoostTransaction', () => {
   const store = new MemoryStore()
   const provider = getRpcProvider('polygon')

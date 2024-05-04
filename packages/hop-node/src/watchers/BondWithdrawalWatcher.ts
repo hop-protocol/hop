@@ -5,7 +5,6 @@ import { BigNumber } from 'ethers'
 import {
   BondThreshold,
   BondWithdrawalBatchSize,
-  enableEmergencyMode,
   getBonderTotalStake,
   getNetworkCustomSyncType,
   config as globalConfig
@@ -16,36 +15,31 @@ import {
   UnfinalizedTransferBondError
 } from '#types/error.js'
 import {
-  Chain,
-  OneHourSeconds,
-} from '@hop-protocol/hop-node-core/constants'
-import {
   GasCostTransactionType,
   SyncType,
   TxError
 } from '#constants/index.js'
 import {
   NonceTooLowError,
+  OneHourSeconds,
   PossibleReorgDetected,
   RedundantProviderOutOfSync,
-} from '@hop-protocol/hop-node-core/types'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+} from '@hop-protocol/hop-node-core'
 import { utils } from 'ethers'
-import { getRedundantRpcUrls } from '@hop-protocol/hop-node-core/utils'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import { isFetchExecutionError } from '@hop-protocol/hop-node-core/utils'
-import { isFetchRpcServerError } from '@hop-protocol/hop-node-core/utils'
-import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
-import { isNativeToken } from '@hop-protocol/hop-node-core/utils'
-import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
+import { isFetchExecutionError } from '@hop-protocol/hop-node-core'
+import { isFetchRpcServerError } from '@hop-protocol/hop-node-core'
+import { isL1ChainId } from '@hop-protocol/hop-node-core'
+import { isNativeToken } from '@hop-protocol/hop-node-core'
+import { promiseQueue } from '@hop-protocol/hop-node-core'
 import type L2Bridge from './classes/L2Bridge.js'
 import type {
   L1_Bridge as L1BridgeContract,
 L2_Bridge as L2BridgeContract
 } from '@hop-protocol/sdk/contracts'
-import type { Logger } from '@hop-protocol/hop-node-core/logger'
+import type { Logger } from '@hop-protocol/hop-node-core'
 import type { Transfer, UnbondedSentTransfer } from '#db/TransfersDb.js'
 import type { providers } from 'ethers'
+import { ChainSlug, getChainSlug, getTokenDecimals, TokenSymbol } from '@hop-protocol/sdk'
 
 type Config = {
   chainSlug: string
@@ -198,7 +192,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
+    const isReceivingNativeToken = isNativeToken(destinationChainId.toString(), this.tokenSymbol)
     if (isReceivingNativeToken) {
       logger.debug('checkTransferId getIsRecipientReceivable')
       const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
@@ -451,7 +445,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   private async filterTransfersBySyncTypeThreshold (dbTransfers: UnbondedSentTransfer[]): Promise<UnbondedSentTransfer[]> {
     const finalizedTransfers: UnbondedSentTransfer[] = dbTransfers.filter(dbTransfer => dbTransfer.isFinalized)
 
-    const decimals = getTokenDecimals(this.tokenSymbol)
+    const decimals = getTokenDecimals(this.tokenSymbol as TokenSymbol)
     const inFlightAmount: BigNumber = await this.getInFlightAmount(dbTransfers)
     const bonderRiskAmount: BigNumber = this.getBonderRiskAmount()
     const amountWithinThreshold: BigNumber = bonderRiskAmount.sub(inFlightAmount)
@@ -525,9 +519,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
       // L1 to L2 transfers are not bonded by the bonder so they are not considered in flight.
       // Checking bonderFeeTooLow could be a false positive since the bonder bonds relative to the current gas price.
-      const sourceChainSlug = chainIdToSlug(dbTransfer.sourceChainId)
+      const sourceChainSlug = getChainSlug(dbTransfer.sourceChainId.toString())
       return (
-        sourceChainSlug !== Chain.Ethereum &&
+        sourceChainSlug !== ChainSlug.Ethereum &&
         dbTransfer.transferSentTimestamp >= inFlightCutoffTimestampSec &&
         dbTransfer.transferId &&
         dbTransfer.isBondable &&
@@ -551,7 +545,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return BigNumber.from(0)
     }
 
-    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol))
+    const bonderTotalStakeWei = utils.parseUnits(bonderTotalStake.toString(), getTokenDecimals(this.tokenSymbol as TokenSymbol))
     return bonderTotalStakeWei.mul(BondThreshold).div(100)
   }
 
@@ -645,7 +639,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       throw new Error(`Calculated transferSentBlockNumber (${blockNumber}) is missing`)
     }
 
-    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
+    const redundantRpcUrls = globalConfig.networks[this.chainSlug].redundantRpcUrls ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
       const filter = l2Bridge.filters.TransferSent(

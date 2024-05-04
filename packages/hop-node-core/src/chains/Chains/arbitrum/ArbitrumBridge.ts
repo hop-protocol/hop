@@ -1,9 +1,10 @@
 import { AbstractChainBridge } from '../../AbstractChainBridge.js'
+import type { ChainSlug } from '@hop-protocol/sdk'
 import { ArbitrumFinalityService } from '../../Chains/arbitrum/ArbitrumFinalityService.js'
 import { ArbitrumMessageService } from '../../Chains/arbitrum/ArbitrumMessageService.js'
 
 export class ArbitrumBridge extends AbstractChainBridge {
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super({
       chainSlug,
       chainServices: {

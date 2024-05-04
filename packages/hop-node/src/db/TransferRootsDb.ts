@@ -8,13 +8,12 @@ import {
   TxError
 } from '#constants/index.js'
 import {
-  Chain,
   OneWeekMs,
-  TenMinutesMs
-} from '@hop-protocol/hop-node-core/constants'
+  TenMinutesMs,
+  getExponentialBackoffDelayMs
+} from '@hop-protocol/hop-node-core'
 import { TxRetryDelayMs } from '#config/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
-import { getExponentialBackoffDelayMs } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, getChain, getChainSlug } from '@hop-protocol/sdk'
 import { transferRootsMigrations } from './migrations.js'
 import type { BigNumber } from 'ethers'
 import { Mutex } from 'async-mutex'
@@ -371,7 +370,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const sourceChain = getChainSlug(item.sourceChainId.toString())
       const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
       if (!doesChainSupportRootBond) {
         return false
@@ -440,7 +439,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const sourceChain = getChainSlug(item.sourceChainId.toString())
       const isRelayable = RelayableChains.L2_TO_L1.includes(sourceChain)
       if (!isRelayable) {
         return false
@@ -558,7 +557,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
         return false
       }
 
-      const destinationChain = chainIdToSlug(item.destinationChainId)
+      const destinationChain = getChainSlug(item.destinationChainId.toString())
       const isRelayable = RelayableChains.L1_TO_L2.includes(destinationChain)
       if (!isRelayable) {
         return false
@@ -620,8 +619,8 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       }
 
       let isWithinChallengePeriod = true
-      const sourceChain = chainIdToSlug(item?.sourceChainId)
-      const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain)
+      const sourceChain = getChain(item?.sourceChainId.toString())
+      const doesChainSupportRootBond = BondTransferRootChains.includes(sourceChain.toString())
       if (doesChainSupportRootBond && item?.bondedAt) {
         const bondedAtMs: number = item.bondedAt * 1000
         const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
@@ -661,7 +660,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
 
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
       let rootSetTimestampOk = true
-      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && chainIdToSlug(filter.destinationChainId) === Chain.Gnosis
+      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && getChainSlug(filter.destinationChainId.toString()) === ChainSlug.Gnosis
       if (checkRootSetTimestamp) {
         rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now()
       }

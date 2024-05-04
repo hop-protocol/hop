@@ -1,12 +1,12 @@
 import { PriceFeed } from './PriceFeed.js'
-import { tokens } from '@hop-protocol/sdk/metadata'
+import { getTokens } from '@hop-protocol/sdk'
 
 export class PriceStats {
   tokens: string[] = []
   priceFeed: PriceFeed
 
   constructor () {
-    this.tokens = Object.keys(tokens)
+    this.tokens = Object.keys(getTokens())
 
     this.priceFeed = new PriceFeed()
   }

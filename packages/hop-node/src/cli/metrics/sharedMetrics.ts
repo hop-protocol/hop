@@ -1,4 +1,4 @@
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 export const tokens: Record<string, string> = {
   USDC: 'USDC',
@@ -50,14 +50,14 @@ export const tokenDataForYear: any = {
       [tokens.GRT]: 0.350831
     },
     blockNumbers: {
-      [Chain.Ethereum]: 11565018,
-      [Chain.Gnosis]: 13807934,
-      [Chain.Polygon]: 9013758,
-      [Chain.Optimism]: 1,
-      [Chain.Arbitrum]: 1,
-      [Chain.Nova]: 1,
-      [Chain.Base]: 1,
-      [Chain.Linea]: 1
+      [ChainSlug.Ethereum]: 11565018,
+      [ChainSlug.Gnosis]: 13807934,
+      [ChainSlug.Polygon]: 9013758,
+      [ChainSlug.Optimism]: 1,
+      [ChainSlug.Arbitrum]: 1,
+      [ChainSlug.Nova]: 1,
+      [ChainSlug.Base]: 1,
+      [ChainSlug.Linea]: 1
     },
     inactiveBridgeTokens: {
       [tokens.ETH]: true,
@@ -96,14 +96,14 @@ export const tokenDataForYear: any = {
       [tokens.GRT]: 0.645377
     },
     blockNumbers: {
-      [Chain.Ethereum]: 13916165,
-      [Chain.Gnosis]: 19872631,
-      [Chain.Polygon]: 23201013,
-      [Chain.Optimism]: 1806121,
-      [Chain.Arbitrum]: 4221289,
-      [Chain.Nova]: 1,
-      [Chain.Base]: 1,
-      [Chain.Linea]: 1
+      [ChainSlug.Ethereum]: 13916165,
+      [ChainSlug.Gnosis]: 19872631,
+      [ChainSlug.Polygon]: 23201013,
+      [ChainSlug.Optimism]: 1806121,
+      [ChainSlug.Arbitrum]: 4221289,
+      [ChainSlug.Nova]: 1,
+      [ChainSlug.Base]: 1,
+      [ChainSlug.Linea]: 1
     },
     inactiveBridgeTokens: {
       [tokens.rETH]: true,
@@ -134,14 +134,14 @@ export const tokenDataForYear: any = {
       [tokens.GRT]: 0.056702
     },
     blockNumbers: {
-      [Chain.Ethereum]: 16308189,
-      [Chain.Gnosis]: 25736049,
-      [Chain.Polygon]: 37520355,
-      [Chain.Optimism]: 58462111,
-      [Chain.Arbitrum]: 50084141,
-      [Chain.Nova]: 1,
-      [Chain.Base]: 1,
-      [Chain.Linea]: 1
+      [ChainSlug.Ethereum]: 16308189,
+      [ChainSlug.Gnosis]: 25736049,
+      [ChainSlug.Polygon]: 37520355,
+      [ChainSlug.Optimism]: 58462111,
+      [ChainSlug.Arbitrum]: 50084141,
+      [ChainSlug.Nova]: 1,
+      [ChainSlug.Base]: 1,
+      [ChainSlug.Linea]: 1
     },
     inactiveBridgeTokens: {
       [tokens.rETH]: true,
@@ -172,14 +172,14 @@ export const tokenDataForYear: any = {
       [tokens.GRT]: 0.188974
     },
     blockNumbers: {
-      [Chain.Ethereum]: 18908894,
-      [Chain.Gnosis]: 31724129,
-      [Chain.Polygon]: 51796221,
-      [Chain.Optimism]: 114234210,
-      [Chain.Arbitrum]: 165788850,
-      [Chain.Nova]: 37302211,
-      [Chain.Base]: 8638925,
-      [Chain.Linea]: 1459540
+      [ChainSlug.Ethereum]: 18908894,
+      [ChainSlug.Gnosis]: 31724129,
+      [ChainSlug.Polygon]: 51796221,
+      [ChainSlug.Optimism]: 114234210,
+      [ChainSlug.Arbitrum]: 165788850,
+      [ChainSlug.Nova]: 37302211,
+      [ChainSlug.Base]: 8638925,
+      [ChainSlug.Linea]: 1459540
     },
     inactiveBridgeTokens: {
     }
@@ -210,14 +210,14 @@ export const tokenDecimals: Record<string, number> = {
 }
 
 export const networks: string[] = [
-  Chain.Ethereum,
-  Chain.Gnosis,
-  Chain.Polygon,
-  Chain.Optimism,
-  Chain.Arbitrum,
-  Chain.Nova,
-  Chain.Base,
-  Chain.Linea
+  ChainSlug.Ethereum,
+  ChainSlug.Gnosis,
+  ChainSlug.Polygon,
+  ChainSlug.Optimism,
+  ChainSlug.Arbitrum,
+  ChainSlug.Nova,
+  ChainSlug.Base,
+  ChainSlug.Linea
 ]
 
 export const hopAccountAddresses: string[] = [

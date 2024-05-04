@@ -36,6 +36,5 @@ export type Networks = {
     rpcUrl: string
     fallbackRpcUrls: string[]
     explorerUrl: string
-    nativeBridgeUrl?: string
   }
 }

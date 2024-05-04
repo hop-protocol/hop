@@ -1,5 +1,4 @@
-import { AssetSymbol } from '@hop-protocol/sdk/config'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import {
   type Config,
   type FileConfig,
@@ -11,7 +10,6 @@ import {
 import { SyncType } from '#constants/index.js'
 import { URL } from 'node:url'
 import { utils } from 'ethers'
-import type { ChainSlug } from '@hop-protocol/sdk/config'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()
@@ -72,27 +70,27 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   ]
 
   const validChainKeys = [
-    Chain.Ethereum,
-    Chain.Optimism,
-    Chain.Arbitrum,
-    Chain.Gnosis,
-    Chain.Polygon,
-    Chain.Nova,
-    Chain.ZkSync,
-    Chain.Linea,
-    Chain.ScrollZk,
-    Chain.Base,
-    Chain.PolygonZk
+    ChainSlug.Ethereum,
+    ChainSlug.Optimism,
+    ChainSlug.Arbitrum,
+    ChainSlug.Gnosis,
+    ChainSlug.Polygon,
+    ChainSlug.Nova,
+    ChainSlug.ZkSync,
+    ChainSlug.Linea,
+    ChainSlug.ScrollZk,
+    ChainSlug.Base,
+    ChainSlug.PolygonZk
   ]
 
-  const validTokenKeys = Object.values(AssetSymbol)
+  const validTokenKeys = Object.values(TokenSymbol)
 
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)
 
   const enabledChains: string[] = Object.keys(config.chains)
-  if (!enabledChains.includes(Chain.Ethereum)) {
-    throw new Error(`config for chain "${Chain.Ethereum}" is required`)
+  if (!enabledChains.includes(ChainSlug.Ethereum)) {
+    throw new Error(`config for chain "${ChainSlug.Ethereum}" is required`)
   }
 
   validateKeys(validChainKeys, enabledChains)
@@ -190,7 +188,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       const chains = Object.keys(config.fees[token])
       validateKeys(enabledChains, chains)
       for (const chain of destinationChains) {
-        const found = config.fees[token as AssetSymbol]?.[chain as ChainSlug]
+        const found = config.fees[token as TokenSymbol]?.[chain as ChainSlug]
         if (!found) {
           throw new Error(`missing fee for chain "${chain}" for token "${token}"`)
         }
@@ -219,7 +217,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
         const chains = Object.keys(minThresholdAmount[token])
         validateKeys(enabledChains, chains)
         for (const sourceChain in config.routes) {
-          if (sourceChain === Chain.Ethereum) {
+          if (sourceChain === ChainSlug.Ethereum) {
             continue
           }
           if (!minThresholdAmount[token][sourceChain]) {
@@ -243,16 +241,16 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     const tokens = Object.keys(bonders)
     validateKeys(enabledTokens, tokens)
     for (const token of enabledTokens) {
-      if (!(bonders[token as AssetSymbol] instanceof Object)) {
+      if (!(bonders[token as TokenSymbol] instanceof Object)) {
         throw new Error(`bonders config for "${token}" should be an object`)
       }
-      const sourceChains = Object.keys(bonders[token as AssetSymbol])
+      const sourceChains = Object.keys(bonders[token as TokenSymbol])
       validateKeys(enabledChains, sourceChains)
-      for (const sourceChain in bonders[token as AssetSymbol]) {
-        if (!(bonders[token as AssetSymbol][sourceChain as ChainSlug] instanceof Object)) {
+      for (const sourceChain in bonders[token as TokenSymbol]) {
+        if (!(bonders[token as TokenSymbol][sourceChain as ChainSlug] instanceof Object)) {
           throw new Error(`bonders config for "${token}.${sourceChain}" should be an object`)
         }
-        const obj = bonders[token as AssetSymbol][sourceChain as ChainSlug]
+        const obj = bonders[token as TokenSymbol][sourceChain as ChainSlug]
         if (!obj) {
           continue
         }
@@ -342,7 +340,7 @@ export async function validateConfigValues (config?: Config) {
     if (Object.keys(minThresholdAmount).length) {
       for (const token of enabledTokens) {
         for (const sourceChain in config.routes) {
-          if (sourceChain === Chain.Ethereum) {
+          if (sourceChain === ChainSlug.Ethereum) {
             continue
           }
           for (const destinationChain in config.routes[sourceChain]) {
@@ -358,9 +356,9 @@ export async function validateConfigValues (config?: Config) {
   if (config.bonders) {
     const bonders = config.bonders
     for (const token of enabledTokens) {
-      for (const sourceChain in bonders[token as AssetSymbol]) {
-        for (const destinationChain in bonders[token as AssetSymbol][sourceChain as ChainSlug]) {
-          const bonderAddress = bonders[token as AssetSymbol][sourceChain as ChainSlug]?.[destinationChain as ChainSlug]
+      for (const sourceChain in bonders[token as TokenSymbol]) {
+        for (const destinationChain in bonders[token as TokenSymbol][sourceChain as ChainSlug]) {
+          const bonderAddress = bonders[token as TokenSymbol][sourceChain as ChainSlug]?.[destinationChain as ChainSlug]
           if (typeof bonderAddress !== 'string') {
             throw new Error('config bonder address should be a string')
           }

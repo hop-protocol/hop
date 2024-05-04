@@ -1,7 +1,7 @@
 import MerkleTree from '#utils/MerkleTree.js'
 import { GasCostTransactionType } from '#constants/index.js'
 import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared/index.js'
-import { chainSlugToId } from '@hop-protocol/hop-node-core/utils'
+import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { getDbSet } from '#db/index.js'
 import {
   config as globalConfig,

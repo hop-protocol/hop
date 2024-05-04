@@ -1,5 +1,12 @@
+import { addresses as goerli } from './goerli.js'
+import { addresses as mainnet } from './mainnet.js'
+import { addresses as sepolia } from './sepolia.js'
+
+const addresses = { goerli, sepolia, mainnet }
+
+export { goerli, sepolia, mainnet, addresses }
+
 export {
-  goerli, sepolia, mainnet, addresses,
   L1BridgeProps,
   L2BridgeProps,
   PolygonBaseBridgeProps,
@@ -15,4 +22,4 @@ export {
   Bonders,
   RewardsContracts,
   Addresses
-} from '@hop-protocol/sdk-core/addresses'
+} from './types.js'

@@ -1,5 +1,5 @@
 import makeRequest from './makeRequest.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { normalizeEntity } from './shared.js'
 
 export default async function getTransferSents (chain: string, token: string) {
@@ -64,7 +64,7 @@ export default async function getTransferSents (chain: string, token: string) {
     }
   `
   let query = queryL1
-  if (chain !== Chain.Ethereum) {
+  if (chain !== ChainSlug.Ethereum) {
     query = queryL2
   }
   const jsonRes = await makeRequest(chain, query, {

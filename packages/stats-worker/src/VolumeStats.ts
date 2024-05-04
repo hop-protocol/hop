@@ -4,7 +4,7 @@ import { db } from './Db.js'
 import { enabledChains, enabledTokens } from './config.js'
 import { utils } from 'ethers'
 import { getSubgraphUrl } from './utils/getSubgraphUrl.js'
-import { getTokenDecimals } from './utils/getTokenDecimals.js'
+import { getTokenDecimals } from '@hop-protocol/sdk'
 import { nearestDate } from './utils/nearestDate.js'
 import { queryFetch } from './utils/queryFetch.js'
 

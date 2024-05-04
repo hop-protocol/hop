@@ -1,9 +1,10 @@
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm'
-import { awsRegion } from '#config/index.js'
+import { CoreEnvironment } from '#config/index.js'
 
 export async function getParameter (name: string, region?: string): Promise<string> {
+  const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
   const ssm = new SSMClient({
-    region: region ?? awsRegion
+    region: region ?? coreEnvironmentVariables.awsRegion
   })
   const params = {
     Name: name,

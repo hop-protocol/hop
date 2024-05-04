@@ -1,4 +1,4 @@
-import { chains } from '@hop-protocol/sdk/metadata'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 
 const colorsMap: Record<string, string> = {
   bonded: '#81ff81',
@@ -6,8 +6,11 @@ const colorsMap: Record<string, string> = {
   fallback: '#9f9fa3'
 }
 
-for (const chain in chains) {
-  colorsMap[chain] = (chains as any)[chain].primaryColor
+// Colors are the same for each network so just default to Mainnet
+for (const chains of Object.values(getNetwork(NetworkSlug.Mainnet))) {
+  for (const chain of Object.values(chains)) {
+    colorsMap[chain.slug] = chain.color
+  }
 }
 
 export function getColor (chain: string) {

@@ -1,14 +1,16 @@
 import L2Bridge from '#watchers/classes/L2Bridge.js'
 import contracts from '#contracts/index.js'
 import isHToken from '#utils/isHToken.js'
-import wallets from '@hop-protocol/hop-node-core/wallets'
+import { wallets } from '@hop-protocol/hop-node-core'
 import { BigNumber, utils as ethersUtils } from 'ethers'
-import { Chain, MinPolygonGasPrice, nativeChainTokens } from '@hop-protocol/hop-node-core/constants'
+import { MinPolygonGasPrice } from '@hop-protocol/hop-node-core'
 import { TokenIndex } from '#constants/index.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
-import { swap as dexSwap } from '@hop-protocol/hop-node-core/swap'
-import { getCanonicalTokenSymbol } from '@hop-protocol/hop-node-core/utils'
+import { swap as dexSwap } from '#swap/index.js'
+import { getCanonicalTokenSymbol } from '#utils/getCanonicalTokenSymbol.js'
 import type Token from '#watchers/classes/Token.js'
+import { ChainSlug, NetworkSlug, getChainNativeTokenSymbol } from '@hop-protocol/sdk'
+import { config as globalConfig } from '#config/index.js'
 
 root
   .command('swap')
@@ -43,8 +45,8 @@ async function main (source: any) {
   if (!max && !amount) {
     throw new Error('"max" or "amount" is required')
   }
-  const fromNative = fromToken === nativeChainTokens[chain]
-  const toNative = toToken === nativeChainTokens[chain]
+  const fromNative = fromToken === getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain)
+  const toNative = toToken === getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain)
   if (fromToken === toToken) {
     throw new Error('from-token and to-token cannot be the same')
   }
@@ -93,7 +95,7 @@ async function main (source: any) {
     if (fromTokenCanonicalSymbol !== toTokenCanonicalSymbol) {
       throw new Error('both from-token and to-token must be the same asset type')
     }
-    if (chain === Chain.Ethereum) {
+    if (chain === ChainSlug.Ethereum) {
       throw new Error('no AMM on Ethereum chain')
     }
 
@@ -234,7 +236,7 @@ async function wrapToken (chain: string, parsedAmount: BigNumber) {
     value: parsedAmount,
     data
   }
-  if (chain === Chain.Polygon) {
+  if (chain === ChainSlug.Polygon) {
     tx.gasPrice = MinPolygonGasPrice
   }
   return wallet.sendTransaction(tx)
@@ -252,7 +254,7 @@ async function unwrapToken (chain: string, parsedAmount: BigNumber) {
     to: wrappedTokenAddress,
     data
   }
-  if (chain === Chain.Polygon) {
+  if (chain === ChainSlug.Polygon) {
     tx.gasPrice = MinPolygonGasPrice
   }
   console.log(tx)
@@ -272,7 +274,7 @@ function isWrappedNativeToken (token: string, chain: string) {
 }
 
 function isValidChainWrapTokens (chain: string, nativeToken: string, wrappedToken: string) {
-  return nativeChainTokens[chain] === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
+  return getChainNativeTokenSymbol(globalConfig.network as NetworkSlug, chain as ChainSlug) === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
 }
 
 const wrappedTokenAddresses: Record<string, string> = {

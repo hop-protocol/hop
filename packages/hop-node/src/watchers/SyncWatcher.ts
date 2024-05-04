@@ -2,7 +2,7 @@ import BaseWatcher from './classes/BaseWatcher.js'
 import MerkleTree from '#utils/MerkleTree.js'
 import getBlockNumberFromDate from '#utils/getBlockNumberFromDate.js'
 import getTransferSentToL2TransferId from '#utils/getTransferSentToL2TransferId.js'
-import wallets from '@hop-protocol/hop-node-core/wallets'
+import { wallets } from '@hop-protocol/hop-node-core'
 import { BigNumber, type EventFilter, providers } from 'ethers'
 import {
   BondTransferRootChains,
@@ -12,11 +12,10 @@ import {
   RelayableChains
 } from '#constants/index.js'
 import {
-  Chain,
   FiveMinutesMs,
   OneWeekMs,
   TenMinutesMs
-} from '@hop-protocol/hop-node-core/constants'
+} from '@hop-protocol/hop-node-core'
 import { DateTime } from 'luxon'
 import {
   EnforceRelayerFee,
@@ -28,16 +27,15 @@ import {
   minEthBonderFeeBn,
   wsEnabledChains
 } from '#config/index.js'
-import { Hop } from '@hop-protocol/sdk'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getRpcRootProviderName } from '@hop-protocol/hop-node-core/utils'
-import { getRpcUrl } from '@hop-protocol/hop-node-core/utils'
+import { ChainSlug, Hop } from '@hop-protocol/sdk'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { getRpcRootProviderName } from '@hop-protocol/hop-node-core'
 import { getSortedTransferIds } from '#utils/getSortedTransferIds.js'
 import { isDbSetReady } from '#db/index.js'
-import { isL1ChainId } from '@hop-protocol/hop-node-core/utils'
-import { promiseQueue } from '@hop-protocol/hop-node-core/utils'
-import { promiseTimeout } from '@hop-protocol/hop-node-core/utils'
-import { wait } from '@hop-protocol/hop-node-core/utils'
+import { isL1ChainId } from '@hop-protocol/hop-node-core'
+import { promiseQueue } from '@hop-protocol/hop-node-core'
+import { promiseTimeout } from '@hop-protocol/hop-node-core'
+import { wait } from '@hop-protocol/hop-node-core'
 import type L1Bridge from './classes/L1Bridge.js'
 import type L2Bridge from './classes/L2Bridge.js'
 import type { Contract} from 'ethers'
@@ -121,7 +119,7 @@ class SyncWatcher extends BaseWatcher {
 
     const enabledNetworks = getEnabledNetworks()
     for (const enabledNetwork of enabledNetworks) {
-      if (RelayableChains.L1_TO_L2.includes(enabledNetwork as Chain)) {
+      if (RelayableChains.L1_TO_L2.includes(enabledNetwork as ChainSlug)) {
         this.isRelayableChainEnabled = true
         break
       }
@@ -147,7 +145,7 @@ class SyncWatcher extends BaseWatcher {
 
     // TODO: This only works for Alchemy and Quiknode. Add WS url to config long term.
     if (wsEnabledChains.includes(this.chainSlug)) {
-      const wsProviderUrl = getRpcUrl(this.chainSlug).replace('https://', 'wss://')
+      const wsProviderUrl = globalConfig.networks[this.chainSlug].rpcUrl.replace('https://', 'wss://')
       const rpcProviderName: RootProviderName | undefined = await getRpcRootProviderName(wsProviderUrl)
       if (rpcProviderName && DoesRootProviderSupportWs[rpcProviderName]) {
         this.logger.debug(`using websocket provider for ${this.chainSlug} and rpcProviderName ${rpcProviderName}`)
@@ -842,7 +840,7 @@ class SyncWatcher extends BaseWatcher {
       const sourceChainId = await this.bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
 
-      const sourceChainSlug = this.chainIdToSlug(sourceChainId)
+      const sourceChainSlug = this.getSlugFromChainId(sourceChainId)
       const shouldBondTransferRoot = BondTransferRootChains.includes(sourceChainSlug)
 
       logger.debug('handling TransfersCommitted event', JSON.stringify({
@@ -1132,10 +1130,10 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
+    const destinationBridge = this.getSiblingWatcherByChainSlug(ChainSlug.Ethereum).bridge
     const tx = await destinationBridge.getTransaction(bondTxHash)
     if (!tx) {
-      logger.warn(`populateTransferRootBondedAt marking item not found: tx object for transactionHash: ${bondTxHash} on chain: ${Chain.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      logger.warn(`populateTransferRootBondedAt marking item not found: tx object for transactionHash: ${bondTxHash} on chain: ${ChainSlug.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
@@ -1176,10 +1174,10 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
+    const destinationBridge = this.getSiblingWatcherByChainSlug(ChainSlug.Ethereum).bridge
     const tx = await destinationBridge.getTransaction(confirmTxHash)
     if (!tx) {
-      logger.warn(`populateTransferRootConfirmedAt marking item not found: tx object for transactionHash: ${confirmTxHash} on chain: ${Chain.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      logger.warn(`populateTransferRootConfirmedAt marking item not found: tx object for transactionHash: ${confirmTxHash} on chain: ${ChainSlug.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
@@ -1682,7 +1680,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async #getIsRelayableFee (relayerFee: BigNumber, destinationChainId: number): Promise<boolean> {
-    const destinationChainSlug = this.chainIdToSlug(destinationChainId)
+    const destinationChainSlug = this.getSlugFromChainId(destinationChainId)
     let expectedFee: BigNumber = BigNumber.from(0)
     try {
       expectedFee = await this.hopSdk.getRelayerFee(destinationChainSlug, this.tokenSymbol)
@@ -1728,7 +1726,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     this.logger.debug(`starting pollGasCost, chainSlug: ${this.chainSlug}`)
-    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)) as L1BridgeContract | L2BridgeContract
+    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug as ChainSlug)) as L1BridgeContract | L2BridgeContract
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
@@ -1778,7 +1776,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }
 
-        if (RelayableChains.L1_TO_L2.includes(this.chainSlug as Chain)) {
+        if (RelayableChains.L1_TO_L2.includes(this.chainSlug as ChainSlug)) {
           let gasCost: BigNumber
           try {
             gasCost = await this.hopSdk.getRelayerFee(this.chainSlug, this.tokenSymbol)
@@ -1852,7 +1850,7 @@ class SyncWatcher extends BaseWatcher {
   hasChainIdBeenDeprecated (chainId: number): boolean {
     // If a chainId has been deprecated, the chainId will not return a chain slug
     try {
-      this.chainIdToSlug(chainId)
+      this.getSlugFromChainId(chainId)
       return false
     } catch {
       return true

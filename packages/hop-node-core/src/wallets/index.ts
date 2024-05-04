@@ -1,3 +1,1 @@
-import wallets  from './wallets.js'
-
-export default wallets
+export * from './wallets.js'

@@ -3,7 +3,7 @@ import { networks } from '../config'
 const chainSlugToIdMap :any = {}
 
 for (const chain in networks) {
-  chainSlugToIdMap[chain] = (networks as any)[chain].networkId
+  chainSlugToIdMap[chain] = (networks as any)[chain].chainId
 }
 
 export function chainSlugToId (chainSlug: string) {

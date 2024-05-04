@@ -1,6 +1,6 @@
 import BaseWatcher from './classes/BaseWatcher.js'
 import { BigNumber } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import { ChainPollMultiplier } from '#constants/index.js'
 import {
   TxRetryDelayMs,
@@ -8,7 +8,6 @@ import {
   config as globalConfig,
   pendingCountCommitThreshold
 } from '#config/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import type L2Bridge from './classes/L2Bridge.js'
 import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
@@ -135,7 +134,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
 
-    const usePendingCountCommitThreshold = this.shouldUsePendingCountCommitThreshold(this.chainSlug, chainIdToSlug(destinationChainId))
+    const usePendingCountCommitThreshold = this.shouldUsePendingCountCommitThreshold(this.chainSlug, getChainSlug(destinationChainId.toString()))
     let pendingCountOk = false
     if (usePendingCountCommitThreshold) {
       pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)
@@ -179,7 +178,7 @@ class CommitTransfersWatcher extends BaseWatcher {
 
     try {
       let contractAddress: string | undefined
-      if (this.chainSlug === Chain.Polygon) {
+      if (this.chainSlug === ChainSlug.Polygon) {
         contractAddress = globalConfig.addresses[this.tokenSymbol][this.chainSlug].l2MessengerProxy
       }
       const tx = await l2Bridge.commitTransfers(destinationChainId, contractAddress)
@@ -194,12 +193,12 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   getMinThresholdAmount (destinationChainId: number) {
-    return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
+    return this.minThresholdAmounts[this.getSlugFromChainId(destinationChainId)] || BigNumber.from(0)
   }
 
   private readonly shouldUsePendingCountCommitThreshold = (sourceChain: string, destinationChain: string): boolean => {
     return (
-      sourceChain === Chain.Polygon
+      sourceChain === ChainSlug.Polygon
     )
   }
 }

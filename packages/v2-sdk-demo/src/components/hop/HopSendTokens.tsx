@@ -192,7 +192,7 @@ export function HopSendTokens (props: Props) {
         })
 
         if (needsApproval) {
-          const approveTxData = await sdk.populateTransaction.sendTokensApproval({
+          const approveTxData = await sdk.populateTransaction.approveSendTokens({
             fromChainId,
             toChainId,
             fromToken,

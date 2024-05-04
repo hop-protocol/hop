@@ -5,6 +5,7 @@ import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js
 import { wait } from '#utils/wait.js'
 import * as MaticJsDefaults from '@maticnetwork/maticjs-pos-zkevm'
 import type { providers } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 const { ZkEvmClient, setProofApi } = MaticJs
 const { default: maticJsDefault } = MaticJsDefaults
@@ -43,7 +44,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
   ready: boolean = false
   zkEvmClient: ZkEvmClientType
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     maticJsDefault.use(Web3ClientPlugin)

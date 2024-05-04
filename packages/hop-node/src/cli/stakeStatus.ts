@@ -1,10 +1,8 @@
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, logger, parseString, root } from './shared/index.js'
 import { constants } from 'ethers'
-import {
-  getBondWithdrawalWatcher
-} from '#watchers/watchers.js'
+import { getBondWithdrawalWatcher } from '#watchers/watchers.js'
 import type L1Bridge from '#watchers/classes/L1Bridge.js'
 import type L2Bridge from '#watchers/classes/L2Bridge.js'
 import type Token from '#watchers/classes/Token.js'
@@ -58,7 +56,7 @@ async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
   if (isEthSend) {
     return
-  } else if (bridge.chainSlug !== Chain.Ethereum) {
+  } else if (bridge.chainSlug !== ChainSlug.Ethereum) {
     return (bridge as L2Bridge).hToken()
   }
   return (bridge as L1Bridge).l1CanonicalToken()

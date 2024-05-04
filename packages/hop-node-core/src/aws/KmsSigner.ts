@@ -1,6 +1,6 @@
 import { AwsSigner, type AwsSignerConfig } from './AwsSigner.js'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
-import { awsAccessKeyId, awsSecretAccessKey } from '#config/index.js'
+import { CoreEnvironment } from '#config/index.js'
 import { utils } from 'ethers'
 import type { providers } from 'ethers'
 
@@ -13,11 +13,15 @@ export class KmsSigner extends AwsSigner {
 
   constructor (config: KmsSignerConfig, provider?: providers.Provider) {
     super(config.keyId, provider)
+    const CoreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     let credentials
-    if (awsAccessKeyId && awsSecretAccessKey) {
+    if (
+      CoreEnvironmentVariables.awsAccessKeyId &&
+      CoreEnvironmentVariables.awsSecretAccessKey
+    ) {
       credentials = {
-        accessKeyId: awsAccessKeyId,
-        secretAccessKey: awsSecretAccessKey
+        accessKeyId: CoreEnvironmentVariables.awsAccessKeyId,
+        secretAccessKey: CoreEnvironmentVariables.awsSecretAccessKey
       }
     }
     this.client = new KMSClient({

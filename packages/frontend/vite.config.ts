@@ -3,7 +3,7 @@ import path from 'path'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
 import { defineConfig } from 'vite'
-import { goerli, mainnet, sepolia } from '@hop-protocol/sdk/networks'
+import { getNetworks } from '@hop-protocol/sdk'
 
 dotenv.config()
 
@@ -107,9 +107,8 @@ const connectSrc = new Set([
   "https://iris-api-sandbox.circle.com"
 ])
 
-const networks: any[] = [mainnet, goerli, sepolia]
-for (const network of networks) {
-  for (const chain of Object.values(network)) {
+for (const network of getNetworks()) {
+  for (const chain of Object.values(network.chains)) {
     const { publicRpcUrl, fallbackPublicRpcUrls, subgraphUrl } = chain
     if (publicRpcUrl) {
       connectSrc.add(publicRpcUrl)

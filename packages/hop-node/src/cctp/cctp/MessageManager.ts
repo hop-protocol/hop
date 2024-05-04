@@ -1,8 +1,8 @@
-import wallets from '@hop-protocol/hop-node-core/wallets'
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import { wallets } from '@hop-protocol/hop-node-core'
+import type { ChainSlug } from '@hop-protocol/sdk'
+import { getChainSlug } from '@hop-protocol/sdk'
 import { FSMPoller } from '../fsm/FSMPoller.js'
 import { Message } from './Message.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
 import { getFinalityTimeFromChainIdMs } from './utils.js'
 
 interface ISentMessage {
@@ -45,7 +45,7 @@ const RELAY_CACHE: Set<number> = new Set()
 export class MessageManager extends FSMPoller<MessageState, IMessage> {
   readonly #inFlightTxCache: Set<string> = new Set()
 
-  constructor (chains: Chain[]) {
+  constructor (chains: ChainSlug[]) {
     super('MessageManager', StateTransitionMap, chains)
   }
 
@@ -204,7 +204,7 @@ export class MessageManager extends FSMPoller<MessageState, IMessage> {
     }
     RELAY_CACHE.add(messageNonce)
 
-    const chainSlug = chainIdToSlug(destinationChainId)
+    const chainSlug = getChainSlug(destinationChainId.toString())
     const wallet = wallets.get(chainSlug)
     // TODO: better err handling
     // error={"reason":"execution reverted: Nonce already used"

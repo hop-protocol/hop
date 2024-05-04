@@ -1,5 +1,5 @@
-import { Chain } from '#constants/index.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 export const isL1 = (network: string) => {
-  return network === Chain.Ethereum
+  return network === ChainSlug.Ethereum
 }

@@ -9,6 +9,7 @@ import { getTokenImage } from 'src/utils/tokens'
 import { retryPromise } from 'src/utils/retryPromise'
 import { useApp } from 'src/contexts/AppContext'
 import * as config from 'src/config'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 interface Column {
   Header: string
@@ -150,7 +151,7 @@ const StatsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
 
     const hopToken = new Token({
-      symbol: `h${token?.symbol}` as HToken,
+      symbol: `h${token?.symbol}` as TokenSymbol,
       tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
       decimals: token?.decimals,

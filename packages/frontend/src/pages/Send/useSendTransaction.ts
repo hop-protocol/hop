@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { BigNumber, Signer, utils } from 'ethers'
-import { Hop, HopBridge } from '@hop-protocol/sdk'
+import { ChainSlug, Hop, HopBridge } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { createTransaction } from 'src/utils/createTransaction'
 import { getBonderFeeWithId } from 'src/utils'
@@ -230,7 +230,7 @@ export function useSendTransaction (props: any) {
           relayerFeeWithId = getBonderFeeWithId(totalFee, '')
         }
 
-        return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
+        return bridge.send(parsedAmount, ChainSlug.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
           relayerFee: relayerFeeWithId,
           recipient,

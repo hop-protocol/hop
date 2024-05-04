@@ -1,7 +1,7 @@
 import getTransferRoot from '#theGraph/getTransferRoot.js'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, parseBool, parseString, root } from './shared/index.js'
-import { chainIdToSlug } from '@hop-protocol/hop-node-core/utils'
+import { getChainSlug } from '@hop-protocol/sdk'
 import {
   getSettleBondedWithdrawalsWatcher
 } from '#watchers/watchers.js'
@@ -47,7 +47,7 @@ async function main (source: any) {
   } else {
     const transferRoot: any = await getTransferRoot(chain, token, transferRootHash)
     const destinationChainId: number = transferRoot.destinationChainId
-    const destinationChain = chainIdToSlug(destinationChainId)
+    const destinationChain = getChainSlug(destinationChainId.toString())
     const transferIds: string[] = []
     for (const transfer of transferRoot.transferIds) {
       transferIds.push(transfer.transferId)

@@ -122,7 +122,6 @@ export type { IOVM_L1CrossDomainMessenger } from "./IOVM_L1CrossDomainMessenger.
 export type { IOVM_L2CrossDomainMessenger } from "./IOVM_L2CrossDomainMessenger.js";
 export type { MockOVM_CrossDomainMessenger } from "./MockOVM_CrossDomainMessenger.js";
 export type { XDaiMessengerWrapper } from "./XDaiMessengerWrapper.js";
-export * as factories from "./factories/index.js";
 export { Accounting__factory } from "./factories/Accounting__factory.js";
 export { ArbERC20__factory } from "./factories/ArbERC20__factory.js";
 export { ArbitrumGlobalInbox__factory } from "./factories/ArbitrumGlobalInbox__factory.js";

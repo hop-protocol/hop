@@ -1,5 +1,15 @@
-import { isValidUrl } from './isValidUrl.js'
 import { promiseTimeout } from './promiseTimeout.js'
+
+export function isValidUrl (url: string): boolean {
+  let _url
+  try {
+    _url = new URL(url)
+  } catch (err: any) {
+    return false
+  }
+
+  return _url.protocol === 'http:' || _url.protocol === 'https:'
+}
 
 export async function fetchJsonOrThrow (url: string, timeoutMs: number = 5 * 1000) {
   try {

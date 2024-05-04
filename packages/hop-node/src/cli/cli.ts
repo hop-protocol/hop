@@ -1,4 +1,4 @@
-import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { Logger } from '@hop-protocol/hop-node-core'
 import { execSync } from 'node:child_process'
 import { program } from './shared/index.js'
 

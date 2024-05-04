@@ -6,6 +6,7 @@ import { BigNumber, utils } from 'ethers'
 import { DefaultL1RelayGasLimit } from '../../Services/AbstractMessageService.js'
 import { wait } from '#utils/wait.js'
 import type { providers} from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 const { POSClient, setProofApi } = MaticJs
 const { default: maticJsDefault } = MaticJsDefaults
@@ -54,7 +55,7 @@ export class PolygonMessageService extends AbstractMessageService<PolygonMessage
   apiUrl: string
   maticClient: POSClientType
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     const polygonNetwork: string = polygonChainSlugs[this.networkSlug]!

@@ -1,12 +1,13 @@
-import { KmsSigner } from '@hop-protocol/hop-node-core/aws'
-import { LambdaSigner } from '@hop-protocol/hop-node-core/aws'
+import { KmsSigner } from '@hop-protocol/hop-node-core'
+import { LambdaSigner } from '@hop-protocol/hop-node-core'
 import { actionHandler, parseBool, root } from './shared/index.js'
 import { utils } from 'ethers'
 import {
   getEnabledNetworks,
   config as globalConfig
 } from '#config/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 root
   .command('verify-aws-signer')
@@ -63,7 +64,7 @@ async function main (source: any) {
         to: address,
         data: validFunctionSig
       }
-      const provider = getRpcProvider(chain)
+      const provider = getRpcProvider(chain as ChainSlug)
 
       // If the bonder does not have funds on the chain, skip
       const balance = await provider.getBalance(address)

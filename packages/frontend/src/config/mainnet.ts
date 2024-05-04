@@ -1,6 +1,6 @@
 import { HopAddresses, Networks } from 'src/config/interfaces'
 import { mainnet as _mainnetAddresses } from '@hop-protocol/sdk/addresses'
-import { mainnet as _mainnetNetworks } from '@hop-protocol/sdk/networks'
+import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
 
 export const mainnetAddresses: HopAddresses = {
   governance: {
@@ -13,16 +13,15 @@ export const mainnetAddresses: HopAddresses = {
   bonders: _mainnetAddresses.bonders,
 }
 
-const _networks = _mainnetNetworks as any
+const _network = getNetwork(NetworkSlug.Mainnet)
 const mainnetNetworks: Networks = {}
 
-for (const chainSlug in _networks) {
+for (const chainSlug in _network.chains) {
   mainnetNetworks[chainSlug] = {
-    networkId: _networks[chainSlug].networkId,
-    rpcUrl: _networks[chainSlug].publicRpcUrl,
-    fallbackRpcUrls: _networks[chainSlug].fallbackPublicRpcUrls,
-    explorerUrl: _networks[chainSlug].explorerUrls[0],
-    nativeBridgeUrl: _networks[chainSlug].nativeBridgeUrl
+    networkId: _network.chains[chainSlug].chainId,
+    rpcUrl: _network.chains[chainSlug].publicRpcUrl,
+    fallbackRpcUrls: _network.chains[chainSlug].fallbackPublicRpcUrls,
+    explorerUrl: _network.chains[chainSlug].explorerUrls[0]
   }
 }
 

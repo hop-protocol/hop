@@ -1,9 +1,9 @@
 import fetch from 'isomorphic-fetch'
 import { CoingeckoApiKey } from './config'
-import { tokens } from '@hop-protocol/sdk/metadata'
+import { getToken, TokenSymbol } from '@hop-protocol/sdk'
 
-function getCoinId (tokenSymbol: string) {
-  return (tokens as any)[tokenSymbol]?.coingeckoId
+function getCoinId (tokenSymbol: string): string {
+  return getToken(tokenSymbol as TokenSymbol).coingeckoId
 }
 
 export async function getPriceHistory (tokenSymbol: string, days: number) {

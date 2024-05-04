@@ -5,9 +5,9 @@ import {
   type Strategies,
   type Strategy
 } from './strategies/IFinalityStrategy.js'
-import type { Chain } from '#constants/index.js'
 import type { IFinalityService } from './IFinalityService.js'
 import type { providers } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 export class FinalityService implements IFinalityService {
   private readonly strategy: IFinalityStrategy
@@ -15,7 +15,7 @@ export class FinalityService implements IFinalityService {
 
   constructor (
     provider: providers.Provider,
-    chainSlug: Chain,
+    chainSlug: ChainSlug,
     finalityStrategyType: FinalityStrategyType = FinalityStrategyType.Default
   ) {
     const strategies: Strategies | undefined = FinalityStrategies[finalityStrategyType]

@@ -8,7 +8,7 @@ export const serializeQueryParams = (
   options: Partial<IOptions> = {
     omitFalsy: false
   }
-) => {
+): string => {
   const query = []
 
   if (params instanceof Object) {

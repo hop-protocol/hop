@@ -1,7 +1,7 @@
 import { BigNumber, utils } from 'ethers'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { actionHandler, parseString, root } from '../shared/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import {
   hopAccountAddresses,
   possibleYears,
@@ -133,7 +133,7 @@ async function main (source: any) {
 }
 
 function getTokenAddressesFromCore (chain: string, addresses: any): string[] {
-  if (chain === Chain.Ethereum) {
+  if (chain === ChainSlug.Ethereum) {
     return [addresses.l1CanonicalToken]
   }
 
@@ -153,7 +153,7 @@ async function getBalance (chain: string, accountAddress: string, tokenAddress: 
 }
 
 async function getEthBalance (chain: string, accountAddress: string, blockNumber: number): Promise<BigNumber> {
-  const res = await getRpcProvider(chain).getBalance(accountAddress, blockNumber)
+  const res = await getRpcProvider(chain as ChainSlug).getBalance(accountAddress, blockNumber)
   return BigNumber.from(res)
 }
 
@@ -167,7 +167,7 @@ async function getTokenBalance (chain: string, accountAddress: string, tokenAddr
     to: tokenAddress,
     data
   }
-  const res = await getRpcProvider(chain).call(tx, blockNumber)
+  const res = await getRpcProvider(chain as ChainSlug).call(tx, blockNumber)
   if (res === '0x') {
     // Will occur if the token does not exist at the block number
     return BigNumber.from('0')
@@ -176,7 +176,7 @@ async function getTokenBalance (chain: string, accountAddress: string, tokenAddr
 }
 
 const arbitraryTokenAddresses: Record<string, Record<string, string>> = {
-  [Chain.Ethereum]: {
+  [ChainSlug.Ethereum]: {
     [tokens.WETH]: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     [tokens.ENS]: '0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72',
     [tokens.GNO]: '0x6810e776880C02933D47DB1b9fc05908e5386b96',
@@ -185,18 +185,18 @@ const arbitraryTokenAddresses: Record<string, Record<string, string>> = {
     [tokens.SAFE]: '0x5aFE3855358E112B5647B952709E6165e1c1eEEe',
     [tokens.GRT]: '0xc944E90C64B2c07662A292be6244BDf05Cda44a7'
   },
-  [Chain.Gnosis]: {
+  [ChainSlug.Gnosis]: {
     [tokens.GNO]: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
   },
-  [Chain.Polygon]: {},
-  [Chain.Optimism]: {
+  [ChainSlug.Polygon]: {},
+  [ChainSlug.Optimism]: {
     [tokens.OP]: '0x4200000000000000000000000000000000000042',
     [tokens.USDC]: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85' // Circle USDC
   },
-  [Chain.Arbitrum]: {
+  [ChainSlug.Arbitrum]: {
     [tokens.USDC]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // Circle USDC
   },
-  [Chain.Nova]: {},
-  [Chain.Base]: {},
-  [Chain.Linea]: {}
+  [ChainSlug.Nova]: {},
+  [ChainSlug.Base]: {},
+  [ChainSlug.Linea]: {}
 }

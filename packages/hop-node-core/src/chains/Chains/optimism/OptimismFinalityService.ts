@@ -2,11 +2,12 @@ import { AbstractFinalityService, type IFinalityService } from '../../Services/A
 import { AlchemyInclusionService } from '../../Chains/optimism/inclusion/AlchemyInclusionService.js'
 import { FinalityBlockTag } from '../../IChainBridge.js'
 import type { providers } from 'ethers'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 export class OptimismFinalityService extends AbstractFinalityService implements IFinalityService {
   readonly #inclusionService: AlchemyInclusionService
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     // TODO: Generalize for more services

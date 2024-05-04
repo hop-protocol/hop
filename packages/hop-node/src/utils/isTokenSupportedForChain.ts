@@ -1,11 +1,11 @@
-import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 
 const isTokenSupportedForChain = (token: string, chainSlug: string): boolean => {
-  if (!Object.values(Token).includes(token as Token)) {
+  if (!Object.values(TokenSymbol).includes(token as TokenSymbol)) {
     throw new Error(`token ${token} does not exist`)
   }
-  if (!Object.values(Chain).includes(chainSlug as Chain)) {
+  if (!Object.values(ChainSlug).includes(chainSlug as ChainSlug)) {
     throw new Error(`chainSlug ${chainSlug} does not exist`)
   }
 

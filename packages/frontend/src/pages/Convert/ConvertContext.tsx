@@ -36,6 +36,7 @@ import {
 import { useCheckPoolDeprecated } from 'src/hooks/useCheckPoolDeprecated'
 import { useLocation, useParams } from 'react-router-dom'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 type ConvertContextProps = {
   address: Address | undefined
@@ -253,7 +254,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
         sourceNetwork,
         destNetwork,
         isConvertingToHToken,
-        selectedBridge.getTokenSymbol(),
+        selectedBridge.getTokenSymbol() as TokenSymbol,
         parsedSourceTokenAmount
       )
 
@@ -314,7 +315,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
-        selectedBridge?.getTokenSymbol(),
+        selectedBridge?.getTokenSymbol() as TokenSymbol,
         sourceNetwork,
         destNetwork
       )
@@ -360,7 +361,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
-        selectedBridge?.getTokenSymbol(),
+        selectedBridge?.getTokenSymbol() as TokenSymbol,
         sourceNetwork,
         destNetwork
       )
@@ -432,7 +433,7 @@ const ConvertProvider: FC<{ children: ReactNode }> = ({ children }) => {
             sourceNetwork,
             destNetwork,
             isConvertingToHToken,
-            selectedBridge.getTokenSymbol(),
+            selectedBridge.getTokenSymbol() as TokenSymbol,
             value,
             amountOutMin,
             deadline(),

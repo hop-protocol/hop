@@ -23,8 +23,8 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
 
   const provider = useMemo(() => {
     if (!chain) return
-    const _chain = sdk.toChainModel(chain)
-    return _chain.provider
+    const _provider = sdk.getChainProvider(chain)
+    return _provider
   }, [chain])
 
   const updateTxStatus = useCallback(async () => {

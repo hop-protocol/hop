@@ -26,6 +26,7 @@ import { getIsTxFinalized } from 'src/utils/getIsTxFinalized'
 import { getTokenByAddress } from 'src/utils/tokens'
 import { useApp } from 'src/contexts/AppContext'
 import { useEffect, useReducer, useState } from 'react'
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 export const methodToSigHashes = {
   // HopBridgeToken
@@ -187,7 +188,7 @@ const useTransaction = (txHash?: string) => {
       const { token, transactionHash, timestamp } = tfl1
 
       dispatchAction(TxActionType.setTx, {
-        tokenSymbol: token,
+        tokenSymbol: token as TokenSymbol,
         token: sdk.toTokenModel(token as TToken),
         destTx: {
           networkName: destNetworkName,

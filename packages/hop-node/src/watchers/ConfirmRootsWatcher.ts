@@ -5,12 +5,12 @@ import contracts from '#contracts/index.js'
 import getTransferCommitted from '#theGraph/getTransferCommitted.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
 import { ChallengePeriodMs } from '#constants/index.js'
-import { getChainBridge } from '@hop-protocol/hop-node-core/chains'
+import { getChainBridge } from '@hop-protocol/hop-node-core'
 import { getEnabledNetworks, config as globalConfig } from '#config/index.js'
 import type { BigNumber } from 'ethers'
-import type { Chain } from '@hop-protocol/hop-node-core/constants'
+import type { ChainSlug } from '@hop-protocol/sdk'
 import type { ExitableTransferRoot } from '#db/TransferRootsDb.js'
-import type { IChainBridge } from '@hop-protocol/hop-node-core/chains'
+import type { IChainBridge } from '@hop-protocol/hop-node-core'
 import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/sdk/contracts'
 import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
@@ -114,7 +114,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       logger.warn(`chain ${this.chainSlug} is not enabled`)
       return
     }
-    const chainBridge: IChainBridge = getChainBridge(this.chainSlug as Chain)
+    const chainBridge: IChainBridge = getChainBridge(this.chainSlug as ChainSlug)
     if (!chainBridge) {
       logger.warn(`chainBridge for ${this.chainSlug} is not implemented yet`)
       return

@@ -2,29 +2,23 @@ import ContractBase from './ContractBase.js'
 import getTokenMetadataByAddress from '#utils/getTokenMetadataByAddress.js'
 import getTransferRootId from '#utils/getTransferRootId.js'
 import { BigNumber, utils } from 'ethers'
-import {
-  Chain,
-  Token
-} from '@hop-protocol/hop-node-core/constants'
-import {
-  CoingeckoApiKey
-} from '@hop-protocol/hop-node-core/config'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
+import { CoingeckoApiKey } from '#config/index.js'
 import { type DbSet, getDbSet } from '#db/index.js'
 import {
   GasCostTransactionType,
   SettlementGasLimitPerTx
 } from '#constants/index.js'
-import { Logger } from '@hop-protocol/hop-node-core/logger'
+import { Logger } from '@hop-protocol/hop-node-core'
 import { PriceFeed } from '@hop-protocol/sdk'
 import { estimateL1GasCost } from '@eth-optimism/sdk'
 import {
   getNetworkCustomSyncType,
   config as globalConfig
 } from '#config/index.js'
-import { getRpcProvider } from '@hop-protocol/hop-node-core/utils'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
+import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import type { Contract, providers } from 'ethers'
-import type { Event } from '@hop-protocol/hop-node-core/types'
+import type { Event } from '@hop-protocol/hop-node-core'
 import type { L1_Bridge as L1BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/sdk/contracts'
 import type { L2_Bridge as L2BridgeContract } from '@hop-protocol/sdk/contracts'
@@ -36,7 +30,8 @@ import type {
   WithdrewEvent
 } from '@hop-protocol/sdk/contracts/Bridge'
 import type { State } from '#db/SyncStateDb.js'
-import type { TxOverrides } from '@hop-protocol/hop-node-core/types'
+import type { TxOverrides } from '@hop-protocol/hop-node-core'
+import { getTokenDecimals } from '@hop-protocol/sdk'
 
 export type EventsBatchOptions = {
   syncCacheKey: string
@@ -107,7 +102,7 @@ export default class Bridge extends ContractBase {
     this.tokenSymbol = tokenSymbol
     this.db = getDbSet(this.tokenSymbol)
     const bridgeDeployedBlockNumber = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
+    const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[ChainSlug.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
@@ -460,7 +455,7 @@ export default class Bridge extends ContractBase {
     const bonder: string = await this.getBonderAddress()
     const txOverrides: TxOverrides = await this.txOverrides()
     if (
-      this.chainSlug === Chain.Ethereum &&
+      this.chainSlug === ChainSlug.Ethereum &&
       this.tokenSymbol === 'ETH'
     ) {
       txOverrides.value = amount
@@ -493,10 +488,10 @@ export default class Bridge extends ContractBase {
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000
-    if (this.chainSlug === Chain.Arbitrum) {
+    if (this.chainSlug === ChainSlug.Arbitrum) {
       gasLimit = 10_000_000
     }
-    if (this.chainSlug === Chain.Nova) {
+    if (this.chainSlug === ChainSlug.Nova) {
       gasLimit = 5_000_000
     }
     txOverrides.gasLimit = gasLimit
@@ -837,23 +832,23 @@ export default class Bridge extends ContractBase {
     // There is no concept of a minBonderFeeAbsolute on the L1 bridge so we default to 0 since the
     // relative fee will negate this value anyway
     const destinationChain = this.chainSlug
-    if (destinationChain === Chain.Ethereum) {
+    if (destinationChain === ChainSlug.Ethereum) {
       return BigNumber.from(0)
     }
 
     // DAI into Gnosis can be bonded for a cheaper fee
     if (
-      destinationChain === Chain.Gnosis &&
-      tokenSymbol === Token.DAI
+      destinationChain === ChainSlug.Gnosis &&
+      tokenSymbol === TokenSymbol.DAI
     ) {
       return BigNumber.from(0)
     }
 
     let minBonderFeeUsd = 0.25
-    if (destinationChain === Chain.Optimism || destinationChain === Chain.Base) {
+    if (destinationChain === ChainSlug.Optimism || destinationChain === ChainSlug.Base) {
       minBonderFeeUsd = 0.10
     }
-    const tokenDecimals = getTokenDecimals(tokenSymbol)
+    const tokenDecimals = getTokenDecimals(tokenSymbol as TokenSymbol)
     let minBonderFeeAbsolute = utils.parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
@@ -868,7 +863,7 @@ export default class Bridge extends ContractBase {
   }
 
   async getBonderFeeBps (
-    destinationChain: Chain,
+    destinationChain: ChainSlug,
     amountIn: BigNumber,
     minBonderFeeAbsolute: BigNumber
   ) {
@@ -919,7 +914,7 @@ export default class Bridge extends ContractBase {
     }
 
     if (
-      (this.chainSlug === Chain.Optimism || this.chainSlug === Chain.Base) &&
+      (this.chainSlug === ChainSlug.Optimism || this.chainSlug === ChainSlug.Base) &&
       data &&
       to
     ) {
@@ -968,7 +963,7 @@ export default class Bridge extends ContractBase {
   }
 
   async getGasCostTokenValues (symbol: string) {
-    const decimals = getTokenDecimals(symbol)
+    const decimals = getTokenDecimals(symbol as TokenSymbol)
     let priceUsd
     try {
       priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
@@ -987,9 +982,9 @@ export default class Bridge extends ContractBase {
   }
 
   getChainNativeTokenSymbol (chain: string) {
-    if (chain === Chain.Polygon) {
+    if (chain === ChainSlug.Polygon) {
       return 'MATIC'
-    } else if (chain === Chain.Gnosis) {
+    } else if (chain === ChainSlug.Gnosis) {
       return 'DAI'
     }
 

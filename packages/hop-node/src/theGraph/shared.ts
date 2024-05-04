@@ -1,9 +1,6 @@
 import { DateTime } from 'luxon'
 import { utils } from 'ethers'
-import { getTokenDecimals } from '@hop-protocol/hop-node-core/utils'
-import { networks } from '@hop-protocol/sdk/networks'
-import type { ChainSlug } from '@hop-protocol/sdk/config'
-import type { NetworkSlug} from '@hop-protocol/sdk/networks'
+import { getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
 
 export type Filters = {
   startDate: string
@@ -11,20 +8,6 @@ export type Filters = {
   orderDesc: boolean
   destinationChainId?: number
 }
-
-const chainIdToSlug: Record<string, string> = {}
-
-for (const network in networks) {
-  for (const chain in networks[network as NetworkSlug]) {
-    const networkId = networks[network as NetworkSlug]?.[chain as ChainSlug]?.networkId
-    if (!networkId) {
-      continue
-    }
-    chainIdToSlug[networkId] = chain
-  }
-}
-
-export { chainIdToSlug }
 
 export function normalizeEntity (x: any) {
   if (!x) {
@@ -39,11 +22,11 @@ export function normalizeEntity (x: any) {
   }
   if (x.sourceChainId) {
     x.sourceChainId = Number(x.sourceChainId)
-    x.sourceChain = chainIdToSlug[x.sourceChainId]
+    x.sourceChain = getChainSlug(x.sourceChainId.toString())
   }
   if (x.destinationChainId) {
     x.destinationChainId = Number(x.destinationChainId)
-    x.destinationChain = chainIdToSlug[x.destinationChainId]
+    x.destinationChain = getChainSlug(x.destinationChainId.toString())
   }
 
   const decimals = getTokenDecimals(x.token)

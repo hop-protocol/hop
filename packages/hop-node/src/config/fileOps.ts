@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import {
   type Bonders,
+  type BlocklistConfig,
   type CommitTransfersConfig,
   type Fees,
   type Routes,
@@ -26,12 +27,12 @@ import {
   setSignerConfig,
   setSyncConfig
 } from './config.js'
-import { Logger, setLogLevel } from '@hop-protocol/hop-node-core/logger'
+import { Logger, setLogLevel } from '@hop-protocol/hop-node-core'
 import { utils } from 'ethers'
-import { getParameter } from '@hop-protocol/hop-node-core/aws'
-import { promptPassphrase } from '@hop-protocol/hop-node-core/prompt'
-import { recoverKeystore } from '@hop-protocol/hop-node-core/keystore'
-import type { BlocklistConfig, SignerConfig } from '@hop-protocol/hop-node-core/config'
+import { getParameter } from '@hop-protocol/hop-node-core'
+import { promptPassphrase } from '#prompt/index.js'
+import { recoverKeystore } from '@hop-protocol/hop-node-core'
+import type { SignerConfig } from '@hop-protocol/hop-node-core'
 
 const logger = new Logger('config')
 

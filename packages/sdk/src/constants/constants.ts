@@ -1,6 +1,79 @@
-import { CanonicalToken, ChainId, ChainName, ChainSlug, Errors, HToken, NetworkSlug, Slug, TokenSymbol, WrappedToken } from '@hop-protocol/sdk-core'
+import {
+  ChainSlug,
+  Errors,
+  NetworkSlug,
+} from '@hop-protocol/sdk-core'
+import { HToken } from '#networks/index.js'
 
-export { Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken }
+export { Errors, NetworkSlug, ChainSlug, HToken }
+
+export enum Slug {
+  ethereum = 'ethereum',
+  goerli = 'goerli',
+  sepolia = 'sepolia',
+  mainnet = 'mainnet',
+  arbitrum = 'arbitrum',
+  optimism = 'optimism',
+  gnosis = 'gnosis',
+  polygon = 'polygon',
+  nova = 'nova',
+  zksync = 'zksync',
+  linea = 'linea',
+  scrollzk = 'scrollzk',
+  base = 'base',
+  polygonzk = 'polygonzk'
+}
+
+// mainnet chain ids
+export enum ChainId {
+  Ethereum = 1,
+  Optimism = 10,
+  Arbitrum = 42161,
+  Polygon = 137,
+  Gnosis = 100,
+  Nova = 42170,
+  ZkSync = 324,
+  Base = 8453,
+  Linea = 59144
+}
+
+export enum CanonicalToken {
+  ETH = 'ETH',
+  MATIC = 'MATIC',
+  XDAI = 'XDAI',
+  USDC = 'USDC',
+  USDT = 'USDT',
+  DAI = 'DAI',
+  WBTC = 'WBTC',
+  sBTC = 'sBTC',
+  sETH = 'sETH',
+  HOP = 'HOP',
+  SNX = 'SNX',
+  sUSD = 'sUSD',
+  rETH = 'rETH',
+  UNI = 'UNI',
+  MAGIC = 'MAGIC'
+}
+
+export enum ChainName {
+  Ethereum = 'Ethereum',
+  Optimism = 'Optimism',
+  Arbitrum = 'Arbitrum',
+  Polygon = 'Polygon',
+  Gnosis = 'Gnosis',
+  Nova = 'Nova',
+  ZkSync = 'zkSync',
+  Linea = 'Linea',
+  ScrollZk = 'Scroll zkEVM',
+  Base = 'Base',
+  PolygonZk = 'Polygon zkEVM',
+}
+
+export enum WrappedToken {
+  WETH = 'WETH',
+  WMATIC = 'WMATIC',
+  WXDAI = 'WXDAI',
+}
 
 export enum TokenIndex {
   CanonicalToken = 0,

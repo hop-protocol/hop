@@ -78,9 +78,6 @@ export class Logger {
         this.tag = `[${tag}]`
       }
     }
-    if (process.env.DISABLE_LOGGER) {
-      this.enabled = false
-    }
     this.options = opts
   }
 
@@ -165,7 +162,7 @@ export class Logger {
 
   dbOperation = (...input: any[]) => {
     // Explicitly set to true for debugging
-    const isEnabled = process.env.DB_LOG_ENABLED === 'true'
+    const isEnabled = false
     if (!this.enabled || !isEnabled) return
     if (logLevel < LogLevels.Debug) {
       return

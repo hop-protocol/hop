@@ -1,6 +1,6 @@
 import MerkleTree from '#utils/MerkleTree.js'
 import getTransferRoot from '#theGraph/getTransferRoot.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { WatcherNotFoundError } from './shared/utils.js'
 import { actionHandler, parseString, root } from './shared/index.js'
 import {
@@ -67,7 +67,7 @@ async function main (source: any) {
     throw new Error('TransferRoot already has transfer IDs')
   }
 
-  const l1Bridge = (await watcher.getSiblingWatcherByChainSlug(Chain.Ethereum)).bridge as L1Bridge
+  const l1Bridge = (await watcher.getSiblingWatcherByChainSlug(ChainSlug.Ethereum)).bridge as L1Bridge
   return l1Bridge.bondTransferRoot(
     transferRootHash,
     dbTransferRoot.destinationChainId,

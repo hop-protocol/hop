@@ -1,5 +1,5 @@
 import { PriceFeed, PriceFeedApiKeys } from './PriceFeed.js'
-import { S3PriceFeed } from './S3.js'
+import { S3PriceFeed } from './priceFeeds/S3.js'
 
 export class PriceFeedFromS3 {
   priceFeed: PriceFeed
@@ -9,7 +9,7 @@ export class PriceFeedFromS3 {
     this.priceFeed.prependService(new S3PriceFeed())
   }
 
-  setApiKeys (apiKeysMap: PriceFeedApiKeys = {}) {
+  setApiKeys (apiKeysMap: PriceFeedApiKeys = {}): void {
     this.priceFeed.setApiKeys(apiKeysMap)
   }
 

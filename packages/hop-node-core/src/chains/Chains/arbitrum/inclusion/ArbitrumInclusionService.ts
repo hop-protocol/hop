@@ -1,9 +1,9 @@
 import { AbstractInclusionService, type IInclusionService } from '../../../Services/AbstractInclusionService.js'
 import { ArbitrumAddresses, type ArbitrumCanonicalAddresses, type ArbitrumSuperchainSlugs } from '../../../Chains/arbitrum/ArbitrumAddresses.js'
 import { BigNumber, Contract } from 'ethers'
-import { getRpcUrl } from '#utils/getRpcUrl.js'
-import type { NetworkSlug } from '@hop-protocol/sdk/networks'
+import type { ChainSlug, NetworkSlug } from '@hop-protocol/sdk/networks'
 import type { providers } from 'ethers'
+import { CoreEnvironment } from '#config/index.js'
 
 type ArbitrumTransactionReceipt = providers.TransactionReceipt & {
   l1BlockNumber?: BigNumber
@@ -13,7 +13,7 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
   readonly #nodeInterfaceContract: Contract
   readonly #sequencerInboxContract: Contract
 
-  constructor (chainSlug: string) {
+  constructor (chainSlug: ChainSlug) {
     super(chainSlug)
 
     const canonicalAddresses: ArbitrumCanonicalAddresses | undefined = ArbitrumAddresses.canonicalAddresses?.[this.networkSlug as NetworkSlug]?.[chainSlug as ArbitrumSuperchainSlugs]
@@ -94,7 +94,9 @@ export class ArbitrumInclusionService extends AbstractInclusionService implement
 
   // Needed to get Arbitrum-specific tx info from raw RPC call since ethers doesn't handle custom chain data
   async #getArbitrumTxReceipt (txHash: string): Promise<ArbitrumTransactionReceipt> {
-    const res = await fetch(getRpcUrl(this.chainSlug), {
+    const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
+    const rpcUrl = coreEnvironmentVariables.rpcUrls?.[this.chainSlug as ChainSlug]
+    const res = await fetch(rpcUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

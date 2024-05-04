@@ -1,11 +1,18 @@
 import 'dotenv/config'
 import Worker from './worker.js'
 import minimist from 'minimist'
+import S3Upload from './S3Upload.js'
 
 const argv = minimist(process.argv.slice(2))
 console.debug('flags:', argv)
 
-function main () {
+async function main () {
+  const shouldOnlyUploadConfig = argv.uploadConfig
+  if (shouldOnlyUploadConfig) {
+    const upload = new S3Upload()
+    return upload.uploadConfig()
+  }
+
   const worker = new Worker({
     yields: argv.yields,
     prices: argv.prices,
@@ -35,4 +42,4 @@ function main () {
   worker.start()
 }
 
-main()
+main().then(() => console.log('Complete'))

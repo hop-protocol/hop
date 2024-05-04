@@ -1,4 +1,4 @@
-import { RootProviderName } from '#constants/index.js'
+import { RpcProviderSlug as RootProviderName } from '@hop-protocol/sdk'
 import { getRpcUrlFromProvider } from './getRpcUrlFromProvider.js'
 import { promiseTimeout } from './promiseTimeout.js'
 import { providers } from 'ethers'

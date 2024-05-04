@@ -1,5 +1,5 @@
 export {
-  Errors, TokenSymbol, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken,
+  Errors, NetworkSlug, ChainId, ChainName, ChainSlug, Slug, CanonicalToken, WrappedToken, HToken,
   TokenIndex,
   BondTransferGasLimit,
   SettlementGasLimitPerTx,

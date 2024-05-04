@@ -1,7 +1,7 @@
 import getSubgraphUrl from '#utils/getSubgraphUrl.js'
-import { Chain } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 test('getSubgraphUrl', async () => {
-  const url = getSubgraphUrl(Chain.Ethereum)
+  const url = getSubgraphUrl(ChainSlug.Ethereum)
   expect(url).toBeTruthy()
 })

@@ -148,7 +148,7 @@ export const Header: FC = () => {
   async function handleNetworkSelect (network: any) {
     try {
       if (network) {
-        await checkConnectedNetworkId(network?.networkId)
+        await checkConnectedNetworkId(network?.chainId)
       }
     } catch (err: any) {
       console.error(err)

@@ -1,17 +1,17 @@
 import Bridge from '#watchers/classes/Bridge.js'
 import contracts from '#contracts/index.js'
 import expectDefined from './utils/expectDefined.js'
-import { Chain, Token } from '@hop-protocol/hop-node-core/constants'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { config as globalConfig } from '#config/index.js'
 
 describe.skip('eventsBatch', () => {
   it(
     'eventsBatch',
     async () => {
-      const { l2Bridge } = contracts.get(Token.USDC, Chain.Gnosis)
+      const { l2Bridge } = contracts.get(TokenSymbol.USDC, ChainSlug.Gnosis)
       const bridge = new Bridge(l2Bridge)
       expectDefined(globalConfig.sync)
-      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.Gnosis]
+      const { totalBlocks, batchBlocks } = globalConfig.sync[ChainSlug.Gnosis]
       expectDefined(totalBlocks)
       expectDefined(batchBlocks)
       const maxIterations = Math.ceil(totalBlocks / batchBlocks)
@@ -41,10 +41,10 @@ describe.skip('eventsBatch', () => {
   it(
     'eventsBatch with defined start and end block numbers',
     async () => {
-      const { l2Bridge } = contracts.get(Token.USDC, Chain.Gnosis)
+      const { l2Bridge } = contracts.get(TokenSymbol.USDC, ChainSlug.Gnosis)
       const bridge = new Bridge(l2Bridge)
       expectDefined(globalConfig.sync)
-      const { batchBlocks } = globalConfig.sync[Chain.Gnosis]
+      const { batchBlocks } = globalConfig.sync[ChainSlug.Gnosis]
       expectDefined(batchBlocks)
       const endBlockNumber = 21519734
       const startBlockNumber = endBlockNumber - 123456
@@ -79,10 +79,10 @@ describe.skip('eventsBatch', () => {
   it(
     'eventsBatch with syncCacheKey',
     async () => {
-      const { l2Bridge } = contracts.get(Token.USDC, Chain.Gnosis)
+      const { l2Bridge } = contracts.get(TokenSymbol.USDC, ChainSlug.Gnosis)
       const bridge = new Bridge(l2Bridge)
       expectDefined(globalConfig.sync)
-      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.Gnosis]
+      const { totalBlocks, batchBlocks } = globalConfig.sync[ChainSlug.Gnosis]
       expectDefined(totalBlocks)
       expectDefined(batchBlocks)
       const maxIterations = Math.floor(totalBlocks / batchBlocks)

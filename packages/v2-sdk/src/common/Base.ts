@@ -1,5 +1,6 @@
 import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'ethers'
-import { getProviderFromUrl, rateLimitRetry, networks, metadata } from '@hop-protocol/sdk-core'
+import { rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk-core'
+import { getProviderFromUrl } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 
@@ -61,10 +62,10 @@ export class Base {
 
   getDefaultChainRpcProvider (chainId: BigNumberish): providers.Provider {
     chainId = chainId.toString()
-    const defaultProviders: ChainProviders = {}
-    for (const chainSlug in (networks as any)[this.network]) {
-      const item = (networks as any)[this.network][chainSlug]
-      if (item.networkId?.toString() === chainId) {
+    const chains = getNetwork(this.network as NetworkSlug).chains
+    for (const chainSlug in chains) {
+      const item = (chains as any)[chainSlug]
+      if (item.chainId?.toString() === chainId) {
         return getProviderFromUrl(item.publicRpcUrl)
       }
     }
@@ -74,9 +75,10 @@ export class Base {
 
   getDefaultChainRpcProviders (): ChainProviders {
     const defaultProviders: ChainProviders = {}
-    for (const chainSlug in (networks as any)[this.network]) {
-      const item = (networks as any)[this.network][chainSlug]
-      defaultProviders[item.networkId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
+    const chains = getNetwork(this.network as NetworkSlug).chains
+    for (const chainSlug in chains) {
+      const item = (chains as any)[chainSlug]
+      defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
     }
 
     return defaultProviders
@@ -386,9 +388,10 @@ export class Base {
           await provider.send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString() }])
         } catch (error: any) {
           if (error.code === 4902) {
-            const network = (networks as any)?.[this.network]?.[this.utils.getChainSlug(chainId)]
-            if (network) {
-              const nativeCurrency = (metadata as any).chains?.[this.utils.getChainSlug(chainId)]?.nativeTokenSymbol
+            const chains = getNetwork(this.network as NetworkSlug).chains
+            const chain = (chains as any)[this.utils.getChainSlug(chainId)]
+            if (chain) {
+              const nativeCurrency = chain?.nativeTokenSymbol
               await provider.send('wallet_addEthereumChain', [{
                 chainId: chainId.toHexString(),
                 chainName: this.utils.getChainSlug(chainId),
@@ -397,8 +400,8 @@ export class Base {
                   symbol: nativeCurrency,
                   decimals: 18
                 },
-                rpcUrls: [network.publicRpcUrl],
-                blockExplorerUrls: network.explorerUrls
+                rpcUrls: [chain.publicRpcUrl],
+                blockExplorerUrls: chain.explorerUrls
               }])
             } else {
               throw error

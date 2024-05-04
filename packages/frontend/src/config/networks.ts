@@ -1,13 +1,13 @@
 import Network from 'src/models/Network'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
-import { ChainSlug } from '@hop-protocol/sdk'
-import { metadata } from 'src/config/metadata'
+import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 import { networks } from 'src/config/addresses'
+import { reactAppNetwork } from 'src/config'
 
 export const allNetworks = Object.keys(networks).map(key => {
   const net = networks[key]
-  const meta = metadata.networks[key]
+  const meta = getChain(reactAppNetwork as NetworkSlug, key as ChainSlug)
 
   if (key === ChainSlug.Ethereum) {
     // meta = metadata.networks[reactAppNetwork]
@@ -23,10 +23,9 @@ export const allNetworks = Object.keys(networks).map(key => {
     imageUrl: meta.image,
     rpcUrl: net.rpcUrl,
     fallbackRpcUrls: net.fallbackRpcUrls ?? [],
-    networkId: net.networkId,
+    networkId: Number(meta.chainId),
     nativeTokenSymbol: meta.nativeTokenSymbol,
-    isLayer1: meta.isLayer1,
-    nativeBridgeUrl: net.nativeBridgeUrl,
+    isLayer1: meta.isL1,
     explorerUrl: net.explorerUrl
   })
 })

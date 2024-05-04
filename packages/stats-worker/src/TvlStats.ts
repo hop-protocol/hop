@@ -5,7 +5,7 @@ import { PriceFeed } from './PriceFeed.js'
 import { archiveRpcUrls, enabledChains, enabledTokens, rpcUrls } from './config.js'
 import { db } from './Db.js'
 import { ERC20__factory } from '@hop-protocol/sdk/contracts'
-import { getTokenDecimals } from './utils/getTokenDecimals.js'
+import { TokenSymbol, getTokenDecimals } from '@hop-protocol/sdk'
 import { mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 import { nearestDate } from './utils/nearestDate.js'
 import { timestampPerBlockPerChain } from './constants.js'
@@ -192,7 +192,7 @@ class TvlStats {
                   }
 
                   console.log('balance', balance, blockTag)
-                  const decimals = getTokenDecimals(token)
+                  const decimals = getTokenDecimals(token as TokenSymbol)
                   const formattedAmount = Number(
                     utils.formatUnits(balance.toString(), decimals)
                   )

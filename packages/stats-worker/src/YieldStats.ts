@@ -9,7 +9,7 @@ import {
   StakingRewards__factory
 } from '@hop-protocol/sdk/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { coingeckoApiKey, rpcUrls } from './config.js'
+import { coingeckoApiKey, etherscanApiKeys, rpcUrls } from './config.js'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
@@ -122,11 +122,6 @@ class YieldStats {
 
     this.bridges = mainnetAddresses.bridges!
     this.stakingRewardsContracts = mainnetAddresses.rewardsContracts!
-
-    console.log(
-      'provider urls:',
-      JSON.stringify(this.sdk.getChainProviderUrls())
-    )
   }
 
   async getAllYields () {
@@ -444,7 +439,9 @@ class YieldStats {
   async getYieldData (token: string, chain: string): Promise<YieldDataRes> {
     const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
-    const { apr, apy, volumeFormatted } = await amm.getYieldData()
+    const etherscanApiKey = etherscanApiKeys[chain]
+    const days = 1
+    const { apr, apy, volumeFormatted } = await amm.getYieldData(days, etherscanApiKey)
     const tvl = await bridge.getTvlUsd(chain)
     return {
       apr: apr ?? 0,

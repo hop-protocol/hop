@@ -1,5 +1,7 @@
-import { chains as chainsMetadata } from '@hop-protocol/sdk/metadata'
+import { ChainSlug, NetworkSlug, getChain } from '@hop-protocol/sdk'
 
 export function getNativeTokenSymbol (chainSlug: string) {
-  return (chainsMetadata as any)[chainSlug].nativeTokenSymbol
+  // The native token is the same on all networks so default to Ethereum
+  const chain = getChain(NetworkSlug.Mainnet, chainSlug as ChainSlug)
+  return chain.nativeTokenSymbol
 }

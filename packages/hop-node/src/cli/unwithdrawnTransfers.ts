@@ -1,7 +1,7 @@
 import getTransferRootSet from '#theGraph/getTransferRootSet.js'
 import getTransfersCommitted from '#theGraph/getTransfersCommitted.js'
 import { BigNumber } from 'ethers'
-import { OneHourSeconds } from '@hop-protocol/hop-node-core'
+import { ONE_HOUR_SECONDS } from '@hop-protocol/hop-node-core'
 import { DateTime } from 'luxon'
 import {
   actionHandler,
@@ -101,7 +101,7 @@ async function getTransferRootsToChain (
       if (!Number.isNaN(endTimestamp)) {
         // Roots can be committed up to 3 hours before they are set on the destination chain, so we need to ignore
         // any roots that were committed within the last 3 hours.
-        const threeHoursSeconds = 3 * OneHourSeconds
+        const threeHoursSeconds = 3 * ONE_HOUR_SECONDS
         endTimestamp = endTimestamp - threeHoursSeconds
         if (startTimestamp > endTimestamp) {
           throw new Error('startTimestamp must be less than the adjusted endTimestamp')

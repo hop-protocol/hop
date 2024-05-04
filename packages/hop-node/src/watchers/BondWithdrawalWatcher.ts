@@ -21,7 +21,7 @@ import {
 } from '#constants/index.js'
 import {
   NonceTooLowError,
-  OneHourSeconds,
+  ONE_HOUR_SECONDS,
   PossibleReorgDetected,
   RedundantProviderOutOfSync,
 } from '@hop-protocol/hop-node-core'
@@ -511,7 +511,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   private async getInFlightAmount (dbTransfers: UnbondedSentTransfer[]): Promise<BigNumber> {
     // Unbonded should not be in flight for more than 1 hour
-    const inFlightCutoffTimestampSec = Math.floor(Date.now() / 1000) - OneHourSeconds
+    const inFlightCutoffTimestampSec = Math.floor(Date.now() / 1000) - ONE_HOUR_SECONDS
     const inFlightTransfers = dbTransfers.filter(dbTransfer => {
       if (!dbTransfer?.sourceChainId || !dbTransfer?.transferId || !dbTransfer?.isBondable) {
         return false

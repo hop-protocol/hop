@@ -10,7 +10,7 @@ import {
   config as globalConfig,
   modifiedLiquidityRoutes
 } from '#config/index.js'
-import { TenMinutesMs } from '@hop-protocol/hop-node-core'
+import { TEN_MINUTES_MS } from '@hop-protocol/hop-node-core'
 import { S3Upload } from '@hop-protocol/hop-node-core'
 import type L1Bridge from './classes/L1Bridge.js'
 import type L2Bridge from './classes/L2Bridge.js'
@@ -295,7 +295,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     let totalAmount = BigNumber.from(0)
     for (const destinationChain in this.unbondedTransferRootAmounts) {
       if (this.lastCalculated[destinationChain]) {
-        const isStale = Date.now() - this.lastCalculated[destinationChain] > TenMinutesMs
+        const isStale = Date.now() - this.lastCalculated[destinationChain] > TEN_MINUTES_MS
         if (isStale) {
           continue
         }

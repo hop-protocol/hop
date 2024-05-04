@@ -4,9 +4,9 @@ import path from 'node:path'
 import url from 'node:url'
 import { type Addresses, type Bonders, type Bridges, addresses as coreAddresses } from '@hop-protocol/sdk/addresses'
 import {
-  DefaultBatchBlocks,
-  OneHourMs,
-  TotalBlocks
+  ONE_HOUR_MS,
+  ONE_WEEK_SECONDS,
+  AVG_BLOCK_TIME_SECONDS,
 } from '@hop-protocol/hop-node-core'
 import { CoreEnvironment } from '@hop-protocol/hop-node-core'
 import { DefaultBondThreshold } from '#constants/index.js'
@@ -53,7 +53,7 @@ export const ipfsHost = process.env.IPFS_HOST ?? 'http://127.0.0.1:5001'
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL
 
 // This value must be longer than the longest chain's finality
-export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
+export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : ONE_HOUR_MS
 export const BondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 25
 export const RelayTransactionBatchSize = BondWithdrawalBatchSize
 
@@ -259,6 +259,13 @@ const getConfigByNetwork = (network: NetworkSlug | string): Pick<Config, 'networ
 
 
 const { network, networks, addresses, bonders, bonderConfig, isMainnet } = getConfigByNetwork(envNetwork)
+
+const DefaultBatchBlocks = 10000
+export const TotalBlocks = {
+  Ethereum: Math.floor(ONE_WEEK_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Ethereum]!),
+  Polygon: Math.floor(ONE_WEEK_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Polygon]!),
+  Gnosis: Math.floor(ONE_WEEK_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Gnosis]!)
+}
 
 export const config: Config = {
   tokens: {},

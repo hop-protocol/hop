@@ -1,5 +1,5 @@
 import { ChainSlug as Chain } from '@hop-protocol/sdk'
-import { OneHourMs } from '@hop-protocol/hop-node-core'
+import { ONE_HOUR_MS } from '@hop-protocol/hop-node-core'
 import { RpcProviderSlug, rpcProviders } from '@hop-protocol/sdk'
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -17,7 +17,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 }
 
 export const RootSetSettleDelayMs = 5 * 60 * 1000
-export const ChallengePeriodMs = 24 * OneHourMs
+export const ChallengePeriodMs = 24 * ONE_HOUR_MS
 
 export const MaxInt32 = 2147483647
 
@@ -122,9 +122,9 @@ export const RelayWaitTimeMs: IRelayableWaitTimeMs = {
     [Chain.PolygonZk]: 15 * 60 * 1000 // 32 L1 Blocks + buffer
   },
   L2_TO_L1: {
-    [Chain.Gnosis]: 1 * OneHourMs,
-    [Chain.Polygon]: 1 * OneHourMs,
-    [Chain.PolygonZk]: 1 * OneHourMs
+    [Chain.Gnosis]: 1 * ONE_HOUR_MS,
+    [Chain.Polygon]: 1 * ONE_HOUR_MS,
+    [Chain.PolygonZk]: 1 * ONE_HOUR_MS
   }
 }
 

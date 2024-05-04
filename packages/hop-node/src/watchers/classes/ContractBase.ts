@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 import {
-  MinGnosisGasPrice,
-  MinPolygonGasPrice,
+  MIN_GNOSIS_GAS_PRICE,
+  MIN_POLYGON_GAS_PRICE
 } from '@hop-protocol/hop-node-core'
 import { EventEmitter } from 'node:events'
 import { FinalityService } from '@hop-protocol/hop-node-core'
@@ -183,8 +183,8 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasPrice = await this.getBumpedGasPrice(1)
 
         const gasPriceBn = BigNumber.from(txOptions.gasPrice)
-        if (gasPriceBn.lt(MinPolygonGasPrice)) {
-          txOptions.gasPrice = MinPolygonGasPrice
+        if (gasPriceBn.lt(MIN_POLYGON_GAS_PRICE)) {
+          txOptions.gasPrice = MIN_POLYGON_GAS_PRICE
         }
       } else if (this.chainSlug === ChainSlug.Gnosis) {
         // increasing more gas multiplier for gnosis
@@ -193,8 +193,8 @@ export default class ContractBase extends EventEmitter {
         txOptions.gasPrice = await this.getBumpedGasPrice(multiplier)
 
         const gasPriceBn = BigNumber.from(txOptions.gasPrice)
-        if (gasPriceBn.lt(MinGnosisGasPrice)) {
-          txOptions.gasPrice = MinGnosisGasPrice
+        if (gasPriceBn.lt(MIN_GNOSIS_GAS_PRICE)) {
+          txOptions.gasPrice = MIN_GNOSIS_GAS_PRICE
         }
       }
     } else {

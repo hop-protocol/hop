@@ -8,8 +8,8 @@ import {
   TxError
 } from '#constants/index.js'
 import {
-  OneWeekMs,
-  TenMinutesMs,
+  ONE_WEEK_MS,
+  TEN_MINUTES_MS,
   getExponentialBackoffDelayMs
 } from '@hop-protocol/hop-node-core'
 import { TxRetryDelayMs } from '#config/index.js'
@@ -322,7 +322,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
   }
 
   async getTransferRootsFromWeek (): Promise<TransferRoot[]> {
-    const fromUnix = Math.floor((Date.now() - (OneWeekMs)) / 1000)
+    const fromUnix = Math.floor((Date.now() - (ONE_WEEK_MS)) / 1000)
     return this.getTransferRoots({
       fromUnix
     })
@@ -383,7 +383,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       // reorgs deeper than finality.
       let finalityTimestampOk = false
       if (item?.committedAt) {
-        const longestTimeToFinalityMs = 3 * TenMinutesMs
+        const longestTimeToFinalityMs = 3 * TEN_MINUTES_MS
         finalityTimestampOk = item.committedAt + longestTimeToFinalityMs < Date.now()
       }
 
@@ -391,7 +391,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
       if (item.sentBondTxAt) {
         if (item?.rootBondTxError === TxError.RedundantRpcOutOfSync) {
           const delayMs = getExponentialBackoffDelayMs(item.rootBondBackoffIndex!)
-          if (delayMs > OneWeekMs * 2) {
+          if (delayMs > ONE_WEEK_MS * 2) {
             return false
           }
           sentBondTxAtTimestampOk = item.sentBondTxAt + delayMs < Date.now()
@@ -581,7 +581,7 @@ class TransferRootsDb extends BaseDb<TransferRoot> {
           item.relayTxError === TxError.MessageRelayTooEarly
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
-          if (delayMs > OneWeekMs) {
+          if (delayMs > ONE_WEEK_MS) {
             return false
           }
           sentTxTimestampOk = item.sentRelayTxAt + delayMs < Date.now()

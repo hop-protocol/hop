@@ -7,7 +7,7 @@ import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
 import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
 import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
 import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
-import { AvgBlockTimeSeconds, OneDayMs, OneDaySeconds, stableCoins } from '@hop-protocol/hop-node-core'
+import { AVG_BLOCK_TIME_SECONDS, ONE_DAY_MS, ONE_DAY_SECONDS } from '@hop-protocol/hop-node-core'
 import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { Logger } from '@hop-protocol/hop-node-core'
@@ -22,7 +22,7 @@ import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { getSubgraphLastBlockSynced } from '#theGraph/getSubgraphLastBlockSynced.js'
 import { getUnbondedTransfers } from '#theGraph/getUnbondedTransfers.js'
 import { wait } from '@hop-protocol/hop-node-core'
-import { ChainSlug, TokenSymbol, getChainSlug, getTokenDecimals } from '@hop-protocol/sdk'
+import { ChainSlug, TokenSymbol, getChainSlug, getTokenDecimals, getTokens } from '@hop-protocol/sdk'
 import type { Routes } from '@hop-protocol/sdk/addresses'
 import type { TransferBondChallengedEvent } from '@hop-protocol/sdk/contracts/L1_Bridge'
 import type { providers } from 'ethers'
@@ -478,7 +478,7 @@ export class HealthCheckWatcher {
 
     let shouldSendLowOsResourceNotification = true
     if (this.lastLowOsResourceNotificationSentAt) {
-      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + OneDayMs < Date.now()
+      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + ONE_DAY_MS < Date.now()
     }
     if (shouldSendLowOsResourceNotification) {
       for (const item of lowOsResources) {
@@ -489,7 +489,7 @@ export class HealthCheckWatcher {
 
     let shouldSendUnsyncedSubgraphNotification = true
     if (this.lastUnsyncedSubgraphNotificationSentAt) {
-      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + OneDayMs < Date.now()
+      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + ONE_DAY_MS < Date.now()
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {
@@ -753,7 +753,7 @@ export class HealthCheckWatcher {
       if (x.destinationChain === 'ethereum') {
         return Number(x.bonderFeeFormatted) > 0.001
       }
-      if (stableCoins.has(x.token)) {
+      if (this.#getStablecoins().has(x.token)) {
         return Number(x.bonderFeeFormatted) > 0.25
       }
       return Number(x.bonderFeeFormatted) > 0.0001
@@ -854,7 +854,7 @@ export class HealthCheckWatcher {
     // This function does not use TheGraph, as that adds an additional layer/failure point.
 
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
-    const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds[ChainSlug.Ethereum]!
+    const blocksInDay = ONE_DAY_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Ethereum]!
     const provider = getRpcProvider(ChainSlug.Ethereum)
     const endBlockNumber = Number((await provider.getBlockNumber()).toString())
     const startBlockNumber = endBlockNumber - blocksInDay
@@ -1166,5 +1166,15 @@ export class HealthCheckWatcher {
     // }
 
     // return invalidChainBalances
+  }
+
+  #getStablecoins (): Set<string> {
+    const stableCoins = new Set<string>([])
+    for (const token of getTokens()) {
+      if (token.isStableCoin) {
+        stableCoins.add(token.symbol)
+      }
+    }
+    return stableCoins
   }
 }

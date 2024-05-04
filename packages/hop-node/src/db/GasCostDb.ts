@@ -6,7 +6,7 @@ import BaseDb, {
 } from './BaseDb.js'
 // @ts-expect-error nearest-date does not have a types file as of 20231227
 import nearest from 'nearest-date'
-import { OneHourMs, OneHourSeconds } from '@hop-protocol/hop-node-core'
+import { ONE_HOUR_MS, ONE_HOUR_SECONDS } from '@hop-protocol/hop-node-core'
 import { wait } from '@hop-protocol/hop-node-core'
 import type { BigNumber } from 'ethers'
 import type { GasCostTransactionType } from '#constants/index.js'
@@ -32,7 +32,7 @@ export type GasCost = {
 // key: `<chain>:<token>:<timestamp>:<transactionType>`
 // value: `{ ...GasCost }`
 class GasCostDb extends BaseDb<GasCost> {
-  private readonly prunePollerIntervalMs = 2 * OneHourMs
+  private readonly prunePollerIntervalMs = 2 * ONE_HOUR_MS
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.startPrunePoller()
@@ -61,8 +61,8 @@ class GasCostDb extends BaseDb<GasCost> {
   async getNearest (chain: string, token: string, transactionType: GasCostTransactionType, targetTimestamp: number): Promise<GasCost | null> {
     const dateFilterWithKeyPrefix: DateFilterWithKeyPrefix = {
       keyPrefix: `${chain}:${token}`,
-      fromUnix: targetTimestamp - OneHourSeconds,
-      toUnix: targetTimestamp + OneHourSeconds
+      fromUnix: targetTimestamp - ONE_HOUR_SECONDS,
+      toUnix: targetTimestamp + ONE_HOUR_SECONDS
     }
 
     const isRelevantItem = (key: string, value: GasCost): GasCost | null => {

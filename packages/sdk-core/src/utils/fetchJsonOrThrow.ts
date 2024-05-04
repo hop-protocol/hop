@@ -16,7 +16,7 @@ export async function fetchJsonOrThrow (url: string, timeoutMs: number = 5 * 100
     if (!isValidUrl(url)) {
       throw new Error(`url "${url}" is invalid`)
     }
-    let signal : any
+    let signal: AbortSignal | undefined
     if (typeof AbortController !== 'undefined') {
       const controller = new AbortController()
       setTimeout(() => controller.abort(), timeoutMs)

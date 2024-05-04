@@ -590,12 +590,9 @@ export class TransferStats {
   }
 
   async getTransferIdEvents (transferId: string) {
-    console.log('temp-AAA', transferId, enabledChains)
     const enabledChainTransfers = await Promise.all(enabledChains.map((chain: string) => {
-      console.log('temp-BBB', transferId, chain)
       return fetchTransferSentsForTransferId(chain, transferId)
     }))
-    console.log('temp-CCC', transferId, enabledChainTransfers)
 
     const enabledChainTransfersCctp = await Promise.all(enabledChains.map((chain: string) => {
       return fetchCctpTransferSentsForTransferId(chain, transferId)
@@ -619,41 +616,29 @@ export class TransferStats {
     }
 
     console.log('fetching data for transferId', transferId)
-    console.log('temp000', transferId)
     const events = await this.getTransferIdEvents(transferId)
-    console.log('temp111', events)
     const data = await this.normalizeTransferSentEvents(events)
-    console.log('temp222', data)
     if (!data?.length) {
       console.log('no data for transferId', transferId)
 
       // if subgraph transfer data is not found but db item is found,
       // then fetch state from chain an update db item accordingly.
       let _items = await this.db.getTransfers({ transferId })
-      console.log('temp333', _items)
       _items = _items?.map(populateData)
-      console.log('temp444', _items)
       const _item = _items?.[0]
-      console.log('temp555', _items)
       if (_item?.transactionHash && !_item?.bonded) {
-        console.log('temp666', _items)
         const onchainData = await TransferStats.getTransferStatusForTxHash(_item?.transactionHash)
-        console.log('temp777', _items, onchainData)
         if (onchainData?.bonded) {
-          console.log('temp888', _items, onchainData)
           _item.bonded = onchainData?.bonded
           _item.bondTransactionHash = onchainData?.bondTransactionHash
           try {
-            console.log('upserting transferId', _item.transferId)
             await this.upsertItem(_item)
           } catch (err: any) {
             console.error('upsert error:', err)
-            console.log(_item)
           }
         }
       }
 
-      console.log('temp555aaa', _items)
       return
     }
 

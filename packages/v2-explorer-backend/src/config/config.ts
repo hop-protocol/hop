@@ -36,5 +36,6 @@ export const chainNames: any = {
   420: 'Optimism (Goerli)',
   5: 'Ethereum (Goerli)',
   11155111: 'Ethereum (Sepolia)',
-  84532: 'Base (Sepolia)'
+  84532: 'Base (Sepolia)',
+  11155420: 'Optimism (Sepolia)'
 }

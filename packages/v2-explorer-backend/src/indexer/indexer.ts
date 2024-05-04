@@ -73,7 +73,9 @@ export class Indexer {
       FeesSentToHub: new SyncStateDb(dbPath, 'FeesSentToHub'),
       MessageBundled: new SyncStateDb(dbPath, 'MessageBundled'),
       MessageExecuted: new SyncStateDb(dbPath, 'MessageExecuted'),
-      MessageSent: new SyncStateDb(dbPath, 'MessageSent')
+      MessageSent: new SyncStateDb(dbPath, 'MessageSent'),
+      TransferSent: new SyncStateDb(dbPath, 'TransferSent'),
+      TransferBonded: new SyncStateDb(dbPath, 'TransferBonded')
     }
   }
 
@@ -108,7 +110,9 @@ export class Indexer {
       'FeesSentToHub',
       'MessageBundled',
       'MessageExecuted',
-      'MessageSent'
+      'MessageSent',
+      'TransferSent',
+      'TransferBonded'
     ]
 
     const _events: any[] = []
@@ -182,6 +186,6 @@ export class Indexer {
   }
 
   getIsL1 (chainId: number) {
-    return chainId === 5 || chainId === 1
+    return chainId === 5 || chainId === 1 || chainId === 11155111
   }
 }

@@ -1,5 +1,4 @@
 export type EventContext = {
-  chainSlug: string
   chainId: string
   transactionHash: string
   transactionIndex: number

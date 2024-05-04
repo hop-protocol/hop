@@ -4,24 +4,30 @@ import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithCon
 import { v4 as uuid } from 'uuid'
 
 export interface TransferSent extends BaseType {
-  transferId: string
   pathId: string
+  transferId: string
+  checkpoint: string
   to: string
   amount: BigNumber
-  minAmountOut: BigNumber
+  attestationFee: BigNumber
   totalSent: BigNumber
+  nonce: BigNumber
+  attestedCheckpoint: string
 }
 
 export class TransferSentTable extends EventDb {
   override async createTable () {
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfer_sent_events (
         id TEXT PRIMARY KEY,
-        transfer_id VARCHAR NOT NULL UNIQUE,
         path_id VARCHAR NOT NULL,
+        transfer_id VARCHAR NOT NULL UNIQUE,
+        checkpoint VARCHAR NOT NULL UNIQUE,
         "to" VARCHAR NOT NULL,
         amount NUMERIC NOT NULL,
-        min_amount_out NUMERIC NOT NULL,
+        attestation_fee NUMERIC NOT NULL,
         total_sent NUMERIC NOT NULL,
+        nonce NUMERIC NOT NULL,
+        attested_checkpoint VARCHAR NOT NULL,
         ${contextSqlCreation}
     )`)
   }
@@ -50,12 +56,15 @@ export class TransferSentTable extends EventDb {
 
     const items = await this.db.any(
       `SELECT
-        transfer_id AS "transferId",
         path_id AS "pathId",
+        transfer_id AS "transferId",
+        checkpoint,
         "to",
         amount,
-        min_amount_out AS "minAmountOut",
+        attestation_fee AS "attestationFee",
         total_sent AS "totalSent",
+        nonce,
+        attested_checkpoint AS "attestedCheckpoint",
         ${contextSqlSelect}
       FROM
         transfer_sent_events
@@ -77,21 +86,22 @@ export class TransferSentTable extends EventDb {
   }
 
   override async upsertItem (item: any) {
-    const { transferId, pathId, to, amount, minAmountOut, totalSent, context } = this.#normalizeDataForPut(item)
+    const { pathId, transferId, checkpoint, to, amount, attestationFee, totalSent, nonce, attestedCheckpoint, context } = this.#normalizeDataForPut(item)
+    console.log('ITEM', item)
     const args = {
-      id: uuid(), transferId, pathId, to, amount, minAmountOut, totalSent,
+      id: uuid(), pathId, transferId, checkpoint, to, amount, attestationFee, totalSent, nonce, attestedCheckpoint,
       context
     }
     await this.db.query(
       `INSERT INTO
         transfer_sent_events
       (
-        id, transfer_id, path_id, "to", amount, min_amount_out, total_sent,
+        id, path_id, transfer_id, checkpoint, "to", amount, attestation_fee, total_sent, nonce, attested_checkpoint,
         ${contextSqlInsert}
       )
-      VALUES ($\{id\}, $\{transferId\}, $\{pathId\}, $\{to\}, $\{amount\}, $\{minAmountOut\}, $\{totalSent\}, $\{context.chainId\}, $\{context.transactionHash\}, $\{context.transactionIndex\}, $\{context.logIndex\}, $\{context.blockNumber\}, $\{context.fromAddress\}, $\{context.toAddress\}, $\{context.value\}, $\{context.nonce\}, $\{context.gasLimit\}, $\{context.gasUsed\}, $\{context.gasPrice\}, $\{context.data\})
+      VALUES ${'(${id}, ${pathId}, ${transferId}, ${checkpoint}, ${to}, ${amount}, ${attestationFee}, ${totalSent}, ${nonce}, ${attestedCheckpoint}, ${context.chainId}, ${context.transactionHash}, ${context.transactionIndex}, ${context.logIndex}, ${context.blockNumber}, ${context.blockTimestamp}, ${context.from}, ${context.to}, ${context.value}, ${context.nonce}, ${context.gasLimit}, ${context.gasUsed}, ${context.gasPrice}, ${context.data})'}
       ON CONFLICT (transfer_id)
-      DO UPDATE SET _block_timestamp = $\{context.blockTimestamp\}, _transaction_hash = $\{context.transactionHash\}`, args
+      ${'DO UPDATE SET _block_timestamp = ${context.blockTimestamp}, _transaction_hash = ${context.transactionHash}'}`, args
     )
   }
 
@@ -103,11 +113,14 @@ export class TransferSentTable extends EventDb {
     if (data.amount && typeof data.amount === 'string') {
       data.amount = BigNumber.from(data.amount)
     }
-    if (data.minAmountOut && typeof data.minAmountOut === 'string') {
-      data.minAmountOut = BigNumber.from(data.minAmountOut)
+    if (data.attestationFee && typeof data.attestationFee === 'string') {
+      data.attestationFee = BigNumber.from(data.attestationFee)
     }
     if (data.totalSent && typeof data.totalSent === 'string') {
       data.totalSent = BigNumber.from(data.totalSent)
+    }
+    if (data.nonce && typeof data.nonce === 'string') {
+      data.nonce = BigNumber.from(data.nonce)
     }
     return data
   }
@@ -117,11 +130,14 @@ export class TransferSentTable extends EventDb {
     if (data.amount && typeof data.amount !== 'string') {
       data.amount = data.amount.toString()
     }
-    if (data.minAmountOut && typeof data.minAmountOut !== 'string') {
-      data.minAmountOut = data.minAmountOut.toString()
+    if (data.attestationFee && typeof data.attestationFee !== 'string') {
+      data.attestationFee = data.attestationFee.toString()
     }
     if (data.totalSent && typeof data.totalSent !== 'string') {
       data.totalSent = data.totalSent.toString()
+    }
+    if (data.nonce && typeof data.nonce !== 'string') {
+      data.nonce = data.nonce.toString()
     }
 
     return data

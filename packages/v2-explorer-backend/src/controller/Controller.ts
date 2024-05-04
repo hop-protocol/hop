@@ -154,7 +154,7 @@ export class Controller {
     }
   }
 
-  async getExplorerEventsForApi (input: any): Promise<any> {
+  async getMessengerExplorerEventsForApi (input: any): Promise<any> {
     const { limit = 10, filter, page } = input
 
     const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'MessageSent', page })
@@ -170,6 +170,35 @@ export class Controller {
       item.messageExecutedEvent = null
       if (messageExecutedEvent.items.length > 0) {
         item.messageExecutedEvent = messageExecutedEvent.items[0]
+      }
+      return item
+    })
+
+    const explorerItems = await Promise.all(promises)
+
+    return {
+      items: explorerItems,
+      hasNextPage
+    }
+  }
+
+  // Rails Gateway
+  async getExplorerEventsForApi (input: any): Promise<any> {
+    const { limit = 10, filter, page } = input
+
+    const { items, hasNextPage } = await this.getEvents({ limit, filter, eventName: 'TransferSent', page })
+
+    const promises = items.map(async (item: any) => {
+      const { transferId } = item
+      const bondedEvents  = await this.getEvents({
+        eventName: 'TransferBonded',
+        filter: {
+          transferId
+        }
+      })
+      item.messageExecutedEvent = null
+      if (bondedEvents.items.length > 0) {
+        item.messageExecutedEvent = bondedEvents.items[0]
       }
       return item
     })

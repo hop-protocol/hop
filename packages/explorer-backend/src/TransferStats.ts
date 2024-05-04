@@ -946,20 +946,29 @@ export class TransferStats {
 
     console.log('querying fetchMessageReceiveds')
 
+    console.log('debug000')
     const fetchMessageReceivedsChains = Object.keys(fetchMessageReceivedsMap)
+    console.log('debug111', fetchMessageReceivedsChains)
     const enabledMessageReceiveds = await Promise.all(fetchMessageReceivedsChains.map((chain: string) => {
+      console.log('debug222')
       return fetchCctpMessageReceivedsByTransferIds(chain, filterTransferIdsCctp)
     }))
+    console.log('debug333', enabledMessageReceiveds)
 
     console.log('got fetchMessageReceiveds')
 
     const messageReceiveds :any = {}
+    console.log('debug444')
     for (const [i, chain] of fetchMessageReceivedsChains.entries()) {
+      console.log('debug555', i, chain)
       messageReceiveds[chain] = enabledMessageReceiveds[i]
     }
 
+    console.log('debug666')
     for (const x of data) {
+      console.log('debug777', x)
       const destChainSlug = getSlugFromChainId(x.destinationChain)
+      console.log('debug888', x)
       const bonds = bondsMap[destChainSlug]
       if (bonds) {
         for (const bond of bonds) {
@@ -979,7 +988,9 @@ export class TransferStats {
         }
       }
       const messageReceivedsByChain = messageReceiveds[destChainSlug]
+      console.log('debug999')
       if (messageReceivedsByChain) {
+        console.log('debugaaa')
         for (const receivedEvent of messageReceivedsByChain) {
           if (receivedEvent.transferId === x.transferId && x.destinationChain === receivedEvent.destinationChainId && x.sourceChain === receivedEvent.sourceChainId) {
             x.bonded = true

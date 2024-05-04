@@ -8,7 +8,7 @@ const domainMap: Record<string, string> = {
   '7': 'polygon'
 }
 
-export function cctpDomainToChainId (sourceDomain: number): string | null {
+export function cctpDomainToChainId (sourceDomain: number): number | null {
   const slug = domainMap[sourceDomain.toString()]
-  return slug ? chainSlugToId(slug) : null
+  return slug ? Number(chainSlugToId(slug)) : null
 }

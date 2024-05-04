@@ -6,7 +6,7 @@ import { addresses } from '#addresses/index.js'
 import { Swap__factory } from '#contracts/index.js'
 import { FallbackProvider, promiseQueue, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
 import { TokenModel } from '#models/index.js'
-import { ChainSlug, chainIdToSlug, getChain } from '@hop-protocol/sdk-core'
+import { ChainSlug, getSlugFromChainId, getChain } from '@hop-protocol/sdk-core'
 // @ts-ignore
 import pkg from '../package.json'
 
@@ -90,11 +90,11 @@ describe.skip('tx watcher', () => {
           .watch(txHash, TokenModel.USDC, ChainSlug.Ethereum, ChainSlug.Polygon)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chainIdToSlug(chain) === ChainSlug.Ethereum) {
+            if (getSlugFromChainId(chain) === ChainSlug.Ethereum) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chainIdToSlug(chain) === ChainSlug.Polygon) {
+            if (getSlugFromChainId(chain) === ChainSlug.Polygon) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -129,11 +129,11 @@ describe.skip('tx watcher', () => {
           .watch(txHash, TokenModel.USDC, ChainSlug.Ethereum, ChainSlug.Gnosis)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chainIdToSlug(chain) === ChainSlug.Ethereum) {
+            if (getSlugFromChainId(chain) === ChainSlug.Ethereum) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
+            if (getSlugFromChainId(chain) === ChainSlug.Gnosis) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -167,14 +167,14 @@ describe.skip('tx watcher', () => {
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
+            if (getSlugFromChainId(chain) === ChainSlug.Gnosis) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
                 receipt.transactionHash
               )
             }
-            if (chainIdToSlug(chain) === ChainSlug.Optimism) {
+            if (getSlugFromChainId(chain) === ChainSlug.Optimism) {
               destinationReceipt = receipt
               console.log(
                 'got destination transaction receipt:',
@@ -211,14 +211,14 @@ describe.skip('tx watcher', () => {
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chainIdToSlug(chain) === ChainSlug.Optimism) {
+            if (getSlugFromChainId(chain) === ChainSlug.Optimism) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
                 receipt.transactionHash
               )
             }
-            if (chainIdToSlug(chain) === ChainSlug.Arbitrum) {
+            if (getSlugFromChainId(chain) === ChainSlug.Arbitrum) {
               destinationReceipt = receipt
               console.log(
                 'got destination transaction receipt:',
@@ -255,7 +255,7 @@ describe.skip('tx watcher', () => {
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
+            if (getSlugFromChainId(chain) === ChainSlug.Gnosis) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
@@ -265,7 +265,7 @@ describe.skip('tx watcher', () => {
                 '0x152348cfaf5344668191859ab95d858d31fd347f807c615e26e027b61fd976f3'
               )
             }
-            if (chainIdToSlug(chain) === ChainSlug.Polygon) {
+            if (getSlugFromChainId(chain) === ChainSlug.Polygon) {
               destinationReceipt = receipt
               console.log(
                 'got destination transaction receipt:',
@@ -303,11 +303,11 @@ describe.skip('tx watcher', () => {
           .watch(txHash, TokenModel.USDC, ChainSlug.Gnosis, ChainSlug.Ethereum)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chainIdToSlug(chain) === ChainSlug.Gnosis) {
+            if (getSlugFromChainId(chain) === ChainSlug.Gnosis) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chainIdToSlug(chain) === ChainSlug.Ethereum) {
+            if (getSlugFromChainId(chain) === ChainSlug.Ethereum) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }

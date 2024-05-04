@@ -196,8 +196,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.availableLiquidityWatcher = availableLiquidityWatcher
   }
 
-  chainIdToSlug (chainId: number): ChainSlug {
-    return this.bridge.chainIdToSlug(chainId)
+  getSlugFromChainId (chainId: number): ChainSlug {
+    return this.bridge.getSlugFromChainId(chainId)
   }
 
   chainSlugToId (chainSlug: string): number {
@@ -290,8 +290,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (!amount || (!bonderFee && !relayerFee) || !sourceChainId || !destinationChainId) {
       throw new Error('expected complete dbTransfer data')
     }
-    const sourceChain = this.chainIdToSlug(sourceChainId)
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const sourceChain = this.getSlugFromChainId(sourceChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     if (!transferSentTimestamp) {
       throw new Error('expected transferSentTimestamp')

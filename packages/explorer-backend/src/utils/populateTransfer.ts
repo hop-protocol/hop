@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { chainIdToSlug } from './chainIdToSlug'
+import { getSlugFromChainId } from './getSlugFromChainId'
 import { chainSlugToId } from './chainSlugToId'
 import { chainSlugToName } from './chainSlugToName'
 import { explorerLinkAddress } from './explorerLinkAddress'
@@ -59,17 +59,17 @@ export function populateTransfer (item: any, prices?: Record<string, any>) {
   }
 
   if (!item.sourceChainSlug && item.sourceChain) {
-    item.sourceChainSlug = chainIdToSlug(item.sourceChain)
+    item.sourceChainSlug = getSlugFromChainId(item.sourceChain)
   }
   if (!item.sourceChainSlug && item.sourceChainId) {
-    item.sourceChainSlug = chainIdToSlug(item.sourceChainId)
+    item.sourceChainSlug = getSlugFromChainId(item.sourceChainId)
   }
 
   if (!item.destinationChainSlug && item.destinationChain) {
-    item.destinationChainSlug = chainIdToSlug(item.destinationChain)
+    item.destinationChainSlug = getSlugFromChainId(item.destinationChain)
   }
   if (!item.destinationChainSlug && item.destinationChainId) {
-    item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
+    item.destinationChainSlug = getSlugFromChainId(item.destinationChainId)
   }
 
   if (!item.sourceChainName && item.sourceChainSlug) {

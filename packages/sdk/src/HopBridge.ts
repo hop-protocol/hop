@@ -43,7 +43,7 @@ import {
   PriceFeedApiKeys,
   PriceFeedFromS3,
   TokenSymbol,
-  chainIdToSlug,
+  getSlugFromChainId,
   fetchJsonOrThrow,
   getToken,
   isValidTokenSymbol
@@ -2860,7 +2860,7 @@ export class HopBridge extends Base {
       return amountIns.map((amount: BigNumberish) => BigNumber.from(amount))
     }
 
-    const multicall = new Multicall({ network: this.network })
+    const multicall = new Multicall({ network: this.network, chainProviders: this.chainProviders })
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
     const options = amountIns.map((amountIn: any, index: number) => {
@@ -3492,7 +3492,7 @@ export class HopBridge extends Base {
             const fromBridgeAddress = this.getCctpBridgeAddress(this.tokenSymbol, chain)
             if (log.address?.toLowerCase() === fromBridgeAddress.toLowerCase() && log.topics[0] === cctpTransferSentTopic) {
               nonce = BigNumber.from(log.topics[1].toString()).toString()
-              toChain = BigNumber.from(log.topics[2]).toNumber()
+              toChain = BigNumber.from(log.topics[2]).toString()
             }
           }
           if (!toChain) {
@@ -3502,7 +3502,7 @@ export class HopBridge extends Base {
             throw new Error('nonce not found')
           }
           // toChain is a chainID
-          const toChainSlug = chainIdToSlug(toChain)
+          const toChainSlug = getSlugFromChainId(toChain)
           const nonceUsed = await this.getIsCctpNonceUsed(nonce, fromChain, toChainSlug)
           return {
             fromChain: chain,

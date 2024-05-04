@@ -159,7 +159,7 @@ export default class L2Bridge extends Bridge {
     const bridge = sdk.bridge(this.tokenSymbol)
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
-    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const destinationChain = this.getSlugFromChainId(destinationChainId)
     const isHTokenSend = true
     const { totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain, isHTokenSend)
 

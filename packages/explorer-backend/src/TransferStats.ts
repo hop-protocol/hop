@@ -992,7 +992,11 @@ export class TransferStats {
       if (messageReceivedsByChain) {
         console.log('debugaaa')
         for (const receivedEvent of messageReceivedsByChain) {
-          if (receivedEvent.transferId === x.transferId && x.destinationChain === receivedEvent.destinationChainId && x.sourceChain === receivedEvent.sourceChainId) {
+          if (
+            receivedEvent.transferId === x.transferId &&
+            x.destinationChain.toString() === receivedEvent.destinationChainId.toString() &&
+            x.sourceChain.toString() === receivedEvent.sourceChainId.toString()
+          ) {
             x.bonded = true
             x.bondTransactionHash = receivedEvent?.transaction?.hash
             x.bondedTimestamp = Number(receivedEvent?.block?.timestamp)

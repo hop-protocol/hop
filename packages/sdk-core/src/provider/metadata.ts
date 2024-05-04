@@ -1,4 +1,4 @@
-import { RpcProviderSlug, RpcProvider } from './types.js'
+import { RpcProviderSlug, type RpcProvider } from './types.js'
 
 export const rpcProviders: RpcProvider = {
   [RpcProviderSlug.Local]: {

@@ -1,5 +1,5 @@
 import { fetchJsonOrThrow, serializeQueryParams, wait } from '#utils/index.js'
-import { getToken, TokenSymbol, isValidTokenSymbol } from '#tokens/index.js'
+import { type TokenSymbol, getToken, isValidTokenSymbol } from '#tokens/index.js'
 
 function getCoinId (tokenSymbol: TokenSymbol | string): string {
   if (!isValidTokenSymbol(tokenSymbol)) {

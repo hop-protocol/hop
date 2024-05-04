@@ -1,4 +1,4 @@
-import { type TokenSymbol } from '#tokens/index.js'
+import type { TokenSymbol } from '#tokens/index.js'
 
 // We do not account for different names for the same chain on different ecosystems
 // For example, Polygon on Mainnet and Amoy on Sepolia are both called Polygon

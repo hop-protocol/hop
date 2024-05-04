@@ -1,5 +1,5 @@
 import { Logger } from '#logger/index.js'
-import { type NetworkSlug, type ChainSlug } from '@hop-protocol/sdk'
+import type { NetworkSlug, ChainSlug } from '@hop-protocol/sdk'
 import { CoreEnvironment } from '#config/index.js'
 
 export abstract class AbstractService {

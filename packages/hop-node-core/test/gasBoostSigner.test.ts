@@ -1,9 +1,8 @@
 import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
-import { GasBoostTransaction } from '#gasboost/GasBoostTransaction.js'
+import type { GasBoostTransaction } from '#gasboost/GasBoostTransaction.js'
 import { MemoryStore } from '#gasboost/MemoryStore.js'
 import { Wallet } from 'ethers'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { utils } from 'ethers'
 import { wait } from '#utils/wait.js'
 
 const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000001'

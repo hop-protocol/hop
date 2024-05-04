@@ -8,7 +8,7 @@ import {
 } from '#config/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
-import { type ChainSlug } from '@hop-protocol/sdk'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 const cache: Record<string, Signer> = {}
 

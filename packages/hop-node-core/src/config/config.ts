@@ -1,4 +1,4 @@
-import { type ChainSlug, type NetworkSlug } from '@hop-protocol/sdk'
+import type { ChainSlug, NetworkSlug } from '@hop-protocol/sdk'
 
 export type Tokens = Record<string, boolean>
 

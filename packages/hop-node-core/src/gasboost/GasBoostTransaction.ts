@@ -415,7 +415,6 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
             Authorization: blocknativeApiKey
           }
         })
-
         const gasData: any = await res.json()
         const maxPriorityFeePerGas = gasData.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas
         return this.parseGwei(maxPriorityFeePerGas)

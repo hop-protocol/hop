@@ -168,7 +168,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     return uuidv4()
   }
 
-  private setOwnTxParams (tx: providers.TransactionRequest) {
+  private setOwnTxParams (tx: providers.TransactionRequest): void {
     this.from = tx.from!
     this.to = tx.to!
     if (tx.type != null) {
@@ -198,7 +198,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private setGasProperties (tx: TransactionRequestWithHash) {
+  private setGasProperties (tx: TransactionRequestWithHash): void {
     // things get complicated with boosting 1559 when initial tx is using gasPrice
     // so we explicitly set gasPrice here again
     const shouldUseGasPrice = (
@@ -234,43 +234,43 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     throw new Error('transaction hash not available yet')
   }
 
-  setPollMs (pollMs: number) {
+  setPollMs (pollMs: number): void {
     this.pollMs = pollMs
   }
 
-  setTimeTilBoostMs (timeTilBoostMs: number) {
+  setTimeTilBoostMs (timeTilBoostMs: number): void {
     this.timeTilBoostMs = timeTilBoostMs
   }
 
-  setGasPriceMultiplier (gasPriceMultiplier: number) {
+  setGasPriceMultiplier (gasPriceMultiplier: number): void {
     this.gasPriceMultiplier = gasPriceMultiplier
   }
 
-  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number) {
+  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number): void {
     this.initialTxGasPriceMultiplier = initialTxGasPriceMultiplier
   }
 
-  setMaxGasPriceGwei (maxGasPriceGwei: number) {
+  setMaxGasPriceGwei (maxGasPriceGwei: number): void {
     this.maxGasPriceGwei = maxGasPriceGwei
   }
 
-  setPriorityFeePerGasCap (priorityFeePerGasCap: number) {
+  setPriorityFeePerGasCap (priorityFeePerGasCap: number): void {
     this.priorityFeePerGasCap = priorityFeePerGasCap
   }
 
-  setCompareMarketGasPrice (compareMarketGasPrice: boolean) {
+  setCompareMarketGasPrice (compareMarketGasPrice: boolean): void {
     this.compareMarketGasPrice = compareMarketGasPrice
   }
 
-  setWarnEthBalance (warnEthBalance: number) {
+  setWarnEthBalance (warnEthBalance: number): void {
     this.warnEthBalance = warnEthBalance
   }
 
-  start () {
+  start (): void {
     this.startPoller()
   }
 
-  async save () {
+  async save (): Promise<void> {
     if (!this.store) {
       return
     }
@@ -295,12 +295,12 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  static async fromId (id: string, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static async fromId (id: string, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}): Promise<GasBoostTransaction> {
     const item = await store.getItem(id)
     return GasBoostTransaction.unmarshal(item, chainId, signer, store, options)
   }
 
-  static unmarshal (item: MarshalledTx, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}) {
+  static unmarshal (item: MarshalledTx, chainId: string, signer: Signer, store: Store, options: Partial<Options> = {}): GasBoostTransaction {
     const tx = {
       type: item.type,
       from: item.from,
@@ -321,7 +321,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     return gTx
   }
 
-  async send () {
+  async send (): Promise<void> {
     const _timeId = `GasBoostTransaction send getBumpedGasFeeData elapsed ${this.logId} `
     console.time(_timeId)
     let gasFeeData = await this.getBumpedGasFeeData(this.initialTxGasPriceMultiplier)
@@ -360,7 +360,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     return this.signer.getTransactionCount('pending')
   }
 
-  async getGasFeeData () {
+  async getGasFeeData (): Promise<providers.FeeData> {
     return this.signer.provider!.getFeeData()
   }
 
@@ -446,11 +446,11 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     return maxPriorityFeePerGas!
   }
 
-  getMaxGasPrice () {
+  getMaxGasPrice (): BigNumber {
     return this.parseGwei(this.maxGasPriceGwei)
   }
 
-  getPriorityFeePerGasCap () {
+  getPriorityFeePerGasCap (): BigNumber {
     return this.parseGwei(this.priorityFeePerGasCap)
   }
 
@@ -613,7 +613,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private async handleConfirmation (txHash: string, receipt: providers.TransactionReceipt) {
+  private async handleConfirmation (txHash: string, receipt: providers.TransactionReceipt): Promise<void> {
     if (this.confirmations) {
       return
     }
@@ -630,7 +630,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.watchForReorg()
   }
 
-  private async handleMaxRebroadcastIndexReached () {
+  private async handleMaxRebroadcastIndexReached (): Promise<void> {
     this.maxRebroadcastIndexReached = true
     this.clearInflightTxs()
     this.emit(State.Error)
@@ -638,13 +638,13 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.logger.error(errMsg)
   }
 
-  private async getReceipt (txHash: string) {
+  private async getReceipt (txHash: string): Promise<providers.TransactionReceipt> {
     const confirms = 1
     const timeoutMs = 10 * 60 * 1000
     return this.signer.provider!.waitForTransaction(txHash, confirms, timeoutMs)
   }
 
-  private async startPoller () {
+  private async startPoller (): Promise<void> {
     if (this.started) {
       return
     }
@@ -668,13 +668,13 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private async poll () {
+  private async poll (): Promise<void> {
     for (const item of this.inflightItems) {
       await this.handleInflightTx(item)
     }
   }
 
-  private async handleInflightTx (item: InflightItem) {
+  private async handleInflightTx (item: InflightItem): Promise<void> {
     if (this.shouldBoost(item)) {
       return this.boost(item)
     }
@@ -687,14 +687,14 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private shouldBoost (item: InflightItem) {
+  private shouldBoost (item: InflightItem): boolean {
     const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
     const isConfirmed = this.confirmations
     const isMaxGasPriceReached = this.maxGasPriceReached
     return timeOk && !isConfirmed && !isMaxGasPriceReached && !item.boosted
   }
 
-  private shouldRebroadcastLatestTx () {
+  private shouldRebroadcastLatestTx (): boolean {
     const item = this.getLatestInflightItem()
     if (!item) {
       return false
@@ -704,7 +704,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     return timeOk && isLatestItem && this.maxGasPriceReached
   }
 
-  private async boost (item: InflightItem) {
+  private async boost (item: InflightItem): Promise<void> {
     this.logger.debug(`attempting boost with boost index ${this.boostIndex}`)
     const gasFeeData = await this.getBumpedGasFeeData()
     const maxGasPrice = this.getMaxGasPrice()
@@ -854,7 +854,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private async checkHasEnoughFunds (payload: providers.TransactionRequest, gasFeeData: Partial<GasFeeData>) {
+  private async checkHasEnoughFunds (payload: providers.TransactionRequest, gasFeeData: Partial<GasFeeData>): Promise<void> {
     let gasLimit
     let ethBalance
 
@@ -892,7 +892,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private track (tx: TransactionRequestWithHash) {
+  private track (tx: TransactionRequestWithHash): void {
     this.logger.debug('tracking')
     const prevItem = this.getLatestInflightItem()
     if (prevItem) {
@@ -921,19 +921,19 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     this.startPoller()
   }
 
-  private clearInflightTxs () {
+  private clearInflightTxs (): void {
     this.inflightItems = []
   }
 
-  private parseGwei (value: number) {
+  private parseGwei (value: number): BigNumber {
     return utils.parseUnits(value.toString(), 9)
   }
 
-  private formatGwei (value: BigNumber) {
+  private formatGwei (value: BigNumber): string {
     return utils.formatUnits(value.toString(), 9)
   }
 
-  private getGasFeeDataAsString (gasFeeData: Partial<GasFeeData> = this) {
+  private getGasFeeDataAsString (gasFeeData: Partial<GasFeeData> = this): string {
     const format = (value?: BigNumber) => (value != null) ? this.formatGwei(value) : null
     const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = gasFeeData
     return `gasPrice: ${format(gasPrice)}, maxFeePerGas: ${format(maxFeePerGas)}, maxPriorityFeePerGas: ${format(maxPriorityFeePerGas)}`
@@ -974,7 +974,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private async watchForReorg () {
+  private async watchForReorg (): Promise<void> {
     this.logger.debug('watchForReorg started')
     while (true) {
       try {
@@ -1000,7 +1000,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private async rebroadcastInitialTx () {
+  private async rebroadcastInitialTx (): Promise<void> {
     this.reset()
     this.logger.debug('attempting to rebroadcast initial transaction')
     return this.send()
@@ -1041,7 +1041,7 @@ export class GasBoostTransaction extends EventEmitter implements providers.Trans
     }
   }
 
-  private reset () {
+  private reset (): void {
     this.logger.debug('resetting tx state to original tx params')
     this.started = false
     this.boostIndex = 0

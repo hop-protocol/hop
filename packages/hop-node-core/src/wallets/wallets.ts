@@ -60,12 +60,12 @@ const constructSigner = (network: string, privateKey?: string): Signer => {
 
 // lazy instantiate
 export const wallets = {
-  has (network: string) {
+  has (network: string): boolean {
     const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     const privateKey = coreEnvironmentVariables?.bonderPrivateKey
     return !!constructSigner(network, privateKey)
   },
-  get (network: string) {
+  get (network: string): Signer {
     const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     const privateKey = coreEnvironmentVariables?.bonderPrivateKey
     return constructSigner(network, privateKey)

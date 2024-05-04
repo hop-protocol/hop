@@ -30,7 +30,7 @@ export class GasBoostTransactionFactory {
     this.chainId = (await this.signer.getChainId()).toString()
   }
 
-  createTransaction (tx: providers.TransactionRequest, id?: string) {
+  createTransaction (tx: providers.TransactionRequest, id?: string): GasBoostTransaction {
     if (!this.chainId) {
       throw new Error('chainId not set')
     }
@@ -38,7 +38,7 @@ export class GasBoostTransactionFactory {
     return gTx
   }
 
-  async getTransactionFromId (id: string) {
+  async getTransactionFromId (id: string): Promise<GasBoostTransaction> {
     return GasBoostTransaction.fromId(id, this.chainId, this.signer, this.store, this.options)
   }
 

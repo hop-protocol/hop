@@ -71,12 +71,12 @@ export class CoreEnvironment {
    * Setters
    */
 
-  setEnvironment(environment: CoreEnvironmentVariables) {
+  setEnvironment(environment: CoreEnvironmentVariables): void {
     this.#environment = { ...environment, ...this.#environment }
   }
 
   // From parent
-  setRpcUrl(chainSlug: ChainSlug, rpcUrl: string) {
+  setRpcUrl(chainSlug: ChainSlug, rpcUrl: string): void {
     if (!this.#environment?.rpcUrls) {
       this.#environment.rpcUrls = {}
     }
@@ -84,12 +84,12 @@ export class CoreEnvironment {
   }
 
   // From parent
-  setBonderPrivateKey(bonderPrivateKey: string) {
+  setBonderPrivateKey(bonderPrivateKey: string): void {
     this.#environment.bonderPrivateKey = bonderPrivateKey
   }
 
   // From parent
-  setSignerConfig(signer: SignerConfig) {
+  setSignerConfig(signer: SignerConfig): void {
     this.#environment.signer = signer
   }
 }

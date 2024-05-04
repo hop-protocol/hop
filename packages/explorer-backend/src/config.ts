@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { getDefaultRpcUrl } from './utils/getDefaultRpcUrl'
 import { NetworkSlug, getNetwork } from '@hop-protocol/sdk'
-import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk'
+import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/sdk/addresses'
 
 dotenv.config()
 

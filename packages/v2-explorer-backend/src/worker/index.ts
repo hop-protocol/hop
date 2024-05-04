@@ -1,1 +1,1 @@
-export * from './worker.js'
+export { Worker } from './worker.js'

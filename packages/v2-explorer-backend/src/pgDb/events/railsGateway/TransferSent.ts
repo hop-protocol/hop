@@ -18,7 +18,7 @@ export class TransferSentTable extends EventDb {
         id TEXT PRIMARY KEY,
         transfer_id VARCHAR NOT NULL UNIQUE,
         path_id VARCHAR NOT NULL,
-        to VARCHAR NOT NULL,
+        "to" VARCHAR NOT NULL,
         amount NUMERIC NOT NULL,
         min_amount_out NUMERIC NOT NULL,
         total_sent NUMERIC NOT NULL,
@@ -52,7 +52,7 @@ export class TransferSentTable extends EventDb {
       `SELECT
         transfer_id AS "transferId",
         path_id AS "pathId",
-        to,
+        "to",
         amount,
         min_amount_out AS "minAmountOut",
         total_sent AS "totalSent",
@@ -86,7 +86,7 @@ export class TransferSentTable extends EventDb {
       `INSERT INTO
         transfer_sent_events
       (
-        id, transfer_id, path_id, to, amount, min_amount_out, total_sent,
+        id, transfer_id, path_id, "to", amount, min_amount_out, total_sent,
         ${contextSqlInsert}
       )
       VALUES ($\{id\}, $\{transferId\}, $\{pathId\}, $\{to\}, $\{amount\}, $\{minAmountOut\}, $\{totalSent\}, $\{context.chainId\}, $\{context.transactionHash\}, $\{context.transactionIndex\}, $\{context.logIndex\}, $\{context.blockNumber\}, $\{context.fromAddress\}, $\{context.toAddress\}, $\{context.value\}, $\{context.nonce\}, $\{context.gasLimit\}, $\{context.gasUsed\}, $\{context.gasPrice\}, $\{context.data\})

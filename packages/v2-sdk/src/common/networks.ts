@@ -1,4 +1,4 @@
-import { mainnet, sepolia } from '@hop-protocol/sdk-core/networks'
+import { getNetworks } from '@hop-protocol/sdk-core'
 
 export type Network = {
   name: string
@@ -7,40 +7,27 @@ export type Network = {
   fallbackPublicRpcUrls: string[]
   explorerUrls: string[]
   nativeBridgeUrl?: string
-  waitConfirmations: number
 }
 
 export type Networks = Record<string, Network>
-const mainnetNetworks: Record<string, Network> = {}
-const sepoliaNetworks: Record<string, Network> = {}
 
-for (const key in mainnet) {
-  const network = (mainnet as any)[key]
-  mainnetNetworks[network.networkId] = {
-    name: network.name,
-    chainId: network.networkId,
-    publicRpcUrl: network.publicRpcUrl,
-    fallbackPublicRpcUrls: network.fallbackPublicRpcUrls,
-    explorerUrls: network.explorerUrls,
-    nativeBridgeUrl: network.nativeBridgeUrl,
-    waitConfirmations: network.waitConfirmations
+export const networks: Record<string, Record<string, Network>> = {}
+
+const allNetworks = getNetworks()
+
+for (const index in allNetworks) {
+  const network = allNetworks[index]
+  const chains = network.chains
+  networks[network.slug] = {}
+  for (const chainSlug in chains) {
+    const chain = (chains as any)[chainSlug]
+    networks[network.slug][chain.chainId] = {
+      name: chain.name,
+      chainId: chain.chainId,
+      publicRpcUrl: chain.publicRpcUrl,
+      fallbackPublicRpcUrls: chain.fallbackPublicRpcUrls,
+      explorerUrls: chain.explorerUrls,
+      nativeBridgeUrl: chain.nativeBridgeUrl
+    }
   }
-}
-
-for (const key in sepolia) {
-  const network = (sepolia as any)[key]
-  sepoliaNetworks[network.networkId] = {
-    name: network.name,
-    chainId: network.networkId,
-    publicRpcUrl: network.publicRpcUrl,
-    fallbackPublicRpcUrls: network.fallbackPublicRpcUrls,
-    explorerUrls: network.explorerUrls,
-    nativeBridgeUrl: network.nativeBridgeUrl,
-    waitConfirmations: network.waitConfirmations
-  }
-}
-
-export const networks: Record<string, Record<string, Network>> = {
-  mainnet: mainnetNetworks,
-  sepolia: sepoliaNetworks
 }

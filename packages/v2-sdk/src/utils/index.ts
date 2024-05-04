@@ -1,1 +1,5 @@
+export { chainSlugMap } from './chainSlugMap.js'
+export { getExplorerUrl } from './getExplorerUrl.js'
+export { getProvider } from './getProvider.js'
 export { getTxHashExplorerUrl } from './getTxHashExplorerUrl.js'
+export { MerkleTree } from './MerkleTree.js'

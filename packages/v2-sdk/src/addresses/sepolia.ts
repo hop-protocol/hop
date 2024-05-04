@@ -1,7 +1,7 @@
 export const addresses = {
   11155111: {
     chainId: 11155111,
-    startBlock: 0,
+    startBlock: 5804841,
     hubCoreMessenger: '0x5Faca3F1bC4966Ef18411559D8Ec0E6314AAd5cE',
     spokeCoreMessenger: '0x5Faca3F1bC4966Ef18411559D8Ec0E6314AAd5cE',
     ethFeeDistributor: '',
@@ -15,7 +15,7 @@ export const addresses = {
   },
   11155420: {
     chainId: 11155420,
-    startBlock: 0,
+    startBlock: 11311906,
     spokeCoreMessenger: '0x45F00cfbBF8418133eAB132502aa1A8611d7111e',
     connector: '',
     railsGateway: '0x9B6370567e535e74881a84A2ed1f0001d2D4a5f1',

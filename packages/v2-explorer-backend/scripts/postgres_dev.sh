@@ -6,6 +6,7 @@ docker run --rm --name pg -p 5432:5432 -e POSTGRES_PASSWORD=password postgres
 
 # connect
 # docker run -it --rm --net=host postgres psql -h localhost -U postgres
+# docker exec -it pg psql -h localhost -U postgres
 
 #export
 #pg.env: PGPASSWORD=

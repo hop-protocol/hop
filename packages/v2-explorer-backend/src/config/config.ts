@@ -28,6 +28,7 @@ export const postgresConfig = {
   port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432,
   maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }
+console.log(postgresConfig)
 
 export const chainNames: any = {
   1: 'Ethereum (Mainnet)',

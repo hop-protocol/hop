@@ -1,6 +1,5 @@
 import { Hop } from '@hop-protocol/v2-sdk'
 import { Indexer } from '#indexer/index.js'
-import { addresses } from '@hop-protocol/v2-sdk'
 import { network } from '#config/index.js'
 
 export type Options = {
@@ -18,8 +17,8 @@ export class Worker {
     this.sdk = new Hop({ network })
 
     const startBlocks: any = {}
-    Object.keys(addresses.sepolia).forEach((chainId: string) => {
-      startBlocks[chainId] = addresses.sepolia[chainId].startBlock
+    Object.keys(this.sdk.contractAddresses).forEach((chainId: string) => {
+      startBlocks[chainId] = this.sdk.contractAddresses[chainId].startBlock
     })
 
     this.indexer = new Indexer({

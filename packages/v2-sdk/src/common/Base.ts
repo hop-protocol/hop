@@ -2,7 +2,7 @@ import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'et
 import { rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk-core'
 import { getProviderFromUrl } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
-import { chainSlugMap } from '#utils/chainSlugMap.js'
+import { chainSlugMap, getTxHashExplorerUrl } from '#utils/index.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -410,6 +410,16 @@ export class Base {
             throw error
           }
         }
+      },
+
+      getTransactionHashExplorerUrl: (txHash: string, chainId: BigNumberish): string => {
+        if (!this.utils.isValidChainId(chainId)) {
+          throw new Error(`invalid chainId "${chainId}"`)
+        }
+        if (!this.utils.isValidTxHash(txHash)) {
+          throw new Error(`invalid transaction hash "${txHash}"`)
+        }
+        return getTxHashExplorerUrl(this.network, chainId?.toString(), txHash)
       }
     }
   }

@@ -1,10 +1,10 @@
 import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { db } from '#db/index.js'
-import { getTransactionHashExplorerUrl } from '#utils/getTransactionHashExplorerUrl.js'
+import { Hop } from '@hop-protocol/v2-sdk'
 import { pgDb } from '#pgDb/index.js'
 import { truncateString } from '#utils/truncateString.js'
-import { chainNames } from '#config/index.js'
+import { chainNames, network } from '#config/index.js'
 
 type EventsResult = {
   items: any[]
@@ -24,6 +24,13 @@ export class Controller {
   db: any = db
   pgDb = pgDb
   events: any
+  sdk: Hop
+
+  constructor () {
+    this.sdk = new Hop({
+      network
+    })
+  }
 
   async getEventsForApi (input: EventsApiInput): Promise<EventsResult> {
     const { eventName, limit = 10, filter, page = 1 } = input
@@ -69,7 +76,7 @@ export class Controller {
       }
       if (item.context?.transactionHash) {
         item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
-        item.context.transactionHashExplorerUrl = getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
+        item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
       }
       if (item.context?.chainId) {
         item.context.chainName = chainNames[item.context.chainId]
@@ -133,7 +140,7 @@ export class Controller {
       }
       if (item.context?.transactionHash) {
         item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
-        item.context.transactionHashExplorerUrl = getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
+        item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
       }
       if (item.context?.chainId) {
         item.context.chainName = chainNames[item.context.chainId]

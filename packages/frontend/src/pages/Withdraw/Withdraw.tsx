@@ -141,6 +141,7 @@ export const Withdraw: FC = () => {
           })
           resolve(null)
         } catch (err) {
+          console.error('withdraw check error', err)
 
           try {
             const bridge = sdk.bridge('USDC')
@@ -180,7 +181,7 @@ export const Withdraw: FC = () => {
               })
             }
           } catch (err: any) {
-            console.error('withdraw check error', error)
+            console.error('withdraw check error cctp', error)
           }
 
           reject(err)

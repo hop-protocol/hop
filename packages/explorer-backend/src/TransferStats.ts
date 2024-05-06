@@ -2,7 +2,7 @@ import Db, { getInstance } from './Db'
 import wait from 'wait'
 import { BigNumber, ethers, providers, utils } from 'ethers'
 import { DateTime } from 'luxon'
-import { mainnet as addresses } from '@hop-protocol/sdk/addresses'
+import { NetworkSlug, sdkConfig } from '@hop-protocol/sdk'
 import { cache } from './cache'
 import { getSlugFromChainId } from './utils/getSlugFromChainId'
 import { chainSlugToId } from './utils/chainSlugToId'
@@ -277,7 +277,7 @@ export class TransferStats {
         for (const log of receipt.logs) {
           const topic = log.topics[0]
           if (topic.startsWith(transferTopic)) {
-            const hTokenAddress = (addresses as any)?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
+            const hTokenAddress = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
             if (hTokenAddress?.toLowerCase() === log.address?.toLowerCase() && item.recipientAddress) {
               if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
                 cache.put(cacheKey, true, cacheDurationMs)
@@ -383,9 +383,9 @@ export class TransferStats {
         const topic = log.topics[0]
         if (topic.startsWith(transferTopic)) {
           if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
-            let canonicalTokenAddress = (addresses as any)?.bridges?.[token]?.[destinationChainSlug]?.l2CanonicalToken
+            let canonicalTokenAddress = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[token]?.[destinationChainSlug]?.l2CanonicalToken
             if (destinationChainSlug === 'ethereum') {
-              canonicalTokenAddress = (addresses as any)?.bridges?.[token]?.[destinationChainSlug]?.l1CanonicalToken
+              canonicalTokenAddress = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[token]?.[destinationChainSlug]?.l1CanonicalToken
             }
             if (canonicalTokenAddress?.toLowerCase() === log.address?.toLowerCase()) {
               amount = BigNumber.from(log.data)
@@ -399,7 +399,7 @@ export class TransferStats {
           const topic = log.topics[0]
           if (topic.startsWith(transferTopic)) {
             if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
-              const hTokenAddress = (addresses as any)?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
+              const hTokenAddress = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
               if (hTokenAddress?.toLowerCase() === log.address?.toLowerCase()) {
                 amount = BigNumber.from(log.data)
               }
@@ -632,11 +632,9 @@ export class TransferStats {
           _item.bonded = onchainData?.bonded
           _item.bondTransactionHash = onchainData?.bondTransactionHash
           try {
-            console.log('upserting transferId', _item.transferId)
             await this.upsertItem(_item)
           } catch (err: any) {
             console.error('upsert error:', err)
-            console.log(_item)
           }
         }
       }
@@ -983,7 +981,11 @@ export class TransferStats {
       const messageReceivedsByChain = messageReceiveds[destChainSlug]
       if (messageReceivedsByChain) {
         for (const receivedEvent of messageReceivedsByChain) {
-          if (receivedEvent.transferId === x.transferId && x.destinationChain === receivedEvent.destinationChainId && x.sourceChain === receivedEvent.sourceChainId) {
+          if (
+            receivedEvent.transferId === x.transferId &&
+            x.destinationChain.toString() === receivedEvent.destinationChainId.toString() &&
+            x.sourceChain.toString() === receivedEvent.sourceChainId.toString()
+          ) {
             x.bonded = true
             x.bondTransactionHash = receivedEvent?.transaction?.hash
             x.bondedTimestamp = Number(receivedEvent?.block?.timestamp)
@@ -1137,7 +1139,7 @@ export class TransferStats {
     const { transactionHash, sourceChain } = item
     const sourceChainSlug = getSlugFromChainId(sourceChain)
 
-    const _addresses = Object.values((addresses as any)?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: any) => {
+    const _addresses = Object.values((sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: any) => {
       address = /^0x/.test(address) ? address?.toLowerCase() : ''
       if (address) {
         acc[address] = true
@@ -1338,7 +1340,7 @@ export class TransferStats {
               deadline = Number(decoded?.args?.deadline.toString())
             }
             for (const _token of enabledTokens) {
-              const _addreses = (addresses as any)?.bridges?.[_token]?.[sourceChainSlug]
+              const _addreses = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[_token]?.[sourceChainSlug]
               if (
                 _addreses?.l2AmmWrapper?.toLowerCase() === log.address?.toLowerCase() ||
                 _addreses?.l2Bridge?.toLowerCase() === log.address?.toLowerCase()
@@ -1359,7 +1361,7 @@ export class TransferStats {
               deadline = Number(decoded?.args?.deadline.toString())
             }
             for (const _token of enabledTokens) {
-              const _addreses = (addresses as any)?.bridges?.[_token]?.[sourceChainSlug]
+              const _addreses = (sdkConfig[NetworkSlug.Mainnet])?.addresses?.bridges?.[_token]?.[sourceChainSlug]
               if (
                 _addreses?.l1Bridge?.toLowerCase() === log.address?.toLowerCase()
               ) {

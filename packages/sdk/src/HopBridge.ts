@@ -3492,7 +3492,7 @@ export class HopBridge extends Base {
             const fromBridgeAddress = this.getCctpBridgeAddress(this.tokenSymbol, chain)
             if (log.address?.toLowerCase() === fromBridgeAddress.toLowerCase() && log.topics[0] === cctpTransferSentTopic) {
               nonce = BigNumber.from(log.topics[1].toString()).toString()
-              toChain = BigNumber.from(log.topics[2]).toNumber()
+              toChain = BigNumber.from(log.topics[2]).toString()
             }
           }
           if (!toChain) {

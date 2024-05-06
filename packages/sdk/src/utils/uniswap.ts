@@ -136,11 +136,12 @@ const addresses: any = {
 }
 
 export async function getUSDCSwapParams(options: any) {
-  const { network, chainId, provider, amountIn, recipient, getQuote = false } = options
-  const chain = getSlugFromChainId(chainId)
+  let { network, provider, amountIn, recipient, getQuote = false } = options
+  const chain = getSlugFromChainId(options.chainId)
+  const chainIdInt = Number(options.chainId)
 
   const { chainId: providerChainId } = await provider.getNetwork()
-  if (chainId !== Number(providerChainId.toString())) {
+  if (chainIdInt !== Number(providerChainId.toString())) {
     throw new Error(`provider chain id doesn't match chainId`)
   }
 
@@ -170,16 +171,14 @@ export async function getUSDCSwapParams(options: any) {
   const toTokenDecimals = await toTokenContract.decimals()
 
   // Define the tokens
-  const tokenA = new Token(chainId, tokens[0], fromTokenDecimals, fromToken)
-  const tokenB = new Token(chainId, tokens[1], toTokenDecimals, toToken)
+  const tokenA = new Token(chainIdInt, tokens[0], fromTokenDecimals, fromToken)
+  const tokenB = new Token(chainIdInt, tokens[1], toTokenDecimals, toToken)
 
   // Create a pool
   const poolContract = UniswapV3Pool__factory.connect(poolAddress, provider)
 
   // Fetch pool details
-  const [token0, token1, feeTier, liquidity, slot0] = await Promise.all([
-    poolContract.token0(),
-    poolContract.token1(),
+  const [feeTier, liquidity, slot0] = await Promise.all([
     poolContract.fee(),
     poolContract.liquidity(),
     poolContract.slot0(),

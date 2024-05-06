@@ -178,9 +178,7 @@ export async function getUSDCSwapParams(options: any) {
   const poolContract = UniswapV3Pool__factory.connect(poolAddress, provider)
 
   // Fetch pool details
-  const [token0, token1, feeTier, liquidity, slot0] = await Promise.all([
-    poolContract.token0(),
-    poolContract.token1(),
+  const [feeTier, liquidity, slot0] = await Promise.all([
     poolContract.fee(),
     poolContract.liquidity(),
     poolContract.slot0(),

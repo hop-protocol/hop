@@ -42,17 +42,17 @@ export const config: Config = {
       arbitrum: 0
     },
     ETH: {
-      ethereum: 4,
-      polygon: 4,
-      gnosis: 4,
-      optimism: 4,
-      arbitrum: 4,
-      nova: 4,
-      zksync: 4,
-      linea: 4,
-      polygonzk: 4,
-      scrollzk: 4,
-      base: 4
+      ethereum: 2,
+      polygon: 2,
+      gnosis: 2,
+      optimism: 2,
+      arbitrum: 2,
+      nova: 2,
+      zksync: 2,
+      linea: 2,
+      polygonzk: 2,
+      scrollzk: 2,
+      base: 2
     },
     WBTC: {
       ethereum: 23,
@@ -102,7 +102,7 @@ export const config: Config = {
     rETH: 550,
     MAGIC: 1000000
   },
-  destinationFeeGasPriceMultiplier: 1.3,
+  destinationFeeGasPriceMultiplier: 1.2,
   relayerFeeEnabled: {
     polygon: false,
     gnosis: false,

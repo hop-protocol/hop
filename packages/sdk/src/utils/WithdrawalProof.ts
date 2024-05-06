@@ -249,7 +249,7 @@ export class WithdrawalProof {
 
     if (transfer) {
       const { transferId, destinationChainId, token } = transfer
-      const destinationChain = getSlugFromChainId(destinationChainId)
+      const destinationChain = getSlugFromChainId(destinationChainId?.toString())
       const [withdrewEvent, bondedEvent] = await Promise.all([
         this.queryWithdrew(transferId, destinationChain),
         this.queryBondWithdrawal(transferId, destinationChain)
@@ -695,7 +695,7 @@ export class WithdrawalProof {
     if (!transferRoot) {
       return transferRoot
     }
-    const destinationChain = getSlugFromChainId(transferRoot.destinationChainId)
+    const destinationChain = getSlugFromChainId(transferRoot.destinationChainId?.toString())
 
     const [rootSet, transferIds] = await Promise.all([
       this.queryRootSet(destinationChain, token, transferRootHash),
@@ -781,12 +781,12 @@ export class WithdrawalProof {
 
     if (x.sourceChainId) {
       x.sourceChainId = Number(x.sourceChainId)
-      x.sourceChain = getSlugFromChainId(x.sourceChainId)
+      x.sourceChain = getSlugFromChainId(x.sourceChainId?.toString())
     }
 
     if (x.destinationChainId) {
       x.destinationChainId = Number(x.destinationChainId)
-      x.destinationChain = getSlugFromChainId(x.destinationChainId)
+      x.destinationChain = getSlugFromChainId(x.destinationChainId?.toString())
     }
 
     x.blockNumber = Number(x.blockNumber)

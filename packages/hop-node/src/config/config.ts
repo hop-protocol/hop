@@ -123,8 +123,8 @@ export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.M
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
 
 // AWS
-export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID ?? 'abc'
-export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY ?? '123'
+export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID ?? ''
+export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY ?? ''
 export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 
 export const emergencyDryMode = false

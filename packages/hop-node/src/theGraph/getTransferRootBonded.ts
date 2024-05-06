@@ -27,6 +27,7 @@ export default async function getTransferRootBonded (
         transactionHash
         amount
         timestamp
+        token
       }
     }
   `

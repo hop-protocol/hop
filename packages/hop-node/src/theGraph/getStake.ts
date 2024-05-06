@@ -22,6 +22,7 @@ export default async function getStake (
       ) {
         id
         amount
+        token
       }
     }
   `

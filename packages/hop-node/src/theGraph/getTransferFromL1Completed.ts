@@ -30,6 +30,7 @@ export default async function getTransferFromL1Completed (
         relayer
         relayerFee
         transactionHash
+        token
       }
     }
   `

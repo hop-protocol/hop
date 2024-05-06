@@ -77,9 +77,10 @@ export class ArbitrumMessageService extends AbstractMessageService<Message, Mess
     // Note: the rateLimitRetry provider should not retry if calls fail here so it doesn't exponentially backoff as it retries an on-chain call
     const statusInput: any = {}
     if (messageDirection === MessageDirection.L2_TO_L1) {
-      statusInput.l2Provider = this.l2Wallet.provider!
+      return message.status(this.l2Wallet.provider!)
     }
-    return message.status(statusInput)
+    // TODO: Shouldn't need to cast
+    return (message as IL1ToL2MessageWriter).status()
   }
 
   protected isMessageInFlight (messageStatus: MessageStatus, messageDirection: MessageDirection): boolean {

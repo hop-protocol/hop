@@ -15,7 +15,7 @@ import { useQueryParams } from '../hooks/useQueryParams'
 export function ExplorerEvents () {
   const { queryParams, updateQueryParams } = useQueryParams()
   const navigate = useNavigate()
-  const [filterBy, setFilterBy] = useState('transferId')
+  const [filterBy, setFilterBy] = useState('messageId')
   const [filterValue, setFilterValue] = useState('')
   const filter = { [filterBy]: filterValue }
   function onPagination (params: any) {
@@ -34,12 +34,8 @@ export function ExplorerEvents () {
       value: 'Created',
     },
     {
-      key: 'transferId',
-      value: 'Transfer ID',
-    },
-    {
-      key: 'checkpoint',
-      value: 'Checkpoint',
+      key: 'messageId',
+      value: 'Message ID',
     },
     {
       key: 'sourceChain',
@@ -63,31 +59,26 @@ export function ExplorerEvents () {
     let status = (
       <Chip icon={<PendingIcon />} label="Pending" />
     )
-    const isBonded = !!event.transferBondedEvent
-    if (isBonded) {
+    const isRelayed = !!event.messageRelayedEvent
+    if (isRelayed) {
       status = (
-        <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
+        <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Relayed" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
       )
     }
     return [
       {
         key: 'status',
         value: status,
-        title: `${isBonded ? 'This message has been bonded to the destination chain' : 'This message has not yet been bonded to the destination chain'}`,
+        title: `${isRelayed ? 'This message has been relayed to the destination chain' : 'This message has not yet been relayed to the destination chain'}`,
       },
       {
         key: 'created',
         value: `${event.context?.blockTimestampRelative}`
       },
       {
-        key: 'transferId',
-        value: event.transferIdTruncated,
-        clipboardValue: event.transferId
-      },
-      {
-        key: 'checkpoint',
-        value: event.checkpointTruncated,
-        clipboardValue: event.checkpoint
+        key: 'messageId',
+        value: event.messageIdTruncated,
+        clipboardValue: event.messageId
       },
       {
         key: 'sourceChain',
@@ -105,16 +96,16 @@ export function ExplorerEvents () {
       },
       {
         key: 'destinationTransactionHash',
-        value: event.transferBondedEvent?.context?.transactionHashTruncated,
-        valueUrl: event.transferBondedEvent?.context?.transactionHashExplorerUrl,
-        clipboardValue: event.transferBondedEvent?.context?.transactionHash
+        value: event.messageRelayedEvent?.context?.transactionHashTruncated,
+        valueUrl: event.messageRelayedEvent?.context?.transactionHashExplorerUrl,
+        clipboardValue: event.messageRelayedEvent?.context?.transactionHash
       },
     ]
   })
 
   function handleRowClick (row: any) {
-    const transferId = row.find((item: any) => item.key === 'transferId').clipboardValue
-    navigate(`/t/${transferId}`)
+    const messageId = row.find((item: any) => item.key === 'messageId').clipboardValue
+    navigate(`/m/${messageId}`)
   }
 
   function handleFilterByChange (event: any) {
@@ -132,8 +123,7 @@ export function ExplorerEvents () {
             <Select
               value={filterBy}
               onChange={handleFilterByChange}>
-                <MenuItem value={'transferId'}>TransferId ID</MenuItem>
-                <MenuItem value={'checkpoint'}>Checkpoint</MenuItem>
+                <MenuItem value={'messageId'}>Message ID</MenuItem>
                 <MenuItem value={'transactionHash'}>Transaction Hash</MenuItem>
             </Select>
           </Box>

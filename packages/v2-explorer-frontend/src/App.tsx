@@ -24,6 +24,7 @@ function App () {
       <Routes>
         <Route path="/" element={<Main />} />
         <Route path="/m/:id" element={<Details />} />
+        <Route path="/t/:id" element={<Details />} />
         <Route path="/events" element={<Events />} />
         <Route element={<NotFound />} />
       </Routes>

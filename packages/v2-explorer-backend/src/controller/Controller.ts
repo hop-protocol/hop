@@ -37,55 +37,8 @@ export class Controller {
 
     const { items, hasNextPage } = await this.getEvents({ eventName, limit, page, filter })
 
-    for (const item of items) {
-      if (item.messageId) {
-        item.messageIdTruncated = truncateString(item.messageId, 4)
-      }
-      if (item.bundleId) {
-        item.bundleIdTruncated = truncateString(item.bundleId, 4)
-      }
-      if (item.bundleRoot) {
-        item.bundleRootTruncated = truncateString(item.bundleRoot, 4)
-      }
-      if (item.relayer) {
-        item.relayerTruncated = truncateString(item.relayer, 4)
-      }
-      if (item.from) {
-        item.fromTruncated = truncateString(item.from, 4)
-      }
-      if (item.to) {
-        item.toTruncated = truncateString(item.to, 4)
-      }
-      if (item.chainId) {
-        item.chainName = chainNames[item.chainId]
-        item.chainLabel = `${item.chainId} - ${chainNames[item.chainId]}`
-      }
-      if (item.fromChainId) {
-        item.fromChainName = chainNames[item.fromChainId]
-        item.fromChainLabel = `${item.fromChainId} - ${chainNames[item.fromChainId]}`
-      }
-      if (item.toChainId) {
-        item.toChainName = chainNames[item.toChainId]
-        item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
-      }
-      if (item.bundleFees) {
-        item.bundleFeesDisplay = utils.formatUnits(item.bundleFees, 18)
-      }
-      if (item.context?.blockTimestamp) {
-        item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
-      }
-      if (item.context?.transactionHash) {
-        item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
-        item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
-      }
-      if (item.context?.chainId) {
-        item.context.chainName = chainNames[item.context.chainId]
-        item.context.chainLabel = `${item.context.chainId} - ${chainNames[item.context.chainId]}`
-      }
-    }
-
     return {
-      items: items.map(this.normalizeEventForApi),
+      items: items.map((item: any) => this.normalizeEventForApi(item)),
       hasNextPage
     }
   }
@@ -101,55 +54,8 @@ export class Controller {
     const itemsNext = await this.pgDb.events[eventName].getItems({ limit, filter, page: Number(page) + 1 })
     const hasNextPage = itemsNext.length > 0
 
-    for (const item of items) {
-      if (item.messageId) {
-        item.messageIdTruncated = truncateString(item.messageId, 4)
-      }
-      if (item.bundleId) {
-        item.bundleIdTruncated = truncateString(item.bundleId, 4)
-      }
-      if (item.bundleRoot) {
-        item.bundleRootTruncated = truncateString(item.bundleRoot, 4)
-      }
-      if (item.relayer) {
-        item.relayerTruncated = truncateString(item.relayer, 4)
-      }
-      if (item.from) {
-        item.fromTruncated = truncateString(item.from, 4)
-      }
-      if (item.to) {
-        item.toTruncated = truncateString(item.to, 4)
-      }
-      if (item.chainId) {
-        item.chainName = chainNames[item.chainId]
-        item.chainLabel = `${item.chainId} - ${chainNames[item.chainId]}`
-      }
-      if (item.fromChainId) {
-        item.fromChainName = chainNames[item.fromChainId]
-        item.fromChainLabel = `${item.fromChainId} - ${chainNames[item.fromChainId]}`
-      }
-      if (item.toChainId) {
-        item.toChainName = chainNames[item.toChainId]
-        item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
-      }
-      if (item.bundleFees) {
-        item.bundleFeesDisplay = utils.formatUnits(item.bundleFees, 18)
-      }
-      if (item.context?.blockTimestamp) {
-        item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
-      }
-      if (item.context?.transactionHash) {
-        item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
-        item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
-      }
-      if (item.context?.chainId) {
-        item.context.chainName = chainNames[item.context.chainId]
-        item.context.chainLabel = `${item.context.chainId} - ${chainNames[item.context.chainId]}`
-      }
-    }
-
     return {
-      items: items.map(this.normalizeEventForApi),
+      items: items.map((item: any) => this.normalizeEventForApi(item)),
       hasNextPage
     }
   }
@@ -167,6 +73,7 @@ export class Controller {
           messageId
         }
       })
+
       item.messageExecutedEvent = null
       if (messageExecutedEvent.items.length > 0) {
         item.messageExecutedEvent = messageExecutedEvent.items[0]
@@ -177,7 +84,7 @@ export class Controller {
     const explorerItems = await Promise.all(promises)
 
     return {
-      items: explorerItems,
+      items: explorerItems.map((item: any) => this.normalizeEventForApi(item)),
       hasNextPage
     }
   }
@@ -196,9 +103,35 @@ export class Controller {
           transferId
         }
       })
-      item.messageExecutedEvent = null
+
+      if (!item.toChainId && item.pathId) {
+        let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ pathId: item.pathId })
+        let pathInfo = pathInfos?.[0]
+        if (!pathInfo) {
+          pathInfo = await this.sdk.railsGateway.getPathInfo({ chainId: item.context.chainId, pathId: item.pathId })
+          await this.pgDb.nonEventTables.Path.upsertItem({
+            pathId: pathInfo.pathId,
+            chainId: pathInfo.chainId,
+            token: pathInfo.token,
+            counterpartToken: pathInfo.counterpartToken,
+            counterpartChainId: pathInfo.counterpartChainId
+          })
+        }
+
+        pathInfos = await this.pgDb.nonEventTables.Path.getItems({ pathId: item.pathId })
+        pathInfo = pathInfos?.[0]
+        if (!pathInfo) {
+          throw new Error(`Path not found for pathId ${item.pathId}`)
+        }
+
+        item.toChainId = pathInfo.counterpartChainId
+      }
+
+
+      console.log('BONDED EVENTS', bondedEvents)
+      item.transferBondedEvent = null
       if (bondedEvents.items.length > 0) {
-        item.messageExecutedEvent = bondedEvents.items[0]
+        item.transferBondedEvent = bondedEvents.items[0]
       }
       return item
     })
@@ -206,12 +139,71 @@ export class Controller {
     const explorerItems = await Promise.all(promises)
 
     return {
-      items: explorerItems,
+      items: explorerItems.map((item: any) => this.normalizeEventForApi(item)),
       hasNextPage
     }
   }
 
+  addEventFields (item: any) {
+    if (item.messageId) {
+      item.messageIdTruncated = truncateString(item.messageId, 4)
+    }
+    if (item.checkpoint) {
+      item.checkpointTruncated = truncateString(item.checkpoint, 4)
+    }
+    if (item.transferId) {
+      item.transferIdTruncated = truncateString(item.transferId, 4)
+    }
+    if (item.bundleId) {
+      item.bundleIdTruncated = truncateString(item.bundleId, 4)
+    }
+    if (item.bundleRoot) {
+      item.bundleRootTruncated = truncateString(item.bundleRoot, 4)
+    }
+    if (item.relayer) {
+      item.relayerTruncated = truncateString(item.relayer, 4)
+    }
+    if (item.from) {
+      item.fromTruncated = truncateString(item.from, 4)
+    }
+    if (item.to) {
+      item.toTruncated = truncateString(item.to, 4)
+    }
+    if (item.chainId) {
+      item.chainName = chainNames[item.chainId]
+      item.chainLabel = `${item.chainId} - ${chainNames[item.chainId]}`
+    }
+    if (item.fromChainId) {
+      item.fromChainName = chainNames[item.fromChainId]
+      item.fromChainLabel = `${item.fromChainId} - ${chainNames[item.fromChainId]}`
+    }
+    if (item.toChainId) {
+      item.toChainName = chainNames[item.toChainId]
+      item.toChainLabel = `${item.toChainId} - ${chainNames[item.toChainId]}`
+    }
+    if (item.bundleFees) {
+      item.bundleFeesDisplay = utils.formatUnits(item.bundleFees, 18)
+    }
+    if (item.context?.blockTimestamp) {
+      item.context.blockTimestampRelative = DateTime.fromSeconds(item.context.blockTimestamp).toRelative()
+    }
+    if (item.context?.transactionHash) {
+      item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
+      item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
+    }
+    if (item.context?.chainId) {
+      item.context.chainName = chainNames[item.context.chainId]
+      item.context.chainLabel = `${item.context.chainId} - ${chainNames[item.context.chainId]}`
+    }
+
+    return item
+  }
+
   normalizeEventForApi (event: any) {
+    if (!event) {
+      return event
+    }
+    event = this.addEventFields(event)
     for (const key in event) {
       if (BigNumber.isBigNumber(event[key])) {
         event[key] = event[key].toString()

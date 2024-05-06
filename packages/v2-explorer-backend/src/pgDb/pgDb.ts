@@ -10,6 +10,7 @@ import { MessageExecutedTable } from './events/messenger/MessageExecuted.js'
 import { MessageSentTable } from './events/messenger/MessageSent.js'
 import { TransferSentTable } from './events/railsGateway/TransferSent.js'
 import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
+import { PathTable } from './paths/paths.js'
 import { postgresConfig } from '#config/index.js'
 import { Pgp } from './pgDbTypes.js'
 
@@ -18,6 +19,7 @@ const argv = minimist(process.argv.slice(2))
 export class PgDb {
   db: Pgp
   events: any = {}
+  nonEventTables: any = {}
 
   constructor () {
     const initOptions: any = {}
@@ -39,7 +41,11 @@ export class PgDb {
       MessageExecuted: new MessageExecutedTable(this.db),
       MessageSent: new MessageSentTable(this.db),
       TransferSent: new TransferSentTable(this.db),
-      TransferBonded: new TransferBondedTable(this.db),
+      TransferBonded: new TransferBondedTable(this.db)
+    }
+
+    this.nonEventTables = {
+      Path: new PathTable(this.db)
     }
 
     this.init().catch((err: any) => {
@@ -66,6 +72,11 @@ export class PgDb {
     for (const event in this.events) {
       await this.events[event].createTable()
       await this.events[event].createIndexes()
+    }
+
+    for (const event in this.nonEventTables) {
+      await this.nonEventTables[event].createTable()
+      await this.nonEventTables[event].createIndexes()
     }
   }
 }

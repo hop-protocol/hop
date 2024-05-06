@@ -892,8 +892,8 @@ importers:
         specifier: 11.11.0
         version: 11.11.0(@emotion/react@11.5.0)(@types/react@18.2.73)(react@18.2.0)
       '@hop-protocol/v2-sdk':
-        specifier: 0.0.0-beta.21
-        version: 0.0.0-beta.21(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(@types/node@16.18.96)(typescript@5.4.3)
+        specifier: workspace:*
+        version: link:../v2-sdk
       '@mui/icons-material':
         specifier: 5.15.6
         version: 5.15.6(@mui/material@5.15.6)(@types/react@18.2.73)(react@18.2.0)
@@ -1008,7 +1008,7 @@ importers:
         version: 4.6.0(eslint@8.57.0)
       vite:
         specifier: 5.0.13
-        version: 5.0.13(@types/node@16.18.96)
+        version: 5.0.13(@types/node@20.12.7)
 
   packages/v2-sdk:
     dependencies:
@@ -4919,23 +4919,6 @@ packages:
       - supports-color
     dev: false
 
-  /@eth-optimism/contracts-bedrock@0.12.1(typescript@5.4.3):
-    resolution: {integrity: sha512-ttyaefzmQv9cDF+IZUCHAcClQt3+Qq18jvmSs0UNuzOjLgBG5msaBgBY/OSzr8eiYmym+kgYz2D46/AwsZVmSA==}
-    dependencies:
-      '@eth-optimism/core-utils': 0.12.0
-      '@openzeppelin/contracts': 4.7.3
-      '@openzeppelin/contracts-upgradeable': 4.7.3
-      ethers: 5.7.2
-      hardhat: 2.22.3(typescript@5.4.3)
-    transitivePeerDependencies:
-      - bufferutil
-      - c-kzg
-      - supports-color
-      - ts-node
-      - typescript
-      - utf-8-validate
-    dev: false
-
   /@eth-optimism/contracts-bedrock@0.16.2:
     resolution: {integrity: sha512-a2+f7soDbrd6jV74U02EpyMwQt2iZeDZ4c2ZwgkObcxXUZLZQ2ELt/VRFBf8TIL3wYcBOGpUa1aXAE2oHQ7oRA==}
     requiresBuild: true
@@ -4966,20 +4949,6 @@ packages:
       '@ethersproject/abstract-signer': 5.7.0
       '@ethersproject/hardware-wallets': 5.7.0
       ethers: 5.7.2
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
-
-  /@eth-optimism/contracts@0.5.40(ethers@5.7.1):
-    resolution: {integrity: sha512-MrzV0nvsymfO/fursTB7m/KunkPsCndltVgfdHaT1Aj5Vi6R/doKIGGkOofHX+8B6VMZpuZosKCMQ5lQuqjt8w==}
-    peerDependencies:
-      ethers: ^5
-    dependencies:
-      '@eth-optimism/core-utils': 0.12.0
-      '@ethersproject/abstract-provider': 5.7.0
-      '@ethersproject/abstract-signer': 5.7.0
-      ethers: 5.7.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -5093,27 +5062,6 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - supports-color
-      - utf-8-validate
-    dev: false
-
-  /@eth-optimism/sdk@1.10.4(ethers@5.7.1)(typescript@5.4.3):
-    resolution: {integrity: sha512-mFbC6PI+N0zh97a9gbQxvbG6YJdoPkqZdLgXmt4Rddc/ilCoh2YGk0nEt1CB1EAYswj32A0W1lSsFzkAUbuHFQ==}
-    peerDependencies:
-      ethers: ^5
-    dependencies:
-      '@eth-optimism/contracts': 0.5.40(ethers@5.7.1)
-      '@eth-optimism/contracts-bedrock': 0.12.1(typescript@5.4.3)
-      '@eth-optimism/core-utils': 0.12.0
-      ethers: 5.7.1
-      lodash: 4.17.21
-      merkletreejs: 0.2.32
-      rlp: 2.2.7
-    transitivePeerDependencies:
-      - bufferutil
-      - c-kzg
-      - supports-color
-      - ts-node
-      - typescript
       - utf-8-validate
     dev: false
 
@@ -6618,65 +6566,6 @@ packages:
     resolution: {integrity: sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg==}
     dependencies:
       '@hapi/hoek': 9.3.0
-    dev: false
-
-  /@hop-protocol/core@0.0.1-beta.111:
-    resolution: {integrity: sha512-ShWTivHmX8gX0hWbso+1Z76PBYg0CMyuzyEBKOEAPNziix5ifHNIq6pw92dNBQtl5JUlNz5qQgsWtVcxu5dwbA==}
-    engines: {node: '>=14', yarn: ^1.22.11}
-    dependencies:
-      ethers: 5.7.1
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
-
-  /@hop-protocol/v2-core@0.0.0-beta.5:
-    resolution: {integrity: sha512-HrcUJYA4zIJgZTmevZs03D46l7x2TXmilhd+fhpImKlx2Fr8tl5U19Vgn2C6wradNth7f6bd7XHRwW3v6jjmmQ==}
-    engines: {node: '>=14', yarn: ^1.22.11}
-    dependencies:
-      ethers: 5.7.1
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
-
-  /@hop-protocol/v2-sdk@0.0.0-beta.21(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(@types/node@16.18.96)(typescript@5.4.3):
-    resolution: {integrity: sha512-wBsiMKN7aoxvKRgClUZP1YKps8fcMuAfSKaghQ06G6M+ZhFd5tgiV5Fq6ZWJj4KT5MlQpP+TcXMPyf4puMg6Iw==}
-    engines: {node: '>=14'}
-    dependencies:
-      '@arbitrum/sdk': 2.0.18(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(@types/node@16.18.96)(typescript@5.4.3)
-      '@eth-optimism/contracts': 0.5.40(ethers@5.7.1)
-      '@eth-optimism/message-relayer': 0.2.18
-      '@eth-optimism/sdk': 1.10.4(ethers@5.7.1)(typescript@5.4.3)
-      '@fxportal/maticjs-fxportal': 1.1.1(@maticnetwork/maticjs@3.2.0)
-      '@hop-protocol/core': 0.0.1-beta.111
-      '@hop-protocol/v2-core': 0.0.0-beta.5
-      '@maticnetwork/maticjs': 3.2.0
-      '@maticnetwork/maticjs-ethers': 1.0.2(@maticnetwork/maticjs@3.2.0)
-      dotenv: 16.4.5
-      ethers: 5.7.1
-      eventemitter3: 4.0.7
-      fast-memoize: 2.5.2
-      isomorphic-fetch: 3.0.0
-      lodash: 4.17.21
-      luxon: 2.5.0
-      merkletreejs: 0.2.32
-      p-queue: 6.6.2
-      wait: 0.4.2
-      web3-utils: 1.7.5
-    transitivePeerDependencies:
-      - '@ethersproject/abi'
-      - '@ethersproject/providers'
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - bufferutil
-      - c-kzg
-      - encoding
-      - supports-color
-      - ts-node
-      - typescript
-      - utf-8-validate
     dev: false
 
   /@humanwhocodes/config-array@0.11.14:
@@ -8561,20 +8450,12 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: false
 
-  /@openzeppelin/contracts-upgradeable@4.7.3:
-    resolution: {integrity: sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A==}
-    dev: false
-
   /@openzeppelin/contracts@3.4.1-solc-0.7-2:
     resolution: {integrity: sha512-tAG9LWg8+M2CMu7hIsqHPaTyG4uDzjr6mhvH96LvOpLZZj6tgzTluBt+LsCf1/QaYrlis6pITvpIaIhE+iZB+Q==}
     dev: false
 
   /@openzeppelin/contracts@3.4.2-solc-0.7:
     resolution: {integrity: sha512-W6QmqgkADuFcTLzHL8vVoNBtkwjvQRpYIAom7KiUNoLKghyx3FgH0GBjt8NRvigV1ZmMOBllvE1By1C+bi8WpA==}
-    dev: false
-
-  /@openzeppelin/contracts@4.7.3:
-    resolution: {integrity: sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw==}
     dev: false
 
   /@parcel/watcher-android-arm64@2.4.1:
@@ -13227,6 +13108,7 @@ packages:
   /clean-stack@2.2.0:
     resolution: {integrity: sha512-4diC9HaTE+KRAMWhDhrGOECgWZxoevMc5TlkObMqNSsVU62PYzXZ/SMTjzyGAFF1YusgxGcSWTEXBhp0CPwQ1A==}
     engines: {node: '>=6'}
+    requiresBuild: true
     dev: false
 
   /cli-boxes@2.2.1:
@@ -20118,11 +20000,6 @@ packages:
 
   /luxon@2.4.0:
     resolution: {integrity: sha512-w+NAwWOUL5hO0SgwOHsMBAmZ15SoknmQXhSO0hIbJCAmPKSsGeK8MlmhYh2w6Iib38IxN2M+/ooXWLbeis7GuA==}
-    engines: {node: '>=12'}
-    dev: false
-
-  /luxon@2.5.0:
-    resolution: {integrity: sha512-IDkEPB80Rb6gCAU+FEib0t4FeJ4uVOuX1CQ9GsvU3O+JAGIgu0J7sf1OarXKaKDygTZIoJyU6YdZzTFRu+YR0A==}
     engines: {node: '>=12'}
     dev: false
 
@@ -27105,42 +26982,6 @@ packages:
       - rollup
       - supports-color
       - typescript
-
-  /vite@5.0.13(@types/node@16.18.96):
-    resolution: {integrity: sha512-/9ovhv2M2dGTuA+dY93B9trfyWMDRQw2jdVBhHNP6wr0oF34wG2i/N55801iZIpgUpnHDm4F/FabGQLyc+eOgg==}
-    engines: {node: ^18.0.0 || >=20.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': ^18.0.0 || >=20.0.0
-      less: '*'
-      lightningcss: ^1.21.0
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      lightningcss:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      '@types/node': 16.18.96
-      esbuild: 0.19.12
-      postcss: 8.4.38
-      rollup: 4.17.2
-    optionalDependencies:
-      fsevents: 2.3.3
-    dev: true
 
   /vite@5.0.13(@types/node@20.12.7):
     resolution: {integrity: sha512-/9ovhv2M2dGTuA+dY93B9trfyWMDRQw2jdVBhHNP6wr0oF34wG2i/N55801iZIpgUpnHDm4F/FabGQLyc+eOgg==}

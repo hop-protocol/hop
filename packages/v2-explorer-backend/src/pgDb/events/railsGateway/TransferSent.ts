@@ -48,6 +48,8 @@ export class TransferSentTable extends EventDb {
     const args = [startTimestamp, endTimestamp, limit, offset]
     if (filter?.transferId) {
       args.push(filter.transferId)
+    } else if (filter?.checkpoint) {
+      args.push(filter.checkpoint)
     } else if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
@@ -73,6 +75,7 @@ export class TransferSentTable extends EventDb {
         AND
         _block_timestamp <= $2
         ${filter?.transferId ? 'AND transfer_id= $5' : ''}
+        ${filter?.checkpoint ? 'AND checkpoint= $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
       ORDER BY

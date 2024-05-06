@@ -22,7 +22,7 @@ export type BaseType = {
   context: EventContext
 }
 
-export abstract class EventDb {
+export abstract class BaseDb {
   db: any
   constructor (db: any) {
     this.db = db
@@ -43,4 +43,7 @@ export abstract class EventDb {
   async upsertItem (item: any): Promise<void> {
     throw new Error('Not implemented')
   }
+}
+
+export abstract class EventDb extends BaseDb {
 }

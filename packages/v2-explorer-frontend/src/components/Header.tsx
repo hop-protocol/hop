@@ -5,6 +5,7 @@ import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { makeStyles } from '@mui/styles'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { networkName } from '../config'
 
 const useStyles = makeStyles((theme: any) => ({
   container: {
@@ -57,13 +58,13 @@ export function Header () {
           </Box>
           <Box ml={2}>
             <Typography variant="subtitle1">
-              Goerli
+              {networkName}
             </Typography>
           </Box>
         </Box>
         <Box ml={4} className={styles.tabs}>
           <Tabs value={currentTab} onChange={handleTabChange}>
-            <Tab label="Home" value="home" />
+            <Tab label="Transfers" value="home" />
             <Tab label="Events" value="events" />
           </Tabs>
         </Box>

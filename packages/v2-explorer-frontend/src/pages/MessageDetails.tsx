@@ -39,7 +39,7 @@ export function Details () {
   const styles = useStyles()
   const location = useLocation()
   const parts = location.pathname.split('/')
-  const transferId = parts[2]
+  const messageId = parts[2]
   const [txValue, setTxValue] = useState('')
   const [txValueFormatted, setTxValueFormatted] = useState('')
   const [gasLimit, setGasLimit] = useState('')
@@ -51,18 +51,18 @@ export function Details () {
   const [sourceTxFrom, setSourceTxFrom] = useState('')
   const [sourceTxTo, setSourceTxTo] = useState('')
 
-  const filter = { transferId }
+  const filter = { messageId: messageId }
   const { events, loading: isFetching } = useEvents('explorer', filter)
   const event: any = events[0]
   const loading = !(!isFetching && gasLimit && gasUsed)
 
   let status :any = null
-  const isBonded = !!event?.transferBondedEvent
-  if (isBonded) {
+  const isRelayed = !!event?.messageRelayedEvent
+  if (isRelayed) {
     status = (
-      <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Bonded" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
+      <Chip icon={<CheckIcon style={{ color: '#fff' }} />} label="Relayed" style={{ backgroundColor: '#74d56e', color: '#fff' }} />
     )
-  } else if (event && !event?.transferBondedEvent) {
+  } else if (event && !event?.messageRelayedEvent) {
     status = (
       <Chip icon={<PendingIcon />} label="Pending" />
     )
@@ -103,20 +103,20 @@ export function Details () {
   return (
     <SiteWrapper>
       <Box mb={4} width="100%" display="flex" justifyContent="flex-start">
-        <Typography variant="h5">Transfer details</Typography>
+        <Typography variant="h5">Message details</Typography>
       </Box>
 
       <TableContainer>
         <Table width="100%">
           <TableBody>
             <TableRow className={styles.tableRow}>
-              <TableCell>Transfer ID:</TableCell>
+              <TableCell>Message ID:</TableCell>
               <TableCell>
                 {loading
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  transferId
+                  messageId
                 )}
               </TableCell>
             </TableRow>
@@ -290,24 +290,6 @@ Source Transaction Block Number:
             </TableRow>
             <TableRow className={styles.tableRow}>
               <TableCell>
-          Source Transaction Calldata:
-              </TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={500} height={20} />
-                ) : (
-                  <Box maxWidth={'420px'} style={{
-                    whiteSpace: 'break-spaces',
-                    wordBreak: 'break-all'
-                  }}>
-                    {event?.context?.data}
-                  </Box>
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>
 Destination Chain:
               </TableCell>
               <TableCell>
@@ -321,88 +303,14 @@ event?.toChainLabel
             </TableRow>
             <TableRow className={styles.tableRow}>
               <TableCell>
-                Transfer Recipient
+        Message Sender:
               </TableCell>
               <TableCell>
                 {loading
                 ? (
                   <Skeleton variant="rectangular" width={350} height={20} />
                 ) : (
-                  event?.to
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>
-                Transfer Amount
-              </TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={350} height={20} />
-                ) : (
-                  event?.amount
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>
-                Transfer Attestation Fee
-              </TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={350} height={20} />
-                ) : (
-                  event?.attestationFee
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>Transfer Checkpoint:</TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={500} height={20} />
-                ) : (
-                  event?.checkpoint
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>
-                Transfer Checkpoint Total Sent
-              </TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={350} height={20} />
-                ) : (
-                  event?.totalSent
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>Transfer Nonce:</TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={500} height={20} />
-                ) : (
-                  event?.nonce
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>
-                Path ID
-              </TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={350} height={20} />
-                ) : (
-                  event?.pathId
+                  event?.from
                 )}
               </TableCell>
             </TableRow>
@@ -415,82 +323,42 @@ Destination Transaction Hash:
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.transferBondedEvent
+                  event?.messageRelayedEvent
                   ? (
-                    <Link href={event?.transferBondedEvent?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
-                      {event?.transferBondedEvent?.context?.transactionHash}
+                    <Link href={event?.messageRelayedEvent?.context?.transactionHashExplorerUrl} target="_blank" rel="noreferrer">
+                      {event?.messageRelayedEvent?.context?.transactionHash}
                     </Link>
-                  ) : <Box>- <small><em>(Destination tx hash will be availabe once transfer is bonded)</em></small></Box>)
+                  ) : <Box>- <small><em>(Destination tx hash will be availabe once message is relayed)</em></small></Box>)
                 }
               </TableCell>
             </TableRow>
             <TableRow className={styles.tableRow}>
               <TableCell>
-                Destination Transfer Amount Out
-              </TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={350} height={20} />
-                ) : (
-                  event?.transferBondedEvent?.amountOut
-                  ? (
-                    event?.transferBondedEvent?.amountOut
-                  ) : <Box>- <small><em>(Transfer amount out value will be availabe once transfer is bonded)</em></small></Box>
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>
-          Destination Transaction From Address (Bonder):
+          Destination call address:
               </TableCell>
               <TableCell>
                 {loading
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.transferBondedEvent?.context?.from
-                  ? (
-                    event?.transferBondedEvent?.context?.from
-                  ) : <Box>- <small><em>(Destination transaction from address will be availabe once transfer is bonded)</em></small></Box>
+                  event?.to
                 )}
               </TableCell>
             </TableRow>
             <TableRow className={styles.tableRow}>
               <TableCell>
-          Destination Transaction To Address:
+          Destination calldata:
               </TableCell>
               <TableCell>
                 {loading
                 ? (
                   <Skeleton variant="rectangular" width={500} height={20} />
                 ) : (
-                  event?.transferBondedEvent?.context?.to
-                  ? (
-                    event?.transferBondedEvent?.context?.to
-                  ) : <Box>- <small><em>(Destination transaction to address will be availabe once transfer is bonded)</em></small></Box>
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.tableRow}>
-              <TableCell>
-          Destination Transaction Calldata:
-              </TableCell>
-              <TableCell>
-                {loading
-                ? (
-                  <Skeleton variant="rectangular" width={500} height={20} />
-                ) : (
-                  <Box maxWidth={'420px'} style={{
+                  <Box maxWidth={'400px'} style={{
                     whiteSpace: 'break-spaces',
                     wordBreak: 'break-all'
                   }}>
-                    {
-                    event?.transferBondedEvent?.context?.data
-                    ? (
-                      event?.transferBondedEvent?.context?.data
-                    ) : <Box>- <small><em>(Destination transaction calldata will be availabe once transfer is bonded)</em></small></Box>
-                  }
+                    {event?.data}
                   </Box>
                 )}
               </TableCell>

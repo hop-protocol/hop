@@ -1,10 +1,12 @@
 import { BaseConfig } from '#common/index.js'
-import { BigNumber, BigNumberish, Contract, Signer, providers } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, providers, utils } from 'ethers'
 import { ERC20__factory } from '#contracts/factories/ERC20__factory.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 import { StakingRegistry } from './StakingRegistry.js'
 import { TransferSent, TransferSentEventFetcher } from '#railsGateway/events/TransferSent.js'
 import { TransferBonded, TransferBondedEventFetcher } from '#railsGateway/events/TransferBonded.js'
+
+const { getAddress: checksumAddress } = utils
 
 export type TransferSentEventInput = {
   chainId: BigNumberish
@@ -20,10 +22,10 @@ export type TransferBondEventInput = {
 
 export type Path = {
   pathId: string
-  chainId: number
+  chainId: BigNumber
   token: string
   counterpartToken: string
-  counterpartChainId: number
+  counterpartChainId: BigNumber
 }
 
 export type GetPathIdInput = {
@@ -378,10 +380,10 @@ export class RailsGateway extends StakingRegistry {
     const pathInfoArray = await contract.getPathInfo(pathId)
     const pathInfo: Path = {
       pathId,
-      chainId: pathInfoArray[0],
-      token: pathInfoArray[1],
-      counterpartChainId: pathInfoArray[2],
-      counterpartToken: pathInfoArray[3]
+      chainId: BigNumber.from(pathInfoArray[0]),
+      token: checksumAddress(pathInfoArray[1]),
+      counterpartChainId: BigNumber.from(pathInfoArray[2]),
+      counterpartToken: checksumAddress(pathInfoArray[3])
     }
 
     if (!(this.utils.isValidAddress(pathInfo.token) && this.utils.isValidAddress(pathInfo.counterpartToken))) {

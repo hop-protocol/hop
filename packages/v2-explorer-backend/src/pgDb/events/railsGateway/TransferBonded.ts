@@ -42,6 +42,8 @@ export class TransferBondedTable extends EventDb {
     const args = [startTimestamp, endTimestamp, limit, offset]
     if (filter?.transferId) {
       args.push(filter.transferId)
+    } else if (filter?.checkpoint) {
+      args.push(filter.checkpoint)
     } else if (filter?.pathId) {
       args.push(filter.pathId)
     } else if (filter?.transactionHash) {
@@ -64,6 +66,7 @@ export class TransferBondedTable extends EventDb {
         AND
         _block_timestamp <= $2
         ${filter?.transferId ? 'AND transfer_id= $5' : ''}
+        ${filter?.checkpoint ? 'AND checkpoint= $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
         ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
       ORDER BY
@@ -112,8 +115,8 @@ export class TransferBondedTable extends EventDb {
 
   #normalizeDataForPut (putData: Partial<TransferBonded>): Partial<TransferBonded> {
     const data = Object.assign({}, putData) as any
-    if (data.amount && typeof data.amount !== 'string') {
-      data.amount = data.amount.toString()
+    if (data.amountOut && typeof data.amountOut !== 'string') {
+      data.amountOut = data.amountOut.toString()
     }
     if (data.totalSent && typeof data.totalSent !== 'string') {
       data.totalSent = data.totalSent.toString()

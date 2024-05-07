@@ -73,7 +73,7 @@ export abstract class AbstractMessageService<Message, MessageStatus> extends Abs
    */
 
   async #relayMessage (txHash: string, messageDirection: MessageDirection, messageIndex?: number): Promise<providers.TransactionResponse> {
-    const message: Message = await this.getMessage(txHash, messageDirection, messageIndex)
+    const message: Message = await this.getMessage(txHash, messageDirection, messageIndex ?? 0)
     await this.#validateMessage(message, messageDirection)
     return this.sendRelayTx(message, messageDirection)
   }

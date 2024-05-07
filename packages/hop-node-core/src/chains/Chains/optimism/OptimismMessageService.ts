@@ -27,7 +27,7 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
   }
 
   protected async sendRelayTx (message: CrossChainMessage, messageDirection: MessageDirection): Promise<providers.TransactionResponse> {
-    if (messageDirection === MessageDirection.L1_TO_L2) {
+    if (messageDirection === MessageDirection.L2_TO_L1) {
       return this.#csm.proveMessage(message)
     }
 
@@ -48,6 +48,7 @@ export class OptimismMessageService extends AbstractMessageService<CrossChainMes
     if (!messages) {
       throw new Error('could not find messages for tx hash')
     }
+    console.log(messages)
     const message: CrossChainMessage | undefined = messages[messageIndex]
     if (!message) {
       throw new Error(`could not find message at index ${messageIndex}`)

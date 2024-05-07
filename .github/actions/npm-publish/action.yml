@@ -1,0 +1,32 @@
+name: NPM Publish Package
+description: Publishes an NPM package if necessary
+inputs:
+  package-name:
+    description: 'Name of the package to publish'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check if publish is necessary
+      id: check_version
+      working-directory: packages/${{ inputs.package-name }}
+      run: |
+        CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+        LOCAL_VERSION=$(jq -r '.version' package.json)
+        echo "::set-output name=version_mismatch::false"  # Default to false
+        if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
+          echo "::set-output name=version_mismatch::true"
+        fi
+
+    - name: Install and build package
+      if: steps.check_version.outputs.version_mismatch == 'true'
+      run: |
+        pnpm --filter-prod ${{ inputs.package-name }}... install
+        pnpm --filter ${{ inputs.package-name }}... build
+
+    - name: Publish package
+      if: steps.check_version.outputs.version_mismatch == 'true'
+      run: pnpm --filter ${{ inputs.package-name }} publish --access public
+      env:
+         NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}

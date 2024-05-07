@@ -1,0 +1,49 @@
+name: Publish NPM Packages If Necessary
+on:
+  push:
+    branches:
+      - develop
+
+# Order of jobs is important to ensure that the packages are published in the correct order
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup workflow
+        uses: ./.github/actions/setup
+
+  publish-sdk-core:
+    needs: setup
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Publish sdk-core
+        uses: ./.github/actions/npm-publish
+        with:
+          package-name: sdk-core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-sdk:
+    needs: publish-sdk-core
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Publish sdk
+        uses: ./.github/actions/npm-publish
+        with:
+          package-name: sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-hop-node-core:
+    needs: publish-sdk-core
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Publish hop-node-core
+        uses: ./.github/actions/npm-publish
+        with:
+          package-name: hop-node-core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

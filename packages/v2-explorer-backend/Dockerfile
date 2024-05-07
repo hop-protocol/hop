@@ -8,7 +8,7 @@ WORKDIR /app
 
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
-# RUN pnpm --filter=v2-sdk build
+RUN pnpm --filter=@hop-protocol/sdk-core build && pnpm --filter=@hop-protocol/sdk build && pnpm --filter=@hop-protocol/v2-sdk build
 RUN pnpm --filter=v2-explorer-backend build
 RUN pnpm --filter=v2-explorer-backend deploy --prod /prod/app
 

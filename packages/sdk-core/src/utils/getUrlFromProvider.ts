@@ -1,4 +1,17 @@
-export function getUrlFromProvider (provider: any): string {
-  const rpcUrl = provider?.connection?.url ?? provider.providers?.[0]?.connection?.url ?? ''
+import type { providers } from 'ethers'
+
+type Provider = providers.Provider & {
+  connection?: {
+    url: string
+  }
+  providers?: Provider[]
+}
+
+export function getUrlFromProvider (providerOrUrl: Provider | string): string {
+  if (typeof providerOrUrl === 'string') {
+    return providerOrUrl
+  }
+
+  const rpcUrl = providerOrUrl?.connection?.url ?? providerOrUrl.providers?.[0]?.connection?.url ?? ''
   return rpcUrl
 }

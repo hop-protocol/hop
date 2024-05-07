@@ -46,9 +46,6 @@
     "ethers": "5.7.2",
     "p-queue": "6.6.2"
   },
-  "peerDependencies": {
-    "ethers": "^5"
-  },
   "homepage": "https://hop.exchange",
   "repository": {
     "type": "git",

@@ -1,5 +1,5 @@
 import { promiseTimeout } from './promiseTimeout.js'
-import { rateLimitMaxRetries, rpcTimeoutSeconds } from '#config/index.js'
+import { RATE_LIMIT_MAX_RETRIES, RPC_TIMEOUT_SECONDS } from '#config/index.js'
 import { wait } from './wait.js'
 
 export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
@@ -7,7 +7,7 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
   const logPrefix = `ratelimitRetry-${id}`
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
-    const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000)  
+    const retry = () => promiseTimeout(fn(...args), RPC_TIMEOUT_SECONDS * 1000)  
     const showDebugLogs = false
     while (true) {
       try {
@@ -66,8 +66,8 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         }
         retries++
         // if it's a rate limit error, then throw error after max retries attempted.
-        if (retries >= rateLimitMaxRetries) {
-          // console.error(logPrefix, `max retries reached (${rateLimitMaxRetries}). Error: ${err}`)
+        if (retries >= RATE_LIMIT_MAX_RETRIES) {
+          // console.error(logPrefix, `max retries reached (${RATE_LIMIT_MAX_RETRIES}). Error: ${err}`)
           // this must be a regular console log to print original function name
           // console.error('max retries reached', fn, id, ...args)
           throw err

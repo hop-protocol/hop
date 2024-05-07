@@ -39,7 +39,7 @@ export class AlchemyInclusionService extends AbstractOptimismInclusionService im
       })
   }
 
-  async #init () {
+  async #init (): Promise<void> {
     const [l1RpcProviderName, l2RpcProviderName] = await Promise.all([
       getRpcRootProviderName(this.l1Provider),
       getRpcRootProviderName(this.l2Provider)

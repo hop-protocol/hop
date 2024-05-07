@@ -1,9 +1,7 @@
 import BaseDb, { type DateFilter, type DateFilterWithKeyPrefix } from './BaseDb.js'
 import { BigNumber } from 'ethers'
 import {
-  ONE_DAY_MS,
-  ONE_HOUR_MS,
-  ONE_WEEK_MS,
+  TimeIntervals,
   getExponentialBackoffDelayMs
 } from '@hop-protocol/hop-node-core'
 import {
@@ -254,7 +252,7 @@ class TransfersDb extends BaseDb<Transfer> {
   }
 
   async getTransfersFromDay (): Promise<Transfer[]> {
-    const fromUnix = Math.floor((Date.now() - ONE_DAY_MS) / 1000)
+    const fromUnix = Math.floor((Date.now() - TimeIntervals.ONE_DAY_MS) / 1000)
     return this.getTransfers({
       fromUnix
     })
@@ -262,8 +260,8 @@ class TransfersDb extends BaseDb<Transfer> {
 
   async getTransfersWithinHour (targetTimestampSec: number): Promise<Transfer[]> {
     const targetTimestampMs = targetTimestampSec * 1000
-    const fromUnix = Math.floor((targetTimestampMs - ONE_HOUR_MS) / 1000)
-    const toUnix = Math.floor((targetTimestampMs + ONE_HOUR_MS) / 1000)
+    const fromUnix = Math.floor((targetTimestampMs - TimeIntervals.ONE_HOUR_MS) / 1000)
+    const toUnix = Math.floor((targetTimestampMs + TimeIntervals.ONE_HOUR_MS) / 1000)
     return this.getTransfers({
       fromUnix,
       toUnix
@@ -334,7 +332,7 @@ class TransfersDb extends BaseDb<Transfer> {
           item.withdrawalBondTxError === TxError.RpcServerError
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.withdrawalBondBackoffIndex!)
-          if (delayMs > ONE_WEEK_MS) {
+          if (delayMs > TimeIntervals.ONE_WEEK_MS) {
             return false
           }
           timestampOk = item.bondWithdrawalAttemptedAt + delayMs < Date.now()
@@ -424,7 +422,7 @@ class TransfersDb extends BaseDb<Transfer> {
           item.relayTxError === TxError.MessageRelayTooEarly
         ) {
           const delayMs = getExponentialBackoffDelayMs(item.relayBackoffIndex!)
-          if (delayMs > ONE_WEEK_MS) {
+          if (delayMs > TimeIntervals.ONE_WEEK_MS) {
             return false
           }
           timestampOk = item.relayAttemptedAt + delayMs < Date.now()
@@ -497,8 +495,8 @@ class TransfersDb extends BaseDb<Transfer> {
 
     const now = Date.now()
     for (let i = 0; i <= maxLookbackIndex; i++) {
-      const fromUnix = Math.floor((now - (ONE_DAY_MS * (i + 1))) / 1000)
-      const toUnix = Math.floor((now - (ONE_DAY_MS * i)) / 1000)
+      const fromUnix = Math.floor((now - (TimeIntervals.ONE_DAY_MS * (i + 1))) / 1000)
+      const toUnix = Math.floor((now - (TimeIntervals.ONE_DAY_MS * i)) / 1000)
       const transfers: Transfer[] = await this.getTransfers({
         fromUnix,
         toUnix

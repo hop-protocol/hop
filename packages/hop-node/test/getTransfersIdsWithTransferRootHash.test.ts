@@ -1,6 +1,6 @@
 import L2Bridge from '#watchers/classes/L2Bridge.js'
 import contracts from '#contracts/index.js'
-import { ONE_DAY_MS } from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '@hop-protocol/hop-node-core'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
@@ -27,7 +27,7 @@ async function main () {
 
 async function testBondWithdrawalWatcher (bridge: L2Bridge, chain: string, token: string): Promise<void> {
   const numDaysToTest = 10
-  const fromUnix = Math.floor((Date.now() - ONE_DAY_MS * numDaysToTest) / 1000)
+  const fromUnix = Math.floor((Date.now() - TimeIntervals.ONE_DAY_MS * numDaysToTest) / 1000)
   const transferRoots = await bridge.db.transferRoots.getTransferRoots({
     fromUnix
   })

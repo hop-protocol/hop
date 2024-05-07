@@ -7,7 +7,7 @@ import getTransferFromL1Completed from '#theGraph/getTransferFromL1Completed.js'
 import getTransferSentToL2 from '#theGraph/getTransferSentToL2.js'
 import getUnbondedTransferRoots from '#theGraph/getUnbondedTransferRoots.js'
 import getUnsetTransferRoots from '#theGraph/getUnsetTransferRoots.js'
-import { AVG_BLOCK_TIME_SECONDS, ONE_DAY_MS, ONE_DAY_SECONDS } from '@hop-protocol/hop-node-core'
+import { AVG_BLOCK_TIME_SECONDS, TimeIntervals } from '@hop-protocol/hop-node-core'
 import { BigNumber, utils } from 'ethers'
 import { DateTime } from 'luxon'
 import { Logger } from '@hop-protocol/hop-node-core'
@@ -478,7 +478,7 @@ export class HealthCheckWatcher {
 
     let shouldSendLowOsResourceNotification = true
     if (this.lastLowOsResourceNotificationSentAt) {
-      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + ONE_DAY_MS < Date.now()
+      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + TimeIntervals.ONE_DAY_MS < Date.now()
     }
     if (shouldSendLowOsResourceNotification) {
       for (const item of lowOsResources) {
@@ -489,7 +489,7 @@ export class HealthCheckWatcher {
 
     let shouldSendUnsyncedSubgraphNotification = true
     if (this.lastUnsyncedSubgraphNotificationSentAt) {
-      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + ONE_DAY_MS < Date.now()
+      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + TimeIntervals.ONE_DAY_MS < Date.now()
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {
@@ -854,7 +854,7 @@ export class HealthCheckWatcher {
     // This function does not use TheGraph, as that adds an additional layer/failure point.
 
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
-    const blocksInDay = ONE_DAY_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Ethereum]!
+    const blocksInDay = TimeIntervals.ONE_DAY_SECONDS / AVG_BLOCK_TIME_SECONDS[ChainSlug.Ethereum]!
     const provider = getRpcProvider(ChainSlug.Ethereum)
     const endBlockNumber = Number((await provider.getBlockNumber()).toString())
     const startBlockNumber = endBlockNumber - blocksInDay

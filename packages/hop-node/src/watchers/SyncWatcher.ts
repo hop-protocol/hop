@@ -11,11 +11,7 @@ import {
   GasCostTransactionType,
   RelayableChains
 } from '#constants/index.js'
-import {
-  FIVE_MINUTES_MS,
-  ONE_WEEK_MS,
-  TEN_MINUTES_MS
-} from '@hop-protocol/hop-node-core'
+import { TimeIntervals } from '@hop-protocol/hop-node-core'
 import { DateTime } from 'luxon'
 import {
   EnforceRelayerFee,
@@ -77,7 +73,7 @@ class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   syncIntervalMs: number
   // Five minutes is granular enough. Any lower results in excessive redundant DB writes.
-  gasCostPollMs: number = FIVE_MINUTES_MS
+  gasCostPollMs: number = TimeIntervals.FIVE_MINUTES_MS
   gasCostPollEnabled: boolean = false
   syncIndex: number = 0
   syncFromDate: string
@@ -112,7 +108,7 @@ class SyncWatcher extends BaseWatcher {
     this.syncIntervalMs = SyncIntervalSec * chainMultiplier * networkMultiplier * 1000
     this.logger.debug(`syncIntervalMs set to ${this.syncIntervalMs}. chainMultiplier: ${chainMultiplier}, networkMultiplier: ${networkMultiplier}`)
 
-    if (this.syncIntervalMs > TEN_MINUTES_MS) {
+    if (this.syncIntervalMs > TimeIntervals.TEN_MINUTES_MS) {
       this.logger.error('syncIntervalMs must be less than 10 minutes. Please use a lower multiplier')
       this.quit()
     }
@@ -1545,7 +1541,7 @@ class SyncWatcher extends BaseWatcher {
      * happening without manually adding the first chain per route for each new bridge.
      */
     let lookupTransferIdsRes
-    const onchainLookupTimeoutMs = 3 * FIVE_MINUTES_MS
+    const onchainLookupTimeoutMs = 3 * TimeIntervals.FIVE_MINUTES_MS
     try {
       lookupTransferIdsRes = await promiseTimeout(this.lookupTransferIds(
         sourceBridge,
@@ -1740,7 +1736,7 @@ class SyncWatcher extends BaseWatcher {
       try {
         const gasPrice = await bridgeContract.provider.getGasPrice()
         const timestamp = Math.floor(Date.now() / 1000)
-        const deadline = Math.floor((Date.now() + ONE_WEEK_MS) / 1000)
+        const deadline = Math.floor((Date.now() + TimeIntervals.ONE_WEEK_MS) / 1000)
         const payload = [
           recipient,
           amount,

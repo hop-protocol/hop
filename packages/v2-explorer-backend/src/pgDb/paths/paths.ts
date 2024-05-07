@@ -61,7 +61,6 @@ export class PathTable extends BaseDb {
 
   override async upsertItem (item: any) {
     const { pathId, chainId, token, counterpartToken, counterpartChainId } = this.#normalizeDataForPut(item)
-    console.log('ITEM', item)
     const args = {
       id: uuid(), pathId, chainId, token, counterpartToken, counterpartChainId
     }

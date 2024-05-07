@@ -104,31 +104,9 @@ export class Controller {
         }
       })
 
-      if (!item.toChainId && item.pathId) {
-        let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ pathId: item.pathId })
-        let pathInfo = pathInfos?.[0]
-        if (!pathInfo) {
-          pathInfo = await this.sdk.railsGateway.getPathInfo({ chainId: item.context.chainId, pathId: item.pathId })
-          await this.pgDb.nonEventTables.Path.upsertItem({
-            pathId: pathInfo.pathId,
-            chainId: pathInfo.chainId,
-            token: pathInfo.token,
-            counterpartToken: pathInfo.counterpartToken,
-            counterpartChainId: pathInfo.counterpartChainId
-          })
-        }
+      await this.upsertPathInfoIfNotExists(item)
+      await this.upsertTokenInfoIfNotExists(item)
 
-        pathInfos = await this.pgDb.nonEventTables.Path.getItems({ pathId: item.pathId })
-        pathInfo = pathInfos?.[0]
-        if (!pathInfo) {
-          throw new Error(`Path not found for pathId ${item.pathId}`)
-        }
-
-        item.toChainId = pathInfo.counterpartChainId
-      }
-
-
-      console.log('BONDED EVENTS', bondedEvents)
       item.transferBondedEvent = null
       if (bondedEvents.items.length > 0) {
         item.transferBondedEvent = bondedEvents.items[0]
@@ -142,6 +120,79 @@ export class Controller {
       items: explorerItems.map((item: any) => this.normalizeEventForApi(item)),
       hasNextPage
     }
+  }
+
+  async upsertPathInfoIfNotExists (item: any) {
+    if (!item.toChainId && item.pathId) {
+      let pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      let pathInfo = pathInfos?.[0]
+      if (!pathInfo) {
+        pathInfo = await this.sdk.railsGateway.getPathInfo({ chainId: item.context.chainId, pathId: item.pathId })
+        await this.pgDb.nonEventTables.Path.upsertItem({
+          pathId: pathInfo.pathId,
+          chainId: pathInfo.chainId,
+          token: pathInfo.token,
+          counterpartToken: pathInfo.counterpartToken,
+          counterpartChainId: pathInfo.counterpartChainId
+        })
+      }
+
+      pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      pathInfo = pathInfos?.[0]
+      if (!pathInfo) {
+        throw new Error(`Path not found for pathId ${item.pathId}`)
+      }
+
+      if (item.chainId === pathInfo.chainId) {
+        item.toChainId = pathInfo.counterpartChainId
+      } else {
+        item.toChainId = pathInfo.chainId
+      }
+    }
+
+    return item
+  }
+
+  async upsertTokenInfoIfNotExists (item: any) {
+    if (!item.token && item.pathId) {
+      const pathInfos = await this.pgDb.nonEventTables.Path.getItems({ filter: { pathId: item.pathId }})
+      const pathInfo = pathInfos?.[0]
+      if (!pathInfo) {
+        throw new Error(`Path not found for pathId ${item.pathId}`)
+      }
+
+      const { token: tokenAddress, chainId, counterpartChainId, counterpartToken: counterpartTokenAddress } = pathInfo
+
+      let originTokenAddress = tokenAddress
+      let originChainId = chainId
+      if (item.chainId === counterpartChainId) {
+        originTokenAddress = counterpartTokenAddress
+        originChainId = counterpartChainId
+      }
+
+      let tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: originChainId, address: originTokenAddress }})
+      let tokenInfo = tokenInfos?.[0]
+      if (!tokenInfo) {
+        tokenInfo = await this.sdk.railsGateway.getTokenInfo({ chainId: originChainId, address: originTokenAddress })
+        await this.pgDb.nonEventTables.Token.upsertItem({
+          chainId: tokenInfo.chainId,
+          address: tokenInfo.address,
+          name: tokenInfo.name,
+          symbol: tokenInfo.symbol,
+          decimals: tokenInfo.decimals
+        })
+      }
+
+      tokenInfos = await this.pgDb.nonEventTables.Token.getItems({ filter: { chainId: originChainId, address: originTokenAddress }})
+      tokenInfo = tokenInfos?.[0]
+      if (!tokenInfo) {
+        throw new Error(`Token not found for token ${item.token}`)
+      }
+
+      item.token = tokenInfo
+    }
+
+    return item
   }
 
   addEventFields (item: any) {
@@ -190,6 +241,9 @@ export class Controller {
     if (item.context?.transactionHash) {
       item.context.transactionHashTruncated = truncateString(item.context.transactionHash, 4)
       item.context.transactionHashExplorerUrl = this.sdk.utils.getTransactionHashExplorerUrl(item.context.transactionHash, item.context.chainId)
+    }
+    if (item.token?.address) {
+      item.token.tokenExplorerUrl = this.sdk.utils.getTokenExplorerUrl(item.token.address, item.token.chainId)
     }
     if (item.context?.chainId) {
       item.context.chainName = chainNames[item.context.chainId]

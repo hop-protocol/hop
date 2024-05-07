@@ -11,6 +11,7 @@ import { MessageSentTable } from './events/messenger/MessageSent.js'
 import { TransferSentTable } from './events/railsGateway/TransferSent.js'
 import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
 import { PathTable } from './paths/paths.js'
+import { TokenTable } from './tokens/tokens.js'
 import { postgresConfig } from '#config/index.js'
 import { Pgp } from './pgDbTypes.js'
 
@@ -45,7 +46,8 @@ export class PgDb {
     }
 
     this.nonEventTables = {
-      Path: new PathTable(this.db)
+      Path: new PathTable(this.db),
+      Token: new TokenTable(this.db),
     }
 
     this.init().catch((err: any) => {

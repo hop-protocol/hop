@@ -42,6 +42,10 @@ export function ExplorerEvents () {
       value: 'Checkpoint',
     },
     {
+      key: 'token',
+      value: 'Token',
+    },
+    {
       key: 'sourceChain',
       value: 'Source Chain',
     },
@@ -78,6 +82,11 @@ export function ExplorerEvents () {
       {
         key: 'created',
         value: `${event.context?.blockTimestampRelative}`
+      },
+      {
+        key: 'token',
+        value: `${event?.token?.name} (${event?.token?.symbol})`,
+        valueUrl: event.token?.tokenExplorerUrl,
       },
       {
         key: 'transferId',

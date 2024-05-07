@@ -132,6 +132,19 @@ export function Details () {
               </TableCell>
             </TableRow>
             <TableRow className={styles.tableRow}>
+              <TableCell>Token:</TableCell>
+              <TableCell>
+                {loading
+                ? (
+                  <Skeleton variant="rectangular" width={200} height={20} />
+                ) : (
+                  <Link href={event?.token?.tokenExplorerUrl} target="_blank" rel="noreferrer">
+                    {event?.token?.name} ({event?.token?.symbol})
+                  </Link>
+                )}
+              </TableCell>
+            </TableRow>
+            <TableRow className={styles.tableRow}>
               <TableCell>Created:</TableCell>
               <TableCell>
                 {loading

@@ -223,6 +223,24 @@ export type GetTransferBondedEventFromCheckpointInput = {
   checkpoint: string
 }
 
+export type GetTokenInfoInput = {
+  chainId: BigNumberish
+  address: string
+}
+
+export type GetTokenContractInput = {
+  chainId: BigNumberish
+  address: string
+}
+
+export type Token = {
+  chainId: BigNumber
+  address: string
+  name: string
+  symbol: string
+  decimals: number
+}
+
 export type RailsGatewayConstructorInput = BaseConfig & {}
 
 export class RailsGateway extends StakingRegistry {
@@ -1366,5 +1384,34 @@ export class RailsGateway extends StakingRegistry {
     const fromBlock = 0 // endBlock - 100_000
     const events = await eventFetcher.getEventsWithFilter(filter, fromBlock, toBlock)
     return events?.[0] ?? null
+  }
+
+  async getTokenInfo (input: GetTokenInfoInput): Promise<Token> {
+    const { chainId, address } = input
+
+    if (!this.utils.isValidChainId(chainId)) {
+      throw new Error(`Invalid chainId "${chainId}"`)
+    }
+
+    if (!this.utils.isValidAddress(address)) {
+      throw new Error(`Invalid address "${address}"`)
+    }
+
+    const contract = this.getTokenContract({ chainId, address })
+
+    return {
+      chainId: BigNumber.from(chainId),
+      address: checksumAddress(address),
+      name: await contract.name(),
+      symbol: await contract.symbol(),
+      decimals: Number(await contract.decimals())
+    }
+  }
+
+  getTokenContract (input: GetTokenContractInput): Contract {
+    const { chainId, address } = input
+    const provider = this.getRpcProviderForChainId(chainId)
+    const tokenContract = ERC20__factory.connect(address, provider)
+    return tokenContract
   }
 }

@@ -2,7 +2,7 @@ import { BigNumber, BigNumberish, Signer, constants, providers, utils } from 'et
 import { rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk-core'
 import { getProviderFromUrl } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
-import { chainSlugMap, getTxHashExplorerUrl } from '#utils/index.js'
+import { chainSlugMap, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -420,6 +420,26 @@ export class Base {
           throw new Error(`invalid transaction hash "${txHash}"`)
         }
         return getTxHashExplorerUrl(this.network, chainId?.toString(), txHash)
+      },
+
+      getAddressExplorerUrl: (address: string, chainId: BigNumberish): string => {
+        if (!this.utils.isValidChainId(chainId)) {
+          throw new Error(`invalid chainId "${chainId}"`)
+        }
+        if (!this.utils.isValidAddress(address)) {
+          throw new Error(`invalid address "${address}"`)
+        }
+        return getAddressExplorerUrl(this.network, chainId?.toString(), address)
+      },
+
+      getTokenExplorerUrl: (address: string, chainId: BigNumberish): string => {
+        if (!this.utils.isValidChainId(chainId)) {
+          throw new Error(`invalid chainId "${chainId}"`)
+        }
+        if (!this.utils.isValidAddress(address)) {
+          throw new Error(`invalid address "${address}"`)
+        }
+        return getTokenExplorerUrl(this.network, chainId?.toString(), address)
       }
     }
   }

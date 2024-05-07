@@ -81,7 +81,6 @@ export class TransferBondedTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { pathId, transferId, checkpoint, to, amountOut, totalSent, context } = this.#normalizeDataForPut(item)
-    console.log('ITEM', item)
     const args = {
       id: uuid(), pathId, transferId, checkpoint, to, amountOut, totalSent,
       context

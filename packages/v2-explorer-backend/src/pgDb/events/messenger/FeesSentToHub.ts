@@ -1,6 +1,6 @@
 import { BaseType, EventDb } from '../BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
+import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface FeesSentToHub extends BaseType {
@@ -12,7 +12,7 @@ export class FeesSentToHubTable extends EventDb {
     await this.db.query(`CREATE TABLE IF NOT EXISTS fees_sent_to_hub_events (
         id TEXT PRIMARY KEY,
         amount NUMERIC NOT NULL,
-        ${contextSqlCreation}
+        ${eventContextIdCreationSql}
     )`)
   }
 
@@ -26,15 +26,18 @@ export class FeesSentToHubTable extends EventDb {
     }
     const items = await this.db.any(
       `SELECT
-        amount
+        amount,
+        ${selectEventContextSql}
       FROM
-        fees_sent_to_hub_events
+        fees_sent_to_hub_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
       WHERE
-        _block_timestamp >= $1
+        ec.block_timestamp >= $1
         AND
-        _block_timestamp <= $2
+        ec.block_timestamp <= $2
       ORDER BY
-        _block_timestamp
+        ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -45,18 +48,27 @@ export class FeesSentToHubTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { amount, context } = this.#normalizeDataForPut(item)
-    const args = [
-      uuid(), amount,
-      ...getOrderedInsertContextArgs(context)
-    ]
-    await this.db.query(
-      `INSERT INTO
+    const {
+      contextId,
+      insertEventContextArgs,
+      insertEventContextSql
+    } = getInsertEventContextSqlData(context)
+    const args = {
+      id: uuid(), contextId, amount,
+    }
+    const sql = `
+      INSERT INTO
         bundle_set_events
-      (id, amount)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+      (id, event_context_id, amount)
+      VALUES ${'(${id}, ${contextId}, ${amount})'}
       ON CONFLICT (tx_hash)
-      DO UPDATE SET _block_timestamp = $9, _transaction_hash = $5`, args
-    )
+      ${'DO UPDATE SET amount = ${amount}'}
+    `
+
+    await this.db.tx(async (t: any) => {
+      await t.none(insertEventContextSql, insertEventContextArgs)
+      await t.none(sql, args)
+    })
   }
 
   #normalizeDataForGet (getData: Partial<FeesSentToHub>): Partial<FeesSentToHub> {

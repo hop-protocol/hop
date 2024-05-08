@@ -1,5 +1,5 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
+import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface MessageSent extends BaseType {
@@ -19,7 +19,7 @@ export class MessageSentTable extends EventDb {
         to_chain_id VARCHAR NOT NULL,
         "to" VARCHAR NOT NULL,
         "data" VARCHAR NOT NULL,
-        ${contextSqlCreation}
+        ${eventContextIdCreationSql}
     )`)
   }
 
@@ -47,18 +47,20 @@ export class MessageSentTable extends EventDb {
         "from",
         to_chain_id AS "toChainId",
         "to",
-        "data",
-        ${contextSqlSelect}
+        e."data",
+        ${selectEventContextSql}
       FROM
-        message_sent_events
+        message_sent_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
       WHERE
-        _block_timestamp >= $1
+        ec.block_timestamp >= $1
         AND
-        _block_timestamp <= $2
+        ec.block_timestamp <= $2
         ${filter?.messageId ? 'AND message_id = $5' : ''}
-        ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
+        ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
-        _block_timestamp
+        ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -69,26 +71,35 @@ export class MessageSentTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { messageId, from, toChainId, to, data, context } = item
-    const args = [
-      uuid(), messageId, from, toChainId, to, data,
-      ...getOrderedInsertContextArgs(context)
-    ]
+    const {
+      contextId,
+      insertEventContextArgs,
+      insertEventContextSql
+    } = getInsertEventContextSqlData(context)
+    const args = {
+      id: uuid(), contextId, messageId, from, toChainId, to, data
+    }
 
-    await this.db.query(
-      `INSERT INTO
+    const sql = `
+      INSERT INTO
         message_sent_events
       (
         id,
+        event_context_id,
         message_id,
         "from",
         to_chain_id,
         "to",
-        "data",
-        ${contextSqlInsert}
+        "data"
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+      VALUES ${'(${id}, ${contextId}, ${messageId}, ${from}, ${toChainId}, ${to}, ${data})'}
       ON CONFLICT (message_id)
-      DO UPDATE SET _block_timestamp = $12, _transaction_hash = $8`, args
-    )
+      ${'DO UPDATE SET message_id = ${messageId}'}
+    `
+
+    await this.db.tx(async (t: any) => {
+      await t.none(insertEventContextSql, insertEventContextArgs)
+      await t.none(sql, args)
+    })
   }
 }

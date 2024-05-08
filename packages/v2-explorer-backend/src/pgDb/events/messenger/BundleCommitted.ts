@@ -1,6 +1,6 @@
 import { BaseType, EventDb } from '../BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
+import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface BundleCommitted extends BaseType {
@@ -20,7 +20,7 @@ export class BundleCommittedTable extends EventDb {
         bundle_fees NUMERIC NOT NULL,
         to_chain_id VARCHAR NOT NULL,
         commit_time INTEGER NOT NULL,
-        ${contextSqlCreation}
+        ${eventContextIdCreationSql}
     )`)
   }
 
@@ -55,18 +55,20 @@ export class BundleCommittedTable extends EventDb {
         bundle_fees AS "bundleFees",
         to_chain_id AS "toChainId",
         commit_time AS "commitTime",
-        ${contextSqlSelect}
+        ${selectEventContextSql}
       FROM
-        bundle_committed_events
+        bundle_committed_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
       WHERE
-        _block_timestamp >= $1
+        ec.block_timestamp >= $1
         AND
-        _block_timestamp <= $2
+        ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.bundleRoot ? 'AND bundle_root = $5' : ''}
-        ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
+        ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
-        _block_timestamp
+        ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -77,21 +79,29 @@ export class BundleCommittedTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { bundleId, bundleRoot, bundleFees, toChainId, commitTime, context } = this.#normalizeDataForPut(item)
-    const args = [
-      uuid(), bundleId, bundleRoot, bundleFees, toChainId, commitTime,
-      ...getOrderedInsertContextArgs(context)
-    ]
-    await this.db.query(
-      `INSERT INTO
+    const {
+      contextId,
+      insertEventContextArgs,
+      insertEventContextSql
+    } = getInsertEventContextSqlData(context)
+    const args = {
+      id: uuid(), contextId, bundleId, bundleRoot, bundleFees, toChainId, commitTime
+    }
+    const sql = `
+      INSERT INTO
         bundle_committed_events
       (
-        id, bundle_id, bundle_root, bundle_fees, to_chain_id, commit_time,
-        ${contextSqlInsert}
+        id, event_context_id, bundle_id, bundle_root, bundle_fees, to_chain_id, commit_time
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+      VALUES ${'(${id}, ${contextId}, ${bundleId}, ${bundleRoot}, ${bundleFees}, ${toChainId}, ${commitTime})'}
       ON CONFLICT (bundle_id)
-      DO UPDATE SET _block_timestamp = $13, _transaction_hash = $9`, args
-    )
+      ${'DO UPDATE SET bundle_id = ${bundleId}'}
+    `
+
+    await this.db.tx(async (t: any) => {
+      await t.none(insertEventContextSql, insertEventContextArgs)
+      await t.none(sql, args)
+    })
   }
 
   #normalizeDataForGet (getData: Partial<BundleCommitted>): Partial<BundleCommitted> {

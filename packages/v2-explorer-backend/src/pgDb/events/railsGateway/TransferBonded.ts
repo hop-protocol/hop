@@ -1,6 +1,6 @@
 import { BaseType, EventDb } from '../BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
+import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface TransferBonded extends BaseType {
@@ -22,7 +22,7 @@ export class TransferBondedTable extends EventDb {
         "to" VARCHAR NOT NULL,
         amount_out NUMERIC NOT NULL,
         total_sent NUMERIC NOT NULL,
-        ${contextSqlCreation}
+        ${eventContextIdCreationSql}
     )`)
   }
 
@@ -58,19 +58,21 @@ export class TransferBondedTable extends EventDb {
         "to",
         amount_out AS "amountOut",
         total_sent AS "totalSent",
-        ${contextSqlSelect}
+        ${selectEventContextSql}
       FROM
-        transfer_bonded_events
+        transfer_bonded_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
       WHERE
-        _block_timestamp >= $1
+        ec.block_timestamp >= $1
         AND
-        _block_timestamp <= $2
+        ec.block_timestamp <= $2
         ${filter?.transferId ? 'AND transfer_id= $5' : ''}
         ${filter?.checkpoint ? 'AND checkpoint= $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
-        ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
+        ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
-        _block_timestamp
+        ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -81,21 +83,29 @@ export class TransferBondedTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { pathId, transferId, checkpoint, to, amountOut, totalSent, context } = this.#normalizeDataForPut(item)
+    const {
+      contextId,
+      insertEventContextArgs,
+      insertEventContextSql
+    } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), pathId, transferId, checkpoint, to, amountOut, totalSent,
-      context
+      id: uuid(), contextId, pathId, transferId, checkpoint, to, amountOut, totalSent
     }
-    await this.db.query(
-      `INSERT INTO
+    const sql = `
+      INSERT INTO
         transfer_bonded_events
       (
-        id, path_id, transfer_id, checkpoint, "to", amount_out, total_sent,
-        ${contextSqlInsert}
+        id, event_context_id, path_id, transfer_id, checkpoint, "to", amount_out, total_sent
       )
-      VALUES ${'(${id}, ${pathId}, ${transferId}, ${checkpoint}, ${to}, ${amountOut}, ${totalSent}, ${context.chainId}, ${context.transactionHash}, ${context.transactionIndex}, ${context.logIndex}, ${context.blockNumber}, ${context.blockTimestamp}, ${context.from}, ${context.to}, ${context.value}, ${context.nonce}, ${context.gasLimit}, ${context.gasUsed}, ${context.gasPrice}, ${context.data})'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${checkpoint}, ${to}, ${amountOut}, ${totalSent})'}
       ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET _block_timestamp = ${context.blockTimestamp}, _transaction_hash = ${context.transactionHash}'}`, args
-    )
+      ${'DO UPDATE SET path_id = ${pathId}'}
+    `
+
+    await this.db.tx(async (t: any) => {
+      await t.none(insertEventContextSql, insertEventContextArgs)
+      await t.none(sql, args)
+    })
   }
 
   #normalizeDataForGet (getData: Partial<TransferBonded>): Partial<TransferBonded> {

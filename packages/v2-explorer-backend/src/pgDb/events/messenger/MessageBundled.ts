@@ -1,5 +1,5 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
+import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface MessageBundled extends BaseType {
@@ -15,7 +15,7 @@ export class MessageBundledTable extends EventDb {
         message_id VARCHAR NOT NULL UNIQUE,
         bundle_id VARCHAR NOT NULL,
         tree_index INTEGER NOT NULL,
-        ${contextSqlCreation}
+        ${eventContextIdCreationSql}
     )`)
   }
 
@@ -47,18 +47,20 @@ export class MessageBundledTable extends EventDb {
         message_id AS "messageId",
         bundle_id AS "bundleId",
         tree_index AS "treeIndex",
-        ${contextSqlSelect}
+        ${selectEventContextSql}
       FROM
-        message_bundled_events
+        message_bundled_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
       WHERE
-        _block_timestamp >= $1
+        ec.block_timestamp >= $1
         AND
-        _block_timestamp <= $2
+        ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.messageId ? 'AND message_id = $5' : ''}
-        ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
+        ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
-        _block_timestamp
+        ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -69,20 +71,31 @@ export class MessageBundledTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { messageId, bundleId, treeIndex, context } = item
-    const args = [
-      uuid(), messageId, bundleId, treeIndex,
-      ...getOrderedInsertContextArgs(context)
-    ]
-    await this.db.query(
-      `INSERT INTO
+    const {
+      contextId,
+      insertEventContextArgs,
+      insertEventContextSql
+    } = getInsertEventContextSqlData(context)
+    const args = {
+      id: uuid(), contextId, messageId, bundleId, treeIndex
+    }
+    const sql = `
+      INSERT INTO
         message_bundled_events
       (
-        id, message_id, bundle_id, tree_index,
-        ${contextSqlInsert}
+        id, event_context_id, message_id, bundle_id, tree_index
       )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      VALUES ${'(${id}, ${contextId}, ${messageId}, ${bundleId}, ${treeIndex})'}
       ON CONFLICT (message_id)
-      DO UPDATE SET _block_timestamp = $11, _transaction_hash = $7, bundle_id = $3`, args
-    )
+      ${'DO UPDATE SET message_id = ${messageId}'}
+    `
+
+    await this.db.tx(async (t: any) => {
+      console.log('here0000', contextId)
+      await t.none(insertEventContextSql, insertEventContextArgs)
+      console.log('here111', contextId)
+      await t.none(sql, args)
+      console.log('here2222', contextId)
+    })
   }
 }

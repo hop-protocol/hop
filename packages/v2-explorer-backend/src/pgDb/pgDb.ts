@@ -12,6 +12,7 @@ import { TransferSentTable } from './events/railsGateway/TransferSent.js'
 import { TransferBondedTable } from './events/railsGateway/TransferBonded.js'
 import { PathTable } from './paths/paths.js'
 import { TokenTable } from './tokens/tokens.js'
+import { EventContextTable } from './eventContext/eventContext.js'
 import { postgresConfig } from '#config/index.js'
 import { Pgp } from './pgDbTypes.js'
 
@@ -32,6 +33,12 @@ export class PgDb {
     const db = pgp(initOptions)({ ...postgresConfig, ...opts })
     this.db = db
 
+    this.nonEventTables = {
+      Path: new PathTable(this.db),
+      Token: new TokenTable(this.db),
+      EventContext: new EventContextTable(this.db),
+    }
+
     this.events = {
       BundleCommitted: new BundleCommittedTable(this.db),
       BundleForwarded: new BundleForwardedTable(this.db),
@@ -43,11 +50,6 @@ export class PgDb {
       MessageSent: new MessageSentTable(this.db),
       TransferSent: new TransferSentTable(this.db),
       TransferBonded: new TransferBondedTable(this.db)
-    }
-
-    this.nonEventTables = {
-      Path: new PathTable(this.db),
-      Token: new TokenTable(this.db),
     }
 
     this.init().catch((err: any) => {
@@ -71,14 +73,14 @@ export class PgDb {
       // `)
     }
 
-    for (const event in this.events) {
-      await this.events[event].createTable()
-      await this.events[event].createIndexes()
-    }
-
     for (const event in this.nonEventTables) {
       await this.nonEventTables[event].createTable()
       await this.nonEventTables[event].createIndexes()
+    }
+
+    for (const event in this.events) {
+      await this.events[event].createTable()
+      await this.events[event].createIndexes()
     }
   }
 }

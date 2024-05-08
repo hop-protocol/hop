@@ -51,7 +51,9 @@ export class TokenTable extends BaseDb {
         decimals
       FROM
         tokens
-      ${filter?.address ? 'WHERE address = $3' : ''}
+      WHERE
+        1 = 1
+      ${filter?.address ? 'AND address = $3' : ''}
       ${filter?.chainId ? 'AND chain_id = $4' : ''}
       ORDER BY
         symbol

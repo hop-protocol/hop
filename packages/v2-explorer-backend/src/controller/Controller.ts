@@ -165,7 +165,7 @@ export class Controller {
 
       let originTokenAddress = tokenAddress
       let originChainId = chainId
-      if (item.chainId === counterpartChainId) {
+      if (item.context.chainId === counterpartChainId) {
         originTokenAddress = counterpartTokenAddress
         originChainId = counterpartChainId
       }

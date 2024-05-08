@@ -1,6 +1,6 @@
 import { BaseType, EventDb } from '../BaseType.js'
 import { BigNumber } from 'ethers'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
+import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface TransferSent extends BaseType {
@@ -28,13 +28,13 @@ export class TransferSentTable extends EventDb {
         total_sent NUMERIC NOT NULL,
         nonce NUMERIC NOT NULL,
         attested_checkpoint VARCHAR NOT NULL,
-        ${contextSqlCreation}
+        ${eventContextIdCreationSql}
     )`)
   }
 
   override async createIndexes () {
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_sent_events_bundle_id ON transfer_sent_events (transfer_id);'
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfer_sent_events_transfer_id ON transfer_sent_events (transfer_id);'
     )
   }
 
@@ -61,25 +61,27 @@ export class TransferSentTable extends EventDb {
         path_id AS "pathId",
         transfer_id AS "transferId",
         checkpoint,
-        "to",
+        e."to",
         amount,
         attestation_fee AS "attestationFee",
         total_sent AS "totalSent",
-        nonce,
+        e.nonce,
         attested_checkpoint AS "attestedCheckpoint",
-        ${contextSqlSelect}
+        ${selectEventContextSql}
       FROM
-        transfer_sent_events
+        transfer_sent_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
       WHERE
-        _block_timestamp >= $1
+        ec.block_timestamp >= $1
         AND
-        _block_timestamp <= $2
+        ec.block_timestamp <= $2
         ${filter?.transferId ? 'AND transfer_id= $5' : ''}
         ${filter?.checkpoint ? 'AND checkpoint= $5' : ''}
         ${filter?.pathId ? 'AND path_id = $5' : ''}
-        ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
+        ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
-        _block_timestamp
+        ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -90,21 +92,29 @@ export class TransferSentTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { pathId, transferId, checkpoint, to, amount, attestationFee, totalSent, nonce, attestedCheckpoint, context } = this.#normalizeDataForPut(item)
+    const {
+      contextId,
+      insertEventContextArgs,
+      insertEventContextSql
+    } = getInsertEventContextSqlData(context)
     const args = {
-      id: uuid(), pathId, transferId, checkpoint, to, amount, attestationFee, totalSent, nonce, attestedCheckpoint,
-      context
+      id: uuid(), contextId, pathId, transferId, checkpoint, to, amount, attestationFee, totalSent, nonce, attestedCheckpoint,
     }
-    await this.db.query(
-      `INSERT INTO
+    const sql = `
+      INSERT INTO
         transfer_sent_events
       (
-        id, path_id, transfer_id, checkpoint, "to", amount, attestation_fee, total_sent, nonce, attested_checkpoint,
-        ${contextSqlInsert}
+        id, event_context_id, path_id, transfer_id, checkpoint, "to", amount, attestation_fee, total_sent, nonce, attested_checkpoint
       )
-      VALUES ${'(${id}, ${pathId}, ${transferId}, ${checkpoint}, ${to}, ${amount}, ${attestationFee}, ${totalSent}, ${nonce}, ${attestedCheckpoint}, ${context.chainId}, ${context.transactionHash}, ${context.transactionIndex}, ${context.logIndex}, ${context.blockNumber}, ${context.blockTimestamp}, ${context.from}, ${context.to}, ${context.value}, ${context.nonce}, ${context.gasLimit}, ${context.gasUsed}, ${context.gasPrice}, ${context.data})'}
+      VALUES ${'(${id}, ${contextId}, ${pathId}, ${transferId}, ${checkpoint}, ${to}, ${amount}, ${attestationFee}, ${totalSent}, ${nonce}, ${attestedCheckpoint})'}
       ON CONFLICT (transfer_id)
-      ${'DO UPDATE SET _block_timestamp = ${context.blockTimestamp}, _transaction_hash = ${context.transactionHash}'}`, args
-    )
+      ${'DO UPDATE SET path_id = ${pathId}'}
+    `
+
+    await this.db.tx(async (t: any) => {
+      await t.none(insertEventContextSql, insertEventContextArgs)
+      await t.none(sql, args)
+    })
   }
 
   #normalizeDataForGet (getData: Partial<TransferSent>): Partial<TransferSent> {

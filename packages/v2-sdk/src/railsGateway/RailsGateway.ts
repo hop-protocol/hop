@@ -404,6 +404,14 @@ export class RailsGateway extends StakingRegistry {
       counterpartToken: checksumAddress(pathInfoArray[3])
     }
 
+    // TODO: look into why same chainId is returned for counterpartChainId
+    if (pathInfo.counterpartToken === '0xaCa72C8D5360dC237001cD963566F411732980B0' && pathInfo.counterpartChainId.eq(pathInfo.chainId)) {
+      pathInfo.counterpartChainId = BigNumber.from(11155420)
+    }
+    if (pathInfo.counterpartToken === '0x5fd84259d66Cd46123540766Be93DFE6D43130D7' && pathInfo.counterpartChainId.eq(pathInfo.chainId)) {
+      pathInfo.counterpartChainId = BigNumber.from(11155420)
+    }
+
     if (!(this.utils.isValidAddress(pathInfo.token) && this.utils.isValidAddress(pathInfo.counterpartToken))) {
       throw new Error('pathId is invalid or not found')
     }

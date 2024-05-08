@@ -1,5 +1,5 @@
 import { BaseType, EventDb } from '../BaseType.js'
-import { contextSqlCreation, contextSqlInsert, contextSqlSelect, getItemsWithContext, getOrderedInsertContextArgs } from '../context.js'
+import { getItemsWithContext, selectEventContextSql, eventContextIdCreationSql, getInsertEventContextSqlData } from '../context.js'
 import { v4 as uuid } from 'uuid'
 
 export interface BundleForwared extends BaseType {
@@ -17,7 +17,7 @@ export class BundleForwardedTable extends EventDb {
         bundle_root VARCHAR NOT NULL UNIQUE,
         from_chain_id VARCHAR NOT NULL,
         to_chain_id VARCHAR NOT NULL,
-        ${contextSqlCreation}
+        ${eventContextIdCreationSql}
     )`)
   }
 
@@ -50,18 +50,20 @@ export class BundleForwardedTable extends EventDb {
         bundle_root AS "bundleRoot",
         from_chain_id AS "fromChainId",
         to_chain_id AS "toChainId",
-        ${contextSqlSelect}
+        ${selectEventContextSql}
       FROM
-        bundle_forwarded_events
+        bundle_forwarded_events e
+      JOIN
+        event_context ec ON e.event_context_id = ec.id
       WHERE
-        _block_timestamp >= $1
+        ec.block_timestamp >= $1
         AND
-        _block_timestamp <= $2
+        ec.block_timestamp <= $2
         ${filter?.bundleId ? 'AND bundle_id = $5' : ''}
         ${filter?.bundleRoot ? 'AND bundle_root = $5' : ''}
-        ${filter?.transactionHash ? 'AND _transaction_hash = $5' : ''}
+        ${filter?.transactionHash ? 'AND ec.transaction_hash = $5' : ''}
       ORDER BY
-        _block_timestamp
+        ec.block_timestamp
       DESC
       LIMIT $3
       OFFSET $4`,
@@ -72,20 +74,28 @@ export class BundleForwardedTable extends EventDb {
 
   override async upsertItem (item: any) {
     const { bundleId, bundleRoot, fromChainId, toChainId, context } = item
-    const args = [
-      uuid(), bundleId, bundleRoot, fromChainId, toChainId,
-      ...getOrderedInsertContextArgs(context)
-    ]
-    await this.db.query(
-      `INSERT INTO
+    const {
+      contextId,
+      insertEventContextArgs,
+      insertEventContextSql
+    } = getInsertEventContextSqlData(context)
+    const args = {
+      id: uuid(), contextId, bundleId, bundleRoot, fromChainId, toChainId,
+    }
+    const sql = `
+      INSERT INTO
         bundle_forwarded_events
       (
-        id, bundle_id, bundle_root, from_chain_id, to_chain_id,
-        ${contextSqlInsert}
+        id, event_context_id, bundle_id, bundle_root, from_chain_id, to_chain_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+      VALUES ${'(${id}, ${contextId}, ${bundleId}, ${bundleRoot}, ${fromChainId}, ${toChainId})'}
       ON CONFLICT (bundle_id)
-      DO UPDATE SET _block_timestamp = $12, _transaction_hash = $8`, args
-    )
+      ${'DO UPDATE SET bundle_id = ${bundleId}'}
+    `
+
+    await this.db.tx(async (t: any) => {
+      await t.none(insertEventContextSql, insertEventContextArgs)
+      await t.none(sql, args)
+    })
   }
 }

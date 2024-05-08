@@ -48,7 +48,9 @@ export class PathTable extends BaseDb {
         counterpart_chain_id AS "counterpartChainId"
       FROM
         paths
-      ${filter?.pathId ? 'WHERE path_id = $3' : ''}
+      WHERE
+        1 = 1
+        ${filter?.pathId ? 'AND path_id = $3' : ''}
       ORDER BY
         chain_id
       DESC

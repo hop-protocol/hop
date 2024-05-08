@@ -1,3 +1,8 @@
+# TODO: There is probably a better way to do wait-for-publish, but this works for now.
+# The goal is to wait for the SDK to be published before building the frontend, but
+# the workflows are decoupled - the SDK publish is triggered on develop and
+# the frontend build is triggered on production.
+
 name: Build and Deploy Hop Frontend UI
 on:
   push:
@@ -49,19 +54,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Bump version and push tag
-        id: github_tag_action
-        uses: mathieudutour/github-tag-action@331898d5052eedac9b15fec867b5ba66ebf9b692
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          release_branches: production
-          default_bump: patch
+  wait-for-publish: 
+    - name: Wait for SDK publish
+      id: wait-for-publish
+      working-directory: packages/sdk
+      run: |
+        while : ; do
+          CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+          LOCAL_VERSION=$(jq -r '.version' package.json)
+          if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
+            echo "Package found, proceeding with deployment."
+            break
+          else
+            echo "Package not found, waiting..."
+            sleep 10 # Wait for 10 seconds before retrying
+          fi
+        done
 
   build:
     if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet') || contains(github.ref, 'goerli') || contains(github.ref, 'sepolia')
     name: Build and Deploy
     runs-on: ubuntu-latest
-    needs: [set_environment]
+    needs: [set_environment, wait-for-publish]
     outputs:
       hash: ${{ steps.upload.outputs.hash }}
     environment:

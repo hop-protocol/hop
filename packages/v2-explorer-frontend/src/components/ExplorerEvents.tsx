@@ -34,16 +34,16 @@ export function ExplorerEvents () {
       value: 'Created',
     },
     {
+      key: 'token',
+      value: 'Token',
+    },
+    {
       key: 'transferId',
       value: 'Transfer ID',
     },
     {
       key: 'checkpoint',
       value: 'Checkpoint',
-    },
-    {
-      key: 'token',
-      value: 'Token',
     },
     {
       key: 'sourceChain',

@@ -3,7 +3,7 @@ import React, { FC, ReactNode, createContext, useContext, useEffect, useMemo, us
 import Token from 'src/models/Token'
 import logger from 'src/logger'
 import { BigNumber, utils } from 'ethers'
-import { CanonicalToken, HToken } from '@hop-protocol/sdk'
+import { CanonicalToken } from '@hop-protocol/sdk'
 import { findNetworkBySlug } from 'src/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { retryPromise } from 'src/utils/retryPromise'

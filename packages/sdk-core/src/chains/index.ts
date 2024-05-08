@@ -24,8 +24,8 @@ export const getNetworks = (): Network[] => {
   return Object.values(NetworkSlug).map(x => getNetwork(x))
 }
 
-export function getChain(chainId: string): Chain;
-export function getChain(networkSlug: NetworkSlug, chainSlug: ChainSlug): Chain;
+export function getChain(chainId: string): Chain
+export function getChain(networkSlug: NetworkSlug, chainSlug: ChainSlug): Chain
 export function getChain(chainIdOrNetworkSlug: string | NetworkSlug, chainSlug?: ChainSlug): Chain {
   if (typeof chainIdOrNetworkSlug === 'string' && !chainSlug) {
     return getChainByChainId(chainIdOrNetworkSlug)

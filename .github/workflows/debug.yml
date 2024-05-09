@@ -1,8 +1,4 @@
 name: Simple Github Action for Debugging Builds
-on:
-  push:
-    branches:
-      - develop
 
 jobs:
   setup:

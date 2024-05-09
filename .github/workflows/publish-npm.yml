@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Check if publish is necessary
+      - name: 🔍 Check if publish is necessary
         id: check_version
         working-directory: packages/${{ matrix.package }}
         run: |
@@ -32,13 +32,13 @@ jobs:
             echo "VERSION_MISMATCH=true" >> $GITHUB_ENV
           fi
 
-      - name: Install and build package
+      - name: 🛠️ Install and build package
         if: env.VERSION_MISMATCH == 'true'
         run: |
           pnpm --filter-prod ${{ matrix.package }}... install
           pnpm --filter ${{ matrix.package }}... build
 
-      - name: Publish package
+      - name: 🚀 Publish package
         if: env.VERSION_MISMATCH == 'true'
         run: pnpm --filter ${{ matrix.package }} publish --access public
         env:

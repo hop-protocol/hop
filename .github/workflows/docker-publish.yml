@@ -24,3 +24,16 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  publish-v2-explorer-backend:
+    needs: setup
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Publish v2-explorer-backend to Docker
+        uses: ./.github/actions/docker-publish
+        with:
+          package-name: v2-explorer-backend
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -55,21 +55,24 @@ jobs:
         uses: actions/checkout@v4
 
   wait-for-publish: 
-    - name: Wait for SDK publish
-      id: wait-for-publish
-      working-directory: packages/sdk
-      run: |
-        while : ; do
-          CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
-          LOCAL_VERSION=$(jq -r '.version' package.json)
-          if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
-            echo "Package found, proceeding with deployment."
-            break
-          else
-            echo "Package not found, waiting..."
-            sleep 10 # Wait for 10 seconds before retrying
-          fi
-        done
+    name: Wait for SDK publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for SDK publish if necessary
+        id: wait-for-publish
+        working-directory: packages/sdk
+        run: |
+          while : ; do
+            CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+            LOCAL_VERSION=$(jq -r '.version' package.json)
+            if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
+              echo "Package found, proceeding with deployment."
+              break
+            else
+              echo "Package not found, waiting..."
+              sleep 10 # Wait for 10 seconds before retrying
+            fi
+          done
 
   build:
     if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet') || contains(github.ref, 'goerli') || contains(github.ref, 'sepolia')

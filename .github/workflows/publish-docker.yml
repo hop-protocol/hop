@@ -13,9 +13,6 @@ jobs:
         uses: ./.github/actions/setup
 
   publish-docker:
-    strategy:
-      matrix:
-        package: [hop-node, v2-explorer-backend]
     needs: setup
     runs-on: ubuntu-latest
     environment: production
@@ -23,6 +20,9 @@ jobs:
       packages: write
       contents: read
       attestations: write
+    strategy:
+      matrix:
+        package: [hop-node, v2-explorer-backend]
     steps:
       - name: Define Docker Tag
         run: |

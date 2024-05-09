@@ -6,6 +6,12 @@ runs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+        run_install: false
+
     # Automatically caches deps
     # https://github.com/actions/setup-node?tab=readme-ov-file#caching-global-packages-data
     - name: Setup node
@@ -14,9 +20,3 @@ runs:
         node-version-file: .nvmrc
         registry-url: https://registry.npmjs.org
         cache: pnpm
-
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
-        run_install: false

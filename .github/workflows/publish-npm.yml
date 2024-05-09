@@ -14,12 +14,12 @@ jobs:
         uses: ./.github/actions/setup
 
   publish-npm:
-    strategy:
-      matrix:
-        package: [sdk]
     needs: setup
     runs-on: ubuntu-latest
     environment: production
+    strategy:
+      matrix:
+        package: [sdk]
     steps:
       - name: Check if publish is necessary
         id: check_version
@@ -28,6 +28,7 @@ jobs:
           set -e
           CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
           LOCAL_VERSION=$(jq -r '.version' package.json)
+          echo "VERSION_MISMATCH=false" >> $GITHUB_ENV
           if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
             echo "VERSION_MISMATCH=true" >> $GITHUB_ENV
           fi

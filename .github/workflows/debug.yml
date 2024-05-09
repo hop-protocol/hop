@@ -20,4 +20,3 @@ jobs:
           REACT_APP_NETWORK: goerli
           REACT_APP_IPFS_BUILD: true
         run: NODE_OPTIONS=--openssl-legacy-provider pnpm build
-

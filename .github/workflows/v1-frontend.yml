@@ -78,6 +78,8 @@ jobs:
     if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet') || contains(github.ref, 'goerli') || contains(github.ref, 'sepolia')
     name: Build and Deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: [set_environment, wait-for-publish]
     outputs:
       hash: ${{ steps.upload.outputs.hash }}

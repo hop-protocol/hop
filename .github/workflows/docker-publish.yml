@@ -1,0 +1,26 @@
+name: Publish Docker Image if Necessary
+on:
+  push:
+    branches:
+      - develop
+      - production
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup workflow
+        uses: ./.github/actions/setup
+
+  publish-hop-node:
+    needs: setup
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Publish hop-node to Docker
+        uses: ./.github/actions/docker-publish
+        with:
+          package-name: hop-node
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

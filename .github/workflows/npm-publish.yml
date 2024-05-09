@@ -1,8 +1,9 @@
-name: Publish NPM Packages If Necessary
+name: Publish NPM Packages if Necessary
 on:
   push:
     branches:
       - develop
+      - production
 
 # Order of jobs is important to ensure that the packages are published in the correct order
 jobs:
@@ -37,7 +38,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-hop-node-core:
-    needs: publish-sdk-core
+    needs: publish-sdk
     runs-on: ubuntu-latest
     environment: production
     steps:

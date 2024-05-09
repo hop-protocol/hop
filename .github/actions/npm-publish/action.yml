@@ -1,5 +1,4 @@
 name: NPM Publish Package
-description: Publishes an NPM package if necessary
 inputs:
   package-name:
     description: 'Name of the package to publish'
@@ -14,7 +13,7 @@ runs:
       run: |
         CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
         LOCAL_VERSION=$(jq -r '.version' package.json)
-        echo "::set-output name=version_mismatch::false"  # Default to false
+        echo "::set-output name=version_mismatch::false"
         if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
           echo "::set-output name=version_mismatch::true"
         fi
@@ -29,4 +28,4 @@ runs:
       if: steps.check_version.outputs.version_mismatch == 'true'
       run: pnpm --filter ${{ inputs.package-name }} publish --access public
       env:
-         NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+         NODE_AUTH_TOKEN: ${{ env.NODE_AUTH_TOKEN }}

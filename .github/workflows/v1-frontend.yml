@@ -52,7 +52,7 @@ jobs:
       changelog: ${{ steps.github_tag_action.outputs.changelog }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.4
 
   wait-for-publish: 
     name: Wait for SDK publish
@@ -94,7 +94,7 @@ jobs:
         working-directory: .
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.4
 
       - name: Log set env vars
         run: |
@@ -102,7 +102,7 @@ jobs:
           echo "RECORD_NAME=${RECORD_NAME}"
 
       - name: Set up node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org

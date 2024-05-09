@@ -5,7 +5,7 @@ on:
       - develop
       - production
 env:
-  ENVIRONMENT: ${{ github.ref_name }}
+  BRANCH_NAME: ${{ github.ref_name }}
 
 # TODO: This will not work if some NPM packages in the workspace depend on others. Rethink this.
 # TODO: This will publish to Docekr Hub on every push to develop or production. Rethink this.
@@ -20,7 +20,7 @@ jobs:
   publish-npm:
     needs: setup
     runs-on: ubuntu-latest
-    environment: ${{ env.ENVIRONMENT }}
+    environment: ${{ env.BRANCH_NAME }}
     strategy:
       matrix:
         package: [sdk]
@@ -44,18 +44,17 @@ jobs:
 
       - name: Publish package
         if: env.VERSION_MISMATCH == 'true'
-        run: pnpm --filter ${{ matrix.package }} publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+        run: pnpm --filter ${{ matrix.package }} publish --access public
 
   publish-docker:
     needs: publish-npm
     runs-on: ubuntu-latest
-    environment: ${{ env.ENVIRONMENT }}
+    environment: ${{ env.BRANCH_NAME }}
     permissions:
       packages: write
       contents: read
-      attestations: write
     strategy:
       matrix:
         package: [hop-node, v2-explorer-backend]
@@ -63,9 +62,9 @@ jobs:
       - name: Define Docker Tag
         run: |
           set -e
-          if [[ "${{ github.ref_name }}" == "develop" ]]; then
+          if [[ "$BRANCH_NAME" == "develop" ]]; then
             echo "DOCKER_TAG=next" >> $GITHUB_ENV
-          elif [[ "${{ github.ref_name }}" == "production" ]]; then
+          elif [[ "$BRANCH_NAME" == "production" ]]; then
             echo "DOCKER_TAG=latest" >> $GITHUB_ENV
           else
             echo "Unsupported branch" >&2
@@ -73,16 +72,16 @@ jobs:
           fi
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.3.0
 
       - name: Publish Docker image
-        uses: docker/build-push-action@5
+        uses: docker/build-push-action@v5.3.0
         with:
           context: .
           file: ./packages/${{ matrix.package }}/Dockerfile

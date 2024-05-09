@@ -51,7 +51,7 @@ jobs:
   build-hop-api:
     needs: [_build-hop-api]
     name: Send Status Notification Webhook Request
-    uses: ./.github/workflows/status_notify.yml
+    uses: ./.github/workflows/status-notify.yml
     with:
       environment: production
     secrets:

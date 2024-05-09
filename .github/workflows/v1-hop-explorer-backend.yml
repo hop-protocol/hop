@@ -64,7 +64,7 @@ jobs:
   build-explorer-backend:
     needs: [prepare, _build-explorer-backend]
     name: Send Backend Status Notification Webhook Request
-    uses: ./.github/workflows/status_notify.yml
+    uses: ./.github/workflows/status-notify.yml
     with:
       environment: ${{ needs.prepare.outputs.branch_name }}
     secrets:

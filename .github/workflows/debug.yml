@@ -5,6 +5,11 @@ on:
       - develop
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup workflow
+        uses: ./.github/actions/setup
   build:
     if: false
     name: Build
@@ -12,20 +17,6 @@ jobs:
     defaults:
       run:
         working-directory: .
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org
-
-      - name: Install node dependencies
-        run: |
-          npm install -g pnpm@8.15.7 only-allow@1.2.1 # required to build @eth-optimism packages
-          pnpm install
 
       - name: Build the frontend app
         env:

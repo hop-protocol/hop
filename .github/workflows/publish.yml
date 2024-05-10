@@ -24,6 +24,9 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     environment: ${{ env.BRANCH_NAME }}
+    # Used for provenance
+    permissions:
+      id-token: write
     strategy:
       matrix:
         package: [sdk]
@@ -49,7 +52,7 @@ jobs:
         if: env.VERSION_MISMATCH == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
-        run: pnpm --filter ${{ matrix.package }} publish --access public
+        run: pnpm --filter ${{ matrix.package }} publish --provenance --access public
 
   publish-docker:
     needs: publish-npm

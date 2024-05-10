@@ -52,7 +52,7 @@ jobs:
       changelog: ${{ steps.github_tag_action.outputs.changelog }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
   wait-for-publish: 
     name: Wait for SDK publish
@@ -94,7 +94,7 @@ jobs:
         working-directory: .
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
       - name: Log set env vars
         run: |
@@ -102,7 +102,7 @@ jobs:
           echo "RECORD_NAME=${RECORD_NAME}"
 
       - name: Set up node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
@@ -158,7 +158,7 @@ jobs:
 
       - name: Convert CIDv0 to CIDv1
         id: convert_cidv0
-        uses: uniswap/convert-cidv0-cidv1@v1.0.0
+        uses: uniswap/convert-cidv0-cidv1@c53a468c3602a85dd979c02ec4ddd9102849395e
         with:
           cidv0: ${{ steps.upload.outputs.hash }}
 
@@ -169,7 +169,7 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         if: contains(github.ref, 'production')
-        uses: actions/create-release@v1.1.0
+        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

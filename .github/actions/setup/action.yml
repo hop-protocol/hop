@@ -4,7 +4,7 @@ runs:
   using: composite
   steps:
     - name: Setup pnpm
-      uses: pnpm/action-setup@v4.0.0
+      uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2
       with:
         version: 9
         run_install: false
@@ -12,7 +12,7 @@ runs:
     # Automatically caches deps
     # https://github.com/actions/setup-node?tab=readme-ov-file#caching-global-packages-data
     - name: Setup node
-      uses: actions/setup-node@v4.0.2
+      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
       with:
         node-version-file: .nvmrc
         registry-url: https://registry.npmjs.org

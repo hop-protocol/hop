@@ -3,9 +3,6 @@ description: Common setup steps used by our workflows
 runs:
   using: composite
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v4.1.4
-
     - name: Setup pnpm
       uses: pnpm/action-setup@v4.0.0
       with:

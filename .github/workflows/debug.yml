@@ -1,9 +1,16 @@
 name: Simple Github Action for Debugging Builds
+on:
+  push:
+    branches:
+      - develop
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.4
+
       - name: Setup workflow
         uses: ./.github/actions/setup
   build:
@@ -13,7 +20,7 @@ jobs:
     defaults:
       run:
         working-directory: .
-
+    steps:
       - name: Build the frontend app
         env:
           PUBLIC_URL: .

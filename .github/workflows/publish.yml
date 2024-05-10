@@ -14,6 +14,9 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.4
+
       - name: Setup workflow
         uses: ./.github/actions/setup
 

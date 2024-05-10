@@ -8,7 +8,7 @@
   "type": "module",
   "engines": {
     "node": ">=20.12.2",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   },
   "imports": {
     "#*": "./dist/*"

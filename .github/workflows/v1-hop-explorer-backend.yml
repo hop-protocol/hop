@@ -19,7 +19,7 @@ jobs:
 
   _build-explorer-backend:
     runs-on: ubuntu-latest
-    environment: docker
+    environment: producti
     env:
       DOCKER_IMAGE: hopprotocol/explorer-backend
     defaults:

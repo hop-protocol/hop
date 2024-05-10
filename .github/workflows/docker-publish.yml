@@ -9,8 +9,6 @@ env:
 # TODO: This only works if the SDK package is the only one being published. Rethink this when
 # that is no longer the case
 
-# TODO: This will build a new image for both repos for each push to develop. Rethink this.
-
 jobs:
   publish-docker:
     runs-on: ubuntu-latest
@@ -72,4 +70,4 @@ jobs:
           file: ./packages/${{ matrix.package }}/Dockerfile
           build-args: GIT_REV=${{ github.sha }}
           push: true
-          tags: ${{ env.DOCKER_TAG }}
+          tags: hopprotocol/${{ matrix.package }}:${{ env.DOCKER_TAG }}

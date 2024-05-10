@@ -9,11 +9,10 @@ runs:
         version: 9
         run_install: false
 
-    # Automatically caches deps
-    # https://github.com/actions/setup-node?tab=readme-ov-file#caching-global-packages-data
+    # Cache hangs when using PNPM. Add explicit cache when issue is resolved
+    # https://github.com/actions/setup-node/issues/824
     - name: Setup node
       uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
       with:
-        node-version-file: .nvmrc
+        node-version-file: '.nvmrc'
         registry-url: https://registry.npmjs.org
-        cache: pnpm

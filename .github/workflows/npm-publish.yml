@@ -4,11 +4,17 @@ on:
     branches:
       - develop
 env:
+  BRANCH_NAME: ${{ github.ref_name }}
   PACKAGE_NAME: sdk
 
+# TODO: This will not work if some NPM packages in the workspace depend on others. Rethink this.
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    environment: ${{ env.BRANCH_NAME }}
+    # Used for provenance
+    permissions:
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -32,3 +38,9 @@ jobs:
         run: |
           pnpm --filter-prod ${{ env.PACKAGE_NAME }}... install
           pnpm --filter ${{ env.PACKAGE_NAME }}... build
+
+      - name: Publish package
+        if: env.CI == 'true' && env.VERSION_MISMATCH == 'true'
+        run: pnpm --filter ${{ env.PACKAGE_NAME }} publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

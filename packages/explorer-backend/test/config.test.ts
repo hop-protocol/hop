@@ -10,8 +10,8 @@ describe('config', () => {
     expect(explorerLink('arbitrum')).toBe('https://goerli.arbiscan.io')
   })
   it('getSlugFromChainId', () => {
-    expect(getSlugFromChainId(5)).toBe('ethereum')
-    expect(getSlugFromChainId(80001)).toBe('polygon')
+    expect(getSlugFromChainId(1)).toBe('ethereum')
+    expect(getSlugFromChainId(137)).toBe('polygon')
   })
   it('chainSlugToName', () => {
     expect(chainSlugToName('ethereum')).toBe('Ethereum')

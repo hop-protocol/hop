@@ -1,5 +1,5 @@
 import { fetchJsonOrThrow, serializeQueryParams, wait } from '#utils/index.js'
-import { getToken, TokenSymbol, isValidTokenSymbol } from '#tokens/index.js'
+import { type TokenSymbol, getToken, isValidTokenSymbol } from '#tokens/index.js'
 
 function getCoinId (tokenSymbol: TokenSymbol | string): string {
   if (!isValidTokenSymbol(tokenSymbol)) {
@@ -8,6 +8,15 @@ function getCoinId (tokenSymbol: TokenSymbol | string): string {
   return getToken(tokenSymbol).coingeckoId
 }
 
+interface QueryParams {
+  ids: string
+  vs_currencies: string
+  include_market_cap: boolean
+  include_24hr_vol: boolean
+  include_24hr_change: boolean
+  include_last_updated_at: boolean
+  x_cg_pro_api_key: string
+}
 interface IResult {
   id: string
   symbol: string
@@ -94,7 +103,7 @@ export class CoinGeckoPriceFeed {
   ): Promise<number|null> {
     try {
       const coinId = getCoinId(tokenSymbol)
-      const params: any = {
+      const params: QueryParams = {
         ids: coinId,
         vs_currencies: base,
         include_market_cap: false,
@@ -106,7 +115,7 @@ export class CoinGeckoPriceFeed {
 
       let qs = ''
       for (const key in params) {
-        qs += `${key}=${params[key]}&`
+        qs += `${key}=${params[key as keyof QueryParams]}&`
       }
       const url = `${this._baseUrl}/simple/price?${qs}`
       const res = await fetch(url)

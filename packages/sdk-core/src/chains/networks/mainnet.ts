@@ -1,5 +1,5 @@
 import { NO_PARENT_CHAIN_ID, sharedChain } from './shared.js'
-import { type Chains } from '../types.js'
+import type { Chains } from '../types.js'
 
 export const chains: Chains = {
   ethereum: {

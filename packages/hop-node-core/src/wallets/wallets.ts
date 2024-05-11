@@ -8,7 +8,7 @@ import {
 } from '#config/index.js'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
 import type { Signer} from 'ethers'
-import { type ChainSlug } from '@hop-protocol/sdk'
+import type { ChainSlug } from '@hop-protocol/sdk'
 
 const cache: Record<string, Signer> = {}
 
@@ -60,12 +60,12 @@ const constructSigner = (network: string, privateKey?: string): Signer => {
 
 // lazy instantiate
 export const wallets = {
-  has (network: string) {
+  has (network: string): boolean {
     const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     const privateKey = coreEnvironmentVariables?.bonderPrivateKey
     return !!constructSigner(network, privateKey)
   },
-  get (network: string) {
+  get (network: string): Signer {
     const coreEnvironmentVariables = CoreEnvironment.getInstance().getEnvironment()
     const privateKey = coreEnvironmentVariables?.bonderPrivateKey
     return constructSigner(network, privateKey)

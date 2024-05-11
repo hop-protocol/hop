@@ -10,7 +10,7 @@ export async function promiseTimeout<T> (promise: Promise<T>, timeout: number): 
 
     // make it a promise if it's not one
     Promise.resolve(promise)
-      .then((result: any) => {
+      .then((result: T) => {
         clearTimeout(t)
         if (!timedout) {
           resolve(result)

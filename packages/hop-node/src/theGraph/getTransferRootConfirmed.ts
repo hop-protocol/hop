@@ -28,6 +28,7 @@ export default async function getTransferRootConfirmed (
         totalAmount
         destinationChainId
         timestamp
+        token
       }
     }
   `

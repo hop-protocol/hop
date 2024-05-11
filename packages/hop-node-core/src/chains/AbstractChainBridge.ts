@@ -10,8 +10,8 @@ import type { IMessageService } from './Services/AbstractMessageService.js'
 import type { providers } from 'ethers'
 
 type ChainBridgeParams = {
-  chainSlug: string
-  chainServices: ChainServices
+  readonly chainSlug: string
+  readonly chainServices: ChainServices
 }
 
 export abstract class AbstractChainBridge implements IChainBridge {

@@ -61,7 +61,6 @@ export {
   promiseQueue,
   promiseTimeout,
   rateLimitRetry,
-  serializeQueryParams,
   shiftBNDecimals,
   rpcProviders,
   RpcProviderSlug

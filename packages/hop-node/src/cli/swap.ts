@@ -3,7 +3,7 @@ import contracts from '#contracts/index.js'
 import isHToken from '#utils/isHToken.js'
 import { wallets } from '@hop-protocol/hop-node-core'
 import { BigNumber, utils as ethersUtils } from 'ethers'
-import { MinPolygonGasPrice } from '@hop-protocol/hop-node-core'
+import { MIN_POLYGON_GAS_PRICE } from '@hop-protocol/hop-node-core'
 import { TokenIndex } from '#constants/index.js'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared/index.js'
 import { swap as dexSwap } from '#swap/index.js'
@@ -237,7 +237,7 @@ async function wrapToken (chain: string, parsedAmount: BigNumber) {
     data
   }
   if (chain === ChainSlug.Polygon) {
-    tx.gasPrice = MinPolygonGasPrice
+    tx.gasPrice = MIN_POLYGON_GAS_PRICE
   }
   return wallet.sendTransaction(tx)
 }
@@ -255,7 +255,7 @@ async function unwrapToken (chain: string, parsedAmount: BigNumber) {
     data
   }
   if (chain === ChainSlug.Polygon) {
-    tx.gasPrice = MinPolygonGasPrice
+    tx.gasPrice = MIN_POLYGON_GAS_PRICE
   }
   console.log(tx)
   return wallet.sendTransaction(tx)

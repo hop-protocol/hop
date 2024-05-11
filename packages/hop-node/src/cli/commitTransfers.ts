@@ -1,5 +1,5 @@
 import { WatcherNotFoundError } from './shared/utils.js'
-import { actionHandler, parseBool, parseString, root } from './shared/index.js'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared/index.js'
 import { chainSlugToId } from '#utils/chainSlugToId.js'
 import { getCommitTransfersWatcher } from '#watchers/watchers.js'
 
@@ -7,7 +7,7 @@ root
   .command('commit-transfers')
   .description('Start the relayer watcher')
   .option('--source-chain <slug>', 'Source chain', parseString)
-  .option('--destination-chain <slug>', 'Destination chain', parseString)
+  .option('--destination-chains <slug, ...>', 'Comma-separated destination chains', parseStringArray)
   .option('--token <symbol>', 'Token', parseString)
   .option(
     '--dry [boolean]',
@@ -17,12 +17,12 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { config, sourceChain, destinationChain, token, dry: dryMode } = source
+  const { config, sourceChain, destinationChains, token, dry: dryMode } = source
   if (!sourceChain) {
     throw new Error('source chain is required')
   }
-  if (!destinationChain) {
-    throw new Error('destination chain is required')
+  if (!destinationChains?.length) {
+    throw new Error('destination chains required')
   }
   if (!token) {
     throw new Error('token is required')
@@ -33,6 +33,9 @@ async function main (source: any) {
     throw new Error(WatcherNotFoundError)
   }
 
-  const destinationChainId = chainSlugToId(destinationChain)
-  await watcher.checkIfShouldCommit(destinationChainId)
+  for (const destinationChain of destinationChains) {
+    console.log(`\n\nCommitting from ${sourceChain} to ${destinationChain}...\n\n`)
+    const destinationChainId = chainSlugToId(destinationChain)
+    await watcher.checkIfShouldCommit(destinationChainId)
+  }
 }

@@ -50,7 +50,7 @@ export class Logger {
   private readonly options: any = {}
   enabled: boolean = true
 
-  setEnabled (enabled: boolean) {
+  setEnabled (enabled: boolean): void {
     this.enabled = enabled
   }
 

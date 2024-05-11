@@ -41,7 +41,7 @@ export class S3Upload {
     }
   }
 
-  async upload (data: any) {
+  async upload (data: any): Promise<void> {
     return mutex.runExclusive(async () => {
       try {
         data = JSON.parse(JSON.stringify(data)) // deep clone

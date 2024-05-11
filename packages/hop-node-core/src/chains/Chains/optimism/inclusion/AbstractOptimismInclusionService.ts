@@ -1,6 +1,6 @@
 import zlib from 'node:zlib'
 import { AbstractInclusionService } from '../../../Services/AbstractInclusionService.js'
-import { AvgBlockTimeSeconds } from '#constants/index.js'
+import { AVG_BLOCK_TIME_SECONDS } from '#constants/index.js'
 import { Contract } from 'ethers'
 import { Derive, type Frame } from './Derive.js'
 import {
@@ -63,14 +63,14 @@ export abstract class AbstractOptimismInclusionService extends AbstractInclusion
     // Get the difference between the desired l1 timestamp and the current l2 timestamp
     const currentL1TimestampOnL2: number = Number(await this.l1BlockContract.timestamp())
     const l1TimestampDiffSec = currentL1TimestampOnL2 - l1Timestamp
-    const l1TimestampDiffInL2Blocks = Math.floor(l1TimestampDiffSec / AvgBlockTimeSeconds[this.chainSlug]!)
+    const l1TimestampDiffInL2Blocks = Math.floor(l1TimestampDiffSec / AVG_BLOCK_TIME_SECONDS[this.chainSlug]!)
 
     // Get the l2 block number at the desired l1 timestamp
     const currentL2BlockNumber: number = await this.l2Provider.getBlockNumber()
     const l2BlockNumberAtTimeOfL1Tx: number = currentL2BlockNumber - l1TimestampDiffInL2Blocks
 
     // Include the constant buffer time it takes for a message to go from L1 to L2
-    const numL2BlocksPerL1Block = AvgBlockTimeSeconds[ChainSlug.Ethereum]! / AvgBlockTimeSeconds[this.chainSlug]!
+    const numL2BlocksPerL1Block = AVG_BLOCK_TIME_SECONDS[ChainSlug.Ethereum]! / AVG_BLOCK_TIME_SECONDS[this.chainSlug]!
     const l1DataLagInL2Blocks = this.L1ToL2CheckpointTimeInL1Blocks[this.chainSlug]! * numL2BlocksPerL1Block
     return l2BlockNumberAtTimeOfL1Tx + l1DataLagInL2Blocks
   }

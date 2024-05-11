@@ -52,7 +52,7 @@ for (const chain of enabledChains) {
   rpcUrls[chain] = process.env[`${chain.toUpperCase()}_RPC`] || getDefaultRpcUrl(network, chain)
 }
 
-export const networks = isGoerli ? getNetwork(NetworkSlug.Goerli) : getNetwork(NetworkSlug.Mainnet)
+export const networks = isGoerli ? getNetwork(NetworkSlug.Goerli).chains : getNetwork(NetworkSlug.Mainnet).chains
 
 // TODO: maybe move this to core config?
 export const transferTimes = {

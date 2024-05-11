@@ -5,11 +5,11 @@ type Options = {
   timeoutMs?: number
 }
 
-export async function promiseQueue (items: any[], cb: any, options: Options) {
+export async function promiseQueue (items: any[], cb: any, options: Options): Promise<void> {
   return promiseQueueConcurrent(items, cb, options)
 }
 
-async function promiseQueueConcurrent (items: any[], cb: any, options: Options) {
+async function promiseQueueConcurrent (items: any[], cb: any, options: Options): Promise<void> {
   const { concurrency, timeoutMs: timeout } = options
   const queue = new PQueue({ concurrency, timeout })
   for (let i = 0; i < items.length; i++) {

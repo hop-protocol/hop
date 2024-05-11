@@ -2,7 +2,7 @@ import { fetchJsonOrThrow } from '#utils/index.js'
 
 export class CoinpaprikaPriceFeed {
   private readonly _baseUrl: string = 'https://api.coinpaprika.com/v1'
-  idMap:any = {
+  idMap: Record<string, string>= {
     BTC: 'btc-bitcoin',
     DAI: 'dai-dai',
     ETH: 'eth-ethereum',

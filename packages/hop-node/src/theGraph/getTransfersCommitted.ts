@@ -27,6 +27,7 @@ export default async function getTransfersCommitted (
         transactionHash
         destinationChainId
         rootCommittedAt
+        token
       }
     }
   `

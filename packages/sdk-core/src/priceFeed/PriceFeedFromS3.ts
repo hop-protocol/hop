@@ -1,4 +1,4 @@
-import { PriceFeed, PriceFeedApiKeys } from './PriceFeed.js'
+import { PriceFeed, type PriceFeedApiKeys } from './PriceFeed.js'
 import { S3PriceFeed } from './priceFeeds/S3.js'
 
 export class PriceFeedFromS3 {

@@ -96,7 +96,7 @@ export class Multicall {
 
     const provider = this.#getProvider(chainSlug)
     const multicallAddress = this.#getMulticallAddressForChain(chainSlug)
-    const calls = options.map(({ address, abi, method, args }: any) => {
+    const calls = options.map(({ address, abi, method, args }: MulticallOptions) => {
       const contractInterface = new utils.Interface(abi)
       const calldata = contractInterface.encodeFunctionData(method, args)
       return {
@@ -106,7 +106,7 @@ export class Multicall {
       }
     })
 
-    let results : any
+    let results: any
     if (multicallAddress) {
       const multicallContract = Multicall3__factory.connect(multicallAddress, provider)
       results = await multicallContract.callStatic.aggregate3(calls)

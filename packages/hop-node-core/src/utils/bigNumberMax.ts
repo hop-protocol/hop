@@ -1,6 +1,6 @@
 import type { BigNumber } from 'ethers'
 
-export function bigNumberMax (a: BigNumber, b: BigNumber) {
+export function bigNumberMax (a: BigNumber, b: BigNumber): BigNumber {
   if (!a) {
     return b
   }

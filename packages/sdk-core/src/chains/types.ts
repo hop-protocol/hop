@@ -1,4 +1,4 @@
-import { type TokenSymbol } from '#tokens/index.js'
+import type { TokenSymbol } from '#tokens/index.js'
 
 // We do not account for different names for the same chain on different ecosystems
 // For example, Polygon on Mainnet and Amoy on Sepolia are both called Polygon
@@ -17,38 +17,38 @@ export enum ChainSlug {
 }
 
 interface SharedChain {
-  name: string
-  slug: ChainSlug
-  image: string
-  nativeTokenSymbol: TokenSymbol
-  primaryColor: string
-  isL1: boolean
-  isRollup: boolean
-  isManualRelayOnL2: boolean
-  averageBlockTimeMs: number
+  readonly name: string
+  readonly slug: ChainSlug
+  readonly image: string
+  readonly nativeTokenSymbol: TokenSymbol
+  readonly primaryColor: string
+  readonly isL1: boolean
+  readonly isRollup: boolean
+  readonly isManualRelayOnL2: boolean
+  readonly averageBlockTimeMs: number
 }
 
 export type SharedChains = {
-  [key in ChainSlug]: SharedChain
+  readonly [key in ChainSlug]: SharedChain
 }
 
 export type Chain = SharedChain & {
-  chainId: string
-  publicRpcUrl: string
-  fallbackPublicRpcUrls: string[]
-  explorerUrls: string[]
-  subgraphUrl: string
-  etherscanApiUrl: string
-  multicall: string
-  parentChainId: string
-  txOverrides: {
-    minGasPrice?: number
-    minGasLimit?: number
+  readonly chainId: string
+  readonly publicRpcUrl: string
+  readonly fallbackPublicRpcUrls: string[]
+  readonly explorerUrls: string[]
+  readonly subgraphUrl: string
+  readonly etherscanApiUrl: string
+  readonly multicall: string
+  readonly parentChainId: string
+  readonly txOverrides: {
+    readonly minGasPrice?: number
+    readonly minGasLimit?: number
   }
 }
 
 export type Chains = Partial<{
-  [key in ChainSlug]: Chain
+  readonly [key in ChainSlug]: Chain
 }>
 
 /**
@@ -62,11 +62,11 @@ export enum NetworkSlug {
 }
 
 export type Network = {
-  slug: NetworkSlug
-  isMainnet: boolean
-  chains: Chains
+  readonly slug: NetworkSlug
+  readonly isMainnet: boolean
+  readonly chains: Chains
 }
 
 export type Networks = {
-  [key in NetworkSlug]: Network
+  readonly [key in NetworkSlug]: Network
 }

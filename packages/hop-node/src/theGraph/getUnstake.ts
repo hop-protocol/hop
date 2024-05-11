@@ -22,6 +22,7 @@ export default async function getUnstake (
       ) {
         id
         amount
+        token
       }
     }
   `

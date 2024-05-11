@@ -1,5 +1,5 @@
 import { networks } from '../networks/index.js'
-import { type Chain, ChainSlug, NetworkSlug } from '../types.js'
+import type { Chain, ChainSlug, NetworkSlug } from '../types.js'
 
 /**
  * These utils are intended to be used internally by this module only.

@@ -19,11 +19,16 @@ for (const network of Object.values(NetworkSlug)) {
   const relayerFeeWei = (config as any)[network].relayerFeeWei
   const bridgeDeprecated = (config as any)[network].bridgeDeprecated
   const defaultSendGasLimit = (config as any)[network].defaultSendGasLimit
+
+  const networkData = getNetwork(network)
+  const networkChains = networkData.chains
+
   if (!sdkConfig?.[network]) {
     sdkConfig[network] = {}
   }
   sdkConfig[network] = {
     ...sdkConfig[network],
+    chains: networkChains,
     addresses,
     bonders,
     bonderFeeBps,
@@ -36,8 +41,6 @@ for (const network of Object.values(NetworkSlug)) {
   }
 
   // Bondable Chains
-  const networkData = getNetwork(network)
-  const networkChains = networkData.chains
   for (const chainData of Object.values(networkChains)) {
     if (chainData.isRollup) {
       bondableChainsSet.add(chainData.slug)

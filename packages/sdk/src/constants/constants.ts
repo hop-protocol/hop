@@ -1,11 +1,10 @@
 import {
   ChainSlug,
-  Errors,
   NetworkSlug,
 } from '@hop-protocol/sdk-core'
 import { HToken } from '#networks/index.js'
 
-export { Errors, NetworkSlug, ChainSlug, HToken }
+export { NetworkSlug, ChainSlug, HToken }
 
 export enum Slug {
   ethereum = 'ethereum',
@@ -126,3 +125,7 @@ export const LowLiquidityTokenBufferAmountsUsd: Record<string, string> = {
   rETH: '50000'
 }
 export const SecondsInDay = 86400
+
+export enum Errors {
+  NotEnoughAllowance = 'Not enough allowance. Please call `approve` on the token contract to allow contract to move tokens and make sure you are connected to the correct network.'
+}

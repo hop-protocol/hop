@@ -3,56 +3,28 @@ on:
   push:
     branches:
       - develop
+      - production
 env:
   BRANCH_NAME: ${{ github.ref_name }}
-
-# TODO: This only works if the SDK package is the only one being published. Rethink this when
-# that is no longer the case
+  DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'next') || (github.ref_name == 'production' && 'latest') }}
 
 jobs:
-  publish-docker:
+  wait-for-npm-publish:
     runs-on: ubuntu-latest
     environment: ${{ env.BRANCH_NAME }}
-    permissions:
-      packages: write
-      contents: read
-    strategy:
-      matrix:
-        package: [hop-node, v2-explorer-backend]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+      - name: Wait for NPM packages to be built
+        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'Publish SDK'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup workflow
-        uses: ./.github/actions/setup
-
-      - name: Wait for SDK publish if necessary
-        working-directory: packages/sdk
-        run: |
-          while : ; do
-            CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
-            LOCAL_VERSION=$(jq -r '.version' package.json)
-            if [ "$CURRENT_VERSION" == "$LOCAL_VERSION" ]; then
-              echo "Package version matches, proceeding with deployment."
-              break
-            else
-              echo "Package not found, waiting..."
-              sleep 10 # Wait for 10 seconds before retrying
-            fi
-          done
-
-      - name: Define Docker Tag
-        run: |
-          set -e
-          if [[ "$BRANCH_NAME" == "develop" ]]; then
-            echo "DOCKER_TAG=next" >> $GITHUB_ENV
-          elif [[ "$BRANCH_NAME" == "production" ]]; then
-            echo "DOCKER_TAG=latest" >> $GITHUB_ENV
-          else
-            echo "Unsupported branch" >&2
-            exit 1
-          fi
-
+  publish-hop-node:
+    needs: wait-for-npm-publish
+    runs-on: ubuntu-latest
+    environment: ${{ env.BRANCH_NAME }}
+    steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
 
@@ -67,7 +39,29 @@ jobs:
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           context: .
-          file: ./packages/${{ matrix.package }}/Dockerfile
-          build-args: GIT_REV=${{ github.sha }}
+          file: ./packages/hop-node/Dockerfile
           push: true
-          tags: hopprotocol/${{ matrix.package }}:${{ env.DOCKER_TAG }}
+          tags: hopprotocol/hop-node:${{ env.DOCKER_TAG }}
+
+  publish-v2-explorer-backend:
+    needs: wait-for-npm-publish
+    runs-on: ubuntu-latest
+    environment: ${{ env.BRANCH_NAME }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish Docker image
+        if: env.CI == 'true'
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
+        with:
+          context: .
+          file: ./packages/v2-explorer-backend/Dockerfile
+          push: true
+          tags: hopprotocol/v2-explorer-backend:${{ env.DOCKER_TAG }}

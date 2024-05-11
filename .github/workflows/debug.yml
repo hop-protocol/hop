@@ -4,11 +4,13 @@ on:
     branches:
       - develop
 env:
-  PACKAGE_NAME: sdk
+  BRANCH_NAME: ${{ github.ref_name }}
 
 jobs:
-  publish-npm:
+  publish-sdk:
+    name: Publish SDK
     runs-on: ubuntu-latest
+    environment: ${{ env.BRANCH_NAME }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -16,19 +18,20 @@ jobs:
       - name: Setup workflow
         uses: ./.github/actions/setup
 
-      - name: Check if publish is necessary
-        working-directory: packages/${{ env.PACKAGE_NAME }}
-        run: |
-          set -e
-          CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
-          LOCAL_VERSION=$(jq -r '.version' package.json)
-          echo "VERSION_MISMATCH=false" >> $GITHUB_ENV
-          if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
-            echo "VERSION_MISMATCH=true" >> $GITHUB_ENV
-          fi
+      - name: Check if version has been updated
+        id: check
+        uses: EndBug/version-check@d4be4219408b50d1bbbfd350a47cbcb126878692
+        with:
+          file-name: ./packages/sdk/package.json
 
       - name: Install and build package
-        if: env.VERSION_MISMATCH == 'true'
+        if: steps.check.outputs.changed == 'true'
         run: |
-          pnpm --filter-prod ${{ env.PACKAGE_NAME }}... install
-          pnpm --filter ${{ env.PACKAGE_NAME }}... build
+          pnpm --filter-prod sdk... install
+          pnpm --filter sdk... build
+
+      - name: Publish package
+        if: env.CI == 'true' && steps.check.outputs.changed == 'true'
+        run: pnpm --filter sdk publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

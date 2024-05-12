@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers'
+import { BigNumber, ethers, Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 
@@ -16,7 +16,7 @@ export class FeesSentToHubEventFetcher extends Event<FeesSentToHub> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): FeesSentToHub {
+  override toTypedEvent (ethersEvent: EthersEvent): FeesSentToHub {
     const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

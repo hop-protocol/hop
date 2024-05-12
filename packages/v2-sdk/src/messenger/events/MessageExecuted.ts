@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers } from 'ethers'
+import { ethers, Event as EthersEvent } from 'ethers'
 
 // event from SpokeMessageBridge (MessageExecutor.sol)
 export interface MessageExecuted extends EventBase {
@@ -25,7 +25,7 @@ export class MessageExecutedEventFetcher extends Event<MessageExecuted> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): MessageExecuted {
+  override toTypedEvent (ethersEvent: EthersEvent): MessageExecuted {
     const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

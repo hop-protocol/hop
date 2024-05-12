@@ -1,5 +1,5 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { BigNumberish, Signer, providers, utils } from 'ethers'
+import { BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
 
@@ -18,10 +18,14 @@ export type ConnectTargetsInput = {
   target2: string
 }
 
-export type HubConnectorConfig = BaseConfig & {}
+type TransactionReceiptWithEvents = providers.TransactionReceipt & {
+  events?: EthersEvent[]
+}
+
+export type HubConnectorConfig = BaseConfig
 
 export class HubConnector extends Base {
-  batchBlocks?: number = 1000
+  batchBlocks: number = 1000
 
   constructor (config: HubConnectorConfig) {
     super(config)
@@ -42,11 +46,11 @@ export class HubConnector extends Base {
         const address = this.getHubConnectorContractAddress(hubChainId)
         const signer = await this.getSignerOrProvider(hubChainId)
         const factory = HubERC5164ConnectorFactory__factory.connect(address, signer)
-        const txData = await (factory as any).populateTransaction.deployConnectors(hubChainId, target1, spokeChainId, target2)
+        const txData = await factory.populateTransaction.deployConnectors(hubChainId, target1, spokeChainId, target2)
 
         return {
           ...txData,
-          chainId: hubChainId
+          chainId: Number(hubChainId)
         }
       }
     }
@@ -64,9 +68,9 @@ export class HubConnector extends Base {
     return this.getConnectorAddressFromReceipt(receipt)
   }
 
-  async getConnectorAddressFromReceipt (receipt: any): Promise<string> {
+  async getConnectorAddressFromReceipt (receipt: TransactionReceiptWithEvents): Promise<string> {
     const event = receipt.events?.find(
-      (event: any) => event.event === 'ConnectorDeployed'
+      (event: EthersEvent) => event.event === 'ConnectorDeployed'
     )
     const connectorAddress = checksumAddress(event?.args?.connector)
     return connectorAddress
@@ -95,7 +99,7 @@ export class HubConnector extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new ConnectorDeployedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new ConnectorDeployedEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 }

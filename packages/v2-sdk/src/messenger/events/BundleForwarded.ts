@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
+import { ethers, Event as EthersEvent } from 'ethers'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
-import { ethers } from 'ethers'
 
 // event from HubMessageBridge
 export interface BundleForwarded extends EventBase {
@@ -19,7 +19,7 @@ export class BundleForwardedEventFetcher extends Event<BundleForwarded> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): BundleForwarded {
+  override toTypedEvent (ethersEvent: EthersEvent): BundleForwarded {
     const iface = new ethers.utils.Interface(HubMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

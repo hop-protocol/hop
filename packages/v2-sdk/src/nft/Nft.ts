@@ -1,5 +1,5 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { Signer, BigNumberish, utils } from 'ethers'
+import { providers, Signer, BigNumberish, utils } from 'ethers'
 import { ConfirmationSent, ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
 import { TokenConfirmed, TokenConfirmedEventFetcher } from '#nft/events/TokenConfirmed.js'
 import { TokenSent, TokenSentEventFetcher } from '#nft/events/TokenSent.js'
@@ -99,10 +99,10 @@ export type GetNftConfirmPopulatedTxInput = {
   tokenId: string
 }
 
-export type NftConfig = BaseConfig & {}
+export type NftConfig = BaseConfig
 
 export class Nft extends Base {
-  batchBlocks?: number = 1000
+  batchBlocks: number = 1000
 
   constructor (config: NftConfig) {
     super({ network: config.network, signer: config.signer, contractAddresses: config.contractAddresses })
@@ -114,7 +114,7 @@ export class Nft extends Base {
 
   get populateTransaction() {
     return {
-      mintNft: (input: MintNftInput) => {
+      mintNft: async (input: MintNftInput) => {
         const { contractAddress, recipient, tokenId } = input
         const ABI = [
           'function safeMint(address to, uint256 tokenId)'
@@ -130,7 +130,7 @@ export class Nft extends Base {
         return txData
       },
 
-      approveNft: (input: ApproveNftInput) => {
+      approveNft: async (input: ApproveNftInput) => {
         const { contractAddress, spender, tokenId } = input
         const ABI = [
           'function approve(address spender, uint256 tokenId)'
@@ -231,8 +231,8 @@ export class Nft extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getNftTokenConfirmedEvents (input: GetEventsInput): Promise<TokenConfirmed[]> {
@@ -251,8 +251,8 @@ export class Nft extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getNftTokenSentEvents (input: GetEventsInput): Promise<TokenSent[]> {
@@ -271,15 +271,15 @@ export class Nft extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   getNftBridgeContractAddress (chainId: BigNumberish): string {
     return this.getConfigAddress(chainId, 'nftBridge')
   }
 
-  async getNftMintPopulatedTx (input: GetNftMintPopulatedTxInput): Promise<any> {
+  async getNftMintPopulatedTx (input: GetNftMintPopulatedTxInput): Promise<providers.TransactionRequest> {
     const { fromChainId, toAddress, tokenId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -301,11 +301,11 @@ export class Nft extends Base {
 
     return {
       ...txData,
-      chainId: fromChainId
+      chainId: Number(fromChainId)
     }
   }
 
-  async getNftBurnPopulatedTx (input: GetNftBurnPopulatedTxInput): Promise<any> {
+  async getNftBurnPopulatedTx (input: GetNftBurnPopulatedTxInput): Promise<providers.TransactionRequest> {
     const { fromChainId, tokenId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -327,11 +327,11 @@ export class Nft extends Base {
 
     return {
       ...txData,
-      chainId: fromChainId
+      chainId: Number(fromChainId)
     }
   }
 
-  async getNftSendPopulatedTx (input: GetNftSendPopulatedTxInput): Promise<any> {
+  async getNftSendPopulatedTx (input: GetNftSendPopulatedTxInput): Promise<providers.TransactionRequest> {
     const { fromChainId, toChainId, toAddress, tokenId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -362,11 +362,11 @@ export class Nft extends Base {
 
     return {
       ...txData,
-      chainId: fromChainId
+      chainId: Number(fromChainId)
     }
   }
 
-  async getNftMintAndSendPopulatedTx (input: GetNftMintAndSendPopulatedTxInput): Promise<any> {
+  async getNftMintAndSendPopulatedTx (input: GetNftMintAndSendPopulatedTxInput): Promise<providers.TransactionRequest> {
     const { fromChainId, toChainId, toAddress, tokenId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -397,11 +397,11 @@ export class Nft extends Base {
 
     return {
       ...txData,
-      chainId: fromChainId
+      chainId: Number(fromChainId)
     }
   }
 
-  async getNftConfirmPopulatedTx (input: GetNftConfirmPopulatedTxInput): Promise<any> {
+  async getNftConfirmPopulatedTx (input: GetNftConfirmPopulatedTxInput): Promise<providers.TransactionRequest> {
     const { fromChainId, tokenId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -423,7 +423,7 @@ export class Nft extends Base {
 
     return {
       ...txData,
-      chainId: fromChainId
+      chainId: Number(fromChainId)
     }
   }
 }

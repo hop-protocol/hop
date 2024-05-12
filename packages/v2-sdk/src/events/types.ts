@@ -1,3 +1,6 @@
+import { BigNumberish } from 'ethers'
+import { Event as EthersEvent } from 'ethers'
+
 export type EventContext = {
   chainSlug: string
   chainId: string
@@ -18,6 +21,13 @@ export type EventContext = {
 
 export type EventBase = {
   eventName: string
-  eventLog?: any
+  eventLog?: EthersEvent
   context?: EventContext
+}
+
+export interface Filter {
+  address?: string | string[];
+  fromBlock?: BigNumberish;
+  toBlock?: BigNumberish;
+  topics?: Array<string | string[]>;
 }

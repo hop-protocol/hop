@@ -1,4 +1,4 @@
-import { ethers } from 'ethers'
+import { ethers, Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 
@@ -20,7 +20,7 @@ export class ConnectorDeployedEventFetcher extends Event<ConnectorDeployed> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): ConnectorDeployed {
+  override toTypedEvent (ethersEvent: EthersEvent): ConnectorDeployed {
     const iface = new ethers.utils.Interface(HubERC5164ConnectorFactory__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

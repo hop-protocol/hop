@@ -1,5 +1,5 @@
 import { Base, BaseConfig } from '#common/index.js'
-import { BigNumber, BigNumberish, Signer, providers, utils } from 'ethers'
+import { BigNumber, BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
 import { BundleCommitted, BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwarded, BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceived, BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
@@ -87,7 +87,7 @@ export type GetSendMessagePopulatedTxInput = {
 
 export type GetEventContextInput = {
   chainId: BigNumberish
-  event: any
+  event: EthersEvent
 }
 
 export type GetRouteDataInput = {
@@ -113,7 +113,7 @@ export type GetIsBundleSetInput = {
 
 export type GetMessageSentEventFromTransactionReceiptInput = {
   fromChainId: BigNumberish
-  receipt: any
+  receipt: providers.TransactionReceipt
 }
 
 export type GetMessageSentEventFromTransactionHashInput = {
@@ -242,10 +242,10 @@ export type ExecuteInput = {
   toCalldata: string
 }
 
-export type MessengerConfig = BaseConfig & {}
+export type MessengerConfig = BaseConfig
 
 export class Messenger extends Base {
-  batchBlocks?: number = 1000
+  batchBlocks: number = 1000
   gasPriceOracle: GasPriceOracle
 
   constructor(config: MessengerConfig) {
@@ -311,8 +311,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getBundleForwardedEvents (input: GetEventsInput): Promise<BundleForwarded[]> {
@@ -344,8 +344,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getBundleReceivedEvents (input: GetEventsInput): Promise<BundleReceived[]> {
@@ -377,8 +377,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getBundleSetEvents (input: GetEventsInput): Promise<BundleSet[]> {
@@ -410,8 +410,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getFeesSentToHubEvents (input: GetEventsInput): Promise<FeesSentToHub[]> {
@@ -443,8 +443,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getMessageBundledEvents (input: GetEventsInput): Promise<MessageBundled[]> {
@@ -476,8 +476,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getMessageExecutedEvents (input: GetEventsInput): Promise<MessageExecuted[]> {
@@ -509,8 +509,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getMessageSentEvents (input: GetEventsInput): Promise<MessageSent[]> {
@@ -542,8 +542,8 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${chainId}`)
     }
-    const eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
-    return eventFetcher.getEvents(fromBlock, toBlock as any)
+    const eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks, address)
+    return eventFetcher.getEvents(fromBlock, toBlock)
   }
 
   async getHasAuctionStarted (input: HasAuctionStartedInput): Promise<boolean> {
@@ -634,7 +634,7 @@ export class Messenger extends Base {
     return shouldAttempt
   }
 
-  async exitBundle (input: ExitBundleInput): Promise<any> {
+  async exitBundle (input: ExitBundleInput): Promise<providers.TransactionResponse> {
     let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash, signer } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId: ${fromChainId}`)
@@ -645,6 +645,9 @@ export class Messenger extends Base {
       }
     } else if (bundleCommittedEvent) {
       const { eventLog, context } = bundleCommittedEvent
+      if (!eventLog) {
+        throw new Error('eventLog is required')
+      }
       bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
     } else {
       throw new Error('bundleCommittedEvent or bundleCommittedTransactionHash is required')
@@ -793,7 +796,7 @@ export class Messenger extends Base {
         }
       },
 
-      bundleExit: async (input: GetBundleExitPopulatedTxInput): Promise<any> => {
+      bundleExit: async (input: GetBundleExitPopulatedTxInput): Promise<providers.TransactionRequest> => {
         let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash } = input
         if (!this.utils.isValidChainId(fromChainId)) {
           throw new Error(`Invalid fromChainId "${fromChainId}"`)
@@ -804,6 +807,9 @@ export class Messenger extends Base {
           }
         } else if (bundleCommittedEvent) {
           const { eventLog, context } = bundleCommittedEvent
+          if (!eventLog) {
+            throw new Error('eventLog is required')
+          }
           bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
         } else {
           throw new Error('bundleCommittedEvent or bundleCommittedTransactionHash is required')
@@ -831,11 +837,11 @@ export class Messenger extends Base {
         if (!exitRelayer) {
           throw new Error(`Exit relayer not found for chainId "${fromChainId}"`)
         }
-        const txData = await exitRelayer.getExitPopulatedTx(bundleCommittedTransactionHash)
+        const txData = await exitRelayer.getExitPopulatedTx(bundleCommittedTransactionHash) as providers.TransactionRequest
 
         return {
           ...txData,
-          chainId: fromChainId
+          chainId: Number(fromChainId)
         }
       },
 
@@ -894,7 +900,7 @@ export class Messenger extends Base {
     return tx
   }
 
-  async bundleExit (input: GetBundleExitPopulatedTxInput): Promise<any> {
+  async bundleExit (input: GetBundleExitPopulatedTxInput): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.bundleExit(input)
     const tx = await this.sendTransaction(populatedTx)
     return tx
@@ -998,7 +1004,7 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = new MessageSentEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
+    const eventFetcher = new MessageSentEventFetcher(provider, fromChainId, this.batchBlocks, address)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
@@ -1133,7 +1139,7 @@ export class Messenger extends Base {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
+    const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, this.batchBlocks, address)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
@@ -1226,7 +1232,7 @@ export class Messenger extends Base {
     return event.treeIndex
   }
 
-  async getMessageBundledEventsForBundleId (input: GetMessageBundledEventsForBundleIdInput): Promise<any[]> {
+  async getMessageBundledEventsForBundleId (input: GetMessageBundledEventsForBundleIdInput): Promise<MessageBundled[]> {
     const { fromChainId, bundleId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
       throw new Error(`Invalid fromChainId "${fromChainId}"`)
@@ -1259,7 +1265,7 @@ export class Messenger extends Base {
       throw new Error(`Invalid bundleId "${bundleId}"`)
     }
     const messageEvents = await this.getMessageBundledEventsForBundleId({ fromChainId, bundleId })
-    const messageIds = messageEvents.map((item: any) => item.messageId)
+    const messageIds = messageEvents.map((item: MessageBundled) => item.messageId)
     return messageIds
   }
 
@@ -1271,7 +1277,7 @@ export class Messenger extends Base {
     if (!Array.isArray(messageIds)) {
       throw new Error('messageIds is required and must be an array')
     }
-    if (!messageIds.every((item: any) => this.utils.isValidBytes32(item))) {
+    if (!messageIds.every((item: string) => this.utils.isValidBytes32(item))) {
       throw new Error('Invalid messageIds')
     }
     if (!this.utils.isValidBytes32(targetMessageId)) {
@@ -1326,7 +1332,11 @@ export class Messenger extends Base {
     }
 
     // TODO: handle case for when multiple message events in single transaction
-    const { treeIndex, bundleId } = await this.getMessageBundledEventFromTransactionHash({ fromChainId, transactionHash }) as any
+    const messageBundledEvent = await this.getMessageBundledEventFromTransactionHash({ fromChainId, transactionHash })
+    if (!messageBundledEvent) {
+      throw new Error(`MessageBundled event not found for transaction hash "${transactionHash}"`)
+    }
+    const { treeIndex, bundleId } = messageBundledEvent
     const targetMessageId = await this.getMessageIdFromTransactionHash({ fromChainId, transactionHash })
     const messageIds = await this.getMessageIdsForBundleId({ fromChainId, bundleId })
     const siblings = await this.getMerkleProofForMessageId({ messageIds, targetMessageId })
@@ -1354,7 +1364,10 @@ export class Messenger extends Base {
       throw new Error(`Invalid transaction hash "${transactionHash}"`)
     }
 
-    const event = await this.getMessageSentEventFromTransactionHash({ fromChainId, transactionHash }) as any
+    const event = await this.getMessageSentEventFromTransactionHash({ fromChainId, transactionHash })
+    if (!event) {
+      throw new Error(`Event not found for transaction hash "${transactionHash}"`)
+    }
     const toAddress = event.to
     const fromAddress = event.from
     const toCalldata = event.data
@@ -1442,7 +1455,7 @@ export class Messenger extends Base {
       toAddress,
       toCalldata
     })
-    const timestamp: any = undefined
+    const timestamp: number | null = null
     const txData = (populatedTx.data ?? '0x').toString()
     const chain = this.utils.getChainSlug(toChainId)
     const provider = this.getRpcProviderForChainId(toChainId)
@@ -1481,7 +1494,7 @@ export class Messenger extends Base {
       return false
     }
 
-    if (bundleProof.siblings.some((item: any) => !this.utils.isValidBytes32(item))) {
+    if (bundleProof.siblings.some((item: string) => !this.utils.isValidBytes32(item))) {
       return false
     }
 
@@ -1492,7 +1505,7 @@ export class Messenger extends Base {
     return true
   }
 
-  async execute (input: any): Promise<providers.TransactionResponse>  {
+  async execute (input: ExecuteInput): Promise<providers.TransactionResponse>  {
     const txData = await this.populateTransaction.execute(input)
     const tx = await this.sendTransaction(txData)
     return tx

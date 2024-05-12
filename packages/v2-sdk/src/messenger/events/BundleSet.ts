@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers } from 'ethers'
+import { ethers, Event as EthersEvent } from 'ethers'
 
 // event from SpokeMessageBridge
 export interface BundleSet extends EventBase {
@@ -18,7 +18,7 @@ export class BundleSetEventFetcher extends Event<BundleSet> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): BundleSet {
+  override toTypedEvent (ethersEvent: EthersEvent): BundleSet {
     const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

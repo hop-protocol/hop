@@ -1,5 +1,5 @@
 export { Event } from './Event.js'
-export { EventContext, EventBase } from './types.js'
+export { EventContext, EventBase, Filter } from './types.js'
 export {
   Options,
   FetchOptions,

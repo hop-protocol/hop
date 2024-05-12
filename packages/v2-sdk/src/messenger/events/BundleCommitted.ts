@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers'
+import { BigNumber, ethers, Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
 
@@ -20,7 +20,7 @@ export class BundleCommittedEventFetcher extends Event<BundleCommitted> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): BundleCommitted {
+  override toTypedEvent (ethersEvent: EthersEvent): BundleCommitted {
     const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

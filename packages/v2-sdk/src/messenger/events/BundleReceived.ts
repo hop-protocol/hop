@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers'
+import { BigNumber, ethers, Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { HubMessageBridge__factory } from '#contracts/factories/HubMessageBridge__factory.js'
 
@@ -22,7 +22,7 @@ export class BundleReceivedEventFetcher extends Event<BundleReceived> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): BundleReceived {
+  override toTypedEvent (ethersEvent: EthersEvent): BundleReceived {
     const iface = new ethers.utils.Interface(HubMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

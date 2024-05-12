@@ -84,7 +84,7 @@ export class GasPriceOracle {
     return json
   }
 
-  async estimateGasCost (chain: string, timestamp: number, gasLimit: number, txData: string): Promise<GasCostEstimateResponse> {
+  async estimateGasCost (chain: string, timestamp: number | null, gasLimit: number, txData: string): Promise<GasCostEstimateResponse> {
     const url = new URL(`${this.baseURL}/v1/gas-cost-estimate`)
     url.searchParams.append('chain', chain)
     if (timestamp) {

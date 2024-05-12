@@ -3,10 +3,18 @@ import { rateLimitRetry, getNetwork, NetworkSlug } from '@hop-protocol/sdk-core'
 import { getProviderFromUrl } from '@hop-protocol/sdk'
 import { addresses } from '#addresses/index.js'
 import { chainSlugMap, getTxHashExplorerUrl, getAddressExplorerUrl, getTokenExplorerUrl } from '#utils/index.js'
+import { Addresses } from '#addresses/types.js'
 
 const { getAddress: checksumAddress } = utils
 
 type Provider = providers.Provider
+
+export type TxOverrides = {
+  gasLimit?: BigNumber
+  gasPrice?: BigNumber
+  nonce?: BigNumber
+  chainId?: BigNumber
+}
 
 export type ChainProviders = {
   [key: string]: providers.Provider
@@ -17,14 +25,14 @@ export type BaseConfig = {
   signer?: Signer
   gasPriceMultiplier?: number
   chainProviders?: ChainProviders
-  contractAddresses?: Record<string, any>
+  contractAddresses?: Addresses
 }
 
 export class Base {
   network: string
   signer: Signer
   gasPriceMultiplier: number = 0
-  contractAddresses: Record<string, any>
+  contractAddresses: Addresses
   l1ChainId: number
 
   chainProviders: ChainProviders = {}
@@ -56,7 +64,7 @@ export class Base {
     return this.contractAddresses
   }
 
-  setContractAddresses (contractAddresses: any) {
+  setContractAddresses (contractAddresses: Addresses) {
     this.contractAddresses = contractAddresses
   }
 
@@ -64,7 +72,7 @@ export class Base {
     chainId = chainId.toString()
     const chains = getNetwork(this.network as NetworkSlug).chains
     for (const chainSlug in chains) {
-      const item = (chains as any)[chainSlug]
+      const item = (chains as any)[chainSlug] // TODO: type
       if (item.chainId?.toString() === chainId) {
         return getProviderFromUrl(item.publicRpcUrl)
       }
@@ -77,7 +85,7 @@ export class Base {
     const defaultProviders: ChainProviders = {}
     const chains = getNetwork(this.network as NetworkSlug).chains
     for (const chainSlug in chains) {
-      const item = (chains as any)[chainSlug]
+      const item = (chains as any)[chainSlug] // TODO: type
       defaultProviders[item.chainId?.toString()] = getProviderFromUrl(item.publicRpcUrl)
     }
 
@@ -136,7 +144,7 @@ export class Base {
       throw new Error('chainId is required')
     }
 
-    const address = this.contractAddresses?.[chainId?.toString()]?.[key]
+    const address = (this.contractAddresses as any)?.[chainId?.toString()]?.[key] // TODO: fix type
     return address
   }
 
@@ -145,8 +153,8 @@ export class Base {
       throw new Error('chainId is required')
     }
 
-    const startBlock = this.contractAddresses?.[chainId?.toString()]?.startBlock
-    return startBlock
+    const startBlock = (this.contractAddresses as any)?.[chainId?.toString()]?.startBlock // TODO: fix type
+    return startBlock ?? 0
   }
 
   getRpcProviderForChainId (chainId: BigNumberish): Provider {
@@ -225,10 +233,10 @@ export class Base {
     }
   }
 
-  async getTxOverrides (fromChainId: BigNumberish, toChainId: BigNumberish): Promise<any> {
+  async getTxOverrides (fromChainId: BigNumberish, toChainId: BigNumberish): Promise<TxOverrides> {
     fromChainId = fromChainId.toString()
     toChainId = toChainId.toString()
-    const txOptions: any = {}
+    const txOptions: TxOverrides = {}
     const provider = await this.getSignerOrProvider(fromChainId)
     if (this.gasPriceMultiplier > 0) {
       txOptions.gasPrice = await this.utils.getBumpedGasPrice(
@@ -258,7 +266,7 @@ export class Base {
     return txOptions
   }
 
-  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId): Promise<any> {
+  async sendTransaction (transactionRequest: providers.TransactionRequest, chainId: BigNumberish | undefined = transactionRequest?.chainId): Promise<providers.TransactionResponse> {
     chainId = chainId?.toString()
 
     if (!chainId) {
@@ -293,7 +301,7 @@ export class Base {
       throw new Error(`Contract "${transactionRequest.to}" does not exist on chain "${chainId}"`)
     }
 
-    return signer.sendTransaction({ ...transactionRequest, chainId } as any)
+    return signer.sendTransaction({ ...transactionRequest, chainId: Number(chainId?.toString()) })
   }
 
   get utils() {
@@ -334,12 +342,12 @@ export class Base {
         return blockTag === 'latest' || blockTag === 'pending' || blockTag === 'earliest' || Number(blockTag) >= 0
       },
 
-      isValidNumericValue: (value: any): boolean => {
+      isValidNumericValue: (value: BigNumberish | BigNumber | bigint | number | string | object | null): boolean => {
         if (BigNumber.isBigNumber(value)) {
           return true
         }
 
-        return !isNaN(value)
+        return !isNaN(value as number)
       },
 
       getChainSlug: (chainId: BigNumberish) => {
@@ -355,7 +363,7 @@ export class Base {
         return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
       },
 
-      estimateGas: async (provider: providers.Provider, tx: any): Promise<BigNumber> => {
+      estimateGas: async (provider: providers.Provider, tx: providers.TransactionRequest): Promise<BigNumber> => {
         const gasLimit = await provider.estimateGas(tx)
         return gasLimit
       },
@@ -373,7 +381,7 @@ export class Base {
         return BigNumber.from(network.chainId)
       },
 
-      switchChain: async (chainId: BigNumberish, provider: any): Promise<void> => {
+      switchChain: async (chainId: BigNumberish, provider: providers.Provider): Promise<void> => {
         chainId = BigNumber.from(chainId)
         try {
           if (!provider) {
@@ -385,14 +393,14 @@ export class Base {
             return
           }
 
-          await provider.send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString() }])
-        } catch (error: any) {
-          if (error.code === 4902) {
+          await (provider as any).send('wallet_switchEthereumChain', [{ chainId: chainId.toHexString() }]) // TODO: type
+        } catch (err) {
+          if (err.code === 4902) {
             const chains = getNetwork(this.network as NetworkSlug).chains
             const chain = (chains as any)[this.utils.getChainSlug(chainId)]
             if (chain) {
               const nativeCurrency = chain?.nativeTokenSymbol
-              await provider.send('wallet_addEthereumChain', [{
+              await (provider as any).send('wallet_addEthereumChain', [{ // TODO: type
                 chainId: chainId.toHexString(),
                 chainName: this.utils.getChainSlug(chainId),
                 nativeCurrency: {
@@ -404,10 +412,10 @@ export class Base {
                 blockExplorerUrls: chain.explorerUrls
               }])
             } else {
-              throw error
+              throw err
             }
           } else {
-            throw error
+            throw err
           }
         }
       },

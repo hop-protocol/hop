@@ -1,8 +1,8 @@
-import { EventContext } from './types.js'
+import { EventContext, EventBase, Filter } from './types.js'
 import { EventFetcher, InputFilter } from './eventFetcher/index.js'
 import { chainSlugMap } from '#utils/chainSlugMap.js'
 import { promiseQueue } from '@hop-protocol/sdk-core'
-import { providers, BigNumberish } from 'ethers'
+import { providers, BigNumberish, Event as EthersEvent } from 'ethers'
 
 export class Event<T> {
   provider: providers.Provider
@@ -11,7 +11,7 @@ export class Event<T> {
   address: string
   eventName: string
 
-  constructor (provider: any, chainId: BigNumberish, batchBlocks: number, address: string) {
+  constructor (provider: providers.Provider, chainId: BigNumberish, batchBlocks: number, address: string) {
     if (!provider) {
       throw new Error('expected provider')
     }
@@ -24,16 +24,16 @@ export class Event<T> {
     this.address = address
   }
 
-  getFilter (): any {
+  getFilter (): Filter {
     throw new Error('Not implemented. This should be implemented by child class.')
   }
 
-  getTopic0 () {
+  getTopic0 (): string | string[] | null {
     const filter = this.getFilter()
-    return filter.topics[0]
+    return filter.topics?.[0] ?? null
   }
 
-  async getEventsWithFilter(filter: any, fromBlock: number, toBlock?: number): Promise<T[]> {
+  async getEventsWithFilter(filter: Filter, fromBlock: number, toBlock?: number): Promise<T[]> {
     const eventFetcher = new EventFetcher({
       provider: this.provider,
       batchBlocks: this.batchBlocks
@@ -52,29 +52,29 @@ export class Event<T> {
     return events
   }
 
-  async populateEvents<T>(events: any[]): Promise<T[]> {
-    events = events.map(x => this.toTypedEvent(x))
-    const promiseFns = events.map((event: any) => () => this.addContextToEvent(event, this.chainId))
+  async populateEvents<T>(inputEvents: EthersEvent[]): Promise<T[]> {
+    const events = inputEvents.map(x => this.toTypedEvent(x)) as EventBase[]
+    const promiseFns = events.map(event => () => this.addContextToEvent(event, this.chainId))
 
-    const populatedEvents : any[] = []
-    await promiseQueue(promiseFns, async (fn: any) => {
+    const populatedEvents : Event<T>[] = []
+    await promiseQueue(promiseFns, async (fn: () => any) => { // TODO: type
       populatedEvents.push(await fn())
     }, { concurrency: 20 })
 
     return populatedEvents.map((event) => event as T)
   }
 
-  toTypedEvent (ethersEvent: any): T {
+  toTypedEvent (ethersEvent: EthersEvent): T {
     throw new Error('Not implemented')
   }
 
-  async addContextToEvent (event: any, chainId: BigNumberish): Promise<T> {
-    const context = await this.getEventContext(event.eventLog, chainId)
+  async addContextToEvent (event: EventBase, chainId: BigNumberish): Promise<T> {
+    const context = await this.getEventContext(event.eventLog!, chainId)
     event.context = context
-    return event
+    return event as T
   }
 
-  async getEventContext (event: any, chainId: BigNumberish): Promise<EventContext> {
+  async getEventContext (event: EthersEvent, chainId: BigNumberish): Promise<EventContext> {
     try {
       const chainSlug = this.getChainSlug(chainId)
       const transactionHash = event.transactionHash
@@ -108,7 +108,7 @@ export class Event<T> {
         gasPrice: gasPrice?.toString() as string,
         data
       }
-    } catch (err: any) {
+    } catch (err) {
       console.log('getEventContext error:', err, chainId, event)
       throw err
     }
@@ -122,12 +122,12 @@ export class Event<T> {
     return chainSlug
   }
 
-  decodeEventsFromTransactionReceipt (receipt: any): T[] {
+  decodeEventsFromTransactionReceipt (receipt: providers.TransactionReceipt): T[] {
     const decodedEvents: T[] = []
     const topic = this.getTopic0()
     for (const log of receipt.logs) {
       if (log.topics[0] === topic) {
-        const decoded = this.toTypedEvent(log)
+        const decoded = this.toTypedEvent(log as EthersEvent)
         decodedEvents.push(decoded)
       }
     }

@@ -1,11 +1,11 @@
 import { Base } from '#common/index.js'
-import { BigNumber, BigNumberish, Signer, providers } from 'ethers'
+import { BigNumber, BigNumberish, Signer, providers, Event as EthersEvent } from 'ethers'
 import { BundleCommittedEventFetcher } from '#messenger/events/BundleCommitted.js'
 import { BundleForwardedEventFetcher } from '#messenger/events/BundleForwarded.js'
 import { BundleReceivedEventFetcher } from '#messenger/events/BundleReceived.js'
 import { BundleSetEventFetcher } from '#messenger/events/BundleSet.js'
 import { ConfirmationSentEventFetcher } from '#nft/events/ConfirmationSent.js'
-import { EventFetcher } from '#events/index.js'
+import { EventFetcher, InputFilter, Filter, Event } from '#events/index.js'
 import { FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
 import { MessageBundledEventFetcher } from '#messenger/events/MessageBundled.js'
@@ -19,12 +19,13 @@ import { Messenger } from '#messenger/index.js'
 import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, GetPathInfoInput, Path } from '#railsGateway/index.js'
 import { Nft } from '#nft/index.js'
+import { Addresses } from '#addresses/types.js'
 
 export type HopConstructorInput = {
   network: string
   batchBlocks?: number,
   signer?: Signer
-  contractAddresses?: Record<string, any> // TODO: types
+  contractAddresses?: Addresses
 }
 
 export type GetEventsInput = {
@@ -61,9 +62,9 @@ export type ApproveSendTokensInput = {
 
 export class Hop extends Base {
   eventFetcher: EventFetcher
-  batchBlocks?: number
+  batchBlocks: number = 1000
 
-  providers: Record<string, any> = {}
+  providers: Record<string, providers.Provider> = {}
   gasPriceOracle: GasPriceOracle
   messenger: Messenger
   railsGateway: RailsGateway
@@ -226,12 +227,12 @@ export class Hop extends Base {
     }
   }
 
-  async sendTokens (input: SendTokensInput): Promise<any> {
+  async sendTokens (input: SendTokensInput): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.sendTokens(input)
     return this.sendTransaction(populatedTx)
   }
 
-  async approveSendTokens (input: ApproveSendTokensInput): Promise<any> {
+  async approveSendTokens (input: ApproveSendTokensInput): Promise<providers.TransactionResponse> {
     const populatedTx = await this.populateTransaction.approveSendTokens(input)
     return this.sendTransaction(populatedTx)
   }
@@ -267,11 +268,15 @@ export class Hop extends Base {
       throw new Error('No signer connected to switch chains')
     }
 
+    if (!this.signer.provider) {
+      throw new Error('No provider connected to signer')
+    }
+
     await this.utils.switchChain(chainId, this.signer.provider)
   }
 
   // used by v2-explorer backend
-  async getEvents (input: GetGeneralEventsInput): Promise<any[]> {
+  async getEvents (input: GetGeneralEventsInput): Promise<EthersEvent[]> {
     let { eventName, eventNames, chainId, fromBlock, toBlock } = input
     if (!chainId) {
       throw new Error('chainId is required')
@@ -306,101 +311,101 @@ export class Hop extends Base {
       throw new Error('expected eventName or eventNames')
     }
 
-    const filters :any[] = []
+    const filters : Filter[] = []
     const eventFetcher = new EventFetcher({
       provider,
       batchBlocks: this.batchBlocks
     })
-    const map : any = {}
+    const map : Record<string, Event<any>> = {} // TODO: type
     for (const eventName of eventNames) {
       if (eventName === 'BundleCommitted') {
         const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'BundleForwared') {
         const address = this.messenger.getHubMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter.topics?.[0] as string] = _eventFetcher
+        map[filter.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'BundleReceived') {
         const address = this.messenger.getHubMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'BundleSet') {
         const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'FeesSentToHub') {
         const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'MessageBundled') {
         const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'MessageExecuted') {
         const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'MessageSent') {
         const address = this.messenger.getSpokeMessageBridgeContractAddress(chainId)
-        const _eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'ConfirmationSent') { // nft
         const address = this.getNftBridgeContractAddress(chainId)
-        const _eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new ConfirmationSentEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'TokenConfirmed') { // nft
         const address = this.getNftBridgeContractAddress(chainId)
-        const _eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new TokenConfirmedEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'TokenSent') { // nft
         const address = this.getNftBridgeContractAddress(chainId)
-        const _eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new TokenSentEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'TransferSent') { // RailsGateway
         const address = this.getRailsGatewayContractAddress(chainId)
-        const _eventFetcher = new TransferSentEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new TransferSentEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       } else if (eventName === 'TransferBonded') { // RailsGateway
         const address = this.getRailsGatewayContractAddress(chainId)
-        const _eventFetcher = new TransferBondedEventFetcher(provider, chainId, this.batchBlocks as any, address)
-        const filter = _eventFetcher.getFilter()
+        const eventFetcher = new TransferBondedEventFetcher(provider, chainId, this.batchBlocks, address)
+        const filter = eventFetcher.getFilter()
         filters.push(filter)
-        map[filter?.topics?.[0] as string] = _eventFetcher
+        map[filter?.topics?.[0] as string] = eventFetcher
       }
     }
     const options = {
-      fromBlock,
-      toBlock
+      fromBlock: fromBlock as number,
+      toBlock: toBlock as number
     }
-    const events = await eventFetcher.fetchEvents(filters, options as any)
-    const decoded : any[] = []
+    const events = await eventFetcher.fetchEvents(filters as InputFilter[], options)
+    const decoded : EthersEvent[] = []
     for (const event of events) {
-      const res = await map[event.topics[0] as string].populateEvents([event])
+      const res = await map[event.topics[0] as string].populateEvents([event]) as EthersEvent[]
       decoded.push(...res)
     }
     return decoded

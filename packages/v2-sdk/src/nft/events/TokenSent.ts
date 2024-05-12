@@ -1,6 +1,6 @@
 import { ERC721Bridge__factory } from '#contracts/factories/ERC721Bridge__factory.js'
 import { Event, EventBase } from '#events/index.js'
-import { ethers } from 'ethers'
+import { ethers, Event as EthersEvent } from 'ethers'
 
 // event from ERC721Bridge
 export interface TokenSent extends EventBase {
@@ -19,7 +19,7 @@ export class TokenSentEventFetcher extends Event<TokenSent> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): TokenSent {
+  override toTypedEvent (ethersEvent: EthersEvent): TokenSent {
     const iface = new ethers.utils.Interface(ERC721Bridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

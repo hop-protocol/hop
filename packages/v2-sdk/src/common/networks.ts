@@ -15,12 +15,10 @@ export const networks: Record<string, Record<string, Network>> = {}
 
 const allNetworks = getNetworks()
 
-for (const index in allNetworks) {
-  const network = allNetworks[index]
-  const chains = network.chains
+allNetworks.forEach(network => {
   networks[network.slug] = {}
-  for (const chainSlug in chains) {
-    const chain = (chains as any)[chainSlug]
+  for (const chainSlug in network.chains) {
+    const chain = (network as any).chains[chainSlug] // TODO: fix type
     networks[network.slug][chain.chainId] = {
       name: chain.name,
       chainId: chain.chainId,
@@ -30,4 +28,4 @@ for (const index in allNetworks) {
       nativeBridgeUrl: chain.nativeBridgeUrl
     }
   }
-}
+})

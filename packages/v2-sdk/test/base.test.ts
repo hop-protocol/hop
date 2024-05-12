@@ -102,14 +102,14 @@ describe.skip('Base', () => {
   })
   it('should get signer', async () => {
     const privateKey = process.env.PRIVATE_KEY!
-    const signer = await base.connect(new Wallet(privateKey)).getSigner()
+    const signer = base.connect(new Wallet(privateKey)).getSigner()
     console.log(signer)
     expect(signer).toBeDefined()
   })
   it('should get signer address', async () => {
     const privateKey = process.env.PRIVATE_KEY!
     const signer = new Wallet(privateKey)
-    const address = await base.connect(signer).getSignerAddress()
+    const address = base.connect(signer).getSignerAddress()
     console.log(address)
     expect(address).toBeDefined()
   })
@@ -132,7 +132,7 @@ describe.skip('Base', () => {
       value: 0,
     }
     const chainId = 1
-    const provider = await base.getDefaultChainRpcProvider(1)
+    const provider = base.getDefaultChainRpcProvider(1)
     const gas = await base.estimateGas(provider, tx)
     console.log(gas)
     expect(gas).toBeDefined()
@@ -150,7 +150,7 @@ describe.skip('Base', () => {
       chainId: 1
     }
     const chainId = 1
-    const signer = await base.getSigner()
+    const signer = base.getSigner()
     const tx = await base.sendTransaction(txRequest)
     expect(tx.hash).toBeDefined()
   })

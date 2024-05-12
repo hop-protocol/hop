@@ -185,7 +185,7 @@ export type CalcAmountOutMinInput = {
 
 export type GetTransferSentEventFromTransactionReceiptInput = {
   fromChainId: BigNumberish
-  receipt: any
+  receipt: providers.TransactionReceipt
 }
 
 export type GetTransferSentEventFromTransactionHashInput = {
@@ -205,7 +205,7 @@ export type GetTransferSentEventFromCheckpointInput = {
 
 export type GetTransferBondedEventFromTransactionReceiptInput = {
   fromChainId: BigNumberish
-  receipt: any
+  receipt: providers.TransactionReceipt
 }
 
 export type GetTransferBondedEventFromTransactionHashInput = {
@@ -241,10 +241,10 @@ export type Token = {
   decimals: number
 }
 
-export type RailsGatewayConstructorInput = BaseConfig & {}
+export type RailsGatewayConstructorInput = BaseConfig
 
 export class RailsGateway extends StakingRegistry {
-  batchBlocks?: number = 1000
+  batchBlocks: number = 1000
 
   constructor (input: RailsGatewayConstructorInput) {
     const { network, signer, contractAddresses } = input
@@ -1216,7 +1216,7 @@ export class RailsGateway extends StakingRegistry {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
+    const eventFetcher = new TransferSentEventFetcher(provider, fromChainId, this.batchBlocks, address)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }
@@ -1313,7 +1313,7 @@ export class RailsGateway extends StakingRegistry {
     if (!address) {
       throw new Error(`Contract address not found for chainId: ${fromChainId}`)
     }
-    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, this.batchBlocks as any, address)
+    const eventFetcher = new TransferBondedEventFetcher(provider, fromChainId, this.batchBlocks, address)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
     return events?.[0] ?? null
   }

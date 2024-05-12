@@ -116,7 +116,7 @@ export type GetChallengeIdInput = {
   slashingData: string
 }
 
-export type StakingRegistryConstructorInput = BaseConfig & {}
+export type StakingRegistryConstructorInput = BaseConfig
 
 export class StakingRegistry extends Base {
   constructor (input: StakingRegistryConstructorInput) {

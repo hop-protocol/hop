@@ -1,6 +1,8 @@
-export const addresses = {
-  11155111: {
-    chainId: 11155111,
+import { Addresses } from './types.js'
+
+export const addresses: Addresses = {
+  '11155111': {
+    chainId: '11155111',
     startBlock: 5804841,
     hubCoreMessenger: '0x5Faca3F1bC4966Ef18411559D8Ec0E6314AAd5cE',
     spokeCoreMessenger: '0x5Faca3F1bC4966Ef18411559D8Ec0E6314AAd5cE',
@@ -13,8 +15,8 @@ export const addresses = {
       USDC: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
     }
   },
-  11155420: {
-    chainId: 11155420,
+  '11155420': {
+    chainId: '11155420',
     startBlock: 11311906,
     spokeCoreMessenger: '0x45F00cfbBF8418133eAB132502aa1A8611d7111e',
     connector: '',

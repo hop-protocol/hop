@@ -1,6 +1,6 @@
 import { Filter } from '@ethersproject/abstract-provider'
 import { promiseQueue } from '@hop-protocol/sdk-core'
-import { providers, utils } from 'ethers'
+import { providers, utils, Event as EthersEvent } from 'ethers'
 
 const { getAddress: checksumAddress } = utils
 
@@ -39,7 +39,7 @@ export class EventFetcher {
   async fetchEvents (filters: InputFilter[], options: FetchOptions) {
     const blockRanges = this.getChunkedBlockRanges(options.fromBlock, options.toBlock)
 
-    const promiseFns :any[] = []
+    const promiseFns : any[] = [] // TODO: type
     for (const [batchStart, batchEnd] of blockRanges) {
       const batchOptions = {
         fromBlock: batchStart,
@@ -96,15 +96,15 @@ export class EventFetcher {
           if (!obj.address) {
             obj.address = address
           }
-          const topics: (string | string[])[] = (obj.topics ?? []) as any[]
+          const topics: (string | string[])[] = (obj.topics ?? []) as string[]
           if (filter.topics) {
             for (let i = 0; i < filter.topics.length; i++) {
-              const topic : any = filter.topics[i]
+              const topic : string[] | string = filter.topics[i]
               if (!topics[i]) {
                 topics[i] = []
               }
-              if (!topics[i].includes(topic)) {
-                (topics[i] as string[]).push(topic)
+              if (!topics[i].includes(topic as string)) {
+                (topics[i] as string[]).push(topic as string)
               }
             }
           }
@@ -130,15 +130,15 @@ export class EventFetcher {
     }
 
     const promiseResults = await Promise.all(promises)
-    const result : any[] = []
+    const result : EthersEvent[] = []
     for (const events of promiseResults) {
-      result.push(...events)
+      result.push(...events as EthersEvent[])
     }
     return result
   }
 
-  private normalizeEvents (events: any[]) {
-    const filteredEvents : any[] = []
+  private normalizeEvents (events: EthersEvent[]) {
+    const filteredEvents : EthersEvent[] = []
     const seen :Record<string, boolean> = {}
     for (const event of events) {
       const key = `${event.transactionHash}-${event.logIndex}`
@@ -150,10 +150,10 @@ export class EventFetcher {
     return filteredEvents.sort((a, b) => this.sortByBlockNumber(a, b))
   }
 
-  private async parallelFetch (promiseFns: any[]) {
-    const events: any[] = []
+  private async parallelFetch (promiseFns: any[]) { // TODO: type
+    const events: EthersEvent[] = []
     let i = 1
-    await promiseQueue(promiseFns, async (fn: any) => {
+    await promiseQueue(promiseFns, async (fn: any) => { // TODO: type
       const batchedEvents = await fn()
       console.log(`got batch ${i++}/${promiseFns.length}`)
       events.push(...batchedEvents)
@@ -161,12 +161,12 @@ export class EventFetcher {
     return events
   }
 
-  private sortByBlockNumber (a: any, b: any): number {
+  private sortByBlockNumber (a: EthersEvent, b: EthersEvent): number {
     if (a.blockNumber > b.blockNumber) return 1
     if (a.blockNumber < b.blockNumber) return -1
 
-    if (a.index > b.logIndex) return 1
-    if (a.index < b.logIndex) return -1
+    if (a.logIndex > b.logIndex) return 1
+    if (a.logIndex < b.logIndex) return -1
 
     return 0
   }

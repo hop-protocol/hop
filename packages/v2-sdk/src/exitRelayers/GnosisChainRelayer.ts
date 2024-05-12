@@ -4,12 +4,18 @@ import { L2_xDaiAMB__factory } from '#contracts/factories/L2_xDaiAMB__factory.js
 
 const { solidityKeccak256 } = utils
 
+type VRS = {
+  v: string
+  r: string
+  s: string
+}
+
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 export class GnosisChainRelayer {
   network: string
-  l1Provider: any
-  l2Provider: any
+  l1Provider: providers.Provider
+  l2Provider: providers.Provider
   l1AmbAddress: string
   l2AmbAddress: string
 
@@ -35,7 +41,7 @@ export class GnosisChainRelayer {
     return L2_xDaiAMB__factory.connect(this.l2AmbAddress, this.l1Provider)
   }
 
-  async getExitPopulatedTx (l2TxHash: string): Promise<any> {
+  async getExitPopulatedTx (l2TxHash: string): Promise<providers.TransactionResponse> {
     const l1Amb = this.getL1Amb()
     const l2Amb = this.getL2Amb()
 
@@ -67,10 +73,10 @@ export class GnosisChainRelayer {
     }
 
     const requiredSigs = (await l2Amb.requiredSignatures()).toNumber()
-    const sigs: any[] = []
+    const sigs: VRS[] = []
     for (let i = 0; i < requiredSigs; i++) {
       const sig = await l2Amb.signature(msgHash, i)
-      const [v, r, s]: any[] = [[], [], []]
+      const [v, r, s]: string[][] = [[], [], []]
       const vrs = signatureToVRS(sig)
       v.push(vrs.v)
       r.push(vrs.r)
@@ -114,7 +120,7 @@ import { toHex } from 'web3-utils'
 
 const strip0x = (value: string) => value.replace(/^0x/i, '')
 
-function signatureToVRS (rawSignature: any) {
+function signatureToVRS (rawSignature: string): VRS {
   const signature = strip0x(rawSignature)
   assert.strictEqual(signature.length, 2 + 32 * 2 + 32 * 2)
   const v = signature.substr(64 * 2)
@@ -123,7 +129,7 @@ function signatureToVRS (rawSignature: any) {
   return { v, r, s }
 }
 
-function packSignatures (array: any[]) {
+function packSignatures (array: VRS[]) {
   const length = strip0x(toHex(array.length))
   const msgLength = length.length === 1 ? `0${length}` : length
   let v = ''

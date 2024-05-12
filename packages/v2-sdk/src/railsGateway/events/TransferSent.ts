@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers'
+import { BigNumber, ethers, Event as EthersEvent } from 'ethers'
 import { Event, EventBase } from '#events/index.js'
 import { RailsGateway__factory } from '#contracts/factories/RailsGateway__factory.js'
 
@@ -43,7 +43,7 @@ export class TransferSentEventFetcher extends Event<TransferSent> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): TransferSent {
+  override toTypedEvent (ethersEvent: EthersEvent): TransferSent {
     const iface = new ethers.utils.Interface(RailsGateway__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

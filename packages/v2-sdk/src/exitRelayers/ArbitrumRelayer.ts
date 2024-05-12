@@ -3,8 +3,8 @@ import { providers } from 'ethers'
 
 export class ArbitrumRelayer {
   network: string
-  l1Provider: any
-  l2Provider: any
+  l1Provider: providers.Provider
+  l2Provider: providers.Provider
 
   constructor (network: string = 'mainnet', l1Provider: providers.Provider, l2Provider: providers.Provider) {
     this.network = network
@@ -12,7 +12,7 @@ export class ArbitrumRelayer {
     this.l2Provider = l2Provider
   }
 
-  async getExitPopulatedTx (l2TxHash: string): Promise<any> {
+  async getExitPopulatedTx (l2TxHash: string): Promise<providers.TransactionRequest> {
     const l2Receipt = await this.l2Provider.getTransactionReceipt(l2TxHash)
     const initiatingTxReceipt = new L2TransactionReceipt(l2Receipt)
 
@@ -25,13 +25,13 @@ export class ArbitrumRelayer {
       throw new Error('Could not find outgoing message')
     }
 
-    const msg: any = outgoingMessagesFromTx[0]
+    const msg = outgoingMessagesFromTx[0]
     if (!msg) {
       throw new Error('Could not find outgoing message')
     }
 
     // TODO: return populated tx only
-    return msg.execute(this.l2Provider)
+    return (msg as any).execute(this.l2Provider) // TODO: type
   }
 
   async redeemArbitrumTransaction (l1TxHash: string, messageIndex : number = 0): Promise<providers.TransactionResponse> {
@@ -40,8 +40,8 @@ export class ArbitrumRelayer {
       throw new Error('Message not deposited on L2')
     }
 
-    const l1ToL2Message: any = await this.getL1ToL2Message(l1TxHash, messageIndex)
-    return l1ToL2Message.redeem(this.l1Provider)
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
+    return (l1ToL2Message as any).redeem(this.l1Provider) // TODO: type
   }
 
   async getMessageStatus (l1TxHash: string, messageIndex : number = 0) : Promise<L1ToL2MessageStatus> {
@@ -58,7 +58,7 @@ export class ArbitrumRelayer {
     return l1ToL2Messages[messageIndex]
   }
 
-  async getL1ToL2Messages (l1TxHash: string): Promise<any[]> {
+  async getL1ToL2Messages (l1TxHash: string): Promise<any[]> { // TODO: type
     const l1Receipt = await this.l1Provider.getTransactionReceipt(l1TxHash)
     const l1TxReceipt = new L1TransactionReceipt(l1Receipt)
     return l1TxReceipt.getL1ToL2Messages(this.l2Provider)

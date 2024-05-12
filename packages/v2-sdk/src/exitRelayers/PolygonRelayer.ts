@@ -6,10 +6,10 @@ import { setProofApi, use } from '@maticnetwork/maticjs'
 
 export class PolygonRelayer {
   network: string
-  l1Provider: any
-  l2Provider: any
+  l1Provider: providers.Provider
+  l2Provider: providers.Provider
   apiUrl: string
-  maticClient: any
+  maticClient: any // TODO: type
   ready: boolean = false
 
   constructor (network: string = 'mainnet', l1Provider: providers.Provider, l2Provider: providers.Provider) {
@@ -25,7 +25,7 @@ export class PolygonRelayer {
     this.maticClient = new FxPortalClient()
 
     this.init()
-      .catch((err: any) => {
+      .catch((err: Error) => {
         console.error('matic client initialize error:', err)
       })
   }
@@ -65,11 +65,11 @@ export class PolygonRelayer {
     return this.tilReady()
   }
 
-  async getExitPopulatedTx (l2TxHash: string): Promise<any> {
+  async getExitPopulatedTx (l2TxHash: string): Promise<providers.TransactionRequest> {
     await this.tilReady()
 
-    const commitTx: any = await this.l2Provider.getTransaction(l2TxHash)
-    const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
+    const commitTx = await this.l2Provider.getTransaction(l2TxHash)
+    const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber!)
     if (!isCheckpointed) {
       throw new Error('tx not checkpointed')
     }

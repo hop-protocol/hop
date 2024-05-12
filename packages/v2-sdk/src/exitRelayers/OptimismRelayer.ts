@@ -4,8 +4,8 @@ import { Signer, providers } from 'ethers'
 
 export class OptimismRelayer {
   network: string
-  l1Provider: any
-  l2Provider: any
+  l1Provider: providers.Provider | Signer
+  l2Provider: providers.Provider | Signer
   csm: CrossChainMessenger
 
   constructor (network: string = 'mainnet', l1Provider: providers.Provider | Signer, l2Provider: providers.Provider) {
@@ -22,11 +22,11 @@ export class OptimismRelayer {
     })
   }
 
-  async getExitPopulatedTx (l2TxHash: string) {
+  async getExitPopulatedTx (l2TxHash: string): Promise<providers.TransactionRequest> {
     throw new Error('not implemented')
   }
 
-  async getIsL2TxHashExited (l2TxHash: string) {
+  async getIsL2TxHashExited (l2TxHash: string): Promise<boolean> {
     const messageStatus = await this.csm.getMessageStatus(l2TxHash)
     if (messageStatus === MessageStatus.RELAYED) {
       return true
@@ -35,7 +35,7 @@ export class OptimismRelayer {
     return false
   }
 
-  async exitTx (l2TxHash: string) {
+  async exitTx (l2TxHash: string): Promise<providers.TransactionResponse> {
     let messageStatus = await this.csm.getMessageStatus(l2TxHash)
     if (messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED) {
       console.log('waiting for state root to be published')
@@ -85,12 +85,11 @@ export class OptimismRelayer {
     }
 
     if (messageStatus === MessageStatus.RELAYED) {
-      console.log('message already relayed')
-      return
+      throw new Error('message already relayed')
     }
 
     console.log(MessageStatus)
-    console.log(`not ready for relay. statusCode: ${messageStatus}`)
+    throw new Error(`not ready for relay. statusCode: ${messageStatus}`)
   }
 
   formatError (err: Error) {

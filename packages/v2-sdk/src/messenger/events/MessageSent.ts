@@ -1,6 +1,6 @@
 import { Event, EventBase } from '#events/index.js'
 import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBridge__factory.js'
-import { ethers } from 'ethers'
+import { ethers, Event as EthersEvent } from 'ethers'
 
 // event from SpokeMessageBridge (ICrossChainSource)
 export interface MessageSent extends EventBase {
@@ -26,7 +26,7 @@ export class MessageSentEventFetcher extends Event<MessageSent> {
     return filter
   }
 
-  override toTypedEvent (ethersEvent: any): MessageSent {
+  override toTypedEvent (ethersEvent: EthersEvent): MessageSent {
     const iface = new ethers.utils.Interface(SpokeMessageBridge__factory.abi)
     const decoded = iface.parseLog(ethersEvent)
 

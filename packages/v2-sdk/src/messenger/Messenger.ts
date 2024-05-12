@@ -15,6 +15,7 @@ import { SpokeMessageBridge__factory } from '#contracts/factories/SpokeMessageBr
 import { MockExecutor__factory } from '#contracts/factories/MockExecutor__factory.js'
 import { FeesSentToHub, FeesSentToHubEventFetcher } from '#messenger/events/FeesSentToHub.js'
 import { GasPriceOracle } from '#gasPriceOracle/index.js'
+import { ConfigError, InputError } from '#error/index.js'
 
 const { formatEther, formatUnits, parseEther } = utils
 
@@ -260,7 +261,7 @@ export class Messenger extends Base {
 
   getSpokeMessageBridgeContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     return this.getConfigAddress(chainId, 'spokeCoreMessenger')
@@ -268,7 +269,7 @@ export class Messenger extends Base {
 
   getHubMessageBridgeContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     return this.getConfigAddress(chainId, 'hubCoreMessenger')
@@ -276,7 +277,7 @@ export class Messenger extends Base {
 
   getExecutorContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     return this.getConfigAddress(chainId, 'executor')
@@ -285,31 +286,31 @@ export class Messenger extends Base {
   async getBundleCommittedEvents (input: GetEventsInput): Promise<BundleCommitted[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new BundleCommittedEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -318,31 +319,31 @@ export class Messenger extends Base {
   async getBundleForwardedEvents (input: GetEventsInput): Promise<BundleForwarded[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getHubMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new BundleForwardedEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -351,31 +352,31 @@ export class Messenger extends Base {
   async getBundleReceivedEvents (input: GetEventsInput): Promise<BundleReceived[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getHubMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new BundleReceivedEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -384,31 +385,31 @@ export class Messenger extends Base {
   async getBundleSetEvents (input: GetEventsInput): Promise<BundleSet[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new BundleSetEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -417,31 +418,31 @@ export class Messenger extends Base {
   async getFeesSentToHubEvents (input: GetEventsInput): Promise<FeesSentToHub[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new FeesSentToHubEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -450,31 +451,31 @@ export class Messenger extends Base {
   async getMessageBundledEvents (input: GetEventsInput): Promise<MessageBundled[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new MessageBundledEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -483,31 +484,31 @@ export class Messenger extends Base {
   async getMessageExecutedEvents (input: GetEventsInput): Promise<MessageExecuted[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new MessageExecutedEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -516,31 +517,31 @@ export class Messenger extends Base {
   async getMessageSentEvents (input: GetEventsInput): Promise<MessageSent[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
 
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
 
     if (!this.utils.isValidFilterBlock(fromBlock)) {
-      throw new Error(`Invalid fromBlock "${fromBlock}"`)
+      throw new InputError(`Invalid fromBlock "${fromBlock}"`)
     }
 
     if (toBlock && this.utils.isValidFilterBlock(toBlock)) {
-      throw new Error(`Invalid toBlock "${toBlock}"`)
+      throw new InputError(`Invalid toBlock "${toBlock}"`)
     }
 
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new MessageSentEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)
@@ -549,10 +550,10 @@ export class Messenger extends Base {
   async getHasAuctionStarted (input: HasAuctionStartedInput): Promise<boolean> {
     const { fromChainId, bundleCommittedEvent } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!bundleCommittedEvent) {
-      throw new Error('bundleCommittedEvent is required')
+      throw new InputError('bundleCommittedEvent is required')
     }
     const { commitTime, toChainId } = bundleCommittedEvent
     const exitTime = await this.getSpokeExitTime({ fromChainId, toChainId })
@@ -562,19 +563,19 @@ export class Messenger extends Base {
   async getSpokeExitTime (input: GetSpokeExitTimeInput): Promise<number> {
     const { fromChainId, toChainId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId "${toChainId}"`)
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
     const provider = this.getRpcProviderForChainId(toChainId)
     if (!provider) {
-      throw new Error(`Invalid chainId "${toChainId}", provider not found`)
+      throw new InputError(`Invalid chainId "${toChainId}", provider not found`)
     }
 
     const address = this.getHubMessageBridgeContractAddress(toChainId)
     if (!address) {
-      throw new Error(`Invalid chain: ${toChainId}`)
+      throw new InputError(`Invalid chain: ${toChainId}`)
     }
     const hubMessageBridge = HubMessageBridge__factory.connect(address, provider)
     const exitTime = await hubMessageBridge.getSpokeExitTime(fromChainId)
@@ -587,11 +588,11 @@ export class Messenger extends Base {
   async getRelayReward (input: GetRelayRewardInput): Promise<number> {
     const { fromChainId, bundleCommittedEvent } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Invalid chainId "${fromChainId}", provider not found`)
+      throw new InputError(`Invalid chainId "${fromChainId}", provider not found`)
     }
     const { commitTime, bundleFees, toChainId } = bundleCommittedEvent
     const feesCollected = Number(formatEther(bundleFees))
@@ -606,11 +607,11 @@ export class Messenger extends Base {
   async getEstimatedTxCostForForwardMessage (input: GetEstimatedTxCostForForwardMessageInput): Promise<number> {
     const { chainId } = input
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId "${chainId}"`)
+      throw new InputError(`Invalid chainId "${chainId}"`)
     }
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Invalid chainId "${chainId}", provider not found`)
+      throw new InputError(`Invalid chainId "${chainId}", provider not found`)
     }
     const estimatedGas = BigNumber.from(1_000_000) // TODO
     const gasPrice = await provider.getGasPrice()
@@ -621,10 +622,10 @@ export class Messenger extends Base {
   async getShouldAttemptForwardMessage (input: ShouldAttemptForwardMessageInput): Promise<boolean> {
     const { fromChainId, bundleCommittedEvent } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+      throw new InputError(`Invalid fromChainId: ${fromChainId}`)
     }
     if (!bundleCommittedEvent) {
-      throw new Error('bundleCommittedEvent is required')
+      throw new InputError('bundleCommittedEvent is required')
     }
     const estimatedTxCost = await this.getEstimatedTxCostForForwardMessage({ chainId: fromChainId })
     const relayReward = await this.getRelayReward({ fromChainId, bundleCommittedEvent })
@@ -637,23 +638,23 @@ export class Messenger extends Base {
   async exitBundle (input: ExitBundleInput): Promise<providers.TransactionResponse> {
     let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash, signer } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+      throw new InputError(`Invalid fromChainId: ${fromChainId}`)
     }
     if (bundleCommittedTransactionHash) {
       if (!this.utils.isValidTxHash(bundleCommittedTransactionHash)) {
-        throw new Error(`Invalid transaction hash "${bundleCommittedTransactionHash}"`)
+        throw new InputError(`Invalid transaction hash "${bundleCommittedTransactionHash}"`)
       }
     } else if (bundleCommittedEvent) {
       const { eventLog, context } = bundleCommittedEvent
       if (!eventLog) {
-        throw new Error('eventLog is required')
+        throw new InputError('eventLog is required')
       }
       bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
     } else {
-      throw new Error('bundleCommittedEvent or bundleCommittedTransactionHash is required')
+      throw new InputError('bundleCommittedEvent or bundleCommittedTransactionHash is required')
     }
     if (!bundleCommittedTransactionHash) {
-      throw new Error('expected bundle comitted transaction hash')
+      throw new InputError('expected bundle comitted transaction hash')
     }
 
     const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
@@ -673,7 +674,7 @@ export class Messenger extends Base {
       // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
     }
     if (!exitRelayer) {
-      throw new Error(`Exit relayer not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
     }
     const tx = await exitRelayer.exitTx(bundleCommittedTransactionHash)
     return tx
@@ -682,10 +683,10 @@ export class Messenger extends Base {
   async getIsL2TxHashExited (input: GetIsL2TxHashExitedInput): Promise<boolean> {
     const { fromChainId, transactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transaction hash "${transactionHash}"`)
+      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
     }
 
     const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
@@ -695,7 +696,7 @@ export class Messenger extends Base {
       const { OptimismRelayer } = await import('../exitRelayers/OptimismRelayer.js')
       exitRelayer = new OptimismRelayer(this.network, l1Provider, l2Provider)
     } else {
-      throw new Error(`Exit relayer not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
     }
 
     return exitRelayer.getIsL2TxHashExited(transactionHash)
@@ -706,34 +707,34 @@ export class Messenger extends Base {
       sendMessage: async (input: GetSendMessagePopulatedTxInput): Promise<providers.TransactionRequest> => {
         let { fromChainId, toChainId, toAddress, toCalldata = '0x' } = input
         if (!this.utils.isValidChainId(fromChainId)) {
-          throw new Error(`Invalid fromChainId "${fromChainId}"`)
+          throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
         if (!this.utils.isValidChainId(toChainId)) {
-          throw new Error(`Invalid toChainId "${toChainId}"`)
+          throw new InputError(`Invalid toChainId "${toChainId}"`)
         }
         if (fromChainId?.toString() === toChainId?.toString()) {
-          throw new Error('fromChainId and toChainId must be different')
+          throw new InputError('fromChainId and toChainId must be different')
         }
         if (!toAddress) {
-          throw new Error('toAddress is required')
+          throw new InputError('toAddress is required')
         }
         if (!this.utils.isValidAddress(toAddress)) {
-          throw new Error(`Invalid toAddress "${toAddress}"`)
+          throw new InputError(`Invalid toAddress "${toAddress}"`)
         }
         if (!toCalldata) {
           toCalldata = '0x'
         }
         if (!this.utils.isValidBytes(toCalldata)) {
-          throw new Error(`Invalid toCalldata "${toCalldata}"`)
+          throw new InputError(`Invalid toCalldata "${toCalldata}"`)
         }
         const provider = this.getRpcProviderForChainId(fromChainId)
         if (!provider) {
-          throw new Error(`Invalid chainId, "${fromChainId}", provider not found`)
+          throw new InputError(`Invalid chainId, "${fromChainId}", provider not found`)
         }
 
         const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
         if (!address) {
-          throw new Error(`Invalid address, not found for chainId "${fromChainId}"`)
+          throw new ConfigError(`Invalid address, not found for chainId "${fromChainId}"`)
         }
         const spokeMessageBridge = SpokeMessageBridge__factory.connect(address, provider)
         const txData = await spokeMessageBridge.populateTransaction.dispatchMessage(toChainId, toAddress, toCalldata)
@@ -749,36 +750,36 @@ export class Messenger extends Base {
       relayMessage: async (input: GetRelayMessagePopulatedTxInput): Promise<providers.TransactionRequest> => {
         const { fromChainId, toChainId, fromAddress, toAddress, toCalldata, bundleProof } = input
         if (!this.utils.isValidChainId(fromChainId)) {
-          throw new Error(`Invalid fromChainId "${fromChainId}"`)
+          throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
         if (!this.utils.isValidChainId(toChainId)) {
-          throw new Error(`Invalid toChainId "${toChainId}"`)
+          throw new InputError(`Invalid toChainId "${toChainId}"`)
         }
 
         if (!this.utils.isValidAddress(toAddress)) {
-          throw new Error(`Invalid toAddress "${toAddress}"`)
+          throw new InputError(`Invalid toAddress "${toAddress}"`)
         }
 
         if (!this.utils.isValidBytes(toCalldata)) {
-          throw new Error(`Invalid toCalldata "${toCalldata}"`)
+          throw new InputError(`Invalid toCalldata "${toCalldata}"`)
         }
 
         if (!bundleProof) {
-          throw new Error('bundleProof is required')
+          throw new InputError('bundleProof is required')
         }
 
         if (!this.isValidBundleProof(bundleProof)) {
-          throw new Error('Invalid bundleProof')
+          throw new InputError('Invalid bundleProof')
         }
 
         const provider = this.getRpcProviderForChainId(toChainId)
         if (!provider) {
-          throw new Error(`Invalid chainId "${toChainId}", provider not found`)
+          throw new InputError(`Invalid chainId "${toChainId}", provider not found`)
         }
 
         const address = this.getHubMessageBridgeContractAddress(toChainId)
         if (!address) {
-          throw new Error(`Invalid chainId "${toChainId}", address not found`)
+          throw new InputError(`Invalid chainId "${toChainId}", address not found`)
         }
 
         const hubMessageBridge = HubMessageBridge__factory.connect(address, provider)
@@ -799,23 +800,23 @@ export class Messenger extends Base {
       bundleExit: async (input: GetBundleExitPopulatedTxInput): Promise<providers.TransactionRequest> => {
         let { fromChainId, bundleCommittedEvent, bundleCommittedTransactionHash } = input
         if (!this.utils.isValidChainId(fromChainId)) {
-          throw new Error(`Invalid fromChainId "${fromChainId}"`)
+          throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
         if (bundleCommittedTransactionHash) {
           if (!this.utils.isValidTxHash(bundleCommittedTransactionHash)) {
-            throw new Error(`Invalid transaction hash "${bundleCommittedTransactionHash}"`)
+            throw new InputError(`Invalid transaction hash "${bundleCommittedTransactionHash}"`)
           }
         } else if (bundleCommittedEvent) {
           const { eventLog, context } = bundleCommittedEvent
           if (!eventLog) {
-            throw new Error('eventLog is required')
+            throw new InputError('eventLog is required')
           }
           bundleCommittedTransactionHash = eventLog.transactionHash ?? context?.transactionHash
         } else {
-          throw new Error('bundleCommittedEvent or bundleCommittedTransactionHash is required')
+          throw new InputError('bundleCommittedEvent or bundleCommittedTransactionHash is required')
         }
         if (!bundleCommittedTransactionHash) {
-          throw new Error('expected bundle comitted transaction hash')
+          throw new InputError('expected bundle comitted transaction hash')
         }
 
         const l1Provider = this.getRpcProviderForChainId(this.l1ChainId)
@@ -835,7 +836,7 @@ export class Messenger extends Base {
           // exitRelayer = new GnosisChainRelayer(this.network, l1Provider, l2Provider)
         }
         if (!exitRelayer) {
-          throw new Error(`Exit relayer not found for chainId "${fromChainId}"`)
+          throw new ConfigError(`Exit relayer not found for chainId "${fromChainId}"`)
         }
         const txData = await exitRelayer.getExitPopulatedTx(bundleCommittedTransactionHash) as providers.TransactionRequest
 
@@ -849,32 +850,32 @@ export class Messenger extends Base {
         const { fromChainId, toChainId, messageId, fromAddress, toAddress, toCalldata } = input
 
         if (!this.utils.isValidChainId(fromChainId)) {
-          throw new Error(`Invalid fromChainId "${fromChainId}"`)
+          throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
 
         if (!this.utils.isValidChainId(toChainId)) {
-          throw new Error(`Invalid toChainId "${toChainId}"`)
+          throw new InputError(`Invalid toChainId "${toChainId}"`)
         }
 
         if (!this.utils.isValidBytes32(messageId)) {
-          throw new Error(`Invalid messageId "${messageId}"`)
+          throw new InputError(`Invalid messageId "${messageId}"`)
         }
 
         if (!this.utils.isValidAddress(fromAddress)) {
-          throw new Error(`Invalid fromAddress "${fromAddress}"`)
+          throw new InputError(`Invalid fromAddress "${fromAddress}"`)
         }
 
         if (!this.utils.isValidAddress(toAddress)) {
-          throw new Error(`Invalid toAddress "${toAddress}"`)
+          throw new InputError(`Invalid toAddress "${toAddress}"`)
         }
 
         if (!this.utils.isValidBytes(toCalldata)) {
-          throw new Error(`Invalid calldata "${toCalldata}"`)
+          throw new InputError(`Invalid calldata "${toCalldata}"`)
         }
 
         const address = this.getExecutorContractAddress(toChainId)
         if (!address) {
-          throw new Error(`Invalid address, not found for chainId "${toChainId}"`)
+          throw new InputError(`Invalid address, not found for chainId "${toChainId}"`)
         }
         const provider = this.getRpcProviderForChainId(toChainId)
         const mockExecutor = MockExecutor__factory.connect(address, provider)
@@ -914,13 +915,13 @@ export class Messenger extends Base {
   async getRouteData (input: GetRouteDataInput): Promise<RouteData> {
     const { fromChainId, toChainId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId "${toChainId}"`)
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
     if (fromChainId?.toString() === toChainId?.toString()) {
-      throw new Error('fromChainId and toChainId must be different')
+      throw new InputError('fromChainId and toChainId must be different')
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
@@ -936,13 +937,13 @@ export class Messenger extends Base {
   async getMessageFee (input: GetMessageFeeInput): Promise<BigNumber> {
     const { fromChainId, toChainId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId "${toChainId}"`)
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
     if (fromChainId?.toString() === toChainId?.toString()) {
-      throw new Error('fromChainId and toChainId must be different')
+      throw new InputError('fromChainId and toChainId must be different')
     }
     const routeData = await this.getRouteData({ fromChainId, toChainId })
     return routeData.messageFee
@@ -951,13 +952,13 @@ export class Messenger extends Base {
   async getMaxBundleMessageCount (input: GetMaxBundleMessageCountInput): Promise<number> {
     const { fromChainId, toChainId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId "${toChainId}"`)
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
     if (fromChainId?.toString() === toChainId?.toString()) {
-      throw new Error('fromChainId and toChainId must be different')
+      throw new InputError('fromChainId and toChainId must be different')
     }
     const routeData = await this.getRouteData({ fromChainId, toChainId })
     return routeData.maxBundleMessages
@@ -966,18 +967,18 @@ export class Messenger extends Base {
   async getIsBundleSet (input: GetIsBundleSetInput): Promise<boolean> {
     const { fromChainId, toChainId, bundleId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId "${toChainId}"`)
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
     const provider = this.getRpcProviderForChainId(toChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId "${toChainId}"`)
+      throw new ConfigError(`Provider not found for chainId "${toChainId}"`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(toChainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId "${toChainId}"`)
+      throw new ConfigError(`Contract address not found for chainId "${toChainId}"`)
     }
     const hubMessageBridge = HubMessageBridge__factory.connect(address, provider)
     const entity = await hubMessageBridge.bundles(bundleId)
@@ -991,18 +992,18 @@ export class Messenger extends Base {
   async getMessageSentEventFromTransactionReceipt (input: GetMessageSentEventFromTransactionReceiptInput): Promise<MessageSent | null> {
     const { fromChainId, receipt } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!receipt) {
-      throw new Error('receipt is required')
+      throw new InputError('receipt is required')
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${fromChainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${fromChainId}`)
     }
     const eventFetcher = new MessageSentEventFetcher(provider, fromChainId, this.batchBlocks, address)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
@@ -1012,17 +1013,17 @@ export class Messenger extends Base {
   async getMessageSentEventFromTransactionHash (input: GetMessageSentEventFromTransactionHashInput): Promise<MessageSent | null> {
     const { fromChainId, transactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!transactionHash) {
-      throw new Error('transactionHash is required')
+      throw new InputError('transactionHash is required')
     }
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transaction hash "${transactionHash}"`)
+      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
     }
     const receipt = await provider.getTransactionReceipt(transactionHash)
     return this.getMessageSentEventFromTransactionReceipt({ fromChainId, receipt })
@@ -1031,19 +1032,19 @@ export class Messenger extends Base {
   async getMessageBundledEventFromMessageId (input: GetMessageBundledEventFromMessageIdInput): Promise<MessageBundled> {
     const { fromChainId, messageId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
     }
 
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
     const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, 0, address)
@@ -1057,25 +1058,25 @@ export class Messenger extends Base {
   async getMessageSentEventFromMessageId (input: GetMessageSentEventFromMessageIdInput): Promise<MessageSent> {
     const { fromChainId, messageId } = input
     if (!fromChainId) {
-      throw new Error('fromChainId is required')
+      throw new InputError('fromChainId is required')
     }
     if (!messageId) {
-      throw new Error('messageId is required')
+      throw new InputError('messageId is required')
     }
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId ${fromChainId}""`)
+      throw new InputError(`Invalid fromChainId ${fromChainId}""`)
     }
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
     }
 
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Contract address not found for chainId "${fromChainId}"`)
     }
 
     const eventFetcher = new MessageSentEventFetcher(provider, fromChainId, 0, address)
@@ -1090,25 +1091,25 @@ export class Messenger extends Base {
   async getMessageExecutedEventFromMessageId (input: GetMessageExecutedEventFromMessageIdInput): Promise<MessageExecuted | null>{
     const { fromChainId, toChainId, messageId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId "${toChainId}"`)
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
     if (!messageId) {
-      throw new Error('messageId is required')
+      throw new InputError('messageId is required')
     }
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${toChainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${toChainId}`)
     }
 
     const address = this.getSpokeMessageBridgeContractAddress(toChainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${toChainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${toChainId}`)
     }
 
     const eventFetcher = new MessageExecutedEventFetcher(provider, toChainId, 0, address)
@@ -1122,22 +1123,22 @@ export class Messenger extends Base {
   async getMessageBundledEventFromTransactionHash (input: GetMessageBundledEventFromTransactionHashInput): Promise<MessageBundled | null> {
     const { fromChainId, transactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!transactionHash) {
-      throw new Error('transactionHash is required')
+      throw new InputError('transactionHash is required')
     }
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transaction hash "${transactionHash}"`)
+      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${fromChainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${fromChainId}`)
     }
     const receipt = await provider.getTransactionReceipt(transactionHash)
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${fromChainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${fromChainId}`)
     }
     const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, this.batchBlocks, address)
     const events = eventFetcher.decodeEventsFromTransactionReceipt(receipt)
@@ -1147,17 +1148,17 @@ export class Messenger extends Base {
   async getMessageIdFromTransactionHash (input: GetMessageIdFromTransactionHashInput): Promise<string> {
     const { fromChainId, transactionHash } = input
     if (!fromChainId) {
-      throw new Error('fromChainId is required')
+      throw new InputError('fromChainId is required')
     }
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+      throw new InputError(`Invalid fromChainId: ${fromChainId}`)
     }
 
     if (!transactionHash) {
-      throw new Error('transactionHash is required')
+      throw new InputError('transactionHash is required')
     }
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transaction hash "${transactionHash}"`)
+      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
     }
 
     const event = await this.getMessageSentEventFromTransactionHash({ fromChainId, transactionHash })
@@ -1171,10 +1172,10 @@ export class Messenger extends Base {
   async getMessageBundleIdFromMessageId (input: GetMessageBundleIdFromMessageIdInput): Promise<string> {
     const { fromChainId, messageId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
     const event = await this.getMessageBundledEventFromMessageId({ fromChainId, messageId })
     if (!event) {
@@ -1187,10 +1188,10 @@ export class Messenger extends Base {
   async getMessageBundleIdFromTransactionHash (input: GetMessageBundleIdFromTransactionHashInput): Promise<string> {
     const { fromChainId, transactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transactionHash "${transactionHash}"`)
+      throw new InputError(`Invalid transactionHash "${transactionHash}"`)
     }
     const event = await this.getMessageBundledEventFromTransactionHash({ fromChainId, transactionHash })
     if (!event) {
@@ -1203,10 +1204,10 @@ export class Messenger extends Base {
   async getMessageTreeIndexFromMessageId (input: GetMessageTreeIndexFromMessageIdInput): Promise<number> {
     const { fromChainId, messageId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
     const event = await this.getMessageBundledEventFromMessageId({ fromChainId, messageId })
     if (!event) {
@@ -1219,10 +1220,10 @@ export class Messenger extends Base {
   async getMessageTreeIndexFromTransactionHash (input: GetMessageTreeIndexFromTransactionHashInput): Promise<number> {
     const { fromChainId, transactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transactionHash "${transactionHash}"`)
+      throw new InputError(`Invalid transactionHash "${transactionHash}"`)
     }
     const event = await this.getMessageBundledEventFromTransactionHash({ fromChainId, transactionHash })
     if (!event) {
@@ -1235,18 +1236,18 @@ export class Messenger extends Base {
   async getMessageBundledEventsForBundleId (input: GetMessageBundledEventsForBundleIdInput): Promise<MessageBundled[]> {
     const { fromChainId, bundleId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidBytes32(bundleId)) {
-      throw new Error(`Invalid bundleId "${bundleId}"`)
+      throw new InputError(`Invalid bundleId "${bundleId}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${fromChainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${fromChainId}`)
     }
     const address = this.getSpokeMessageBridgeContractAddress(fromChainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${fromChainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${fromChainId}`)
     }
     const eventFetcher = new MessageBundledEventFetcher(provider, fromChainId, 0, address)
     const filter = eventFetcher.getBundleIdFilter(bundleId)
@@ -1259,10 +1260,10 @@ export class Messenger extends Base {
   async getMessageIdsForBundleId (input: GetMessageIdsForBundleIdInput): Promise<string[]> {
     const { fromChainId, bundleId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidBytes32(bundleId)) {
-      throw new Error(`Invalid bundleId "${bundleId}"`)
+      throw new InputError(`Invalid bundleId "${bundleId}"`)
     }
     const messageEvents = await this.getMessageBundledEventsForBundleId({ fromChainId, bundleId })
     const messageIds = messageEvents.map((item: MessageBundled) => item.messageId)
@@ -1272,16 +1273,16 @@ export class Messenger extends Base {
   async getMerkleProofForMessageId (input: GetMerkleProofForMessageIdInput) {
     const { messageIds, targetMessageId } = input
     if (!targetMessageId) {
-      throw new Error('targetMessageId is required')
+      throw new InputError('targetMessageId is required')
     }
     if (!Array.isArray(messageIds)) {
-      throw new Error('messageIds is required and must be an array')
+      throw new InputError('messageIds is required and must be an array')
     }
     if (!messageIds.every((item: string) => this.utils.isValidBytes32(item))) {
-      throw new Error('Invalid messageIds')
+      throw new InputError('Invalid messageIds')
     }
     if (!this.utils.isValidBytes32(targetMessageId)) {
-      throw new Error(`Invalid targetMessageId "${targetMessageId}"`)
+      throw new InputError(`Invalid targetMessageId "${targetMessageId}"`)
     }
 
     const tree = MerkleTree.from(messageIds)
@@ -1292,17 +1293,17 @@ export class Messenger extends Base {
   async getBundleProofFromMessageId (input: GetBundleProofFromMessageIdInput): Promise<BundleProof> {
     const { fromChainId, messageId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!messageId) {
-      throw new Error('messageId is required')
+      throw new InputError('messageId is required')
     }
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
     }
 
     const { treeIndex, bundleId } = await this.getMessageBundledEventFromMessageId({ fromChainId, messageId })
@@ -1321,14 +1322,14 @@ export class Messenger extends Base {
   async getBundleProofFromTransactionHash (input: GetBundleProofFromTransactionHashInput): Promise<BundleProof> {
     const { fromChainId, transactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transactionHash "${transactionHash}"`)
+      throw new InputError(`Invalid transactionHash "${transactionHash}"`)
     }
     const provider = this.getRpcProviderForChainId(fromChainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId "${fromChainId}"`)
+      throw new ConfigError(`Provider not found for chainId "${fromChainId}"`)
     }
 
     // TODO: handle case for when multiple message events in single transaction
@@ -1353,15 +1354,15 @@ export class Messenger extends Base {
   async getRelayMessageDataFromTransactionHash (input: GetRelayMessageDataFromTransactionHashInput): Promise<RelayMessageData> {
     const { fromChainId, transactionHash } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
 
     if (!transactionHash) {
-      throw new Error('transactionHash is required')
+      throw new InputError('transactionHash is required')
     }
 
     if (!this.utils.isValidTxHash(transactionHash)) {
-      throw new Error(`Invalid transaction hash "${transactionHash}"`)
+      throw new InputError(`Invalid transaction hash "${transactionHash}"`)
     }
 
     const event = await this.getMessageSentEventFromTransactionHash({ fromChainId, transactionHash })
@@ -1387,15 +1388,15 @@ export class Messenger extends Base {
   async getMessageCalldataFromMessageId (input: GetMessageCalldataInput): Promise<string> {
     const { fromChainId, messageId } = input
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
 
     if (!messageId) {
-      throw new Error('messageId is required')
+      throw new InputError('messageId is required')
     }
 
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
 
     const event = await this.getMessageSentEventFromMessageId({ fromChainId, messageId })
@@ -1409,19 +1410,19 @@ export class Messenger extends Base {
   async getIsMessageIdRelayed (input: GetIsMessageIdRelayedInput): Promise<boolean> {
     const { fromChainId, toChainId, messageId } = input
     if (!messageId) {
-      throw new Error('messageId is required')
+      throw new InputError('messageId is required')
     }
 
     if (!this.utils.isValidBytes32(messageId)) {
-      throw new Error(`Invalid messageId "${messageId}"`)
+      throw new InputError(`Invalid messageId "${messageId}"`)
     }
 
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId: ${fromChainId}`)
+      throw new InputError(`Invalid fromChainId: ${fromChainId}`)
     }
 
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId: ${toChainId}`)
+      throw new InputError(`Invalid toChainId: ${toChainId}`)
     }
 
     const event = await this.getMessageExecutedEventFromMessageId({ messageId, fromChainId, toChainId })
@@ -1437,16 +1438,16 @@ export class Messenger extends Base {
     } = input
 
     if (!this.utils.isValidChainId(fromChainId)) {
-      throw new Error(`Invalid fromChainId "${fromChainId}"`)
+      throw new InputError(`Invalid fromChainId "${fromChainId}"`)
     }
     if (!this.utils.isValidChainId(toChainId)) {
-      throw new Error(`Invalid toChainId "${toChainId}"`)
+      throw new InputError(`Invalid toChainId "${toChainId}"`)
     }
     if (!this.utils.isValidAddress(toAddress)) {
-      throw new Error(`Invalid toAddress "${toAddress}"`)
+      throw new InputError(`Invalid toAddress "${toAddress}"`)
     }
     if (!this.utils.isValidBytes(toCalldata)) {
-      throw new Error(`Invalid toCalldata "${toCalldata}"`)
+      throw new InputError(`Invalid toCalldata "${toCalldata}"`)
     }
 
     const populatedTx = await this.populateTransaction.sendMessage({

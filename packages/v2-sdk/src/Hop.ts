@@ -20,6 +20,7 @@ import { HubConnector, ConnectTargetsInput } from '#hubConnector/index.js'
 import { RailsGateway, GetPathInfoInput, Path } from '#railsGateway/index.js'
 import { Nft } from '#nft/index.js'
 import { Addresses } from '#addresses/types.js'
+import { ConfigError, InputError } from '#error/index.js'
 
 export type HopConstructorInput = {
   network: string
@@ -73,12 +74,12 @@ export class Hop extends Base {
 
   constructor (options?: HopConstructorInput) {
     if (!options) {
-      throw new Error('options is required')
+      throw new ConfigError('options is required')
     }
     const { network } = options
     super({ network, signer: options?.signer })
     if (!['mainnet', 'sepolia'].includes(network)) {
-      throw new Error(`Invalid network: ${network}`)
+      throw new ConfigError(`Invalid network: ${network}`)
     }
 
     this.network = network
@@ -110,7 +111,7 @@ export class Hop extends Base {
 
   getHubConnectorContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId: ${chainId}`)
+      throw new InputError(`Invalid chainId: ${chainId}`)
     }
 
     return this.hubConnector.getHubConnectorContractAddress(chainId)
@@ -118,7 +119,7 @@ export class Hop extends Base {
 
   getRailsGatewayContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId: ${chainId}`)
+      throw new InputError(`Invalid chainId: ${chainId}`)
     }
 
     return this.railsGateway.getRailsGatewayContractAddress(chainId)
@@ -126,7 +127,7 @@ export class Hop extends Base {
 
   getNftBridgeContractAddress (chainId: BigNumberish): string {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId: ${chainId}`)
+      throw new InputError(`Invalid chainId: ${chainId}`)
     }
 
     return this.nft.getNftBridgeContractAddress(chainId)
@@ -138,27 +139,27 @@ export class Hop extends Base {
         const { fromChainId, toChainId, fromToken, toToken, to, amount, minAmountOut } = input
 
         if (!this.utils.isValidChainId(fromChainId)) {
-          throw new Error(`Invalid fromChainId "${fromChainId}"`)
+          throw new InputError(`Invalid fromChainId "${fromChainId}"`)
         }
 
         if (!this.utils.isValidChainId(toChainId)) {
-          throw new Error(`Invalid toChainId "${toChainId}"`)
+          throw new InputError(`Invalid toChainId "${toChainId}"`)
         }
 
         if (!this.utils.isValidAddress(fromToken)) {
-          throw new Error(`Invalid fromToken "${fromToken}"`)
+          throw new InputError(`Invalid fromToken "${fromToken}"`)
         }
 
         if (!this.utils.isValidAddress(toToken)) {
-          throw new Error(`Invalid toToken "${toToken}"`)
+          throw new InputError(`Invalid toToken "${toToken}"`)
         }
 
         if (!this.utils.isValidAddress(to)) {
-          throw new Error(`Invalid to "${to}"`)
+          throw new InputError(`Invalid to "${to}"`)
         }
 
         if (!this.utils.isValidNumericValue(minAmountOut)) {
-          throw new Error(`Invalid minAmountOut "${minAmountOut}"`)
+          throw new InputError(`Invalid minAmountOut "${minAmountOut}"`)
         }
 
         const pathId = await this.railsGateway.getPathId({
@@ -261,15 +262,15 @@ export class Hop extends Base {
 
   async switchChain (chainId: BigNumberish): Promise<void> {
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId: ${chainId}`)
+      throw new InputError(`Invalid chainId: ${chainId}`)
     }
 
     if (!this.signer) {
-      throw new Error('No signer connected to switch chains')
+      throw new ConfigError('No signer connected to switch chains')
     }
 
     if (!this.signer.provider) {
-      throw new Error('No provider connected to signer')
+      throw new ConfigError('No provider connected to signer')
     }
 
     await this.utils.switchChain(chainId, this.signer.provider)
@@ -279,10 +280,10 @@ export class Hop extends Base {
   async getEvents (input: GetGeneralEventsInput): Promise<EthersEvent[]> {
     let { eventName, eventNames, chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
@@ -308,7 +309,7 @@ export class Hop extends Base {
     }
 
     if (!eventNames?.length) {
-      throw new Error('expected eventName or eventNames')
+      throw new InputError('expected eventName or eventNames')
     }
 
     const filters : Filter[] = []

@@ -2,6 +2,7 @@ import { Base, BaseConfig } from '#common/index.js'
 import { BigNumberish, Signer, providers, utils, Event as EthersEvent } from 'ethers'
 import { HubERC5164ConnectorFactory__factory } from '#contracts/factories/HubERC5164ConnectorFactory__factory.js'
 import { ConnectorDeployed, ConnectorDeployedEventFetcher } from '#hubConnector/events/ConnectorDeployed.js'
+import { ConfigError, InputError } from '#error/index.js'
 
 const { getAddress: checksumAddress } = utils
 
@@ -41,7 +42,7 @@ export class HubConnector extends Base {
         const { hubChainId, spokeChainId, target1, target2 } = input
         const provider = this.getRpcProviderForChainId(hubChainId)
         if (!provider) {
-          throw new Error(`Provider not found for chainId: ${hubChainId}`)
+          throw new ConfigError(`Provider not found for chainId: ${hubChainId}`)
         }
         const address = this.getHubConnectorContractAddress(hubChainId)
         const signer = await this.getSignerOrProvider(hubChainId)
@@ -83,21 +84,21 @@ export class HubConnector extends Base {
   async getConnectorDeployedEvents (input: GetEventsInput): Promise<ConnectorDeployed[]> {
     const { chainId, fromBlock, toBlock } = input
     if (!chainId) {
-      throw new Error('chainId is required')
+      throw new InputError('chainId is required')
     }
     if (!this.utils.isValidChainId(chainId)) {
-      throw new Error(`Invalid chainId: ${chainId}`)
+      throw new InputError(`Invalid chainId: ${chainId}`)
     }
     if (!fromBlock) {
-      throw new Error('fromBlock is required')
+      throw new InputError('fromBlock is required')
     }
     const provider = this.getRpcProviderForChainId(chainId)
     if (!provider) {
-      throw new Error(`Provider not found for chainId: ${chainId}`)
+      throw new ConfigError(`Provider not found for chainId: ${chainId}`)
     }
     const address = this.getHubConnectorContractAddress(chainId)
     if (!address) {
-      throw new Error(`Contract address not found for chainId: ${chainId}`)
+      throw new ConfigError(`Contract address not found for chainId: ${chainId}`)
     }
     const eventFetcher = new ConnectorDeployedEventFetcher(provider, chainId, this.batchBlocks, address)
     return eventFetcher.getEvents(fromBlock, toBlock)

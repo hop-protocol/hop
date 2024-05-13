@@ -13,6 +13,7 @@
     "dev:local": "npm run start:local",
     "lint": "eslint . --fix",
     "build": "tsc",
+    "version": "pnpm version",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo"
   },

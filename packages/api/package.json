@@ -13,7 +13,8 @@
     "start": "node dist/index.js",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "build": "tsc",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "version": "pnpm version"
   },
   "dependencies": {
     "@hop-protocol/sdk": "workspace:*",

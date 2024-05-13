@@ -6,7 +6,7 @@ on:
       - production
 env:
   BRANCH_NAME: ${{ github.ref_name }}
-  DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'next') || (github.ref_name == 'production' && 'latest') }}
+  DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
 
 jobs:
   wait-for-npm-publish:

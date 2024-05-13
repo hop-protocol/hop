@@ -22,6 +22,7 @@
     "watch": "tsc --watch",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "eslint . --fix",
+    "version": "pnpm version",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
   },
   "dependencies": {

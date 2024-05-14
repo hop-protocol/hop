@@ -4,8 +4,8 @@ on:
     branches:
       - develop
     paths:
-      - './packages/hop-node'
-      - './packages/v2-explorer-backend'
+      - 'packages/hop-node/**'
+      - 'packages/v2-explorer-backend/**'
 
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}

@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - production
+    paths:
+      - 'packages/sdk/**'
 
 jobs:
   publish-sdk:

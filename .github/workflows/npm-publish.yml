@@ -2,7 +2,7 @@ name: Publish Packages to NPM if Necessary
 on:
   push:
     branches:
-      - production
+      - TODO
 
 jobs:
   check-modified:

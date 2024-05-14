@@ -2,8 +2,7 @@ name: Build and Deploy Frontend UIs
 on:
   push:
     branches:
-      - develop
-      - production
+      - TODO
 
 jobs:
   check-modified:

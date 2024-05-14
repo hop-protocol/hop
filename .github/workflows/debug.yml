@@ -2,10 +2,12 @@ name: Publish Packages to NPM if Necessary
 on:
   push:
     branches:
-      - develop
+      - TODO
 env:
   BRANCH_NAME: ${{ github.ref_name }}
 
 jobs:
   debug:
-    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Debug'

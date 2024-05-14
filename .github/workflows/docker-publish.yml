@@ -2,8 +2,7 @@ name: Publish Packages to Docker Hub if Necessary
 on:
   push:
     branches:
-      - develop
-      - production
+      - TODO
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
 

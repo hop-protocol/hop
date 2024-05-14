@@ -41,7 +41,7 @@ jobs:
 
       - name: Get modified packages
         id: modified-packages
-        uses: tj-actions/changed-files@va29e8b565651ce417abb5db7164b4a2ad8b6155c
+        uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
         with:
           dir_names: 'true'
           dir_names_max_depth: 2

@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       hash: ${{ steps.deploy.outputs.hash }}
-    stategy:
+    strategy:
       matrix:
-        pacakge: [frontend]
+        package: [frontend]
         env-name: ['production', 'mainnet', 'sepolia']
     steps:
       - name: Deploy environment
@@ -36,7 +36,7 @@ jobs:
         id: deploy
         uses: ./.github/workflows/ui-deploy-environment.yml
         with:
-          ENV_NAME: ${{ matrix.env-name}}
+          ENV_NAME: ${{ matrix.env-name }}
 
   publish-ui:
     needs: deploy-ui

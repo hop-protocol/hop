@@ -17,14 +17,14 @@ jobs:
       matrix:
         env-name: ['production','mainnet']
     steps:
+      - name: Checkout code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
       - name: Check versions
         id: check-versions
         uses: ./.github/actions/check-version
         with:
           package-name: frontend
-
-      - name: Checkout code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
       - name: Setup workflow
         uses: ./.github/actions/setup

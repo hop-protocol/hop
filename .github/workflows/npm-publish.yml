@@ -31,6 +31,6 @@ jobs:
 
       - name: Publish package
         if: steps.check-versions.outputs.package-version-changed == 'true'
-        run: pnpm --filter sdk publish --access public
+        run: pnpm --filter sdk publish --publish-branch production --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

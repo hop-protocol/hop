@@ -12,6 +12,9 @@ outputs:
   package-version-changed:
     value: ${{ steps.check-package.outputs.any_changed }}
     description: 'Returns a boolean indicating if the passed-in package.json was changed in any way.'
+defaults:
+  run:
+    shell: bash
 
 runs:
   using: composite
@@ -22,6 +25,7 @@ runs:
         fetch-depth: 0
 
     - name: Get local and current versions
+      shell: bash
       id: check-npm
       if: inputs.package-name == 'sdk'
       working-directory: ./packages/${{ inputs.package-name }}

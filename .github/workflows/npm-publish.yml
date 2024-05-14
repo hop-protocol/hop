@@ -2,15 +2,15 @@ name: Publish Packages to NPM if Necessary
 on:
   push:
     branches:
-      - develop
+      - production
 env:
-  BRANCH_NAME: ${{ github.ref_name }}
+  ENV_NAME: ${{ github.ref_name }}
 
 jobs:
   publish-sdk:
     name: Publish SDK
     runs-on: ubuntu-latest
-    environment: ${{ env.BRANCH_NAME }}
+    environment: ${{ env.ENV_NAME }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b

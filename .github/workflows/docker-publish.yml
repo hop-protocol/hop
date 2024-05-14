@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Publish Docker image
-        if: steps.should-publish.outputs.is-package-modified == 'true'
+        if: steps.should-publish.outputs.npm-version-changed == 'true' || env.DOCKER_TAG != 'latest'
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package }}/Dockerfile

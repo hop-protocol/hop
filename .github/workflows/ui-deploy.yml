@@ -4,23 +4,23 @@ on:
     branches:
       - TODO
 
+# TODO: Add sepolia
+# TODO: DRY if statements
+
 jobs:
   check-modified:
     uses: ./.github/workflows/check-modified.yml
     with:
       package-name: frontend
 
-  publish-ui:
+  build-ui:
     needs: check-modified
     if: needs.check-modified.outputs.is-package-modified == 'true'
     runs-on: ubuntu-latest
     environment: ${{ matrix.env-name }}
-    permissions:
-      contents: write
     strategy:
       matrix:
-        package: [frontend]
-        env-name: ['production', 'mainnet', 'sepolia']
+        env-name: ['production','mainnet']
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -56,6 +56,7 @@ jobs:
           contents: ${{ github.sha }}
 
       - name: Pin to IPFS on Pinata
+        if: steps.should-publish.outputs.npm-version-changed == 'true' || matrix.env-name != 'production'
         id: upload
         uses: anantaramdas/ipfs-pinata-deploy-action@9f9c3b42b5d360352c4b768d98aff1309d62faa0
         with:
@@ -74,7 +75,7 @@ jobs:
           fi
 
       - name: Update CloudFlare DNS with new IPFS hash
-        if: needs.check-modified.outputs.npm-version-changed == 'true'
+        if: steps.should-publish.outputs.npm-version-changed == 'true' || matrix.env-name != 'production'
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: 'hop.exchange'
@@ -85,21 +86,21 @@ jobs:
           cid: ${{ steps.upload.outputs.hash }}
 
       - name: Convert CIDv0 to CIDv1
-        if: needs.check-modified.outputs.npm-version-changed == 'true'
+        if: steps.should-publish.outputs.npm-version-changed == 'true' || matrix.env-name != 'production'
         id: convert_cidv0
         uses: uniswap/convert-cidv0-cidv1@c53a468c3602a85dd979c02ec4ddd9102849395e
         with:
-          cidv0: ${{ steps.upload.outputs.hash }}}}
+          cidv0: ${{ steps.upload.outputs.hash }}
 
       - name: Create GitHub Release
-        if: needs.check-modified.outputs.npm-version-changed == 'true'
+        if: steps.should-publish.outputs.npm-version-changed == 'true' || matrix.env-name != 'production'
         env:
-          CIDv0: ${{ steps.upload.outputs.hash }}}}
+          CIDv0: ${{ steps.upload.outputs.hash }}
           CIDv1: ${{ steps.convert_cidv0.outputs.cidv1 }}
         uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87
         with:
           name: ${{ github.sha }}
-          tag_name: ${{ github.sha }} }}
+          tag_name: ${{ github.sha }}
           body: |
             IPFS hash of the deployment:
             - CIDv0: `${{ env.CIDv0 }}`

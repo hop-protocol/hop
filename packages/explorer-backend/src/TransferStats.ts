@@ -1022,7 +1022,7 @@ export class TransferStats {
             event.relayer?.toString() === x.relayer?.toString() &&
             event.relayerFee?.toString() === x.relayerFee?.toString() &&
             Number(event.timestamp.toString()) - Number(x.timestamp.toString()) > 0 &&
-            (!single && Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= l1ToL2RelayTimeMaxSec)
+            (single || (Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= l1ToL2RelayTimeMaxSec))
           ) {
             x.bonded = true
 

@@ -2,7 +2,7 @@ name: Publish Packages to NPM if Necessary
 on:
   push:
     branches:
-      - TODO
+      - production
 
 jobs:
   publish-sdk:
@@ -12,14 +12,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
+      - name: Setup workflow
+        uses: ./.github/actions/setup
+
       - name: Check versions
         id: check-versions
         uses: ./.github/actions/check-version
         with:
           package-name: sdk
-
-      - name: Setup workflow
-        uses: ./.github/actions/setup
 
       - name: Install and build package
         if: steps.check-versions.outputs.package-version-changed == 'true'

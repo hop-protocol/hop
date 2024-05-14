@@ -11,7 +11,7 @@ env:
   DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
 
 jobs:
-  publish-docker-hop-node:
+  publish-docker:
     runs-on: ubuntu-latest
     strategy:
       matrix:

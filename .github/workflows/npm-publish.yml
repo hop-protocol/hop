@@ -5,17 +5,16 @@ on:
       - TODO
 
 jobs:
-  check-modified:
-    uses: ./.github/workflows/check-modified.yml
-    with:
-      package-name: sdk
-
   publish-sdk:
-    needs: check-modified
-    if: needs.check-modified.outputs.npm-version-changed == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name }}
     steps:
+      - name: Check versions
+        id: check-versions
+        uses: ./.github/actions/check-version
+        with:
+          package-name: sdk
+
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
@@ -23,11 +22,13 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Install and build package
+        if: steps.check-versions.outputs.package-version-changed == 'true'
         run: |
           pnpm --filter-prod sdk... install
           pnpm --filter sdk... build
 
       - name: Publish package
+        if: steps.check-versions.outputs.package-version-changed == 'true'
         run: pnpm --filter sdk publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

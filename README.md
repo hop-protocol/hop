@@ -42,11 +42,11 @@ pnpm build
 All commands should be run from the root of the monorepo.
 
 ```bash
-# Install a single package
-pnpm --filter <package_name> install
+# Install a single package and its dependencies
+pnpm --filter <package_name>... install
 
-# Build a single package
-pnpm --filter <package_name> build
+# Build a single package and its dependencies
+pnpm --filter <package_name>... build
 
 # Run a PNPM script in all packages
 pnpm <script_name>
@@ -56,7 +56,7 @@ pnpm <script_name>
 **If you are developing on a single package only and need to ignore the rest of the packages**, you need to install with `--include-workspace-root`. This is because the installation of a single package does not install the root’s dependencies, which are usually needed for building and linting.
 
 ```bash
-pnpm --filter <package_name> install --include-workspace-root
+pnpm --filter <package_name>... install --include-workspace-root
 ```
 
 ## Contributing

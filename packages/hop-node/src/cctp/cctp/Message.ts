@@ -8,7 +8,7 @@ import {
 } from './utils.js'
 import { ChainSlug, getChainSlug } from '@hop-protocol/sdk'
 import type { NetworkSlug } from '@hop-protocol/sdk'
-import { MinPolygonGasPrice } from '@hop-protocol/hop-node-core'
+import { MIN_POLYGON_GAS_PRICE } from '@hop-protocol/hop-node-core'
 import type { RequiredEventFilter } from '../indexer/OnchainEventIndexer.js'
 import { getRpcProvider } from '@hop-protocol/hop-node-core'
 import { config as globalConfig } from '#config/index.js'
@@ -161,7 +161,7 @@ export class Message {
     if (chainSlug === ChainSlug.Polygon) {
       txOptions.gasPrice = await provider.getGasPrice()
 
-      const minGasPrice = BigNumber.from(MinPolygonGasPrice).mul(2)
+      const minGasPrice = BigNumber.from(MIN_POLYGON_GAS_PRICE).mul(2)
       const gasPriceBn = BigNumber.from(txOptions.gasPrice)
       if (gasPriceBn.lt(minGasPrice)) {
         txOptions.gasPrice = minGasPrice

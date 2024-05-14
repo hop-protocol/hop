@@ -1,10 +1,10 @@
 import { GasBoostSigner } from '#gasboost/GasBoostSigner.js'
-import { GasBoostTransaction } from '#gasboost/GasBoostTransaction.js'
+import type { GasBoostTransaction } from '#gasboost/GasBoostTransaction.js'
 import { MemoryStore } from '#gasboost/MemoryStore.js'
 import { Wallet } from 'ethers'
 import { getRpcProvider } from '#utils/getRpcProvider.js'
-import { utils } from 'ethers'
 import { wait } from '#utils/wait.js'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 const privateKey = '0x0000000000000000000000000000000000000000000000000000000000000001'
 function expectDefined<T> (arg: T): asserts arg is NonNullable<T> {
@@ -14,7 +14,7 @@ function expectDefined<T> (arg: T): asserts arg is NonNullable<T> {
 // eslint-disable-next-line max-lines-per-function
 describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {
-    const provider = getRpcProvider('gnosis')
+    const provider = getRpcProvider(ChainSlug.Gnosis)
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -23,7 +23,7 @@ describe.skip('GasBoostSigner', () => {
     expect(await signer.getAddress()).toBeTruthy()
   })
   it.skip('sendTransaction - gnosis', async () => {
-    const provider = getRpcProvider('gnosis')
+    const provider = getRpcProvider(ChainSlug.Gnosis)
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -60,7 +60,7 @@ describe.skip('GasBoostSigner', () => {
     expect(boosted).toBeTruthy()
   }, 10 * 60 * 1000)
   it.skip('sendTransaction - mainnet', async () => {
-    const provider = getRpcProvider('ethereum')
+    const provider = getRpcProvider(ChainSlug.Ethereum)
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -99,7 +99,7 @@ describe.skip('GasBoostSigner', () => {
     expect(boosted).toBeTruthy()
   }, 10 * 60 * 1000)
   it.skip('maxGasBoostReached', async () => {
-    const provider = getRpcProvider('gnosis')
+    const provider = getRpcProvider(ChainSlug.Gnosis)
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -140,7 +140,7 @@ describe.skip('GasBoostSigner', () => {
     expect(boostedIndex).toBe(1)
   }, 10 * 60 * 1000)
   it.skip('nonceTooLow', async () => {
-    const provider = getRpcProvider('gnosis')
+    const provider = getRpcProvider(ChainSlug.Gnosis)
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -167,8 +167,7 @@ describe.skip('GasBoostSigner', () => {
     expect(signer.getNonce()).toBe(nonce + 1)
   }, 10 * 60 * 1000)
   it.skip('reorg test', async () => {
-    const chain = 'gnosis'
-    const provider = getRpcProvider(chain)
+    const provider = getRpcProvider(ChainSlug.Gnosis)
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -212,7 +211,7 @@ describe.skip('GasBoostSigner', () => {
 
 describe.skip('GasBoostTransaction', () => {
   const store = new MemoryStore()
-  const provider = getRpcProvider('polygon')
+  const provider = getRpcProvider(ChainSlug.Polygon)
   expectDefined(provider)
   expectDefined(privateKey)
   const wallet = new Wallet(privateKey, provider)

@@ -163,8 +163,8 @@ for (const chains of Object.values(getNetwork(NetworkSlug.Mainnet))) {
 
 const chainSlugToIdMap :any = {}
 
-for (const chain in networks) {
-  chainSlugToIdMap[chain] = networks[chain].chainId
+for (const chain in networks.chains) {
+  chainSlugToIdMap[chain] = networks.chains[chain].chainId
 }
 
 export function chainSlugToId (chainSlug: string) {
@@ -435,11 +435,11 @@ function useData () {
       })
 
       function label (node: any) {
-        return node.name.replace(/\s*\(.*?\)$/, '')
+        return node?.name?.replace(/\s*\(.*?\)$/, '') ?? ''
       }
 
       function color (node: any, depth: number): any {
-        const id = node.id.replace(/(_score)?(_\d+)?$/, '')
+        const id = node?.id?.replace(/(_score)?(_\d+)?$/, '') ?? ''
         if (colorsMap[id]) {
           return colorsMap[id]
         } else if (depth > 0 && node.targetLinks && node.targetLinks.length === 1) {
@@ -1353,7 +1353,7 @@ const Index: NextPage = (props: any) => {
                                 </Box>
                               )}
                             </span>
-                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
+                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded && x.sourceChainSlug !== 'ethereum') && (
                               <Tooltip title={<Box>This transaction is still waiting to be bonded, received, or relayed at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>Your funds are safe. If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`${appBaseUrl}/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.</Box>}</Box>}>
                               <span className="no">
                                 <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />

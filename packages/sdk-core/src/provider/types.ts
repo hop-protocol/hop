@@ -6,8 +6,8 @@ export enum RpcProviderSlug {
 }
 
 export type RpcProvider = {
-  [key in RpcProviderSlug]: {
-    name: string
-    wsSupported: boolean
+  readonly [key in RpcProviderSlug]: {
+    readonly name: string
+    readonly wsSupported: boolean
   }
 }

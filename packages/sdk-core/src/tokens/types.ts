@@ -25,14 +25,14 @@ export type TokenSymbolish = TokenSymbol | string
 // Allows for consumption of the enum values as strings without needing `as TokenName`
 type TokenSymbolString = typeof TokenSymbol[keyof typeof TokenSymbol]
 export interface Token {
-  symbol: TokenSymbolString
-  name: string
-  decimals: number
-  image: string
-  coingeckoId: string
-  isStableCoin: boolean
+  readonly symbol: TokenSymbolString
+  readonly name: string
+  readonly decimals: number
+  readonly image: string
+  readonly coingeckoId: string
+  readonly isStableCoin: boolean
 }
 
 export type Tokens = {
-  [key in TokenSymbol]: Token
+  readonly [key in TokenSymbol]: Token
 }

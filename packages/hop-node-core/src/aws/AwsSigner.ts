@@ -3,7 +3,7 @@ import type { providers } from 'ethers'
 // @ts-expect-error asn1.js does not have a types file as of 20231227
 import asn1 from 'asn1.js'
 
-const EcdsaPubKey = asn1.define('EcdsaPubKey', function (this: any) {
+const EcdsaPubKey = asn1.define('EcdsaPubKey', function (this: any): void {
   this.seq().obj(
     this.key('algo').seq().obj(
       this.key('a').objid(),
@@ -13,7 +13,7 @@ const EcdsaPubKey = asn1.define('EcdsaPubKey', function (this: any) {
   )
 })
 
-const EcdsaSigAsnParse = asn1.define('EcdsaSig', function (this: any) {
+const EcdsaSigAsnParse = asn1.define('EcdsaSig', function (this: any): void {
   this.seq().obj(
     this.key('r').int(),
     this.key('s').int()
@@ -44,7 +44,7 @@ export abstract class AwsSigner extends Signer {
     utils.defineReadOnly(this, 'provider', provider)
   }
 
-  get keyId () {
+  get keyId (): string {
     return this.awsKeyId
   }
 

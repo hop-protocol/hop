@@ -457,7 +457,6 @@ export class Base {
       )
     }
 
-    chain.chainId = this.getChainId(chain).toString()
     return chain
   }
 

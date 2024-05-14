@@ -102,7 +102,7 @@ export const config: Config = {
     rETH: 550,
     MAGIC: 1000000
   },
-  destinationFeeGasPriceMultiplier: 1.2,
+  destinationFeeGasPriceMultiplier: 1.5,
   relayerFeeEnabled: {
     polygon: false,
     gnosis: false,

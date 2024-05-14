@@ -62,7 +62,7 @@ export class PolygonZkMessageService extends AbstractMessageService<Message, Mes
       })
   }
 
-  async #init (l1Network: string) {
+  async #init (l1Network: string): Promise<void> {
     const from = await this.l1Wallet.getAddress()
     const sdkNetwork = polygonSdkNetwork[l1Network]
     const sdkVersion = polygonSdkVersion[l1Network]

@@ -1,36 +1,13 @@
-name: Simple Github Action for Debugging Builds
+name: Publish Packages to NPM if Necessary
 on:
   push:
     branches:
-      - develop
+      - TODO
+env:
+  BRANCH_NAME: ${{ github.ref_name }}
 
 jobs:
-  build:
-    if: false
-    name: Build
+  debug:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up node
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org
-
-      - name: Install node dependencies
-        run: |
-          npm install -g pnpm@8.15.7 only-allow@1.2.1 # required to build @eth-optimism packages
-          pnpm install
-
-      - name: Build the frontend app
-        env:
-          PUBLIC_URL: .
-          REACT_APP_NETWORK: goerli
-          REACT_APP_IPFS_BUILD: true
-        run: NODE_OPTIONS=--openssl-legacy-provider pnpm build
-
+      - run: echo 'Debug'

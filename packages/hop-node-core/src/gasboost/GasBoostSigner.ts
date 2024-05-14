@@ -39,7 +39,7 @@ export class GasBoostSigner extends Signer {
       .catch((err: Error) => this.logger.error('init error:', err))
       .finally(() => {
         this.getDbNonce()
-          .then((nonce: any) => {
+          .then((nonce: number) => {
             this.logger.debug('ready')
             this.logger.debug(`current nonce: ${nonce}`)
             this.ready = true
@@ -51,24 +51,24 @@ export class GasBoostSigner extends Signer {
       })
   }
 
-  connect (provider: providers.Provider) {
+  connect (provider: providers.Provider): GasBoostSigner {
     const _signer = this.signer.connect(provider)
     return new GasBoostSigner(_signer, this.store, this.options)
   }
 
-  async getAddress () {
+  async getAddress (): Promise<string> {
     return this.signer.getAddress()
   }
 
-  async signMessage (msg: Buffer | string) {
+  async signMessage (msg: Buffer | string): Promise<string> {
     return this.signer.signMessage(msg)
   }
 
-  async signTransaction (transaction: providers.TransactionRequest) {
+  async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
     return this.signer.signTransaction(transaction)
   }
 
-  private async init () {
+  private async init (): Promise<void> {
     // prevent additional bonder instances from overriding db nonce (ie when running separate cli commands)
     const shouldUpdate = await this.shouldSetLatestNonce()
     if (shouldUpdate) {
@@ -76,7 +76,7 @@ export class GasBoostSigner extends Signer {
     }
   }
 
-  private async shouldSetLatestNonce () {
+  private async shouldSetLatestNonce (): Promise<boolean> {
     const setLatestNonceOnStart = CoreEnvironment.getInstance().getEnvironment().setLatestNonceOnStart
     if (setLatestNonceOnStart) {
       return true
@@ -98,7 +98,7 @@ export class GasBoostSigner extends Signer {
     }
   }
 
-  private async setLatestNonce () {
+  private async setLatestNonce (): Promise<void> {
     const onChainNonce = await this.getOnChainNonce()
     await this.setDbNonce(onChainNonce)
   }
@@ -147,63 +147,63 @@ export class GasBoostSigner extends Signer {
     return gTx
   }
 
-  async getNonce () {
+  async getNonce (): Promise<number> {
     return this.getDbNonce()
   }
 
-  private async getOnChainNonce () {
+  private async getOnChainNonce (): Promise<number> {
     return this.signer.getTransactionCount('pending')
   }
 
-  private async getDbNonce () {
+  private async getDbNonce (): Promise<number> {
     const item = await this.store.getItem('nonce')
     return item?.nonce ?? 0
   }
 
-  private async incNonce () {
+  private async incNonce (): Promise<void> {
     let nonce = await this.getDbNonce()
     nonce++
     await this.setDbNonce(nonce)
   }
 
-  private async setDbNonce (nonce: number) {
+  private async setDbNonce (nonce: number): Promise<void> {
     await this.store.update('nonce', {
       nonce,
       updatedAt: Date.now()
     })
   }
 
-  setPollMs (pollMs: number) {
+  setPollMs (pollMs: number): void {
     this.setOptions({
       pollMs
     })
   }
 
-  setTimeTilBoostMs (timeTilBoostMs: number) {
+  setTimeTilBoostMs (timeTilBoostMs: number): void {
     this.setOptions({
       timeTilBoostMs
     })
   }
 
-  setGasPriceMultiplier (gasPriceMultiplier: number) {
+  setGasPriceMultiplier (gasPriceMultiplier: number): void {
     this.setOptions({
       gasPriceMultiplier
     })
   }
 
-  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number) {
+  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number): void {
     this.setOptions({
       initialTxGasPriceMultiplier
     })
   }
 
-  setMaxGasPriceGwei (maxGasPriceGwei: number) {
+  setMaxGasPriceGwei (maxGasPriceGwei: number): void {
     this.setOptions({
       maxGasPriceGwei
     })
   }
 
-  setPriorityFeePerGasCap (priorityFeePerGasCap: number) {
+  setPriorityFeePerGasCap (priorityFeePerGasCap: number): void {
     this.setOptions({
       priorityFeePerGasCap
     })

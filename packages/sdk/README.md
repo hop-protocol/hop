@@ -13,7 +13,7 @@
 ## Install
 
 ```bash
-pnpm install @hop-protocol/sdk
+pnpm --filter @hop-protocol/sdk... install
 ```
 
 ## CDN

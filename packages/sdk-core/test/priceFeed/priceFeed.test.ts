@@ -1,10 +1,8 @@
-import {
-  CoinCodexPriceFeed,
-  CoinGeckoPriceFeed,
-  CoinbasePriceFeed,
-  CoinpaprikaPriceFeed,
-  S3PriceFeed
-} from '#priceFeed/index.js'
+import { CoinCodexPriceFeed} from '#priceFeed/priceFeeds/CoinCodex.js'
+import { CoinGeckoPriceFeed } from '#priceFeed/priceFeeds/CoinGecko.js'
+import { CoinbasePriceFeed } from '#priceFeed/priceFeeds/Coinbase.js'
+import { CoinpaprikaPriceFeed } from '#priceFeed/priceFeeds/Coinpaprika.js'
+import { S3PriceFeed } from '#priceFeed/priceFeeds/S3.js'
 
 // skipped since it might trigger rate limits and cause test suite to fail
 describe.skip('PriceFeed', () => {

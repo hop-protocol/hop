@@ -8,7 +8,7 @@
   "type": "module",
   "engines": {
     "node": ">=20.12.2",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   },
   "imports": {
     "#*": "./dist/*"
@@ -31,6 +31,7 @@
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
     "build": "tsc -p tsconfig.json",
     "lint": "eslint . --fix",
+    "version": "pnpm version",
     "clean": "rm -rf node_modules dist ./tsconfig.tsbuildinfo",
     "clean:db": "rm -rf test-db"
   },

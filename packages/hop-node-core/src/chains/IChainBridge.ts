@@ -7,8 +7,8 @@ export enum FinalityBlockTag {
 }
 
 export type ChainServices = {
-  messageService: IMessageService
-  finalityService: IFinalityService
+  readonly messageService: IMessageService
+  readonly finalityService: IFinalityService
 }
 
 export interface IChainBridge extends IMessageService, IFinalityService {}

@@ -5,13 +5,14 @@ on:
       - production
 
 jobs:
-  check-version:
-    uses: ./.github/workflows/npm-check-version.yml
+  check-modified:
+    uses: ./.github/workflows/check-modified.yml
+    with:
+      package-name: sdk
 
   publish-sdk:
-    needs: check-version
-    # Do not publish on a push to the production branch if the version has not changed
-    if: needs.check-version.outputs.changed == 'true'
+    needs: check-modified
+    if: needs.check-modified.outputs.npm-version-changed == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name }}
     steps:

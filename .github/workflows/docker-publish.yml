@@ -39,6 +39,6 @@ jobs:
         if: steps.check-versions.outputs.package-version-changed == 'true' || github.ref_name != 'production'
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
-          file: ./packages/hop-node/Dockerfile
-          tags: hopprotocol/hop-node:${{ env.DOCKER_TAG }}
+          file: ./packages/${{ matrix.package-name }}/Dockerfile
+          tags: hopprotocol/${{ matrix.package-name }}:${{ env.DOCKER_TAG }}
           push: true

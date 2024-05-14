@@ -7,7 +7,7 @@
   "private": true,
   "engines": {
     "node": ">=20.12.2",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",

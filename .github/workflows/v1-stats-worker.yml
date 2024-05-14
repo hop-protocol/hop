@@ -14,13 +14,13 @@ jobs:
       DOCKER_IMAGE: hopprotocol/stats-worker
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
 
       - name: Build application Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           context: .
           file: ./packages/stats-worker/Dockerfile
@@ -30,10 +30,10 @@ jobs:
           push: false
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
         with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push Hop Stats Worker Docker image to Docker Hub
         run: |
@@ -51,7 +51,7 @@ jobs:
   build-stats-worker:
     needs: [_stats-worker-notify-1]
     name: Send S3 Stats Worker Status Notification Webhook Request
-    uses: ./.github/workflows/status_notify.yml
+    uses: ./.github/workflows/status-notify.yml
     with:
       environment: production
     secrets:
@@ -61,7 +61,7 @@ jobs:
   _stats-worker-notify-1:
     needs: [_build-stats-worker]
     name: Send Stats Worker Status Notification Webhook Request
-    uses: ./.github/workflows/status_notify.yml
+    uses: ./.github/workflows/status-notify.yml
     with:
       environment: production
     secrets:

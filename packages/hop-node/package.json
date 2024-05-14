@@ -19,7 +19,7 @@
   ],
   "engines": {
     "node": ">=20.12.2",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -30,7 +30,8 @@
     "dev": "pnpm start",
     "test": "pnpm build && node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "build": "tsc -p ./tsconfig.json",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "version": "pnpm version"
   },
   "dependencies": {
     "@eth-optimism/sdk": "3.1.4",

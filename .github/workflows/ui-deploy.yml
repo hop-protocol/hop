@@ -5,56 +5,52 @@ on:
       - develop
       - production
 env:
-  ENV_NAME: ${{ github.ref_name }}
   DNSLINK_SUBDOMAIN: ${{ (github.ref_name == 'develop' && ('_dnslink.' + github.ref_name)) || (github.ref_name == 'production' && '_dnslink.app') }}
 
 jobs:
-  wait-for-npm-publish:
-    if: github.ref_name == 'production'
+  publish-ui:
     runs-on: ubuntu-latest
-    environment: ${{ env.ENV_NAME }}
-    steps:
-      - name: Wait for NPM packages to be built
-        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc
-        with:
-          ref: ${{ github.ref }}
-          check-name: 'Publish SDK'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy-ui:
-    needs: wait-for-npm-publish
-    runs-on: ubuntu-latest
-    outputs:
-      hash: ${{ steps.deploy.outputs.hash }}
+    environment: ${{ github.ref_name }}
+    permissions:
+      contents: write
     strategy:
       matrix:
         package: [frontend]
         env-name: ['production', 'mainnet', 'sepolia']
     steps:
-      - name: Deploy environment
-        if: matrix.package == 'frontend'
-        id: deploy
-        uses: ./.github/workflows/ui-deploy-environment.yml
-        with:
-          ENV_NAME: ${{ matrix.env-name }}
-
-  publish-ui:
-    needs: deploy-ui
-    if: github.ref_name == 'frontend'
-    runs-on: ubuntu-latest
-    env:
-      IPFS_HASH: ${{ needs.deploy-ui.outputs.hash }}
-    permissions:
-      contents: write
-    steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
+      - name: Setup workflow
+        uses: ./.github/actions/setup
+
+      - name: Install package
+        run: pnpm --filter-prod frontend... install
+
+      - name: Build the app
+        uses: ./.github/workflows/ui-build.yml
+        with:
+          env-name: ${{ matrix.env-name }}
+
+      - name: Write commit file
+        uses: DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c
+        with:
+          path: packages/frontend/dist/cachebust
+          write-mode: overwrite
+          contents: ${{ github.sha }}
+
+      - name: Pin to IPFS on Pinata
+        id: upload
+        uses: anantaramdas/ipfs-pinata-deploy-action@9f9c3b42b5d360352c4b768d98aff1309d62faa0
+        with:
+          pin-name: Hop ${{ github.sha }}
+          path: './packages/frontend/dist'
+          pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
+          pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
+
       - name: Check if version has been updated
         id: check
-        uses: EndBug/version-check@d4be4219408b50d1bbbfd350a47cbcb126878692
-        with:
-          file-name: ./packages/frontend/package.json
+        uses: ./.github/actions/npm-check-version
 
       - name: Update CloudFlare DNS with new IPFS hash
         if: steps.check.outputs.changed
@@ -65,19 +61,19 @@ jobs:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         uses: textileio/cloudflare-update-dnslink@30414a408191218c8259e932ebdf4cbb7c652fe8
         with:
-          cid: ${{ env.IPFS_HASH }}
+          cid: ${{ steps.upload.outputs.hash }}
 
       - name: Convert CIDv0 to CIDv1
         if: steps.check.outputs.changed
         id: convert_cidv0
         uses: uniswap/convert-cidv0-cidv1@c53a468c3602a85dd979c02ec4ddd9102849395e
         with:
-          cidv0: ${{ env.IPFS_HASH }}
+          cidv0: ${{ steps.upload.outputs.hash }}}}
 
       - name: Create GitHub Release
         if: steps.check.outputs.changed
         env:
-          CIDv0: ${{ env.IPFS_HASH }}
+          CIDv0: ${{ steps.upload.outputs.hash }}}}
           CIDv1: ${{ steps.convert_cidv0.outputs.cidv1 }}
         uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87
         with:

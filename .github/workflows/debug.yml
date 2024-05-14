@@ -20,9 +20,7 @@ jobs:
 
       - name: Check if version has been updated
         id: check
-        uses: EndBug/version-check@d4be4219408b50d1bbbfd350a47cbcb126878692
-        with:
-          file-name: ./packages/sdk/package.json
+        uses: ./.github/actions/npm-check-version
 
       - name: Install and build package
         if: steps.check.outputs.changed == 'true'
@@ -31,7 +29,7 @@ jobs:
           pnpm --filter sdk... build
 
       - name: Publish package
-        if: env.CI == 'true' && steps.check.outputs.changed == 'true'
+        if: steps.check.outputs.changed == 'true'
         run: pnpm --filter sdk publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

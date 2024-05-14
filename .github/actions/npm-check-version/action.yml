@@ -1,0 +1,27 @@
+name: Check Version
+description: Checks if the local package.json version matches the npm registry version
+outputs:
+  changed:
+    description: 'Indicates if there is a version mismatch'
+    value: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+    - name: Get local and current versions
+      id: get-versions
+      working-directory: ./packages/sdk
+      run: |
+        CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+        LOCAL_VERSION=$(jq -r '.version' package.json)
+        if [ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]; then
+          echo "CHANGED=true" >> $GITHUB_ENV
+        else
+          echo "CHANGED=false" >> $GITHUB_ENV
+        fi
+
+    - name: Set output
+      run: echo "::set-output name=changed::$CHANGED"

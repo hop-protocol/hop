@@ -5,27 +5,13 @@ on:
       - develop
       - production
 env:
-  ENV_NAME: ${{ github.ref_name }}
   DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
 
 jobs:
-  wait-for-npm-publish:
-    if: github.ref_name == 'production'
-    runs-on: ubuntu-latest
-    environment: ${{ env.ENV_NAME }}
-    steps:
-      - name: Wait for NPM packages to be built
-        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc
-        with:
-          ref: ${{ github.ref }}
-          check-name: 'Publish SDK'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
   publish-docker:
-    needs: wait-for-npm-publish
     runs-on: ubuntu-latest
-    environment: ${{ env.ENV_NAME }}
-    stategy:
+    environment: ${{ github.ref_name }}
+    strategy:
       matrix:
         package: [hop-node, v2-explorer-backend]
     steps:
@@ -40,12 +26,10 @@ jobs:
 
       - name: Check if version has been updated
         id: check
-        uses: EndBug/version-check@d4be4219408b50d1bbbfd350a47cbcb126878692
-        with:
-          file-name: ./packages/${{ matrix.package }}/package.json
+        uses: ./.github/actions/npm-check-version
 
       - name: Publish Docker image
-        if: env.CI == 'true' && (env.DOCKER_TAG == 'latest && steps.check.outputs.changed == 'true')
+        if: !(env.DOCKER_TAG == 'latest' && !steps.check.outputs.changed)
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package }}/Dockerfile

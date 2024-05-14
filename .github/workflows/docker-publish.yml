@@ -8,7 +8,13 @@ env:
   DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
 
 jobs:
+  check-version:
+    uses: ./.github/workflows/npm-check-version.yml
+
   publish-docker:
+    needs: check-version
+    # Do not run on a push to the production branch if the version has not changed
+    if: needs.check-version.outputs.changed == 'true' || env.DOCKER_TAG != 'latest'
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name }}
     strategy:
@@ -24,12 +30,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Check if version has been updated
-        id: check
-        uses: ./.github/actions/npm-check-version
-
       - name: Publish Docker image
-        if: !(env.DOCKER_TAG == 'latest' && !steps.check.outputs.changed)
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package }}/Dockerfile

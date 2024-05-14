@@ -7,29 +7,5 @@ env:
   BRANCH_NAME: ${{ github.ref_name }}
 
 jobs:
-  publish-sdk:
-    name: Publish SDK
-    runs-on: ubuntu-latest
-    environment: ${{ env.BRANCH_NAME }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-
-      - name: Setup workflow
-        uses: ./.github/actions/setup
-
-      - name: Check if version has been updated
-        id: check
-        uses: ./.github/actions/npm-check-version
-
-      - name: Install and build package
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          pnpm --filter-prod sdk... install
-          pnpm --filter sdk... build
-
-      - name: Publish package
-        if: steps.check.outputs.changed == 'true'
-        run: pnpm --filter sdk publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+  debug:
+    if: false

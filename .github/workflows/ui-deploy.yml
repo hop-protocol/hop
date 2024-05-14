@@ -4,13 +4,11 @@ on:
     branches:
       - develop
       - production
-env:
-  DNSLINK_SUBDOMAIN: ${{ (github.ref_name == 'develop' && ('_dnslink.' + github.ref_name)) || (github.ref_name == 'production' && '_dnslink.app') }}
 
 jobs:
   publish-ui:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
+    environment: ${{ matrix.env-name }}
     permissions:
       contents: write
     strategy:
@@ -28,9 +26,21 @@ jobs:
         run: pnpm --filter-prod frontend... install
 
       - name: Build the app
-        uses: ./.github/workflows/ui-build.yml
-        with:
-          env-name: ${{ matrix.env-name }}
+        env:
+          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
+          REACT_APP_NETWORK: ${{ secrets.REACT_APP_NETWORK }}
+          REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
+          REACT_APP_ENABLED_CHAINS: ${{ secrets.REACT_APP_ENABLED_CHAINS }}
+          REACT_APP_ENABLED_TOKENS: ${{ secrets.REACT_APP_ENABLED_TOKENS }}
+          REACT_APP_DEPRECATED_TOKENS: ${{ secrets.REACT_APP_DEPRECATED_TOKENS }}
+          REACT_APP_DEPRECATED_POOLS: ${{ secrets.REACT_APP_DEPRECATED_POOLS }}
+          REACT_APP_DISABLED_ROUTES: ${{ secrets.REACT_APP_DISABLED_ROUTES }}
+          REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
+          REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
+          REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
+          REACT_APP_SHOW_BANNER_MESSAGE: ${{ secrets.REACT_APP_SHOW_BANNER_MESSAGE }}
+          REACT_APP_BLOCKLIST_ENABLED: ${{ secrets.REACT_APP_BLOCKLIST_ENABLED }}
+        run: pnpm --filter frontend... build
 
       - name: Write commit file
         uses: DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c
@@ -48,30 +58,39 @@ jobs:
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
+      - name: Set DNSLINK_SUBDOMAIN
+        id: set-dnslink-subdomain
+        run: |
+          if [ "${{ github.ref_name }}" == "production" ]; then
+            echo "DNSLINK_SUBDOMAIN=_dnslink.app" >> $GITHUB_OUTPUT
+          else
+            echo "DNSLINK_SUBDOMAIN=_dnslink.${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check if version has been updated
         id: check
-        uses: ./.github/actions/npm-check-version
+        uses: ./.github/workflows/npm-check-version.yml
 
       - name: Update CloudFlare DNS with new IPFS hash
-        if: steps.check.outputs.changed
+        if: steps.check.outputs.changed == 'true'
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: 'hop.exchange'
-          RECORD_NAME: ${{ env.DNSLINK_SUBDOMAIN }}
+          RECORD_NAME: ${{ steps.set-dnslink-subdomain.outputs.DNSLINK_SUBDOMAIN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         uses: textileio/cloudflare-update-dnslink@30414a408191218c8259e932ebdf4cbb7c652fe8
         with:
           cid: ${{ steps.upload.outputs.hash }}
 
       - name: Convert CIDv0 to CIDv1
-        if: steps.check.outputs.changed
+        if: steps.check.outputs.changed == 'true'
         id: convert_cidv0
         uses: uniswap/convert-cidv0-cidv1@c53a468c3602a85dd979c02ec4ddd9102849395e
         with:
           cidv0: ${{ steps.upload.outputs.hash }}}}
 
       - name: Create GitHub Release
-        if: steps.check.outputs.changed
+        if: steps.check.outputs.changed == 'true'
         env:
           CIDv0: ${{ steps.upload.outputs.hash }}}}
           CIDv1: ${{ steps.convert_cidv0.outputs.cidv1 }}

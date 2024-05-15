@@ -78,8 +78,6 @@ if (process.env.NODE_ENV !== 'test') {
   console.debug('config addresses:', addresses.tokens)
   console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
   console.debug('deprecated pools:', process.env.REACT_APP_DEPRECATED_POOLS)
-  console.debug('REACT_APP_BLOCKLIST_ENABLED:', process.env.REACT_APP_BLOCKLIST_ENABLED)
-  console.debug('REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE:', process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE)
 }
 
 const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID

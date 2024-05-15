@@ -105,6 +105,7 @@ jobs:
         uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87
         with:
           name: ${{ github.sha }}
+          tag_name: ${{ github.run_id }}
           body: |
             IPFS hash of the deployment:
             - CIDv0: `${{ env.CIDv0 }}`

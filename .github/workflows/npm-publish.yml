@@ -1,4 +1,4 @@
-name: Publish Packages to NPM if Necessary
+name: Publish Packages to NPM
 on:
   push:
     branches:

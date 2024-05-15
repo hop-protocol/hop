@@ -1,4 +1,4 @@
-name: Publish Packages to Docker Hub if Necessary
+name: Publish Packages to Docker Hub
 on:
   push:
     branches:

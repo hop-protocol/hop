@@ -78,6 +78,13 @@ if (process.env.NODE_ENV !== 'test') {
   console.debug('config addresses:', addresses.tokens)
   console.debug('deprecated tokens:', process.env.REACT_APP_DEPRECATED_TOKENS)
   console.debug('deprecated pools:', process.env.REACT_APP_DEPRECATED_POOLS)
+  console.debug('PUBLIC_URL:', process.env.PUBLIC_URL)
+  console.debug('NODE_VERSION:', process.env.NODE_VERSION)
+  console.debug('REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS:', process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS)
+  console.debug('REACT_APP_ENABLED_CHAINS:', process.env.REACT_APP_ENABLED_CHAINS)
+  console.debug('REACT_APP_ENABLED_TOKENS:', process.env.REACT_APP_ENABLED_TOKENS)
+  console.debug('REACT_APP_NETWORK:', process.env.REACT_APP_NETWORK)
+  console.debug('REACT_APP_BNC_DAPP_ID:', process.env.REACT_APP_BNC_DAPP_ID)
 }
 
 const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID

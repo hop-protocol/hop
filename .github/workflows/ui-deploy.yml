@@ -16,7 +16,7 @@ jobs:
     environment: ${{ matrix.env-name }}
     strategy:
       matrix:
-        env-name: ['production','mainnet']
+        env-name: ['production','mainnet','sepolia']
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -37,19 +37,15 @@ jobs:
       - name: Build the app
         if: steps.check-versions.outputs.package-version-changed == 'true' || matrix.env-name != 'production'
         env:
-          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
-          REACT_APP_NETWORK: ${{ secrets.REACT_APP_NETWORK }}
-          REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
-          REACT_APP_ENABLED_CHAINS: ${{ secrets.REACT_APP_ENABLED_CHAINS }}
-          REACT_APP_ENABLED_TOKENS: ${{ secrets.REACT_APP_ENABLED_TOKENS }}
-          REACT_APP_DEPRECATED_TOKENS: ${{ secrets.REACT_APP_DEPRECATED_TOKENS }}
-          REACT_APP_DEPRECATED_POOLS: ${{ secrets.REACT_APP_DEPRECATED_POOLS }}
-          REACT_APP_DISABLED_ROUTES: ${{ secrets.REACT_APP_DISABLED_ROUTES }}
-          REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
-          REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
+          REACT_APP_NETWORK: ${{ vars.REACT_APP_NETWORK }}
+          REACT_APP_ENABLED_CHAINS: ${{ vars.REACT_APP_ENABLED_CHAINS }}
+          REACT_APP_ENABLED_TOKENS: ${{ vars.REACT_APP_ENABLED_TOKENS }}
+          REACT_APP_DEPRECATED_TOKENS: ${{ vars.REACT_APP_DEPRECATED_TOKENS }}
+          REACT_APP_DEPRECATED_POOLS: ${{ vars.REACT_APP_DEPRECATED_POOLS }}
+          REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ vars.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
           REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
-          REACT_APP_SHOW_BANNER_MESSAGE: ${{ secrets.REACT_APP_SHOW_BANNER_MESSAGE }}
           REACT_APP_BLOCKLIST_ENABLED: ${{ secrets.REACT_APP_BLOCKLIST_ENABLED }}
+          REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
         run: pnpm --filter frontend... build
 
       - name: Write commit file
@@ -70,21 +66,12 @@ jobs:
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
-      - name: Set DNSLINK_SUBDOMAIN
-        id: set-dnslink-subdomain
-        run: |
-          if [ "${{ github.ref_name }}" == "production" ]; then
-            echo "DNSLINK_SUBDOMAIN=_dnslink.app" >> $GITHUB_OUTPUT
-          else
-            echo "DNSLINK_SUBDOMAIN=_dnslink.${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Update CloudFlare DNS with new IPFS hash
         if: steps.check-versions.outputs.package-version-changed == 'true' || matrix.env-name != 'production'
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: 'hop.exchange'
-          RECORD_NAME: ${{ steps.set-dnslink-subdomain.outputs.DNSLINK_SUBDOMAIN }}
+          RECORD_NAME: ${{ vars.DNSLINK_SUBDOMAIN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         uses: textileio/cloudflare-update-dnslink@30414a408191218c8259e932ebdf4cbb7c652fe8
         with:

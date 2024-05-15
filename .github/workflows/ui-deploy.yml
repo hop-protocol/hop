@@ -7,7 +7,6 @@ on:
     paths:
       - 'packages/frontend/**'
 
-# TODO: Add sepolia
 # TODO: DRY if statements
 
 jobs:
@@ -50,7 +49,7 @@ jobs:
 
       - name: Write commit file
         if: steps.check-versions.outputs.package-version-changed == 'true' || matrix.env-name != 'production'
-        uses: DamianReeves/write-file-action@a432935930b2e351ec2d2792fc220717b656ec1c
+        uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42
         with:
           path: packages/frontend/dist/cachebust
           write-mode: overwrite

@@ -57,13 +57,13 @@ runs:
         files: |
           packages/${{ inputs.package-name }}/**
 
-      - name: Is any change
-        id: check-any
-        run: |
-          if [[ "${{ steps.check-npm.outputs.npm-version-changed }}" == "true" ]] || \
-             [[ "${{ steps.check-package-json.outputs.any_changed }}" == "true" ]] || \
-             [[ "${{ steps.check-package.outputs.any_changed }}" == "true" ]]; then
-            echo "any-changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "any-changed=false" >> $GITHUB_OUTPUT
-          fi
+    - name: Is any change
+      id: check-any
+      run: |
+        if [[ "${{ steps.check-npm.outputs.npm-version-changed }}" == "true" ]] || \
+            [[ "${{ steps.check-package-json.outputs.any_changed }}" == "true" ]] || \
+            [[ "${{ steps.check-package.outputs.any_changed }}" == "true" ]]; then
+          echo "any-changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "any-changed=false" >> $GITHUB_OUTPUT
+        fi

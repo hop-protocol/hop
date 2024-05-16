@@ -48,6 +48,7 @@ jobs:
           fi
 
       - name: Install package
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         run: pnpm --filter-prod frontend... install
 
       - name: Build the app

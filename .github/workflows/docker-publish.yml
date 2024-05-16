@@ -57,10 +57,10 @@ jobs:
             echo "DOCKER_TAG=unstable" >> $GITHUB_OUTPUT
           fi
 
-
       - name: Publish Docker Image (${{ steps.set-docker-tag.outputs.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
+          context: .
           file: ./packages/${{ matrix.package-name }}/Dockerfile
           tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ steps.set-docker-tag.outputs.DOCKER_TAG }}
           push: true

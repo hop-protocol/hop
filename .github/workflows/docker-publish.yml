@@ -7,9 +7,9 @@ on:
     paths:
       - 'packages/hop-node/**'
       - 'packages/v2-explorer-backend/**'
-      - 'packages/v1-hop-api/**'
-      - 'packages/v1-hop-explorer-backend/**'
-      - 'packages/v1-stats-worker/**'
+      - 'packages/hop-api/**'
+      - 'packages/hop-explorer-backend/**'
+      - 'packages/stats-worker/**'
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
 
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package-name: ['hop-node', 'v2-explorer-backend', 'v1-hop-api', 'v1-hop-explorer-backend', 'v1-stats-worker']
+        package-name: ['hop-node', 'v2-explorer-backend', 'hop-api', 'hop-explorer-backend', 'stats-worker']
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -39,6 +39,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Publish Docker image
+        id: publish-image
         if: steps.check-versions.outputs.package-version-changed == 'true' || github.ref_name != 'production'
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
@@ -46,26 +47,3 @@ jobs:
           tags: hopprotocol/${{ matrix.package-name }}:${{ env.DOCKER_TAG }}
           push: true
 
-  # status-notify:
-  #   needs: [publish-docker]
-  #   runs-on: ubuntu-latest
-  #   environment: production
-  #   strategy:
-  #     matrix:
-  #       secret-key: ['HOP_API', 'HOP_EXPLORER', 'STATS_WORKER']
-  #   steps:
-  #     - name: Notify webhook
-  #       run: |
-  #         WEBHOOK_URL=$(echo ${{ 'WEBOOK_URL_' + secrets[PACKAGE_NAME_UPPER] }})
-  #         WEBHOOK_SECRET=$(echo ${{ 'WEBHOOK_SECRET' + secrets[PACKAGE_NAME_UPPER] }})
-
-  #         STATUS="failed"
-  #         if ${{ job.status == 'success' }}; then
-  #           STATUS="success"
-  #         fi
-
-  #         curl "$WEBHOOK_URL" \
-  #           -H "X-Secret: $WEBHOOK_SECRET" \
-  #           -d '{"payload": {"reponame": "${{ github.repository }}", "branch": "${{ github.ref_name }}", "build_parameters": {"GITHUB_JOB": "${{ github.job }}"}, "outcome": "'$STATUS'", "build_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}' \
-  #           -H "Content-Type: application/json" \
-  #           -X POST

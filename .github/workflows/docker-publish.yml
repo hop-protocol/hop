@@ -46,11 +46,11 @@ jobs:
             echo "DOCKER_TAG=unstable" >> $GITHUB_ENV
           fi
 
-      - name: Publish Docker Image ($DOCKER_TAG)
+      - name: Publish Docker Image (${{ env.DOCKER_TAG }})
         if: steps.check-package-updates.outputs.any-changed == 'true'
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
-          tags: hopprotocol/${{ matrix.package-name }}:$DOCKER_TAG
+          tags: hopprotocol/${{ matrix.package-name }}:${{ env.DOCKER_TAG }}
           push: true
 

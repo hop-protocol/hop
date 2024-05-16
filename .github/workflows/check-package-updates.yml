@@ -16,6 +16,9 @@ on:
       package-changed:
         value: ${{ jobs.check-package-updates.outputs.package-changed  }}
         description: 'Returns a boolean indicating if the passed-in package was changed in any way.'
+      package-name:
+        value: ${{ inputs.package-name }}
+        description: 'Returns the package name for consumption by a subsequent job.'
 
 jobs:
   check-package-updates:

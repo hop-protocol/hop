@@ -23,6 +23,8 @@ jobs:
     needs: check-package
     if: needs.check-package.outputs.package-changed == 'true'
     runs-on: ubuntu-latest
+    env:
+      package-name: ${{ needs.check-package.outputs.package-name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -47,7 +49,7 @@ jobs:
       - name: Publish Docker Image ($DOCKER_TAG)
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
-          file: ./packages/${{ matrix.package-name }}/Dockerfile
-          tags: hopprotocol/${{ matrix.package-name }}:$DOCKER_TAG
+          file: ./packages/${{ env.package-name }}/Dockerfile
+          tags: hopprotocol/${{ env.package-name }}:$DOCKER_TAG
           push: true
 

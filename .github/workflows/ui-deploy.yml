@@ -13,7 +13,9 @@ jobs:
       package-names: 'frontend'
 
   build-ui:
+    needs: package-updates
     runs-on: ubuntu-latest
+    if: ${{ fromJson(needs.package-updates.outputs.modified-packages).length > 0 }}
     environment: ${{ matrix.env-name }}
     strategy:
       matrix:

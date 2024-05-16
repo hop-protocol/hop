@@ -17,6 +17,9 @@ jobs:
           - explorer-backend
           - stats-worker
     steps:
+      - name: Checkout code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
       - name: Check Package Updates
         id: check-package-updates
         uses: ./.github/actions/check-package-updates

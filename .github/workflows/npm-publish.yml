@@ -16,20 +16,24 @@ jobs:
       - name: Setup workflow
         uses: ./.github/actions/setup
 
-      - name: Check versions
-        id: check-versions
-        uses: ./.github/actions/check-version
+      - name: Check Package Updates
+        id: check-package-updates
+        uses: ./.github/actions/check-package-updates
         with:
           package-name: sdk
 
+      - name: Set update flag
+        if: steps.check-versions.outputs.npm-version-changed == 'true'
+        run: echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
+  
       - name: Install and build package
-        if: steps.check-versions.outputs.package-version-changed == 'true'
+        if: env.SHOULD_CONTINUE == 'true'
         run: |
           pnpm --filter-prod sdk... install
           pnpm --filter sdk... build
 
       - name: Publish package
-        if: steps.check-versions.outputs.package-version-changed == 'true'
+        if: env.SHOULD_CONTINUE == 'true'
         run: pnpm --filter sdk publish --publish-branch production --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

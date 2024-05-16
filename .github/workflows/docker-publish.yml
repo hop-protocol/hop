@@ -61,6 +61,6 @@ jobs:
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
-          tags: hopprotocol/${{ matrix.package-name }}:${{ steps.set-update-flag.outputs.DOCKER_TAG }}
+          tags: hopprotocol/${{ matrix.package-name }}:${{ steps.set-docker-tag.outputs.DOCKER_TAG }}
           push: true
 

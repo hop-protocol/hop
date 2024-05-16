@@ -13,10 +13,10 @@ outputs:
     value: ${{ steps.check-package-json.outputs.any_changed }}
     description: 'Returns a boolean indicating if the passed-in package.json was changed in any way.'
   package-changed:
-    value: ${{ jobs.check-package.outputs.any_change }}
+    value: ${{ steps.check-package.outputs.any_change }}
     description: 'Returns a boolean indicating if the passed-in package was changed in any way.'
   any-changed:
-    value: ${{ jobs.check-any.outputs.any-changed }}
+    value: ${{ steps.check-any.outputs.any-changed }}
     description: 'Returns a boolean indicating if the package changed in any way.'
 
 runs:

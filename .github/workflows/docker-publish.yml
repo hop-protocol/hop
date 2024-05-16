@@ -11,11 +11,13 @@ on:
       - 'packages/stats-worker/**'
 jobs:
   package-updates:
+    name: Check for package updates
     uses: ./.github/workflows/modified-packages.yml
     with:
       package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker'
 
   publish-docker:
+    name: Publish Docker
     needs: package-updates
     runs-on: ubuntu-latest
     strategy:

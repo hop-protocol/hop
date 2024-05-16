@@ -8,11 +8,13 @@ on:
 
 jobs:
   package-updates:
+    name: Check for package updates
     uses: ./.github/workflows/modified-packages.yml
     with:
       package-names: 'sdk'
 
   publish-sdk:
+    name: Publish NPM
     needs: package-updates
     runs-on: ubuntu-latest
     strategy:

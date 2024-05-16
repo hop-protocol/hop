@@ -46,4 +46,4 @@ export const postgresConfig = {
   maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }
 
-const cacheBuster = 10
+const cacheBuster = 11

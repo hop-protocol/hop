@@ -12,15 +12,6 @@ outputs:
   package-version-changed:
     value: ${{ steps.check-package-json.outputs.any_changed }}
     description: 'Returns a boolean indicating if the passed-in package.json was changed in any way.'
-  package-changed:
-    value: ${{ steps.check-package.outputs.any_change }}
-    description: 'Returns a boolean indicating if the passed-in package was changed in any way.'
-  any-changed:
-    value: ${{ steps.check-any.outputs.any-changed }}
-    description: 'Returns a boolean indicating if the package changed in any way.'
-  check-package-dir:
-    value: ${{ steps.modified-packages.outputs.sanitized_packages }}
-    description: 'Returns all packages that havebeen changed in any way.'
 
 runs:
   using: composite
@@ -51,40 +42,3 @@ runs:
         since_last_remote_commit: true
         files: |
           packages/${{ inputs.package-name }}/package.json
-
-    - name: Is modified package
-      id: check-package
-      uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
-      with:
-        since_last_remote_commit: true
-        files: |
-          packages/${{ inputs.package-name }}/**
-
-    - name: Is any change
-      id: check-any
-      shell: bash
-      run: |
-        if [[ "${{ steps.check-npm.outputs.npm-version-changed }}" == "true" ]] || \
-            [[ "${{ steps.check-package-json.outputs.any_changed }}" == "true" ]] || \
-            [[ "${{ steps.check-package.outputs.any_changed }}" == "true" ]]; then
-          echo "any-changed=true" >> $GITHUB_OUTPUT
-        else
-          echo "any-changed=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Get modified dirs
-      id: modified-dirs
-      uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
-      with:
-        since_last_remote_commit: true
-        dir_names: true
-        dir_names_max_depth: 2
-        separator: ','
-      
-    - name: Get modified packages
-      id: modified-packages
-      shell: bash
-      run: |
-        changed_packages="${{ steps.modified-dirs.outputs.all_changed_files }}"
-        sanitized_packages=$(echo $changed_packages | sed 's/packages\///g' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')
-        echo "sanitized_packages=$sanitized_packages" >> $GITHUB_OUTPUT

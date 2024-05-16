@@ -34,14 +34,10 @@ jobs:
       - name: Set Update Flag
         id: set-update-flag
         run: |
-          if [ "${{ steps.check-package-updates.outputs.any-changed }}" == "true" ]; then
-            if [ "${{ matrix.env-name }}" == "production" ] && [ "${{ steps.check-package-updates.outputs.npm-package-changed }}" != "true" ]; then
-              echo "SHOULD_CONTINUE=false" >> $GITHUB_OUTPUT
-            else
-              echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
-            fi
-          else
+          if [ "${{ matrix.env-name }}" == "production" ] && [ "${{ steps.check-package-updates.outputs.npm-package-changed }}" != "true" ]; then
             echo "SHOULD_CONTINUE=false" >> $GITHUB_OUTPUT
+          else
+            echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Set Production Flag

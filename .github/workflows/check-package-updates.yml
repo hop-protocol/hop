@@ -1,0 +1,61 @@
+name: Check package updates
+on:
+  workflow_call:
+    inputs:
+      package-name:
+        type: string
+        required: true
+        description: Name of the package
+    outputs:
+      npm-version-changed:
+        value: ${{ jobs.check-package-updates.outputs.npm-version-changed }}
+        description: 'Returns a boolean indicating if there is an NPM version mismatch between the local package.json and the NPM registry.'
+      package-version-changed:
+        value: ${{ jobs.check-package-updates.outputs.package-version-changed  }}
+        description: 'Returns a boolean indicating if the passed-in package.json was changed in any way.'
+      package-changed:
+        value: ${{ jobs.check-package-updates.outputs.package-changed  }}
+        description: 'Returns a boolean indicating if the passed-in package was changed in any way.'
+
+jobs:
+  check-package-updates:
+    runs-on: ubuntu-latest
+    outputs:
+      npm-version-changed: ${{ steps.check-npm.outputs.npm-version-changed }}
+      package-version-changed: ${{ steps.check-package-json.outputs.any_changed  }}
+      package-changed: ${{ steps.check-package.outputs.any_changed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        with:
+          fetch-depth: 0
+
+      - name: Is NPM version changed
+        shell: bash
+        id: check-npm
+        if: inputs.package-name == 'sdk'
+        working-directory: ./packages/${{ inputs.package-name }}
+        run: |
+          CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
+          LOCAL_VERSION=$(jq -r '.version' package.json)
+          if [[ "$CURRENT_VERSION" != "$LOCAL_VERSION" ]]; then
+            echo "npm-version-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "npm-version-changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Is modified package.json
+        id: check-package-json
+        uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
+        with:
+          since_last_remote_commit: true
+          files: |
+            packages/${{ inputs.package-name }}/package.json
+
+      - name: Is modified package
+        id: check-package
+        uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
+        with:
+          since_last_remote_commit: true
+          files: |
+            packages/${{ inputs.package-name }}/**

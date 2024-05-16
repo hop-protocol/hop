@@ -1,10 +1,15 @@
 name: Get modified packages
 on:
   workflow_call:
+    inputs:
+      package-names:
+        description: 'Package names to consider, separated by commas.'
+        required: true
+        type: string
     outputs:
       modified-packages:
         description: 'Returns all packages that havebeen changed in any way.'
-        value: ${{jobs.modified-packages.outputs.modified-packages }}
+        value: ${{ jobs.modified-packages.outputs.modified-packages }}
 
 jobs:
   modified-packages:
@@ -23,12 +28,32 @@ jobs:
         dir_names: true
         dir_names_max_depth: 2
         separator: ','
-        files: |
-          packages/**
+        files: ${{ github.event.inputs.paths }}
 
     - name: Get modified packages
       id: modified-packages
       run: |
+        # Get all changed packages without their `package/` prefix
+        # Example: packages/hop-node,packages/v2-explorer-backend,packages/frontend
         changed_packages="${{ steps.modified-dirs.outputs.all_changed_files }}"
-        sanitized_packages=$(echo $changed_packages | sed 's/packages\///g' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')
+
+        # Compare with the input package names
+        # Example: packages/hop-node,packages/v2-explorer-backend,
+        IFS=":"
+        read -a array <<< ${{ inputs.package-names }}
+        for element in "${array[@]}"; do
+          package_path="packages/$element"
+          if [[ $changed_packages == *"$package_path"* ]]; then
+            sanitized_packages="$sanitized_packages$element,"
+          fi
+        done
+
+        # Strip the trailing comma
+        # Example: packages/hop-node,packages/v2-explorer-backend
+        sanitized_packages="${sanitized_packages%,}"
+        
+        # Convert from string with commas to array for consumption by matrix
+        # Example: ["hop-node", "v2-explorer-backend"]
+        sanitized_packages=$(echo $sanitized_packages | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')
+
         echo "sanitized_packages=$sanitized_packages" >> $GITHUB_OUTPUT

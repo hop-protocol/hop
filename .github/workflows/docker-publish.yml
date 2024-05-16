@@ -3,16 +3,12 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - 'packages/hop-node/**'
-      - 'packages/v2-explorer-backend/**'
-      - 'packages/api/**'
-      - 'packages/explorer-backend/**'
-      - 'packages/stats-worker/**'
 
 jobs:
   package-updates:
     uses: ./.github/workflows/modified-packages.yml
+    with:
+      package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker'
 
   publish-docker:
     needs: package-updates
@@ -24,12 +20,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
-      - name: Check Package Updates
-        id: check-package-updates
-        uses: ./.github/actions/check-package-updates
-        with:
-          package-name: ${{ matrix.package-name }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
 
@@ -39,6 +29,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
+      - name: Check Package Updates
+        id: check-package-updates
+        uses: ./.github/actions/check-package-updates
+        with:
+          package-name: ${{ matrix.package-name }}
+
       - name: Set Docker Tags
         id: set-docker-tag
         run: |

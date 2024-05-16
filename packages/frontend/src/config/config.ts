@@ -9,7 +9,7 @@ if (process.env.REACT_APP_NETWORK === 'goerli') {
   showRewards = false
 }
 
-const cacheBuster: number = 6
+const cacheBuster: number = 7
 
 export { showRewards }
 

@@ -45,16 +45,16 @@ jobs:
         run: |
           # Modify any discrepancies in the package name vs the image name
           if [ "${{ matrix.package-name }}" == "api" ]; then
-            image_name=hopprotocol/hop-api
+            echo "IMAGE_NAME=hopprotocol/hop-api" >> $GITHUB_OUTPUT
           else
-            image_name=hopprotocol/${{ matrix.package-name }}
+            echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
           fi
 
           # Set the correct version to release
           if [ "${{ steps.check-package-updates.outputs.package-version-changed }}" == "true" ]; then
-            echo "DOCKER_TAG=$image_name:latest" >> $GITHUB_OUTPUT
+            echo "DOCKER_TAG=latest" >> $GITHUB_OUTPUT
           else
-            echo "DOCKER_TAG=$image_name:unstable" >> $GITHUB_OUTPUT
+            echo "DOCKER_TAG=unstable" >> $GITHUB_OUTPUT
           fi
 
 
@@ -62,5 +62,5 @@ jobs:
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
-          tags: hopprotocol/${{ matrix.package-name }}:${{ steps.set-docker-tag.outputs.DOCKER_TAG }}
+          tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ steps.set-docker-tag.outputs.DOCKER_TAG }}
           push: true

@@ -27,7 +27,7 @@ runs:
       with:
         fetch-depth: 0
 
-    - name: Is NPM version changed
+    - name: 📦 Is NPM version changed
       shell: bash
       id: check-npm
       if: inputs.package-name == 'sdk'
@@ -41,7 +41,7 @@ runs:
           echo "npm-version-changed=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Is modified package.json
+    - name: 📝 Is modified package.json
       id: check-package-json
       uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
       with:
@@ -49,7 +49,7 @@ runs:
         files: |
           packages/${{ inputs.package-name }}/package.json
 
-    - name: Is modified package
+    - name: 📂 Is modified package
       id: check-package
       uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
       with:
@@ -57,8 +57,9 @@ runs:
         files: |
           packages/${{ inputs.package-name }}/**
 
-    - name: Is any change
+    - name: 🔄 Is any change
       id: check-any
+      shell: bash
       run: |
         if [[ "${{ steps.check-npm.outputs.npm-version-changed }}" == "true" ]] || \
             [[ "${{ steps.check-package-json.outputs.any_changed }}" == "true" ]] || \

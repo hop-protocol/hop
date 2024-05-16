@@ -12,25 +12,14 @@ on:
 
 jobs:
   package-updates:
-    runs-on: ubuntu-latest
-    outputs:
-      check-package-dir: ${{ steps.check-package-updates.outputs.check-package-dir }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-
-      - name: Check Package Updates
-        id: check-package-updates
-        uses: ./.github/actions/check-package-updates
-        with:
-          package-name: hop-node
+    uses: ./.github/workflows/modified-packages.yml
 
   publish-docker:
     needs: package-updates
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package-name: ${{fromJson(needs.package-updates.outputs.check-package-dir)}}
+        package-name: ${{ fromJson(needs.package-updates.outputs.modified-packages) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -41,8 +30,6 @@ jobs:
         with:
           package-name: ${{ matrix.package-name }}
 
-      - name: shanetest
-        run: echo "test ${{ steps.check-package-updates.outputs.check-package-dir }}"
       - name: Set Update Flag
         id: set-update-flag
         run: |

@@ -22,10 +22,14 @@ jobs:
         with:
           package-name: sdk
 
-      - name: Set update flag
-        if: steps.check-versions.outputs.npm-version-changed == 'true'
-        run: echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
-  
+      - name: Set Update Flag
+        run: |
+          if [ "${{ steps.check-package-updates.outputs.npm-version-changed }}" == "true" ]; then
+            echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
+          else
+            echo "SHOULD_CONTINUE=false" >> $GITHUB_ENV
+          fi
+
       - name: Install and build package
         if: env.SHOULD_CONTINUE == 'true'
         run: |

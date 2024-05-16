@@ -26,9 +26,13 @@ jobs:
         with:
           package-name: ${{ matrix.package-name }}
 
-      - name: Set update flag
-        if: steps.check-package-updates.outputs.any-changed == 'true'
-        run: echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
+      - name: Set Update Flag
+        run: |
+          if [ "${{ steps.check-package-updates.outputs.any-changed }}" == "true" ]; then
+            echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
+          else
+            echo "SHOULD_CONTINUE=false" >> $GITHUB_ENV
+          fi
 
       - name: Set up Docker Buildx
         if: env.SHOULD_CONTINUE == 'true'

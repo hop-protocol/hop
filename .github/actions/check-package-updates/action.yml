@@ -82,8 +82,8 @@ runs:
         separator: ','
       
     - name: Get modified packages
-      needs: modified-dirs
       id: modified-packages
+      shell: bash
       run: |
         changed_packages="${{ steps.modified-dirs.outputs.all_changed_files }}"
         sanitized_packages=$(echo $changed_packages | sed 's/packages\///g' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')

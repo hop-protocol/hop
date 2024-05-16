@@ -3,14 +3,14 @@ description: Checks a package for NPM version updates, if the package.json was c
 inputs:
   package-name:
     type: string
-    required: true
     description: Name of the package
+    required: true
 outputs:
   npm-version-changed:
     value: ${{ steps.check-npm.outputs.npm-version-changed }}
     description: 'Returns a boolean indicating if there is an NPM version mismatch between the local package.json and the NPM registry.'
   package-version-changed:
-    value: ${{ steps.check-package-json.outputs.any_changed }}
+    value: ${{ steps.check-package-json.outputs.package-version-changed }}
     description: 'Returns a boolean indicating if the passed-in package.json was changed in any way.'
 
 runs:
@@ -22,9 +22,9 @@ runs:
         fetch-depth: 0
 
     - name: Is NPM version changed
-      shell: bash
       id: check-npm
       if: inputs.package-name == 'sdk'
+      shell: bash
       working-directory: ./packages/${{ inputs.package-name }}
       run: |
         CURRENT_VERSION=$(npm info . --json | jq -r '."dist-tags".latest')
@@ -37,8 +37,12 @@ runs:
 
     - name: Is modified package.json
       id: check-package-json
-      uses: tj-actions/changed-files@a29e8b565651ce417abb5db7164b4a2ad8b6155c
-      with:
-        since_last_remote_commit: true
-        files: |
-          packages/${{ inputs.package-name }}/package.json
+      shell: bash
+      working-directory: ./packages/${{ inputs.package-name }}
+      run: |
+        VERSION_DIFF=$(git diff HEAD^ HEAD -- package.json | grep '"version":')
+        if [ -z "$VERSION_DIFF" ]; then
+          echo "package-version-changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "package-version-changed=true" >> $GITHUB_OUTPUT
+        fi

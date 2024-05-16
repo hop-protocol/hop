@@ -4,11 +4,13 @@ on:
     outputs:
       modified-packages:
         description: "The first output string"
-        value: ${{ steps.modified-packages.outputs.sanitized_packages }}
+        value: ${{jobs.modified-packages.outputs.modified-packages }}
 
 jobs:
-  modified:
+  modified-packages:
     runs-on: ubuntu-latest
+    outputs:
+      modified-packages: ${{ steps.modified-packages.outputs.sanitized_packages }}
     steps:
     - name: Checkout code
       uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b

@@ -40,7 +40,7 @@ runs:
       shell: bash
       working-directory: ./packages/${{ inputs.package-name }}
       run: |
-        VERSION_DIFF=$(git diff HEAD^ HEAD -- package.json | grep '"version":')
+        VERSION_DIFF=$(git diff HEAD^ HEAD -- package.json | grep '"version":' || true)
         if [ -z "$VERSION_DIFF" ]; then
           echo "package-version-changed=false" >> $GITHUB_OUTPUT
         else

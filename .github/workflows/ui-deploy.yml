@@ -15,7 +15,7 @@ jobs:
   build-ui:
     needs: package-updates
     runs-on: ubuntu-latest
-    if: ${{ fromJson(needs.package-updates.outputs.modified-packages).length > 0 }}
+    if: ${{ fromJson(needs.package-updates.outputs.modified-packages)[0] != null }}
     environment: ${{ matrix.env-name }}
     strategy:
       matrix:
@@ -45,11 +45,6 @@ jobs:
           else
             echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
           fi
-
-      - name: Set Production Flag
-        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
-        id: set-production-flag
-        run: |
 
       - name: Build the app
         if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'

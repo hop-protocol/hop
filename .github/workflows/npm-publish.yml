@@ -48,6 +48,6 @@ jobs:
 
       - name: Publish package
         if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
-        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public
+        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch develop --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

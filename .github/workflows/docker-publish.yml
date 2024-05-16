@@ -7,8 +7,8 @@ on:
     paths:
       - 'packages/hop-node/**'
       - 'packages/v2-explorer-backend/**'
-      - 'packages/hop-api/**'
-      - 'packages/hop-explorer-backend/**'
+      - 'packages/api/**'
+      - 'packages/explorer-backend/**'
       - 'packages/stats-worker/**'
 env:
   DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package-name: ['hop-node', 'v2-explorer-backend', 'hop-api', 'hop-explorer-backend', 'stats-worker']
+        package-name: ['hop-node', 'v2-explorer-backend', 'api', 'explorer-backend', 'stats-worker']
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b

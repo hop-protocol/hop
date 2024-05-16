@@ -38,8 +38,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Publish Docker image
-        id: publish-image
+      - name: Publish Docker Image
         if: steps.check-versions.outputs.package-version-changed == 'true' || github.ref_name != 'production'
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:

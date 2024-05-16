@@ -3,19 +3,34 @@ on:
   push:
     branches:
       - develop
+    paths:
+      - 'packages/hop-node/**'
+      - 'packages/v2-explorer-backend/**'
+      - 'packages/api/**'
+      - 'packages/explorer-backend/**'
+      - 'packages/stats-worker/**'
 
 jobs:
+  package-updates:
+    runs-on: ubuntu-latest
+    outputs:
+      check-package-dir: ${{ steps.check-package-updates.outputs.check-package-dir }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+      - name: Check Package Updates
+        id: check-package-updates
+        uses: ./.github/actions/check-package-updates
+        with:
+          package-name: hop-node
+
   publish-docker:
+    needs: package-updates
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # TODO: This needs to be both the package name and the docker name
-        package-name:
-          - hop-node
-          - v2-explorer-backend
-          - hop-api
-          - explorer-backend
-          - stats-worker
+        package-name: ${{fromJson(needs.package-updates.outputs.check-package-dir)}}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -26,6 +41,8 @@ jobs:
         with:
           package-name: ${{ matrix.package-name }}
 
+      - name: shanetest
+        run: echo "test ${{ steps.check-package-updates.outputs.check-package-dir }}"
       - name: Set Update Flag
         id: set-update-flag
         run: |

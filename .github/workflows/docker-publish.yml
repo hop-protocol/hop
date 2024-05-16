@@ -27,38 +27,40 @@ jobs:
           package-name: ${{ matrix.package-name }}
 
       - name: Set Update Flag
+        id: set-update-flag
         run: |
           if [ "${{ steps.check-package-updates.outputs.any-changed }}" == "true" ]; then
-            echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
+            echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
           else
-            echo "SHOULD_CONTINUE=false" >> $GITHUB_ENV
+            echo "SHOULD_CONTINUE=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Set up Docker Buildx
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
 
       - name: Login to Docker Hub
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Set Docker Tags
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
+        id: set-docker-tag
         run: |
           if [ "${{ steps.check-package-updates.outputs.package-version-changed }}" == "true" ]; then
-            echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+            echo "DOCKER_TAG=latest" >> $GITHUB_OUTPUT
           else
-            echo "DOCKER_TAG=unstable" >> $GITHUB_ENV
+            echo "DOCKER_TAG=unstable" >> $GITHUB_OUTPUT
           fi
 
-      - name: Publish Docker Image (${{ env.DOCKER_TAG }})
-        if: env.SHOULD_CONTINUE == 'true'
+      - name: Publish Docker Image (${{ steps.set-docker-tag.outputs.DOCKER_TAG }})
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
-          tags: hopprotocol/${{ matrix.package-name }}:${{ env.DOCKER_TAG }}
+          tags: hopprotocol/${{ matrix.package-name }}:${{ steps.set-update-flag.outputs.DOCKER_TAG }}
           push: true
 

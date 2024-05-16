@@ -32,19 +32,25 @@ jobs:
           package-name: frontend
 
       - name: Set Update Flag
+        id: set-update-flag
         run: |
           if [ "${{ steps.check-package-updates.outputs.any-changed }}" == "true" ]; then
-            echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
+            if [ "${{ matrix.env-name }}" == "production" ] && [ "${{ steps.check-package-updates.outputs.npm-package-changed }}" != "true" ]; then
+              echo "SHOULD_CONTINUE=false" >> $GITHUB_OUTPUT
+            else
+              echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "SHOULD_CONTINUE=false" >> $GITHUB_ENV
+            echo "SHOULD_CONTINUE=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Install package
-        if: env.SHOULD_CONTINUE == 'true'
-        run: pnpm --filter-prod frontend... install
+      - name: Set Production Flag
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
+        id: set-production-flag
+        run: |
 
       - name: Build the app
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         env:
           REACT_APP_NETWORK: ${{ vars.REACT_APP_NETWORK }}
           REACT_APP_ENABLED_CHAINS: ${{ vars.REACT_APP_ENABLED_CHAINS }}
@@ -58,7 +64,7 @@ jobs:
         run: pnpm --filter frontend... build
 
       - name: Write commit file
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42
         with:
           path: packages/frontend/dist/cachebust
@@ -66,7 +72,7 @@ jobs:
           contents: ${{ github.sha }}
 
       - name: Pin to IPFS on Pinata
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         id: upload
         uses: anantaramdas/ipfs-pinata-deploy-action@9f9c3b42b5d360352c4b768d98aff1309d62faa0
         with:
@@ -76,7 +82,7 @@ jobs:
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
       - name: Update CloudFlare DNS with new IPFS hash
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: 'hop.exchange'
@@ -87,14 +93,14 @@ jobs:
           cid: ${{ steps.upload.outputs.hash }}
 
       - name: Convert CIDv0 to CIDv1
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         id: convert_cidv0
         uses: uniswap/convert-cidv0-cidv1@c53a468c3602a85dd979c02ec4ddd9102849395e
         with:
           cidv0: ${{ steps.upload.outputs.hash }}
 
       - name: Create GitHub Release
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         env:
           CIDv0: ${{ steps.upload.outputs.hash }}
           CIDv1: ${{ steps.convert_cidv0.outputs.cidv1 }}

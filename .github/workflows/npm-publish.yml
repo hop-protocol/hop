@@ -23,21 +23,22 @@ jobs:
           package-name: sdk
 
       - name: Set Update Flag
+        id: set-update-flag
         run: |
           if [ "${{ steps.check-package-updates.outputs.npm-version-changed }}" == "true" ]; then
-            echo "SHOULD_CONTINUE=true" >> $GITHUB_ENV
+            echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
           else
-            echo "SHOULD_CONTINUE=false" >> $GITHUB_ENV
+            echo "SHOULD_CONTINUE=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Install and build package
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         run: |
           pnpm --filter-prod sdk... install
           pnpm --filter sdk... build
 
       - name: Publish package
-        if: env.SHOULD_CONTINUE == 'true'
+        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         run: pnpm --filter sdk publish --publish-branch production --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

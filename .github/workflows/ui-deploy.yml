@@ -15,6 +15,7 @@ jobs:
   build-ui:
     needs: package-updates
     runs-on: ubuntu-latest
+    # If the frontend hasn't been modified, skip
     if: ${{ fromJson(needs.package-updates.outputs.modified-packages)[0] != null }}
     environment: ${{ matrix.env-name }}
     strategy:
@@ -23,6 +24,7 @@ jobs:
         env-name:
           - production
           - mainnet
+          - sepolia
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -44,6 +46,9 @@ jobs:
           else
             echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
           fi
+
+      - name: Install package
+        run: pnpm --filter-prod frontend... install
 
       - name: Build the app
         if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'

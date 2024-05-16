@@ -7,8 +7,17 @@ on:
       - 'packages/sdk/**'
 
 jobs:
+  package-updates:
+    uses: ./.github/workflows/modified-packages.yml
+    with:
+      package-names: 'sdk'
+
   publish-sdk:
+    needs: package-updates
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package-name: ${{ fromJson(needs.package-updates.outputs.modified-packages) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -20,7 +29,7 @@ jobs:
         id: check-package-updates
         uses: ./.github/actions/check-package-updates
         with:
-          package-name: sdk
+          package-name: ${{ matrix.package-name }}
 
       - name: Set Update Flag
         id: set-update-flag
@@ -34,11 +43,11 @@ jobs:
       - name: Install and build package
         if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         run: |
-          pnpm --filter-prod sdk... install
-          pnpm --filter sdk... build
+          pnpm --filter-prod ${{ matrix.package-name }}... install
+          pnpm --filter ${{ matrix.package-name }}... build
 
       - name: Publish package
         if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
-        run: pnpm --filter sdk publish --publish-branch production --access public
+        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

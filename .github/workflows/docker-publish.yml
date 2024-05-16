@@ -3,7 +3,12 @@ on:
   push:
     branches:
       - develop
-
+    paths:
+      - 'packages/hop-node/**''
+      - 'packages/v2-explorer-backend/**'
+      - 'packages/api/**'
+      - 'packages/explorer-backend/**'
+      - 'packages/stats-worker/**'
 jobs:
   package-updates:
     uses: ./.github/workflows/modified-packages.yml

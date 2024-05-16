@@ -6,14 +6,18 @@ on:
     paths:
       - 'packages/frontend/**'
 
-# TODO: DRY if statements
-
 jobs:
+  package-updates:
+    uses: ./.github/workflows/modified-packages.yml
+    with:
+      package-names: 'frontend'
+
   build-ui:
     runs-on: ubuntu-latest
     environment: ${{ matrix.env-name }}
     strategy:
       matrix:
+        package-name: ${{ fromJson(needs.package-updates.outputs.modified-packages) }}
         env-name:
           - production
           - mainnet

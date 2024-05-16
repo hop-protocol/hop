@@ -3,7 +3,7 @@ on:
   workflow_call:
     outputs:
       modified-packages:
-        description: "The first output string"
+        description: 'Returns all packages that havebeen changed in any way.'
         value: ${{jobs.modified-packages.outputs.modified-packages }}
 
 jobs:
@@ -23,6 +23,8 @@ jobs:
         dir_names: true
         dir_names_max_depth: 2
         separator: ','
+        files: |
+          packages/**
 
     - name: Get modified packages
       id: modified-packages

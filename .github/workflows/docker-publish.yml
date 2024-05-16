@@ -43,11 +43,20 @@ jobs:
       - name: Set Docker Tags
         id: set-docker-tag
         run: |
-          if [ "${{ steps.check-package-updates.outputs.package-version-changed }}" == "true" ]; then
-            echo "DOCKER_TAG=latest" >> $GITHUB_OUTPUT
+          # Modify any discrepancies in the package name vs the image name
+          if [ "${{ matrix.package-name }}" == "api" ]; then
+            image_name=hopprotocol/hop-api
           else
-            echo "DOCKER_TAG=unstable" >> $GITHUB_OUTPUT
+            image_name=hopprotocol/${{ matrix.package-name }}
           fi
+
+          # Set the correct version to release
+          if [ "${{ steps.check-package-updates.outputs.package-version-changed }}" == "true" ]; then
+            echo "DOCKER_TAG=$image_name:latest" >> $GITHUB_OUTPUT
+          else
+            echo "DOCKER_TAG=$image_name:unstable" >> $GITHUB_OUTPUT
+          fi
+
 
       - name: Publish Docker Image (${{ steps.set-docker-tag.outputs.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
@@ -55,4 +64,3 @@ jobs:
           file: ./packages/${{ matrix.package-name }}/Dockerfile
           tags: hopprotocol/${{ matrix.package-name }}:${{ steps.set-docker-tag.outputs.DOCKER_TAG }}
           push: true
-

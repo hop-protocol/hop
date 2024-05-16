@@ -58,7 +58,7 @@ jobs:
           fi
 
 
-      - name: Publish Docker Image (${{ matrix.package-name }})
+      - name: Publish Docker Image (${{ steps.set-docker-tag.outputs.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           file: ./packages/${{ matrix.package-name }}/Dockerfile

@@ -4,11 +4,12 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import SafeProvider from '@gnosis.pm/safe-apps-react-sdk'
 import ThemeProvider from 'src/theme/ThemeProvider'
-import Web3Provider from 'src/contexts/Web3Context'
+import Web3Provider, { connectors } from 'src/contexts/Web3Context'
 import reportWebVitals from 'src/reportWebVitals'
 import { HashRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
+import { Web3ReactProvider } from '@web3-react/core'
 
 const Router: typeof HashRouter = HashRouter
 
@@ -33,12 +34,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <Router>
-          <Web3Provider>
-            <AppProvider>
-              <App />
-              <ReactQueryDevtools />
-            </AppProvider>
-          </Web3Provider>
+          <Web3ReactProvider connectors={connectors}>
+            <Web3Provider>
+              <AppProvider>
+                <App />
+                <ReactQueryDevtools />
+              </AppProvider>
+            </Web3Provider>
+          </Web3ReactProvider>
         </Router>
       </QueryClientProvider>
     </ThemeProvider>

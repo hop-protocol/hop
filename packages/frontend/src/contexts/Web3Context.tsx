@@ -1,52 +1,60 @@
 import Address from 'src/models/Address'
-import Onboard from '@web3-onboard/core'
 import React, {
   FC,
   ReactNode,
   createContext,
   useContext,
   useEffect,
-  useMemo,
-  useState
+  useState,
+  useMemo
 } from 'react'
-// import coinbaseWalletModule from '@web3-onboard/coinbase'
-// import gnosisModule from '@web3-onboard/gnosis'
-import injectedModule from '@web3-onboard/injected-wallets'
+import MetaMaskLogo from 'src/assets/logos/metamask.svg'
+import WalletConnectLogo from 'src/assets/logos/walletconnect.svg'
+import GnosisSafeLogo from 'src/assets/logos/gnosissafe.svg'
+import CoinbaseWalletLogo from 'src/assets/logos/coinbasewallet.svg'
 import logger from 'src/logger'
-import walletConnectModule from '@web3-onboard/walletconnect'
-import { blocknativeDappid, isGoerli, isMainnet, reactAppNetwork } from 'src/config'
-import { capitalize } from 'src/utils/capitalize'
-import { chainIdToHex } from 'src/utils/chainIdToHex'
-import { ethers } from 'ethers'
-import { l1Network } from 'src/config/networks'
-import { networkSlugToId } from 'src/utils'
+import { providers } from 'ethers'
+import { useWeb3React } from '@web3-react/core'
 import { NetworkSlug, getChains } from '@hop-protocol/sdk'
-import { useThemeMode } from 'src/theme/ThemeProvider'
+import { isGoerli, isMainnet, reactAppNetwork, walletConnectProjectId } from 'src/config'
+import { capitalize } from 'src/utils/capitalize'
+import { Web3ReactHooks, initializeConnector } from '@web3-react/core'
+import { CoinbaseWallet } from '@web3-react/coinbase-wallet'
+import { MetaMask } from '@web3-react/metamask'
+import { GnosisSafe } from '@web3-react/gnosis-safe'
+import type { Connector } from '@web3-react/types'
+import { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
 
-export type Props = {
-  onboard: any
-  provider: ethers.providers.Web3Provider | undefined
-  address: Address | undefined
-  connectedNetworkId: number | undefined
-  requestWallet: () => void
-  disconnectWallet: () => void
-  walletConnected: boolean
-  walletName: string
-  walletIcon: string
-  checkConnectedNetworkId: (networkId: number) => Promise<boolean>
+function getName(connector: Connector) {
+  if (connector instanceof MetaMask) return 'MetaMask'
+  if (connector instanceof WalletConnectV2) return 'WalletConnect V2'
+  if (connector instanceof CoinbaseWallet) return 'Coinbase Wallet'
+  if (connector instanceof GnosisSafe) return 'Gnosis Safe'
+  return 'Unknown'
 }
 
-class NetworkSwitchError extends Error {}
+function getIcon(connector: Connector) {
+  if (connector instanceof MetaMask) return MetaMaskLogo
+  if (connector instanceof WalletConnectV2) return WalletConnectLogo
+  if (connector instanceof CoinbaseWallet) return CoinbaseWalletLogo
+  if (connector instanceof GnosisSafe) return GnosisSafeLogo
+  return ''
+}
 
-function getOnboardChains(): any {
+function getWeb3Chains(): any[] {
   const chains = getChains(reactAppNetwork as NetworkSlug)
-  const onboardChains :any[] = []
+  const items:any[] = []
 
   for (const chain of chains) {
-    const id = chainIdToHex(Number(chain.chainId))
+    const id = Number(chain.chainId)
     const token = chain.nativeTokenSymbol
-    const label = `${chain.name} ${capitalize(reactAppNetwork)}`
+    let label = `${chain.name}`
+    if (!isMainnet) {
+      label = `${label} ${capitalize(reactAppNetwork)}`
+    }
+    const explorerUrls = chain.explorerUrls
     let rpcUrl = chain.publicRpcUrl
+    const isEthereum = chain.slug === 'ethereum'
 
     // overrides
     if (chain.slug === 'linea') {
@@ -58,189 +66,203 @@ function getOnboardChains(): any {
       }
     }
 
-    onboardChains.push({
+    items.push({
         id,
+        isEthereum,
         token,
         label,
-        rpcUrl
+        rpcUrl,
+        explorerUrls
     })
   }
 
-  return onboardChains
+  return items
 }
 
-const injected = injectedModule()
-// const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
+const [metaMask, metaMaskHooks] = initializeConnector<MetaMask>((actions) => new MetaMask({ actions }))
+const [gnosisSafe, gnosisSafeHooks] = initializeConnector<GnosisSafe>((actions) => new GnosisSafe({
+  actions,
+  options: {
+    allowedDomains: [
+      /^https:\/\/gnosis-safe\.io$/,
+      /^https:\/\/app\.safe\.global$/,
+      /^https:\/\/safe\.global$/,
+      /^https:\/\/wallet\.ambire\.com$/
+    ]
+  }
+}))
 
-// https://github.com/blocknative/web3-onboard/pull/1834
-// const gnosis = gnosisModule({
-//   whitelistedDomains: [
-//     /^https:\/\/gnosis-safe\.io$/,
-//     /^https:\/\/app\.safe\.global$/,
-//     /^https:\/\/safe\.global$/,
-//     /^https:\/\/wallet\.ambire\.com$/
-//   ]
-// })
-const walletConnect = walletConnectModule({
-  version: 2, // NOTE: version v1 will be sunset but MetaMask currently only supports v1
-  projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce',
-  optionalChains: getOnboardChains().map((chain: any) => Number(chain.id)) as number[]
-})
+const [coinbaseWallet, coinbaseWalletHooks] = initializeConnector<CoinbaseWallet>(
+  (actions) =>
+    new CoinbaseWallet({
+      actions,
+      options: {
+        url: getWeb3Chains().filter((chain: any) => chain.isEthereum).map((chain: any) => chain.rpcUrl)[0],
+        appName: 'Hop Protocol',
+      },
+    })
+)
+
+const [walletConnectV2, walletConnectV2Hooks] = initializeConnector<WalletConnectV2>(
+  (actions) =>
+    new WalletConnectV2({
+      actions,
+      options: {
+        projectId: walletConnectProjectId,
+        chains: getWeb3Chains().filter((chain: any) => chain.isEthereum).map((chain: any) => chain.id),
+        optionalChains: getWeb3Chains().filter((chain: any) => !chain.isEthereum).map((chain: any) => chain.id),
+        showQrModal: true,
+      },
+    })
+)
+
+export const connectors: [MetaMask | WalletConnectV2 | CoinbaseWallet | GnosisSafe, Web3ReactHooks][] = [
+  [metaMask, metaMaskHooks],
+  [walletConnectV2, walletConnectV2Hooks],
+  [coinbaseWallet, coinbaseWalletHooks],
+  [gnosisSafe, gnosisSafeHooks]
+]
+
+const connectorChoices = {
+  metamask: metaMask,
+  walletconnect: walletConnectV2,
+  coinbasewallet: coinbaseWallet,
+  gnosissafe: gnosisSafe
+}
+
+type WalletOption = {
+  id: string
+  name: string
+  icon: string
+}
+
+export type Props = {
+  provider: providers.Web3Provider | undefined
+  address: Address | undefined
+  connectedNetworkId: number | undefined
+  requestWallet: () => void
+  disconnectWallet: () => void
+  walletConnected: boolean
+  walletName: string
+  walletIcon: string
+  checkConnectedNetworkId: (networkId: number) => Promise<boolean>
+  web3ModalActive: boolean
+  setWeb3ModalActive: (active: boolean) => void
+  setWeb3ModalChoice: (choice: string) => void
+  error: string
+  walletOptions: WalletOption[]
+}
 
 const Web3Context = createContext<Props | undefined>(undefined)
 
 const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
-  const { isDarkMode } = useThemeMode()
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
-  const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
+  const [provider, setProvider] = useState<providers.Web3Provider | undefined>()
+  // const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
   const [walletName, setWalletName] = useState<string>('')
   const [walletIcon, setWalletIcon] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
-  const [onboardNetworkId] = useState<number>(() => {
-    try {
-      const parsedHash = new URLSearchParams(
-        window.location.hash.substring(1)
-      )
+  const [web3ModalActive, setWeb3ModalActive] = useState<boolean>(false)
+  const [web3ModalChoice, setWeb3ModalChoice] = useState<string>('')
+  const [error, setError] = useState<string>('')
+  const { account, chainId: connectedNetworkId, connector, isActivating, isActive, provider: web3ReactProvider } = useWeb3React()
 
-      const slug = parsedHash.get('sourceNetwork')
-      if (slug) {
-        const networkId = networkSlugToId(slug)
-        if (networkId) {
-          return networkId
-        }
+  useEffect(() => {
+    const update = async () => {
+      if (connector) {
+        await connector.connectEagerly()
       }
-    } catch (err) {
-      logger.error(err)
     }
-    return l1Network.networkId
-  })
 
-  const customTheme = {
-    '--w3o-background-color': isDarkMode ? '#272332' : '#fdf7f9',
-    '--w3o-foreground-color': isDarkMode ? '#1f1e23' : '#ffffff',
-    '--w3o-text-color': isDarkMode ? '#e3ddf1' : '#4a4a4a',
-    '--w3o-border-color': 'transparent',
-    '--w3o-border-radius': '2px'
-  }
+    update().catch(console.error)
+  }, [connector])
 
-  const onboard = useMemo(() => {
-    // eslint-disable-next-line new-cap
-    const instance = Onboard({
-      theme: customTheme,
-      appMetadata: {
-        name: 'Hop',
-        icon: 'https://assets.hop.exchange/logos/hop.svg',
-        description: 'Hop Protocol',
-      },
-      apiKey: blocknativeDappid,
-      wallets: [injected, walletConnect],
-      // wallets: [injected, walletConnect, gnosis, coinbaseWallet],
-      chains: getOnboardChains(),
-      disableFontDownload: true,
-      connect: {
-        showSidebar: false,
-        disableClose: false,
-        autoConnectLastWallet: true,
-        autoConnectAllPreviousWallet: false,
-      },
-      accountCenter: {
-        desktop: {
-          enabled: false,
-        },
-        mobile: {
-          enabled: false,
-        }
-      },
-      notify: {
-        enabled: false
-      },
-    })
-
-    return instance
-  }, [onboardNetworkId, isDarkMode])
-
-  async function handleWalletChange(wallet: any) {
-    try {
-      logger.debug('handleWalletChange')
-      // logger.debug('handleWalletChange wallet', wallet)
-
-      const _address = wallet?.accounts?.[0]?.address
-      if (_address) {
-        setAddress(Address.from(_address))
-      } else {
-        setAddress(undefined)
-      }
-
-      const connectedNetworkId = Number(wallet?.chains?.[0]?.id)
-      if (connectedNetworkId) {
-        setConnectedNetworkId(connectedNetworkId)
-      } else {
-        setConnectedNetworkId(undefined)
-      }
-
-      if (wallet?.provider) {
-        const { icon, label, provider } = wallet
-        const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
-        if (provider.enable && !provider.isMetaMask) {
-          // needed for WalletConnect and some wallets
-          await provider.enable()
+  useEffect(() => {
+      try {
+        if (account) {
+          setAddress(Address.from(account))
         } else {
-          // note: this method may not be supported by all wallets
-          try {
-            await ethersProvider.send('eth_requestAccounts', [])
-          } catch (error) {
-            logger.error(error)
-          }
+          setAddress(undefined)
         }
-        setProvider(ethersProvider)
-        setWalletName(label)
+      } catch(err) {
+        console.error(err)
+      }
+  }, [account])
 
-        try {
-          const svg = new Blob([icon], { type: 'image/svg+xml' })
-          const url = URL.createObjectURL(svg)
-          setWalletIcon(url)
-        } catch (err: any) {
+  useEffect(() => {
+    const update = async () => {
+      try {
+        const web3ReactProvider: any = connector.provider
+        if (web3ReactProvider) {
+          const ethersProvider = new providers.Web3Provider(web3ReactProvider, 'any')
+          if (web3ReactProvider.enable && !web3ReactProvider.isMetaMask) {
+            // needed for WalletConnect and some wallets
+            await web3ReactProvider.enable()
+          } else {
+            // note: this method may not be supported by all wallets
+            try {
+              await ethersProvider.send('eth_requestAccounts', [])
+            } catch (error) {
+              logger.error(error)
+            }
+          }
+          setProvider(ethersProvider)
+          setWalletName(getName(connector))
+
+          try {
+            setWalletIcon(getIcon(connector))
+          } catch (err: any) {
+            setWalletIcon('')
+          }
+
+        } else {
+          setWalletName('')
           setWalletIcon('')
+          setProvider(undefined)
+          setAddress(undefined)
         }
-      } else {
-        setWalletName('')
-        setWalletIcon('')
+      } catch(err) {
+        console.error(err)
         setProvider(undefined)
         setAddress(undefined)
       }
-    } catch (err) {
-      logger.error(err)
-      setProvider(undefined)
-      setAddress(undefined)
     }
-  }
+
+    update().catch(console.error)
+  }, [account, connector])
 
   function requestWallet() {
+    setWeb3ModalActive(true)
+  }
+
+  useEffect(() => {
     const update = async () => {
       try {
         localStorage.clear()
-        const [primaryWallet] = onboard.state.get().wallets
-        if (primaryWallet) {
-          await onboard.disconnectWallet({ label: primaryWallet.label })
+        disconnectWallet()
+        setError('')
+        if (web3ModalChoice) {
+          const connectorToUse = connectorChoices[web3ModalChoice]
+          if (!connectorToUse) {
+            throw new Error(`connect not found "${web3ModalChoice}"`)
+          }
+          await connectorToUse.activate()
         }
-        await onboard.connectWallet()
+        setWeb3ModalActive(false)
       } catch (err) {
-        logger.error(err)
+        setError(err.message)
+        logger.error('web3 react activate error:', err)
       }
     }
 
     update().catch(logger.error)
-  }
+  }, [web3ModalChoice])
 
   function disconnectWallet() {
     const update = async () => {
       try {
         localStorage.clear()
-        const [primaryWallet] = onboard.state.get().wallets
-        if (primaryWallet) {
-          await onboard.disconnectWallet({ label: primaryWallet.label })
-        }
+        await connector.resetState()
       } catch (error) {
         logger.error(error)
       }
@@ -249,35 +271,8 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
     update().catch(logger.error)
   }
 
-  useEffect(() => {
-    const state = onboard.state.select('wallets')
-    let lastUpdate = ''
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { unsubscribe } = state.subscribe((update: any) => {
-      let shouldUpdate = true
-      const _walletName = update?.[0]?.label
-      if (_walletName === 'WalletConnect') {
-        const str = JSON.stringify({ account: update?.[0]?.accounts, chains: update?.[0]?.chains })
-        shouldUpdate = lastUpdate !== str
-        if (shouldUpdate) {
-          lastUpdate = str
-        }
-      }
-      if (shouldUpdate) {
-        // logger.debug('onboard state update: ', update)
-        const [wallet] = update
-        handleWalletChange(wallet)
-      }
-    })
-
-    return () => {
-      unsubscribe()
-    }
-  }, [onboard])
-
   const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
     if (!(networkId && provider)) return false
-
     const signerNetworkId = (await provider.getNetwork())?.chainId
     logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
@@ -290,22 +285,50 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
         return true
       }
 
-      const wallets = onboard.state.get().wallets
-      logger.debug('onboard wallets', wallets)
-      const _address = wallets?.[0].accounts?.[0]?.address
-      if (_address) {
-        await onboard.setChain({ chainId: networkId })
+      try {
+          // const hexChainId = `0x${Number(networkId).toString(16)}`
+          // using rpc:
+          // await provider.send('wallet_switchEthereumChain', [{ chainId: hexChainId }])
+
+          // https://docs.uniswap.org/sdk/web3-react/guides/switch-chains
+          await connector.activate(networkId)
+      } catch (err) {
+        // attempt to add chain if can't switch to it
+        if (err.code === 4902) {
+          const chainInfo = getWeb3Chains().find(chain => Number(chain.id) === Number(networkId))
+          if (!chainInfo) {
+            throw new Error(`chain info not found for networkId ${networkId}`)
+          }
+
+          const addChainInfo = {
+            chainId: networkId, // note: use hexChainId for rpc call
+            chainName: chainInfo.label,
+            nativeCurrency: {
+              name: chainInfo.token,
+              symbol: chainInfo.token,
+              decimals: 18
+            },
+            rpcUrls: [chainInfo.rpcUrl],
+            blockExplorerUrls: chainInfo.explorerUrls
+          }
+
+          // using rpc:
+          // await provider.send('wallet_addEthereumChain', [addChainInfo])
+
+          // https://docs.uniswap.org/sdk/web3-react/guides/switch-chains
+          await connector.activate(addChainInfo)
+        } else {
+          throw err
+        }
       }
     } catch (err: any) {
       logger.error('checkConnectedNetworkId error:', err)
-      if (err instanceof NetworkSwitchError) {
-        throw err
-      }
+      throw err
     }
 
     // after network switch, recheck if provider is connected to correct network.
-    const net = await provider.getNetwork()
-    if (net.chainId === networkId) {
+    const postCheckSignerNetworkId = await provider.getNetwork()
+    if (postCheckSignerNetworkId.chainId === networkId) {
       return true
     }
 
@@ -314,10 +337,34 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const walletConnected = !!address
 
+  const walletOptions = useMemo(() => {
+    return [
+      {
+        id: 'metamask',
+        name: 'MetaMask',
+        icon: MetaMaskLogo
+      },
+      {
+        id: 'walletconnect',
+        name: 'WalletConnect',
+        icon: WalletConnectLogo
+      },
+      {
+        id: 'coinbasewallet',
+        name: 'Coinbase Wallet',
+        icon: CoinbaseWalletLogo
+      },
+      {
+        id: 'gnosissafe',
+        name: 'Gnosis Safe',
+        icon: GnosisSafeLogo
+      }
+    ]
+  }, [])
+
   return (
     <Web3Context.Provider
       value={{
-        onboard,
         provider,
         address,
         walletConnected,
@@ -327,6 +374,11 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
         walletName,
         walletIcon,
         checkConnectedNetworkId,
+        web3ModalActive,
+        setWeb3ModalActive,
+        setWeb3ModalChoice,
+        error,
+        walletOptions
       }}
     >
       {children}

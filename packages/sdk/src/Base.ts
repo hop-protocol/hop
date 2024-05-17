@@ -320,6 +320,10 @@ export class Base {
     const chainId = chain.chainId
     await this.checkBlocklist()
 
+    if (!chainId) {
+      throw new Error('chainId is required')
+    }
+
     if (!transactionRequest.to) {
       throw new Error('tx "to" address is required')
     }
@@ -455,6 +459,10 @@ export class Base {
           ','
         )}`
       )
+    }
+
+    if (!chain.chainId) {
+      throw new Error(`chainId is not found on chain model "${chain.slug}"`)
     }
 
     return chain

@@ -172,8 +172,8 @@ export type Props = {
   provider: providers.Web3Provider | undefined
   address: Address | undefined
   connectedNetworkId: number | undefined
-  requestWallet: () => void
-  disconnectWallet: () => void
+  requestWallet: () => Promise<void>
+  disconnectWallet: () => Promise<void>
   walletConnected: boolean
   walletName: string
   walletIcon: string
@@ -262,7 +262,7 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const update = async () => {
       try {
-        disconnectWallet()
+        await disconnectWallet()
         setError('')
         if (web3ModalChoice) {
           const connectorToUse = connectorMap[web3ModalChoice]
@@ -281,22 +281,19 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
     update().catch(logger.error)
   }, [web3ModalChoice])
 
-  function requestWallet() {
-    disconnectWallet()
+  async function requestWallet() {
+    await disconnectWallet()
     setError('')
     setWeb3ModalActive(true)
   }
 
-  function disconnectWallet() {
-    const update = async () => {
-      try {
-        localStorage.clear()
-        await connector.resetState()
-      } catch (error) {
-        logger.error(error)
-      }
+  async function disconnectWallet() {
+    try {
+      localStorage.clear()
+      await connector.resetState()
+    } catch (error) {
+      logger.error(error)
     }
-    update().catch(logger.error)
   }
 
   const checkConnectedNetworkId = async (wantChainId?: number): Promise<boolean> => {
@@ -320,7 +317,10 @@ const Web3ContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         await connector.activate(wantChainId)
       } catch (err) {
+        // Note: This error code should be standard across wallets.
+        // Source: https://docs.metamask.io/wallet/reference/wallet_switchethereumchain/
         const chainNotAddedErrorCode = 4902
+
         // this attempts to add chain if it can't switch to it
         if (err.code === chainNotAddedErrorCode) {
           const chainInfo = getWeb3Chains().find(chain => chain.chainId === wantChainId)

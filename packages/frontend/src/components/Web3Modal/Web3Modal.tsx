@@ -7,11 +7,9 @@ import { useWeb3ModalStyles } from './useWeb3ModalStyles'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { Alert } from 'src/components/Alert'
 
-type Props = {}
-
-export function Web3Modal (props: Props) {
+export function Web3Modal () {
   const styles = useWeb3ModalStyles()
-  const { web3ModalActive, setWeb3ModalActive, setWeb3ModalChoice, error, walletOptions } = useWeb3Context()
+  const { walletOptions, web3ModalActive, setWeb3ModalActive, setWeb3ModalChoice, error } = useWeb3Context()
 
   if (!web3ModalActive) {
     return null
@@ -21,8 +19,8 @@ export function Web3Modal (props: Props) {
     setWeb3ModalActive(false)
   }
 
-  function handleSelect (value: string) {
-    setWeb3ModalChoice(value)
+  function handleSelect (wallet: string) {
+    setWeb3ModalChoice(wallet)
   }
 
   return (
@@ -38,12 +36,12 @@ export function Web3Modal (props: Props) {
                 <Box width="32px" height="32px" display="flex" alignItems="center">
                   <img
                     src={option.icon}
-                    alt=""
+                    alt="Icon"
                     width="100%"
                     height="auto"
                   />
                 </Box>
-                <Typography variant="subtitle1">{option.name}</Typography>
+                <Typography variant="subtitle1" component="div">{option.name}</Typography>
               </Button>
             </Box>
           )

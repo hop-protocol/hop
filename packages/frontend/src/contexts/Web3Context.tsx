@@ -28,7 +28,7 @@ import { formatError } from 'src/utils/format'
 
 type ChainInfo = {
   chainId: number
-  isEthereum: boolean
+  isL1: boolean
   token: string
   name: string
   rpcUrl: string
@@ -65,7 +65,7 @@ function getWeb3Chains(): ChainInfo[] {
     const chainId = Number(chain.chainId)
     const token = chain.nativeTokenSymbol
     const explorerUrls = chain.explorerUrls
-    const isEthereum = chain.slug === 'ethereum'
+    const isL1 = chain.isL1
     let rpcUrl = chain.publicRpcUrl
     let name = `${chain.name}`
     if (!isMainnet) {
@@ -83,7 +83,7 @@ function getWeb3Chains(): ChainInfo[] {
 
     items.push({
       chainId,
-      isEthereum,
+      isL1,
       token,
       name,
       rpcUrl,
@@ -112,7 +112,7 @@ const [coinbaseWallet, coinbaseWalletHooks] = initializeConnector<CoinbaseWallet
     new CoinbaseWallet({
       actions,
       options: {
-        url: getWeb3Chains().filter((chain) => chain.isEthereum).map((chain) => chain.rpcUrl)[0],
+        url: getWeb3Chains().filter((chain) => chain.isL1).map((chain) => chain.rpcUrl)[0],
         appName: 'Hop Protocol',
       },
     })
@@ -124,8 +124,8 @@ const [walletConnectV2, walletConnectV2Hooks] = initializeConnector<WalletConnec
       actions,
       options: {
         projectId: walletConnectProjectId,
-        chains: getWeb3Chains().filter((chain) => chain.isEthereum).map((chain) => chain.chainId),
-        optionalChains: getWeb3Chains().filter((chain) => !chain.isEthereum).map((chain) => chain.chainId),
+        chains: getWeb3Chains().filter((chain) => chain.isL1).map((chain) => chain.chainId),
+        optionalChains: getWeb3Chains().filter((chain) => !chain.isL1).map((chain) => chain.chainId),
         showQrModal: true,
       },
     })

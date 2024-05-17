@@ -13,6 +13,7 @@ on:
 
 jobs:
   modified-packages:
+    name: Get modified packages
     runs-on: ubuntu-latest
     outputs:
       modified-packages: ${{ steps.modified-packages.outputs.sanitized_packages }}

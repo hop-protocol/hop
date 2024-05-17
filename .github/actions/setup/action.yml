@@ -1,7 +1,3 @@
-# @DEV: The cache hangs when using PNPM on certain local environments. Comment it out
-# when running locally. You only lose the cacheing of pnpm install.
-# https://github.com/actions/setup-node/issues/824
-
 name: Setup
 description: Common setup steps used by our workflows
 runs:
@@ -18,4 +14,3 @@ runs:
       with:
         node-version-file: '.nvmrc'
         registry-url: https://registry.npmjs.org
-        cache: 'pnpm'

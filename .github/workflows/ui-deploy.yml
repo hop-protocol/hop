@@ -102,6 +102,7 @@ jobs:
           cidv0: ${{ steps.upload.outputs.hash }}
 
       - name: Create GitHub Release
+        if: ${{ github.ref_name == 'production' }}
         env:
           CIDv0: ${{ steps.upload.outputs.hash }}
           CIDv1: ${{ steps.convert_cidv0.outputs.cidv1 }}

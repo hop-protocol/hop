@@ -12,7 +12,6 @@ export default tseslint.config(
       react: reactPlugin
     },
     rules: {
-      'n/no-missing-import': 'off',
       'react-hooks/exhaustive-deps': 'off',
       'react-hooks/rules-of-hooks': 'off',
       'react/display-name': 'off',

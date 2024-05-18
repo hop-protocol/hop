@@ -5,6 +5,8 @@ import { config as goerli } from './goerli.js'
 import { config as mainnet } from './mainnet.js'
 import { config as sepolia } from './sepolia.js'
 
+const cachebuster: number = 1
+
 let sdkConfig: any = {}
 const bondableChainsSet = new Set<string>([])
 const config: any = { goerli, sepolia, mainnet }

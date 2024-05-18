@@ -2,7 +2,7 @@ name: Publish Packages to Docker Hub
 on:
   push:
     branches:
-      - develop
+      - staging
       - production
     paths:
       - 'packages/hop-node/**'
@@ -11,23 +11,25 @@ on:
       - 'packages/explorer-backend/**'
       - 'packages/stats-worker/**'
 env:
-  DOCKER_TAG: ${{ (github.ref_name == 'develop' && 'unstable') || (github.ref_name == 'production' && 'latest') }}
+  DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
 
 jobs:
+  publishable-packages:
+    name: Check for package that can be published
+    uses: ./.github/workflows/publishable-packages.yml
+    with:
+      package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker'
+
   publish-docker:
+    name: Publish Docker
+    needs: publishable-packages
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package-name: ['hop-node', 'v2-explorer-backend', 'api', 'explorer-backend', 'stats-worker']
+        package-name: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-
-      - name: Check versions
-        id: check-versions
-        uses: ./.github/actions/check-version
-        with:
-          package-name: ${{ matrix.package-name }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb
@@ -38,11 +40,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set Docker Tags
+        id: set-docker-tag
+        run: |
+          # Modify any discrepancies in the package name vs the image name
+          if [ "${{ matrix.package-name }}" == "api" ]; then
+            echo "IMAGE_NAME=hopprotocol/hop-api" >> $GITHUB_OUTPUT
+          else
+            echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish Docker Image (${{ env.DOCKER_TAG }})
-        if: steps.check-versions.outputs.package-version-changed == 'true' || github.ref_name != 'production'
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
+          context: .
           file: ./packages/${{ matrix.package-name }}/Dockerfile
-          tags: hopprotocol/${{ matrix.package-name }}:${{ env.DOCKER_TAG }}
+          tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
           push: true
-

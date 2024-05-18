@@ -7,9 +7,19 @@ on:
       - 'packages/sdk/**'
 
 jobs:
+  publishable-packages:
+    name: Check for package that can be published
+    uses: ./.github/workflows/publishable-packages.yml
+    with:
+      package-names: 'sdk'
+
   publish-sdk:
+    name: Publish NPM
+    needs: publishable-packages
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
+    strategy:
+      matrix:
+        package-name: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -17,20 +27,18 @@ jobs:
       - name: Setup workflow
         uses: ./.github/actions/setup
 
-      - name: Check versions
-        id: check-versions
-        uses: ./.github/actions/check-version
+      - name: Check Package Updates
+        id: check-package-updates
+        uses: ./.github/actions/check-package-updates
         with:
-          package-name: sdk
+          package-name: ${{ matrix.package-name }}
 
       - name: Install and build package
-        if: steps.check-versions.outputs.package-version-changed == 'true'
         run: |
-          pnpm --filter-prod sdk... install
-          pnpm --filter sdk... build
+          pnpm --filter-prod ${{ matrix.package-name }}... install
+          pnpm --filter ${{ matrix.package-name }}... build
 
       - name: Publish package
-        if: steps.check-versions.outputs.package-version-changed == 'true'
-        run: pnpm --filter sdk publish --publish-branch production --access public
+        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

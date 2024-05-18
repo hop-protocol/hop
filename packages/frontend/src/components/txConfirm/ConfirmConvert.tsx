@@ -1,11 +1,11 @@
-import Address from 'src/models/Address'
+import Address from '#models/Address.js'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { Alert } from 'src/components/Alert'
-import { Button } from 'src/components/Button'
-import { NetworkTokenEntity, commafy } from 'src/utils'
+import { Alert } from '#components/Alert/index.js'
+import { Button } from '#components/Button/index.js'
+import { NetworkTokenEntity, commafy } from '#utils/index.js'
 import { makeStyles } from '@mui/styles'
-import { useSendingTransaction } from 'src/components/txConfirm/useSendingTransaction'
+import { useSendingTransaction } from '#components/txConfirm/useSendingTransaction.js'
 
 const useStyles = makeStyles(() => ({
   root: {

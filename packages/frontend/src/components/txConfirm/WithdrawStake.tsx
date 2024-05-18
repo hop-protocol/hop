@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import Typography from '@mui/material/Typography'
-import logger from 'src/logger'
-import { AmountSelectorCard } from 'src/components/AmountSelectorCard'
+import logger from '#logger/index.js'
+import { AmountSelectorCard } from '#components/AmountSelectorCard/index.js'
 import { BigNumber, utils } from 'ethers'
-import { Button } from 'src/components/Button'
-import { Slider } from 'src/components/slider'
+import { Button } from '#components/Button/index.js'
+import { Slider } from '#components/slider/index.js'
 import { Token } from '@hop-protocol/sdk'
-import { commafy } from 'src/utils'
+import { commafy } from '#utils/index.js'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(() => ({

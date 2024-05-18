@@ -1,5 +1,5 @@
 import { BigNumber, utils } from 'ethers'
-import { commafy } from 'src/utils'
+import { commafy } from '#utils/index.js'
 
 export const toPercentDisplay = (
   value: BigNumber | number | undefined,

@@ -1,12 +1,12 @@
 /// <reference types="vite-plugin-svgr/client" />
-import Bolt from 'src/assets/bolt.svg?react'
+import Bolt from '../../../assets/bolt.svg?react'
 import Box from '@mui/material/Box'
 import MuiButton from '@mui/material/Button'
 import React from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { AprDetailsTooltip } from 'src/components/InfoTooltip/AprDetailsTooltip'
-import { Button } from 'src/components/Button'
+import { AprDetailsTooltip } from '#components/InfoTooltip/AprDetailsTooltip.js'
+import { Button } from '#components/Button/index.js'
 import { Link, useNavigate } from 'react-router-dom'
 import { makeStyles } from '@mui/styles'
 

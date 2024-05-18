@@ -1,15 +1,15 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import React, { FC, ReactNode, createContext, useContext, useMemo, useState } from 'react'
-import Transaction from 'src/models/Transaction'
-import logger from 'src/logger'
+import Transaction from '#models/Transaction.js'
+import logger from '#logger/index.js'
 import { BigNumber, Signer, utils } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
-import { defaultL2Network } from 'src/config/networks'
-import { formatError } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
+import { defaultL2Network } from '#config/networks.js'
+import { formatError } from '#utils/index.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useQuery } from 'react-query'
-import { useTransactionReplacement } from 'src/hooks'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useTransactionReplacement } from '#hooks/index.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 type TokenWrapperContextProps = {
   amount: string

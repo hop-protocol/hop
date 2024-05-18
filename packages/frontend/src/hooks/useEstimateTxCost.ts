@@ -1,11 +1,11 @@
-import Network from 'src/models/Network'
-import Transaction from 'src/models/Transaction'
-import logger from 'src/logger'
+import Network from '#models/Network.js'
+import Transaction from '#models/Transaction.js'
+import logger from '#logger/index.js'
 import { BigNumber } from 'ethers'
 import { ChainSlug, Hop, Token } from '@hop-protocol/sdk'
 import { utils } from 'ethers'
-import { getDefaultSendGasLimit } from 'src/utils/getDefaultSendGasLimit'
-import { useApp } from 'src/contexts/AppContext'
+import { getDefaultSendGasLimit } from '#utils/getDefaultSendGasLimit.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useCallback, useState } from 'react'
 
 export enum MethodNames {

@@ -1,11 +1,11 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import { Button } from 'src/components/Button'
-import { Modal } from 'src/components/Modal/Modal'
-import { useWeb3ModalStyles } from './useWeb3ModalStyles'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import { Alert } from 'src/components/Alert'
+import { Button } from '#components/Button/index.js'
+import { Modal } from '#components/Modal/Modal.js'
+import { useWeb3ModalStyles } from './useWeb3ModalStyles.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
+import { Alert } from '#components/Alert/index.js'
 
 export function Web3Modal () {
   const styles = useWeb3ModalStyles()

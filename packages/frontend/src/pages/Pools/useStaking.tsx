@@ -1,14 +1,14 @@
 import { BigNumber, utils } from 'ethers'
 import { ERC20__factory, StakingRewards__factory } from '@hop-protocol/sdk/contracts'
-import { calculateStakedPosition, commafy, findMatchingBridge, findNetworkBySlug, formatError, getTokenImage, isRewardsExpired as isRewardsExpiredCheck } from 'src/utils'
-import { formatTokenDecimalString } from 'src/utils/format'
-import { stableCoins } from 'src/utils/constants'
-import { useApp } from 'src/contexts/AppContext'
-import { useApprove, useAsyncMemo } from 'src/hooks'
+import { calculateStakedPosition, commafy, findMatchingBridge, findNetworkBySlug, formatError, getTokenImage, isRewardsExpired as isRewardsExpiredCheck } from '#utils/index.js'
+import { formatTokenDecimalString } from '#utils/format.js'
+import { stableCoins } from '#utils/constants.js'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useApprove, useAsyncMemo } from '#hooks/index.js'
 import { useEffect, useMemo, useState } from 'react'
-import { usePoolStats } from 'src/pages/Pools/usePoolStats'
+import { usePoolStats } from '#pages/Pools/usePoolStats.js'
 import { useQuery } from 'react-query'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 export function useStaking (chainSlug: string, tokenSymbol: string, stakingContractAddress: string) {
   const { bridges, sdk, txConfirm } = useApp()

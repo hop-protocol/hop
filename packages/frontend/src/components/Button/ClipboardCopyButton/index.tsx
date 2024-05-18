@@ -1,1 +1,1 @@
-export { ClipboardCopyButton } from 'src/components/Button/ClipboardCopyButton/ClipboardCopyButton'
+export { ClipboardCopyButton } from '#components/Button/ClipboardCopyButton/ClipboardCopyButton.js'

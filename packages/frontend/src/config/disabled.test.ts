@@ -1,5 +1,5 @@
-import { discordUrl } from 'src/utils'
-import { parseDisabledRoutes } from 'src/config/disabled'
+import { discordUrl } from '#utils/index.js'
+import { parseDisabledRoutes } from '#config/disabled.js'
 
 describe('parseDisabledRoutes', () => {
   it('should split the env var correctly and return disabled route objects', () => {

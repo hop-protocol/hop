@@ -1,5 +1,5 @@
 import { ethers } from 'ethers'
-import { getProvider } from 'src/utils/getProvider'
+import { getProvider } from '#utils/getProvider.js'
 
 export type Networkish = Network | string | undefined
 

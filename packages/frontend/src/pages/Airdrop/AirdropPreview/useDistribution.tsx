@@ -1,5 +1,5 @@
 import { BigNumber, utils } from 'ethers'
-import { commafy } from 'src/utils'
+import { commafy } from '#utils/index.js'
 import { useEffect, useState } from 'react'
 
 const distributionCsvUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'

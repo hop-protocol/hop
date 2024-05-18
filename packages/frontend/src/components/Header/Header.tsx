@@ -1,34 +1,34 @@
 import Box from '@mui/material/Box'
-import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
-import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
+import HopLogoBlack from '#assets/logos/hop-logo-black.svg'
+import HopLogoWhite from '#assets/logos/hop-logo-white.svg'
 import IconButton from '@mui/material/IconButton'
-import MoonIcon from 'src/assets/moon-icon.svg'
-import Network from 'src/models/Network'
+import MoonIcon from '#assets/moon-icon.svg'
+import Network from '#models/Network.js'
 import React, { FC, useState } from 'react'
-import SunIcon from 'src/assets/sun-icon.svg'
-import logger from 'src/logger'
-import { Banner } from 'src/components/Banner'
-import { ConnectWalletButton } from 'src/components/Header/ConnectWalletButton'
-import { HeaderRoutes } from 'src/components/Header/HeaderRoutes'
-import { Icon } from 'src/components/ui/Icon'
+import SunIcon from '#assets/sun-icon.svg'
+import logger from '#logger/index.js'
+import { Banner } from '#components/Banner/index.js'
+import { ConnectWalletButton } from '#components/Header/ConnectWalletButton.js'
+import { HeaderRoutes } from '#components/Header/HeaderRoutes.js'
+import { Icon } from '#components/ui/Icon.js'
 import { Link } from 'react-router-dom'
-import { NetworkSelector } from 'src/components/NetworkSelector/NetworkSelector'
-import { Settings } from 'src/components/Header/Settings'
-import { TxPill } from 'src/components/Header/TxPill'
-import { WalletWarning } from 'src/components/Header/WalletWarning'
+import { NetworkSelector } from '#components/NetworkSelector/NetworkSelector.js'
+import { Settings } from '#components/Header/Settings.js'
+import { TxPill } from '#components/Header/TxPill.js'
+import { WalletWarning } from '#components/Header/WalletWarning.js'
 import {
 findNetworkBySlug,
 fixedDecimals,
 networkIdNativeTokenSymbol,
 networkIdToSlug,
 toTokenDisplay,
-} from 'src/utils'
-import { isMainnet, reactAppNetwork, showBannerMessage } from 'src/config'
+} from '#utils/index.js'
+import { isMainnet, reactAppNetwork, showBannerMessage } from '#config/index.js'
 import { makeStyles } from '@mui/styles'
-import { useApp } from 'src/contexts/AppContext'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useQuery } from 'react-query'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { useThemeMode } from '#theme/ThemeProvider.js'
+import { useWeb3Context } from '#contexts/Web3Context.js'
 
 const useStyles = makeStyles(theme => ({
   root: {

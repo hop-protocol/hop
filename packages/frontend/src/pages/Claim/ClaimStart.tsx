@@ -1,12 +1,12 @@
 import Box from '@mui/material/Box'
 import React from 'react'
 import Typography from '@mui/material/Typography'
-import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
+import hopTokenLogo from '#assets/logos/hop-token-logo.svg'
 import { BigNumber } from 'ethers'
-import { Button } from 'src/components/Button/Button'
-import { Icon } from 'src/components/ui/Icon'
-import { TokenClaim } from 'src/pages/Claim/useClaim'
-import { toTokenDisplay } from 'src/utils'
+import { Button } from '#components/Button/Button.js'
+import { Icon } from '#components/ui/Icon.js'
+import { TokenClaim } from '#pages/Claim/useClaim.js'
+import { toTokenDisplay } from '#utils/index.js'
 
 interface ClaimTokensProps {
   claim?: TokenClaim

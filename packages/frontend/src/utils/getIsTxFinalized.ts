@@ -1,5 +1,5 @@
-import { getNetworkWaitConfirmations } from 'src/utils/networks'
-import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { getNetworkWaitConfirmations } from '#utils/networks.js'
+import { getProviderByNetworkName } from '#utils/getProvider.js'
 
 export async function getIsTxFinalized (
   txBlockNumber: number | undefined,

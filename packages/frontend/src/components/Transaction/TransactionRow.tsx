@@ -2,10 +2,10 @@ import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import React, { useEffect } from 'react'
 import RightArrow from '@mui/icons-material/ArrowRightAlt'
-import Transaction from 'src/models/Transaction'
-import TransactionStatus from 'src/components/Transaction/TransactionStatus'
-import useTransactionStatus from 'src/hooks/useTransactionStatus'
-import { isOlderThanOneHour, networkSlugToName } from 'src/utils'
+import Transaction from '#models/Transaction.js'
+import TransactionStatus from '#components/Transaction/TransactionStatus.js'
+import useTransactionStatus from '#hooks/useTransactionStatus.js'
+import { isOlderThanOneHour, networkSlugToName } from '#utils/index.js'
 
 function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rmTx: any }) {
   const {

@@ -1,5 +1,5 @@
-import { configs } from 'src/pages/Rewards/config'
-import { useRewards } from 'src/pages/Rewards/useRewards'
+import { configs } from '#pages/Rewards/config.js'
+import { useRewards } from '#pages/Rewards/useRewards.js'
 
 export const useHasRewards = () => {
   let _hasRewards = false

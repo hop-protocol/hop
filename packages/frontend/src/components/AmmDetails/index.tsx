@@ -1,1 +1,1 @@
-export { AmmDetails } from 'src/components/AmmDetails/AmmDetails'
+export { AmmDetails } from '#components/AmmDetails/AmmDetails.js'

@@ -1,16 +1,16 @@
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import React, { ChangeEvent, FC, useMemo } from 'react'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import logger from 'src/logger'
+import logger from '#logger/index.js'
 import { BigNumber, utils } from 'ethers'
-import { LargeTextField } from 'src/components/LargeTextField'
-import { NetworkSelector } from 'src/components/NetworkSelector'
+import { LargeTextField } from '#components/LargeTextField/index.js'
+import { NetworkSelector } from '#components/NetworkSelector/index.js'
 import { Token } from '@hop-protocol/sdk'
-import { toTokenDisplay } from 'src/utils'
-import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
+import { toTokenDisplay } from '#utils/index.js'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from '#hooks/index.js'
 
 type Props = {
   value?: string

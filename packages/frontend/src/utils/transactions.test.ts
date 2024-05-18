@@ -1,4 +1,4 @@
-import { getBlockTagChunks } from '.'
+import { getBlockTagChunks } from './index.js'
 
 it('should return chunks of 1k blocks', () => {
   const blockNumber = 13648384

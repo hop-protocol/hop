@@ -1,11 +1,11 @@
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import React from 'react'
-import Transaction from 'src/models/Transaction'
-import TransactionRow from 'src/components/Transaction/TransactionRow'
+import Transaction from '#models/Transaction.js'
+import TransactionRow from '#components/Transaction/TransactionRow.js'
 import Typography from '@mui/material/Typography'
-import { useApp } from 'src/contexts/AppContext'
-import { useTxStatusStyles } from 'src/components/Transaction/useTxStatusStyles'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useTxStatusStyles } from '#components/Transaction/useTxStatusStyles.js'
 
 function TransactionsList(props: any) {
   const styles = useTxStatusStyles()

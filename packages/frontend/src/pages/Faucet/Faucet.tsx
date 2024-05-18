@@ -1,15 +1,15 @@
 import Box from '@mui/material/Box'
 import MenuItem from '@mui/material/MenuItem'
-import RaisedSelect from 'src/components/selects/RaisedSelect'
+import RaisedSelect from '#components/selects/RaisedSelect.js'
 import React, { FC } from 'react'
 import Typography from '@mui/material/Typography'
-import { Alert } from 'src/components/Alert'
-import { Button } from 'src/components/Button'
+import { Alert } from '#components/Alert/index.js'
+import { Button } from '#components/Button/index.js'
 import { SelectChangeEvent } from '@mui/material/Select'
-import { findMatchingBridge } from 'src/utils'
+import { findMatchingBridge } from '#utils/index.js'
 import { makeStyles } from '@mui/styles'
-import { useApp } from 'src/contexts/AppContext'
-import { useFaucet } from 'src/pages/Faucet/FaucetContext'
+import { useApp } from '#contexts/AppContext/index.js'
+import { useFaucet } from '#pages/Faucet/FaucetContext.js'
 
 const useStyles = makeStyles(theme => ({
   title: {

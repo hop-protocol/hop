@@ -1,4 +1,4 @@
-import Network from 'src/models/Network'
+import Network from '#models/Network.js'
 import { BigNumber, BigNumberish, Signer } from 'ethers'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import { ReactNode } from 'react'

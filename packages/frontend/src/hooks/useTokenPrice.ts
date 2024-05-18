@@ -1,5 +1,5 @@
-import { stableCoins } from 'src/utils/constants'
-import { useApp } from 'src/contexts/AppContext'
+import { stableCoins } from '#utils/constants.js'
+import { useApp } from '#contexts/AppContext/index.js'
 import { useQuery } from 'react-query'
 
 export function useTokenPrice(tokenSymbol: string) {

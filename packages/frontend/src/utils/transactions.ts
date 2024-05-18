@@ -12,8 +12,8 @@ import {
   l1BridgeInterface,
   l2AmmWrapperInterface,
 } from './contracts'
-import { findTransferSentLog, findTransferSentToL2Log, formatLogArgs } from '.'
-import { sigHashes } from 'src/hooks/useTransaction'
+import { findTransferSentLog, findTransferSentToL2Log, formatLogArgs } from './index.js'
+import { sigHashes } from '#hooks/useTransaction.js'
 
 export function getTruncatedHash(hash): string {
   return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`

@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/v2-explorer-backend",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "The Hop v2 explorer backend",
   "main": "dist/index.js",
   "author": "Authereum Labs, Inc.",

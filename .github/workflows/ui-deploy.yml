@@ -19,7 +19,7 @@ jobs:
     needs: publishable-packages
     runs-on: ubuntu-latest
     # If the frontend hasn't been modified, skip
-    if: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages)[0] != null }}
+    if: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages)[0] != '' }}
     environment: ${{ matrix.env-name }}
     strategy:
       matrix:

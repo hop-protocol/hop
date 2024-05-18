@@ -18,7 +18,7 @@ jobs:
   publishable-packages:
     runs-on: ubuntu-latest
     outputs:
-      publishable-packages: ${{ steps.publishable-packages.outputs.modified_packages }}
+      publishable-packages: ${{ steps.publishable-packages.outputs.publishable_packages }}
     steps:
     - name: Checkout code
       uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -44,7 +44,7 @@ jobs:
         # Example: packages/hop-node,packages/v2-explorer-backend
         IFS=":"
         read -a input_packages <<< "${{ inputs.package-names }}"
-        modified_packages=""
+        publishable_packages=""
     
         for package in "${input_packages[@]}"; do
           package_path="packages/$package"
@@ -62,15 +62,19 @@ jobs:
             fi
           fi
     
-          modified_packages+="$package,"
+          publishable_packages+="$package,"
         done
     
         # Strip the trailing comma
         # Example: packages/hop-node,packages/v2-explorer-backend
-        modified_packages="${modified_packages%,}"
-        
+        publishable_packages="${publishable_packages%,}"
+
         # Convert from string with commas to array for consumption by matrix
         # Example: ["hop-node", "v2-explorer-backend"]
-        modified_packages=$(echo $modified_packages | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')
+        if [ -z "$publishable_packages" ]; then
+          publishable_packages='[""]'
+        else
+          publishable_packages=$(echo $publishable_packages | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n")[:-1]')
+        fi
 
-        echo "modified_packages=$modified_packages" >> $GITHUB_OUTPUT
+        echo "publishable_packages=$publishable_packages" >> $GITHUB_OUTPUT

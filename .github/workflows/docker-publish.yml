@@ -23,6 +23,7 @@ jobs:
   publish-docker:
     name: Publish Docker
     needs: publishable-packages
+    if: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages)[0] != '' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

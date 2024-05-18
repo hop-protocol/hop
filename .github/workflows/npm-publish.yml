@@ -2,24 +2,24 @@ name: Publish Packages to NPM
 on:
   push:
     branches:
-      - develop
+      - production
     paths:
       - 'packages/sdk/**'
 
 jobs:
-  package-updates:
-    name: Check for package updates
-    uses: ./.github/workflows/modified-packages.yml
+  publishable-packages:
+    name: Check for package that can be published
+    uses: ./.github/workflows/publishable-packages.yml
     with:
       package-names: 'sdk'
 
   publish-sdk:
     name: Publish NPM
-    needs: package-updates
+    needs: publishable-packages
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package-name: ${{ fromJson(needs.package-updates.outputs.modified-packages) }}
+        package-name: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -33,23 +33,12 @@ jobs:
         with:
           package-name: ${{ matrix.package-name }}
 
-      - name: Set Update Flag
-        id: set-update-flag
-        run: |
-          if [ "${{ steps.check-package-updates.outputs.npm-version-changed }}" == "true" ]; then
-            echo "SHOULD_CONTINUE=true" >> $GITHUB_OUTPUT
-          else
-            echo "SHOULD_CONTINUE=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Install and build package
-        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
         run: |
           pnpm --filter-prod ${{ matrix.package-name }}... install
           pnpm --filter ${{ matrix.package-name }}... build
 
       - name: Publish package
-        if: steps.set-update-flag.outputs.SHOULD_CONTINUE == 'true'
-        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch develop --access public
+        run: pnpm --filter ${{ matrix.package-name }} publish --publish-branch production --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

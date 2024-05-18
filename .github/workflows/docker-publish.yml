@@ -2,27 +2,31 @@ name: Publish Packages to Docker Hub
 on:
   push:
     branches:
-      - develop
+      - staging
+      - production
     paths:
       - 'packages/hop-node/**'
       - 'packages/v2-explorer-backend/**'
       - 'packages/api/**'
       - 'packages/explorer-backend/**'
       - 'packages/stats-worker/**'
+env:
+  DOCKER_TAG: ${{ (github.ref_name == 'production' && 'latest') || 'unstable' }}
+
 jobs:
-  package-updates:
-    name: Check for package updates
-    uses: ./.github/workflows/modified-packages.yml
+  publishable-packages:
+    name: Check for package that can be published
+    uses: ./.github/workflows/publishable-packages.yml
     with:
       package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker'
 
   publish-docker:
     name: Publish Docker
-    needs: package-updates
+    needs: publishable-packages
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package-name: ${{ fromJson(needs.package-updates.outputs.modified-packages) }}
+        package-name: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
@@ -35,12 +39,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - name: Check Package Updates
-        id: check-package-updates
-        uses: ./.github/actions/check-package-updates
-        with:
-          package-name: ${{ matrix.package-name }}
 
       - name: Set Docker Tags
         id: set-docker-tag
@@ -52,17 +50,10 @@ jobs:
             echo "IMAGE_NAME=hopprotocol/${{ matrix.package-name }}" >> $GITHUB_OUTPUT
           fi
 
-          # Set the correct version to release
-          if [ "${{ steps.check-package-updates.outputs.package-version-changed }}" == "true" ]; then
-            echo "DOCKER_TAG=latest" >> $GITHUB_OUTPUT
-          else
-            echo "DOCKER_TAG=unstable" >> $GITHUB_OUTPUT
-          fi
-
       - name: Publish Docker Image (${{ steps.set-docker-tag.outputs.DOCKER_TAG }})
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
           context: .
           file: ./packages/${{ matrix.package-name }}/Dockerfile
-          tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ steps.set-docker-tag.outputs.DOCKER_TAG }}
+          tags: ${{ steps.set-docker-tag.outputs.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
           push: true

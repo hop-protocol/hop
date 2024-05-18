@@ -57,7 +57,7 @@ jobs:
           # On the production branch, publish only if there's a version change
           if [ "${{ github.head_ref }}" == "production" ]; then
             version_changed=$(git diff HEAD^ HEAD -- "${package_path}/package.json" | grep '"version":' || true)
-            if [ "$version_changed" ]; then
+            if [ -z "$version_changed" ]; then
               continue
             fi
           fi

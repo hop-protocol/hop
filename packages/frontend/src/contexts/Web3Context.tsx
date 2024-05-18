@@ -5,8 +5,7 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useState,
-  useMemo
+  useState
 } from 'react'
 import MetaMaskLogo from 'src/assets/logos/metamask.svg'
 import WalletConnectLogo from 'src/assets/logos/walletconnect.svg'

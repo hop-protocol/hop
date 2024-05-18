@@ -23,6 +23,7 @@
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.11.0",
     "@ethersproject/abi": "5.7.0",
+    "@ethersproject/providers": "5.7.2",
     "@gnosis.pm/safe-apps-react-sdk": "4.6.2",
     "@gnosis.pm/safe-apps-sdk": "7.8.0",
     "@hop-protocol/sdk": "workspace:*",

@@ -70,122 +70,125 @@ export const Withdraw: FC = () => {
       setLoading(true)
       setError('')
       let wp: WithdrawalProof
-      await new Promise(async (resolve, reject) => {
-        try {
-          wp = new WithdrawalProof(reactAppNetwork, transferIdOrTxHash)
-          await wp.generateProof()
-          const { sourceChain } = wp.transfer
-          await txConfirm?.show({
-            kind: 'withdrawReview',
-            inputProps: {
-              source: {
-                network: sourceChain,
-              },
-              getProof: async () => {
-                return wp
-              },
-              getInfo: async (wp: WithdrawalProof) => {
-                const { sourceChain, destinationChain, token, tokenDecimals, amount } = wp.transfer
-                const formattedAmount = toTokenDisplay(amount, tokenDecimals)
-                const source = networks.find(network => network.slug === sourceChain)
-                const destination = networks.find(network => network.slug === destinationChain)
-                return {
-                  source,
-                  destination,
-                  token,
-                  amount: formattedAmount,
-                }
-              },
-              sendTx: async () => {
-                wp.checkWithdrawable()
-                const networkId = Number(wp.transfer.destinationChainId)
-                const isNetworkConnected = await checkConnectedNetworkId(networkId)
-                if (!isNetworkConnected) {
-                  throw new Error('wrong network connected')
-                }
-                const {
-                  recipient,
-                  amount,
-                  transferNonce,
-                  bonderFee,
-                  amountOutMin,
-                  deadline,
-                  transferRootHash,
-                  rootTotalAmount,
-                  transferIdTreeIndex,
-                  siblings,
-                  totalLeaves,
-                } = wp.getTxPayload()
-                const bridge = sdk.bridge(wp.transfer.token)
-                const tx = await bridge.withdraw(
-                  wp.transfer.destinationChain,
-                  recipient,
-                  amount,
-                  transferNonce,
-                  bonderFee,
-                  amountOutMin,
-                  deadline,
-                  transferRootHash,
-                  rootTotalAmount,
-                  transferIdTreeIndex,
-                  siblings,
-                  totalLeaves
-                )
-                return tx
-              },
-              onError: (err: any) => {
-                reject(err)
-              },
-            },
-            onConfirm: async () => {}, // needed to close modal
-          })
-          resolve(null)
-        } catch (err) {
-          console.error('withdraw check error', err)
-
+      await new Promise((resolve, reject) => {
+        const run = async () => {
           try {
-            const bridge = sdk.bridge('USDC')
-            const data = await bridge.getCctpWithdrawData(transferIdOrTxHash)
-            if (data) {
-              const { transactionHash, fromChain, toChain, toChainId, nonceUsed } = data
-              if (nonceUsed) {
-                reject(new Error('The withdrawal for this transfer has already been processed'))
-                return
-              }
-              await txConfirm?.show({
-                kind: 'withdrawReview',
-                inputProps: {
-                  source: {
-                    network: fromChain,
-                  },
-                  getProof: async () => {
-                    return null
-                  },
-                  getInfo: async () => {
-                    return null
-                  },
-                  sendTx: async () => {
-                    const networkId = Number(toChainId)
-                    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-                    if (!isNetworkConnected) {
-                      throw new Error('wrong network connected')
-                    }
-                    const tx = await bridge.cctpWithdraw(fromChain, toChain, transactionHash)
-                    return tx
-                  },
-                  onError: (err: any) => {
-                    reject(err)
-                  },
+            wp = new WithdrawalProof(reactAppNetwork, transferIdOrTxHash)
+            await wp.generateProof()
+            const { sourceChain } = wp.transfer
+            await txConfirm?.show({
+              kind: 'withdrawReview',
+              inputProps: {
+                source: {
+                  network: sourceChain,
                 },
-                onConfirm: async () => {}, // needed to close modal
-              })
-            }
-          } catch (err: any) {
-            console.error('withdraw check error cctp', error)
-          }
+                getProof: async () => {
+                  return wp
+                },
+                getInfo: async (wp: WithdrawalProof) => {
+                  const { sourceChain, destinationChain, token, tokenDecimals, amount } = wp.transfer
+                  const formattedAmount = toTokenDisplay(amount, tokenDecimals)
+                  const source = networks.find(network => network.slug === sourceChain)
+                  const destination = networks.find(network => network.slug === destinationChain)
+                  return {
+                    source,
+                    destination,
+                    token,
+                    amount: formattedAmount,
+                  }
+                },
+                sendTx: async () => {
+                  wp.checkWithdrawable()
+                  const networkId = Number(wp.transfer.destinationChainId)
+                  const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                  if (!isNetworkConnected) {
+                    throw new Error('wrong network connected')
+                  }
+                  const {
+                    recipient,
+                    amount,
+                    transferNonce,
+                    bonderFee,
+                    amountOutMin,
+                    deadline,
+                    transferRootHash,
+                    rootTotalAmount,
+                    transferIdTreeIndex,
+                    siblings,
+                    totalLeaves,
+                  } = wp.getTxPayload()
+                  const bridge = sdk.bridge(wp.transfer.token)
+                  const tx = await bridge.withdraw(
+                    wp.transfer.destinationChain,
+                    recipient,
+                    amount,
+                    transferNonce,
+                    bonderFee,
+                    amountOutMin,
+                    deadline,
+                    transferRootHash,
+                    rootTotalAmount,
+                    transferIdTreeIndex,
+                    siblings,
+                    totalLeaves
+                  )
+                  return tx
+                },
+                onError: (err: any) => {
+                  reject(err)
+                },
+              },
+              onConfirm: async () => {}, // needed to close modal
+            })
+            resolve(null)
+          } catch (err) {
+            console.error('withdraw check error', err)
 
-          reject(err)
+            try {
+              const bridge = sdk.bridge('USDC')
+              const data = await bridge.getCctpWithdrawData(transferIdOrTxHash)
+              if (data) {
+                const { transactionHash, fromChain, toChain, toChainId, nonceUsed } = data
+                if (nonceUsed) {
+                  reject(new Error('The withdrawal for this transfer has already been processed'))
+                  return
+                }
+                await txConfirm?.show({
+                  kind: 'withdrawReview',
+                  inputProps: {
+                    source: {
+                      network: fromChain,
+                    },
+                    getProof: async () => {
+                      return null
+                    },
+                    getInfo: async () => {
+                      return null
+                    },
+                    sendTx: async () => {
+                      const networkId = Number(toChainId)
+                      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                      if (!isNetworkConnected) {
+                        throw new Error('wrong network connected')
+                      }
+                      const tx = await bridge.cctpWithdraw(fromChain, toChain, transactionHash)
+                      return tx
+                    },
+                    onError: (err: any) => {
+                      reject(err)
+                    },
+                  },
+                  onConfirm: async () => {}, // needed to close modal
+                })
+              }
+            } catch (err: any) {
+              console.error('withdraw check error cctp', error)
+            }
+
+            reject(err)
+          }
         }
+        run().catch(reject)
       })
     } catch (err: any) {
       console.error(err)

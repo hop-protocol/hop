@@ -1,5 +1,5 @@
 /// <reference types="vite-plugin-svgr/client" />
-import Bolt from '../../../assets/bolt.svg?react'
+import Bolt from '../../../assets/bolt.svg?react' // eslint-disable-line n/no-missing-import
 import Box from '@mui/material/Box'
 import React, { ChangeEvent } from 'react'
 import Tab from '@mui/material/Tab'

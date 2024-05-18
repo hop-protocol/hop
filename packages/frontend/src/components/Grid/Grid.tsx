@@ -1,4 +1,4 @@
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { ComposedStyleProps, composedStyleFns } from '#utils/index.js'
 
 export const GridContainer = styled.div<ComposedStyleProps>`

@@ -21,7 +21,7 @@ jobs:
       package-names: 'hop-node:v2-explorer-backend:api:explorer-backend:stats-worker'
 
   publish-docker:
-    name: Publish Docker (${{ env.DOCKER_TAG }})
+    name: Publish Docker
     needs: publishable-packages
     if: ${{ fromJson(needs.publishable-packages.outputs.publishable-packages)[0] != '' }}
     runs-on: ubuntu-latest

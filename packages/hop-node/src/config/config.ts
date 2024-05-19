@@ -9,7 +9,6 @@ import {
 } from '@hop-protocol/hop-node-core'
 import { CoreEnvironment } from '@hop-protocol/hop-node-core'
 import { DefaultBondThreshold } from '#constants/index.js'
-// import { type Networks, networks as coreNetworks } from '@hop-protocol/sdk/networks'
 import { utils } from 'ethers'
 import type { Bps } from '@hop-protocol/sdk'
 import type {

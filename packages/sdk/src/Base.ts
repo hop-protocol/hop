@@ -399,7 +399,7 @@ export class Base {
   }
 
   // all chains supported.
-  // this may be overriden by child class to make it asset specific.
+  // this may be overridden by child class to make it asset specific.
   get supportedChains (): string[] {
     return this.configChains
   }

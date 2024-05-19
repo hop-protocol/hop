@@ -41,7 +41,7 @@
     "express-rate-limit": "7.2.0",
     "isomorphic-fetch": "3.0.0",
     "lodash": "4.17.21",
-    "luxon": "2.4.0",
+    "luxon": "2.5.2",
     "memory-cache": "0.2.0",
     "minimist": "1.2.6",
     "pg-promise": "10.11.1",

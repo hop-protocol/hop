@@ -1,7 +1,7 @@
 import {
   ChainSlug,
   NetworkSlug,
-} from '@hop-protocol/sdk-core'
+} from '#chains/index.js'
 import { HToken } from '#networks/index.js'
 
 export { NetworkSlug, ChainSlug, HToken }

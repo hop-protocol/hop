@@ -9,19 +9,24 @@ import {
   type Chain,
   ChainSlug,
   NetworkSlug,
-  fetchJsonOrThrow,
   getMinGasLimit,
   getMinGasPrice,
   getChain,
   getChains,
-  getToken,
+  isValidNetworkSlug,
+  isValidChainSlug,
+} from '#chains/index.js'
+import {
+  // utils
+  fetchJsonOrThrow,
   getUrlFromProvider,
   promiseTimeout,
   rateLimitRetry,
-  isValidChainSlug,
-  isValidNetworkSlug,
+} from '#utils/index.js'
+import {
+  getToken,
   isValidTokenSymbol
-} from '@hop-protocol/sdk-core'
+} from '#tokens/index.js'
 import { L1_OptimismTokenBridge } from './contracts/index.js'
 import { L1_OptimismTokenBridge__factory } from './contracts/index.js'
 import { L1_PolygonPosRootChainManager } from './contracts/index.js'

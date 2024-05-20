@@ -4,9 +4,10 @@ import { BigNumber, Wallet, constants, providers, utils } from 'ethers'
 import { Hop } from '#index.js'
 import { addresses } from '#addresses/index.js'
 import { Swap__factory } from '#contracts/index.js'
-import { FallbackProvider, promiseQueue, fetchJsonOrThrow } from '@hop-protocol/sdk-core'
+import { FallbackProvider } from '#provider/index.js'
+import { promiseQueue, fetchJsonOrThrow } from '#utils/index.js'
 import { TokenModel } from '#models/index.js'
-import { ChainSlug, getSlugFromChainId, getChain } from '@hop-protocol/sdk-core'
+import { ChainSlug, getSlugFromChainId, getChain } from '#chains/index.js'
 // @ts-ignore
 import pkg from '../package.json'
 

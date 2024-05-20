@@ -1,6 +1,6 @@
 import { ArbitrumRelayerFee } from './ArbitrumRelayerFee.js'
 import { BigNumber } from 'ethers'
-import { ChainSlug } from '@hop-protocol/sdk-core'
+import { ChainSlug } from '#chains/index.js'
 import { IRelayerFee } from './IRelayerFee.js'
 import { LineaRelayerFee } from './LineaRelayerFee.js'
 import { PolygonZkRelayerFee } from './PolygonZkRelayerFee.js'

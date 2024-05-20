@@ -10,7 +10,7 @@ import {
 } from '../../../Chains/optimism/OptimismAddresses.js'
 import { RLP } from '@ethereumjs/rlp'
 import { TransactionFactory } from '@ethereumjs/tx'
-import type { NetworkSlug } from '@hop-protocol/sdk/networks'
+import type { NetworkSlug } from '@hop-protocol/sdk/chains'
 import type { providers } from 'ethers'
 import { ChainSlug } from '@hop-protocol/sdk'
 

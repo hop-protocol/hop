@@ -2,7 +2,7 @@ import {
   TokenSymbol,
   getTokenDecimals,
   isValidTokenSymbol
-} from '@hop-protocol/sdk-core'
+} from '#tokens/index.js'
 import { utils } from 'ethers'
 
 export class TokenModel {
